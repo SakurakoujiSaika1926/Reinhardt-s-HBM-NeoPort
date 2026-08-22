@@ -24,7 +24,7 @@ build
 .vscode
 run-gametest
 run-server
-local-deps/reinhardtshbm-*.jar
+local-deps
 *.log
 
 # runtime
