@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:hydrotreating",
+  "group": "hydrotreating.diesel_crack_reform",
+  "input": { "fluid": "diesel_crack_reform", "amount": 100 },
+  "hydrogen": { "fluid": "hydrogen", "amount": 10, "pressure": 1 },
+  "output1": { "fluid": "diesel_reform", "amount": 80 },
+  "output2": { "fluid": "sourgas", "amount": 30 },
+  "power": 20000
+}

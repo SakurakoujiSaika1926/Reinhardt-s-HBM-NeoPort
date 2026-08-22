@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_copper"
+                 },
+    "input":  {
+                  "item":  "reinhardtshbm:powder_niobium"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_caesium"
+               },
+    "antimatter":  15
+}
+

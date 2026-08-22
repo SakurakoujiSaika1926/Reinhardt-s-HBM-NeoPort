@@ -1,0 +1,40 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.osmiridiumdeath",
+  "duration": 240,
+  "power": 1000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_paleogenite"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/fluorite"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:nugget_bismuth"
+      },
+      "count": 4
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "peroxide",
+      "amount": 1000,
+      "pressure": 5
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "death",
+      "amount": 1000
+    }
+  ]
+}

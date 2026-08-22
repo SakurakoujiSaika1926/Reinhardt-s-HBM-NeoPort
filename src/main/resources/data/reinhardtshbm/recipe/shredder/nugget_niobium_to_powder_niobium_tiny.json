@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:nugget_niobium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_niobium_tiny"
+               }
+}

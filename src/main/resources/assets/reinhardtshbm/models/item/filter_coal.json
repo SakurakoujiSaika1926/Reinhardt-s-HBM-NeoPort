@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/filter_coal"
+                 },
+    "parent":  "minecraft:item/generated"
+}

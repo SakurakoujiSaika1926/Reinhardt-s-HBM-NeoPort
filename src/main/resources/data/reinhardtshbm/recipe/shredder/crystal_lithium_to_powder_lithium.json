@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_lithium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_lithium",
+                   "count":  3
+               }
+}

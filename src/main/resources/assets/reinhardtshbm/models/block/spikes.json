@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/spikes"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

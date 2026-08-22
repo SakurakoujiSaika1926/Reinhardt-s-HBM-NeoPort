@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:rod_zirnox_empty" },
+    { "item": "reinhardtshbm:billet_u233" },
+    { "item": "reinhardtshbm:billet_u233" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_zirnox",
+    "components": {
+      "minecraft:custom_data": { "variant": "u233_fuel" },
+      "minecraft:custom_model_data": 6
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:powder_lanthanium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_lanthanium"
+               },
+    "experience":  1,
+    "cookingtime":  200
+}

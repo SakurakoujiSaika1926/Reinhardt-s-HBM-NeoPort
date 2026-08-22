@@ -1,0 +1,12 @@
+﻿{
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/fusion_component" },
+    "variant=1": { "model": "reinhardtshbm:block/fusion_component_bscco_welded" },
+    "variant=2": { "model": "reinhardtshbm:block/fusion_component_blanket" },
+    "variant=3": { "model": "reinhardtshbm:block/fusion_component_motor" },
+    "variant=4": { "model": "reinhardtshbm:block/fusion_component" },
+    "variant=5": { "model": "reinhardtshbm:block/fusion_component" },
+    "variant=6": { "model": "reinhardtshbm:block/fusion_component" },
+    "variant=7": { "model": "reinhardtshbm:block/fusion_component" }
+  }
+}

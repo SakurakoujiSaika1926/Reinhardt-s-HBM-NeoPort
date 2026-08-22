@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "reinhardtshbm:block/machine_icf_press_side",
+    "down": "reinhardtshbm:block/machine_icf_press_top",
+    "up": "reinhardtshbm:block/machine_icf_press_top",
+    "north": "reinhardtshbm:block/machine_icf_press_side",
+    "south": "reinhardtshbm:block/machine_icf_press_side",
+    "west": "reinhardtshbm:block/machine_icf_press_side",
+    "east": "reinhardtshbm:block/machine_icf_press_side"
+  }
+}

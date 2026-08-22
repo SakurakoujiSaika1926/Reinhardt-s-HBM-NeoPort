@@ -1,0 +1,5 @@
+{
+  "type": "reinhardtshbm:blast_furnace_fuel",
+  "ingredient": { "item": "minecraft:coal_block" },
+  "power": 2000
+}

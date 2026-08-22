@@ -1,0 +1,37 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "primary",
+                                                                        "type":  "light"
+                                                                    }
+                                      }
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "material_id":  2600,
+                                                                         "material":  "iron"
+                                                                     }
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "material_id":  2900,
+                                                                         "material":  "copper"
+                                                                     }
+                                       }
+                    }
+                ]
+}

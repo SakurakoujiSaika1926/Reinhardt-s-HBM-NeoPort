@@ -1,0 +1,42 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.tel",
+  "duration": 40,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:tars"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/lead"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "petroleum",
+      "amount": 100
+    },
+    {
+      "fluid": "steam",
+      "amount": 1000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:fuel_additive",
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "antiknock"
+        },
+        "minecraft:custom_model_data": 0
+      }
+    }
+  ],
+  "output_fluids": []
+}

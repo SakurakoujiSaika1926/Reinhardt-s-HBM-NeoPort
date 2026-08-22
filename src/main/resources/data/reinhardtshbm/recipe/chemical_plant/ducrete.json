@@ -1,0 +1,39 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.ducrete",
+  "duration": 150,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_cement"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/ferrouranium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:sand"
+      },
+      "count": 8
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 2000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ducrete_smooth",
+      "count": 8
+    }
+  ],
+  "output_fluids": []
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/attachment_mask_mono"
+                 },
+    "parent":  "minecraft:item/generated"
+}

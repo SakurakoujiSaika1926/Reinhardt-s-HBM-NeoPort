@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.heatingoil_vacuum",
+    "input":  {
+                  "fluid":  "heatingoil_vacuum",
+                  "amount":  1300
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

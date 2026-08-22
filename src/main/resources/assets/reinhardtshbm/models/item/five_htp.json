@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/five_htp"
+                 },
+    "parent":  "minecraft:item/generated"
+}

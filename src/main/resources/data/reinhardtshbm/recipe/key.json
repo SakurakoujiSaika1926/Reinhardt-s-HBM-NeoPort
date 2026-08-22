@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "  B",
+    " B ",
+    "P  "
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "B": {
+      "tag": "c:bolts/steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:key"
+  }
+}

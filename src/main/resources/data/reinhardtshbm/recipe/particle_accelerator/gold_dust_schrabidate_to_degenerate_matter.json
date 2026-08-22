@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:particle_accelerator",
+  "input1": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:item_expensive"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "gold_dust"
+      }
+    }
+  },
+  "input2": {
+    "tag": "c:ingots/schrabidate"
+  },
+  "momentum": 10000,
+  "output1": {
+    "id": "reinhardtshbm:item_expensive",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "degenerate_matter"
+      },
+      "minecraft:custom_model_data": 9
+    }
+  }
+}

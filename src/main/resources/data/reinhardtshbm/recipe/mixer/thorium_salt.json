@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.thorium_salt",
+    "output":  {
+                   "fluid":  "thorium_salt",
+                   "amount":  1000
+               },
+    "duration":  30,
+    "input1":  {
+                   "fluid":  "chlorine",
+                   "amount":  1000
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/th232"
+                                       },
+                        "count":  1
+                    }
+}

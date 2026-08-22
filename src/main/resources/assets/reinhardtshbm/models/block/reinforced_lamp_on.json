@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/reinforced_lamp_on"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

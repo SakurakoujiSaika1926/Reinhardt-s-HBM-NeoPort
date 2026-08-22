@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/ore_slopper_parts/blades_right.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/ore_slopper.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/ore_slopper"
+  }
+}

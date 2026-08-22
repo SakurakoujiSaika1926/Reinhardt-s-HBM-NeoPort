@@ -1,0 +1,15 @@
+newmtl howard_rusted
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/rusted/howard
+
+newmtl carriage_ciws_rusted
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/rusted/carriage_ciws
+
+newmtl howard_barrels_rusted
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/rusted/howard_barrels
+

@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:blasting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:raw_schrabidium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_schrabidium"
+               },
+    "experience":  128,
+    "cookingtime":  100
+}

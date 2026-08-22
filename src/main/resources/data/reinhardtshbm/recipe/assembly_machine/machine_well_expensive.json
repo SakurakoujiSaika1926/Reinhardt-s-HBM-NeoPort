@@ -1,0 +1,48 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "reinhardtshbm:enable_528_mode"
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.derrick",
+    "duration":  200,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:item_expensive"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "steel_plating"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  2
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:pipes/steel"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor"
+                                           },
+                            "count":  3
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:drill_titanium"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_well"
+               }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/medal_liquidator"
+                 },
+    "parent":  "minecraft:item/generated"
+}

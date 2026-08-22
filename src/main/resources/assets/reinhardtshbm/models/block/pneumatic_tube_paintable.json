@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/pneumatic_tube_paintable"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.water",
+  "ingredient": {
+    "item": "minecraft:ice"
+  },
+  "output": {
+    "fluid": "water",
+    "amount": 1000
+  }
+}

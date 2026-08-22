@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "reinhardtshbm:block/waste_earth_bottom",
+    "side": "reinhardtshbm:block/waste_grass_side",
+    "top": "reinhardtshbm:block/waste_grass_top"
+  }
+}

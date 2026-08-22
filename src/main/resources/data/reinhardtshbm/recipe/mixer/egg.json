@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.egg",
+    "output":  {
+                   "fluid":  "egg",
+                   "amount":  1000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "radiosolvent",
+                   "amount":  500
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "item":  "minecraft:egg"
+                                       },
+                        "count":  1
+                    }
+}

@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone_double" },
+    "variant=1": { "model": "reinhardtshbm:block/brick_slab_reinforced_brick_double" },
+    "variant=2": { "model": "reinhardtshbm:block/brick_slab_brick_obsidian_double" },
+    "variant=3": { "model": "reinhardtshbm:block/brick_slab_brick_light_double" },
+    "variant=4": { "model": "reinhardtshbm:block/brick_slab_brick_compound_double" },
+    "variant=5": { "model": "reinhardtshbm:block/brick_slab_brick_asbestos_double" },
+    "variant=6": { "model": "reinhardtshbm:block/brick_slab_brick_fire_double" },
+    "variant=7": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone_double" }
+  }
+}

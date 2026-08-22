@@ -1,0 +1,10 @@
+﻿{
+  "variants": {
+    "facing=down": { "model": "reinhardtshbm:block/red_pylon_medium_wood_empty" },
+    "facing=up": { "model": "reinhardtshbm:block/red_pylon_medium_wood_empty" },
+    "facing=north": { "model": "reinhardtshbm:block/red_pylon_medium_wood_empty" },
+    "facing=south": { "model": "reinhardtshbm:block/red_pylon_medium_wood_empty" },
+    "facing=west": { "model": "reinhardtshbm:block/red_pylon_medium_wood_empty" },
+    "facing=east": { "model": "reinhardtshbm:block/red_pylon_medium_wood_empty" }
+  }
+}

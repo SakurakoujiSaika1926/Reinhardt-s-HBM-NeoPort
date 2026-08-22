@@ -1,0 +1,45 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.solidifier",
+  "blueprint_pools": [
+    "528.plastic"
+  ],
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "heavy_frame"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_solidifier"
+  }
+}

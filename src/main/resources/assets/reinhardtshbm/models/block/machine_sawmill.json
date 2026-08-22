@@ -1,0 +1,15 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/sawmill.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/sawmill.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "Main": false,
+    "Blade": false,
+    "GearLeft": false,
+    "GearRight": false
+  },
+  "textures": { "particle": "reinhardtshbm:models/machines/sawmill" }
+}

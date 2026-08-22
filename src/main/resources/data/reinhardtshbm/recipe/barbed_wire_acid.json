@@ -1,0 +1,24 @@
+﻿{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB",
+    "BIB",
+    "BBB"
+  ],
+  "key": {
+    "B": { "item": "reinhardtshbm:barbed_wire" },
+    "I": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:fluid_tank_full"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "fluid": "peroxide"
+        }
+      }
+    }
+  },
+  "result": { "id": "reinhardtshbm:barbed_wire_acid", "count": 8 }
+}

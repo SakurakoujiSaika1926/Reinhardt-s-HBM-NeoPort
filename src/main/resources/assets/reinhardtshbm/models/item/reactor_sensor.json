@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/reactor_sensor"
+                 },
+    "parent":  "minecraft:item/generated"
+}

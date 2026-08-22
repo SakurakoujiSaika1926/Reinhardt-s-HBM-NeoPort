@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.lubricant",
+    "output":  {
+                   "fluid":  "lubricant",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "heatingoil",
+                   "amount":  500
+               },
+    "input2":  {
+                   "fluid":  "unsaturateds",
+                   "amount":  500
+               }
+}

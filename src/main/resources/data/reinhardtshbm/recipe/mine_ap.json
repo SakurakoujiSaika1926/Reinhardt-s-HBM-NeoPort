@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["I", "C", "S"],
+  "key": {
+    "I": { "item": "reinhardtshbm:plate_polymer" },
+    "C": { "tag": "c:dusts/smokeless" },
+    "S": { "tag": "c:ingots/steel" }
+  },
+  "result": { "id": "reinhardtshbm:mine_ap", "count": 4 }
+}

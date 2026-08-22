@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/armor_battery"
+                 },
+    "parent":  "minecraft:item/generated"
+}

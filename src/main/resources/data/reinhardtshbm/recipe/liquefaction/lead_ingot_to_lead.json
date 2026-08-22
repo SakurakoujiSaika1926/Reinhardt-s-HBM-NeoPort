@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.lead",
+  "ingredient": {
+    "tag": "c:ingots/lead"
+  },
+  "output": {
+    "fluid": "lead",
+    "amount": 100
+  }
+}

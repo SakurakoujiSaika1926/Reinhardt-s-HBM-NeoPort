@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/waste_mox"
+                 },
+    "parent":  "minecraft:item/generated"
+}

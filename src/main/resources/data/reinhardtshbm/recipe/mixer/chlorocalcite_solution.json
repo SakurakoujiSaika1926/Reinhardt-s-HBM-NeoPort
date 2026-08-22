@@ -1,0 +1,23 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.chlorocalcite_solution",
+    "output":  {
+                   "fluid":  "chlorocalcite_solution",
+                   "amount":  500
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "water",
+                   "amount":  250
+               },
+    "input2":  {
+                   "fluid":  "nitric_acid",
+                   "amount":  250
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/chlorocalcite"
+                                       },
+                        "count":  1
+                    }
+}

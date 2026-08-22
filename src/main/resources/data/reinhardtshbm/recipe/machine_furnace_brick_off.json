@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["III", "I I", "SSS"],
+  "key": {
+    "I": {"item": "minecraft:brick"},
+    "S": {"item": "minecraft:stone"}
+  },
+  "result": {"id": "reinhardtshbm:machine_furnace_brick_off", "count": 1}
+}

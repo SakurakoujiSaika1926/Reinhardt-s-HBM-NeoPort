@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "reinhardtshbm:block/waste_log"
+    },
+    "axis=z": {
+      "model": "reinhardtshbm:block/waste_log",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "reinhardtshbm:block/waste_log",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/custom_tnt"
+                 },
+    "parent":  "minecraft:item/generated"
+}

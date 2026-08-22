@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_niter"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:niter",
+                   "count":  8
+               }
+}

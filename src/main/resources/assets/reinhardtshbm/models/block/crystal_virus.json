@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/crystal_virus"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

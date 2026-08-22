@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:sulfur"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:block_sulfur"
+  }
+}

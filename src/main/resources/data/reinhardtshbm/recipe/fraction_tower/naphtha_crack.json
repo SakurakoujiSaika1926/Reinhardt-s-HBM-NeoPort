@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.naphtha_crack",
+  "input": { "fluid": "naphtha_crack", "amount": 100 },
+  "output1": { "fluid": "heatingoil", "amount": 30 },
+  "output2": { "fluid": "diesel_crack", "amount": 70 }
+}

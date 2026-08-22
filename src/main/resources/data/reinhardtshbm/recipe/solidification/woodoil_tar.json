@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.woodoil",
+    "input":  {
+                  "fluid":  "woodoil",
+                  "amount":  1000
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:oil_tar",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "wood"
+                                                                },
+                                      "minecraft:custom_model_data":  3
+                                  }
+               }
+}

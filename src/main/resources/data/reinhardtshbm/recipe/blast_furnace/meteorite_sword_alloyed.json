@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "item": "reinhardtshbm:meteorite_sword_hardened" },
+  "input_b": { "tag": "reinhardtshbm:blast_furnace/cobalt_equivalent" },
+  "result": { "id": "reinhardtshbm:meteorite_sword_alloyed" },
+  "hidden": true
+}

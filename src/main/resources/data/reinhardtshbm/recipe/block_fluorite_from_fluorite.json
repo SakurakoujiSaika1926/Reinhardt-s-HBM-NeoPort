@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:fluorite"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:block_fluorite"
+  }
+}

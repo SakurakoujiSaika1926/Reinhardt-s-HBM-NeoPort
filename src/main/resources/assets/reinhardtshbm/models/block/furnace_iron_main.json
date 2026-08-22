@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/furnace_iron",
+  "visibility": {
+    "On": false,
+    "Off": false
+  }
+}

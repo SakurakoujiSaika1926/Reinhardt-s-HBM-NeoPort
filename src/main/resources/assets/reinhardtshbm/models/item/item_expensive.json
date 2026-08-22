@@ -1,0 +1,59 @@
+{
+  "parent": "reinhardtshbm:item/item_expensive_steel_plating",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:item/item_expensive_heavy_frame"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "reinhardtshbm:item/item_expensive_circuit"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "reinhardtshbm:item/item_expensive_lead_plating"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "reinhardtshbm:item/item_expensive_ferro_plating"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "reinhardtshbm:item/item_expensive_computer"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "reinhardtshbm:item/item_expensive_bronze_tubes"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 7
+      },
+      "model": "reinhardtshbm:item/item_expensive_plastic"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 8
+      },
+      "model": "reinhardtshbm:item/item_expensive_gold_dust"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9
+      },
+      "model": "reinhardtshbm:item/item_expensive_degenerate_matter"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.lightoil_ds",
+  "input": { "fluid": "lightoil_ds", "amount": 100 },
+  "output1": { "fluid": "diesel_reform", "amount": 60 },
+  "output2": { "fluid": "kerosene_reform", "amount": 40 }
+}

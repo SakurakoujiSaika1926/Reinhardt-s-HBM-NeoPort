@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    "GRG",
+    " G "
+  ],
+  "key": {
+    "G": {
+      "item": "reinhardtshbm:block_graphite"
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_blank"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_moderator"
+  }
+}

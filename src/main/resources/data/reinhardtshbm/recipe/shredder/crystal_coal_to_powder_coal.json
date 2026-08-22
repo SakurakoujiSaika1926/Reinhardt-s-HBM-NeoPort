@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_coal"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_coal",
+                   "count":  3
+               }
+}

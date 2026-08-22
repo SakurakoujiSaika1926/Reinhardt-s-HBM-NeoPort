@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:nuggets/silicon"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:billet_silicon"
+  }
+}

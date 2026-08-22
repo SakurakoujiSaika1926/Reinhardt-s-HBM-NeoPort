@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missile_parts",
+    "duration":  200,
+    "consumption":  5000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/dura_steel"
+                                      },
+                       "count":  10
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:motor"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/tungsten_carbide"
+                                      },
+                       "count":  12
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:thruster_large",
+                   "count":  1
+               }
+}

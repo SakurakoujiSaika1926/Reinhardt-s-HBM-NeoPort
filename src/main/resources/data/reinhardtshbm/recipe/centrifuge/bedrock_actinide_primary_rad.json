@@ -1,0 +1,63 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "primary_rad",
+                                                                        "type":  "actinide"
+                                                                    }
+                                      }
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "count":  2,
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "primary_norad",
+                                                                         "type":  "actinide"
+                                                                     },
+                                           "minecraft:custom_model_data":  63
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "count":  2,
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "sulfuric_byproduct",
+                                                                         "type":  "actinide"
+                                                                     },
+                                           "minecraft:custom_model_data":  87
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "count":  2,
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "solvent_byproduct",
+                                                                         "type":  "actinide"
+                                                                     },
+                                           "minecraft:custom_model_data":  111
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "count":  2,
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "rad_byproduct",
+                                                                         "type":  "actinide"
+                                                                     },
+                                           "minecraft:custom_model_data":  135
+                                       }
+                    }
+                ]
+}

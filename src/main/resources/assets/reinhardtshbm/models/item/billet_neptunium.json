@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/billet_neptunium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

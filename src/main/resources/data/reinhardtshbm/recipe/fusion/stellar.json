@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:fusion",
+  "group": "fus.stellar",
+  "ignition_temp": 10000000,
+  "output_temp": 50000000,
+  "neutron_flux": 10000.0,
+  "power": 25000,
+  "duration": 100,
+  "r": 1.0,
+  "g": 0.4,
+  "b": 0.1,
+  "icon": {
+    "id": "reinhardtshbm:fluid_icon",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "stellar_flux"
+      }
+    }
+  },
+  "input_fluids": [
+    {
+      "fluid": "stellar_flux",
+      "amount": 10
+    }
+  ],
+  "output_item": {
+    "id": "reinhardtshbm:powder_gold",
+    "count": 1
+  }
+}

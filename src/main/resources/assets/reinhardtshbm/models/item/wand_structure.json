@@ -1,0 +1,11 @@
+{
+  "parent": "reinhardtshbm:block/wand_structure_save",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:block/wand_structure_load"
+    }
+  ]
+}

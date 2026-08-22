@@ -1,0 +1,23 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "D",
+                    "C",
+                    "P"
+                ],
+    "key":  {
+                "D":  {
+                          "tag":  "c:dyes"
+                      },
+                "C":  {
+                          "item":  "reinhardtshbm:circuit_analog"
+                      },
+                "P":  {
+                          "tag":  "c:plates/iron"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:fluid_identifier_multi"
+               }
+}

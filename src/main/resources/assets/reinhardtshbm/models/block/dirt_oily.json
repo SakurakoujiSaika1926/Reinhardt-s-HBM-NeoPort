@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/dirt_oily"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

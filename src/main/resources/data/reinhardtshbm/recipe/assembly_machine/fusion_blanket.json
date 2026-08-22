@@ -1,0 +1,63 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "reinhardtshbm:enable_528_mode"
+                                              }
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.fusionblanket",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_welded"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  7400,
+                                                                                                "material":  "tungsten"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_welded"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  30,
+                                                                                                "material":  "steel"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  2
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/beryllium"
+                                           },
+                            "count":  4
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:fusion_component",
+                   "count":  4,
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "blanket"
+                                                                },
+                                      "minecraft:custom_model_data":  2
+                                  }
+               }
+}
+

@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.lava",
+  "ingredient": {
+    "item": "minecraft:netherrack"
+  },
+  "output": {
+    "fluid": "lava",
+    "amount": 250
+  }
+}

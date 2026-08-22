@@ -1,0 +1,27 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.coalgas_leaded",
+    "output":  {
+                   "fluid":  "coalgas_leaded",
+                   "amount":  12000
+               },
+    "duration":  40,
+    "input1":  {
+                   "fluid":  "coalgas",
+                   "amount":  10000
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "type":  "neoforge:components",
+                                           "items":  [
+                                                         "reinhardtshbm:fuel_additive"
+                                                     ],
+                                           "components":  {
+                                                              "minecraft:custom_data":  {
+                                                                                            "variant":  "antiknock"
+                                                                                        }
+                                                          }
+                                       },
+                        "count":  1
+                    }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.schrabidate",
+  "duration": 150,
+  "power": 5000,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/iron"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "schrabidic",
+      "amount": 250
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:powder_schrabidate"
+    }
+  ],
+  "output_fluids": []
+}

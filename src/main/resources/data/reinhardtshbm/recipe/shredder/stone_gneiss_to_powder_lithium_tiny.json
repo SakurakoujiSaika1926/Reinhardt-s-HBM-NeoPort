@@ -1,0 +1,5 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": { "item": "reinhardtshbm:stone_gneiss" },
+  "result": { "id": "reinhardtshbm:powder_lithium_tiny", "count": 1 }
+}

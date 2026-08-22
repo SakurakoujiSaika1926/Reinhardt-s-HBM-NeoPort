@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/machine_tower_small" },
+    "facing=east": { "model": "reinhardtshbm:block/machine_tower_small" },
+    "facing=south": { "model": "reinhardtshbm:block/machine_tower_small" },
+    "facing=west": { "model": "reinhardtshbm:block/machine_tower_small" }
+  }
+}

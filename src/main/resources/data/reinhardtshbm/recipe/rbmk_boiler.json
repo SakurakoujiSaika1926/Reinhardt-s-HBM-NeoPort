@@ -1,0 +1,40 @@
+﻿{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CPC",
+    "CRC",
+    "CPC"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:pipes/copper"
+    },
+    "P": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 2900,
+          "material": "copper"
+        }
+      }
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_blank"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_boiler"
+  }
+}

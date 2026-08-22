@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:particle_accelerator",
+  "input1": {
+    "item": "reinhardtshbm:particle_hydrogen"
+  },
+  "input2": {
+    "item": "reinhardtshbm:particle_copper"
+  },
+  "momentum": 300,
+  "output1": {
+    "id": "reinhardtshbm:particle_amat"
+  }
+}

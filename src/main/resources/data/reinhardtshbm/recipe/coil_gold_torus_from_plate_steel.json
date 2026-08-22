@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    " C ",
+                    "CPC",
+                    " C "
+                ],
+    "key":  {
+                "C":  {
+                          "item":  "reinhardtshbm:coil_gold"
+                      },
+                "P":  {
+                          "tag":  "c:plates/steel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:coil_gold_torus",
+                   "count":  2
+               }
+}

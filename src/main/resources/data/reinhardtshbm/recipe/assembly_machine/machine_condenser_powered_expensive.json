@@ -1,0 +1,48 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.hpcondenser",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "ferro_plating"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 5
+    },
+    {
+      "ingredient": {
+        "tag": "c:pipes/steel"
+      },
+      "count": 24
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "lubricant",
+      "amount": 16000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_condenser_powered"
+  }
+}

@@ -1,0 +1,15 @@
+﻿{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BCB",
+    "CIC",
+    "BCB"
+  ],
+  "key": {
+    "B": { "item": "reinhardtshbm:barbed_wire" },
+    "C": { "item": "reinhardtshbm:powder_yellowcake" },
+    "I": { "item": "reinhardtshbm:nuclear_waste" }
+  },
+  "result": { "id": "reinhardtshbm:barbed_wire_ultradeath", "count": 4 }
+}

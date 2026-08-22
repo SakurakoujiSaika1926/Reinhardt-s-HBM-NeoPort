@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/piston_set_steel"
+  },
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 0 }, "model": "reinhardtshbm:item/piston_set_steel" },
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:item/piston_set_dura" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:item/piston_set_desh" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:item/piston_set_starmetal" }
+  ]
+}

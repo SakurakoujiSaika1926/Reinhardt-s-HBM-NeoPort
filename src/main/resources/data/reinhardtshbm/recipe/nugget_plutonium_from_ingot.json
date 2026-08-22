@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/plutonium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:nugget_plutonium",
+                   "count":  9
+               }
+}

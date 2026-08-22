@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:block_fallout"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:falloutitem",
+    "count": 9
+  }
+}

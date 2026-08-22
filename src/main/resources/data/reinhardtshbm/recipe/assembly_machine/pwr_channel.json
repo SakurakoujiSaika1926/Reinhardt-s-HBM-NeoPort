@@ -1,0 +1,12 @@
+{
+  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pwrchannel",
+  "duration": 200,
+  "power": 500,
+  "ingredients": [
+    { "ingredient": { "tag": "c:pipes/steel" }, "count": 4 },
+    { "ingredient": { "tag": "c:plates/copper" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:pwr_channel", "count": 4 }
+}

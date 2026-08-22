@@ -1,0 +1,7 @@
+{
+    "replace":  false,
+    "values":  [
+                   "reinhardtshbm:ore_lead",
+                   "reinhardtshbm:ore_deepslate_lead"
+               ]
+}

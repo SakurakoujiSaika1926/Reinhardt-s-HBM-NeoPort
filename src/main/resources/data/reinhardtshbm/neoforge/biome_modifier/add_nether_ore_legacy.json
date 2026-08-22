@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_nether",
+  "features": "reinhardtshbm:nether_ore_legacy",
+  "step": "underground_ores"
+}

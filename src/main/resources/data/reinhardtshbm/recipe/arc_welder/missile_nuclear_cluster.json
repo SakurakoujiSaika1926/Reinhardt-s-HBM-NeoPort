@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missiles",
+    "duration":  600,
+    "consumption":  50000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:warhead_mirv"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:fuel_tank_large"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:thruster_large"
+                                      },
+                       "count":  3
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:missile_nuclear_cluster",
+                   "count":  1
+               }
+}

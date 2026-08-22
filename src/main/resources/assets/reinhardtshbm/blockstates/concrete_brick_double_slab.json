@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_concrete_double" },
+    "variant=1": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_concrete_mossy_double" },
+    "variant=2": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_concrete_cracked_double" },
+    "variant=3": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_concrete_broken_double" },
+    "variant=4": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_ducrete_double" },
+    "variant=5": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_concrete_double" },
+    "variant=6": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_concrete_mossy_double" },
+    "variant=7": { "model": "reinhardtshbm:block/concrete_brick_slab_brick_concrete_cracked_double" }
+  }
+}

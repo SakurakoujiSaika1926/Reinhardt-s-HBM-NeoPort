@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:fragment_lanthanium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_lanthanium_tiny"
+               }
+}

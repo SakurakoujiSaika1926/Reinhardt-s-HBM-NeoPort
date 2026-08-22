@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/steel_poles", "y": 180 },
+    "facing=south": { "model": "reinhardtshbm:block/steel_poles" },
+    "facing=west": { "model": "reinhardtshbm:block/steel_poles", "y": 270 },
+    "facing=east": { "model": "reinhardtshbm:block/steel_poles", "y": 90 }
+  }
+}

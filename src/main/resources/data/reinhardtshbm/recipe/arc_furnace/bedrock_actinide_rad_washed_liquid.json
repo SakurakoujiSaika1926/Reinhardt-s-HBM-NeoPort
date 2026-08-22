@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:arc_furnace",
+  "group": "arc_furnace",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "rad_washed",
+        "type": "actinide"
+      }
+    }
+  },
+  "liquid": [
+    {
+      "material": "technetium",
+      "amount": 24
+    },
+    {
+      "material": "technetium",
+      "amount": 24
+    },
+    {
+      "material": "u238",
+      "amount": 24
+    }
+  ]
+}

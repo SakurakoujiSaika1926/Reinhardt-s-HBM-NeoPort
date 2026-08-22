@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/stone_porous"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

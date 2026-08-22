@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.tar_soot",
+  "item_input": { "ingredient": { "tag": "c:tars" }, "count": 4 },
+  "item_output": { "id": "reinhardtshbm:powder_ash" },
+  "fluid_input": { "fluid": "hydrogen", "amount": 250 },
+  "fluid_output": { "fluid": "carbondioxide", "amount": 1000 },
+  "duration": 40
+}

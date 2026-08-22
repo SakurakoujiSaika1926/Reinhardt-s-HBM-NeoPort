@@ -1,0 +1,908 @@
+{
+  "block.sonar_ping": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/sonar_ping",
+        "stream": false
+      }
+    ]
+  },
+  "block.arc_furnace_operate": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/electric_hum",
+        "stream": false
+      }
+    ]
+  },
+  "block.motor": {
+    "subtitle": "subtitles.block.motor",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/motor",
+        "stream": false
+      }
+    ]
+  },
+  "block.assembler_start": {
+    "subtitle": "subtitles.block.assembler_start",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/assemblerstart",
+        "stream": false
+      }
+    ]
+  },
+  "block.assembler_stop": {
+    "subtitle": "subtitles.block.assembler_stop",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/assemblerstop",
+        "stream": false
+      }
+    ]
+  },
+  "block.assembler_strike": {
+    "subtitle": "subtitles.block.assembler_strike",
+    "sounds": [
+      "reinhardtshbm:block/assemblerstrike1",
+      "reinhardtshbm:block/assemblerstrike2"
+    ]
+  },
+  "block.assembler_cut": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/assemblercut",
+        "stream": false
+      }
+    ]
+  },
+  "block.chemical_plant": {
+    "subtitle": "subtitles.block.chemical_plant",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/chemicalplant",
+        "stream": false
+      }
+    ]
+  },
+  "block.boiler": {
+    "subtitle": "subtitles.block.boiler",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/boiler",
+        "stream": false
+      }
+    ]
+  },
+  "block.boiler_groan": {
+    "subtitle": "subtitles.block.boiler_groan",
+    "sounds": [
+      "reinhardtshbm:block/boilergroan0",
+      "reinhardtshbm:block/boilergroan1",
+      "reinhardtshbm:block/boilergroan2"
+    ]
+  },
+  "block.pressoperate": {
+    "subtitle": "subtitles.block.pressoperate",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/pressoperate",
+        "stream": false
+      }
+    ]
+  },
+  "block.centrifugeoperate": {
+    "subtitle": "subtitles.block.centrifugeoperate",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/centrifugeoperate",
+        "stream": false
+      }
+    ]
+  },
+  "block.pipeplaced": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/pipeplaced",
+        "stream": false
+      }
+    ]
+  },
+  "block.steam_engine_operate": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/steamengineoperate",
+        "stream": false
+      }
+    ]
+  },
+  "block.engine": {
+    "subtitle": "subtitles.block.engine",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/engine",
+        "stream": false
+      }
+    ]
+  },
+  "block.turbofan_operate": {
+    "subtitle": "subtitles.block.turbofan_operate",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/turbofanoperate",
+        "stream": true
+      }
+    ]
+  },
+  "block.missile_assembly": {
+    "subtitle": "subtitles.block.missile_assembly",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/missileassembly2",
+        "stream": false
+      }
+    ]
+  },
+  "block.largeturbine": {
+    "subtitle": "subtitles.block.largeturbine",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/largeturbine",
+        "stream": false
+      }
+    ]
+  },
+  "block.warnoverspeed": {
+    "subtitle": "subtitles.block.warn_overspeed",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/warnoverspeed",
+        "stream": false
+      }
+    ]
+  },
+  "block.chungusturbinerunning": {
+    "subtitle": "subtitles.block.chungus_turbine",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/chungusturbine",
+        "stream": false
+      }
+    ]
+  },
+  "block.chunguslever": {
+    "subtitle": "subtitles.block.chungus_lever",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/chunguslever",
+        "stream": false
+      }
+    ]
+  },
+  "block.leverlarge": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/chunguslever",
+        "stream": false
+      }
+    ]
+  },
+  "block.lockopen": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/lockopen",
+        "stream": false
+      }
+    ]
+  },
+  "block.lockhang": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/lockhang",
+        "stream": false
+      }
+    ]
+  },
+  "block.door.wgh_start": {
+    "subtitle": "subtitles.block.door_wgh_start",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/door/wgh_start",
+        "stream": false
+      }
+    ]
+  },
+  "block.door.wgh_stop": {
+    "subtitle": "subtitles.block.door_wgh_stop",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/door/wgh_stop",
+        "stream": false
+      }
+    ]
+  },
+  "block.turbinegasrunning": {
+    "subtitle": "subtitles.block.turbinegas_running",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/turbinegasrunning",
+        "stream": false
+      }
+    ]
+  },
+  "block.turbinegasstartup": {
+    "subtitle": "subtitles.block.turbinegas_startup",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/turbinegasstartup",
+        "stream": false
+      }
+    ]
+  },
+  "block.turbinegasshutdown": {
+    "subtitle": "subtitles.block.turbinegas_shutdown",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/turbinegasshutdown",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.flamethrower_shoot": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/flamethrowershoot",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.explosion_medium": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/explosion_medium",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.explosion_small_near": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:weapon/explosion_small_near1",
+      "reinhardtshbm:weapon/explosion_small_near2",
+      "reinhardtshbm:weapon/explosion_small_near3"
+    ]
+  },
+  "weapon.explosion_small_far": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:weapon/explosion_small_far1",
+      "reinhardtshbm:weapon/explosion_small_far2"
+    ]
+  },
+  "item.geiger1": {
+    "subtitle": "subtitles.item.geiger",
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/geiger1",
+        "stream": false
+      }
+    ]
+  },
+  "item.geiger2": {
+    "subtitle": "subtitles.item.geiger",
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/geiger2",
+        "stream": false
+      }
+    ]
+  },
+  "item.geiger3": {
+    "subtitle": "subtitles.item.geiger",
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/geiger3",
+        "stream": false
+      }
+    ]
+  },
+  "item.geiger4": {
+    "subtitle": "subtitles.item.geiger",
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/geiger4",
+        "stream": false
+      }
+    ]
+  },
+  "item.geiger5": {
+    "subtitle": "subtitles.item.geiger",
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/geiger5",
+        "stream": false
+      }
+    ]
+  },
+  "item.geiger6": {
+    "subtitle": "subtitles.item.geiger",
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/geiger6",
+        "stream": false
+      }
+    ]
+  },
+  "item.unpack": {
+    "subtitle": "subtitles.item.unpack",
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:tool/extract1",
+      "reinhardtshbm:tool/extract2"
+    ]
+  },
+  "item.pinunlock": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/pinunlock",
+        "stream": false
+      }
+    ]
+  },
+  "item.pinbreak": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/pinbreak",
+        "stream": false
+      }
+    ]
+  },
+  "item.upgradeplug": {
+    "subtitle": "subtitles.item.upgrade_plug",
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/upgradeplug",
+        "stream": false
+      }
+    ]
+  },
+  "player.cough": {
+    "subtitle": "subtitles.entity.cough",
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:player/cough1",
+      "reinhardtshbm:player/cough2",
+      "reinhardtshbm:player/cough3",
+      "reinhardtshbm:player/cough4"
+    ]
+  },
+  "entity.vomit": {
+    "subtitle": "subtitles.entity.vomit",
+    "category": "neutral",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:player/vomit",
+        "stream": false
+      }
+    ]
+  },
+  "block.fensuhum": {
+    "subtitle": "subtitles.block.fensu_hum",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/fensuhum",
+        "stream": false
+      }
+    ]
+  },
+  "block.rbmk_explosion": {
+    "subtitle": "subtitles.block.rbmk_explosion",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/rbmk_explosion",
+        "stream": false
+      }
+    ]
+  },
+  "block.shutdown": {
+    "subtitle": "subtitles.block.shutdown",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/shutdown",
+        "stream": true
+      }
+    ]
+  },
+  "block.reactorstart": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/reactorstart",
+        "stream": false
+      }
+    ]
+  },
+  "block.reactorstop": {
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/reactorstop",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.dflash": {
+    "subtitle": "subtitles.weapon.dFlash",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/dflash",
+        "stream": false
+      }
+    ]
+  },
+  "block.hephaestus_running": {
+    "subtitle": "subtitles.block.hephaestus_running",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/hephaestusrunning",
+        "stream": false
+      }
+    ]
+  },
+  "block.openc": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/openc1",
+      "reinhardtshbm:block/openc2",
+      "reinhardtshbm:block/opencsqueaky"
+    ]
+  },
+  "block.closec": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/closec1",
+      "reinhardtshbm:block/closec2",
+      "reinhardtshbm:block/closec3"
+    ]
+  },
+  "block.opendoor": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/door_open_1",
+      "reinhardtshbm:block/door_open_2"
+    ]
+  },
+  "block.closedoor": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/door_close_1",
+      "reinhardtshbm:block/door_close_2"
+    ]
+  },
+  "block.screm": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:screm/scream1",
+      "reinhardtshbm:screm/scream01",
+      "reinhardtshbm:screm/scream2",
+      "reinhardtshbm:screm/scream02",
+      "reinhardtshbm:screm/scream3",
+      "reinhardtshbm:screm/scream03",
+      "reinhardtshbm:screm/scream4",
+      "reinhardtshbm:screm/scream04",
+      "reinhardtshbm:screm/scream5",
+      "reinhardtshbm:screm/scream05",
+      "reinhardtshbm:screm/scream6",
+      "reinhardtshbm:screm/scream06",
+      "reinhardtshbm:screm/scream7",
+      "reinhardtshbm:screm/scream07",
+      "reinhardtshbm:screm/scream08",
+      "reinhardtshbm:screm/scream09",
+      "reinhardtshbm:screm/scream10",
+      "reinhardtshbm:screm/scream11",
+      "reinhardtshbm:screm/scream12",
+      "reinhardtshbm:screm/scream13",
+      "reinhardtshbm:screm/scream14",
+      "reinhardtshbm:screm/scream15",
+      "reinhardtshbm:screm/scream16",
+      "reinhardtshbm:screm/scream17",
+      "reinhardtshbm:screm/scream18",
+      "reinhardtshbm:screm/scream19",
+      "reinhardtshbm:screm/scream20",
+      "reinhardtshbm:screm/scream21",
+      "reinhardtshbm:screm/scream22",
+      "reinhardtshbm:screm/scream23",
+      "reinhardtshbm:screm/scream24",
+      "reinhardtshbm:screm/scream25"
+    ]
+  },
+  "entity.oldexplosion": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:entity/oldexplosion",
+        "stream": false
+      }
+    ]
+  },
+  "entity.meteoritefallingloop": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:entity/meteoritefallingloop",
+        "stream": false
+      }
+    ]
+  },
+  "tool.techbleep": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/techbleep",
+        "stream": false
+      }
+    ]
+  },
+  "tool.techboop": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/techboop",
+        "stream": false
+      }
+    ]
+  },
+  "item.boltgun": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:tool/boltgun",
+        "stream": false
+      }
+    ]
+  },
+  "block.soyuzready": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/soyuzready",
+        "stream": true
+      }
+    ]
+  },
+  "entity.soyuztakeoff": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:entity/soyuztakeoff",
+        "stream": false
+      }
+    ]
+  },
+  "alarm.soyuzed": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:alarm/soyuzed",
+        "stream": false
+      }
+    ]
+  },
+  "alarm.hatch": {
+    "category": "record",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:alarm/lpfhaiwg",
+        "stream": false
+      }
+    ]
+  },
+  "turret.jeremy_fire": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:turret/jeremy_fire1",
+      "reinhardtshbm:turret/jeremy_fire2",
+      "reinhardtshbm:turret/jeremy_fire3",
+      "reinhardtshbm:turret/jeremy_fire4",
+      "reinhardtshbm:turret/jeremy_fire5"
+    ]
+  },
+  "turret.jeremy_reload": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/jeremy_reload",
+        "stream": false
+      }
+    ]
+  },
+  "alarm.autopilot": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/boeing707_autopilot_disconnected", "stream": false}]
+  },
+  "alarm.ams_siren": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/ams_siren", "stream": false}]
+  },
+  "alarm.blast_door_alarm": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/blast_door_alarm", "stream": false}]
+  },
+  "alarm.apc_loop": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/apc_loop", "stream": false}]
+  },
+  "alarm.klaxon": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/klaxon", "stream": false}]
+  },
+  "alarm.fo_klaxon_a": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/fo_klaxon_a", "stream": false}]
+  },
+  "alarm.fo_klaxon_b": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/fo_klaxon_b", "stream": false}]
+  },
+  "alarm.regular_siren": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/regular_siren", "stream": false}]
+  },
+  "alarm.classic": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/classic_siren", "stream": false}]
+  },
+  "alarm.bank_alarm": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/bank_alarm", "stream": false}]
+  },
+  "alarm.beep_siren": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/beep_siren", "stream": false}]
+  },
+  "alarm.container_alarm": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/container_alarm", "stream": false}]
+  },
+  "alarm.sweep_siren": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/sweep_siren", "stream": false}]
+  },
+  "alarm.strider_siren": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/strider_siren", "stream": false}]
+  },
+  "alarm.air_raid": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/air_raid", "stream": true}]
+  },
+  "alarm.nostromo_siren": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/nostromo_siren", "stream": false}]
+  },
+  "alarm.eas_alarm": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/eas_alarm", "stream": false}]
+  },
+  "alarm.apc_pass": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/apc_pass", "stream": false}]
+  },
+  "alarm.razortrain_horn": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:alarm/razortrain_horn", "stream": false}]
+  },
+  "turret.chekhov_fire": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/chekhov_fire",
+        "stream": false
+      }
+    ]
+  },
+  "turret.howard_fire": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/howard_fire",
+        "stream": false
+      }
+    ]
+  },
+  "turret.howard_reload": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/howard_reload",
+        "stream": false
+      }
+    ]
+  },
+  "turret.richard_fire": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/richard_fire",
+        "stream": false
+      }
+    ]
+  },
+  "turret.richard_reload": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/richard_reload",
+        "stream": false
+      }
+    ]
+  },
+  "turret.sentry_fire": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/sentry_fire",
+        "stream": false
+      }
+    ]
+  },
+  "turret.sentry_lockon": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/sentry_lockon",
+        "stream": false
+      }
+    ]
+  },
+  "turret.mortarwhistle": {
+    "category": "hostile",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:turret/mortarwhistle",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.taushoot": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/taushoot",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.ricochet": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:weapon/ric1",
+      "reinhardtshbm:weapon/ric2",
+      "reinhardtshbm:weapon/ric3",
+      "reinhardtshbm:weapon/ric4",
+      "reinhardtshbm:weapon/ric5"
+    ]
+  },
+  "weapon.rocketflame": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/rocketflame",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.mukeexplosion": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/mukeexplosion",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.explosionlargenear": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/explosionlargenear",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.explosionlargefar": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/explosionlargefar",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.casing.small": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:weapon/casing/small1",
+      "reinhardtshbm:weapon/casing/small2",
+      "reinhardtshbm:weapon/casing/small3"
+    ]
+  },
+  "weapon.casing.medium": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:weapon/casing/medium1",
+      "reinhardtshbm:weapon/casing/medium2",
+      "reinhardtshbm:weapon/casing/medium3"
+    ]
+  },
+  "weapon.casing.large": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:weapon/casing/large1",
+      "reinhardtshbm:weapon/casing/large2",
+      "reinhardtshbm:weapon/casing/large3"
+    ]
+  },
+  "weapon.casing.shell": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:weapon/casing/shell1",
+      "reinhardtshbm:weapon/casing/shell2",
+      "reinhardtshbm:weapon/casing/shell3"
+    ]
+  },
+  "block.fel": {
+    "subtitle": "subtitles.block.fel",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/fel",
+        "stream": false
+      }
+    ]
+  },
+  "block.fusion_reactor_running": {
+    "subtitle": "subtitles.block.fusion_reactor_running",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/fusionreactorspin",
+        "stream": false
+      }
+    ]
+  },
+  "block.debris": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/debris1",
+      "reinhardtshbm:block/debris2",
+      "reinhardtshbm:block/debris3"
+    ]
+  },
+  "block.metal_impact": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/metalimpact1",
+      "reinhardtshbm:block/metalimpact2"
+    ]
+  },
+  "weapon.fstbmb_start": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/fstbmb_start",
+        "stream": false
+      }
+    ]
+  }
+}

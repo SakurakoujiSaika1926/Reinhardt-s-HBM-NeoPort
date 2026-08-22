@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/mush"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

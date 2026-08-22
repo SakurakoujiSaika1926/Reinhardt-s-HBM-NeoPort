@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LRL",
+    "BRB",
+    "LRL"
+  ],
+  "key": {
+    "L": {
+      "tag": "c:ingots/lead"
+    },
+    "B": {
+      "item": "minecraft:iron_bars"
+    },
+    "R": {
+      "item": "reinhardtshbm:rod_quad_empty"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_waste_drum"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.dieselgen",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "steel_plating"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:pipes/copper"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:coil_copper"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_diesel"
+  }
+}

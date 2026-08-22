@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.platedesh",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/desh"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/plastic"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/dura_steel"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:plate_desh",
+    "count": 4
+  }
+}

@@ -1,0 +1,7 @@
+﻿{
+    "variants":  {
+                     "":  {
+                              "model":  "reinhardtshbm:block/bm_power_box"
+                          }
+                 }
+}

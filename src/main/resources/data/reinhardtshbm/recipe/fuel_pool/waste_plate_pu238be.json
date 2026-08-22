@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:fuel_pool","group":"waste_plate","input":{"item":"reinhardtshbm:waste_plate_pu238be","components":{"minecraft:custom_data":{"spentFuelPoolCooling":true}}},"result":{"id":"reinhardtshbm:waste_plate_pu238be"}}

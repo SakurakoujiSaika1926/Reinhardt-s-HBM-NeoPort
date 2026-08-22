@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "reinhardtshbm:block/forgefluid/volcanic_lava_still"
+  }
+}

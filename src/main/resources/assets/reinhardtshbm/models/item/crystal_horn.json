@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/crystal_horn"
+                 },
+    "parent":  "minecraft:item/generated"
+}

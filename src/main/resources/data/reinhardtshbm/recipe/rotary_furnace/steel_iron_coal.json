@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.steel",
+  "inputs": [
+    { "ingredient": { "tag": "c:ingots/iron" } },
+    { "ingredient": { "item": "minecraft:coal" } }
+  ],
+  "output": { "material": "steel", "amount": 144 },
+  "duration": 100,
+  "steam": 100
+}

@@ -1,0 +1,14 @@
+﻿{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    { "item": "reinhardtshbm:fence_metal" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fence_metal",
+    "components": {
+      "minecraft:custom_data": { "post": true },
+      "minecraft:custom_model_data": 1
+    }
+  }
+}

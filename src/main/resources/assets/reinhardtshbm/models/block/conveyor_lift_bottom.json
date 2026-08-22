@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": { "belt": "reinhardtshbm:block/conveyor", "iron": "minecraft:block/iron_block", "particle": "reinhardtshbm:block/conveyor" },
+  "elements": [
+    { "from": [0,0,4], "to": [4,4,12], "faces": { "down":{"texture":"#belt"},"up":{"texture":"#belt","rotation":270},"north":{"texture":"#belt"},"south":{"texture":"#belt"},"west":{"texture":"#belt"},"east":{"texture":"#belt"} } },
+    { "from": [12,0,4], "to": [16,4,12], "faces": { "down":{"texture":"#belt"},"up":{"texture":"#belt","rotation":270},"north":{"texture":"#belt"},"south":{"texture":"#belt"},"west":{"texture":"#belt"},"east":{"texture":"#belt"} } },
+    { "from": [4,0,0], "to": [12,4,4], "faces": { "down":{"texture":"#belt"},"up":{"texture":"#belt","rotation":270},"north":{"texture":"#belt"},"south":{"texture":"#belt"},"west":{"texture":"#belt"},"east":{"texture":"#belt"} } },
+    { "from": [4,0,4], "to": [12,4,10], "faces": { "down":{"texture":"#iron"},"up":{"texture":"#iron"},"north":{"texture":"#iron"},"south":{"texture":"#iron"},"west":{"texture":"#iron"},"east":{"texture":"#iron"} } }
+  ]
+}

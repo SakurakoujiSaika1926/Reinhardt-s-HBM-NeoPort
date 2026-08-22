@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ZLZ",
+    "L L",
+    "ZLZ"
+  ],
+  "key": {
+    "Z": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:wire_fine"],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 4000,
+          "material": "zirconium"
+        }
+      }
+    },
+    "L": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:wire_fine"],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 8200,
+          "material": "lead"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:icf_pellet_empty"
+  }
+}

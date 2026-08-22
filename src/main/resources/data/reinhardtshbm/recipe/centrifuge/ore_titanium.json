@@ -1,0 +1,22 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:ores/titanium"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_titanium"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_titanium"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_iron"
+                    },
+                    {
+                        "id":  "minecraft:gravel"
+                    }
+                ]
+}

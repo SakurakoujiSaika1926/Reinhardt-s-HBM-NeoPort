@@ -1,0 +1,123 @@
+package com.reinhardt.hbm.client.screen;
+
+import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.registry.HbmMenus;
+import com.reinhardt.hbm.menu.WatzMenu;
+import com.reinhardt.hbm.menu.NukeBoyMenu;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+
+@EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public final class HbmClientScreens {
+    private HbmClientScreens() {
+    }
+
+    @SubscribeEvent
+    public static void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(HbmMenus.ASHPIT.get(), AshpitScreen::new);
+        event.register(HbmMenus.FUNNEL.get(), FunnelScreen::new);
+        event.register(HbmMenus.SIREN.get(), SirenScreen::new);
+        event.register(HbmMenus.WOOD_BURNER.get(), WoodBurnerScreen::new);
+        event.register(HbmMenus.DIESEL_GENERATOR.get(), DieselGeneratorScreen::new);
+        event.register(HbmMenus.COMBUSTION_ENGINE.get(), CombustionEngineScreen::new);
+        event.register(HbmMenus.GAS_FLARE.get(), GasFlareScreen::new);
+        event.register(HbmMenus.ELECTRIC_FURNACE.get(), ElectricFurnaceScreen::new);
+        event.register(HbmMenus.SHREDDER.get(), ShredderScreen::new);
+        event.register(HbmMenus.MICROWAVE.get(), MicrowaveScreen::new);
+        event.register(HbmMenus.ARMOR_TABLE.get(), ArmorTableScreen::new);
+        event.register(HbmMenus.WEAPON_TABLE.get(), WeaponTableScreen::new);
+        event.register(HbmMenus.MACHINE_KEYFORGE.get(), MachineKeyForgeScreen::new);
+        event.register(HbmMenus.ASSEMBLY_MACHINE.get(), AssemblyMachineScreen::new);
+        event.register(HbmMenus.ASSEMBLY_FACTORY.get(), AssemblyFactoryScreen::new);
+        event.register(HbmMenus.CHEMICAL_PLANT.get(), ChemicalPlantScreen::new);
+        event.register(HbmMenus.CHEMICAL_FACTORY.get(), ChemicalFactoryScreen::new);
+        event.register(HbmMenus.SOLDERING_STATION.get(), SolderingStationScreen::new);
+        event.register(HbmMenus.ARC_WELDER.get(), ArcWelderScreen::new);
+        event.register(HbmMenus.ARC_FURNACE.get(), ArcFurnaceScreen::new);
+        event.register(HbmMenus.STORAGE_DRUM.get(), StorageDrumScreen::new);
+        event.register(HbmMenus.COMPRESSOR.get(), CompressorScreen::new);
+        event.register(HbmMenus.MIXER.get(), MixerScreen::new);
+        event.register(HbmMenus.AMMO_PRESS.get(), AmmoPressScreen::new);
+        event.register(HbmMenus.MACHINE_PRESS.get(), MachinePressScreen::new);
+        event.register(HbmMenus.MACHINE_EPRESS.get(), MachineEPressScreen::new);
+        event.register(HbmMenus.HEATER.get(), HeaterScreen::new);
+        event.register(HbmMenus.ANVIL.get(), HbmAnvilScreen::new);
+        event.register(HbmMenus.FLUID_PUMP.get(), FluidPumpScreen::new);
+        event.register(HbmMenus.FLUID_TANK.get(), FluidTankScreen::new);
+        event.register(HbmMenus.CENTRIFUGE.get(), CentrifugeScreen::new);
+        event.register(HbmMenus.GAS_CENTRIFUGE.get(), GasCentrifugeScreen::new);
+        event.register(HbmMenus.CRYSTALLIZER.get(), CrystallizerScreen::new);
+        event.register(HbmMenus.CYCLOTRON.get(), CyclotronScreen::new);
+        event.register(HbmMenus.EXPOSURE_CHAMBER.get(), ExposureChamberScreen::new);
+        event.register(HbmMenus.SILEX.get(), SilexScreen::new);
+        event.register(HbmMenus.FEL.get(), FelScreen::new);
+        event.register(HbmMenus.PARTICLE_ACCELERATOR.get(), ParticleAcceleratorScreen::new);
+        event.register(HbmMenus.EXCAVATOR.get(), ExcavatorScreen::new);
+        event.register(HbmMenus.MINING_LASER.get(), MiningLaserScreen::new);
+        event.register(HbmMenus.ORE_SLOPPER.get(), OreSlopperScreen::new);
+        event.register(HbmMenus.BREEDER_REACTOR.get(), BreederReactorScreen::new);
+        event.register(HbmMenus.TURRET_JEREMY.get(), TurretJeremyScreen::new);
+        event.register(HbmMenus.TURRET_CHEKHOV.get(), TurretChekhovScreen::new);
+        event.register(HbmMenus.LEGACY_TURRET.get(), LegacyTurretScreen::new);
+        event.register(HbmMenus.NUKE_BOY.get(), NukeBoyScreen::new);
+        event.register(HbmMenus.SOYUZ_LAUNCHER.get(), SoyuzLauncherScreen::new);
+        event.register(HbmMenus.SOYUZ_CAPSULE.get(), SoyuzCapsuleScreen::new);
+        event.register(HbmMenus.WASTE_DRUM.get(), WasteDrumScreen::new);
+        event.register(HbmMenus.PUREX.get(), PurexScreen::new);
+        event.register(HbmMenus.ICF_PRESS.get(), IcfPressScreen::new);
+        event.register(HbmMenus.RESEARCH_REACTOR.get(), ResearchReactorScreen::new);
+        event.register(HbmMenus.REACTOR_CONTROL.get(), ReactorControlScreen::new);
+        event.register(HbmMenus.ZIRNOX_REACTOR.get(), ZirnoxReactorScreen::new);
+        event.register(HbmMenus.WATZ.get(), WatzScreen::new);
+        event.register(HbmMenus.PWR.get(), PwrScreen::new);
+        event.register(HbmMenus.FUSION_MACHINE.get(), FusionMachineScreen::new);
+        event.register(HbmMenus.DFC_CORE.get(), DfcCoreScreen::new);
+        event.register(HbmMenus.DFC_EMITTER.get(), DfcEmitterScreen::new);
+        event.register(HbmMenus.DFC_RECEIVER.get(), DfcReceiverScreen::new);
+        event.register(HbmMenus.DFC_INJECTOR.get(), DfcInjectorScreen::new);
+        event.register(HbmMenus.DFC_STABILIZER.get(), DfcStabilizerScreen::new);
+        event.register(HbmMenus.RBMK_COMPONENT.get(), RbmkComponentScreen::new);
+        event.register(HbmMenus.STEAM_TURBINE.get(), SteamTurbineScreen::new);
+        event.register(HbmMenus.LARGE_TURBINE.get(), LargeTurbineScreen::new);
+        event.register(HbmMenus.GAS_TURBINE.get(), GasTurbineScreen::new);
+        event.register(HbmMenus.SMALL_BOILER.get(), SmallBoilerScreen::new);
+        event.register(HbmMenus.OIL_DERRICK.get(), OilDerrickScreen::new);
+        event.register(HbmMenus.FRACKING_TOWER.get(), FrackingTowerScreen::new);
+        event.register(HbmMenus.REFINERY.get(), RefineryScreen::new);
+        event.register(HbmMenus.VACUUM_DISTILL.get(), VacuumDistillScreen::new);
+        event.register(HbmMenus.COKER.get(), CokerScreen::new);
+        event.register(HbmMenus.FURNACE_COMBINATION.get(), FurnaceCombinationScreen::new);
+        event.register(HbmMenus.ROTARY_FURNACE.get(), RotaryFurnaceScreen::new);
+        event.register(HbmMenus.SOLIDIFIER.get(), SolidifierScreen::new);
+        event.register(HbmMenus.ELECTROLYZER.get(), ElectrolyzerScreen::new);
+        event.register(HbmMenus.LIQUEFACTOR.get(), LiquefactorScreen::new);
+        event.register(HbmMenus.CATALYTIC_REFORMER.get(), CatalyticReformerScreen::new);
+        event.register(HbmMenus.HYDROTREATER.get(), HydrotreaterScreen::new);
+        event.register(HbmMenus.BLAST_FURNACE.get(), BlastFurnaceScreen::new);
+        event.register(HbmMenus.MACHINE_BLAST_FURNACE.get(), MachineBlastFurnaceScreen::new);
+        event.register(HbmMenus.BRICK_FURNACE.get(), BrickFurnaceScreen::new);
+        event.register(HbmMenus.IRON_FURNACE.get(), IronFurnaceScreen::new);
+        event.register(HbmMenus.STEEL_FURNACE.get(), SteelFurnaceScreen::new);
+        event.register(HbmMenus.CRUCIBLE.get(), CrucibleScreen::new);
+        event.register(HbmMenus.STRAND_CASTER.get(), StrandCasterScreen::new);
+        event.register(HbmMenus.STORAGE_CRATE.get(), StorageCrateScreen::new);
+        event.register(HbmMenus.BATTERY_REDD.get(), BatteryReddScreen::new);
+        event.register(HbmMenus.BATTERY_SOCKET.get(), BatterySocketScreen::new);
+        event.register(HbmMenus.RADGEN.get(), RadGenScreen::new);
+        event.register(HbmMenus.RTG_GREY.get(), RtgScreen::new);
+        event.register(HbmMenus.ORBUS.get(), OrbusScreen::new);
+        event.register(HbmMenus.ANNIHILATOR.get(), AnnihilatorScreen::new);
+        event.register(HbmMenus.TURBOFAN.get(), TurbofanScreen::new);
+        event.register(HbmMenus.MISSILE_ASSEMBLY.get(), MissileAssemblyScreen::new);
+        event.register(HbmMenus.PRECISION_ASSEMBLER.get(), PrecisionAssemblerScreen::new);
+        event.register(HbmMenus.FORCEFIELD.get(), ForcefieldScreen::new);
+        event.register(HbmMenus.SATELLITE_LINKER.get(), SatelliteLinkerScreen::new);
+        event.register(HbmMenus.AUTOCRAFTER.get(), AutocrafterScreen::new);
+        event.register(HbmMenus.PYRO_OVEN.get(), PyroOvenScreen::new);
+        event.register(HbmMenus.RADIOLYSIS.get(), RadiolysisScreen::new);
+        event.register(HbmMenus.RADAR.get(), RadarScreen::new);
+        event.register(HbmMenus.RADAR_SLOTS.get(), RadarSlotsScreen::new);
+    }
+}

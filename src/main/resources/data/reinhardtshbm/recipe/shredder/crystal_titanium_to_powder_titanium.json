@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_titanium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_titanium",
+                   "count":  3
+               }
+}

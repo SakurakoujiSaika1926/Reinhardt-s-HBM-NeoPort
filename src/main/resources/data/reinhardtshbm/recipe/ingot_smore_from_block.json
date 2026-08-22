@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_smore"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_smore",
+                   "count":  9
+               }
+}

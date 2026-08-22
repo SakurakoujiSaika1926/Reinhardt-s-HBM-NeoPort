@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/missile_endo"
+                 },
+    "parent":  "minecraft:item/generated"
+}

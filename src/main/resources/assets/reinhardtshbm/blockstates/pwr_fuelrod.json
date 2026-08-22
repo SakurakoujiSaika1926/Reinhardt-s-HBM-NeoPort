@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,port=false": { "model": "reinhardtshbm:block/pwr_fuelrod" },
+    "facing=east,port=false": { "model": "reinhardtshbm:block/pwr_fuelrod" },
+    "facing=south,port=false": { "model": "reinhardtshbm:block/pwr_fuelrod" },
+    "facing=west,port=false": { "model": "reinhardtshbm:block/pwr_fuelrod" },
+    "facing=north,port=true": { "model": "reinhardtshbm:block/pwr_fuelrod" },
+    "facing=east,port=true": { "model": "reinhardtshbm:block/pwr_fuelrod" },
+    "facing=south,port=true": { "model": "reinhardtshbm:block/pwr_fuelrod" },
+    "facing=west,port=true": { "model": "reinhardtshbm:block/pwr_fuelrod" }
+  }
+}

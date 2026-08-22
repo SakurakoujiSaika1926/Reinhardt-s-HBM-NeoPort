@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/stone_keyhole_meta"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

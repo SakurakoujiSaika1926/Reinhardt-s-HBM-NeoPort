@@ -1,0 +1,18 @@
+{
+  "parent": "reinhardtshbm:block/fusion_plasma_forge",
+  "visibility": {
+    "Plasma": false,
+    "SliderStriker": false,
+    "ArmLowerStriker": false,
+    "ArmUpperStriker": false,
+    "StrikerMount": false,
+    "StrikerLeft": false,
+    "StrikerRight": false,
+    "PistonLeft": false,
+    "PistonRight": false,
+    "SliderJet": false,
+    "ArmLowerJet": false,
+    "ArmUpperJet": false,
+    "Jet": false
+  }
+}

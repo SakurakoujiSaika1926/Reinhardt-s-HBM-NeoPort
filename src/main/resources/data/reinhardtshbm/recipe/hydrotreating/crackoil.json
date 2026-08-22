@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:hydrotreating",
+  "group": "hydrotreating.crackoil",
+  "input": { "fluid": "crackoil", "amount": 100 },
+  "hydrogen": { "fluid": "hydrogen", "amount": 5, "pressure": 1 },
+  "output1": { "fluid": "crackoil_ds", "amount": 90 },
+  "output2": { "fluid": "sourgas", "amount": 15 },
+  "power": 20000
+}

@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mine_naval",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:sphere_steel" }, "count": 1 },
+    { "ingredient": { "tag": "c:pipes/steel" }, "count": 3 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 1 },
+    { "ingredient": { "tag": "c:ingots/plastic_explosive" }, "count": 24 }
+  ],
+  "result": { "id": "reinhardtshbm:mine_naval" }
+}

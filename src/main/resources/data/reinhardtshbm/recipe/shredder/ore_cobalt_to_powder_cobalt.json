@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_cobalt"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_cobalt",
+                   "count":  2
+               }
+}

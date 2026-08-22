@@ -1,0 +1,26 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_phosphorus"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_fire",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_fire",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:ingot_phosphorus",
+                        "count":  2
+                    },
+                    {
+                        "id":  "minecraft:blaze_powder",
+                        "count":  2
+                    }
+                ]
+}

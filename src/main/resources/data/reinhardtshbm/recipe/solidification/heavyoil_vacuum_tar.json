@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.heavyoil_vacuum",
+    "input":  {
+                  "fluid":  "heavyoil_vacuum",
+                  "amount":  150
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:oil_tar",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "crude"
+                                                                },
+                                      "minecraft:custom_model_data":  0
+                                  }
+               }
+}

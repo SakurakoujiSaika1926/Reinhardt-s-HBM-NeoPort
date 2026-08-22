@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:raw_schrabidium"
+                   },
+    "input_count":  2,
+    "result":  {
+                   "id":  "reinhardtshbm:powder_schrabidium",
+                   "count":  3
+               }
+}

@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:fuel_pool","group":"waste","input":{"item":"reinhardtshbm:waste_uranium","components":{"minecraft:custom_data":{"spentFuelPoolCooling":true}}},"result":{"id":"reinhardtshbm:waste_uranium"}}

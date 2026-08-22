@@ -1,0 +1,14 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_segment",
+  "textures": {
+    "end": "reinhardtshbm:block/rbmk/rbmk_boiler_top",
+    "side": "reinhardtshbm:block/rbmk/rbmk_boiler_side",
+    "inner": "reinhardtshbm:block/rbmk/rbmk_element_inner",
+    "cover_top": "reinhardtshbm:block/rbmk/rbmk_boiler_cover_top",
+    "cover_side": "reinhardtshbm:block/rbmk/rbmk_boiler_cover_side",
+    "glass_top": "reinhardtshbm:block/rbmk/rbmk_boiler_glass_top",
+    "glass_side": "reinhardtshbm:block/rbmk/rbmk_boiler_glass_side",
+    "pipe_top": "reinhardtshbm:block/rbmk/rbmk_boiler_pipe_top",
+    "pipe_side": "reinhardtshbm:block/rbmk/rbmk_boiler_pipe_side"
+  }
+}

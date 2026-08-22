@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.biogas",
+    "input":  {
+                  "fluid":  "biogas",
+                  "amount":  250
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:biomass_compressed"
+               }
+}

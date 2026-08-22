@@ -1,0 +1,14 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/turrets/turret_jeremy.obj",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "visibility": {
+    "Gun": true
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/turrets/jeremy"
+  }
+}

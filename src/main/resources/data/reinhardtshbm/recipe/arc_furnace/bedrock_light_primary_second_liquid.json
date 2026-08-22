@@ -1,0 +1,26 @@
+{
+  "type": "reinhardtshbm:arc_furnace",
+  "group": "arc_furnace",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "primary_second",
+        "type": "light"
+      }
+    }
+  },
+  "liquid": [
+    {
+      "material": "iron",
+      "amount": 144
+    },
+    {
+      "material": "copper",
+      "amount": 360
+    }
+  ]
+}

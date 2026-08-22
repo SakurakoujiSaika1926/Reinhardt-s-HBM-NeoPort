@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:quartz_slab"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_quartz",
+                   "count":  2
+               }
+}

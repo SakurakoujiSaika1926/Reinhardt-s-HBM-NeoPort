@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.platednt",
+  "duration": 600,
+  "power": 10000000,
+  "ignition_temp": 1000000,
+  "input_items": [
+    { "ingredient": { "tag": "c:ingots/dineutronium" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:powder_spark_mix" }, "count": 2 },
+    { "ingredient": { "tag": "c:ingots/desh" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_dineutronium", "count": 4 }
+}

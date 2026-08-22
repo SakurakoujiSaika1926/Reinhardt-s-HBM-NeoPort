@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ln2_2"
+                 },
+    "parent":  "minecraft:item/generated"
+}

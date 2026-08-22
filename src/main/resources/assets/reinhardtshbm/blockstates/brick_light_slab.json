@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "reinhardtshbm:block/brick_light_slab"
+    },
+    "type=top": {
+      "model": "reinhardtshbm:block/brick_light_slab_top"
+    },
+    "type=double": {
+      "model": "reinhardtshbm:block/brick_light_slab_double"
+    }
+  }
+}

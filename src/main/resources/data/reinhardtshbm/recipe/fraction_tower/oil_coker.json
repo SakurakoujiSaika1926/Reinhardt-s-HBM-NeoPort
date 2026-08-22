@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.oil_coker",
+  "input": { "fluid": "oil_coker", "amount": 100 },
+  "output1": { "fluid": "crackoil", "amount": 30 },
+  "output2": { "fluid": "heatingoil", "amount": 70 }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/machine_compressor",
+  "visibility": {
+    "Compressor": false,
+    "Fan": false
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "type": "reinhardtshbm:purex",
+  "group": "autoswitch.plate",
+  "duration": 100,
+  "power": 1500,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:waste_plate_ra226be"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "kerosene",
+      "amount": 500
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 250
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:nugget_beryllium",
+      "count": 2
+    },
+    {
+      "id": "reinhardtshbm:nugget_polonium",
+      "count": 2
+    },
+    {
+      "id": "reinhardtshbm:powder_coal_tiny"
+    },
+    {
+      "id": "reinhardtshbm:nugget_lead"
+    }
+  ]
+}

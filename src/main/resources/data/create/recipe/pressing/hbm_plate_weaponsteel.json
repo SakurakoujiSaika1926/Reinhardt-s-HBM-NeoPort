@@ -1,0 +1,13 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "tag": "c:ingots/weaponsteel"
+    }
+  ],
+  "results": [
+    {
+      "id": "reinhardtshbm:plate_weaponsteel"
+    }
+  ]
+}

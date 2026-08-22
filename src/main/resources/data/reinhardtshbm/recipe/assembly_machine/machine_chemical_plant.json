@@ -1,0 +1,47 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.chemplant",
+    "duration":  200,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/steel"
+                                           },
+                            "count":  8
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:pipes/copper"
+                                           },
+                            "count":  2
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/polymer"
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor"
+                                           },
+                            "count":  2
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:coil_tungsten"
+                                           },
+                            "count":  2
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:circuit_analog"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_chemical_plant"
+               }
+}

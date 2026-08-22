@@ -1,0 +1,36 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.rbmkautoloader",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "ferro_plating"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rbmk_autoloader"
+  }
+}

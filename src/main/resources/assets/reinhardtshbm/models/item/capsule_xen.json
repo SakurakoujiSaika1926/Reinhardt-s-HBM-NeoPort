@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/capsule_xen"
+                 },
+    "parent":  "minecraft:item/generated"
+}

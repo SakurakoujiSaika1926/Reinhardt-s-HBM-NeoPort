@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:vacuum_distill",
+  "group": "vacuum_distill.oil_ds",
+  "input": { "fluid": "oil_ds", "amount": 100 },
+  "outputs": [
+    { "fluid": "heavyoil_vacuum", "amount": 40 },
+    { "fluid": "reformate", "amount": 25 },
+    { "fluid": "lightoil_vacuum", "amount": 20 },
+    { "fluid": "reformgas", "amount": 15 }
+  ],
+  "power": 10000
+}

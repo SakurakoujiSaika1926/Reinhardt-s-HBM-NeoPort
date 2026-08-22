@@ -1,0 +1,32 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "SIS",
+                    "ICI",
+                    "SIS"
+                ],
+    "key":  {
+                "S":  {
+                          "tag":  "c:ingots/steel"
+                      },
+                "I":  {
+                          "tag":  "c:plates/iron"
+                      },
+                "C":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:plate_cast"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  2900,
+                                                                           "material":  "copper"
+                                                                       }
+                                         }
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:machine_condenser"
+               }
+}

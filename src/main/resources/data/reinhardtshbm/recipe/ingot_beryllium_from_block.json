@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_beryllium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_beryllium",
+                   "count":  9
+               }
+}

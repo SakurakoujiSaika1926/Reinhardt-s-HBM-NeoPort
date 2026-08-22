@@ -1,0 +1,15 @@
+newmtl single
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd #single
+
+newmtl standard
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd #standard
+
+newmtl himars
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd #himars
+

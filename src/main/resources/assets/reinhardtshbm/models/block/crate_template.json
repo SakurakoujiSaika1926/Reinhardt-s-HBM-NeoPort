@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "reinhardtshbm:block/crate_template",
+    "bottom": "reinhardtshbm:block/crate_template",
+    "side": "reinhardtshbm:block/crate_template"
+  }
+}

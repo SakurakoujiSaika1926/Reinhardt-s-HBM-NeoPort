@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/machine_steam_engine",
+  "visibility": {
+    "Base": false,
+    "Shaft": false,
+    "Transmission": false,
+    "Piston": false
+  }
+}

@@ -1,0 +1,12 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.salient",
+    "input":  {
+                  "fluid":  "salient",
+                  "amount":  1280
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:bio_wafer",
+                   "count":  8
+               }
+}

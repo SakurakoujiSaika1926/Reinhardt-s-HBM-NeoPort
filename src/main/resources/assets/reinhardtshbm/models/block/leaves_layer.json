@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/thin_block",
+  "textures": {
+    "particle": "reinhardtshbm:block/waste_leaves",
+    "texture": "reinhardtshbm:block/waste_leaves"
+  }
+}

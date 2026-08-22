@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "heatingoil_vacuum",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "heatingoil",
+    "amount": 80
+  },
+  "output2": {
+    "fluid": "reformgas",
+    "amount": 20
+  }
+}

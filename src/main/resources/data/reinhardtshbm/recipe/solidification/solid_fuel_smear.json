@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.smear",
+    "input":  {
+                  "fluid":  "smear",
+                  "amount":  21000
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

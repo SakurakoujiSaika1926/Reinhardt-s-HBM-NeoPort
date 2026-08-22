@@ -1,0 +1,7 @@
+﻿{
+    "variants":  {
+                     "":  {
+                              "model":  "reinhardtshbm:block/dummy_port_launch_table"
+                          }
+                 }
+}

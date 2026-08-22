@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/nugget_australium_greater"
+                 },
+    "parent":  "minecraft:item/generated"
+}

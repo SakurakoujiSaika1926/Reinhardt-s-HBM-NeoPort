@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.redmud",
+    "input":  {
+                  "fluid":  "redmud",
+                  "amount":  450
+              },
+    "output":  {
+                   "id":  "minecraft:iron_ingot"
+               }
+}

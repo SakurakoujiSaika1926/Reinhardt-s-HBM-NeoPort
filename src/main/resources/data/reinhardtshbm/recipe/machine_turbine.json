@@ -1,0 +1,26 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "SMS",
+                    "PTP",
+                    "SMS"
+                ],
+    "key":  {
+                "S":  {
+                          "tag":  "c:ingots/steel"
+                      },
+                "M":  {
+                          "item":  "reinhardtshbm:coil_copper"
+                      },
+                "T":  {
+                          "item":  "reinhardtshbm:turbine_titanium"
+                      },
+                "P":  {
+                          "tag":  "c:ingots/polymer"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:machine_turbine"
+               }
+}

@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_magnetized_tungsten"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_magnetized_tungsten",
+                   "count":  9
+               }
+}

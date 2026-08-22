@@ -1,0 +1,13 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "tag": "c:ingots/dura_steel"
+    }
+  ],
+  "results": [
+    {
+      "id": "reinhardtshbm:plate_dura_steel"
+    }
+  ]
+}

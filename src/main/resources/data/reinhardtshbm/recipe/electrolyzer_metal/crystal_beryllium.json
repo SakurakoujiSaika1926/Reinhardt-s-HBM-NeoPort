@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_beryllium"},"output1":{"material":"beryllium","amount":432},"output2":{"material":"lead","amount":32},"byproducts":[{"id":"reinhardtshbm:powder_lithium_tiny","count":3},{"id":"reinhardtshbm:powder_quartz","count":2}]}

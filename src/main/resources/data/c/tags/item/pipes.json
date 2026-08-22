@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "#c:pipes/copper",
+    "#c:pipes/lead",
+    "#c:pipes/steel",
+    "#c:pipes/dura_steel"
+  ]
+}

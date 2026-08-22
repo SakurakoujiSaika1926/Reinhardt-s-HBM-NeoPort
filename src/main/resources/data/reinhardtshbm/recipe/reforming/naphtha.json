@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:reforming",
+  "group": "reforming",
+  "input": {
+    "fluid": "naphtha",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "reformate",
+    "amount": 50
+  },
+  "output2": {
+    "fluid": "petroleum",
+    "amount": 15
+  },
+  "output3": {
+    "fluid": "hydrogen",
+    "amount": 10
+  },
+  "power": 20000
+}

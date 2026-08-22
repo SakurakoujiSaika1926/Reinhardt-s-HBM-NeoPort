@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:plate_advanced_alloy"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_advanced_alloy"
+               }
+}

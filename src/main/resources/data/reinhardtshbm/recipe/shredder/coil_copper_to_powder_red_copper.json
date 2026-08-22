@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:coil_copper"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_red_copper"
+               }
+}

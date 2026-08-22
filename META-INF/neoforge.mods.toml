@@ -1,0 +1,24 @@
+modLoader="javafml"
+loaderVersion="[3,)"
+license="GPL-3.0-or-later, LGPL-3.0-or-later"
+
+[[mods]]
+    modId="reinhardtshbm"
+    version="0.1.0-alpha"
+    displayName="Reinhardt's HBM"
+    authors="Reinhardt, HbmMods"
+    description='''Early NeoForge 1.21.1 porting workspace for HBM's Nuclear Tech Mod.'''
+
+[[dependencies.reinhardtshbm]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.248,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.reinhardtshbm]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1]"
+    ordering="NONE"
+    side="BOTH"

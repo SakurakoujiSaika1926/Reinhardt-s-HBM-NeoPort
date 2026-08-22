@@ -1,0 +1,8 @@
+{
+  "parent": "reinhardtshbm:block/heater_oven",
+  "visibility": {
+    "Main": false,
+    "Door": false,
+    "InnerBurning": false
+  }
+}

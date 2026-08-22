@@ -1,0 +1,13 @@
+﻿{
+  "variants": {
+    "type=bottom": {
+      "model": "reinhardtshbm:block/reinforced_stone_slab"
+    },
+    "type=top": {
+      "model": "reinhardtshbm:block/reinforced_stone_slab_top"
+    },
+    "type=double": {
+      "model": "reinhardtshbm:block/reinforced_stone_slab_double"
+    }
+  }
+}

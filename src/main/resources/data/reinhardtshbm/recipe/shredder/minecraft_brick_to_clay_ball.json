@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:brick"
+                   },
+    "result":  {
+                   "id":  "minecraft:clay_ball"
+               }
+}

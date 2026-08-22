@@ -1,0 +1,8 @@
+﻿{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/machine_uf6_tank_empty" },
+    "facing=south": { "model": "reinhardtshbm:block/machine_uf6_tank_empty" },
+    "facing=west": { "model": "reinhardtshbm:block/machine_uf6_tank_empty" },
+    "facing=east": { "model": "reinhardtshbm:block/machine_uf6_tank_empty" }
+  }
+}

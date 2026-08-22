@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ore_oil_empty"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/tritium_deuterium_cake"
+                 },
+    "parent":  "minecraft:item/generated"
+}

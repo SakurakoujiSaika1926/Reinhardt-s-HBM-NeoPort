@@ -1,0 +1,7 @@
+﻿{
+    "variants":  {
+                     "":  {
+                              "model":  "reinhardtshbm:block/meteor_battery"
+                          }
+                 }
+}

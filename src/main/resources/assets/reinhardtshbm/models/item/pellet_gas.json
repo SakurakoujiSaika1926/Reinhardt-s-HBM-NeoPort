@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/pellet_gas"
+                 },
+    "parent":  "minecraft:item/generated"
+}

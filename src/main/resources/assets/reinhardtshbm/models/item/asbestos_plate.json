@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/asbestos_plate"
+                 },
+    "parent":  "minecraft:item/generated"
+}

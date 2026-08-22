@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_carbon"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/lead"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_ra226"
+               },
+    "antimatter":  10
+}
+

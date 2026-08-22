@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/seal_controller"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["IRI", "CTC", "IRI"],
+  "key": {
+    "I": { "item": "reinhardtshbm:plate_polymer" },
+    "R": { "item": "minecraft:redstone" },
+    "C": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:wire_fine"],
+      "components": {
+        "minecraft:custom_data": { "material_id": 2900, "material": "copper" }
+      }
+    },
+    "T": { "item": "reinhardtshbm:coil_tungsten" }
+  },
+  "result": { "id": "reinhardtshbm:machine_detector" }
+}

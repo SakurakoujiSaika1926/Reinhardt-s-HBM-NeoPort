@@ -1,0 +1,71 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.atomic_clock",
+  "duration": 200,
+  "power": 2000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 4000,
+            "material": "zirconium"
+          }
+        }
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/strontium"
+      },
+      "count": 1
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_atomic_clock",
+        "count": 1
+      },
+      "weight": 50
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:broken_item",
+        "count": 1,
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:circuit_atomic_clock",
+            "item_count": 1
+          }
+        }
+      },
+      "weight": 50
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "blueprint_pools": [
+    "528.strontium"
+  ]
+}

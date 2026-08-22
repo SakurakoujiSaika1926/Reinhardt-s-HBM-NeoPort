@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.perfluoromethyl",
+  "duration": 20,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/fluorite"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "petroleum",
+      "amount": 1000
+    },
+    {
+      "fluid": "unsaturateds",
+      "amount": 500
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "perfluoromethyl",
+      "amount": 1000
+    }
+  ]
+}

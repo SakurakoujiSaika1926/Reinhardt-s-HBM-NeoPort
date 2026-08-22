@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " R ",
+    "CCC",
+    " B "
+  ],
+  "key": {
+    "R": {
+      "item": "reinhardtshbm:radio_torch_receiver"
+    },
+    "B": {
+      "item": "reinhardtshbm:rbmk_display_blank"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_numitron"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_numitron"
+  }
+}

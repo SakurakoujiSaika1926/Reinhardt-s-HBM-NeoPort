@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/battery_red_cell_6"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.yellowbarrel",
+  "duration": 400,
+  "power": 400,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:tank_steel" }, "count": 1 },
+    { "ingredient": { "tag": "c:plates/lead" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:nuclear_waste" }, "count": 10 }
+  ],
+  "result": { "id": "reinhardtshbm:yellow_barrel" }
+}

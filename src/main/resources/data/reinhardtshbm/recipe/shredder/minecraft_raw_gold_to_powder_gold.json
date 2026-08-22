@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:raw_gold"
+                   },
+    "input_count":  2,
+    "result":  {
+                   "id":  "reinhardtshbm:powder_gold",
+                   "count":  3
+               }
+}

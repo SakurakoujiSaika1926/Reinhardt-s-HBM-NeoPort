@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["IPI", "C C", "SSS"],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "P": { "item": "minecraft:piston" },
+    "C": { "item": "minecraft:copper_ingot" },
+    "S": { "item": "minecraft:stone" }
+  },
+  "result": { "id": "reinhardtshbm:machine_ammo_press" }
+}

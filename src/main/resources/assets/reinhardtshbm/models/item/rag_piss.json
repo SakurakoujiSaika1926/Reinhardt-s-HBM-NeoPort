@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/rag_piss"
+                 },
+    "parent":  "minecraft:item/generated"
+}

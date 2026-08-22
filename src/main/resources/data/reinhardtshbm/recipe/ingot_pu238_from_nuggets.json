@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/pu238"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_pu238"
+               }
+}

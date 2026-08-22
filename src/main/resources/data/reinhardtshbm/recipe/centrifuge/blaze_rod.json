@@ -1,0 +1,22 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "item":  "minecraft:blaze_rod"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "minecraft:blaze_powder"
+                    },
+                    {
+                        "id":  "minecraft:blaze_powder"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_fire"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_fire"
+                    }
+                ]
+}

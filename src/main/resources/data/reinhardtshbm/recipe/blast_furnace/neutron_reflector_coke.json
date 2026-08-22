@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "tag": "reinhardtshbm:blast_furnace/tungsten_equivalent" },
+  "input_b": { "tag": "reinhardtshbm:blast_furnace/coke_equivalent" },
+  "result": { "id": "reinhardtshbm:neutron_reflector", "count": 2 }
+}

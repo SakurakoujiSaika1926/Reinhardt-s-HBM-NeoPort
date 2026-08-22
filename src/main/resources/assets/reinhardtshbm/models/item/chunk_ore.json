@@ -1,0 +1,17 @@
+{
+    "parent":  "reinhardtshbm:item/chunk_ore_rare",
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "reinhardtshbm:item/chunk_ore_malachite"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "reinhardtshbm:item/chunk_ore_moonstone"
+                      }
+                  ]
+}

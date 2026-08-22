@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:entity/legacy_himars_standard",
+  "textures": {
+    "standard": "reinhardtshbm:models/projectiles/himars_standard_lava",
+    "particle": "reinhardtshbm:models/projectiles/himars_standard_lava"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:arc_furnace",
+  "group": "arc_furnace",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "rad_washed",
+        "type": "rare"
+      }
+    }
+  },
+  "liquid": [
+    {
+      "material": "niobium",
+      "amount": 120
+    },
+    {
+      "material": "neodymium",
+      "amount": 120
+    },
+    {
+      "material": "strontium",
+      "amount": 72
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/flame_opinion"
+                 },
+    "parent":  "minecraft:item/generated"
+}

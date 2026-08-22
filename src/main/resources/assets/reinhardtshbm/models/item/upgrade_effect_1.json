@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/upgrade_effect_1"
+                 },
+    "parent":  "minecraft:item/generated"
+}

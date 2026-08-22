@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/acetylene_torch"
+                 },
+    "parent":  "minecraft:item/generated"
+}

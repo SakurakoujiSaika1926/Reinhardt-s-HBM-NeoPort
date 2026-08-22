@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:billet_uranium_fuel"
+    },
+    {
+      "item": "reinhardtshbm:billet_uranium_fuel"
+    },
+    {
+      "item": "reinhardtshbm:billet_pu_mix"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:billet_mox_fuel",
+    "count": 3
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/therm_endo"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

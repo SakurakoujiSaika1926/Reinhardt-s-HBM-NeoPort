@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "tag": "reinhardtshbm:blast_furnace/saturnite_equivalent" },
+  "input_b": { "item": "reinhardtshbm:ingot_meteorite" },
+  "result": { "id": "reinhardtshbm:ingot_starmetal", "count": 2 }
+}

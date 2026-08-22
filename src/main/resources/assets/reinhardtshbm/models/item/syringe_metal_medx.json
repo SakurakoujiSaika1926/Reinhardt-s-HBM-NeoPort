@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/syringe_metal_medx"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CCC",
+    "1 2",
+    "CCC"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:concrete_smooth"
+    },
+    "1": {
+      "tag": "c:dyes/brown"
+    },
+    "2": {
+      "tag": "c:dyes/gray"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:concrete_colored_ext",
+    "count": 6,
+    "components": {
+      "minecraft:custom_model_data": 0,
+      "minecraft:custom_data": {
+        "meta": 0
+      }
+    }
+  }
+}

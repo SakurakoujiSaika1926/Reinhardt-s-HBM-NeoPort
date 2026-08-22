@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.reoil",
+  "duration": 40,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "smear",
+      "amount": 1000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "reclaimed",
+      "amount": 800
+    }
+  ]
+}

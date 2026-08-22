@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:packed_ice"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_ice"
+               }
+}

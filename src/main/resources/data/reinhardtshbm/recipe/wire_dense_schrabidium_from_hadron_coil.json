@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:hadron_coil_schrabidium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:wire_dense",
+    "count": 2,
+    "components": {
+      "minecraft:custom_data": {
+        "material_id": 12626,
+        "material": "schrabidium"
+      }
+    }
+  }
+}

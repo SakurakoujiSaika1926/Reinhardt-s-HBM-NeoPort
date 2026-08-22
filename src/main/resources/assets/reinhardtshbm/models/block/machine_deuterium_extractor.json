@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "reinhardtshbm:block/deuterium_extractor_top_water",
+    "top": "reinhardtshbm:block/deuterium_extractor_top_water",
+    "side": "reinhardtshbm:block/deuterium_extractor_side"
+  }
+}

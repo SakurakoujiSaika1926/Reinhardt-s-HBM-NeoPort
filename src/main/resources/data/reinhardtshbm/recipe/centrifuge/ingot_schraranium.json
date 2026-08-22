@@ -1,0 +1,25 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ingot_schraranium"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:nugget_schrabidium",
+                        "count":  2
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_schrabidium"
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_uranium",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_neptunium",
+                        "count":  2
+                    }
+                ]
+}

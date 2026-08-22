@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.lpg",
+    "input":  {
+                  "fluid":  "lpg",
+                  "amount":  990
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

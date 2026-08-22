@@ -1,0 +1,11 @@
+{
+  "parent": "reinhardtshbm:block/fusion_torus",
+  "visibility": {
+    "Plasma": false,
+    "Torus": false,
+    "Magnet": false,
+    "Bolts1": false,
+    "Bolts3": false,
+    "Bolts4": false
+  }
+}

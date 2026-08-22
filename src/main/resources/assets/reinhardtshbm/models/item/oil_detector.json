@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/oil_detector"
+                 },
+    "parent":  "minecraft:item/generated"
+}

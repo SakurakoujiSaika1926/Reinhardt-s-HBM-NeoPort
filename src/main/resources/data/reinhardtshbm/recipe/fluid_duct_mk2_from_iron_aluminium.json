@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "IAI",
+                    "   ",
+                    "IAI"
+                ],
+    "key":  {
+                "I":  {
+                          "tag":  "c:plates/iron"
+                      },
+                "A":  {
+                          "tag":  "c:plates/aluminium"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:fluid_duct_mk2",
+                   "count":  8
+               }
+}

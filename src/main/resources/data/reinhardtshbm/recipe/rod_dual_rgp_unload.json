@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:rod_dual"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "rgp"
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:billet_pu_mix",
+    "count": 2
+  }
+}

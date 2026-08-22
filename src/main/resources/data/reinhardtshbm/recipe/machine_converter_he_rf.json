@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["RRR", "WWW", "III"],
+  "key": {
+    "R": { "item": "reinhardtshbm:circuit_capacitor" },
+    "W": { "item": "minecraft:redstone" },
+    "I": { "tag": "c:ingots/steel" }
+  },
+  "result": { "id": "reinhardtshbm:machine_converter_he_rf" }
+}

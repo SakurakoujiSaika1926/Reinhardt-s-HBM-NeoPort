@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/anvil_arsenic_bronze", "y": 90 },
+    "facing=east": { "model": "reinhardtshbm:block/anvil_arsenic_bronze", "y": 180 },
+    "facing=south": { "model": "reinhardtshbm:block/anvil_arsenic_bronze", "y": 270 },
+    "facing=west": { "model": "reinhardtshbm:block/anvil_arsenic_bronze" }
+  }
+}

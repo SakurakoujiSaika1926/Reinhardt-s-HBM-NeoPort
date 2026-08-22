@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/heart_fab"
+                 },
+    "parent":  "minecraft:item/generated"
+}

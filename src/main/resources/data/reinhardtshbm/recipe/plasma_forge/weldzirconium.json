@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.weldzirconium",
+  "auto_switch_group": "autoswitch.weldPlates",
+  "duration": 300,
+  "power": 10000,
+  "ignition_temp": 500000,
+  "input_items": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 4000, "material": "zirconium" } } }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_welded", "components": { "minecraft:custom_data": { "material_id": 4000, "material": "zirconium" } } }
+}

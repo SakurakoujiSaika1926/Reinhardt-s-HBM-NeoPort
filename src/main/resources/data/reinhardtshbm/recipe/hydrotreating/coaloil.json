@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:hydrotreating",
+  "group": "hydrotreating.coaloil",
+  "input": { "fluid": "coaloil", "amount": 100 },
+  "hydrogen": { "fluid": "hydrogen", "amount": 10, "pressure": 1 },
+  "output1": { "fluid": "coalgas", "amount": 80 },
+  "output2": { "fluid": "sourgas", "amount": 15 },
+  "power": 20000
+}

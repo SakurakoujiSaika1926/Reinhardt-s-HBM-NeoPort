@@ -1,0 +1,28 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.dhc",
+  "duration": 400,
+  "power": 500,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "deuterium",
+      "amount": 500
+    },
+    {
+      "fluid": "reformgas",
+      "amount": 250
+    },
+    {
+      "fluid": "syngas",
+      "amount": 250
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "dhc",
+      "amount": 500
+    }
+  ]
+}

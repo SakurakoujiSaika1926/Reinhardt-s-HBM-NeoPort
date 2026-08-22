@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,lit=false": { "model": "reinhardtshbm:block/furnace_steel_empty" },
+    "facing=east,lit=false": { "model": "reinhardtshbm:block/furnace_steel_empty" },
+    "facing=south,lit=false": { "model": "reinhardtshbm:block/furnace_steel_empty" },
+    "facing=west,lit=false": { "model": "reinhardtshbm:block/furnace_steel_empty" },
+    "facing=north,lit=true": { "model": "reinhardtshbm:block/furnace_steel_empty" },
+    "facing=east,lit=true": { "model": "reinhardtshbm:block/furnace_steel_empty" },
+    "facing=south,lit=true": { "model": "reinhardtshbm:block/furnace_steel_empty" },
+    "facing=west,lit=true": { "model": "reinhardtshbm:block/furnace_steel_empty" }
+  }
+}

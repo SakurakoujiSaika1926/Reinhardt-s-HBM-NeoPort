@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/starmetal_plate"
+                 },
+    "parent":  "minecraft:item/generated"
+}

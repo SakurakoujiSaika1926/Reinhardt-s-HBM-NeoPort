@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:ore_gneiss_lithium" },
+  "result": { "id": "reinhardtshbm:lithium" },
+  "experience": 5,
+  "cookingtime": 100
+}

@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/ammo_arty"
+  },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/ammo_arty_classic" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/ammo_arty_he" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:item/ammo_arty_mini_nuke" },
+    { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:item/ammo_arty_nuke" },
+    { "predicate": { "custom_model_data": 5 }, "model": "reinhardtshbm:item/ammo_arty_phosphorus" },
+    { "predicate": { "custom_model_data": 6 }, "model": "reinhardtshbm:item/ammo_arty_mini_nuke_multi" },
+    { "predicate": { "custom_model_data": 7 }, "model": "reinhardtshbm:item/ammo_arty_phosphorus_multi" },
+    { "predicate": { "custom_model_data": 8 }, "model": "reinhardtshbm:item/ammo_arty_cargo" },
+    { "predicate": { "custom_model_data": 9 }, "model": "reinhardtshbm:item/ammo_arty_chlorine" },
+    { "predicate": { "custom_model_data": 10 }, "model": "reinhardtshbm:item/ammo_arty_phosgene" },
+    { "predicate": { "custom_model_data": 11 }, "model": "reinhardtshbm:item/ammo_arty_mustard_gas" },
+    { "predicate": { "custom_model_data": 12 }, "model": "reinhardtshbm:item/ammo_arty_cargo_full" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.limestone",
+  "input": {
+    "tag": "c:dusts/limestone"
+  },
+  "output": {
+    "id": "reinhardtshbm:powder_calcium"
+  },
+  "fluid": {
+    "fluid": "carbondioxide",
+    "amount": 50
+  }
+}

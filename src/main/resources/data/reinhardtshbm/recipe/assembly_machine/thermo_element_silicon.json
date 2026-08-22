@@ -1,0 +1,38 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.thermoelementsilicon",
+  "duration": 60,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7900,
+            "material": "gold"
+          }
+        }
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_silicon"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:thermo_element"
+  }
+}

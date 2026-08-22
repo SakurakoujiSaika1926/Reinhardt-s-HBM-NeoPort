@@ -1,0 +1,37 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.meth",
+  "duration": 60,
+  "power": 300,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "minecraft:wheat"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:cocoa_beans"
+      },
+      "count": 2
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "lubricant",
+      "amount": 400
+    },
+    {
+      "fluid": "peroxide",
+      "amount": 500
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:chocolate",
+      "count": 4
+    }
+  ],
+  "output_fluids": []
+}

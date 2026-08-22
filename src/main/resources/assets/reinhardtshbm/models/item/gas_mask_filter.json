@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/gas_mask_filter"
+                 },
+    "parent":  "minecraft:item/generated"
+}

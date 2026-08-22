@@ -1,0 +1,28 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.hss",
+  "frequency": 9,
+  "icon": {
+    "id": "reinhardtshbm:ingot_dura_steel"
+  },
+  "input": [
+    {
+      "material": "steel",
+      "amount": 40
+    },
+    {
+      "material": "tungsten",
+      "amount": 24
+    },
+    {
+      "material": "cobalt",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "dura_steel",
+      "amount": 72
+    }
+  ]
+}

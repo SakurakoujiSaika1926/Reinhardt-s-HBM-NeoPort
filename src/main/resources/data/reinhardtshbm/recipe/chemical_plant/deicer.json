@@ -1,0 +1,29 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.deicer",
+  "duration": 40,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "gas",
+      "amount": 100
+    },
+    {
+      "fluid": "hydrogen",
+      "amount": 50
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:fuel_additive",
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "deicer"
+        },
+        "minecraft:custom_model_data": 1
+      }
+    }
+  ],
+  "output_fluids": []
+}

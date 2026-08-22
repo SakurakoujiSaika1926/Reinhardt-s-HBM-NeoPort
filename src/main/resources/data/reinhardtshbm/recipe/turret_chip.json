@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WWW",
+    "CPC",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 7900,
+          "material": "gold"
+        }
+      }
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "P": {
+      "tag": "c:ingots/plastic"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:turret_chip"
+  }
+}

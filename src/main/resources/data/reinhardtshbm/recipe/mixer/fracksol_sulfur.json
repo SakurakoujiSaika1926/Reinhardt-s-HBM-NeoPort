@@ -1,0 +1,23 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.fracksol",
+    "output":  {
+                   "fluid":  "fracksol",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "water",
+                   "amount":  1000
+               },
+    "input2":  {
+                   "fluid":  "petroleum",
+                   "amount":  100
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/sulfur"
+                                       },
+                        "count":  1
+                    }
+}

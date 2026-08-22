@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:billet_cobalt"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nugget_cobalt",
+    "count": 6
+  }
+}

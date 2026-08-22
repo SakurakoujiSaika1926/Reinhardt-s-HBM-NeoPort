@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " C ",
+    "C C",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:brick_concrete_cracked"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:brick_concrete_broken",
+    "count": 6
+  }
+}

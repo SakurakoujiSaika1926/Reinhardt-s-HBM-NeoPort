@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.xenonoxy",
+  "blueprint_pools": [
+    "alt..xenonoxy"
+  ],
+  "duration": 20,
+  "power": 1000,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "air",
+      "amount": 8000
+    },
+    {
+      "fluid": "oxygen",
+      "amount": 250
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "xenon",
+      "amount": 50
+    }
+  ]
+}

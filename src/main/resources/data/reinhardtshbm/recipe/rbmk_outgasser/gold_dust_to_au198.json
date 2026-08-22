@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:rbmk_outgasser",
+  "group": "outgasser.gold",
+  "ingredient": {
+    "tag": "c:dusts/gold"
+  },
+  "item_output": {
+    "id": "reinhardtshbm:powder_au198"
+  }
+}

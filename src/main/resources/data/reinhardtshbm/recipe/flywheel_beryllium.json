@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IBI",
+    "BTB",
+    "IBI"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:block_beryllium"
+    },
+    "I": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 2600,
+          "material": "iron"
+        }
+      }
+    },
+    "T": {
+      "tag": "c:pipes/dura_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:flywheel_beryllium"
+  }
+}

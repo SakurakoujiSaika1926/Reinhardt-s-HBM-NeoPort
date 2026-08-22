@@ -1,0 +1,19 @@
+{
+  "textures": {
+    "side": "reinhardtshbm:block/foundry_channel_side",
+    "top": "reinhardtshbm:block/foundry_channel_top",
+    "inner": "reinhardtshbm:block/foundry_channel_inner",
+    "particle": "reinhardtshbm:block/foundry_channel_bottom"
+  },
+  "elements": [
+    {
+      "from": [5, 0, 5],
+      "to": [11, 8, 6],
+      "faces": {
+        "up": { "texture": "#top", "uv": [5, 5, 11, 6] },
+        "north": { "texture": "#side", "uv": [5, 8, 11, 16] },
+        "south": { "texture": "#inner", "uv": [5, 8, 11, 16] }
+      }
+    }
+  ]
+}

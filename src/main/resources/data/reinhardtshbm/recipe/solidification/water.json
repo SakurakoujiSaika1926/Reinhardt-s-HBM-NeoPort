@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.water",
+    "input":  {
+                  "fluid":  "water",
+                  "amount":  1000
+              },
+    "output":  {
+                   "id":  "minecraft:ice"
+               }
+}

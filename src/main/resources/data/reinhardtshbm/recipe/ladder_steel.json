@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "LLL",
+    "L#L",
+    "LLL"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:ladder"
+    },
+    "#": {
+      "tag": "c:ingots/steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:ladder_steel",
+    "count": 8
+  }
+}

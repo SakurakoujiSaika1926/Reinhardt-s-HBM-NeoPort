@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/detonator_laser"
+                 },
+    "parent":  "minecraft:item/generated"
+}

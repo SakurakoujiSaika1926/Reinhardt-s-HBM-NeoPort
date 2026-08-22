@@ -1,0 +1,65 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_column",
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#end", "cullface": "down" },
+        "up": { "texture": "#end" },
+        "north": { "texture": "#side", "cullface": "north" },
+        "south": { "texture": "#side", "cullface": "south" },
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#side", "cullface": "east" }
+      }
+    },
+    {
+      "from": [1, 16, 1],
+      "to": [7, 18, 7],
+      "faces": {
+        "down": { "texture": "#pipe_side" },
+        "up": { "texture": "#pipe_top" },
+        "north": { "texture": "#pipe_side" },
+        "south": { "texture": "#pipe_side" },
+        "west": { "texture": "#pipe_side" },
+        "east": { "texture": "#pipe_side" }
+      }
+    },
+    {
+      "from": [9, 16, 1],
+      "to": [15, 18, 7],
+      "faces": {
+        "down": { "texture": "#pipe_side" },
+        "up": { "texture": "#pipe_top" },
+        "north": { "texture": "#pipe_side" },
+        "south": { "texture": "#pipe_side" },
+        "west": { "texture": "#pipe_side" },
+        "east": { "texture": "#pipe_side" }
+      }
+    },
+    {
+      "from": [1, 16, 9],
+      "to": [7, 18, 15],
+      "faces": {
+        "down": { "texture": "#pipe_side" },
+        "up": { "texture": "#pipe_top" },
+        "north": { "texture": "#pipe_side" },
+        "south": { "texture": "#pipe_side" },
+        "west": { "texture": "#pipe_side" },
+        "east": { "texture": "#pipe_side" }
+      }
+    },
+    {
+      "from": [9, 16, 9],
+      "to": [15, 18, 15],
+      "faces": {
+        "down": { "texture": "#pipe_side" },
+        "up": { "texture": "#pipe_top" },
+        "north": { "texture": "#pipe_side" },
+        "south": { "texture": "#pipe_side" },
+        "west": { "texture": "#pipe_side" },
+        "east": { "texture": "#pipe_side" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_deepslate_thorium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_th232"
+               },
+    "experience":  3,
+    "cookingtime":  200
+}

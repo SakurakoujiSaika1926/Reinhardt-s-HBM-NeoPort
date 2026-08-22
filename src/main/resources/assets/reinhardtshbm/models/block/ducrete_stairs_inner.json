@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "reinhardtshbm:block/ducrete_tile",
+    "top": "reinhardtshbm:block/ducrete_tile",
+    "side": "reinhardtshbm:block/ducrete_tile"
+  }
+}

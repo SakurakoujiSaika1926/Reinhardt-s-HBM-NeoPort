@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.cryogel",
+    "output":  {
+                   "fluid":  "cryogel",
+                   "amount":  2000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "coolant",
+                   "amount":  1800
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "item":  "reinhardtshbm:powder_ice"
+                                       },
+                        "count":  1
+                    }
+}

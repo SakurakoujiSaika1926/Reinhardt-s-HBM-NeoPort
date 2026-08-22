@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down": { "model": "reinhardtshbm:block/wand_tandem", "x": 90 },
+    "facing=up": { "model": "reinhardtshbm:block/wand_tandem", "x": 270 },
+    "facing=north": { "model": "reinhardtshbm:block/wand_tandem", "y": 180 },
+    "facing=south": { "model": "reinhardtshbm:block/wand_tandem" },
+    "facing=west": { "model": "reinhardtshbm:block/wand_tandem", "y": 90 },
+    "facing=east": { "model": "reinhardtshbm:block/wand_tandem", "y": 270 }
+  }
+}

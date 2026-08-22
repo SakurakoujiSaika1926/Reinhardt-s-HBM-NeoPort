@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_beryllium"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/thorium"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_uranium"
+               },
+    "antimatter":  25
+}
+

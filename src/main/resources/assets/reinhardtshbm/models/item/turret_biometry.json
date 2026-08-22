@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/turret_chip"
+                 },
+    "parent":  "minecraft:item/generated"
+}

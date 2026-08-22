@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:ammo_press",
+  "group": "ammo_press.nuke_balefire",
+  "input": [
+    {}, { "ingredient": { "item": "reinhardtshbm:egg_balefire_shard" } }, {},
+    {}, { "ingredient": { "item": "reinhardtshbm:assembly_nuke" } }, {},
+    {}, {}, {}
+  ],
+  "result": {
+    "id": "reinhardtshbm:ammo_standard",
+    "components": {
+      "minecraft:custom_data": { "variant": "nuke_balefire" },
+      "minecraft:custom_model_data": 25
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/arc_furnace.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/arc_furnace.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "visibility": {
+    "Furnace": true,
+    "ContentsHot": false,
+    "ContentsCold": false,
+    "Lid": true,
+    "Ring1": true,
+    "Ring2": true,
+    "Ring3": true,
+    "Electrode1": true,
+    "Electrode2": true,
+    "Electrode3": true,
+    "Electrode1Hot": false,
+    "Electrode2Hot": false,
+    "Electrode3Hot": false,
+    "Electrode1Short": false,
+    "Electrode2Short": false,
+    "Electrode3Short": false,
+    "Cable1": true,
+    "Cable2": true,
+    "Cable3": true
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/arc_furnace"
+  }
+}

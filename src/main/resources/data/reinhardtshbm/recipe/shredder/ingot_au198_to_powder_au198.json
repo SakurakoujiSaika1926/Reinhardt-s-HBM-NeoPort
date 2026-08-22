@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ingot_au198"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_au198"
+               }
+}

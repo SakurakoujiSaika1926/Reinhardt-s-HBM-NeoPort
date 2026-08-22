@@ -1,0 +1,73 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.hpcondenser",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 43,
+            "material": "cdalloy"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/copper"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:pipes/steel"
+      },
+      "count": 24
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "lubricant",
+      "amount": 4000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_condenser_powered"
+  }
+}

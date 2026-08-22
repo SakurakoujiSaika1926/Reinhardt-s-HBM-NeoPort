@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.mercury",
+    "input":  {
+                  "fluid":  "mercury",
+                  "amount":  125
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:nugget_mercury"
+               }
+}

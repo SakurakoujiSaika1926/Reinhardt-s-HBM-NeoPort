@@ -1,0 +1,31 @@
+﻿{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BGB",
+    "GRG",
+    "BGB"
+  ],
+  "key": {
+    "G": {
+      "item": "reinhardtshbm:block_graphite"
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_control"
+    },
+    "B": {
+      "item": "reinhardtshbm:nugget_bismuth"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_control_mod"
+  }
+}

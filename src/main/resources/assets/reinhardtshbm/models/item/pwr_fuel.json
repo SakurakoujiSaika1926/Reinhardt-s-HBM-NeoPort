@@ -1,0 +1,92 @@
+{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/pwr_fuel.meu"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_heu233"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_heu235"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_men"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  4
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_hen237"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  5
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_mox"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  6
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_mep"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  7
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_hep239"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  8
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_hep241"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  9
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_mea"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  10
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_hea242"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  11
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_hes326"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  12
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_hes327"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  13
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_bfb_am_mix"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  14
+                                        },
+                          "model":  "reinhardtshbm:item/pwr_fuel_bfb_pu241"
+                      }
+                  ]
+}

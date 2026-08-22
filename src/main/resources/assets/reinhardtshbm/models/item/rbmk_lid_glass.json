@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/rbmk_lid_glass"
+                 },
+    "parent":  "minecraft:item/generated"
+}

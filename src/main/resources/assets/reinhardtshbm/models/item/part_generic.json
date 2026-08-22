@@ -1,0 +1,35 @@
+{
+  "parent": "reinhardtshbm:item/part_generic_piston_pneumatic",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:item/part_generic_piston_hydraulic"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "reinhardtshbm:item/part_generic_piston_electric"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "reinhardtshbm:item/part_generic_lde"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "reinhardtshbm:item/part_generic_hde"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "reinhardtshbm:item/part_generic_glass_polarized"
+    }
+  ]
+}

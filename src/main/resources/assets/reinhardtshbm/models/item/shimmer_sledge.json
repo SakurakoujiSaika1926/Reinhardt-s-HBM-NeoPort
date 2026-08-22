@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/shimmer_sledge"
+                 },
+    "parent":  "minecraft:item/generated"
+}

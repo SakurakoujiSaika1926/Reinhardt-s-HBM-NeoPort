@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "STS",
+    "G G",
+    "STS"
+  ],
+  "key": {
+    "S": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 8200,
+          "material": "lead"
+        }
+      }
+    },
+    "T": {
+      "item": "reinhardtshbm:coil_gold"
+    },
+    "G": {
+      "tag": "c:glass_panes"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:particle_empty",
+    "count": 2
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_dual_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_pu_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_pu_mix"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_dual",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "rgp"
+      },
+      "minecraft:custom_model_data": 11
+    }
+  }
+}

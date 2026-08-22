@@ -1,0 +1,35 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "BBB",
+                    "WFW",
+                    "RRR"
+                ],
+    "key":  {
+                "B":  {
+                          "tag":  "c:ingots/beryllium"
+                      },
+                "W":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:plate_cast"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  2900,
+                                                                           "material":  "copper"
+                                                                       }
+                                         }
+                      },
+                "F":  {
+                          "item":  "minecraft:furnace"
+                      },
+                "R":  {
+                          "item":  "reinhardtshbm:coil_tungsten"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:machine_electric_furnace_off"
+               }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "B  ",
+    "BB ",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:lightstone_bricks"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:lightstone_bricks_stairs",
+    "count": 4
+  }
+}

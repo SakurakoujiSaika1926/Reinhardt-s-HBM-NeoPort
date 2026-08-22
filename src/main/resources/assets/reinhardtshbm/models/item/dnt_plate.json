@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/dnt_plate"
+                 },
+    "parent":  "minecraft:item/generated"
+}

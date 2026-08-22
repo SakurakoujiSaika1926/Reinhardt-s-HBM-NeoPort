@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "SIS",
+    "BEB"
+  ],
+  "key": {
+    "S": {
+      "item": "reinhardtshbm:steel_scaffold"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_basic"
+    },
+    "I": {
+      "item": "minecraft:iron_bars"
+    },
+    "B": {
+      "item": "reinhardtshbm:struct_launcher"
+    },
+    "E": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:battery_pack"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "battery_lead"
+        },
+        "minecraft:custom_model_data": 1
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:struct_launcher_core"
+  }
+}

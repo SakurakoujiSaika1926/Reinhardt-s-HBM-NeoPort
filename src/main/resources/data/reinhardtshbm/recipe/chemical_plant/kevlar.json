@@ -1,0 +1,28 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.kevlar",
+  "duration": 60,
+  "power": 300,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "aromatics",
+      "amount": 200
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 100
+    },
+    {
+      "fluid": "phosgene",
+      "amount": 100
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:plate_kevlar",
+      "count": 4
+    }
+  ],
+  "output_fluids": []
+}

@@ -1,0 +1,49 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "reinhardtshbm:enable_528_mode"
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.exsteelplating",
+    "duration":  200,
+    "power":  400,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_cast"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  30,
+                                                                                                "material":  "steel"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/titanium"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:bolts/steel"
+                                           },
+                            "count":  16
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:item_expensive",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "steel_plating"
+                                                                },
+                                      "minecraft:custom_model_data":  0
+                                  }
+               }
+}

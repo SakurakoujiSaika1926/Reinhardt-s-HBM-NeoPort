@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_quad_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_cobalt"
+    },
+    {
+      "item": "reinhardtshbm:billet_cobalt"
+    },
+    {
+      "item": "reinhardtshbm:billet_cobalt"
+    },
+    {
+      "item": "reinhardtshbm:billet_cobalt"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_quad",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "co"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  }
+}

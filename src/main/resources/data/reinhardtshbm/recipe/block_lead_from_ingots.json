@@ -1,0 +1,17 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "building",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:ingots/lead"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:block_lead"
+               }
+}

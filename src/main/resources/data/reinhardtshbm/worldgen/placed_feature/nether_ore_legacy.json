@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:nether_ore_legacy",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

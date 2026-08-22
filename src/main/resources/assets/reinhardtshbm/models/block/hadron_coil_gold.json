@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/hadron_coil_gold"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

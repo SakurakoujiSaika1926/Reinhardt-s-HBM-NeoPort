@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PCP",
+    "WSW",
+    "WSW"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "C": {
+      "item": "reinhardtshbm:padlock"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    },
+    "S": {
+      "tag": "c:ingots/tungsten"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_keyforge"
+  }
+}

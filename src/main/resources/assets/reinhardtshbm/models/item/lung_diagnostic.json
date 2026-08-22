@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/lung_diagnostic"
+                 },
+    "parent":  "minecraft:item/generated"
+}

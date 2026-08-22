@@ -1,0 +1,13 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/rtg.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/rtg.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "Gen": false,
+    "Connector": false
+  },
+  "textures": { "particle": "reinhardtshbm:models/machines/rtg" }
+}

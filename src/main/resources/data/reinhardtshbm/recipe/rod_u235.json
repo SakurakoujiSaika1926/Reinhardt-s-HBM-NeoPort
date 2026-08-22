@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_u235"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "u235"
+      },
+      "minecraft:custom_model_data": 6
+    }
+  }
+}

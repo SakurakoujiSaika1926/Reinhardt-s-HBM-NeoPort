@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/padlock_reinforced"
+                 },
+    "parent":  "minecraft:item/generated"
+}

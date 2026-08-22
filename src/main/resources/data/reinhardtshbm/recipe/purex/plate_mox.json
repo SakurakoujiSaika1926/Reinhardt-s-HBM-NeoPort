@@ -1,0 +1,40 @@
+{
+  "type": "reinhardtshbm:purex",
+  "group": "autoswitch.plate",
+  "duration": 100,
+  "power": 1500,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:waste_plate_mox"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "kerosene",
+      "amount": 500
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 250
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:powder_sr90_tiny"
+    },
+    {
+      "id": "reinhardtshbm:nugget_pu_mix",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:powder_cs137_tiny"
+    },
+    {
+      "id": "reinhardtshbm:nuclear_waste_tiny",
+      "count": 4
+    }
+  ]
+}

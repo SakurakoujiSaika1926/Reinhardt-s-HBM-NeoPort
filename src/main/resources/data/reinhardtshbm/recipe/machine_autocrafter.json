@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "MWM",
+    "SCS"
+  ],
+  "key": {
+    "S": { "item": "reinhardtshbm:plate_steel" },
+    "C": { "item": "reinhardtshbm:circuit_vacuum_tube" },
+    "M": { "item": "reinhardtshbm:motor" },
+    "W": { "item": "minecraft:crafting_table" }
+  },
+  "result": { "id": "reinhardtshbm:machine_autocrafter" }
+}

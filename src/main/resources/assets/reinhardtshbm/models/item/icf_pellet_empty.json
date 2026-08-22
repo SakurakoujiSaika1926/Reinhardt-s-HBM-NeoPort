@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/icf_pellet_empty"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_thorium_fuel"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_thorium_fuel",
+                   "count":  9
+               }
+}

@@ -1,0 +1,19 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/heatex.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/heater_heatex.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:block/heater_heatex"
+  },
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, -4, 0], "scale": [0.25, 0.25, 0.25] },
+    "fixed": { "rotation": [0, 180, 0], "scale": [0.22, 0.22, 0.22] },
+    "ground": { "translation": [0, 3, 0], "scale": [0.14, 0.14, 0.14] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 2, 0], "scale": [0.18, 0.18, 0.18] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2, 0], "scale": [0.16, 0.16, 0.16] }
+  }
+}

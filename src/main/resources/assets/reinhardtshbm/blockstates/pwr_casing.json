@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,port=false": { "model": "reinhardtshbm:block/pwr_casing" },
+    "facing=east,port=false": { "model": "reinhardtshbm:block/pwr_casing" },
+    "facing=south,port=false": { "model": "reinhardtshbm:block/pwr_casing" },
+    "facing=west,port=false": { "model": "reinhardtshbm:block/pwr_casing" },
+    "facing=north,port=true": { "model": "reinhardtshbm:block/pwr_casing" },
+    "facing=east,port=true": { "model": "reinhardtshbm:block/pwr_casing" },
+    "facing=south,port=true": { "model": "reinhardtshbm:block/pwr_casing" },
+    "facing=west,port=true": { "model": "reinhardtshbm:block/pwr_casing" }
+  }
+}

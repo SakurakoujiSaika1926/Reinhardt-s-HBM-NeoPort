@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LLL",
+    "L#L",
+    "LLL"
+  ],
+  "key": {
+    "L": {
+      "tag": "c:plates/lead"
+    },
+    "#": {
+      "item": "reinhardtshbm:tank_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_storage_drum"
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/block_niter_reinforced"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

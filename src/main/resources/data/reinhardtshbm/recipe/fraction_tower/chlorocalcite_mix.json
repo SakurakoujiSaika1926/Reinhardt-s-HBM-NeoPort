@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.chlorocalcite_mix",
+  "input": { "fluid": "chlorocalcite_mix", "amount": 100 },
+  "output1": { "fluid": "chlorocalcite_cleaned", "amount": 50 },
+  "output2": { "fluid": "colloid", "amount": 50 }
+}

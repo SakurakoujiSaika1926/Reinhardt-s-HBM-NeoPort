@@ -1,0 +1,13 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "tag": "c:ingots/aluminium"
+    }
+  ],
+  "results": [
+    {
+      "id": "reinhardtshbm:plate_aluminium"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/blocks/toaster.obj",
+  "mtl_override": "reinhardtshbm:models/obj/blocks/toaster_wood.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": false,
+  "textures": { "particle": "reinhardtshbm:block/toaster_wood" },
+  "render_type": "minecraft:cutout"
+}

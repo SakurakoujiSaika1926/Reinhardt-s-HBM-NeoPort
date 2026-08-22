@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CCC",
+    "CDC",
+    "CCC"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:concrete_smooth"
+    },
+    "D": {
+      "tag": "c:dyes/pink"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:concrete_colored",
+    "count": 8,
+    "components": {
+      "minecraft:custom_model_data": 6,
+      "minecraft:custom_data": {
+        "meta": 6
+      }
+    }
+  }
+}

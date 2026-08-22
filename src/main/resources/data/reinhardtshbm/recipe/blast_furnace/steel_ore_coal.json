@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "tag": "c:ores/iron" },
+  "input_b": { "tag": "reinhardtshbm:blast_furnace/coal_equivalent" },
+  "result": { "id": "reinhardtshbm:ingot_steel", "count": 2 }
+}

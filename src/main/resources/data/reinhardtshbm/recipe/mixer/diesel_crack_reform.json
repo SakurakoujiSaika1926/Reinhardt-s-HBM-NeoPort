@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.diesel_crack_reform",
+    "output":  {
+                   "fluid":  "diesel_crack_reform",
+                   "amount":  1000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "diesel_crack",
+                   "amount":  900
+               },
+    "input2":  {
+                   "fluid":  "reformate",
+                   "amount":  100
+               }
+}

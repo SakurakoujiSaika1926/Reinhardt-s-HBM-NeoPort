@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ams_catalyst_caesium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

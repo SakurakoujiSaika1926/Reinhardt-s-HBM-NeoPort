@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/rbmk_fuel_empty"
+                 },
+    "parent":  "minecraft:item/generated"
+}

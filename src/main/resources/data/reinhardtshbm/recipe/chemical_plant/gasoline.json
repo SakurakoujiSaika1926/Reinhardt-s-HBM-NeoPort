@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.gasoline",
+  "duration": 40,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "naphtha",
+      "amount": 1000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "gasoline",
+      "amount": 800
+    }
+  ]
+}

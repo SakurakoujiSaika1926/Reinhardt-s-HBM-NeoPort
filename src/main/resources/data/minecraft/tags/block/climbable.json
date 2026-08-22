@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:ladder_sturdy",
+    "reinhardtshbm:ladder_gold",
+    "reinhardtshbm:ladder_copper",
+    "reinhardtshbm:ladder_titanium",
+    "reinhardtshbm:ladder_steel"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+    "parent": "minecraft:block/block",
+    "textures": {
+        "particle": "reinhardtshbm:block/red_wire_coated",
+        "cable": "reinhardtshbm:block/red_wire_coated"
+    },
+    "elements": [
+        {
+            "from": [5, 5, 0],
+            "to": [11, 11, 5],
+            "faces": {
+                "down": {"texture": "#cable"},
+                "up": {"texture": "#cable"},
+                "north": {"texture": "#cable"},
+                "south": {"texture": "#cable"},
+                "west": {"texture": "#cable"},
+                "east": {"texture": "#cable"}
+            }
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "I",
+                    "P"
+                ],
+    "key":  {
+                "I":  {
+                          "tag":  "c:plates/polymer"
+                      },
+                "P":  {
+                          "tag":  "c:plates/gold"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:circuit_pcb",
+                   "count":  4
+               }
+}

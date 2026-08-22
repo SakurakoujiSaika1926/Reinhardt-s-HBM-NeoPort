@@ -1,0 +1,10 @@
+{
+  "type":"minecraft:crafting_shaped","category":"misc",
+  "pattern":["CPC","CBC","CCC"],
+  "key":{
+    "C":{"tag":"c:plates/copper"},
+    "P":{"item":"reinhardtshbm:machine_epress"},
+    "B":{"type":"neoforge:components","items":["reinhardtshbm:conveyor_wand"],"components":{"minecraft:custom_data":{"variant":"regular"},"minecraft:custom_model_data":0}}
+  },
+  "result":{"id":"reinhardtshbm:machine_conveyor_press"}
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/sand_gold"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

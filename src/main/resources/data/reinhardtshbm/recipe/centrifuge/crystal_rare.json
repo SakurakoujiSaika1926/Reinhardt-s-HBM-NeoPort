@@ -1,0 +1,24 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_rare"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_desh_mix"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_desh_mix"
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_zirconium",
+                        "count":  2
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_zirconium",
+                        "count":  2
+                    }
+                ]
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/powder_yellowcake"
+                 },
+    "parent":  "minecraft:item/generated"
+}

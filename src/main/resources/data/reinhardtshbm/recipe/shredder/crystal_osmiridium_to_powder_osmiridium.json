@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_osmiridium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_osmiridium",
+                   "count":  3
+               }
+}

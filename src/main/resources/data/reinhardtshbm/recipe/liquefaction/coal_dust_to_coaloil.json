@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.coaloil",
+  "ingredient": {
+    "tag": "c:dusts/coal"
+  },
+  "output": {
+    "fluid": "coaloil",
+    "amount": 100
+  }
+}

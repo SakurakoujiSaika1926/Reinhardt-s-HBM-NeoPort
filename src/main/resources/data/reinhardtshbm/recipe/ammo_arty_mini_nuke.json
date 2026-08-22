@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " P ",
+    "NSN",
+    " P "
+  ],
+  "key": {
+    "P": { "tag": "c:nuggets/pu239" },
+    "N": { "item": "reinhardtshbm:neutron_reflector" },
+    "S": { "type": "neoforge:components", "items": ["reinhardtshbm:ammo_arty"], "components": { "minecraft:custom_data": { "variant": "ammo_arty" }, "minecraft:custom_model_data": 0 } }
+  },
+  "result": { "id": "reinhardtshbm:ammo_arty", "components": { "minecraft:custom_data": { "variant": "ammo_arty_mini_nuke" }, "minecraft:custom_model_data": 3 } }
+}

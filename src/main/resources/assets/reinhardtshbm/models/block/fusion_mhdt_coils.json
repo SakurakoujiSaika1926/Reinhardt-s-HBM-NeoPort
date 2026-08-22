@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/fusion_mhdt",
+  "visibility": {
+    "Turbine": false
+  }
+}

@@ -1,0 +1,15 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "building",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:brick_fire_slab"
+                        },
+                        {
+                            "item":  "reinhardtshbm:brick_fire_slab"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:brick_fire"
+               }
+}

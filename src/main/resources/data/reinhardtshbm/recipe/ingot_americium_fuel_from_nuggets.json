@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/americium_fuel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_americium_fuel"
+               }
+}

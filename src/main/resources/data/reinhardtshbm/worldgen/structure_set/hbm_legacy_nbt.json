@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 996996996,
+    "separation": 0,
+    "spacing": 1
+  },
+  "structures": [
+    {
+      "structure": "reinhardtshbm:hbm_legacy_nbt",
+      "weight": 1
+    }
+  ]
+}

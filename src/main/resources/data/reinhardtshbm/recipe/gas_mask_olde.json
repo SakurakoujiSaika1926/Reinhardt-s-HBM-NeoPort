@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PPP",
+    "GPG",
+    " F "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:leather"
+    },
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "F": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:gas_mask_olde"
+  }
+}

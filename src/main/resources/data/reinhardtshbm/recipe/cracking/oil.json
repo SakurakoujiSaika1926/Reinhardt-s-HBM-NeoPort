@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "oil",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "crackoil",
+    "amount": 80
+  },
+  "output2": {
+    "fluid": "petroleum",
+    "amount": 20
+  }
+}

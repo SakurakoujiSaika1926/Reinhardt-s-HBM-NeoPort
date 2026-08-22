@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.heavyoil",
+  "item_input": { "ingredient": { "tag": "c:dusts/coal" } },
+  "fluid_input": { "fluid": "hydrogen", "amount": 500 },
+  "fluid_output": { "fluid": "heavyoil", "amount": 1000 },
+  "duration": 100
+}

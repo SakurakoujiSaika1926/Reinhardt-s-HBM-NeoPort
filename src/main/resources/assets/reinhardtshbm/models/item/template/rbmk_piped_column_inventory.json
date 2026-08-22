@@ -1,0 +1,729 @@
+{
+    "textures":  {
+                     "particle":  "#side"
+                 },
+    "elements":  [
+                     {
+                         "from":  [
+                                      0,
+                                      -16,
+                                      0
+                                  ],
+                         "to":  [
+                                    16,
+                                    0,
+                                    16
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#end"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#end"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      0,
+                                      1
+                                  ],
+                         "to":  [
+                                    7,
+                                    2,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      0,
+                                      1
+                                  ],
+                         "to":  [
+                                    15,
+                                    2,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      0,
+                                      9
+                                  ],
+                         "to":  [
+                                    7,
+                                    2,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      0,
+                                      9
+                                  ],
+                         "to":  [
+                                    15,
+                                    2,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      0,
+                                      -7,
+                                      0
+                                  ],
+                         "to":  [
+                                    16,
+                                    9,
+                                    16
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#end"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#end"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      9,
+                                      1
+                                  ],
+                         "to":  [
+                                    7,
+                                    11,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      9,
+                                      1
+                                  ],
+                         "to":  [
+                                    15,
+                                    11,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      9,
+                                      9
+                                  ],
+                         "to":  [
+                                    7,
+                                    11,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      9,
+                                      9
+                                  ],
+                         "to":  [
+                                    15,
+                                    11,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      0,
+                                      2,
+                                      0
+                                  ],
+                         "to":  [
+                                    16,
+                                    18,
+                                    16
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#end"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#end"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      18,
+                                      1
+                                  ],
+                         "to":  [
+                                    7,
+                                    20,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      18,
+                                      1
+                                  ],
+                         "to":  [
+                                    15,
+                                    20,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      18,
+                                      9
+                                  ],
+                         "to":  [
+                                    7,
+                                    20,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      18,
+                                      9
+                                  ],
+                         "to":  [
+                                    15,
+                                    20,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      0,
+                                      11,
+                                      0
+                                  ],
+                         "to":  [
+                                    16,
+                                    27,
+                                    16
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#end"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#end"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      27,
+                                      1
+                                  ],
+                         "to":  [
+                                    7,
+                                    29,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      27,
+                                      1
+                                  ],
+                         "to":  [
+                                    15,
+                                    29,
+                                    7
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      1,
+                                      27,
+                                      9
+                                  ],
+                         "to":  [
+                                    7,
+                                    29,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      9,
+                                      27,
+                                      9
+                                  ],
+                         "to":  [
+                                    15,
+                                    29,
+                                    15
+                                ],
+                         "faces":  {
+                                       "down":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "up":  {
+                                                  "texture":  "#pipe_top"
+                                              },
+                                       "north":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "south":  {
+                                                     "texture":  "#pipe_side"
+                                                 },
+                                       "west":  {
+                                                    "texture":  "#pipe_side"
+                                                },
+                                       "east":  {
+                                                    "texture":  "#pipe_side"
+                                                }
+                                   }
+                     }
+                 ],
+    "display":  {
+                    "gui":  {
+                                "rotation":  [
+                                                 30,
+                                                 225,
+                                                 0
+                                             ],
+                                "translation":  [
+                                                    0,
+                                                    0,
+                                                    0
+                                                ],
+                                "scale":  [
+                                              0.32,
+                                              0.32,
+                                              0.32
+                                          ]
+                            },
+                    "fixed":  {
+                                  "rotation":  [
+                                                   0,
+                                                   180,
+                                                   0
+                                               ],
+                                  "translation":  [
+                                                      0,
+                                                      0,
+                                                      0
+                                                  ],
+                                  "scale":  [
+                                                0.27,
+                                                0.27,
+                                                0.27
+                                            ]
+                              },
+                    "ground":  {
+                                   "translation":  [
+                                                       0,
+                                                       3,
+                                                       0
+                                                   ],
+                                   "scale":  [
+                                                 0.18,
+                                                 0.18,
+                                                 0.18
+                                             ]
+                               },
+                    "firstperson_righthand":  {
+                                                  "rotation":  [
+                                                                   0,
+                                                                   45,
+                                                                   0
+                                                               ],
+                                                  "translation":  [
+                                                                      0,
+                                                                      0,
+                                                                      0
+                                                                  ],
+                                                  "scale":  [
+                                                                0.23,
+                                                                0.23,
+                                                                0.23
+                                                            ]
+                                              },
+                    "thirdperson_righthand":  {
+                                                  "rotation":  [
+                                                                   75,
+                                                                   45,
+                                                                   0
+                                                               ],
+                                                  "translation":  [
+                                                                      0,
+                                                                      0,
+                                                                      0
+                                                                  ],
+                                                  "scale":  [
+                                                                0.21,
+                                                                0.21,
+                                                                0.21
+                                                            ]
+                                              }
+                }
+}

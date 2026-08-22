@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_schraranium"},"output1":{"material":"schrabidium","amount":40},"output2":{"material":"uranium","amount":16},"byproducts":[{"id":"reinhardtshbm:nugget_neptunium","count":2}]}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/debris_shrapnel"
+                 },
+    "parent":  "minecraft:item/generated"
+}

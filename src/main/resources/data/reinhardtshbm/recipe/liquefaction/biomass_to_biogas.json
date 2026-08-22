@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.biogas",
+  "ingredient": {
+    "item": "reinhardtshbm:biomass"
+  },
+  "output": {
+    "fluid": "biogas",
+    "amount": 125
+  }
+}

@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_fluid","input":{"fluid":"redmud","amount":450},"output1":{"fluid":"mercury","amount":150},"output2":{"fluid":"lye","amount":50},"byproducts":[{"id":"reinhardtshbm:powder_titanium","count":3},{"id":"reinhardtshbm:powder_iron","count":3},{"id":"reinhardtshbm:powder_aluminium","count":2}]}

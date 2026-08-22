@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/cladding_desh"
+                 },
+    "parent":  "minecraft:item/generated"
+}

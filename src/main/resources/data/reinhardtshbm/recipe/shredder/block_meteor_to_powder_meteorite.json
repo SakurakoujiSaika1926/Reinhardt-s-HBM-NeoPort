@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_meteor"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_meteorite",
+                   "count":  10
+               }
+}

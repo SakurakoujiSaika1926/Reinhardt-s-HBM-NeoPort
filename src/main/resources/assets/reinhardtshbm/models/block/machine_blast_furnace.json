@@ -1,0 +1,12 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/blast_furnace_1710.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/blast_furnace_1710.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/blast_furnace_1710"
+  }
+}

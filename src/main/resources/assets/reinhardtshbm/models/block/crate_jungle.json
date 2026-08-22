@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/crate_jungle"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

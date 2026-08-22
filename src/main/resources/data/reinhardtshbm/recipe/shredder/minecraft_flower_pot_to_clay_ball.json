@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:flower_pot"
+                   },
+    "result":  {
+                   "id":  "minecraft:clay_ball",
+                   "count":  3
+               }
+}

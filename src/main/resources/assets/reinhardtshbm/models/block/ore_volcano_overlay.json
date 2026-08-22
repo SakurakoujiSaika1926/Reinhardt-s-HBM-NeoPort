@@ -1,0 +1,20 @@
+{
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "overlay": "reinhardtshbm:block/molten_overlay"
+  },
+  "elements": [
+    {
+      "from": [-0.01, -0.01, -0.01],
+      "to": [16.01, 16.01, 16.01],
+      "faces": {
+        "down": { "texture": "#overlay", "cullface": "down" },
+        "up": { "texture": "#overlay", "cullface": "up" },
+        "north": { "texture": "#overlay", "cullface": "north" },
+        "south": { "texture": "#overlay", "cullface": "south" },
+        "west": { "texture": "#overlay", "cullface": "west" },
+        "east": { "texture": "#overlay", "cullface": "east" }
+      }
+    }
+  ]
+}

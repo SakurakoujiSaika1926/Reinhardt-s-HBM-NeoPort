@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:nuclear_waste"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:block_waste"
+  }
+}

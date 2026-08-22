@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.steel",
+  "frequency": 2,
+  "icon": {
+    "id": "reinhardtshbm:ingot_steel"
+  },
+  "input": [
+    {
+      "material": "iron",
+      "amount": 16
+    },
+    {
+      "material": "carbon",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "steel",
+      "amount": 16
+    }
+  ]
+}

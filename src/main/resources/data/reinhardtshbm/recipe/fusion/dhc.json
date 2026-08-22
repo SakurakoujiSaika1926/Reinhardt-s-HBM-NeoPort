@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:fusion",
+  "group": "fus.dhc",
+  "ignition_temp": 10000000,
+  "output_temp": 25000000,
+  "neutron_flux": 2000.0,
+  "power": 25000,
+  "duration": 100,
+  "r": 0.2,
+  "g": 0.8,
+  "b": 0.8,
+  "icon": {
+    "id": "reinhardtshbm:fluid_icon",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "dhc"
+      }
+    }
+  },
+  "input_fluids": [
+    {
+      "fluid": "dhc",
+      "amount": 20
+    }
+  ],
+  "output_item": {
+    "id": "reinhardtshbm:powder_chlorophyte",
+    "count": 1
+  }
+}

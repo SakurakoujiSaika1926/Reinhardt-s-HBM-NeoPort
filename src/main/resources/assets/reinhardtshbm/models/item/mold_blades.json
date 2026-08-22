@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/mold_blades"
+                 },
+    "parent":  "minecraft:item/generated"
+}

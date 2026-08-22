@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_schrabidium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_schrabidium"
+               },
+    "experience":  128,
+    "cookingtime":  200
+}

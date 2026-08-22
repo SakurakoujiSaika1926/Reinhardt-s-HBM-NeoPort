@@ -1,0 +1,15 @@
+newmtl howard
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/howard
+
+newmtl carriage_ciws
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/carriage_ciws
+
+newmtl howard_barrels
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/howard_barrels
+

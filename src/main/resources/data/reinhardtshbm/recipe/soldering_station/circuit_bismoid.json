@@ -1,0 +1,64 @@
+{
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.circuit",
+  "duration": 400,
+  "consumption": 10000,
+  "fluid": {
+    "fluid": "solvent",
+    "amount": 1000
+  },
+  "toppings": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_bismoid"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor"
+      },
+      "count": 24
+    }
+  ],
+  "pcb": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_pcb"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 2
+    }
+  ],
+  "solder": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "count": 12
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_bismoid"
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "texture":  "reinhardtshbm:block/trapdoor_steel"
+                 },
+    "parent":  "minecraft:block/template_trapdoor_bottom"
+}

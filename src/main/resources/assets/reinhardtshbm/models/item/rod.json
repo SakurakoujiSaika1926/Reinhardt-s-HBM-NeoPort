@@ -1,0 +1,101 @@
+{
+  "parent": "reinhardtshbm:item/rod_lithium",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:item/rod_tritium"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "reinhardtshbm:item/rod_co"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "reinhardtshbm:item/rod_co60"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "reinhardtshbm:item/rod_th232"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "reinhardtshbm:item/rod_thf"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "reinhardtshbm:item/rod_u235"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 7
+      },
+      "model": "reinhardtshbm:item/rod_np237"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 8
+      },
+      "model": "reinhardtshbm:item/rod_u238"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9
+      },
+      "model": "reinhardtshbm:item/rod_pu238"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 10
+      },
+      "model": "reinhardtshbm:item/rod_pu239"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 11
+      },
+      "model": "reinhardtshbm:item/rod_rgp"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 12
+      },
+      "model": "reinhardtshbm:item/rod_waste"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 13
+      },
+      "model": "reinhardtshbm:item/rod_lead"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 14
+      },
+      "model": "reinhardtshbm:item/rod_uranium"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 15
+      },
+      "model": "reinhardtshbm:item/rod_ra226"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 16
+      },
+      "model": "reinhardtshbm:item/rod_ac227"
+    }
+  ]
+}

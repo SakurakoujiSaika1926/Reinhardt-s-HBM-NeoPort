@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:tnt"
+                   },
+    "result":  {
+                   "id":  "minecraft:gunpowder",
+                   "count":  5
+               }
+}

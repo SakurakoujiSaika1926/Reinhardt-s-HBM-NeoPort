@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.heavyoil_vacuum",
+  "input": { "fluid": "heavyoil_vacuum", "amount": 100 },
+  "output1": { "fluid": "smear", "amount": 40 },
+  "output2": { "fluid": "heatingoil_vacuum", "amount": 60 }
+}

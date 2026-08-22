@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/cape_schrabidium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

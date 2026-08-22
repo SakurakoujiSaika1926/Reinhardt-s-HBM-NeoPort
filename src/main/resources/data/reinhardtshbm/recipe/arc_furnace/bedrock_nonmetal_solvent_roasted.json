@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:arc_furnace",
+  "group": "arc_furnace",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "solvent_roasted",
+        "type": "nonmetal"
+      }
+    }
+  },
+  "solid": {
+    "id": "reinhardtshbm:bedrock_ore_new",
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "solvent_arc",
+        "type": "nonmetal"
+      },
+      "minecraft:custom_model_data": 124
+    },
+    "count": 4
+  }
+}

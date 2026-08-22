@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_starmetal"},"output1":{"material":"dura_steel","amount":288},"output2":{"material":"cobalt","amount":288},"byproducts":[{"id":"reinhardtshbm:powder_astatine","count":3},{"id":"reinhardtshbm:nugget_mercury","count":8}]}

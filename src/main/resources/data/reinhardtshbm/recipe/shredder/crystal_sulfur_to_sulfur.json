@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_sulfur"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:sulfur",
+                   "count":  8
+               }
+}

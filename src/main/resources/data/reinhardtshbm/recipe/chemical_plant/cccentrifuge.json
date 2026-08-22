@@ -1,0 +1,28 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.cccentrifuge",
+  "duration": 200,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "chlorocalcite_cleaned",
+      "amount": 500
+    },
+    {
+      "fluid": "sulfuric_acid",
+      "amount": 8000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "potassium_chloride",
+      "amount": 250
+    },
+    {
+      "fluid": "calcium_chloride",
+      "amount": 250
+    }
+  ]
+}

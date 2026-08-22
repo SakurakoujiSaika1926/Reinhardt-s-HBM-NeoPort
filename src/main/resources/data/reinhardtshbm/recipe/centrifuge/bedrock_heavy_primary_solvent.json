@@ -1,0 +1,52 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "primary_solvent",
+                                                                        "type":  "heavy"
+                                                                    }
+                                      }
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "count":  2,
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "primary_nosolvent",
+                                                                         "type":  "heavy"
+                                                                     },
+                                           "minecraft:custom_model_data":  49
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "count":  2,
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "sulfuric_byproduct",
+                                                                         "type":  "heavy"
+                                                                     },
+                                           "minecraft:custom_model_data":  85
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "count":  2,
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "solvent_byproduct",
+                                                                         "type":  "heavy"
+                                                                     },
+                                           "minecraft:custom_model_data":  109
+                                       }
+                    }
+                ]
+}

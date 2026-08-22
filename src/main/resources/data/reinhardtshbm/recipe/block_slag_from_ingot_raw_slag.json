@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:ingot_raw"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 41,
+          "material": "slag"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:block_slag"
+  }
+}

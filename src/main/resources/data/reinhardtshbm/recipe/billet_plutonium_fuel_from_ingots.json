@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:ingot_plutonium_fuel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:billet_plutonium_fuel",
+    "count": 3
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/blades_steel"
+                 },
+    "parent":  "minecraft:item/generated"
+}

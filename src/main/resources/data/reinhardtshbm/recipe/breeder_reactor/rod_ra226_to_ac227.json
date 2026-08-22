@@ -1,0 +1,25 @@
+{
+  "type": "reinhardtshbm:breeder_reactor",
+  "group": "breeder.rods",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:rod"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "ra226"
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rod",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "ac227"
+      },
+      "minecraft:custom_model_data": 16
+    }
+  },
+  "flux": 300
+}

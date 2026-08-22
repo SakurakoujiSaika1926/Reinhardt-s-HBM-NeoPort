@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/solid_fuel_presto"
+                 },
+    "parent":  "minecraft:item/generated"
+}

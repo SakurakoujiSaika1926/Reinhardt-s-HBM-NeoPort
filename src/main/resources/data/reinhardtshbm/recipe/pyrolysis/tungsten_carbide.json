@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.tungsten_carbide",
+  "item_input": { "ingredient": { "tag": "c:dusts/tungsten" } },
+  "fluid_input": { "fluid": "syngas", "amount": 2000 },
+  "item_output": { "id": "reinhardtshbm:ingot_tungsten_carbide" },
+  "fluid_output": { "fluid": "spentsteam", "amount": 1000 },
+  "duration": 300
+}

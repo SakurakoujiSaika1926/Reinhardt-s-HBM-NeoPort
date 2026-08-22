@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:coke"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "petroleum"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:block_coke",
+    "components": {
+      "minecraft:custom_data": {
+        "type": "petroleum"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  }
+}

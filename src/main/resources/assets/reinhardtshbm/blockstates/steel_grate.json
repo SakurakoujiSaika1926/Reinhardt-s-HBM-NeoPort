@@ -1,0 +1,14 @@
+{
+  "variants": {
+    "height=0": { "model": "reinhardtshbm:block/steel_grate0" },
+    "height=1": { "model": "reinhardtshbm:block/steel_grate1" },
+    "height=2": { "model": "reinhardtshbm:block/steel_grate2" },
+    "height=3": { "model": "reinhardtshbm:block/steel_grate3" },
+    "height=4": { "model": "reinhardtshbm:block/steel_grate4" },
+    "height=5": { "model": "reinhardtshbm:block/steel_grate5" },
+    "height=6": { "model": "reinhardtshbm:block/steel_grate6" },
+    "height=7": { "model": "reinhardtshbm:block/steel_grate7" },
+    "height=8": { "model": "reinhardtshbm:block/steel_grate8" },
+    "height=9": { "model": "reinhardtshbm:block/steel_grate9" }
+  }
+}

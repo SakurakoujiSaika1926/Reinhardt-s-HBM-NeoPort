@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_empty"
+    },
+    {
+      "item": "reinhardtshbm:rod_empty"
+    },
+    {
+      "item": "reinhardtshbm:rod_empty"
+    },
+    {
+      "item": "reinhardtshbm:rod_empty"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_quad_empty"
+  }
+}

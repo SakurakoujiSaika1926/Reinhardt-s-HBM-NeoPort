@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/balefire_and_ham"
+                 },
+    "parent":  "minecraft:item/generated"
+}

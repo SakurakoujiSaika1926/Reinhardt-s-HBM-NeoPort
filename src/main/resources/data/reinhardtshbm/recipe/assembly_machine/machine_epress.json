@@ -1,0 +1,35 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.epress",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/steel"
+                                           },
+                            "count":  8
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/rubber"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:part_piston_hydraulic"
+                                           },
+                            "count":  2
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:circuit_basic"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_epress"
+               }
+}

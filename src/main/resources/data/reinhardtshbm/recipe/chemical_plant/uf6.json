@@ -1,0 +1,38 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.uf6",
+  "duration": 100,
+  "power": 500,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_yellowcake"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/fluorite"
+      },
+      "count": 4
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 1000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:sulfur",
+      "count": 2
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "uf6",
+      "amount": 1200
+    }
+  ]
+}

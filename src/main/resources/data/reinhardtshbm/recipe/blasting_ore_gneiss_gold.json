@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:ore_gneiss_gold" },
+  "result": { "id": "minecraft:gold_ingot" },
+  "experience": 2.5,
+  "cookingtime": 100
+}

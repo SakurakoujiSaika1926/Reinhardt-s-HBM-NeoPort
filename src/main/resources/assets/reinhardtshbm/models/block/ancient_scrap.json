@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ancient_scrap"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

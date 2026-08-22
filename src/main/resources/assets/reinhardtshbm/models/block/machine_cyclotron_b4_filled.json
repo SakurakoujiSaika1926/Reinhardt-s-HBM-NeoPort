@@ -1,0 +1,5 @@
+{
+  "parent": "reinhardtshbm:block/machine_cyclotron_b4",
+  "mtl_override": "reinhardtshbm:models/obj/machines/cyclotron_coin_filled.mtl",
+  "textures": { "particle": "reinhardtshbm:models/machines/cyclotron_coin_filled" }
+}

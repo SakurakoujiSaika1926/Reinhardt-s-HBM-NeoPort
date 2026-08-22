@@ -1,0 +1,13 @@
+﻿{
+    "type":  "reinhardtshbm:exposure_chamber",
+    "group":  "exposure_chamber",
+    "particle":  {
+                     "item":  "reinhardtshbm:particle_dark"
+                 },
+    "ingredient":  {
+                       "tag":  "c:ingots/plutonium"
+                   },
+    "output":  {
+                   "id":  "reinhardtshbm:ingot_euphemium"
+               }
+}

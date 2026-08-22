@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:reforming",
+  "group": "reforming",
+  "input": {
+    "fluid": "cholesterol",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "estradiol",
+    "amount": 50
+  },
+  "output2": {
+    "fluid": "reformgas",
+    "amount": 35
+  },
+  "output3": {
+    "fluid": "hydrogen",
+    "amount": 15
+  },
+  "power": 20000
+}

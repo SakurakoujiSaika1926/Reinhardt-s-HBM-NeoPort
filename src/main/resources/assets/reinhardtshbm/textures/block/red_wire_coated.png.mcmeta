@@ -1,0 +1,11 @@
+﻿{
+    "ctm":{
+        "ctm_version": 1,
+        "type":"CTM",
+        "textures":[
+            "reinhardtshbm:block/red_wire_coated_ctm"
+        ]
+    }
+}
+
+

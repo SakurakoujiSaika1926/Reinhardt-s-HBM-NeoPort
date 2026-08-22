@@ -1,0 +1,32 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/turrets/turret_himars.obj",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  true,
+    "emissive_ambient":  false,
+    "visibility":  {
+                       "Base":  false,
+                       "CapSingle":  false,
+                       "CapStandard5":  false,
+                       "TubeStandard":  false,
+                       "Carriage":  false,
+                       "CapStandard4":  false,
+                       "CapStandard6":  false,
+                       "Launcher":  false,
+                       "RocketStandard":  false,
+                       "CapStandard1":  false,
+                       "CapStandard3":  false,
+                       "RocketSingle":  false,
+                       "TubeSingle":  true,
+                       "Crane":  false,
+                       "CapStandard2":  false
+                   },
+    "textures":  {
+                     "himars":  "reinhardtshbm:models/turrets/himars",
+                     "standard":  "reinhardtshbm:models/projectiles/himars_standard",
+                     "single":  "reinhardtshbm:models/projectiles/himars_single",
+                     "particle":  "reinhardtshbm:models/turrets/himars"
+                 },
+    "mtl_override":  "reinhardtshbm:models/obj/turrets/turret_himars.mtl"
+}

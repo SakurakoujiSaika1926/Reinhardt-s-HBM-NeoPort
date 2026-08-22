@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " P ",
+    "PBP",
+    "PDP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/dineutronium"
+    },
+    "B": {
+      "tag": "c:bolts/dura_steel"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:padlock_unbreakable"
+  }
+}

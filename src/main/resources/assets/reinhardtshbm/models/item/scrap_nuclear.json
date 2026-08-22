@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/scrap_nuclear"
+                 },
+    "parent":  "minecraft:item/generated"
+}

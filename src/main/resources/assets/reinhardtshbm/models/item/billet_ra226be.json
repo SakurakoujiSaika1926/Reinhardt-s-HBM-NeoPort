@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/billet_ra226be"
+                 },
+    "parent":  "minecraft:item/generated"
+}

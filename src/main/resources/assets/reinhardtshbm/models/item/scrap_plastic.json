@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/scrap_plastic"
+                 },
+    "parent":  "minecraft:item/generated"
+}

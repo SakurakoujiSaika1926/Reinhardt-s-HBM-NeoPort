@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:rail_wood",
+    "reinhardtshbm:rail_narrow",
+    "reinhardtshbm:rail_highspeed",
+    "reinhardtshbm:rail_booster"
+  ]
+}

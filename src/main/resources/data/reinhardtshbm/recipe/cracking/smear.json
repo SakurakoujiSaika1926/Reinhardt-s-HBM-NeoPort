@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "smear",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "naphtha",
+    "amount": 60
+  },
+  "output2": {
+    "fluid": "petroleum",
+    "amount": 40
+  }
+}

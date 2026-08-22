@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ore_bedrock_block"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

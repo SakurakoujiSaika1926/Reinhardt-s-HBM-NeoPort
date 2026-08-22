@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "meta=0": { "model": "reinhardtshbm:block/concrete_colored_white" },
+    "meta=1": { "model": "reinhardtshbm:block/concrete_colored_orange" },
+    "meta=2": { "model": "reinhardtshbm:block/concrete_colored_magenta" },
+    "meta=3": { "model": "reinhardtshbm:block/concrete_colored_light_blue" },
+    "meta=4": { "model": "reinhardtshbm:block/concrete_colored_yellow" },
+    "meta=5": { "model": "reinhardtshbm:block/concrete_colored_lime" },
+    "meta=6": { "model": "reinhardtshbm:block/concrete_colored_pink" },
+    "meta=7": { "model": "reinhardtshbm:block/concrete_colored_gray" },
+    "meta=8": { "model": "reinhardtshbm:block/concrete_colored_silver" },
+    "meta=9": { "model": "reinhardtshbm:block/concrete_colored_cyan" },
+    "meta=10": { "model": "reinhardtshbm:block/concrete_colored_purple" },
+    "meta=11": { "model": "reinhardtshbm:block/concrete_colored_blue" },
+    "meta=12": { "model": "reinhardtshbm:block/concrete_colored_brown" },
+    "meta=13": { "model": "reinhardtshbm:block/concrete_colored_green" },
+    "meta=14": { "model": "reinhardtshbm:block/concrete_colored_red" },
+    "meta=15": { "model": "reinhardtshbm:block/concrete_colored_black" }
+  }
+}

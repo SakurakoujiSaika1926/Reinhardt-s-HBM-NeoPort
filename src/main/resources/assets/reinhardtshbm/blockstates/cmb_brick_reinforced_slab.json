@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "reinhardtshbm:block/cmb_brick_reinforced_slab"
+    },
+    "type=top": {
+      "model": "reinhardtshbm:block/cmb_brick_reinforced_slab_top"
+    },
+    "type=double": {
+      "model": "reinhardtshbm:block/cmb_brick_reinforced_slab_double"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.diesel_crack",
+  "input": { "fluid": "diesel_crack", "amount": 640 },
+  "output": { "id": "reinhardtshbm:coke", "components": { "minecraft:custom_data": { "variant": "petroleum" }, "minecraft:custom_model_data": 2 } },
+  "byproduct": { "fluid": "gas_coker", "amount": 64 }
+}

@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:ore_aluminium",
+    "reinhardtshbm:ore_deepslate_aluminium",
+    "reinhardtshbm:cluster_aluminium"
+  ]
+}

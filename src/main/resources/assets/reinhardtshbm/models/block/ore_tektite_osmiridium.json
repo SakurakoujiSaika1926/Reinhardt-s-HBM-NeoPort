@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ore_tektite_osmiridium"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

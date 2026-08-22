@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.salient",
+    "output":  {
+                   "fluid":  "salient",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "seedslurry",
+                   "amount":  500
+               },
+    "input2":  {
+                   "fluid":  "blood",
+                   "amount":  500
+               }
+}

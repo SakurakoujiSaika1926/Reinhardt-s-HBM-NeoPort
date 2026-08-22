@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "PPP",
+                    "PIP",
+                    "PPP"
+                ],
+    "key":  {
+                "P":  {
+                          "tag":  "c:plates/steel"
+                      },
+                "I":  {
+                          "tag":  "c:ingots/steel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:wiring_red_copper",
+                   "count":  1
+               }
+}

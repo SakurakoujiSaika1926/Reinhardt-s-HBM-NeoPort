@@ -1,0 +1,9 @@
+newmtl None
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/tank
+
+newmtl None_tank_new_eth.png
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/tank/tank_none

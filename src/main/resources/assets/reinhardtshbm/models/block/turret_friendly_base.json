@@ -1,0 +1,19 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/turrets/turret_chekhov.obj",
+    "mtl_override":  "reinhardtshbm:models/obj/turrets/turret_chekhov_friendly.mtl",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  true,
+    "emissive_ambient":  false,
+    "visibility":  {
+                       "Carriage":  false,
+                       "Body":  false,
+                       "Connectors":  false,
+                       "Barrels":  false,
+                       "Base":  true
+                   },
+    "textures":  {
+                     "particle":  "reinhardtshbm:models/turrets/base_friendly"
+                 }
+}

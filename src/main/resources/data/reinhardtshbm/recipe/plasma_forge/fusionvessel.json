@@ -1,0 +1,25 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.fusionvessel",
+  "blueprint_pools": [
+    "528.chlorophyte"
+  ],
+  "duration": 1200,
+  "power": 2000000,
+  "ignition_temp": 3000000,
+  "input_items": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "bscco" }, "minecraft:custom_model_data": 0 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "bscco" }, "minecraft:custom_model_data": 0 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "bscco" }, "minecraft:custom_model_data": 0 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "bscco" }, "minecraft:custom_model_data": 0 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "bscco" }, "minecraft:custom_model_data": 0 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "bscco" }, "minecraft:custom_model_data": 0 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "motor" }, "minecraft:custom_model_data": 3 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "motor" }, "minecraft:custom_model_data": 3 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "motor" }, "minecraft:custom_model_data": 3 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "blanket" }, "minecraft:custom_model_data": 2 } }, "count": 64 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fusion_component"], "components": { "minecraft:custom_data": { "variant": "blanket" }, "minecraft:custom_model_data": 2 } }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_quantum" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:fusion_torus" }
+}

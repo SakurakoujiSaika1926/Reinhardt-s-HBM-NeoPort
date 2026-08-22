@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/drone_waypoint"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

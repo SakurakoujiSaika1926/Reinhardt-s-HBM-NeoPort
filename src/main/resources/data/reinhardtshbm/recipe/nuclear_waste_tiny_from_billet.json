@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:billet_nuclear_waste"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuclear_waste_tiny",
+    "count": 6
+  }
+}

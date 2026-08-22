@@ -1,0 +1,16 @@
+﻿{
+	"ctm": {
+		"ctm_version": 1,
+		"type": "CTM",
+		"textures": [
+			"reinhardtshbm:block/deco_rusty_steel_ctm"
+		],
+        "extra": {
+            "connect_to": [
+                { "block": "reinhardtshbm:deco_rusty_steel" },
+                { "block": "reinhardtshbm:deco_steel" }
+            ]
+        }
+	}
+}
+

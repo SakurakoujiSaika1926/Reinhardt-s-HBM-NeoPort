@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/machine_teleporter" },
+    "facing=south": { "model": "reinhardtshbm:block/machine_teleporter" },
+    "facing=west": { "model": "reinhardtshbm:block/machine_teleporter" },
+    "facing=east": { "model": "reinhardtshbm:block/machine_teleporter" }
+  }
+}

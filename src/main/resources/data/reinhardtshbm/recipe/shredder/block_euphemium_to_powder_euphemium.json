@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_euphemium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_euphemium",
+                   "count":  9
+               }
+}

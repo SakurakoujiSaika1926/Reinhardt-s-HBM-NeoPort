@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" C ", "PTP"],
+  "key": {
+    "C": { "item": "reinhardtshbm:circuit_basic" },
+    "P": { "tag": "c:plates/steel" },
+    "T": { "tag": "c:ingots/high_explosive" }
+  },
+  "result": { "id": "reinhardtshbm:mine_he" }
+}

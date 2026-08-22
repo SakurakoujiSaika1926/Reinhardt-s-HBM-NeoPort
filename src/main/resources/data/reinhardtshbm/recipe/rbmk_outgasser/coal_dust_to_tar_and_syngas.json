@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:rbmk_outgasser",
+  "group": "outgasser.coal",
+  "ingredient": {
+    "tag": "c:dusts/coal"
+  },
+  "item_output": {
+    "id": "reinhardtshbm:oil_tar",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "coal"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  },
+  "fluid_output": {
+    "fluid": "syngas",
+    "amount": 50
+  }
+}

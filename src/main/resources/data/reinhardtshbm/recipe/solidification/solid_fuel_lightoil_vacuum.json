@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.lightoil_vacuum",
+    "input":  {
+                  "fluid":  "lightoil_vacuum",
+                  "amount":  600
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

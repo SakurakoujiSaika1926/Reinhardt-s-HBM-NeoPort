@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_uranium"},"output1":{"material":"uranium","amount":432},"output2":{"material":"radium","amount":32},"byproducts":[{"id":"reinhardtshbm:powder_lithium_tiny","count":3}]}

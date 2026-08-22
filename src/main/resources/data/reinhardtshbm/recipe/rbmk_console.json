@@ -1,0 +1,34 @@
+﻿{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    "DGD",
+    "DCD"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:ingot_boron"
+    },
+    "D": {
+      "item": "reinhardtshbm:deco_rbmk"
+    },
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_analog"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_console"
+  }
+}

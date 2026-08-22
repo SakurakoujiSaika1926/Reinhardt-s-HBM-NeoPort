@@ -1,0 +1,19 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "III",
+                    "SSS"
+                ],
+    "key":  {
+                "I":  {
+                          "item":  "minecraft:nether_brick"
+                      },
+                "S":  {
+                          "tag":  "c:ingots/steel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:stamp_steel_flat"
+               }
+}

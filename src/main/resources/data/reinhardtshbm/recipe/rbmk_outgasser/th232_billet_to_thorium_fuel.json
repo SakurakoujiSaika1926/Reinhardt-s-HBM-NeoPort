@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:rbmk_outgasser",
+  "group": "outgasser.thorium",
+  "ingredient": {
+    "tag": "c:billets/th232"
+  },
+  "item_output": {
+    "id": "reinhardtshbm:billet_thorium_fuel"
+  }
+}

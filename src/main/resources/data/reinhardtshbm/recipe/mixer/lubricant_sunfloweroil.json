@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.lubricant",
+    "output":  {
+                   "fluid":  "lubricant",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "sunfloweroil",
+                   "amount":  800
+               },
+    "input2":  {
+                   "fluid":  "ethanol",
+                   "amount":  200
+               }
+}

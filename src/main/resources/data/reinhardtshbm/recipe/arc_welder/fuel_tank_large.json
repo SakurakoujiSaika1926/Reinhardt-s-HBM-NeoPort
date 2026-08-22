@@ -1,0 +1,39 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missile_parts",
+    "duration":  200,
+    "consumption":  5000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "type":  "neoforge:components",
+                                          "items":  [
+                                                        "reinhardtshbm:plate_welded"
+                                                    ],
+                                          "components":  {
+                                                             "minecraft:custom_data":  {
+                                                                                           "material_id":  1300,
+                                                                                           "material":  "aluminium"
+                                                                                       }
+                                                         }
+                                      },
+                       "count":  8
+                   },
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:plates/saturnite"
+                                      },
+                       "count":  12
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:steel_scaffold"
+                                      },
+                       "count":  16
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:fuel_tank_large",
+                   "count":  1
+               }
+}

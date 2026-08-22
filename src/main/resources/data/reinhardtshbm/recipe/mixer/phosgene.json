@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.phosgene",
+    "output":  {
+                   "fluid":  "phosgene",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "unsaturateds",
+                   "amount":  500
+               },
+    "input2":  {
+                   "fluid":  "chlorine",
+                   "amount":  500
+               }
+}

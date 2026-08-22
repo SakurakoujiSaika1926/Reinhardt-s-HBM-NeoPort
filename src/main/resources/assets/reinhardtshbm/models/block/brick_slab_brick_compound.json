@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": { "bottom": "reinhardtshbm:block/brick_compound", "top": "reinhardtshbm:block/brick_compound", "side": "reinhardtshbm:block/brick_compound" }
+}

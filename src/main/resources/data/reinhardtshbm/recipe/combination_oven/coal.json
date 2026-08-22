@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.coal",
+  "input": {
+    "item": "minecraft:coal"
+  },
+  "output": {
+    "id": "reinhardtshbm:coke",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "coal"
+      },
+      "minecraft:custom_model_data": 0
+    }
+  },
+  "fluid": {
+    "fluid": "coalcreosote",
+    "amount": 100
+  }
+}

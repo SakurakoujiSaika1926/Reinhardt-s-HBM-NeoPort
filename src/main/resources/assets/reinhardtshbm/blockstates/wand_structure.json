@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "load=false": { "model": "reinhardtshbm:block/wand_structure_save" },
+    "load=true": { "model": "reinhardtshbm:block/wand_structure_load" }
+  }
+}

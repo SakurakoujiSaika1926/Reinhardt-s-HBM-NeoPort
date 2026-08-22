@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ams_core_thingy"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_polonium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_polonium",
+                   "count":  9
+               }
+}

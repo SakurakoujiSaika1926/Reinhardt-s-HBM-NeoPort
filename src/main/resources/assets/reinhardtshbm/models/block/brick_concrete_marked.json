@@ -1,0 +1,7 @@
+{
+	"parent": "minecraft:block/cube_column",
+	"textures": {
+		"end" : "reinhardtshbm:block/brick_concrete",
+		"side": "reinhardtshbm:block/brick_concrete_marked"
+	}
+}

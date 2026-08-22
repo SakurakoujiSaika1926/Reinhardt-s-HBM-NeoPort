@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/circuit_star"
+                 },
+    "parent":  "minecraft:item/generated"
+}

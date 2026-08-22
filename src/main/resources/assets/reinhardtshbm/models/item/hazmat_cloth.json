@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/hazmat_cloth"
+                 },
+    "parent":  "minecraft:item/generated"
+}

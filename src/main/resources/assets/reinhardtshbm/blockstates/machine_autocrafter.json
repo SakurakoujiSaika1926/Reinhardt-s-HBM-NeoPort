@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/machine_autocrafter" },
+    "facing=south": { "model": "reinhardtshbm:block/machine_autocrafter" },
+    "facing=west": { "model": "reinhardtshbm:block/machine_autocrafter" },
+    "facing=east": { "model": "reinhardtshbm:block/machine_autocrafter" }
+  }
+}

@@ -1,0 +1,18 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "part_plutonium",
+    "duration":  40,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:dusts/plutonium"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:part_plutonium",
+                   "count":  8
+               }
+}

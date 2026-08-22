@@ -1,0 +1,7 @@
+{
+    "render_type": "minecraft:translucent",
+    "textures":  {
+                     "all":  "reinhardtshbm:block/chlorine_gas"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

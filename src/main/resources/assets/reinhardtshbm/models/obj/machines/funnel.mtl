@@ -1,0 +1,14 @@
+newmtl bottom
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/funnel_bottom
+
+newmtl top
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/funnel_top
+
+newmtl side
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/funnel_side

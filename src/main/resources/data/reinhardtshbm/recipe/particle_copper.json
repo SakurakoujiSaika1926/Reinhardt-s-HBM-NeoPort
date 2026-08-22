@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:particle_empty"
+    },
+    {
+      "tag": "c:dusts/copper"
+    },
+    {
+      "item": "reinhardtshbm:pellet_charged"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:particle_copper"
+  }
+}

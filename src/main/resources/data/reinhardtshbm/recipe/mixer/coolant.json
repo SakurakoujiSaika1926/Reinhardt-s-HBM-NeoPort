@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.coolant",
+    "output":  {
+                   "fluid":  "coolant",
+                   "amount":  2000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "water",
+                   "amount":  1800
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/niter"
+                                       },
+                        "count":  1
+                    }
+}

@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.solvent",
+    "output":  {
+                   "fluid":  "solvent",
+                   "amount":  1000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "naphtha_ds",
+                   "amount":  500
+               },
+    "input2":  {
+                   "fluid":  "aromatics",
+                   "amount":  500
+               }
+}

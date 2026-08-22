@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_fluid","input":{"fluid":"vitriol","amount":1000},"output1":{"fluid":"sulfuric_acid","amount":500},"output2":{"fluid":"chlorine","amount":500},"byproducts":[{"id":"reinhardtshbm:powder_iron","count":1},{"id":"reinhardtshbm:nugget_mercury","count":1}]}

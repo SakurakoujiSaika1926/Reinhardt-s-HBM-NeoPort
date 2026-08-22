@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:nugget_cobalt"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_cobalt_tiny"
+               }
+}

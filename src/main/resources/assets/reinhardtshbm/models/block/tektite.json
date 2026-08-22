@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/tektite"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

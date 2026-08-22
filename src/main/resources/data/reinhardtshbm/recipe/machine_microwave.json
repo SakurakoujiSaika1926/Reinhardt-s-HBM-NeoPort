@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "SGM",
+    "PDP"
+  ],
+  "key": {
+    "P": { "item": "reinhardtshbm:plate_polymer" },
+    "S": { "item": "reinhardtshbm:plate_steel" },
+    "G": { "tag": "c:glass_panes" },
+    "M": { "item": "reinhardtshbm:magnetron" },
+    "D": { "item": "reinhardtshbm:motor" }
+  },
+  "result": { "id": "reinhardtshbm:machine_microwave" }
+}

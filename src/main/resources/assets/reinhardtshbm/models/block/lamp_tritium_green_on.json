@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/lamp_tritium_green_on"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

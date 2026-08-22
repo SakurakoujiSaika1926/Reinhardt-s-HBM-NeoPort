@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/rbmk/crane_console_meter2.obj",
+  "mtl_override": "reinhardtshbm:models/obj/rbmk/crane_console_meter2.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/crane_console"
+  }
+}

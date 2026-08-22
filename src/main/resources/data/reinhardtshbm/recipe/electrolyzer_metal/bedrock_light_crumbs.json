@@ -1,0 +1,25 @@
+﻿{
+    "type":  "reinhardtshbm:electrolyzer_metal",
+    "group":  "electrolyzer_bedrock_ore",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "crumbs",
+                                                                        "type":  "light"
+                                                                    }
+                                      }
+                   },
+    "output1":  {
+                    "material":  "iron",
+                    "amount":  144
+                },
+    "duration":  20,
+    "output2":  {
+                    "material":  "copper",
+                    "amount":  144
+                }
+}

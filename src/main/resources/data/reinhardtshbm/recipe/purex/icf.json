@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:purex",
+  "duration": 300,
+  "power": 10000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:icf_pellet_depleted"
+      },
+      "count": 1
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:icf_pellet_empty"
+    },
+    {
+      "id": "reinhardtshbm:pellet_charged"
+    },
+    {
+      "id": "reinhardtshbm:powder_iron"
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "helium4",
+      "amount": 1250
+    }
+  ]
+}

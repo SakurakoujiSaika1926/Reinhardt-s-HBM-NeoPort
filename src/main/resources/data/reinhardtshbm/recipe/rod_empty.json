@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "L L",
+    "SSS"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:plates/steel"
+    },
+    "L": {
+      "tag": "c:plates/lead"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rod_empty",
+    "count": 16
+  }
+}

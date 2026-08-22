@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:rod"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "pu239"
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:billet_pu239",
+    "count": 1
+  }
+}

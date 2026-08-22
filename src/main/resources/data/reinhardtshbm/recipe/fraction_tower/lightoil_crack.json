@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.lightoil_crack",
+  "input": { "fluid": "lightoil_crack", "amount": 100 },
+  "output1": { "fluid": "kerosene", "amount": 70 },
+  "output2": { "fluid": "petroleum", "amount": 30 }
+}

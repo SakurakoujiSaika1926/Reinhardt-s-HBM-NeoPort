@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:reforming",
+  "group": "reforming",
+  "input": {
+    "fluid": "lightoil",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "aromatics",
+    "amount": 50
+  },
+  "output2": {
+    "fluid": "reformgas",
+    "amount": 10
+  },
+  "output3": {
+    "fluid": "hydrogen",
+    "amount": 15
+  },
+  "power": 20000
+}

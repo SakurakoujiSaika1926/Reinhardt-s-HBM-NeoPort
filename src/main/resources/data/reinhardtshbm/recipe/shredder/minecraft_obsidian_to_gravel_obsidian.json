@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:obsidian"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:gravel_obsidian"
+               }
+}

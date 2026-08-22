@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/charge_c4"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_fluid","input":{"fluid":"potassium_chloride","amount":250},"output1":{"fluid":"chlorine","amount":125},"output2":{"fluid":"none","amount":0},"byproducts":[{"id":"reinhardtshbm:dust","count":1}]}

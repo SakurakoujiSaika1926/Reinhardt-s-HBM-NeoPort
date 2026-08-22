@@ -1,0 +1,29 @@
+{
+  "parent": "reinhardtshbm:block/ore_meteor_iron",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:item/ore_meteor_copper"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "reinhardtshbm:item/ore_meteor_aluminium"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "reinhardtshbm:item/ore_meteor_rareearth"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "reinhardtshbm:item/ore_meteor_cobalt"
+    }
+  ]
+}

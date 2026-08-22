@@ -1,0 +1,27 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.lye",
+    "output":  {
+                   "fluid":  "lye",
+                   "amount":  100
+               },
+    "duration":  100,
+    "input1":  {
+                   "fluid":  "water",
+                   "amount":  100
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "type":  "neoforge:components",
+                                           "items":  [
+                                                         "reinhardtshbm:powder_ash"
+                                                     ],
+                                           "components":  {
+                                                              "minecraft:custom_data":  {
+                                                                                            "variant":  "wood"
+                                                                                        }
+                                                          }
+                                       },
+                        "count":  1
+                    }
+}

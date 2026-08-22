@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PPP",
+    "GPG",
+    " F "
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "F": {
+      "tag": "c:plates/iron"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:gas_mask"
+  }
+}

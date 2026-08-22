@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_schraranium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:nugget_schrabidium",
+                   "count":  3
+               }
+}

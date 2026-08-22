@@ -1,0 +1,40 @@
+{
+  "textures": {
+    "bottom": "reinhardtshbm:block/foundry_channel_bottom",
+    "side": "reinhardtshbm:block/foundry_channel_side",
+    "top": "reinhardtshbm:block/foundry_channel_top",
+    "inner": "reinhardtshbm:block/foundry_channel_inner",
+    "particle": "reinhardtshbm:block/foundry_channel_bottom"
+  },
+  "elements": [
+    {
+      "from": [5, 0, 10],
+      "to": [11, 2, 16],
+      "faces": {
+        "down": { "texture": "#bottom", "uv": [5, 10, 11, 16], "cullface": "down" },
+        "up": { "texture": "#bottom", "uv": [5, 10, 11, 16] },
+        "south": { "texture": "#side", "uv": [5, 14, 11, 16], "cullface": "south" }
+      }
+    },
+    {
+      "from": [5, 0, 10],
+      "to": [6, 8, 16],
+      "faces": {
+        "up": { "texture": "#top", "uv": [5, 10, 6, 16] },
+        "south": { "texture": "#side", "uv": [5, 8, 6, 16], "cullface": "south" },
+        "west": { "texture": "#side", "uv": [10, 8, 16, 16] },
+        "east": { "texture": "#inner", "uv": [10, 8, 16, 16] }
+      }
+    },
+    {
+      "from": [10, 0, 10],
+      "to": [11, 8, 16],
+      "faces": {
+        "up": { "texture": "#top", "uv": [10, 10, 11, 16] },
+        "south": { "texture": "#side", "uv": [10, 8, 11, 16], "cullface": "south" },
+        "west": { "texture": "#inner", "uv": [10, 8, 16, 16] },
+        "east": { "texture": "#side", "uv": [10, 8, 16, 16] }
+      }
+    }
+  ]
+}

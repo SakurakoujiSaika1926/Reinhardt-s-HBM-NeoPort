@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/generator_steel"
+                 },
+    "parent":  "minecraft:item/generated"
+}

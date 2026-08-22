@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.dfccore",
+  "duration": 12000,
+  "power": 100000000,
+  "ignition_temp": 50000000,
+  "input_items": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_welded"], "components": { "minecraft:custom_data": { "material_id": 7699, "material": "osmiridium" } } }, "count": 16 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:wire_dense"], "components": { "minecraft:custom_data": { "material_id": 45, "material": "dineutronium" } } }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_controller_quantum" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:singularity_spark" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:powder_chlorophyte" }, "count": 64 }
+  ],
+  "input_fluids": [
+    { "fluid": "stellar_flux", "amount": 12000 }
+  ],
+  "result": { "id": "reinhardtshbm:dfc_core" }
+}

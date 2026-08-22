@@ -1,0 +1,8 @@
+﻿{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/barbed_wire_poison" },
+    "facing=south": { "model": "reinhardtshbm:block/barbed_wire_poison", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/barbed_wire_poison", "y": 270 },
+    "facing=east": { "model": "reinhardtshbm:block/barbed_wire_poison", "y": 90 }
+  }
+}

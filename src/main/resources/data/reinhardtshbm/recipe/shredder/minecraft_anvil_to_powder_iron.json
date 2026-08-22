@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:anvil"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_iron",
+                   "count":  31
+               }
+}

@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "TP",
+                    "TP",
+                    "TT"
+                ],
+    "key":  {
+                "P":  {
+                          "tag":  "c:plates/titanium"
+                      },
+                "T":  {
+                          "tag":  "c:ingots/titanium"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:blade_titanium",
+                   "count":  2
+               }
+}

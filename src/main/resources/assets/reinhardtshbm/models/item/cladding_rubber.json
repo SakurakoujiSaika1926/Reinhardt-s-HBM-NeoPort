@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/cladding_rubber"
+                 },
+    "parent":  "minecraft:item/generated"
+}

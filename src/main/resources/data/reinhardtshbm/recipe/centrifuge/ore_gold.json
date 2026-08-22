@@ -1,0 +1,22 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:ores/gold"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_gold"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_gold"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_gold"
+                    },
+                    {
+                        "id":  "minecraft:gravel"
+                    }
+                ]
+}

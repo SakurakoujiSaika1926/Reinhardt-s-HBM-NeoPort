@@ -1,0 +1,52 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.compactcompressor",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:item_expensive"],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "steel_plating"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:pipes/copper"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:item_expensive"],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "circuit"
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_compressor_compact"
+  }
+}

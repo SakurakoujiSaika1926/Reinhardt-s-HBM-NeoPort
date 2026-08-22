@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/jetpack_boost"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,26 @@
+{
+    "replace": false,
+    "values": [
+        "#c:tiny_dusts/actinium",
+        "#c:tiny_dusts/at209",
+        "#c:tiny_dusts/au198",
+        "#c:tiny_dusts/boron",
+        "#c:tiny_dusts/cerium",
+        "#c:tiny_dusts/co60",
+        "#c:tiny_dusts/coal",
+        "#c:tiny_dusts/cobalt",
+        "#c:tiny_dusts/cs137",
+        "#c:tiny_dusts/i131",
+        "#c:tiny_dusts/iodine",
+        "#c:tiny_dusts/lanthanium",
+        "#c:tiny_dusts/lithium",
+        "#c:tiny_dusts/meteorite",
+        "#c:tiny_dusts/neodymium",
+        "#c:tiny_dusts/niobium",
+        "#c:tiny_dusts/paleogenite",
+        "#c:tiny_dusts/pb209",
+        "#c:tiny_dusts/sr90",
+        "#c:tiny_dusts/steel",
+        "#c:tiny_dusts/xe135"
+    ]
+}

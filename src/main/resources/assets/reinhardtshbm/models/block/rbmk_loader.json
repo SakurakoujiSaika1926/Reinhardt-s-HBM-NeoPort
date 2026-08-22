@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_port_block",
+  "textures": {
+    "all": "reinhardtshbm:block/rbmk_loader"
+  }
+}

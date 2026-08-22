@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:particle_accelerator",
+  "input1": {
+    "item": "reinhardtshbm:particle_strange"
+  },
+  "input2": {
+    "item": "reinhardtshbm:powder_magic"
+  },
+  "momentum": 12500,
+  "output1": {
+    "id": "reinhardtshbm:particle_sparkticle"
+  },
+  "output2": {
+    "id": "reinhardtshbm:dust"
+  }
+}

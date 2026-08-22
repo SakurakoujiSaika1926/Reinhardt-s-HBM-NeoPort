@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "SDS",
+    "CCC"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "S": {
+      "item": "reinhardtshbm:steel_scaffold"
+    },
+    "D": {
+      "tag": "c:pipes/steel"
+    },
+    "C": {
+      "tag": "c:concretes"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:struct_launcher",
+    "count": 8
+  }
+}

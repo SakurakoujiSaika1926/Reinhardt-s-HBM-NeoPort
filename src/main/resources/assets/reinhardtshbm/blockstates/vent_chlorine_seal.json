@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "active=false": { "model": "reinhardtshbm:block/vent_chlorine_seal" },
+    "active=true": { "model": "reinhardtshbm:block/vent_chlorine_seal" }
+  }
+}

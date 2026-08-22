@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/pill_iodine"
+                 },
+    "parent":  "minecraft:item/generated"
+}

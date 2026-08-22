@@ -1,0 +1,32 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.coltancrystal",
+  "duration": 80,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "pain",
+      "amount": 1000
+    },
+    {
+      "fluid": "peroxide",
+      "amount": 500
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:gem_tantalium"
+    },
+    {
+      "id": "reinhardtshbm:dust",
+      "count": 3
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "water",
+      "amount": 250
+    }
+  ]
+}

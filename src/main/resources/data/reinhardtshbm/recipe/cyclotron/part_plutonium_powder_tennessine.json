@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_plutonium"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/plutonium"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_tennessine"
+               },
+    "antimatter":  100
+}
+

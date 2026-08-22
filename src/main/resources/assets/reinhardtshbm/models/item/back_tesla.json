@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/back_tesla"
+                 },
+    "parent":  "minecraft:item/generated"
+}

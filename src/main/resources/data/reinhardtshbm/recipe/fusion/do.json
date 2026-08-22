@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:fusion",
+  "group": "fus.do",
+  "ignition_temp": 250000,
+  "output_temp": 1250000,
+  "neutron_flux": 50.0,
+  "power": 25000,
+  "duration": 100,
+  "icon": {
+    "id": "reinhardtshbm:gas_full",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "oxygen"
+      }
+    }
+  },
+  "input_fluids": [
+    {
+      "fluid": "deuterium",
+      "amount": 10
+    },
+    {
+      "fluid": "oxygen",
+      "amount": 10
+    }
+  ],
+  "output_item": {
+    "id": "reinhardtshbm:pellet_charged",
+    "count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "CBC",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:concrete_smooth"
+    },
+    "B": {
+      "item": "minecraft:clay_ball"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:brick_concrete",
+    "count": 4
+  }
+}

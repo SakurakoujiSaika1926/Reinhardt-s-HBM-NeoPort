@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.slop",
+  "input": { "fluid": "slop", "amount": 1000 },
+  "output": { "id": "reinhardtshbm:powder_limestone" },
+  "byproduct": { "fluid": "colloid", "amount": 250 }
+}

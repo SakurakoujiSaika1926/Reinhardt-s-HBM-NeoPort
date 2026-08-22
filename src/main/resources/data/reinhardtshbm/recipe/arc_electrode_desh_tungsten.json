@@ -1,0 +1,5 @@
+{
+  "type":"minecraft:crafting_shaped","category":"misc","pattern":["C","T","C"],
+  "key":{"C":{"tag":"c:ingots/desh"},"T":{"tag":"c:ingots/tungsten"}},
+  "result":{"id":"reinhardtshbm:arc_electrode","components":{"minecraft:custom_data":{"variant":"desh"},"minecraft:custom_model_data":2}}
+}

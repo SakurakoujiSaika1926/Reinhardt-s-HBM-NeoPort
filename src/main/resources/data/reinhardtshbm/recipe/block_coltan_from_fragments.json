@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:fragment_coltan"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:block_coltan"
+  }
+}

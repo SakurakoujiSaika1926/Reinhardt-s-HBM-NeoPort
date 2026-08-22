@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/rbmk_gauge",
+  "visibility": {
+    "Gauge": false,
+    "Needle": true
+  }
+}

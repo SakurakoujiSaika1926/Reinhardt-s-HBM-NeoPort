@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.coaloil",
+  "ingredient": {
+    "item": "minecraft:coal"
+  },
+  "output": {
+    "fluid": "coaloil",
+    "amount": 100
+  }
+}

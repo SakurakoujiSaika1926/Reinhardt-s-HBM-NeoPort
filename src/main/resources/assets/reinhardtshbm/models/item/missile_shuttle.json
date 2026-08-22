@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/missile_shuttle"
+                 },
+    "parent":  "minecraft:item/generated"
+}

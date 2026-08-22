@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/cmb_brick"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

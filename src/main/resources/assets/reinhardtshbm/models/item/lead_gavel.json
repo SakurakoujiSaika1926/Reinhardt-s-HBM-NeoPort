@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/lead_gavel"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/brick_jungle_cracked"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,191 @@
+{
+  "parent": "reinhardtshbm:item/rbmk_fuel_ueu",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_meu"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_heu233"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_heu235"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_uzh"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_thmeu"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_lep"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 7
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_mep"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 8
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_hep"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_hep241"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 10
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_lea"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 11
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_mea"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 12
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_hea241"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 13
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_hea242"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 14
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_men"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 15
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_hen"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 16
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_mox"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 17
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_les"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 18
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_mes"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 19
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_hes"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 20
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_leaus"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 21
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_heaus"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 22
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_po210be"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 23
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_ra226be"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 24
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_pu238be"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 25
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_balefire_gold"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 26
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_flashlead"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 27
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_balefire"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 28
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_zfb_bismuth"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 29
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_zfb_pu241"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 30
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_zfb_am_mix"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 31
+      },
+      "model": "reinhardtshbm:item/rbmk_fuel_drx"
+    }
+  ]
+}

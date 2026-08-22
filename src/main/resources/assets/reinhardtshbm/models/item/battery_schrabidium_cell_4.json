@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/battery_schrabidium_cell_4"
+                 },
+    "parent":  "minecraft:item/generated"
+}

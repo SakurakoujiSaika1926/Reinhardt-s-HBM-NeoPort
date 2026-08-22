@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["F", "I", "F"],
+  "key": {
+    "F": { "item": "reinhardtshbm:billet_uranium_fuel" },
+    "I": { "item": "reinhardtshbm:plate_polymer" }
+  },
+  "result": { "id": "reinhardtshbm:pwr_fuel", "components": { "minecraft:custom_data": { "variant": "meu" }, "minecraft:custom_model_data": 0 } }
+}

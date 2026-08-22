@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:rbmk_outgasser",
+  "group": "outgasser.thorium",
+  "ingredient": {
+    "tag": "c:ingots/th232"
+  },
+  "item_output": {
+    "id": "reinhardtshbm:ingot_thorium_fuel"
+  }
+}

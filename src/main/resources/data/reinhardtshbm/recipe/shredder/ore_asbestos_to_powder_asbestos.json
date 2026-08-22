@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_asbestos"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_asbestos",
+                   "count":  2
+               }
+}

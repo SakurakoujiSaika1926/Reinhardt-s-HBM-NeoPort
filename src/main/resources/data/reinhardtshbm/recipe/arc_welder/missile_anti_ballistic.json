@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missiles",
+    "duration":  100,
+    "consumption":  5000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/high_explosive"
+                                      },
+                       "count":  3
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:missile_assembly"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:thruster_small"
+                                      },
+                       "count":  4
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:missile_anti_ballistic",
+                   "count":  1
+               }
+}

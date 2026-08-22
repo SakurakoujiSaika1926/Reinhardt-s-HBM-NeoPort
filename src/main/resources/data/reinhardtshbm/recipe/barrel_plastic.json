@@ -1,0 +1,20 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "IPI",
+                    "I I",
+                    "IPI"
+                ],
+    "key":  {
+                "I":  {
+                          "item":  "reinhardtshbm:plate_polymer"
+                      },
+                "P":  {
+                          "tag":  "c:plates/aluminium"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:barrel_plastic"
+               }
+}

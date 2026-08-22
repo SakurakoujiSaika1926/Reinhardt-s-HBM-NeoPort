@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:ingots/silicon"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:billet_silicon",
+    "count": 3
+  }
+}

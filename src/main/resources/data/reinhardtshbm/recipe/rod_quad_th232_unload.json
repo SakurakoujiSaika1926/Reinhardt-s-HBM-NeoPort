@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:rod_quad"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "th232"
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:billet_th232",
+    "count": 4
+  }
+}

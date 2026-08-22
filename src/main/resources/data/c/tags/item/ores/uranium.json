@@ -1,0 +1,9 @@
+{
+    "replace":  false,
+    "values":  [
+                   "reinhardtshbm:ore_uranium",
+                   "reinhardtshbm:ore_uranium_scorched",
+                   "reinhardtshbm:ore_deepslate_uranium",
+                   "reinhardtshbm:ore_deepslate_uranium_scorched"
+               ]
+}

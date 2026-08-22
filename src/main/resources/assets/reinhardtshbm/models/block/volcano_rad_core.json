@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/volcano_rad_core"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

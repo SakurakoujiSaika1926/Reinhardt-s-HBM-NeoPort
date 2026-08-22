@@ -1,0 +1,29 @@
+{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.centrifugetower",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/dura_steel"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/titanium"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:centrifuge_element"
+               }
+}

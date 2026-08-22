@@ -1,0 +1,22 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:ores/rare_earths"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_desh_mix"
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_zirconium"
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_zirconium"
+                    },
+                    {
+                        "id":  "minecraft:gravel"
+                    }
+                ]
+}

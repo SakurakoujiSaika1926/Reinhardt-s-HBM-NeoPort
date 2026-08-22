@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.enderjuice",
+  "ingredient": {
+    "item": "minecraft:ender_pearl"
+  },
+  "output": {
+    "fluid": "enderjuice",
+    "amount": 100
+  }
+}

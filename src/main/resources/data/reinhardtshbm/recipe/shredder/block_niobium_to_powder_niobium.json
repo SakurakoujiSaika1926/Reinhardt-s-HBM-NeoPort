@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_niobium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_niobium",
+                   "count":  9
+               }
+}

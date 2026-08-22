@@ -1,0 +1,42 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "base_washed",
+                                                                        "type":  "actinide"
+                                                                    }
+                                      }
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "primary",
+                                                                         "type":  "actinide"
+                                                                     },
+                                           "minecraft:custom_model_data":  21
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "primary",
+                                                                         "type":  "actinide"
+                                                                     },
+                                           "minecraft:custom_model_data":  21
+                                       }
+                    },
+                    {
+                        "id":  "minecraft:gravel"
+                    }
+                ]
+}

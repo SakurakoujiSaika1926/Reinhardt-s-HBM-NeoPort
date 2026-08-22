@@ -1,0 +1,13 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_fuel_column",
+  "textures": {
+    "end": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_top",
+    "side": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_side",
+    "inner": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_inner",
+    "fuel": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_fuel",
+    "cover_top": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_cover_top",
+    "cover_side": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_cover_side",
+    "glass_top": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_glass_top",
+    "glass_side": "reinhardtshbm:block/rbmk/rbmk_element_reasim_mod_glass_side"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "reinhardtshbm:block/pwr_control_top",
+    "side": "reinhardtshbm:block/pwr_control_side"
+  }
+}

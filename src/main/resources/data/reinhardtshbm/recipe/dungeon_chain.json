@@ -1,0 +1,13 @@
+﻿{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "S",
+    "S",
+    "S"
+  ],
+  "key": {
+    "S": { "item": "reinhardtshbm:steel_beam" }
+  },
+  "result": { "id": "reinhardtshbm:dungeon_chain", "count": 8 }
+}

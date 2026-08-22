@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "CBC",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "reinhardtshbm:ingot_steel"
+    },
+    "C": {
+      "tag": "c:plates/copper"
+    },
+    "B": {
+      "item": "reinhardtshbm:tank_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_steam_outlet"
+  }
+}

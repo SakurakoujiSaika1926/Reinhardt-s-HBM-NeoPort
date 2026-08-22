@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/meteor_pillar"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

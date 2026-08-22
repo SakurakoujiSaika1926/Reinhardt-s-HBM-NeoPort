@@ -1,0 +1,9 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/annihilator_belt.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/annihilator_belt.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/machines/annihilator_belt" }
+}

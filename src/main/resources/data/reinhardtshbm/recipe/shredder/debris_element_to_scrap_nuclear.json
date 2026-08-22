@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:debris_element"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:scrap_nuclear",
+                   "count":  4
+               }
+}

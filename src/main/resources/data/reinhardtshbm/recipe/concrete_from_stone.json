@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CC",
+    "CC"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:concrete_smooth"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:concrete",
+    "count": 4
+  }
+}

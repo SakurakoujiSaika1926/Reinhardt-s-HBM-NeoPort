@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer",
+  "ingredient": { "tag": "c:ores/tungsten" },
+  "acid": { "fluid": "sulfuric_acid", "amount": 500 },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:crystal_tungsten" }
+}

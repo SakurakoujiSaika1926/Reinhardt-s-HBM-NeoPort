@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:concrete_colored_ext"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "meta": 2
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:concrete_smooth"
+  }
+}

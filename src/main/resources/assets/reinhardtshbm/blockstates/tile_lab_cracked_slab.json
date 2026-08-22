@@ -1,0 +1,13 @@
+﻿{
+  "variants": {
+    "type=bottom": {
+      "model": "reinhardtshbm:block/tile_lab_cracked_slab"
+    },
+    "type=top": {
+      "model": "reinhardtshbm:block/tile_lab_cracked_slab_top"
+    },
+    "type=double": {
+      "model": "reinhardtshbm:block/tile_lab_cracked_slab_double"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_redstone"
+                   },
+    "result":  {
+                   "id":  "minecraft:redstone",
+                   "count":  8
+               }
+}

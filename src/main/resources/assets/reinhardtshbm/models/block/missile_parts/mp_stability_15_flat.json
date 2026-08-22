@@ -1,0 +1,9 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/missile_parts/mp_stability_15_flat.obj",
+  "mtl_override": "reinhardtshbm:models/obj/missile_parts/mp_stability_15_flat.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/missile_parts/stability/mp_s_15_flat" }
+}

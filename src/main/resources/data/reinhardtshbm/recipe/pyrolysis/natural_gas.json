@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.natural_gas",
+  "item_output": { "id": "reinhardtshbm:ingot_graphite" },
+  "fluid_input": { "fluid": "gas", "amount": 12000 },
+  "fluid_output": { "fluid": "hydrogen", "amount": 8000 },
+  "duration": 60
+}

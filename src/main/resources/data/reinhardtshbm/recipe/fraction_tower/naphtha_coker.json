@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.naphtha_coker",
+  "input": { "fluid": "naphtha_coker", "amount": 100 },
+  "output1": { "fluid": "naphtha_crack", "amount": 75 },
+  "output2": { "fluid": "lightoil_crack", "amount": 25 }
+}

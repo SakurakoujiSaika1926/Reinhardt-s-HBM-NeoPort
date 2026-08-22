@@ -1,0 +1,38 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pabscco",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 48,
+            "material": "bscco"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 64
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:pa_coil",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "bscco"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  }
+}

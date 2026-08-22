@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "E E",
+    "EEE",
+    "EEE"
+  ],
+  "key": {
+    "E": { "item": "reinhardtshbm:hazmat_cloth_red" }
+  },
+  "result": { "id": "reinhardtshbm:hazmat_plate_red" }
+}

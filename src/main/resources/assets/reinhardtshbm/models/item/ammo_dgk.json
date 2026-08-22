@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ammo_dgk"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/chemistry_set"
+                 },
+    "parent":  "minecraft:item/generated"
+}

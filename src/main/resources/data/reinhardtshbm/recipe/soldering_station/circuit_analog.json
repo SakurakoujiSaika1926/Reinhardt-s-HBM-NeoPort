@@ -1,0 +1,48 @@
+{
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.circuit",
+  "duration": 100,
+  "consumption": 100,
+  "toppings": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_vacuum_tube"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor"
+      },
+      "count": 2
+    }
+  ],
+  "pcb": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_pcb"
+      },
+      "count": 4
+    }
+  ],
+  "solder": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_analog"
+  }
+}

@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missile_parts",
+    "duration":  100,
+    "consumption":  2000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:plates/steel"
+                                      },
+                       "count":  8
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:motor"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/graphite"
+                                      },
+                       "count":  8
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:thruster_medium",
+                   "count":  1
+               }
+}

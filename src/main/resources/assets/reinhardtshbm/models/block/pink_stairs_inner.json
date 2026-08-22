@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "reinhardtshbm:block/pink_planks",
+    "top": "reinhardtshbm:block/pink_planks",
+    "side": "reinhardtshbm:block/pink_planks"
+  }
+}

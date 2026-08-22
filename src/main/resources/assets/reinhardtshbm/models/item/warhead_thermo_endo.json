@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/warhead_thermo_endo"
+                 },
+    "parent":  "minecraft:item/generated"
+}

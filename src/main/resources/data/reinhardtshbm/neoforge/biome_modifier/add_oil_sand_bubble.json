@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#reinhardtshbm:oil_sand_bubble",
+  "features": "reinhardtshbm:oil_sand_bubble",
+  "step": "underground_ores"
+}

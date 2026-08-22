@@ -1,0 +1,20 @@
+﻿{
+  "variants": {
+    "end=false,facing=north,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain" } },
+    "end=false,facing=south,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain" }, "y": 180 },
+    "end=false,facing=west,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain" }, "y": 270 },
+    "end=false,facing=east,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain" }, "y": 90 },
+    "end=true,facing=north,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain_end" } },
+    "end=true,facing=south,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain_end" }, "y": 180 },
+    "end=true,facing=west,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain_end" }, "y": 270 },
+    "end=true,facing=east,wall=false": { "model": "reinhardtshbm:block/dungeon_chain", "textures": { "chain": "reinhardtshbm:block/chain_end" }, "y": 90 },
+    "end=false,facing=north,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain" } },
+    "end=false,facing=south,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain" }, "y": 180 },
+    "end=false,facing=west,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain" }, "y": 270 },
+    "end=false,facing=east,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain" }, "y": 90 },
+    "end=true,facing=north,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain_end" } },
+    "end=true,facing=south,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain_end" }, "y": 180 },
+    "end=true,facing=west,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain_end" }, "y": 270 },
+    "end=true,facing=east,wall=true": { "model": "reinhardtshbm:block/dungeon_chain_wall", "textures": { "chain": "reinhardtshbm:block/chain_end" }, "y": 90 }
+  }
+}

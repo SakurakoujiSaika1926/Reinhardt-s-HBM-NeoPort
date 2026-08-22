@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_lithium"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/uranium"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_neptunium"
+               },
+    "antimatter":  50
+}
+

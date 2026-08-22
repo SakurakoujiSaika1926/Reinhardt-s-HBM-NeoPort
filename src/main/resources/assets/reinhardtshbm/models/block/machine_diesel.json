@@ -1,0 +1,21 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/dieselgen.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/dieselgen.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/dieselgen"
+  },
+  "display": {
+    "gui": { "rotation": [30, 315, 0], "translation": [0, -4, 0], "scale": [0.62, 0.62, 0.62] },
+    "fixed": { "rotation": [0, 90, 0], "translation": [0, -2, 0], "scale": [0.50, 0.50, 0.50] },
+    "ground": { "translation": [0, 3, 0], "scale": [0.34, 0.34, 0.34] },
+    "firstperson_righthand": { "rotation": [0, 90, 0], "translation": [0, 1, 0], "scale": [0.42, 0.42, 0.42] },
+    "thirdperson_righthand": { "rotation": [75, 90, 0], "translation": [0, 1, 0], "scale": [0.38, 0.38, 0.38] },
+    "firstperson_lefthand": { "rotation": [0, 270, 0], "translation": [0, 1, 0], "scale": [0.42, 0.42, 0.42] },
+    "thirdperson_lefthand": { "rotation": [75, 270, 0], "translation": [0, 1, 0], "scale": [0.38, 0.38, 0.38] }
+  }
+}

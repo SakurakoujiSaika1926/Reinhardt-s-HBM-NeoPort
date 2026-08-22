@@ -1,0 +1,12 @@
+﻿{
+    "type":  "minecraft:blasting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_aluminium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:chunk_ore_cryolite"
+               },
+    "experience":  2.5,
+    "cookingtime":  100
+}

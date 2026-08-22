@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" P ", "NSN", " P "],
+  "key": {
+    "P": { "tag": "c:nuggets/pu239" },
+    "N": { "item": "reinhardtshbm:neutron_reflector" },
+    "S": { "type": "neoforge:components", "items": ["reinhardtshbm:ammo_shell"], "components": { "minecraft:custom_data": { "variant": "explosive" }, "minecraft:custom_model_data": 1 } }
+  },
+  "result": { "id": "reinhardtshbm:ammo_shell", "components": { "minecraft:custom_data": { "variant": "w9" }, "minecraft:custom_model_data": 4 } }
+}

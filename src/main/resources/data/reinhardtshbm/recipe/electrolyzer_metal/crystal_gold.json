@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_gold"},"output1":{"material":"gold","amount":432},"output2":{"material":"lead","amount":144},"byproducts":[{"id":"reinhardtshbm:powder_lithium_tiny","count":3},{"id":"reinhardtshbm:nugget_mercury","count":2}]}

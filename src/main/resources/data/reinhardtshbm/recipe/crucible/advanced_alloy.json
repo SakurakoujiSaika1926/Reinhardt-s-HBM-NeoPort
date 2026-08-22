@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.aa",
+  "frequency": 2,
+  "icon": {
+    "id": "reinhardtshbm:ingot_advanced_alloy"
+  },
+  "input": [
+    {
+      "material": "steel",
+      "amount": 8
+    },
+    {
+      "material": "red_copper",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "advanced_alloy",
+      "amount": 16
+    }
+  ]
+}

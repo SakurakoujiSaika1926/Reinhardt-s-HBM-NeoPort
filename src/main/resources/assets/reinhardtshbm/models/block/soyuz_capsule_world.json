@@ -1,0 +1,12 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/block/soyuz_capsule.obj",
+  "mtl_override": "reinhardtshbm:models/obj/block/soyuz_capsule.mtl",
+  "flip_v": true,
+  "automatic_culling": false,
+  "shade_quads": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/soyuz_capsule/soyuz_lander",
+    "texture": "reinhardtshbm:models/soyuz_capsule/soyuz_lander"
+  }
+}

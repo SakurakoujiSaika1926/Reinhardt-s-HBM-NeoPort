@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:breeder_reactor",
+  "group": "breeder.weapon",
+  "ingredient": {
+    "item": "reinhardtshbm:meteorite_sword_etched"
+  },
+  "result": {
+    "id": "reinhardtshbm:meteorite_sword_bred"
+  },
+  "flux": 1000
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " C ",
+    "C C",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:tile_lab_cracked"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:tile_lab_broken",
+    "count": 6
+  }
+}

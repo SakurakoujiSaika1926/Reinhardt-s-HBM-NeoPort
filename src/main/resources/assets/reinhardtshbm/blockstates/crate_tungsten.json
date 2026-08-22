@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/crate_tungsten" },
+    "facing=south": { "model": "reinhardtshbm:block/crate_tungsten", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/crate_tungsten", "y": 270 },
+    "facing=east": { "model": "reinhardtshbm:block/crate_tungsten", "y": 90 }
+  }
+}

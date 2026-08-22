@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:deepslate_diamond_ore"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:gravel_diamond",
+                   "count":  2
+               }
+}

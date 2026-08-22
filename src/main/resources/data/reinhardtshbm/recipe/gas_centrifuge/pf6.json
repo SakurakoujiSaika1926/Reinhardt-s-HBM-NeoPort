@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:gas_centrifuge",
+  "group": "gas_centrifuge",
+  "input": {
+    "fluid": "puf6",
+    "amount": 300
+  },
+  "high_speed": false,
+  "results": [
+    {
+      "id": "reinhardtshbm:nugget_pu238"
+    },
+    {
+      "id": "reinhardtshbm:nugget_pu_mix",
+      "count": 2
+    },
+    {
+      "id": "reinhardtshbm:fluorite"
+    }
+  ]
+}

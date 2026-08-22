@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " U ",
+    "PUP",
+    " U "
+  ],
+  "key": {
+    "P": { "item": "reinhardtshbm:plate_iron" },
+    "U": { "item": "reinhardtshbm:billet_uranium" }
+  },
+  "result": { "id": "reinhardtshbm:pile_rod_uranium" }
+}

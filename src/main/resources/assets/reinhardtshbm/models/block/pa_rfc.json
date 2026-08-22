@@ -1,0 +1,13 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/particleaccelerator/rfc.obj",
+  "mtl_override": "reinhardtshbm:models/obj/particleaccelerator/rfc.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/particleaccelerator/rfc"
+  },
+  "render_type": "minecraft:cutout"
+}

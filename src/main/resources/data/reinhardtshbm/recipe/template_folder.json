@@ -1,0 +1,20 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "DPD",
+                    "DPD",
+                    "DPD"
+                ],
+    "key":  {
+                "D":  {
+                          "tag":  "c:dyes"
+                      },
+                "P":  {
+                          "item":  "minecraft:paper"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:template_folder"
+               }
+}

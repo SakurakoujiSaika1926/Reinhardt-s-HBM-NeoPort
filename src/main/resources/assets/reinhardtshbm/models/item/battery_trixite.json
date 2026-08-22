@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/battery_trixite"
+                 },
+    "parent":  "minecraft:item/generated"
+}

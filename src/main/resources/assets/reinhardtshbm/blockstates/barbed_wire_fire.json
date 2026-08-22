@@ -1,0 +1,8 @@
+﻿{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/barbed_wire_fire" },
+    "facing=south": { "model": "reinhardtshbm:block/barbed_wire_fire", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/barbed_wire_fire", "y": 270 },
+    "facing=east": { "model": "reinhardtshbm:block/barbed_wire_fire", "y": 90 }
+  }
+}

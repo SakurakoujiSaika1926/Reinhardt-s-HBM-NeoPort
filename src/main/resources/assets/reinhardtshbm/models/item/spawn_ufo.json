@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/spawn_ufo"
+                 },
+    "parent":  "minecraft:item/generated"
+}

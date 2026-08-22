@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/wd40"
+                 },
+    "parent":  "minecraft:item/generated"
+}

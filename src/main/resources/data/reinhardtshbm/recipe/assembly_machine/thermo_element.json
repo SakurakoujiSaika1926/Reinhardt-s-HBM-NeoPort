@@ -1,0 +1,38 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.thermoelement",
+  "duration": 60,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 31,
+            "material": "red_copper"
+          }
+        }
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/quartz"
+      },
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:thermo_element"
+  }
+}

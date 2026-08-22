@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:billet_neptunium"
+    },
+    {
+      "item": "reinhardtshbm:billet_neptunium"
+    },
+    {
+      "item": "reinhardtshbm:billet_neptunium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:ingot_neptunium",
+    "count": 2
+  }
+}

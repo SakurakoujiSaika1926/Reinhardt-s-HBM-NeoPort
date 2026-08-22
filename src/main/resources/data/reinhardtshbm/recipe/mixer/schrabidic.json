@@ -1,0 +1,23 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.schrabidic",
+    "output":  {
+                   "fluid":  "schrabidic",
+                   "amount":  16000
+               },
+    "duration":  100,
+    "input1":  {
+                   "fluid":  "sas3",
+                   "amount":  8000
+               },
+    "input2":  {
+                   "fluid":  "peroxide",
+                   "amount":  6000
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "item":  "reinhardtshbm:pellet_charged"
+                                       },
+                        "count":  1
+                    }
+}

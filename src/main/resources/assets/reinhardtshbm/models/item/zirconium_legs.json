@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/zirconium_legs"
+                 },
+    "parent":  "minecraft:item/generated"
+}

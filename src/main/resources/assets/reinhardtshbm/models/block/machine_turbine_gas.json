@@ -1,0 +1,48 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/turbinegas.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/turbinegas.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/turbinegas"
+  },
+  "display": {
+    "gui": {
+      "rotation": [30, 315, 0],
+      "translation": [0, -2, 2],
+      "scale": [0.13, 0.13, 0.13]
+    },
+    "fixed": {
+      "rotation": [0, 90, 0],
+      "translation": [0, 0, 1],
+      "scale": [0.11, 0.11, 0.11]
+    },
+    "ground": {
+      "translation": [0, 3, 0],
+      "scale": [0.08, 0.08, 0.08]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 90, 0],
+      "translation": [0, 2, 1],
+      "scale": [0.09, 0.09, 0.09]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 90, 0],
+      "translation": [0, 2, 1],
+      "scale": [0.08, 0.08, 0.08]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 270, 0],
+      "translation": [0, 2, 1],
+      "scale": [0.09, 0.09, 0.09]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [75, 270, 0],
+      "translation": [0, 2, 1],
+      "scale": [0.08, 0.08, 0.08]
+    }
+  }
+}

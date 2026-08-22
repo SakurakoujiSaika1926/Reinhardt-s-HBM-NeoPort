@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" I ", "GIG", "CCC"],
+  "key": {
+    "I": { "tag": "c:ingots/tungsten" },
+    "G": { "item": "reinhardtshbm:ballistite" },
+    "C": { "tag": "c:ingots/copper" }
+  },
+  "result": { "id": "reinhardtshbm:ammo_shell", "count": 4, "components": { "minecraft:custom_data": { "variant": "apfsds_t" }, "minecraft:custom_model_data": 2 } }
+}

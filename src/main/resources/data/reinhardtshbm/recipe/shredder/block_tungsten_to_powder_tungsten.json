@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_tungsten"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_tungsten",
+                   "count":  9
+               }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.reformgas",
+  "fluid_input": { "fluid": "gas_coker", "amount": 4000 },
+  "fluid_output": { "fluid": "reformgas", "amount": 100 },
+  "duration": 60
+}

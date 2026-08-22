@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/fins_tri_steel"
+                 },
+    "parent":  "minecraft:item/generated"
+}

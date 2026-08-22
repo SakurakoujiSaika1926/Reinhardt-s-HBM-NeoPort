@@ -1,0 +1,7 @@
+﻿{
+    "variants":  {
+                     "":  {
+                              "model":  "reinhardtshbm:block/sliding_blast_door_keypad"
+                          }
+                 }
+}

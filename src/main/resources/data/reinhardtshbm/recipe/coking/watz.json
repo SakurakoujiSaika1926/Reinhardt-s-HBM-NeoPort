@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.watz",
+  "input": { "fluid": "watz", "amount": 4000 },
+  "output": { "id": "reinhardtshbm:ingot_mud", "count": 4 }
+}

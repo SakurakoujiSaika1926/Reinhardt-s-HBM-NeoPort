@@ -1,0 +1,38 @@
+{
+  "type": "reinhardtshbm:silex",
+  "group": "silex.vitriol",
+  "fluid_input": "vitriol",
+  "fluid_produced": 1000,
+  "fluid_consumed": 300,
+  "wavelength": "ir",
+  "outputs": [
+    {
+      "item": {
+        "id": "reinhardtshbm:powder_bromine",
+        "count": 1
+      },
+      "weight": 5
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:powder_iodine",
+        "count": 1
+      },
+      "weight": 5
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:powder_iron",
+        "count": 1
+      },
+      "weight": 5
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:sulfur",
+        "count": 1
+      },
+      "weight": 15
+    }
+  ]
+}

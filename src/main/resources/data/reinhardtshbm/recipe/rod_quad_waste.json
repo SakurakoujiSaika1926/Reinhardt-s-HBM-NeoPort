@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_quad_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_nuclear_waste"
+    },
+    {
+      "item": "reinhardtshbm:billet_nuclear_waste"
+    },
+    {
+      "item": "reinhardtshbm:billet_nuclear_waste"
+    },
+    {
+      "item": "reinhardtshbm:billet_nuclear_waste"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_quad",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "waste"
+      },
+      "minecraft:custom_model_data": 12
+    }
+  }
+}

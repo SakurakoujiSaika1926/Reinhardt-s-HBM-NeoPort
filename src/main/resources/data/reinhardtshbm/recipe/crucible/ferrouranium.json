@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.ferro",
+  "frequency": 3,
+  "icon": {
+    "id": "reinhardtshbm:ingot_ferrouranium"
+  },
+  "input": [
+    {
+      "material": "steel",
+      "amount": 16
+    },
+    {
+      "material": "u238",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "ferrouranium",
+      "amount": 24
+    }
+  ]
+}

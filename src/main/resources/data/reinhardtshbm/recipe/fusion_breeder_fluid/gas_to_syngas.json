@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:fusion_breeder_fluid",
+  "group": "fusion_breeder.fluid",
+  "input": {
+    "fluid": "gas",
+    "amount": 1000
+  },
+  "output": {
+    "fluid": "syngas",
+    "amount": 1000
+  }
+}

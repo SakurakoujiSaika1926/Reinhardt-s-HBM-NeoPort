@@ -1,0 +1,1505 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.107'
+}
+
+version = mod_version
+group = mod_group
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            gameDirectory = project.file('run-server')
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            gameDirectory = project.file('run-gametest')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all',
+                    '--output', file('src/generated/resources/').getAbsolutePath(),
+                    '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+def localClientModsDir = file(findProperty('local_client_mods_dir') ?: "${buildDir}/deployed-mods")
+def jeiCompileOnlyFiles = fileTree(localClientModsDir) {
+    include '*jei*.jar'
+}
+if (jeiCompileOnlyFiles.isEmpty()) {
+    jeiCompileOnlyFiles = fileTree('local-deps') {
+        include '*jei*.jar'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly files(jeiCompileOnlyFiles)
+}
+
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version       : minecraft_version,
+            mod_description         : mod_description,
+            minecraft_version_range : minecraft_version_range,
+            neo_version             : neo_version,
+            neo_version_range       : neo_version_range,
+            loader_version_range    : loader_version_range,
+            mod_id                  : mod_id,
+            mod_name                : mod_name,
+            mod_license             : mod_license,
+            mod_version             : mod_version,
+            mod_authors             : mod_authors,
+    ]
+
+    duplicatesStrategy = DuplicatesStrategy.WARN
+    filteringCharset = 'UTF-8'
+    inputs.properties replaceProperties
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand replaceProperties
+    }
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.register('validateObjModels') {
+    group = 'verification'
+    description = 'Checks client assets, OBJ models, BER machine blockstates, sound bindings, BOMs, and double rendering.'
+
+    inputs.dir file('src/main/resources/assets/reinhardtshbm')
+    inputs.dir file('src/main/resources/assets/reinhardtshbm/models')
+    inputs.dir file('src/main/resources/assets/reinhardtshbm/models/obj')
+    inputs.dir file('src/main/resources/assets/reinhardtshbm/blockstates')
+    inputs.dir file('src/main/resources/assets/reinhardtshbm/sounds')
+    inputs.file file('src/main/resources/assets/reinhardtshbm/sounds.json')
+    inputs.file file('src/main/resources/assets/minecraft/atlases/blocks.json')
+    inputs.file file('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java')
+    inputs.file file('src/main/java/com/reinhardt/hbm/registry/HbmBlockEntities.java')
+    inputs.file file('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def assetRoot = file('src/main/resources/assets/reinhardtshbm')
+        def minecraftAssetRoot = file('src/main/resources/assets/minecraft')
+        def modelRoot = file('src/main/resources/assets/reinhardtshbm/models')
+        def blockstateRoot = file('src/main/resources/assets/reinhardtshbm/blockstates')
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+
+        [file("src/main/resources/assets/${mod_id}/models/obj"), file("src/main/resources/assets/${mod_id}/models")].each { base ->
+            if (base.exists()) {
+                base.eachFileRecurse { f ->
+                    if (f.isFile() && (f.name.toLowerCase().endsWith('.mtl') || f.name.toLowerCase().endsWith('.obj'))) {
+                        byte[] bytes = f.bytes
+                        if (bytes.length >= 3 && (bytes[0] & 0xFF) == 0xEF && (bytes[1] & 0xFF) == 0xBB && (bytes[2] & 0xFF) == 0xBF) {
+                            problems << "${project.relativePath(f)} starts with a UTF-8 BOM; NeoForge OBJ/MTL parsing treats it as part of the first token."
+                        }
+                    }
+                }
+            }
+        }
+
+
+        fileTree(modelRoot) {
+            include '**/*.json'
+        }.each { modelJson ->
+            byte[] bytes = modelJson.bytes
+            if (bytes.length >= 3 && (bytes[0] & 0xFF) == 0xEF && (bytes[1] & 0xFF) == 0xBB && (bytes[2] & 0xFF) == 0xBF) {
+                problems << "${project.relativePath(modelJson)} starts with a UTF-8 BOM; Model JSON files must not start with UTF-8 BOM."
+            }
+        }
+        def resolveAssetFile = { File root, String location ->
+            if (!location.startsWith("${project.mod_id}:")) {
+                return null
+            }
+            return new File(root, location.substring("${project.mod_id}:".length()).replace('/', File.separator))
+        }
+        def parseJson = { File jsonFile ->
+            try {
+                return parser.parseText(jsonFile.getText('UTF-8'))
+            } catch (Exception first) {
+                return parser.parseText(jsonFile.getText('UTF-8').replaceFirst('^\uFEFF', ''))
+            }
+        }
+
+        assetRoot.eachFileRecurse { assetFile ->
+            if (!assetFile.isFile()) {
+                return
+            }
+            def assetPath = assetRoot.toPath().relativize(assetFile.toPath()).toString().replace(File.separatorChar, '/' as char)
+            if (assetPath != assetPath.toLowerCase(Locale.ROOT)) {
+                problems << "${project.relativePath(assetFile)} contains uppercase characters; modern ResourceLocation paths only accept [a-z0-9/._-]."
+            }
+        }
+
+        def soundsFile = new File(assetRoot, 'sounds.json')
+        if (!soundsFile.isFile()) {
+            problems << "${project.relativePath(soundsFile)} is missing."
+        } else {
+            def soundsJson = parseJson(soundsFile)
+            if (!(soundsJson instanceof Map)) {
+                problems << "${project.relativePath(soundsFile)} must contain a JSON object."
+            } else {
+                soundsJson.each { eventName, definition ->
+                    if (eventName != eventName.toLowerCase(Locale.ROOT)) {
+                        problems << "${project.relativePath(soundsFile)} contains uppercase sound event '${eventName}'."
+                    }
+                    def sounds = definition instanceof Map && definition.sounds instanceof List ? definition.sounds : []
+                    sounds.each { soundEntry ->
+                        def soundName = soundEntry instanceof String ? soundEntry : soundEntry instanceof Map ? soundEntry.name : null
+                        def soundType = soundEntry instanceof Map ? soundEntry.type : null
+                        if (!(soundName instanceof String) || soundName.isBlank() || soundType == 'event') {
+                            return
+                        }
+                        def separator = soundName.indexOf(':')
+                        def namespace = separator >= 0 ? soundName.substring(0, separator) : project.mod_id
+                        def soundPath = separator >= 0 ? soundName.substring(separator + 1) : soundName
+                        if (namespace != namespace.toLowerCase(Locale.ROOT) || soundPath != soundPath.toLowerCase(Locale.ROOT)) {
+                            problems << "${project.relativePath(soundsFile)} event '${eventName}' uses invalid uppercase sound location '${soundName}'."
+                        }
+                        if (namespace == project.mod_id) {
+                            def oggFile = new File(assetRoot, "sounds/${soundPath}.ogg".replace('/', File.separator))
+                            if (!oggFile.isFile()) {
+                                problems << "${project.relativePath(soundsFile)} event '${eventName}' references missing sound ${soundName}.ogg"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        fileTree(file("src/main/resources/assets/${mod_id}/models/obj/machines")) {
+            include 'compressor*.obj'
+            include 'compressor*/**/*.obj'
+        }.each { objFile ->
+            def lines = objFile.readLines('UTF-8')
+            int vertexCount = lines.count { it ==~ /v\s+.*/ }
+            int textureCount = lines.count { it ==~ /vt\s+.*/ }
+            int normalCount = lines.count { it ==~ /vn\s+.*/ }
+            lines.findAll { it ==~ /f\s+.*/ }.eachWithIndex { face, faceIndex ->
+                face.trim().split(/\s+/).drop(1).each { token ->
+                    def indices = token.split('/', -1)
+                    [vertexCount, textureCount, normalCount].eachWithIndex { count, indexType ->
+                        if (indexType >= indices.length || indices[indexType].isBlank()) {
+                            return
+                        }
+                        int value
+                        try {
+                            value = Integer.parseInt(indices[indexType])
+                        } catch (NumberFormatException ignored) {
+                            problems << "${project.relativePath(objFile)} face ${faceIndex + 1} has invalid OBJ index '${indices[indexType]}'."
+                            return
+                        }
+                        if (value == 0 || value > count || value < -count) {
+                            def labels = ['vertex', 'texture coordinate', 'normal']
+                            problems << "${project.relativePath(objFile)} face ${faceIndex + 1} references ${labels[indexType]} ${value}, but only ${count} are defined."
+                        }
+                    }
+                }
+            }
+        }
+
+        def blockAtlasFile = new File(minecraftAssetRoot, 'atlases/blocks.json'.replace('/', File.separator))
+        if (!blockAtlasFile.isFile()) {
+            problems << "${project.relativePath(blockAtlasFile)} is missing; OBJ model textures outside textures/block must be explicitly added to the block atlas."
+        } else {
+            def blockAtlas = parseJson(blockAtlasFile)
+            def atlasSources = blockAtlas.sources instanceof List ? blockAtlas.sources : []
+            def hasParticleAcceleratorAtlas = atlasSources.any { source ->
+                source instanceof Map
+                        && source.type == 'neoforge:namespaced_directory'
+                        && source.namespace == project.mod_id
+                        && source.source == 'models/particleaccelerator'
+                        && source.prefix == 'models/particleaccelerator/'
+            }
+            if (!hasParticleAcceleratorAtlas) {
+                problems << "${project.relativePath(blockAtlasFile)} must include reinhardtshbm textures/models/particleaccelerator in the block atlas; particle accelerator OBJ models render purple/black without it."
+            }
+
+            def atlasContains = { String textureLocation ->
+                if (!textureLocation.startsWith("${project.mod_id}:")) {
+                    return true
+                }
+                def texturePath = textureLocation.substring("${project.mod_id}:".length())
+                return atlasSources.any { source ->
+                    if (!(source instanceof Map)) {
+                        return false
+                    }
+                    if (source.type == 'single') {
+                        return source.resource == textureLocation
+                    }
+                    return source.type == 'neoforge:namespaced_directory'
+                            && source.namespace == project.mod_id
+                            && source.source instanceof String
+                            && (texturePath == source.source || texturePath.startsWith(source.source + '/'))
+                }
+            }
+            fileTree(modelRoot) {
+                include '**/*.json'
+            }.each { modelJson ->
+                def model = parseJson(modelJson)
+                if (!(model.textures instanceof Map)) {
+                    return
+                }
+                model.textures.values().findAll { it instanceof String && !it.startsWith('#') }.each { texture ->
+                    if (!texture.startsWith("${project.mod_id}:models/")) {
+                        return
+                    }
+                    def texturePath = texture.substring("${project.mod_id}:".length())
+                    def textureFile = new File(assetRoot, "textures/${texturePath}.png".replace('/', File.separator))
+                    if (!textureFile.isFile()) {
+                        problems << "${project.relativePath(modelJson)} references missing texture ${texture}"
+                    } else if (!atlasContains(texture)) {
+                        problems << "${project.relativePath(modelJson)} references ${texture}, but ${project.relativePath(blockAtlasFile)} does not include it; the model will render purple/black."
+                    }
+                }
+            }
+        }
+        def resolveModelJson = { String model ->
+            if (model == null || !model.startsWith("${project.mod_id}:")) {
+                return null
+            }
+            def path = model.substring("${project.mod_id}:".length())
+            return new File(assetRoot, "models/${path}.json".replace('/', File.separator))
+        }
+        def modelLocationsFromBlockstate = { File blockstateFile ->
+            def blockstate = parseJson(blockstateFile)
+            def models = [] as Set
+            def addVariantModel
+            addVariantModel = { variant ->
+                if (variant instanceof Map) {
+                    if (variant.model instanceof String) {
+                        models << (variant.model as String)
+                    }
+                } else if (variant instanceof List) {
+                    variant.each { addVariantModel(it) }
+                }
+            }
+            if (blockstate.variants instanceof Map) {
+                blockstate.variants.values().each { addVariantModel(it) }
+            }
+            if (blockstate.multipart instanceof List) {
+                blockstate.multipart.each { part ->
+                    if (part instanceof Map) {
+                        addVariantModel(part.apply)
+                    }
+                }
+            }
+            return models
+        }
+        def isEmptyBlockstateModel = { String model ->
+            if (model == "${project.mod_id}:block/empty") {
+                return true
+            }
+            def modelFile = resolveModelJson(model)
+            if (modelFile == null || !modelFile.isFile()) {
+                return false
+            }
+            def json = parseJson(modelFile)
+            return json.elements instanceof List && json.elements.isEmpty() && !(json.loader instanceof String)
+        }
+        def isObjModel = { String model ->
+            def modelFile = resolveModelJson(model)
+            if (modelFile == null || !modelFile.isFile()) {
+                return false
+            }
+            def json = parseJson(modelFile)
+            return json.loader == 'neoforge:obj'
+        }
+
+        fileTree(blockstateRoot) {
+            include '**/*.json'
+        }.each { blockstateFile ->
+            modelLocationsFromBlockstate(blockstateFile).each { model ->
+                def modelFile = resolveModelJson(model)
+                if (model instanceof String
+                        && model.startsWith("${project.mod_id}:")
+                        && (modelFile == null || !modelFile.isFile())) {
+                    problems << "${project.relativePath(blockstateFile)} references missing model ${model}"
+                }
+            }
+        }
+
+        fileTree(modelRoot) {
+            include '**/*.json'
+        }.each { jsonFile ->
+            def json
+            try {
+                json = parseJson(jsonFile)
+            } catch (Exception ignored) {
+                return
+            }
+            if (json.loader != 'neoforge:obj' || !json.model) {
+                return
+            }
+
+            def objFile = resolveAssetFile(assetRoot, json.model as String)
+            if (objFile == null || !objFile.isFile()) {
+                problems << "${project.relativePath(jsonFile)} references missing OBJ ${json.model}"
+                return
+            }
+
+            if (json.mtl_override) {
+                def mtlFile = resolveAssetFile(assetRoot, json.mtl_override as String)
+                if (mtlFile == null || !mtlFile.isFile()) {
+                    problems << "${project.relativePath(jsonFile)} references missing MTL ${json.mtl_override}"
+                } else {
+                    mtlFile.readLines('UTF-8').eachWithIndex { line, index ->
+                        def trimmed = line.trim()
+                        if (!trimmed.startsWith('map_Kd ')) {
+                            return
+                        }
+                        def texture = trimmed.substring('map_Kd '.length()).trim()
+                        if (texture.startsWith("${project.mod_id}:")) {
+                            def texturePath = texture.substring("${project.mod_id}:".length())
+                            def textureFile = new File(assetRoot, "textures/${texturePath}.png".replace('/', File.separator))
+                            if (!textureFile.isFile()) {
+                                problems << "${project.relativePath(mtlFile)}:${index + 1} references missing texture ${texture}"
+                            }
+                        }
+                    }
+                }
+            }
+
+            def lines = objFile.readLines('UTF-8')
+            def hasFaces = lines.any { it.startsWith('f ') }
+            def hasMaterialBinding = lines.any { it.startsWith('usemtl ') }
+            def usedMaterials = lines
+                    .findAll { it.startsWith('usemtl ') }
+                    .collect { it.substring('usemtl '.length()).trim() }
+                    .findAll { !it.isBlank() }
+                    .toSet()
+            def materialFiles = []
+            if (json.mtl_override) {
+                def override = resolveAssetFile(assetRoot, json.mtl_override as String)
+                if (override != null && override.isFile()) {
+                    materialFiles << override
+                }
+            } else {
+                lines.findAll { it.startsWith('mtllib ') }
+                        .collect { it.substring('mtllib '.length()).trim() }
+                        .findAll { !it.isBlank() }
+                        .each { materialFiles << new File(objFile.parentFile, it) }
+            }
+            def declaredMaterials = materialFiles.findAll { it.isFile() }
+                    .collectMany { mtl ->
+                        mtl.readLines('UTF-8')
+                                .findAll { it.trim().startsWith('newmtl ') }
+                                .collect { it.trim().substring('newmtl '.length()).trim() }
+                    }
+                    .toSet()
+            usedMaterials.findAll { !declaredMaterials.contains(it) }.each { material ->
+                problems << "${project.relativePath(jsonFile)} uses material '${material}', but no referenced MTL declares it"
+            }
+            if (hasFaces && !hasMaterialBinding) {
+                problems << "${project.relativePath(jsonFile)} references ${project.relativePath(objFile)} with faces but no usemtl binding"
+            }
+            if (hasMaterialBinding && !json.mtl_override) {
+                def mtllibs = lines
+                        .findAll { it.startsWith('mtllib ') }
+                        .collect { it.substring('mtllib '.length()).trim() }
+                        .findAll { !it.isBlank() }
+                if (mtllibs.isEmpty()) {
+                    problems << "${project.relativePath(jsonFile)} references ${project.relativePath(objFile)} with usemtl but no mtllib declaration"
+                }
+                mtllibs.each { mtlPath ->
+                    def referencedMtl = new File(objFile.parentFile, mtlPath)
+                    if (!referencedMtl.isFile()) {
+                        problems << "${project.relativePath(jsonFile)} references ${project.relativePath(objFile)} with missing mtllib ${mtlPath}"
+                    }
+                }
+            }
+        }
+
+        fileTree(file('src/main/resources/assets/reinhardtshbm/models/obj')) {
+            include '**/*.mtl'
+        }.each { mtlFile ->
+            mtlFile.readLines('UTF-8').eachWithIndex { line, index ->
+                def trimmed = line.trim()
+                if (!trimmed.startsWith('map_Kd ')) {
+                    return
+                }
+                def texture = trimmed.substring('map_Kd '.length()).trim()
+                if (texture.startsWith("${project.mod_id}:textures/") || texture.endsWith('.png')) {
+                    problems << "${project.relativePath(mtlFile)}:${index + 1} uses non-atlas OBJ texture location '${texture}'"
+                }
+            }
+        }
+
+        [
+                'source.obj',
+                'beamline_body.obj',
+                'beamline_glass.obj',
+                'beamline_window.obj',
+                'rfc.obj',
+                'quadrupole.obj',
+                'dipole.obj',
+                'detector.obj'
+        ].each { objName ->
+            def objFile = file("src/main/resources/assets/${project.mod_id}/models/obj/particleaccelerator/${objName}")
+            if (!objFile.isFile()) {
+                problems << "Missing particle accelerator OBJ ${project.relativePath(objFile)}"
+                return
+            }
+            def objLines = objFile.readLines('UTF-8')
+            if (!objLines.any { it.startsWith('mtllib ') }) {
+                problems << "${project.relativePath(objFile)} must declare mtllib; particle accelerator BER models otherwise render purple/black in game."
+            }
+            if (!objLines.any { it.startsWith('usemtl ') }) {
+                problems << "${project.relativePath(objFile)} must bind usemtl; particle accelerator BER models otherwise lose their texture."
+            }
+        }
+
+        def clientRenderersFile = file('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java')
+        def blockEntitiesFile = file('src/main/java/com/reinhardt/hbm/registry/HbmBlockEntities.java')
+        def blocksFile = file('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java')
+        def clientRenderersSource = clientRenderersFile.getText('UTF-8')
+        def blockEntitiesSource = blockEntitiesFile.getText('UTF-8')
+        def blocksSource = blocksFile.getText('UTF-8')
+        def paRendererFile = file('src/main/java/com/reinhardt/hbm/client/render/ParticleAcceleratorBlockEntityRenderer.java')
+        if (!paRendererFile.isFile()) {
+            problems << "Missing particle accelerator renderer ${project.relativePath(paRendererFile)}"
+        } else {
+            def paRendererSource = paRendererFile.getText('UTF-8')
+            [
+                    'case NORTH -> 90.0F;',
+                    'case SOUTH -> 270.0F;',
+                    'case WEST -> 180.0F;',
+                    'default -> 0.0F;'
+            ].each { expected ->
+                if (!paRendererSource.contains(expected)) {
+                    problems << "${project.relativePath(paRendererFile)} must keep the 1.7.10 particle accelerator yaw table; missing '${expected}'"
+                }
+            }
+        }
+
+        fileTree(file('src/main/java/com/reinhardt/hbm/block')) {
+            include '**/*.java'
+        }.each { blockSourceFile ->
+            def source = blockSourceFile.getText('UTF-8').replaceFirst('^\uFEFF', '')
+            if (!source.contains('extends LargeMachineBlock')) {
+                return
+            }
+            def superCalls = (source =~ /super\(([\s\S]*?)\);/)
+            superCalls.each { match ->
+                def call = match[0] as String
+                if (!call.contains('RotationBasis.')) {
+                    problems << "${project.relativePath(blockSourceFile)} extends LargeMachineBlock but calls ${call.replaceAll(/\s+/, ' ').trim()} without an explicit RotationBasis"
+                }
+            }
+        }
+
+        def blockIdsByConstant = [:]
+        (blocksSource =~ /public static final DeferredBlock<[^>]+>\s+([A-Z0-9_]+)\s*=\s*[^;]*?\(\s*"([^"]+)"/).each { match ->
+            blockIdsByConstant[match[1] as String] = match[2] as String
+        }
+        def doorDeclIds = [:]
+        def doorDeclFile = file('src/main/java/com/reinhardt/hbm/door/HbmDoorDecl.java')
+        if (doorDeclFile.isFile()) {
+            def doorDeclSource = doorDeclFile.getText('UTF-8')
+            (doorDeclSource =~ /(?m)^\s*([A-Z0-9_]+)\("([^"]+)"/).each { match ->
+                doorDeclIds[match[1] as String] = match[2] as String
+            }
+        }
+        (blocksSource =~ /public static final DeferredBlock<[^>]+>\s+([A-Z0-9_]+)\s*=\s*heavyDoor\(com\.reinhardt\.hbm\.door\.HbmDoorDecl\.([A-Z0-9_]+)\)/).each { match ->
+            def id = doorDeclIds[match[2] as String]
+            if (id != null) {
+                blockIdsByConstant[match[1] as String] = id
+            }
+        }
+
+        def blockConstantsByBlockEntity = [:].withDefault { [] as Set }
+        (blockEntitiesSource =~ /public static final DeferredHolder<.*?>\s+([A-Z0-9_]+)\s*=\s*[\s\S]*?BLOCK_ENTITIES\.register\([\s\S]*?BlockEntityType\.Builder\.of\(([\s\S]*?)\)\.build\(null\)/).each { match ->
+            def constants = [] as Set
+            (match[2] =~ /HbmBlocks\.([A-Z0-9_]+)\.get\(\)/).each { blockMatch ->
+                constants << (blockMatch[1] as String)
+            }
+            blockConstantsByBlockEntity[match[1] as String] = constants
+        }
+
+        def objRenderingBlockEntityConstants = [] as Set
+        def objRenderedBlockNamesByEntity = [:].withDefault { [] as Set }
+        (clientRenderersSource =~ /event\.registerBlockEntityRenderer\(HbmBlockEntities\.([A-Z0-9_]+)\.get\(\),\s*([A-Za-z0-9_]+)::new\)/).each { match ->
+            def rendererFile = file("src/main/java/com/reinhardt/hbm/client/render/${match[2]}.java")
+            if (!rendererFile.isFile()) {
+                return
+            }
+            def rendererSource = rendererFile.getText('UTF-8')
+            if (rendererSource.contains('MachineModelRenderer.standalone') || rendererSource.contains('ObjMesh.load')) {
+                objRenderingBlockEntityConstants << (match[1] as String)
+                if ((match[1] as String) == 'LEGACY_MACHINE') {
+                    (rendererSource =~ /case\s+"([a-z0-9_]+)"\s*->/).each { caseMatch ->
+                        objRenderedBlockNamesByEntity[match[1] as String] << (caseMatch[1] as String)
+                    }
+                }
+            }
+        }
+
+        def staticBlockstateAllowed = [
+                // These BERs add dynamic overlays/fluids/particles over a normal block model instead of replacing the block model.
+                'FOUNDRY_CASTING',
+                'FOUNDRY_FLOW',
+                'FOUNDRY_SLAG',
+                // RBMK blockstates deliberately use the dummy particle model while BER draws dynamic segmented columns and controls.
+                'RBMK_COMPONENT'
+        ] as Set
+
+        objRenderingBlockEntityConstants.each { blockEntityConstant ->
+            def blockConstants = blockConstantsByBlockEntity[blockEntityConstant]
+            if (blockConstants.isEmpty()) {
+                problems << "BER ${blockEntityConstant} is registered but no HbmBlocks entries could be parsed from HbmBlockEntities"
+                return
+            }
+            blockConstants.each { blockConstant ->
+                def blockName = blockIdsByConstant[blockConstant as String]
+                if (blockName == null) {
+                    problems << "BER ${blockEntityConstant} references HbmBlocks.${blockConstant}, but its registry id could not be parsed"
+                    return
+                }
+                def explicitlyRenderedNames = objRenderedBlockNamesByEntity[blockEntityConstant]
+                if (!explicitlyRenderedNames.isEmpty() && !explicitlyRenderedNames.contains(blockName)) {
+                    return
+                }
+                def blockstateFile = new File(blockstateRoot, "${blockName}.json")
+                if (!blockstateFile.isFile()) {
+                    problems << "Missing BER blockstate ${project.relativePath(blockstateFile)} for ${blockEntityConstant}/${blockConstant}"
+                    return
+                }
+                def models = modelLocationsFromBlockstate(blockstateFile)
+                if (models.isEmpty()) {
+                    problems << "${project.relativePath(blockstateFile)} has no variants or multipart model entries"
+                    return
+                }
+                def renderedObjModels = models.findAll { isObjModel(it as String) }
+                if (!renderedObjModels.isEmpty()) {
+                    problems << "${project.relativePath(blockstateFile)} renders OBJ model(s) ${renderedObjModels}, but ${blockEntityConstant} also renders OBJ/standalone models in BER. Use ${project.mod_id}:block/empty or an empty particle-only model."
+                }
+                if (!staticBlockstateAllowed.contains(blockEntityConstant)) {
+                    def nonEmptyModels = models.findAll { !isEmptyBlockstateModel(it as String) }
+                    if (!nonEmptyModels.isEmpty()) {
+                        problems << "${project.relativePath(blockstateFile)} renders ${nonEmptyModels}, but ${blockEntityConstant} is an OBJ/standalone BER machine. Use ${project.mod_id}:block/empty or document a specific exception in validateObjModels."
+                    }
+                }
+            }
+        }
+
+        ['machine_arc_welder', 'machine_excavator', 'machine_condenser_powered', 'machine_cyclotron', 'machine_exposure_chamber'].each { blockName ->
+            def blockstateFile = new File(blockstateRoot, "${blockName}.json")
+            if (!blockstateFile.isFile()) {
+                problems << "Missing BER blockstate ${project.relativePath(blockstateFile)}"
+                return
+            }
+            def models = modelLocationsFromBlockstate(blockstateFile)
+            if (models != ["${project.mod_id}:block/empty"] as Set) {
+                problems << "${project.relativePath(blockstateFile)} renders ${models}, expected exactly ${project.mod_id}:block/empty for high-risk BER OBJ machine"
+            }
+        }
+
+        [
+                'GasTurbineBlockEntityRenderer.java',
+                'ElectrolyzerBlockEntityRenderer.java',
+                'ExposureChamberBlockEntityRenderer.java',
+                'PoweredSteamCondenserBlockEntityRenderer.java'
+        ].each { rendererName ->
+            def rendererFile = file("src/main/java/com/reinhardt/hbm/client/render/${rendererName}")
+            if (!rendererFile.isFile()) {
+                problems << "Missing high-risk machine renderer ${project.relativePath(rendererFile)}"
+                return
+            }
+            def rendererSource = rendererFile.getText('UTF-8')
+            if (rendererSource =~ /private\s+static\s+float\s+legacy\w*Yaw\s*\(/) {
+                problems << "${project.relativePath(rendererFile)} defines a private legacy yaw table. Use LegacyMachineGeometry with an explicit modelSouthYaw instead."
+            }
+            if (rendererSource.contains('switch (facing)')) {
+                problems << "${project.relativePath(rendererFile)} switches on facing in renderer. High-risk OBJ renderers must use the centralized machine geometry transform."
+            }
+        }
+
+        [
+                'PoweredSteamCondenserBlockEntity.java'
+        ].each { blockEntityName ->
+            def blockEntityFile = file("src/main/java/com/reinhardt/hbm/blockentity/${blockEntityName}")
+            if (!blockEntityFile.isFile()) {
+                problems << "Missing high-risk machine block entity ${project.relativePath(blockEntityFile)}"
+                return
+            }
+            def blockEntitySource = blockEntityFile.getText('UTF-8')
+            if (blockEntitySource =~ /private\s+static\s+Direction\s+old\w*\s*\(/) {
+                problems << "${project.relativePath(blockEntityFile)} defines a private old direction table. Use LegacyMachineGeometry.rotateDirection instead."
+            }
+        }
+
+        [
+                'src/main/java/com/reinhardt/hbm/block/PoweredSteamCondenserBlock.java',
+                'src/main/java/com/reinhardt/hbm/block/ExcavatorBlock.java',
+                'src/main/java/com/reinhardt/hbm/block/ExposureChamberBlock.java',
+                'src/main/java/com/reinhardt/hbm/block/ElectrolyzerBlock.java',
+            'src/main/java/com/reinhardt/hbm/block/GasTurbineBlock.java',
+            'src/main/java/com/reinhardt/hbm/item/GasTurbineBlockItem.java',
+            'src/main/java/com/reinhardt/hbm/block/MachineDummyBlock.java',
+                'src/main/java/com/reinhardt/hbm/block/SteamEngineBlock.java',
+                'src/main/java/com/reinhardt/hbm/block/DrainBlock.java',
+                'src/main/java/com/reinhardt/hbm/blockentity/PoweredSteamCondenserBlockEntity.java',
+                'src/main/java/com/reinhardt/hbm/blockentity/ExcavatorBlockEntity.java',
+                'src/main/java/com/reinhardt/hbm/blockentity/ElectrolyzerBlockEntity.java',
+                'src/main/java/com/reinhardt/hbm/blockentity/GasTurbineBlockEntity.java',
+                'src/main/java/com/reinhardt/hbm/blockentity/SteamEngineBlockEntity.java',
+                'src/main/java/com/reinhardt/hbm/blockentity/OreSlopperBlockEntity.java'
+        ].each { sourcePath ->
+            def sourceFile = file(sourcePath)
+            if (!sourceFile.isFile()) {
+                problems << "Missing legacy geometry validation source ${sourcePath}"
+                return
+            }
+            def source = sourceFile.getText('UTF-8')
+            if (source =~ /private\s+static\s+(?:BlockPos|Direction|int\[\])\s+(?:rotateOld|oldRot|oldPerpendicular|rotateOldDimensions|rotatedDimensions|legacyRot)\s*\(/) {
+                problems << "${project.relativePath(sourceFile)} defines a private legacy direction/dimension table. Use LegacyMachineGeometry so model, dummy, collision and ports share one 1.7.10 basis."
+            }
+            if (source.contains('extends LargeMachineBlock') && source.contains('RotationBasis.MODERN_NORTH')
+                    && (source.contains('legacySouthBox') || source.contains('positionsForLegacyFootprint') || source.contains('1.7.10') || source.contains('HBM 1.7.10'))) {
+                problems << "${project.relativePath(sourceFile)} is a 1.7.10 dummyable machine but declares RotationBasis.MODERN_NORTH"
+            }
+        }
+
+        def gasTurbineBlock = file('src/main/java/com/reinhardt/hbm/block/GasTurbineBlock.java').getText('UTF-8')
+        def gasTurbineItem = file('src/main/java/com/reinhardt/hbm/item/GasTurbineBlockItem.java').getText('UTF-8')
+        def machineDummy = file('src/main/java/com/reinhardt/hbm/block/MachineDummyBlock.java').getText('UTF-8')
+        [
+                'Footprint.legacySouthBox(2, 0, 1, 1, 4, 5)',
+                'return clickedPos.relative(facing, -1);',
+                'MachineDummyBlock.runWithoutCoreDestroy',
+                'dummy.getCorePos().equals(corePos)'
+        ].each { required ->
+            if (!gasTurbineBlock.contains(required)) {
+                problems << "Gas turbine multiblock is missing the audited 1.7.10 contract '${required}'."
+            }
+        }
+        [
+                'GasTurbineBlock.legacyCorePos(clickedPos, facing)',
+                'GasTurbineBlock.canPlaceLegacyAt(level, clickedPos, facing, placeContext)',
+                'gasTurbineBlock.placeLegacyDummies(level, corePos, facing, context.getPlayer())'
+        ].each { required ->
+            if (!gasTurbineItem.contains(required)) {
+                problems << "Gas turbine placement is missing the audited 1.7.10 contract '${required}'."
+            }
+        }
+        if (!machineDummy.contains('coreState.getBlock() instanceof GasTurbineBlock')) {
+            problems << 'Gas turbine dummy destruction must propagate to its 1.7.10 core block.'
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("OBJ model validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
+tasks.register('cleanDeployedClientMod', Delete) {
+    delete fileTree(localClientModsDir) {
+        include "${mod_id}-*.jar"
+    }
+}
+
+tasks.register('validateLangFiles') {
+    group = 'verification'
+    description = 'Checks language files for UTF-8 BOMs and common mojibake sequences.'
+
+    inputs.dir file('src/main/resources/assets/reinhardtshbm/lang')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def langRoot = file('src/main/resources/assets/reinhardtshbm/lang')
+        def problems = []
+        def genericMojibakePattern = ~/[ÃÂ�]/
+        def chineseMojibakePattern = ~/[閻濞閸闂缁闁濠鐐鍕鏋鐎鐢娴鍙鍌闆绋閾婵瀹灏璐鑱鐫]/ 
+        def replacementQuestionPattern = ~/\?{3,}/
+        fileTree(langRoot) {
+            include '*.json'
+        }.each { langFile ->
+            byte[] bytes = langFile.bytes
+            if (bytes.length >= 3 && (bytes[0] & 0xff) == 0xef && (bytes[1] & 0xff) == 0xbb && (bytes[2] & 0xff) == 0xbf) {
+                problems << "${project.relativePath(langFile)} starts with a UTF-8 BOM"
+            }
+            def text = langFile.getText('UTF-8')
+            try {
+                new groovy.json.JsonSlurper().parseText(text)
+            } catch (Exception ex) {
+                problems << "${project.relativePath(langFile)} is not valid JSON: ${ex.message}"
+            }
+            def genericMojibake = text.find(genericMojibakePattern)
+            if (genericMojibake != null) {
+                problems << "${project.relativePath(langFile)} contains mojibake-like text near '${genericMojibake}'"
+            }
+            if (langFile.name.equalsIgnoreCase('zh_cn.json')) {
+                if (text.contains('\\\\u')) {
+                    problems << "${project.relativePath(langFile)} contains literal unicode escape text"
+                }
+                def replacementQuestions = text.find(replacementQuestionPattern)
+                if (replacementQuestions != null) {
+                    problems << "${project.relativePath(langFile)} contains replacement question marks near '${replacementQuestions}'"
+                }
+                def chineseMojibake = text.find(chineseMojibakePattern)
+                if (chineseMojibake != null) {
+                    problems << "${project.relativePath(langFile)} contains Chinese mojibake-like text near '${chineseMojibake}'"
+                }
+                def hangulLike = text.find(/[\uac00-\ud7af]/)
+                if (hangulLike != null) {
+                    problems << "${project.relativePath(langFile)} contains non-Chinese mojibake-like text near '${hangulLike}'"
+                }
+            }
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("Language validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
+tasks.register('validateLegacyRecipes') {
+    group = 'verification'
+    description = 'Checks migrated data-driven machine recipes against legacy 1.7.10 defaults where the migration is complete.'
+
+    inputs.dir file('src/main/resources/data/reinhardtshbm/recipe/particle_accelerator')
+    inputs.dir file('src/main/resources/data/reinhardtshbm/recipe/compressor')
+    inputs.dir file('src/main/resources/data/reinhardtshbm/recipe/hydrotreating')
+    inputs.file file('src/main/java/com/reinhardt/hbm/blockentity/CompressorBlockEntity.java')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+        def recipeRoot = file("src/main/resources/data/${project.mod_id}/recipe/particle_accelerator")
+        def expectedParticleAccelerator = [
+                'hydrogen_copper_to_antimatter.json'             : [in1: "item:${project.mod_id}:particle_hydrogen", in2: "item:${project.mod_id}:particle_copper", momentum: 300, out1: "${project.mod_id}:particle_amat"],
+                'antimatter_to_antischrabidium.json'             : [in1: "item:${project.mod_id}:particle_amat", in2: "item:${project.mod_id}:particle_amat", momentum: 400, out1: "${project.mod_id}:particle_aschrab"],
+                'antischrabidium_to_dark.json'                   : [in1: "item:${project.mod_id}:particle_aschrab", in2: "item:${project.mod_id}:particle_aschrab", momentum: 10000, out1: "${project.mod_id}:particle_dark"],
+                'hydrogen_antimatter_to_muon.json'               : [in1: "item:${project.mod_id}:particle_hydrogen", in2: "item:${project.mod_id}:particle_amat", momentum: 2500, out1: "${project.mod_id}:particle_muon"],
+                'hydrogen_lead_to_higgs.json'                    : [in1: "item:${project.mod_id}:particle_hydrogen", in2: "item:${project.mod_id}:particle_lead", momentum: 6500, out1: "${project.mod_id}:particle_higgs"],
+                'muon_higgs_to_tachyon.json'                     : [in1: "item:${project.mod_id}:particle_muon", in2: "item:${project.mod_id}:particle_higgs", momentum: 5000, out1: "${project.mod_id}:particle_tachyon"],
+                'muon_dark_to_strange.json'                      : [in1: "item:${project.mod_id}:particle_muon", in2: "item:${project.mod_id}:particle_dark", momentum: 12500, out1: "${project.mod_id}:particle_strange"],
+                'strange_magic_to_sparkticle.json'               : [in1: "item:${project.mod_id}:particle_strange", in2: "item:${project.mod_id}:powder_magic", momentum: 12500, out1: "${project.mod_id}:particle_sparkticle", out2: "${project.mod_id}:dust"],
+                'sparkticle_higgs_to_digamma.json'               : [in1: "item:${project.mod_id}:particle_sparkticle", in2: "item:${project.mod_id}:particle_higgs", momentum: 70000, out1: "${project.mod_id}:particle_digamma"],
+                'gold_dust_schrabidate_to_degenerate_matter.json': [in1: "components:${project.mod_id}:item_expensive:gold_dust", in2: 'tag:c:ingots/schrabidate', momentum: 10000, out1: "${project.mod_id}:item_expensive:degenerate_matter"],
+                'chicken_to_nuggets.json'                        : [in1: 'item:minecraft:chicken', in2: 'item:minecraft:chicken', momentum: 100, out1: "${project.mod_id}:nugget", out2: "${project.mod_id}:nugget"]
+        ]
+
+        def parseJson = { File jsonFile ->
+            try {
+                return parser.parseText(jsonFile.getText('UTF-8'))
+            } catch (Exception first) {
+                return parser.parseText(jsonFile.getText('UTF-8').replaceFirst('^\uFEFF', ''))
+            }
+        }
+        def ingredientKey = { ingredient ->
+            if (!(ingredient instanceof Map)) {
+                return String.valueOf(ingredient)
+            }
+            if (ingredient.item instanceof String) {
+                return "item:${ingredient.item}"
+            }
+            if (ingredient.tag instanceof String) {
+                return "tag:${ingredient.tag}"
+            }
+            if (ingredient.type == 'neoforge:components') {
+                def items = ingredient.items instanceof List ? ingredient.items.join('|') : String.valueOf(ingredient.items)
+                def customData = ingredient.components instanceof Map ? ingredient.components['minecraft:custom_data'] : null
+                def variant = customData instanceof Map ? customData.variant : null
+                return "components:${items}:${variant}"
+            }
+            return ingredient.toString()
+        }
+        def outputKey = { stack ->
+            if (!(stack instanceof Map) || !(stack.id instanceof String)) {
+                return null
+            }
+            def customData = stack.components instanceof Map ? stack.components['minecraft:custom_data'] : null
+            def variant = customData instanceof Map ? customData.variant : null
+            return variant == null ? stack.id : "${stack.id}:${variant}"
+        }
+
+        def validateRecipeSet = { File root, Map expected, Closure validateRecipe ->
+            if (!root.isDirectory()) {
+                problems << "Missing legacy recipe directory ${project.relativePath(root)}"
+                return
+            }
+            def actualNames = root.listFiles()
+                    .findAll { it.isFile() && it.name.endsWith('.json') }
+                    .collect { it.name } as Set
+            def expectedNames = expected.keySet() as Set
+            (expectedNames - actualNames).each { problems << "Missing 1.7.10 recipe ${project.relativePath(new File(root, it))}" }
+            (actualNames - expectedNames).each { problems << "Unexpected recipe ${project.relativePath(new File(root, it))}; compare with 1.7.10 before adding it" }
+            expected.each { name, values ->
+                def recipeFile = new File(root, name)
+                if (recipeFile.isFile()) {
+                    validateRecipe(parseJson(recipeFile), values, project.relativePath(recipeFile))
+                }
+            }
+        }
+
+        def validateFluid = { recipe, String field, expected, String prefix ->
+            def actual = recipe[field]
+            if (!(actual instanceof Map)
+                    || actual.fluid != expected.fluid
+                    || (actual.amount as Integer) != expected.amount
+                    || ((actual.containsKey('pressure') ? actual.pressure : 0) as Integer) != expected.pressure) {
+                problems << "${prefix} ${field} is ${actual}, expected ${expected}"
+            }
+        }
+
+        if (!recipeRoot.isDirectory()) {
+            problems << "Missing legacy particle accelerator recipe directory ${project.relativePath(recipeRoot)}"
+        } else {
+            def actualNames = recipeRoot.listFiles()
+                    .findAll { it.isFile() && it.name.endsWith('.json') }
+                    .collect { it.name } as Set
+            def expectedNames = expectedParticleAccelerator.keySet() as Set
+            (expectedNames - actualNames).each { problems << "Missing 1.7.10 particle accelerator recipe ${it}" }
+            (actualNames - expectedNames).each { problems << "Unexpected particle accelerator recipe ${it}; compare with 1.7.10 before adding it" }
+
+            expectedParticleAccelerator.each { name, expected ->
+                def recipeFile = new File(recipeRoot, name)
+                if (!recipeFile.isFile()) {
+                    return
+                }
+                def recipe = parseJson(recipeFile)
+                def prefix = project.relativePath(recipeFile)
+                if (recipe.type != "${project.mod_id}:particle_accelerator") {
+                    problems << "${prefix} has type ${recipe.type}, expected ${project.mod_id}:particle_accelerator"
+                }
+                if (ingredientKey(recipe.input1) != expected.in1) {
+                    problems << "${prefix} input1 is ${ingredientKey(recipe.input1)}, expected ${expected.in1}"
+                }
+                if (ingredientKey(recipe.input2) != expected.in2) {
+                    problems << "${prefix} input2 is ${ingredientKey(recipe.input2)}, expected ${expected.in2}"
+                }
+                if ((recipe.momentum as Integer) != expected.momentum) {
+                    problems << "${prefix} momentum is ${recipe.momentum}, expected ${expected.momentum}"
+                }
+                if (outputKey(recipe.output1) != expected.out1) {
+                    problems << "${prefix} output1 is ${outputKey(recipe.output1)}, expected ${expected.out1}"
+                }
+                def expectedOut2 = expected.containsKey('out2') ? expected.out2 : null
+                if (outputKey(recipe.output2) != expectedOut2) {
+                    problems << "${prefix} output2 is ${outputKey(recipe.output2)}, expected ${expectedOut2}"
+                }
+            }
+        }
+
+        def expectedCompressor = [
+                'blood_p3_to_heavyoil.json'        : [input: [fluid: 'blood', amount: 1000, pressure: 3], output: [fluid: 'heavyoil', amount: 250, pressure: 0], duration: 200],
+                'perfluoromethyl_p0_to_p1.json'    : [input: [fluid: 'perfluoromethyl', amount: 1000, pressure: 0], output: [fluid: 'perfluoromethyl', amount: 1000, pressure: 1], duration: 50],
+                'perfluoromethyl_p1_to_cold.json'  : [input: [fluid: 'perfluoromethyl', amount: 1000, pressure: 1], output: [fluid: 'perfluoromethyl_cold', amount: 1000, pressure: 0], duration: 50],
+                'petroleum_p0_to_petroleum_p1.json': [input: [fluid: 'petroleum', amount: 2000, pressure: 0], output: [fluid: 'petroleum', amount: 2000, pressure: 1], duration: 20],
+                'petroleum_p1_to_lpg.json'         : [input: [fluid: 'petroleum', amount: 2000, pressure: 1], output: [fluid: 'lpg', amount: 1000, pressure: 0], duration: 20]
+        ]
+        validateRecipeSet(file("src/main/resources/data/${project.mod_id}/recipe/compressor"), expectedCompressor) { recipe, expected, prefix ->
+            if (recipe.type != "${project.mod_id}:compressor") {
+                problems << "${prefix} has type ${recipe.type}, expected ${project.mod_id}:compressor"
+            }
+            validateFluid(recipe, 'input', expected.input, prefix)
+            validateFluid(recipe, 'output', expected.output, prefix)
+            if ((recipe.duration as Integer) != expected.duration) {
+                problems << "${prefix} duration is ${recipe.duration}, expected ${expected.duration}"
+            }
+        }
+
+        def expectedHydrotreating = [
+                'oil.json'                : [input: [fluid: 'oil', amount: 100, pressure: 0], hydrogen: [fluid: 'hydrogen', amount: 5, pressure: 1], output1: [fluid: 'oil_ds', amount: 90, pressure: 0], output2: [fluid: 'sourgas', amount: 15, pressure: 0]],
+                'crackoil.json'           : [input: [fluid: 'crackoil', amount: 100, pressure: 0], hydrogen: [fluid: 'hydrogen', amount: 5, pressure: 1], output1: [fluid: 'crackoil_ds', amount: 90, pressure: 0], output2: [fluid: 'sourgas', amount: 15, pressure: 0]],
+                'gas.json'                : [input: [fluid: 'gas', amount: 100, pressure: 0], hydrogen: [fluid: 'hydrogen', amount: 5, pressure: 1], output1: [fluid: 'petroleum', amount: 80, pressure: 0], output2: [fluid: 'sourgas', amount: 15, pressure: 0]],
+                'diesel_crack.json'       : [input: [fluid: 'diesel_crack', amount: 100, pressure: 0], hydrogen: [fluid: 'hydrogen', amount: 10, pressure: 1], output1: [fluid: 'diesel', amount: 80, pressure: 0], output2: [fluid: 'sourgas', amount: 30, pressure: 0]],
+                'diesel_crack_reform.json': [input: [fluid: 'diesel_crack_reform', amount: 100, pressure: 0], hydrogen: [fluid: 'hydrogen', amount: 10, pressure: 1], output1: [fluid: 'diesel_reform', amount: 80, pressure: 0], output2: [fluid: 'sourgas', amount: 30, pressure: 0]],
+                'coaloil.json'            : [input: [fluid: 'coaloil', amount: 100, pressure: 0], hydrogen: [fluid: 'hydrogen', amount: 10, pressure: 1], output1: [fluid: 'coalgas', amount: 80, pressure: 0], output2: [fluid: 'sourgas', amount: 15, pressure: 0]]
+        ]
+        validateRecipeSet(file("src/main/resources/data/${project.mod_id}/recipe/hydrotreating"), expectedHydrotreating) { recipe, expected, prefix ->
+            if (recipe.type != "${project.mod_id}:hydrotreating") {
+                problems << "${prefix} has type ${recipe.type}, expected ${project.mod_id}:hydrotreating"
+            }
+            ['input', 'hydrogen', 'output1', 'output2'].each { field -> validateFluid(recipe, field, expected[field], prefix) }
+            if ((recipe.power as Integer) != 20_000) {
+                problems << "${prefix} power is ${recipe.power}, expected 20000"
+            }
+        }
+
+        def compressorMachine = file('src/main/java/com/reinhardt/hbm/blockentity/CompressorBlockEntity.java').getText('UTF-8')
+        if (compressorMachine.contains('.filter(holder -> holder.value().matches(input, this.level))')
+                || !compressorMachine.contains('holder.value().input().fluid() == input.fluid()')
+                || !compressorMachine.contains('holder.value().input().pressure() == input.pressure()')) {
+            problems << 'Compressor recipe selection must use the legacy fluid-and-pressure key before checking the required amount.'
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("Legacy recipe validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
+tasks.register('validatePortRegressionFixes') {
+    group = 'verification'
+    description = 'Guards verified 1.7.10 parity fixes for machine geometry, item rendering, GUI labels, and machine sound binding.'
+
+    inputs.files(
+            file('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/AmmoPressBlockEntityRenderer.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/FunnelBlockEntityRenderer.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java'),
+             file('src/main/java/com/reinhardt/hbm/item/MicrowaveBlockItem.java'),
+             file('src/main/java/com/reinhardt/hbm/client/render/MicrowaveItemRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineItemRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/client/model/LegacyMachineItemModel.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/MachineModelRenderer.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/ConveyorPressBlockEntityRenderer.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineBlockEntityRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/block/CompressorBlock.java'),
+             file('src/main/java/com/reinhardt/hbm/client/screen/CompressorScreen.java'),
+             file('src/main/java/com/reinhardt/hbm/client/screen/HydrotreaterScreen.java'),
+             file('src/main/java/com/reinhardt/hbm/client/screen/HbmFluidTooltipRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/client/render/RadarScreenItemRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/client/sound/ArcFurnaceClientSounds.java'),
+            file('src/main/java/com/reinhardt/hbm/blockentity/ArcFurnaceBlockEntity.java'),
+            file('src/main/java/com/reinhardt/hbm/blockentity/BatteryReddBlockEntity.java'),
+            file('src/main/java/com/reinhardt/hbm/block/FunnelBlock.java'),
+            file('src/main/resources/assets/reinhardtshbm/sounds.json'),
+            file('src/main/resources/assets/reinhardtshbm/sounds/block/electric_hum.ogg'),
+             file('src/main/resources/assets/reinhardtshbm/lang/zh_cn.json'),
+             file('src/main/resources/assets/reinhardtshbm/lang/en_us.json'),
+             file('src/main/resources/assets/reinhardtshbm/models/obj/machines/radgen.obj'),
+              file('src/main/resources/assets/reinhardtshbm/models/obj/machines/radgen.mtl'),
+             file('src/main/java/com/reinhardt/hbm/blockentity/LegacyMachineBlockEntity.java')
+    )
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def problems = []
+        def source = { String path -> file(path).getText('UTF-8') }
+        def blocks = source('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java')
+        def ammoRenderer = source('src/main/java/com/reinhardt/hbm/client/render/AmmoPressBlockEntityRenderer.java')
+        def funnelRenderer = source('src/main/java/com/reinhardt/hbm/client/render/FunnelBlockEntityRenderer.java')
+        def funnelBlock = source('src/main/java/com/reinhardt/hbm/block/FunnelBlock.java')
+        def clientRenderers = source('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java')
+         def microwaveItemRenderer = source('src/main/java/com/reinhardt/hbm/client/render/MicrowaveItemRenderer.java')
+         def legacyMachineItemRenderer = source('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineItemRenderer.java')
+         def legacyMachineRenderer = source('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineBlockEntityRenderer.java')
+         def legacyMachineItemModel = source('src/main/java/com/reinhardt/hbm/client/model/LegacyMachineItemModel.java')
+         def compressorScreen = source('src/main/java/com/reinhardt/hbm/client/screen/CompressorScreen.java')
+        def hydrotreater = source('src/main/java/com/reinhardt/hbm/client/screen/HydrotreaterScreen.java')
+        def fluidTooltipRenderer = source('src/main/java/com/reinhardt/hbm/client/screen/HbmFluidTooltipRenderer.java')
+        def arcSounds = source('src/main/java/com/reinhardt/hbm/client/sound/ArcFurnaceClientSounds.java')
+        def arcFurnace = source('src/main/java/com/reinhardt/hbm/blockentity/ArcFurnaceBlockEntity.java')
+        def batteryRedd = source('src/main/java/com/reinhardt/hbm/blockentity/BatteryReddBlockEntity.java')
+        def sounds = source('src/main/resources/assets/reinhardtshbm/sounds.json')
+        def zhCn = source('src/main/resources/assets/reinhardtshbm/lang/zh_cn.json')
+        def enUs = source('src/main/resources/assets/reinhardtshbm/lang/en_us.json')
+
+         def microwaveBlock = source('src/main/java/com/reinhardt/hbm/block/MicrowaveBlock.java')
+         def microwaveItemModel = source('src/main/resources/assets/reinhardtshbm/models/item/machine_microwave.json')
+         def radgenObj = source('src/main/resources/assets/reinhardtshbm/models/obj/machines/radgen.obj')
+         def radgenMtl = source('src/main/resources/assets/reinhardtshbm/models/obj/machines/radgen.mtl')
+
+        if (!blocks.contains('MACHINE_MICROWAVE = microwave("machine_microwave")')
+                || !blocks.contains('new MicrowaveBlockItem(block.get(), new Item.Properties())')) {
+            problems << 'Microwave must register its verified legacy 3D BlockItem renderer.'
+         }
+         if (!clientRenderers.contains('MicrowaveBlockEntityRenderer.registerAdditionalModels(event);')
+                 || !microwaveItemRenderer.contains('LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);')
+                 || !microwaveItemRenderer.contains('if (context == ItemDisplayContext.GUI)')
+                 || !microwaveItemRenderer.contains('poseStack.translate(0.0F, -4.0F, 4.0F);')
+                 || !microwaveItemRenderer.contains('poseStack.scale(5.0F, 5.0F, 5.0F);')
+                 || !microwaveItemRenderer.contains('poseStack.translate(-2.0F, -2.0F, 1.0F);')
+                 || !microwaveItemRenderer.contains('poseStack.scale(3.0F, 3.0F, 3.0F);')
+                 || !microwaveItemRenderer.contains('MicrowaveBlockEntityRenderer.BODY')
+                 || !microwaveItemRenderer.contains('MicrowaveBlockEntityRenderer.WINDOW')
+                 || !legacyMachineItemModel.contains('"machine_microwave"')
+                 || !microwaveItemModel.contains('"parent": "reinhardtshbm:block/machine_microwave"')) {
+             problems << 'Microwave BlockItem must use the exact legacy GUI-only and common OBJ transforms.'
+         }
+        if (!microwaveBlock.contains('return RenderShape.ENTITYBLOCK_ANIMATED;')
+                || !microwaveBlock.contains('private static final VoxelShape SHAPE = Shapes.block();')
+                || !microwaveBlock.contains('return SHAPE;')) {
+            problems << 'Microwave must use the legacy BER-only block render and full 1x1x1 collision shape.'
+        }
+        if (!blocks.contains('LargeMachineBlock.Footprint.legacySouthBox(1, 0, 0, 0, 1, 1)')) {
+            problems << 'Ammo press footprint must remain the 1.7.10 {up=1, down=0, north=0, south=0, west=1, east=1} layout.'
+        }
+        [
+                'case EAST -> 0.0F;',
+                'case SOUTH -> 270.0F;',
+                'case WEST -> 180.0F;',
+                'default -> 90.0F;'
+        ].each { required ->
+            if (!ammoRenderer.contains(required)) {
+                problems << "Ammo press renderer is missing verified 1.7.10 yaw mapping '${required}'."
+            }
+        }
+        if (!funnelBlock.contains('return RenderShape.ENTITYBLOCK_ANIMATED;')
+                || !funnelRenderer.contains('poseStack.translate(0.5F, 0.0F, 0.5F);')
+                || !funnelRenderer.contains('renderPart(TOP')
+                || !funnelRenderer.contains('renderPart(BOTTOM')
+                || !funnelRenderer.contains('renderPart(SIDE')) {
+            problems << 'Combinator funnel must render its three legacy OBJ parts once through the BER at the block center.'
+        }
+        if (hydrotreater.contains('renderLabels(')
+                || !hydrotreater.contains('titleLabelY = 5;')
+                || !hydrotreater.contains('inventoryLabelX = 8;')) {
+            problems << 'Hydrotreater labels must be drawn only by AbstractContainerScreen at the verified 1.7.10 coordinates.'
+        }
+         if (!hydrotreater.contains('protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY)')
+                 || !hydrotreater.contains('if (!renderMachineTooltip(graphics, mouseX, mouseY))')
+                 || !hydrotreater.contains('super.renderTooltip(graphics, mouseX, mouseY);')
+                 || !hydrotreater.contains('this.renderTooltip(graphics, mouseX, mouseY);')
+                 || !hydrotreater.contains('graphics.renderComponentTooltip(font,')
+                 || !hydrotreater.contains('return true;')
+                 || hydrotreater.contains('HbmFluidTooltipRenderer.render(graphics, font,')) {
+             problems << 'Hydrotreater hover tooltips must use one mutually exclusive vanilla tooltip per hovered region.'
+         }
+         if (!compressorScreen.contains('protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY)')
+                 || !compressorScreen.contains('if (!renderHoverTooltips(guiGraphics, mouseX, mouseY))')
+                 || !compressorScreen.contains('super.renderTooltip(guiGraphics, mouseX, mouseY);')
+                 || !compressorScreen.contains('this.renderTooltip(guiGraphics, mouseX, mouseY);')
+                 || !compressorScreen.contains('private boolean renderHoverTooltips(')
+                 || !compressorScreen.contains('return true;')) {
+             problems << 'Compressor hover regions must suppress the overlapping vanilla slot tooltip.'
+         }
+         if (!legacyMachineRenderer.contains('int packedLight, int packedOverlay, boolean inventory)')
+                 || !legacyMachineItemRenderer.contains('context == ItemDisplayContext.GUI')
+                 || !legacyMachineRenderer.contains('poseStack.scale(0.75F, 0.75F, 0.75F);')) {
+             problems << 'Legacy machine inventory transforms must not be applied to hand or ground rendering.'
+         }
+         if (radgenObj.contains('//') || !radgenObj.contains('o Light')
+                 || !radgenObj.contains('usemtl light') || !radgenObj.contains('o Rotor')
+                 || !radgenObj.contains('usemtl hbm')
+                 || !radgenMtl.contains('newmtl light')) {
+             problems << 'Radiation generator Light faces must have valid UVs and an isolated tintable material.'
+         }
+        [
+                'HEADER_OFFSET = 6',
+                'LEGACY_LINE_DISTANCE = 10',
+                'Math.max(LEGACY_LINE_DISTANCE, font.lineHeight + 2)',
+                'fluidBorderColor(fluid)',
+                'graphics.drawString(font, lines.get(index), x, lineY, 0xFFFFFFFF, true)'
+        ].each { required ->
+            if (!fluidTooltipRenderer.contains(required)) {
+                problems << "HBM fluid tooltip renderer is missing legacy layout requirement '${required}'."
+            }
+        }
+         if (!arcFurnace.contains('ArcFurnaceClientSounds.tick(this, previousLid, lid);')
+                || !arcSounds.contains('HbmSoundEvents.ARC_FURNACE_OPERATE.get()')
+                || !sounds.contains('"block.arc_furnace_operate"')
+                || !file('src/main/resources/assets/reinhardtshbm/sounds/block/electric_hum.ogg').isFile()) {
+             problems << 'Large arc furnace must retain the legacy electric_hum working loop and its local sound asset.'
+         }
+         if (!batteryRedd.contains('new BlockPos(3, 0, 2), Direction.EAST')
+                 || !batteryRedd.contains('new BlockPos(3, 0, -2), Direction.EAST')
+                 || !batteryRedd.contains('new BlockPos(-3, 0, 2), Direction.WEST')
+                 || !batteryRedd.contains('new BlockPos(-3, 0, -2), Direction.WEST')
+                 || !batteryRedd.contains('new BlockPos(0, 0, 5), Direction.SOUTH')
+                 || !batteryRedd.contains('new BlockPos(0, 0, -5), Direction.NORTH')
+                 || !batteryRedd.contains('BlockPos neighbor = port.proxyPos().relative(direction);')
+                 || !batteryRedd.contains('if (isOwnMachinePart(neighbor))')
+                 || !batteryRedd.contains('this.level.getSignal(neighbor, direction.getOpposite()) > 0')) {
+             problems << 'FEnSU must expose the six external 1.7.10 power connectors and sample redstone only from their internal port proxies.'
+         }
+         def radarScreenItem = source('src/main/java/com/reinhardt/hbm/client/render/RadarScreenItemRenderer.java')
+         if (!radarScreenItem.contains('private static final float GUI_SCALE = 5.5F / 16.0F;')
+                 || !radarScreenItem.contains('poseStack.translate(0.0D, -3.0D / 16.0D, -0.5D / 16.0D);')
+                 || !radarScreenItem.contains('RadarScreenBlockEntityRenderer.renderAssembly(')) {
+             problems << 'Radar screen item must retain the verified 1.7.10 inventory translations in normalized item units.'
+         }
+         if (!legacyMachineRenderer.contains('case "machine_autosaw"')
+                 || !source('src/main/java/com/reinhardt/hbm/blockentity/LegacyMachineProfile.java').contains('entry("machine_autosaw", 0, 0, 0L, 0L, 1, false, tanks(100), indices(0), indices(), false)')) {
+             problems << 'Autosaw must retain the verified 1.7.10 single 100 mB input tank profile.'
+         }
+         def legacyMachine = source('src/main/java/com/reinhardt/hbm/blockentity/LegacyMachineBlockEntity.java')
+         if (!legacyMachine.contains('if (machineId().equals("machine_autosaw")) {')
+                 || !legacyMachine.contains('if (!this.worldPosition.equals(accessorPos) || side == Direction.UP)')
+                 || !legacyMachine.contains('return new LegacyFluidHandler(new int[]{0}, new int[0]);')) {
+             problems << 'Autosaw fluid automation must expose only the core tank on the five non-UP faces and never drain.'
+         }
+        [
+                'container.reinhardtshbm.machine_microwave',
+                'container.reinhardtshbm.machine_hydrotreater',
+                'container.reinhardtshbm.machine_arc_furnace'
+        ].each { key ->
+            if (!zhCn.contains("\"${key}\"") || !enUs.contains("\"${key}\"")) {
+                problems << "Missing required microwave, hydrotreater, or arc furnace menu localization key ${key}."
+            }
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("Port regression validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
+tasks.register('validateThermalParity') {
+    group = 'verification'
+    description = 'Guards the audited 1.7.10 heat-source, boiler, and solar-boiler numerical contracts.'
+
+    def thermalSources = [
+            'src/main/java/com/reinhardt/hbm/blockentity/HeaterBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/HeatBoilerBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/IndustrialBoilerBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/SolarBoilerBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/fluid/HbmThermalConversions.java'
+    ]
+    inputs.files(thermalSources.collect { file(it) })
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def source = { String path -> file(path).getText('UTF-8') }
+        def heater = source('src/main/java/com/reinhardt/hbm/blockentity/HeaterBlockEntity.java')
+        def boiler = source('src/main/java/com/reinhardt/hbm/blockentity/HeatBoilerBlockEntity.java')
+        def industrialBoiler = source('src/main/java/com/reinhardt/hbm/blockentity/IndustrialBoilerBlockEntity.java')
+        def solarBoiler = source('src/main/java/com/reinhardt/hbm/blockentity/SolarBoilerBlockEntity.java')
+        def thermalConversions = source('src/main/java/com/reinhardt/hbm/fluid/HbmThermalConversions.java')
+        def problems = []
+
+        [
+                'this.kind == Kind.OVEN ? 0.125D : 1.0D',
+                'return baseHeat * 15;',
+                'return baseHeat * 3;',
+                'return baseHeat * 5;',
+                'return baseHeat * 2;',
+                'int baseHeat = this.kind == Kind.OVEN ? 500 : 100;',
+                'this.burnHeat = heat;',
+                'addHeat(this.burnHeat);',
+                'return Math.max(0, stack.getBurnTime(null));'
+        ].each { required ->
+            if (!heater.contains(required)) {
+                problems << "Heater is missing audited 1.7.10 fuel contract '${required}'."
+            }
+        }
+        if (heater.contains('WoodBurnerBlockEntity.fuelDuration(stack)') || heater.contains('this.burnHeat = fuelHeat()')) {
+            problems << 'Heater must not inherit wood-burner bonuses or overwrite the ModuleBurnTime heat value each tick.'
+        }
+        [
+                'public static final int HEATEX_TANK_CAPACITY = 24_000;',
+                'private final HbmFluidTank heatExInputTank',
+                'private final HbmFluidTank heatExOutputTank',
+                'private void tickHeatExchanger(Level level)',
+                'int ops = Math.min(this.heatExchangerAmountToCool, Math.min(inputOps, outputOps));',
+                'this.heatEnergy = (int) (this.heatEnergy * 0.999D);',
+                'public List<Port> heatExchangerPorts(LevelAccessor level)'
+        ].each { required ->
+            if (!heater.contains(required)) {
+                problems << "Heat exchanger is missing audited 1.7.10 contract '${required}'."
+            }
+        }
+        if (heater.contains('heater.addHeat(240)')) {
+            problems << 'Heat exchanger must not use the removed fixed 240 TU/t approximation.'
+        }
+
+        [
+                'this.inputTank = new HbmFluidTank(HbmFluids.byName("water").orElse(HbmFluids.none()), inputCapacity);',
+                'this.outputTank = new HbmFluidTank(HbmFluids.byName("steam").orElse(HbmFluids.none()), inputCapacity * 100);'
+        ].each { required ->
+            if (!boiler.contains(required)) {
+                problems << "Heat boiler is missing audited 1.7.10 contract '${required}'."
+            }
+        }
+        if (!thermalConversions.contains('case "water" -> heating(input, "steam", 200, 1, 100, 1.0D)')) {
+            problems << 'Water-to-steam conversion must retain the 1.7.10 200 TU per 1 mB -> 100 mB steam step.'
+        }
+        if (!boiler.contains('if (level.isClientSide) {')) {
+            problems << 'Heat boiler tank and heat mutations must remain server-authoritative as in 1.7.10.'
+        }
+        if (boiler.contains('outputPerPort') || boiler.contains('Math.min(outputPerPort(), this.outputTank.amount())')) {
+            problems << 'Heat boiler output must not be throttled per port; 1.7.10 exposes the full tank to every connection pass.'
+        }
+        [
+                'case "steam" -> heating(',
+                'case "hotsteam" -> heating(',
+                'case "superhotsteam" -> heating('
+        ].each { forbidden ->
+            if (thermalConversions.contains(forbidden)) {
+                problems << "Boilers must not heat ${forbidden.substring(6, forbidden.indexOf('"', 6))}; 1.7.10 only exposes water\'s first boiler step."
+            }
+        }
+        [
+                'case "steam" -> cooling(input, "spentsteam", 100, 1, 200, 0.5D)',
+                'case "hotsteam" -> cooling(input, "steam", 1, 10, 2, 0.5D)',
+                'case "superhotsteam" -> cooling(input, "hotsteam", 1, 10, 18, 0.5D)',
+                'case "ultrahotsteam" -> cooling(input, "superhotsteam", 1, 10, 120, 0.5D)',
+                'case "lead_hot" -> cooling(input, "lead", 1, 1, 680, 1.0D)',
+                'case "thorium_salt_hot" -> cooling(input, "thorium_salt_depleted", 1, 1, 400, 1.0D)'
+        ].each { required ->
+            if (!thermalConversions.contains(required)) {
+                problems << "Heat exchanger thermal conversion is missing '${required}'."
+            }
+        }
+        if (!industrialBoiler.contains('super(HbmBlockEntities.INDUSTRIAL_BOILER.get(), pos, blockState, 64_000)')
+                || !industrialBoiler.contains('private static final int MAX_HEAT = 12_800_000;')) {
+            problems << 'Industrial boiler must retain the 1.7.10 64,000 mB water tank and 12,800,000 TU heat capacity.'
+        }
+
+        [
+                'public static final int INPUT_CAPACITY = 100;',
+                'public static final int OUTPUT_CAPACITY = 10_000;',
+                'this.heat += amount;',
+                'this.heatDisplay = process;',
+                'this.heat = 0;'
+        ].each { required ->
+            if (!solarBoiler.contains(required)) {
+                problems << "Solar boiler is missing audited 1.7.10 contract '${required}'."
+            }
+        }
+        if (solarBoiler.contains('0.999D') || solarBoiler.contains('MAX_HEAT')) {
+            problems << 'Solar boiler must not cap or decay mirror heat; 1.7.10 treats it as a transient per-tick value.'
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("Thermal parity validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
+tasks.register('validatePowerParity') {
+    group = 'verification'
+    description = 'Guards audited 1.7.10 turbine generation, storage-loss, and flywheel contracts.'
+
+    def powerSources = [
+            'src/main/java/com/reinhardt/hbm/blockentity/SteamTurbineBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/SteamCondenserBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/LargeTurbineBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/IndustrialTurbineBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/LeviathanTurbineBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/GasTurbineBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/PoweredSteamCondenserBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/blockentity/BatteryReddBlockEntity.java',
+            'src/main/java/com/reinhardt/hbm/fluid/HbmThermalConversions.java'
+    ]
+    inputs.files(powerSources.collect { file(it) })
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def source = { String path -> file(path).getText('UTF-8') }
+        def smallTurbine = source('src/main/java/com/reinhardt/hbm/blockentity/SteamTurbineBlockEntity.java')
+        def steamCondenser = source('src/main/java/com/reinhardt/hbm/blockentity/SteamCondenserBlockEntity.java')
+        def largeTurbine = source('src/main/java/com/reinhardt/hbm/blockentity/LargeTurbineBlockEntity.java')
+        def industrialTurbine = source('src/main/java/com/reinhardt/hbm/blockentity/IndustrialTurbineBlockEntity.java')
+        def leviathan = source('src/main/java/com/reinhardt/hbm/blockentity/LeviathanTurbineBlockEntity.java')
+        def gasTurbine = source('src/main/java/com/reinhardt/hbm/blockentity/GasTurbineBlockEntity.java')
+        def poweredCondenser = source('src/main/java/com/reinhardt/hbm/blockentity/PoweredSteamCondenserBlockEntity.java')
+        def batteryRedd = source('src/main/java/com/reinhardt/hbm/blockentity/BatteryReddBlockEntity.java')
+        def thermalConversions = source('src/main/java/com/reinhardt/hbm/fluid/HbmThermalConversions.java')
+        def problems = []
+
+        [largeTurbine, industrialTurbine, poweredCondenser].eachWithIndex { machine, index ->
+            def name = ['Large turbine', 'Industrial turbine', 'Powered steam condenser'][index]
+            if (machine.contains('MAX_TRANSFER_PER_PORT') || machine.contains('Math.min(MAX_TRANSFER_PER_PORT')) {
+                problems << "${name} must not impose a per-port fluid transfer cap; 1.7.10 provides the full tank amount to each connection pass."
+            }
+        }
+        if (gasTurbine.contains('MAX_TRANSFER_PER_PORT') || gasTurbine.contains('Math.min(MAX_TRANSFER_PER_PORT')) {
+            problems << 'Combined-cycle gas turbine must not impose a per-port fluid transfer cap; 1.7.10 exposes each tank at its full current capacity.'
+        }
+        if (!poweredCondenser.contains('if (convert <= 0 || this.power < (long) convert * POWER_PER_MB)')
+                || poweredCondenser.contains('maxByPower')) {
+            problems << 'Powered steam condenser must retain the 1.7.10 all-or-nothing conversion gate for its current steam batch.'
+        }
+
+        [smallTurbine, largeTurbine].eachWithIndex { turbine, index ->
+            def name = index == 0 ? 'Small turbine' : 'Large turbine'
+            [
+                    'BatteryPackItem.chargeFromMachine',
+                    '(long) (',
+                    '* 0.95D'
+            ].each { required ->
+                if (!turbine.contains(required)) {
+                    problems << "${name} is missing audited 1.7.10 buffer-loss contract '${required}'."
+                }
+            }
+        }
+
+        [
+                'if (level.isClientSide) {',
+                'this.items[ID_RESULT_SLOT].isEmpty()',
+                'this.items[ID_RESULT_SLOT] = identifier.copy();',
+                'this.items[ID_SLOT] = ItemStack.EMPTY;'
+        ].each { required ->
+            if (!smallTurbine.contains(required)) {
+                problems << "Small turbine is missing audited 1.7.10 fluid-chain contract '${required}'."
+            }
+        }
+
+        [
+                'if (level.isClientSide) {',
+                'condenser.tryConvert();',
+                'condenser.sendOutput(level);'
+        ].each { required ->
+            if (!steamCondenser.contains(required)) {
+                problems << "Steam condenser is missing audited 1.7.10 server-authority contract '${required}'."
+            }
+        }
+
+        [
+                'private static final double FLYWHEEL_MAX_ENERGY = 50_000_000.0D;',
+                'private long maxPower;',
+                'private long flywheelEnergy;',
+                'this.flywheelEnergy += (long) (ops * step.heatEnergy() * step.turbineEfficiency() * EFFICIENCY);',
+                'this.spin = this.flywheelEnergy / FLYWHEEL_MAX_ENERGY;',
+                'this.lastPowerTarget = Math.min((long) (Math.max(this.spin, 0.05D) * this.maxPower), this.flywheelEnergy);',
+                'this.flywheelEnergy -= this.lastPowerTarget;',
+                'this.powerBuffer = this.lastPowerTarget;'
+        ].each { required ->
+            if (!industrialTurbine.contains(required)) {
+                problems << "Industrial turbine is missing audited 1.7.10 flywheel contract '${required}'."
+            }
+        }
+        if (industrialTurbine.contains('ACCELERATION') || industrialTurbine.contains('targetSpin')) {
+            problems << 'Industrial turbine must not use the removed approximation ramp; it must use the 1.7.10 flywheel-energy model.'
+        }
+
+        [
+                'case "steam" -> cooling(input, "spentsteam", 100, 1, 200, 1.0D)',
+                'case "hotsteam" -> cooling(input, "steam", 1, 10, 2, 1.0D)',
+                'case "superhotsteam" -> cooling(input, "hotsteam", 1, 10, 18, 1.0D)',
+                'case "ultrahotsteam" -> cooling(input, "superhotsteam", 1, 10, 120, 1.0D)'
+        ].each { required ->
+            if (!thermalConversions.contains(required)) {
+                problems << "Steam conversion chain is missing '${required}'."
+            }
+        }
+        [
+                'this.outputTank.fill(step.output(), ops * step.amountProduced(), false);',
+                'long convertedHeat = (long) ops * step.heatEnergy();',
+                'this.powerBuffer = (long) (convertedHeat * step.turbineEfficiency() * EFFICIENCY);'
+        ].each { required ->
+            if (!leviathan.contains(required)) {
+                problems << "Leviathan turbine is missing audited high-throughput steam contract '${required}'."
+            }
+        }
+
+        [
+                'if (this.fuelTank.amount() * 10 > this.fuelTank.capacity()) {',
+                'this.fuelTank.amount() * 0.0001D',
+                'this.counter = 225;',
+                'if (fuelConsumed > fuelBeforeBurn) {',
+                'if (this.lubricantTank.amount() <= 0) {',
+                'if (slot == ID_SLOT && applyIdentifier()) {',
+                'private boolean setFuelType(HbmFluidDefinition next)',
+                'return setFuelType(FluidIdentifierItem.primary(identifier));'
+        ].each { required ->
+            if (!gasTurbine.contains(required)) {
+                problems << "Gas turbine is missing audited 1.7.10 runtime contract '${required}'."
+            }
+        }
+
+        [
+                'public static final long MAX_POWER = 10_000_000L;',
+                'public static final int TANK_CAPACITY = 1_000_000;',
+                'public static final int POWER_PER_MB = 10;',
+                'this.power = Math.max(0L, this.power - (long) convert * POWER_PER_MB);'
+        ].each { required ->
+            if (!poweredCondenser.contains(required)) {
+                problems << "Powered condenser is missing audited 1.7.10 contract '${required}'."
+            }
+        }
+        def poweredCondenserClient = poweredCondenser.substring(poweredCondenser.indexOf('private void tickClient'), poweredCondenser.indexOf('private void tryConvert'))
+        if (poweredCondenserClient.contains('this.waterTimer--;')) {
+            problems << 'Powered condenser client animation must use the server-synchronised water timer and must not decrement it locally.'
+        }
+
+        [
+                'private int redLow = MODE_INPUT;',
+                'private int redHigh = MODE_OUTPUT;',
+                'private PowerEndpoint.ConnectionPriority priority = PowerEndpoint.ConnectionPriority.LOW;',
+                'this.level.getSignal(neighbor, direction.getOpposite()) > 0'
+        ].each { required ->
+            if (!batteryRedd.contains(required)) {
+                problems << "FEnSU is missing audited 1.7.10 redstone or priority contract '${required}'."
+            }
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("Power parity validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
+tasks.register('deployClientMod', Copy) {
+    group = 'distribution'
+    description = 'Copies the built mod jar into the configured local NeoForge mods folder.'
+    dependsOn tasks.named('jar')
+    dependsOn tasks.named('cleanDeployedClientMod')
+    dependsOn tasks.named('validateThermalParity')
+    dependsOn tasks.named('validatePowerParity')
+    from tasks.named('jar').flatMap { it.archiveFile }
+    into localClientModsDir
+}
+
+tasks.named('build') {
+    dependsOn tasks.named('runData')
+    dependsOn tasks.named('validateObjModels')
+    dependsOn tasks.named('validateLangFiles')
+    dependsOn tasks.named('validateLegacyRecipes')
+    dependsOn tasks.named('validatePortRegressionFixes')
+    dependsOn tasks.named('validateThermalParity')
+    dependsOn tasks.named('validatePowerParity')
+    finalizedBy tasks.named('deployClientMod')
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

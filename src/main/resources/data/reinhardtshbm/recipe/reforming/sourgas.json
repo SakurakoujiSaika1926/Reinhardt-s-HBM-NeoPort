@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:reforming",
+  "group": "reforming",
+  "input": {
+    "fluid": "sourgas",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "sulfuric_acid",
+    "amount": 75
+  },
+  "output2": {
+    "fluid": "petroleum",
+    "amount": 10
+  },
+  "output3": {
+    "fluid": "hydrogen",
+    "amount": 15
+  },
+  "power": 20000
+}

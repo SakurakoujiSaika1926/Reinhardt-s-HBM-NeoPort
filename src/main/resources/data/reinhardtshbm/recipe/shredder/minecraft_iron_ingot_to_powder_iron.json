@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:iron_ingot"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_iron"
+               }
+}

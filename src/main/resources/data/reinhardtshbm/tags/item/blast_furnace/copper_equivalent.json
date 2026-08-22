@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#c:ingots/copper",
+    "#c:plates/copper",
+    "#c:dusts/copper"
+  ]
+}

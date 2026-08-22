@@ -1,0 +1,32 @@
+﻿{
+    "type":  "reinhardtshbm:crucible",
+    "group":  "crucible.bbronze",
+    "frequency":  9,
+    "icon":  {
+                 "id":  "reinhardtshbm:ingot_bismuth_bronze"
+             },
+    "input":  [
+                  {
+                      "material":  "copper",
+                      "amount":  64
+                  },
+                  {
+                      "material":  "bismuth",
+                      "amount":  8
+                  },
+                  {
+                      "material":  "flux",
+                      "amount":  24
+                  }
+              ],
+    "output":  [
+                   {
+                       "material":  "bismuth_bronze",
+                       "amount":  72
+                   },
+                   {
+                       "material":  "slag",
+                       "amount":  24
+                   }
+               ]
+}

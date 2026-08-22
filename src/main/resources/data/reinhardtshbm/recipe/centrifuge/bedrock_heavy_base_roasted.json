@@ -1,0 +1,32 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "base_roasted",
+                                                                        "type":  "heavy"
+                                                                    }
+                                      }
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "primary",
+                                                                         "type":  "heavy"
+                                                                     },
+                                           "minecraft:custom_model_data":  19
+                                       }
+                    },
+                    {
+                        "id":  "minecraft:gravel"
+                    }
+                ]
+}

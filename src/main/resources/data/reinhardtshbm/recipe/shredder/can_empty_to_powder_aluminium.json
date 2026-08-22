@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:can_empty"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_aluminium",
+                   "count":  2
+               }
+}

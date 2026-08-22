@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missiles",
+    "duration":  60,
+    "consumption":  2500,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/steel"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:fuel_tank_small"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:thruster_small"
+                                      },
+                       "count":  1
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:missile_decoy",
+                   "count":  1
+               }
+}

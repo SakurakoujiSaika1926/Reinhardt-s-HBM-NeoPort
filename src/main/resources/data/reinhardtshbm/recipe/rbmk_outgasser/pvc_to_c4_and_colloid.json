@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:rbmk_outgasser",
+  "group": "outgasser.pvc",
+  "ingredient": {
+    "tag": "c:ingots/pvc"
+  },
+  "item_output": {
+    "id": "reinhardtshbm:ingot_c4"
+  },
+  "fluid_output": {
+    "fluid": "colloid",
+    "amount": 250
+  }
+}

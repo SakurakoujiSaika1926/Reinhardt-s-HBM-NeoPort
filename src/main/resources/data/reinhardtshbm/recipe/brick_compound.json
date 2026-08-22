@@ -1,0 +1,24 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "building",
+    "pattern":  [
+                    "FBF",
+                    "BTB",
+                    "FBF"
+                ],
+    "key":  {
+                "F":  {
+                          "tag":  "c:bolts/steel"
+                      },
+                "B":  {
+                          "item":  "reinhardtshbm:reinforced_brick"
+                      },
+                "T":  {
+                          "tag":  "c:tars"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:brick_compound",
+                   "count":  4
+               }
+}

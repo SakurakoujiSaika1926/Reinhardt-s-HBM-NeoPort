@@ -1,0 +1,19 @@
+{
+  "textures": {
+    "particle": "#side"
+  },
+  "elements": [
+    {
+      "from": [0, 16, 0],
+      "to": [16, 20, 16],
+      "faces": {
+        "down": { "texture": "#glass_side" },
+        "up": { "texture": "#glass_top" },
+        "north": { "texture": "#glass_side" },
+        "south": { "texture": "#glass_side" },
+        "west": { "texture": "#glass_side" },
+        "east": { "texture": "#glass_side" }
+      }
+    }
+  ]
+}

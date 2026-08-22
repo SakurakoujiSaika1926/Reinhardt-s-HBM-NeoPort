@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:blasting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_deepslate_uranium_scorched"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_uranium"
+               },
+    "experience":  6,
+    "cookingtime":  100
+}

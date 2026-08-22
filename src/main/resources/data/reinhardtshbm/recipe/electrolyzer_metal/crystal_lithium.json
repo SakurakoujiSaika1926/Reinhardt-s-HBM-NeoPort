@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_lithium"},"output1":{"material":"lithium","amount":432},"output2":{"material":"boron","amount":144},"byproducts":[{"id":"reinhardtshbm:powder_quartz","count":2},{"id":"reinhardtshbm:fluorite","count":2}]}

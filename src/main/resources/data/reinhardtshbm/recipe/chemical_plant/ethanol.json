@@ -1,0 +1,22 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.ethanol",
+  "duration": 50,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "minecraft:sugar"
+      },
+      "count": 10
+    }
+  ],
+  "input_fluids": [],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "ethanol",
+      "amount": 1000
+    }
+  ]
+}

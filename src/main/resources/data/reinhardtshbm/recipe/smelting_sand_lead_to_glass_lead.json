@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:smelting",
+  "category": "blocks",
+  "ingredient": {
+    "item": "reinhardtshbm:sand_lead"
+  },
+  "result": {
+    "id": "reinhardtshbm:glass_lead"
+  },
+  "experience": 0.25,
+  "cookingtime": 200
+}

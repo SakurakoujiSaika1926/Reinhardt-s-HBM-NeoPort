@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DD",
+    "DD"
+  ],
+  "key": {
+    "D": {
+      "item": "reinhardtshbm:ducrete_smooth"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:ducrete",
+    "count": 4
+  }
+}

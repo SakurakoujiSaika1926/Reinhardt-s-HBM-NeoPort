@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/det_cord"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

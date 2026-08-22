@@ -1,0 +1,13 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "tag": "c:ingots/schrabidium"
+    }
+  ],
+  "results": [
+    {
+      "id": "reinhardtshbm:plate_schrabidium"
+    }
+  ]
+}

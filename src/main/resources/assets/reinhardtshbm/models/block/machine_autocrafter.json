@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": { "side": "reinhardtshbm:block/machine_autocrafter_side", "top": "reinhardtshbm:block/machine_autocrafter_top", "bottom": "reinhardtshbm:block/machine_autocrafter_bottom" }
+}

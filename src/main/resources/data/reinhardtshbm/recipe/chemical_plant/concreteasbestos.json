@@ -1,0 +1,39 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.concreteasbestos",
+  "duration": 100,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_cement"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/asbestos"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:sand"
+      },
+      "count": 8
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 2000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:concrete_asbestos",
+      "count": 16
+    }
+  ],
+  "output_fluids": []
+}

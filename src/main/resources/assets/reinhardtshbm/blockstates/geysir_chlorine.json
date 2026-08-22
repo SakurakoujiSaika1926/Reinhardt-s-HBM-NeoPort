@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "active=false": { "model": "reinhardtshbm:block/geysir_chlorine" },
+    "active=true": { "model": "reinhardtshbm:block/geysir_chlorine" }
+  }
+}

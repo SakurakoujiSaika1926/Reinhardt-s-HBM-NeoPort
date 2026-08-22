@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/flame_pony"
+                 },
+    "parent":  "minecraft:item/generated"
+}

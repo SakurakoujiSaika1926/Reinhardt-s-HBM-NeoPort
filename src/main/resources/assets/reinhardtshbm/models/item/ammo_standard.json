@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/ammo_standard_bmg50_sp"
+  },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/ammo_standard_bmg50_fmj" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/ammo_standard_bmg50_jhp" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:item/ammo_standard_bmg50_ap" },
+    { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:item/ammo_standard_bmg50_du" },
+    { "predicate": { "custom_model_data": 5 }, "model": "reinhardtshbm:item/ammo_standard_r556_sp" },
+    { "predicate": { "custom_model_data": 6 }, "model": "reinhardtshbm:item/ammo_standard_r556_fmj" },
+    { "predicate": { "custom_model_data": 7 }, "model": "reinhardtshbm:item/ammo_standard_r556_jhp" },
+    { "predicate": { "custom_model_data": 8 }, "model": "reinhardtshbm:item/ammo_standard_r556_ap" },
+    { "predicate": { "custom_model_data": 9 }, "model": "reinhardtshbm:item/ammo_standard_p9_sp" },
+    { "predicate": { "custom_model_data": 10 }, "model": "reinhardtshbm:item/ammo_standard_p9_fmj" },
+    { "predicate": { "custom_model_data": 11 }, "model": "reinhardtshbm:item/ammo_standard_p9_jhp" },
+    { "predicate": { "custom_model_data": 12 }, "model": "reinhardtshbm:item/ammo_standard_p9_ap" },
+    { "predicate": { "custom_model_data": 13 }, "model": "reinhardtshbm:item/ammo_standard_tau_uranium" },
+    { "predicate": { "custom_model_data": 14 }, "model": "reinhardtshbm:item/ammo_standard_rocket_he" },
+    { "predicate": { "custom_model_data": 15 }, "model": "reinhardtshbm:item/ammo_standard_rocket_heat" },
+    { "predicate": { "custom_model_data": 16 }, "model": "reinhardtshbm:item/ammo_standard_rocket_demo" },
+    { "predicate": { "custom_model_data": 17 }, "model": "reinhardtshbm:item/ammo_standard_rocket_inc" },
+    { "predicate": { "custom_model_data": 18 }, "model": "reinhardtshbm:item/ammo_standard_rocket_phosphorus" },
+    { "predicate": { "custom_model_data": 19 }, "model": "reinhardtshbm:item/ammo_standard_flame_diesel" },
+    { "predicate": { "custom_model_data": 20 }, "model": "reinhardtshbm:item/ammo_standard_nuke_demo" },
+    { "predicate": { "custom_model_data": 21 }, "model": "reinhardtshbm:item/ammo_standard_nuke_standard" },
+    { "predicate": { "custom_model_data": 22 }, "model": "reinhardtshbm:item/ammo_standard_nuke_high" },
+    { "predicate": { "custom_model_data": 23 }, "model": "reinhardtshbm:item/ammo_standard_nuke_tots" },
+    { "predicate": { "custom_model_data": 24 }, "model": "reinhardtshbm:item/ammo_standard_nuke_hive" },
+    { "predicate": { "custom_model_data": 25 }, "model": "reinhardtshbm:item/ammo_standard_nuke_balefire" }
+  ]
+}

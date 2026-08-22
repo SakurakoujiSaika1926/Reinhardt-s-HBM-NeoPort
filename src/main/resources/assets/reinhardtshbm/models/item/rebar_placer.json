@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/rebar_placer"
+                 },
+    "parent":  "minecraft:item/generated"
+}

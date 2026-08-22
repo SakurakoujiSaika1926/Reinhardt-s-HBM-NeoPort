@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/dirt_dead"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

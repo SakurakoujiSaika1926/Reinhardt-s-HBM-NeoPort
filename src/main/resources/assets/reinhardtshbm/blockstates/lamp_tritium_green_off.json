@@ -1,0 +1,7 @@
+﻿{
+    "variants":  {
+                     "":  {
+                              "model":  "reinhardtshbm:block/lamp_tritium_green_off"
+                          }
+                 }
+}

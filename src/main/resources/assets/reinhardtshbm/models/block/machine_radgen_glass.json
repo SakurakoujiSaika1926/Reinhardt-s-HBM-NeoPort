@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/machine_radgen",
+  "visibility": {
+    "Glass": true,
+    "Light": false,
+    "Rotor": false,
+    "Base": false
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.mug",
+  "ingredient": {
+    "tag": "minecraft:logs"
+  },
+  "output": {
+    "fluid": "mug",
+    "amount": 100
+  }
+}

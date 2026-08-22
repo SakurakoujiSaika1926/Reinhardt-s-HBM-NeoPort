@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S S",
+    "SRS",
+    "S S"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:stick"
+    },
+    "R": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:plant_item"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "rope"
+        },
+        "minecraft:custom_model_data": 1
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rail_wood",
+    "count": 16
+  }
+}

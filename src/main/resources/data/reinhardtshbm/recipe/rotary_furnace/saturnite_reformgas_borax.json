@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.saturnite",
+  "inputs": [
+    { "ingredient": { "tag": "c:dusts/dura_steel" }, "count": 4 },
+    { "ingredient": { "tag": "c:dusts/copper" } },
+    { "ingredient": { "tag": "c:dusts/borax" } }
+  ],
+  "fluid": { "fluid": "reformgas", "amount": 250 },
+  "output": { "material": "saturnite", "amount": 576 },
+  "duration": 200,
+  "steam": 300
+}

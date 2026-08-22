@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "side": "reinhardtshbm:block/block_graphite",
+    "end": "reinhardtshbm:block/block_graphite_drilled_aluminum"
+  }
+}

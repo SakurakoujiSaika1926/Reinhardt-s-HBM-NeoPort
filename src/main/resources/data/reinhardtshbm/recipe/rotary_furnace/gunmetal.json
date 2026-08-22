@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.gunmetal",
+  "inputs": [
+    { "ingredient": { "tag": "c:ingots/copper" }, "count": 3 },
+    { "ingredient": { "tag": "c:ingots/aluminium" } }
+  ],
+  "output": { "material": "gunmetal", "amount": 576 },
+  "duration": 200,
+  "steam": 100
+}

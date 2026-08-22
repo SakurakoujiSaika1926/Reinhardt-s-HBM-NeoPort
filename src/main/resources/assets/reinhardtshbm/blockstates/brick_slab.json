@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "type=bottom,variant=0": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone" },
+    "type=top,variant=0": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone_top" },
+    "type=double,variant=0": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone_double" },
+    "type=bottom,variant=1": { "model": "reinhardtshbm:block/brick_slab_reinforced_brick" },
+    "type=top,variant=1": { "model": "reinhardtshbm:block/brick_slab_reinforced_brick_top" },
+    "type=double,variant=1": { "model": "reinhardtshbm:block/brick_slab_reinforced_brick_double" },
+    "type=bottom,variant=2": { "model": "reinhardtshbm:block/brick_slab_brick_obsidian" },
+    "type=top,variant=2": { "model": "reinhardtshbm:block/brick_slab_brick_obsidian_top" },
+    "type=double,variant=2": { "model": "reinhardtshbm:block/brick_slab_brick_obsidian_double" },
+    "type=bottom,variant=3": { "model": "reinhardtshbm:block/brick_slab_brick_light" },
+    "type=top,variant=3": { "model": "reinhardtshbm:block/brick_slab_brick_light_top" },
+    "type=double,variant=3": { "model": "reinhardtshbm:block/brick_slab_brick_light_double" },
+    "type=bottom,variant=4": { "model": "reinhardtshbm:block/brick_slab_brick_compound" },
+    "type=top,variant=4": { "model": "reinhardtshbm:block/brick_slab_brick_compound_top" },
+    "type=double,variant=4": { "model": "reinhardtshbm:block/brick_slab_brick_compound_double" },
+    "type=bottom,variant=5": { "model": "reinhardtshbm:block/brick_slab_brick_asbestos" },
+    "type=top,variant=5": { "model": "reinhardtshbm:block/brick_slab_brick_asbestos_top" },
+    "type=double,variant=5": { "model": "reinhardtshbm:block/brick_slab_brick_asbestos_double" },
+    "type=bottom,variant=6": { "model": "reinhardtshbm:block/brick_slab_brick_fire" },
+    "type=top,variant=6": { "model": "reinhardtshbm:block/brick_slab_brick_fire_top" },
+    "type=double,variant=6": { "model": "reinhardtshbm:block/brick_slab_brick_fire_double" },
+    "type=bottom,variant=7": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone" },
+    "type=top,variant=7": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone_top" },
+    "type=double,variant=7": { "model": "reinhardtshbm:block/brick_slab_reinforced_stone_double" }
+  }
+}

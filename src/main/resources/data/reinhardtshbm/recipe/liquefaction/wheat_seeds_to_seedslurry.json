@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.seedslurry",
+  "ingredient": {
+    "item": "minecraft:wheat_seeds"
+  },
+  "output": {
+    "fluid": "seedslurry",
+    "amount": 50
+  }
+}

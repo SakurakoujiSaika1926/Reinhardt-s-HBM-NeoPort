@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:dust_tiny"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:dust_tiny"
+               }
+}

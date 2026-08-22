@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_diamond"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_diamond",
+                   "count":  3
+               }
+}

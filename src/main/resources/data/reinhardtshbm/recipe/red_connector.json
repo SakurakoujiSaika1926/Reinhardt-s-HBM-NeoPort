@@ -1,0 +1,24 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "C",
+                    "I",
+                    "S"
+                ],
+    "key":  {
+                "C":  {
+                          "item":  "reinhardtshbm:coil_copper"
+                      },
+                "I":  {
+                          "tag":  "c:plates/polymer"
+                      },
+                "S":  {
+                          "tag":  "c:ingots/steel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:red_connector",
+                   "count":  4
+               }
+}

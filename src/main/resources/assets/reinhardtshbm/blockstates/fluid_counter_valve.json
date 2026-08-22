@@ -1,0 +1,6 @@
+{
+  "multipart": [
+    { "when": { "open": "false" }, "apply": { "model": "reinhardtshbm:block/fluid_counter_valve" } },
+    { "when": { "open": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_counter_valve_on" } }
+  ]
+}

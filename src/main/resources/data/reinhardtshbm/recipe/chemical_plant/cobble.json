@@ -1,0 +1,23 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.cobble",
+  "duration": 20,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 1000
+    },
+    {
+      "fluid": "lava",
+      "amount": 25
+    }
+  ],
+  "output_items": [
+    {
+      "id": "minecraft:cobblestone"
+    }
+  ],
+  "output_fluids": []
+}

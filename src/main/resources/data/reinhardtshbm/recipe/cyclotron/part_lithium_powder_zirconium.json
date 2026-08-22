@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_lithium"
+                 },
+    "input":  {
+                  "item":  "reinhardtshbm:powder_strontium"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_zirconium"
+               },
+    "antimatter":  50
+}
+

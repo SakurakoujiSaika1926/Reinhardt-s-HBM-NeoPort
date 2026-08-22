@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "I I",
+    "IPI"
+  ],
+  "key": {
+    "I": { "tag": "c:plates/saturnite" },
+    "P": { "item": "reinhardtshbm:coil_gold_torus" }
+  },
+  "result": {
+    "id": "reinhardtshbm:barrel_antimatter"
+  }
+}

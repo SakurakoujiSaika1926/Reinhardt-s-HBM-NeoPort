@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_copper"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/iron"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_niobium"
+               },
+    "antimatter":  15
+}
+

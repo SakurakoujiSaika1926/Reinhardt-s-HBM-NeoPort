@@ -1,0 +1,35 @@
+{
+    "parent":  "reinhardtshbm:item/powder_ash_wood",
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "reinhardtshbm:item/powder_ash_coal"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "reinhardtshbm:item/powder_ash_misc"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "reinhardtshbm:item/powder_ash_fly"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  4
+                                        },
+                          "model":  "reinhardtshbm:item/powder_ash_soot"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  5
+                                        },
+                          "model":  "reinhardtshbm:item/powder_ash_fullerene"
+                      }
+                  ]
+}

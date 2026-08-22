@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.biogas",
+  "ingredient": {
+    "item": "reinhardtshbm:glyphid_gland_empty"
+  },
+  "output": {
+    "fluid": "biogas",
+    "amount": 2000
+  }
+}

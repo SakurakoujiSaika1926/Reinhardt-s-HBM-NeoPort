@@ -1,0 +1,73 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_core"
+      }
+    },
+    {
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_arm_north"
+      }
+    },
+    {
+      "when": {
+        "north": "false"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_cap_north"
+      }
+    },
+    {
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_arm_east"
+      }
+    },
+    {
+      "when": {
+        "east": "false"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_cap_east"
+      }
+    },
+    {
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_arm_south"
+      }
+    },
+    {
+      "when": {
+        "south": "false"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_cap_south"
+      }
+    },
+    {
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_arm_west"
+      }
+    },
+    {
+      "when": {
+        "west": "false"
+      },
+      "apply": {
+        "model": "reinhardtshbm:block/foundry_channel_cap_west"
+      }
+    }
+  ]
+}

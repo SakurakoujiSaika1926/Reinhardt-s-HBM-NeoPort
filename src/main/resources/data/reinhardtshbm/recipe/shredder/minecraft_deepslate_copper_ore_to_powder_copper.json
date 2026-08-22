@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:deepslate_copper_ore"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_copper",
+                   "count":  2
+               }
+}

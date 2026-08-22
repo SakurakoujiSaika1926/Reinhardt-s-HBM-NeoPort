@@ -1,0 +1,7 @@
+{
+    "replace":  false,
+    "values":  [
+                   "reinhardtshbm:ore_thorium",
+                   "reinhardtshbm:ore_deepslate_thorium"
+               ]
+}

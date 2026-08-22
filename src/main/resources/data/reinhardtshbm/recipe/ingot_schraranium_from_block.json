@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_schraranium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_schraranium",
+                   "count":  9
+               }
+}

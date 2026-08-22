@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missiles",
+    "duration":  200,
+    "consumption":  10000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:emp_bomb"
+                                      },
+                       "count":  3
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:fuel_tank_medium"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:thruster_medium"
+                                      },
+                       "count":  1
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:missile_emp_strong",
+                   "count":  1
+               }
+}

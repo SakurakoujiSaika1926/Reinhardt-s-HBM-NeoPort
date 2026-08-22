@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "reinhardtshbm:block/red_wire_coated"
+      }
+    }
+  ]
+}

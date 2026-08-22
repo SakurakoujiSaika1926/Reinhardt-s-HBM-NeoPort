@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.balefire",
+    "input":  {
+                  "fluid":  "balefire",
+                  "amount":  110
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel_bf"
+               }
+}

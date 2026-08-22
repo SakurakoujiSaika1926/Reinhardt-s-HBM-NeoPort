@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "active=false": { "model": "reinhardtshbm:block/geysir_nether" },
+    "active=true": { "model": "reinhardtshbm:block/geysir_nether" }
+  }
+}

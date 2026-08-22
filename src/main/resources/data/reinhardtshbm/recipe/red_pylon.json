@@ -1,0 +1,27 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "CWC",
+                    "PWP",
+                    " T "
+                ],
+    "key":  {
+                "C":  {
+                          "item":  "reinhardtshbm:coil_copper"
+                      },
+                "W":  {
+                          "tag":  "minecraft:planks"
+                      },
+                "P":  {
+                          "tag":  "c:plates/polymer"
+                      },
+                "T":  {
+                          "item":  "reinhardtshbm:red_wire_coated"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:red_pylon",
+                   "count":  4
+               }
+}

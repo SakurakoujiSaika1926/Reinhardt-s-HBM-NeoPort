@@ -1,0 +1,61 @@
+{
+    "type":  "minecraft:block",
+    "random_sequence":  "reinhardtshbm:blocks/ore_fluorite",
+    "pools":  [
+                  {
+                      "rolls":  1,
+                      "bonus_rolls":  0,
+                      "entries":  [
+                                      {
+                                          "type":  "minecraft:alternatives",
+                                          "children":  [
+                                                           {
+                                                               "type":  "minecraft:item",
+                                                               "conditions":  [
+                                                                                  {
+                                                                                      "condition":  "minecraft:match_tool",
+                                                                                      "predicate":  {
+                                                                                                        "predicates":  {
+                                                                                                                           "minecraft:enchantments":  [
+                                                                                                                                                          {
+                                                                                                                                                              "enchantments":  "minecraft:silk_touch",
+                                                                                                                                                              "levels":  {
+                                                                                                                                                                             "min":  1
+                                                                                                                                                                         }
+                                                                                                                                                          }
+                                                                                                                                                      ]
+                                                                                                                       }
+                                                                                                    }
+                                                                                  }
+                                                                              ],
+                                                               "name":  "reinhardtshbm:ore_fluorite"
+                                                           },
+                                                           {
+                                                               "type":  "minecraft:item",
+                                                               "functions":  [
+                                                                                 {
+                                                                                     "function":  "minecraft:set_count",
+                                                                                     "add":  false,
+                                                                                     "count":  {
+                                                                                                   "type":  "minecraft:uniform",
+                                                                                                   "min":  2,
+                                                                                                   "max":  4
+                                                                                               }
+                                                                                 },
+                                                                                 {
+                                                                                     "function":  "minecraft:apply_bonus",
+                                                                                     "enchantment":  "minecraft:fortune",
+                                                                                     "formula":  "minecraft:ore_drops"
+                                                                                 },
+                                                                                 {
+                                                                                     "function":  "minecraft:explosion_decay"
+                                                                                 }
+                                                                             ],
+                                                               "name":  "reinhardtshbm:fluorite"
+                                                           }
+                                                       ]
+                                      }
+                                  ]
+                  }
+              ]
+}

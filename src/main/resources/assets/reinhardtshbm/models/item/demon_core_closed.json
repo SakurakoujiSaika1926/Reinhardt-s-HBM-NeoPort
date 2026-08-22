@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/demon_core_closed"
+                 },
+    "parent":  "minecraft:item/generated"
+}

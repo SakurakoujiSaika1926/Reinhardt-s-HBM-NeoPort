@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/fluid_barrel_infinite"
+                 },
+    "parent":  "minecraft:item/generated"
+}

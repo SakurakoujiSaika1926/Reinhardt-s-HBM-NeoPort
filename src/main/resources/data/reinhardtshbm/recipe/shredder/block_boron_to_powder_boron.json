@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_boron"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_boron",
+                   "count":  9
+               }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/machine_sawmill",
+  "visibility": {
+    "Blade": true
+  }
+}

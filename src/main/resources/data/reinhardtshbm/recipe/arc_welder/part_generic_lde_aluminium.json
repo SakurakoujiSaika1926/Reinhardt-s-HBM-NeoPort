@@ -1,0 +1,36 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.parts",
+    "duration":  200,
+    "consumption":  5000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:plates/aluminium"
+                                      },
+                       "count":  4
+                   },
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/fiberglass"
+                                      },
+                       "count":  4
+                   },
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/hard_plastic"
+                                      },
+                       "count":  1
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:part_generic",
+                   "count":  1,
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "lde"
+                                                                },
+                                      "minecraft:custom_model_data":  3
+                                  }
+               }
+}

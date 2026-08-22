@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.gas_coker",
+  "input": { "fluid": "gas_coker", "amount": 100 },
+  "output1": { "fluid": "aromatics", "amount": 25 },
+  "output2": { "fluid": "carbondioxide", "amount": 75 }
+}

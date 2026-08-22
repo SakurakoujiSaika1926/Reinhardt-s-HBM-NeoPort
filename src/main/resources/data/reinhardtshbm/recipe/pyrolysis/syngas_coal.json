@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.syngas",
+  "item_input": { "ingredient": { "item": "minecraft:coal" } },
+  "fluid_input": { "fluid": "steam", "amount": 500 },
+  "fluid_output": { "fluid": "syngas", "amount": 1000 },
+  "duration": 100
+}

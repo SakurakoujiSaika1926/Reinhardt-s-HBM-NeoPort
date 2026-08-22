@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/glyphid_gland",
+    "layer1": "reinhardtshbm:item/glyphid_gland_overlay"
+  }
+}

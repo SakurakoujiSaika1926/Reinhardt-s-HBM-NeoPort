@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "woodoil",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "heatingoil",
+    "amount": 40
+  },
+  "output2": {
+    "fluid": "aromatics",
+    "amount": 10
+  }
+}

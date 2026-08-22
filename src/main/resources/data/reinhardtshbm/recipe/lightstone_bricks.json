@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BB",
+    "BB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:lightstone_tile"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:lightstone_bricks",
+    "count": 4
+  }
+}

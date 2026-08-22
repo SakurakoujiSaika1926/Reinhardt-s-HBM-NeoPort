@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_deepslate_lead"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_lead"
+               },
+    "experience":  3,
+    "cookingtime":  200
+}

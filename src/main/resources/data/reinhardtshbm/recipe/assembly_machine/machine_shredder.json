@@ -1,0 +1,29 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.shredder",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:plate_steel"
+                                           },
+                            "count":  8
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:plate_copper"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor"
+                                           },
+                            "count":  2
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_shredder"
+               }
+}

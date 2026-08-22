@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/fusion_shield_tungsten"
+                 },
+    "parent":  "minecraft:item/generated"
+}

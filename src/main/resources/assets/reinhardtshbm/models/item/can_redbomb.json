@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/can_redbomb"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,15 @@
+{
+  "neoforge:conditions": [{"type":"reinhardtshbm:enable_528_mode"}],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.arcfurnace",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {"ingredient":{"tag":"c:concretes"},"count":12},
+    {"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:item_expensive"],"components":{"minecraft:custom_data":{"variant":"heavy_frame"}}},"count":4},
+    {"ingredient":{"item":"reinhardtshbm:ingot_firebrick"},"count":16},
+    {"ingredient":{"item":"reinhardtshbm:machine_transformer"},"count":1},
+    {"ingredient":{"item":"reinhardtshbm:circuit_analog"},"count":3}
+  ],
+  "result": {"id":"reinhardtshbm:machine_arc_furnace"}
+}

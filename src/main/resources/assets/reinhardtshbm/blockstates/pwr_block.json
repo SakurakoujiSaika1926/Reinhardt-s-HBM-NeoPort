@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,port=false": { "model": "reinhardtshbm:block/pwr_block" },
+    "facing=east,port=false": { "model": "reinhardtshbm:block/pwr_block" },
+    "facing=south,port=false": { "model": "reinhardtshbm:block/pwr_block" },
+    "facing=west,port=false": { "model": "reinhardtshbm:block/pwr_block" },
+    "facing=north,port=true": { "model": "reinhardtshbm:block/pwr_block_port" },
+    "facing=east,port=true": { "model": "reinhardtshbm:block/pwr_block_port" },
+    "facing=south,port=true": { "model": "reinhardtshbm:block/pwr_block_port" },
+    "facing=west,port=true": { "model": "reinhardtshbm:block/pwr_block_port" }
+  }
+}

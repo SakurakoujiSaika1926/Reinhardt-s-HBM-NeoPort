@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    { "apply": { "model": "reinhardtshbm:block/barrel_antimatter" } },
+    { "when": { "conn_pos_x": true }, "apply": { "model": "reinhardtshbm:block/barrel_antimatter_connector" } },
+    { "when": { "conn_pos_z": true }, "apply": { "model": "reinhardtshbm:block/barrel_antimatter_connector", "y": 90 } },
+    { "when": { "conn_neg_x": true }, "apply": { "model": "reinhardtshbm:block/barrel_antimatter_connector", "y": 180 } },
+    { "when": { "conn_neg_z": true }, "apply": { "model": "reinhardtshbm:block/barrel_antimatter_connector", "y": 270 } }
+  ]
+}

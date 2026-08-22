@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:nugget_ra226"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:billet_ra226"
+  }
+}

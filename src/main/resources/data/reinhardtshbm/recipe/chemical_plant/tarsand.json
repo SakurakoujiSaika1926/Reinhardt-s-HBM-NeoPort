@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.tarsand",
+  "duration": 200,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ore_oil_sand"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:tars"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [],
+  "output_items": [
+    {
+      "id": "minecraft:sand",
+      "count": 16
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "bitumen",
+      "amount": 1000
+    }
+  ]
+}

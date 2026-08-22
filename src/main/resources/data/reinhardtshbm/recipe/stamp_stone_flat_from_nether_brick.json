@@ -1,0 +1,19 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "III",
+                    "SSS"
+                ],
+    "key":  {
+                "I":  {
+                          "item":  "minecraft:nether_brick"
+                      },
+                "S":  {
+                          "item":  "minecraft:stone"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:stamp_stone_flat"
+               }
+}

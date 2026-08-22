@@ -1,0 +1,55 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "reinhardtshbm:enable_528_mode"
+                                              }
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.crackingtower",
+    "blueprint_pools":  [
+                            "528.plastic"
+                        ],
+    "duration":  200,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:steel_scaffold"
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:shell"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  30,
+                                                                                                "material":  "steel"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  6
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/desh"
+                                           },
+                            "count":  12
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/niobium"
+                                           },
+                            "count":  4
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_catalytic_cracker"
+               }
+}

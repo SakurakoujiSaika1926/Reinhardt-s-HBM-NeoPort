@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:nuclear_waste_tiny"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:billet_nuclear_waste"
+  }
+}

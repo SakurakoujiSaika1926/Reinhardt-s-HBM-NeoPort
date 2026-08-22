@@ -1,0 +1,58 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "reinhardtshbm:enable_528_mode"
+                                              }
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.pumpjack",
+    "duration":  400,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/dura_steel"
+                                           },
+                            "count":  8
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_welded"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  30,
+                                                                                                "material":  "steel"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  8
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:pipes/steel"
+                                           },
+                            "count":  12
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor_desh"
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:drill_titanium"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_pumpjack"
+               }
+}

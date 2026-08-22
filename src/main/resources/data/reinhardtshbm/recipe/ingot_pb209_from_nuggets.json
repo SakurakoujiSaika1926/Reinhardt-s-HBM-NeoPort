@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/pb209"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_pb209"
+               }
+}

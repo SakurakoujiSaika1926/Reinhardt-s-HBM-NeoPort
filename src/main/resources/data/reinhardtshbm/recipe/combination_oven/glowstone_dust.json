@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.glowstone",
+  "input": {
+    "item": "minecraft:glowstone_dust"
+  },
+  "output": {
+    "id": "reinhardtshbm:sulfur"
+  },
+  "fluid": {
+    "fluid": "chlorine",
+    "amount": 100
+  }
+}

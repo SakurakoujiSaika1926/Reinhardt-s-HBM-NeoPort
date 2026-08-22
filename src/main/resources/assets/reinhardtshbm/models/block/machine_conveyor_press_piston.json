@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/machine_conveyor_press",
+  "visibility": {
+    "Piston": true
+  }
+}

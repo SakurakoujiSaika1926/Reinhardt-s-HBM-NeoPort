@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/fluid_duct_mk2"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

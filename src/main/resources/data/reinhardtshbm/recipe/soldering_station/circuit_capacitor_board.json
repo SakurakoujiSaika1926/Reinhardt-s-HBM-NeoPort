@@ -1,0 +1,46 @@
+{
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.circuit",
+  "duration": 200,
+  "consumption": 300,
+  "fluid": {
+    "fluid": "peroxide",
+    "amount": 250
+  },
+  "toppings": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor_tantalium"
+      },
+      "count": 3
+    }
+  ],
+  "pcb": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_pcb"
+      },
+      "count": 1
+    }
+  ],
+  "solder": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_capacitor_board"
+  }
+}

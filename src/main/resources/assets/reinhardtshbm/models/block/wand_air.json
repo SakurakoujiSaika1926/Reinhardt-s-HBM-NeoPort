@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/wand_air"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

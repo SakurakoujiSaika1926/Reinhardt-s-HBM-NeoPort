@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.hazcloth",
+  "duration": 50,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/lead"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:string"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:hazmat_cloth",
+    "count": 4
+  }
+}

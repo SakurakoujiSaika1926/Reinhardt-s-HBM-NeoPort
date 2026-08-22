@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "reinhardtshbm:block/machine_detector"
+    },
+    "lit=true": {
+      "model": "reinhardtshbm:block/machine_detector_on"
+    }
+  }
+}

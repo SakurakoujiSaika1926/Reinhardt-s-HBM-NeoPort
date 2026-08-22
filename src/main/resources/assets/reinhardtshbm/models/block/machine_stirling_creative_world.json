@@ -1,0 +1,8 @@
+{
+  "parent": "reinhardtshbm:block/machine_stirling_creative",
+  "visibility": {
+    "Piston": false,
+    "Cog": false,
+    "CogSmall": false
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.woodoil",
+  "input": { "fluid": "woodoil", "amount": 3000 },
+  "output": { "id": "minecraft:charcoal" },
+  "byproduct": { "fluid": "gas_coker", "amount": 300 }
+}

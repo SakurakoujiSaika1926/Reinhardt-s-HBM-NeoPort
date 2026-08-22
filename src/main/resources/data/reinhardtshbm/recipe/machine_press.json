@@ -1,0 +1,26 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "IRI",
+                    "IPI",
+                    "IBI"
+                ],
+    "key":  {
+                "I":  {
+                          "tag":  "c:ingots/iron"
+                      },
+                "R":  {
+                          "item":  "minecraft:furnace"
+                      },
+                "P":  {
+                          "item":  "minecraft:piston"
+                      },
+                "B":  {
+                          "item":  "minecraft:iron_block"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:machine_press"
+               }
+}

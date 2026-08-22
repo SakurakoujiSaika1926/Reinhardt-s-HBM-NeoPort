@@ -1,0 +1,31 @@
+﻿{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "C",
+    "R",
+    "D"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_control"
+    },
+    "D": {
+      "item": "reinhardtshbm:crt_display"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_control_auto"
+  }
+}

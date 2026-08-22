@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.crackoil",
+    "input":  {
+                  "fluid":  "crackoil",
+                  "amount":  200
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:oil_tar",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "crack"
+                                                                },
+                                      "minecraft:custom_model_data":  1
+                                  }
+               }
+}

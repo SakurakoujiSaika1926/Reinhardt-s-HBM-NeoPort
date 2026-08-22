@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/mine_fat"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

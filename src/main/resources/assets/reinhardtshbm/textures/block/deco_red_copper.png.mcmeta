@@ -1,0 +1,10 @@
+﻿{
+	"ctm": {
+		"ctm_version": 1,
+		"type": "CTM",
+		"textures": [
+			"reinhardtshbm:block/deco_red_copper_ctm"
+		]
+	}
+}
+

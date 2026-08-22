@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.puf6",
+  "duration": 200,
+  "power": 500,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/plutonium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/fluorite"
+      },
+      "count": 3
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 1000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "puf6",
+      "amount": 900
+    }
+  ]
+}

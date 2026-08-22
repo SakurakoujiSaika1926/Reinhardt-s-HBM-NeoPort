@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/sellafield_slaked"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,22 @@
+{
+  "textures": {
+    "bottom": "reinhardtshbm:block/foundry_outlet_bottom",
+    "front": "reinhardtshbm:block/foundry_outlet_front",
+    "side": "reinhardtshbm:block/foundry_outlet_side",
+    "top": "reinhardtshbm:block/foundry_outlet_top"
+  },
+  "elements": [
+    {
+      "from": [10, 0, 5],
+      "to": [16, 8, 11],
+      "faces": {
+        "down": { "texture": "#bottom", "uv": [10, 5, 16, 11], "cullface": "down" },
+        "up": { "texture": "#top", "uv": [10, 5, 16, 11] },
+        "east": { "texture": "#front", "uv": [5, 8, 11, 16], "cullface": "east" },
+        "west": { "texture": "#side", "uv": [5, 8, 11, 16] },
+        "north": { "texture": "#side", "uv": [10, 8, 16, 16] },
+        "south": { "texture": "#side", "uv": [10, 8, 16, 16] }
+      }
+    }
+  ]
+}

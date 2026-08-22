@@ -1,0 +1,69 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "reinhardtshbm:enable_528_mode"
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.exheavyframe",
+    "duration":  600,
+    "power":  800,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:item_expensive"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "steel_plating"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  3
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/plastic"
+                                           },
+                            "count":  8
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_welded"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  2900,
+                                                                                                "material":  "copper"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/desh"
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:bolts/dura_steel"
+                                           },
+                            "count":  32
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:item_expensive",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "heavy_frame"
+                                                                },
+                                      "minecraft:custom_model_data":  1
+                                  }
+               }
+}

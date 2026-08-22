@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/bottle2_fritz"
+                 },
+    "parent":  "minecraft:item/generated"
+}

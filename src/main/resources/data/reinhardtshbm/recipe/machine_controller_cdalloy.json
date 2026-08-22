@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["TDT", "DCD", "TDT"],
+  "key": {
+    "T": { "tag": "c:ingots/cdalloy" },
+    "D": { "item": "reinhardtshbm:crt_display" },
+    "C": { "item": "reinhardtshbm:circuit_advanced" }
+  },
+  "result": { "id": "reinhardtshbm:machine_controller" }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ingot_euphemium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

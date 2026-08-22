@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/australium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:nugget_australium",
+                   "count":  9
+               }
+}

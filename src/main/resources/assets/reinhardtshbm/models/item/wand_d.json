@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/wand_d"
+                 },
+    "parent":  "minecraft:item/generated"
+}

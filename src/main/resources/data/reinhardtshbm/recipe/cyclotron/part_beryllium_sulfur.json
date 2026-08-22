@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_beryllium"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/quartz"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:sulfur"
+               },
+    "antimatter":  25
+}
+

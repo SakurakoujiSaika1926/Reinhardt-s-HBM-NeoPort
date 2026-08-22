@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.desh",
+  "duration": 100,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_desh_mix"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "lightoil",
+      "amount": 200
+    },
+    {
+      "fluid": "mercury",
+      "amount": 200
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ingot_desh"
+    }
+  ],
+  "output_fluids": []
+}

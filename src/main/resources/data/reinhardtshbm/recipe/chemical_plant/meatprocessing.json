@@ -1,0 +1,36 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.meatprocessing",
+  "duration": 200,
+  "power": 200,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "reinhardtshbm:glyphid_meat"
+      },
+      "count": 3
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 1000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:sulfur",
+      "count": 4
+    },
+    {
+      "id": "reinhardtshbm:niter",
+      "count": 3
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "salient",
+      "amount": 250
+    }
+  ]
+}

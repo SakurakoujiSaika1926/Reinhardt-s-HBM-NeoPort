@@ -1,0 +1,7 @@
+﻿{
+  "variants": {
+    "axis=y": { "model": "reinhardtshbm:block/concrete_pillar" },
+    "axis=z": { "model": "reinhardtshbm:block/concrete_pillar", "x": 90 },
+    "axis=x": { "model": "reinhardtshbm:block/concrete_pillar", "x": 90, "y": 90 }
+  }
+}

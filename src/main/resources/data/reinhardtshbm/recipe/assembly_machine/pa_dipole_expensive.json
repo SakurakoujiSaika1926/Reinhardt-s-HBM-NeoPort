@@ -1,0 +1,18 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_528_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.dipole",
+  "blueprint_pools": ["528.chip_quantum"],
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:pa_beamline" }, "count": 2 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "lead_plating" } } }, "count": 4 },
+    { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 32 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_bismoid" }, "count": 16 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "computer" } } }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:pa_dipole" }
+}

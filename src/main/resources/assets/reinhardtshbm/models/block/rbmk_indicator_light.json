@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/rbmk_indicator",
+  "visibility": {
+    "Base": false,
+    "Light": true
+  }
+}

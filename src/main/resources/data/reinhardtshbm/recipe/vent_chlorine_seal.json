@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["ISI", "SCS", "ISI"],
+  "key": {
+    "I": { "tag": "c:ingots/dineutronium" },
+    "S": { "tag": "c:ingots/starmetal" },
+    "C": { "item": "reinhardtshbm:chlorine_pinwheel" }
+  },
+  "result": { "id": "reinhardtshbm:vent_chlorine_seal" }
+}

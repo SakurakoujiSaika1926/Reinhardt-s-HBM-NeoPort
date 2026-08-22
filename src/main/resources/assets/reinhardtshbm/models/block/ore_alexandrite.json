@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ore_alexandrite"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

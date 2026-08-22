@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:gas_centrifuge",
+  "group": "gas_centrifuge",
+  "input": {
+    "fluid": "uf6",
+    "amount": 400
+  },
+  "output": {
+    "fluid": "leuf6",
+    "amount": 300
+  },
+  "high_speed": false,
+  "results": [
+    {
+      "id": "reinhardtshbm:nugget_u238"
+    }
+  ]
+}

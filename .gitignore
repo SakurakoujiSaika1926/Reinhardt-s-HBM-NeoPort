@@ -1,0 +1,35 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+.gradle-codex
+
+# local development artifacts
+.codex_tmp
+.eclipse
+.vscode
+run-gametest
+run-server
+local-deps/reinhardtshbm-*.jar
+*.log
+
+# runtime
+run
+runs
+run-data
+src/generated/resources
+repo

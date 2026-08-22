@@ -1,0 +1,17 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "B",
+                    "B",
+                    "B"
+                ],
+    "key":  {
+                "B":  {
+                          "item":  "reinhardtshbm:block_steel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:pipes_steel"
+               }
+}

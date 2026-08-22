@@ -1,0 +1,49 @@
+package com.reinhardt.hbm.client.render;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.blockentity.DrainBlockEntity;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.client.event.ModelEvent;
+
+public class DrainBlockEntityRenderer implements BlockEntityRenderer<DrainBlockEntity> {
+    private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_drain_world");
+
+    public DrainBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(WORLD);
+    }
+
+    @Override
+    public void render(DrainBlockEntity drain, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = drain.getBlockState();
+        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+
+        poseStack.pushPose();
+        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyYaw(facing));
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(DrainBlockEntity blockEntity) {
+        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 1.0D, 3.0D);
+    }
+
+    private static float legacyYaw(Direction facing) {
+        return switch (facing) {
+            case EAST -> 0.0F;
+            case SOUTH -> 270.0F;
+            case WEST -> 180.0F;
+            default -> 90.0F;
+        };
+    }
+}

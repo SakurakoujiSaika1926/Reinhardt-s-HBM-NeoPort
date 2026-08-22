@@ -1,0 +1,11 @@
+{
+    "replace":  false,
+    "values":  [
+                   "reinhardtshbm:ore_cobalt",
+                   "reinhardtshbm:ore_deepslate_cobalt",
+                   "reinhardtshbm:ore_coltan",
+                   "reinhardtshbm:ore_deepslate_coltan",
+                   "reinhardtshbm:ore_schrabidium",
+                   "reinhardtshbm:ore_deepslate_schrabidium"
+               ]
+}

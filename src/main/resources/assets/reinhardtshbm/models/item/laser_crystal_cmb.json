@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/laser_crystal_cmb"
+                 },
+    "parent":  "minecraft:item/generated"
+}

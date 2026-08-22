@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "B",
+    "D"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:ingot_boron"
+    },
+    "D": {
+      "item": "reinhardtshbm:concrete_asbestos"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_display_blank",
+    "count": 8
+  }
+}

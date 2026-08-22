@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/icf_pellet_bg",
+    "layer1": "reinhardtshbm:item/icf_pellet"
+  }
+}

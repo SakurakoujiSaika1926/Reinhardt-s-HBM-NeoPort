@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:powder_titanium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_titanium"
+               },
+    "experience":  1,
+    "cookingtime":  200
+}

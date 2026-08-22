@@ -1,0 +1,42 @@
+﻿{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rbmk_fuel_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    },
+    {
+      "item": "reinhardtshbm:billet_zfb_am_mix"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rbmk_fuel",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "zfb_am_mix"
+      },
+      "minecraft:custom_model_data": 30
+    }
+  }
+}

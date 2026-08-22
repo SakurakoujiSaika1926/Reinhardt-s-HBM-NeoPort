@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/custom_fall"
+                 },
+    "parent":  "minecraft:item/generated"
+}

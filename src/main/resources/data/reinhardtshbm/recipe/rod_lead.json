@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_empty"
+    },
+    {
+      "tag": "c:nuggets/lead"
+    },
+    {
+      "tag": "c:nuggets/lead"
+    },
+    {
+      "tag": "c:nuggets/lead"
+    },
+    {
+      "tag": "c:nuggets/lead"
+    },
+    {
+      "tag": "c:nuggets/lead"
+    },
+    {
+      "tag": "c:nuggets/lead"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "lead"
+      },
+      "minecraft:custom_model_data": 13
+    }
+  }
+}

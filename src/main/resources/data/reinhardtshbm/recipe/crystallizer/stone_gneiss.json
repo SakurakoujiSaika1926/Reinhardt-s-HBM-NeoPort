@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer",
+  "ingredient": { "item": "reinhardtshbm:stone_gneiss" },
+  "acid": { "fluid": "peroxide", "amount": 500 },
+  "duration": 300,
+  "result": { "id": "reinhardtshbm:powder_lithium" }
+}

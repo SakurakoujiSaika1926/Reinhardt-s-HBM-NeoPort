@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RCA",
+    "CIC",
+    "KCR"
+  ],
+  "key": {
+    "R": {
+      "tag": "c:dyes/red"
+    },
+    "C": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:wire_dense"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 35,
+          "material": "starmetal"
+        }
+      }
+    },
+    "A": {
+      "item": "reinhardtshbm:gem_alexandrite"
+    },
+    "I": {
+      "tag": "c:ingots/chainsteel"
+    },
+    "K": {
+      "item": "reinhardtshbm:key"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:key_red"
+  }
+}

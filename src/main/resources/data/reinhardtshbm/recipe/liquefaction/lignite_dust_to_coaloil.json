@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.coaloil",
+  "ingredient": {
+    "tag": "c:dusts/lignite"
+  },
+  "output": {
+    "fluid": "coaloil",
+    "amount": 50
+  }
+}

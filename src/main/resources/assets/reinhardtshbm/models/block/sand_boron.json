@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/sand_boron"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.sunfloweroil",
+    "output":  {
+                   "fluid":  "sunfloweroil",
+                   "amount":  100
+               },
+    "duration":  50,
+    "solid_input":  {
+                        "ingredient":  {
+                                           "item":  "minecraft:sunflower"
+                                       },
+                        "count":  1
+                    }
+}

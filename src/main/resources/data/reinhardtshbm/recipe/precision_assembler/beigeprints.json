@@ -1,0 +1,45 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.beigeprints",
+  "duration": 6000,
+  "power": 50000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "minecraft:paper"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:crystals/cinnabar"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:pufferfish"
+      },
+      "count": 8
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:blueprint_folder",
+        "count": 1,
+        "components": {
+          "minecraft:custom_model_data": 1
+        }
+      },
+      "weight": 5
+    },
+    {
+      "result": {
+        "id": "minecraft:paper",
+        "count": 24
+      },
+      "weight": 95
+    }
+  ]
+}

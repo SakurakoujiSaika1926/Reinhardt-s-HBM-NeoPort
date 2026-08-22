@@ -1,0 +1,5 @@
+newmtl Chute
+map_Kd reinhardtshbm:models/soyuz_capsule/soyuz_chute
+
+newmtl Capsule
+map_Kd reinhardtshbm:models/soyuz_capsule/soyuz_lander

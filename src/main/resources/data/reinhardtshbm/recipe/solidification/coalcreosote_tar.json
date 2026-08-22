@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.coalcreosote",
+    "input":  {
+                  "fluid":  "coalcreosote",
+                  "amount":  200
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:oil_tar",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "coal"
+                                                                },
+                                      "minecraft:custom_model_data":  2
+                                  }
+               }
+}

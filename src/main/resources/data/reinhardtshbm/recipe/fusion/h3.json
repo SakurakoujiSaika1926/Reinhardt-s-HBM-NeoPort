@@ -1,0 +1,32 @@
+{
+  "type": "reinhardtshbm:fusion",
+  "group": "fus.h3",
+  "ignition_temp": 500000,
+  "output_temp": 3750000,
+  "neutron_flux": 0.0,
+  "power": 25000,
+  "duration": 100,
+  "r": 0.2,
+  "g": 0.2,
+  "b": 1.0,
+  "icon": {
+    "id": "reinhardtshbm:gas_full",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "helium3"
+      }
+    }
+  },
+  "input_fluids": [
+    {
+      "fluid": "helium3",
+      "amount": 20
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "helium4",
+      "amount": 1000
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_rare"},"output1":{"material":"zirconium","amount":48},"output2":{"material":"boron","amount":16},"byproducts":[{"id":"reinhardtshbm:powder_desh_mix","count":3}]}

@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.biofuel",
+    "output":  {
+                   "fluid":  "biofuel",
+                   "amount":  200
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "sunfloweroil",
+                   "amount":  500
+               },
+    "input2":  {
+                   "fluid":  "woodoil",
+                   "amount":  500
+               }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/key_red_cracked"
+                 },
+    "parent":  "minecraft:item/generated"
+}

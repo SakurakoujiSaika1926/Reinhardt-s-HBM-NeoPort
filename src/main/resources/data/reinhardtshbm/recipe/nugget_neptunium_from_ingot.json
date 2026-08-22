@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/neptunium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:nugget_neptunium",
+                   "count":  9
+               }
+}

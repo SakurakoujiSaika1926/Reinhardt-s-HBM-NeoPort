@@ -1,0 +1,13 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/launch/launch_table_base.obj",
+    "mtl_override":  "reinhardtshbm:models/obj/launch/launch_table_base.mtl",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  true,
+    "emissive_ambient":  false,
+    "textures":  {
+                     "particle":  "reinhardtshbm:models/missile_parts/launch_table",
+                     "texture":  "reinhardtshbm:models/missile_parts/launch_table"
+                 }
+}

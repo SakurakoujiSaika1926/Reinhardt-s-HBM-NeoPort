@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/th232"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_th232"
+               }
+}

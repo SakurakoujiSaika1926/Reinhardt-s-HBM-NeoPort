@@ -1,0 +1,13 @@
+{
+  "parent": "reinhardtshbm:item/plant_item_tobacco",
+  "overrides": [
+    {
+      "predicate": { "custom_model_data": 1 },
+      "model": "reinhardtshbm:item/plant_item_rope"
+    },
+    {
+      "predicate": { "custom_model_data": 2 },
+      "model": "reinhardtshbm:item/plant_item_mustardwillow"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:plate_dura_steel"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_dura_steel"
+               }
+}

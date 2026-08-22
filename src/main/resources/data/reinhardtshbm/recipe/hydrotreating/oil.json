@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:hydrotreating",
+  "group": "hydrotreating.oil",
+  "input": { "fluid": "oil", "amount": 100 },
+  "hydrogen": { "fluid": "hydrogen", "amount": 5, "pressure": 1 },
+  "output1": { "fluid": "oil_ds", "amount": 90 },
+  "output2": { "fluid": "sourgas", "amount": 15 },
+  "power": 20000
+}

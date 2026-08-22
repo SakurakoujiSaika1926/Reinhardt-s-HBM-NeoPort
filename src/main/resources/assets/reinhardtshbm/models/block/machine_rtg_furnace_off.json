@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/machine_rtg_furnace_off"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

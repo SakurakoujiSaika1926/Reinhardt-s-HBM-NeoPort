@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.tatb",
+  "duration": 50,
+  "power": 5000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ball_tnt"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "sourgas",
+      "amount": 200,
+      "pressure": 1
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 10
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ball_tatb"
+    }
+  ],
+  "output_fluids": []
+}

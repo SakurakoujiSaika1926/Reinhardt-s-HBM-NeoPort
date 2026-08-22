@@ -1,0 +1,32 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.yellowcake",
+  "duration": 250,
+  "power": 500,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_uranium"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/sulfur"
+      },
+      "count": 2
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "peroxide",
+      "amount": 500
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:powder_yellowcake"
+    }
+  ],
+  "output_fluids": []
+}

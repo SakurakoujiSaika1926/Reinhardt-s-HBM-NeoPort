@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/steel_corner_north" },
+    "facing=south": { "model": "reinhardtshbm:block/steel_corner_south" },
+    "facing=west": { "model": "reinhardtshbm:block/steel_corner_west" },
+    "facing=east": { "model": "reinhardtshbm:block/steel_corner_east" }
+  }
+}

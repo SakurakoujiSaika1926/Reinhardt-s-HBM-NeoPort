@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:silex",
+  "group": "silex.puf6",
+  "fluid_input": "puf6",
+  "fluid_produced": 900,
+  "fluid_consumed": 100,
+  "wavelength": "uv",
+  "outputs": [
+    {
+      "item": {
+        "id": "reinhardtshbm:nugget_pu238",
+        "count": 1
+      },
+      "weight": 3
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:nugget_pu239",
+        "count": 1
+      },
+      "weight": 4
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:nugget_pu240",
+        "count": 1
+      },
+      "weight": 2
+    }
+  ]
+}

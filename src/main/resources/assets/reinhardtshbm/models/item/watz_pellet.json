@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/watz_pellet"
+                 },
+    "parent":  "minecraft:item/generated"
+}

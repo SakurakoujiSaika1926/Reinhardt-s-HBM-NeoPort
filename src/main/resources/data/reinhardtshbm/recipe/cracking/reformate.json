@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "reformate",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "unsaturateds",
+    "amount": 40
+  },
+  "output2": {
+    "fluid": "reformgas",
+    "amount": 60
+  }
+}

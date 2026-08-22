@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "#c:ore_clusters/aluminium",
+    "#c:ore_clusters/copper",
+    "#c:ore_clusters/iron",
+    "#c:ore_clusters/titanium",
+    "#c:ore_clusters/tungsten"
+  ]
+}

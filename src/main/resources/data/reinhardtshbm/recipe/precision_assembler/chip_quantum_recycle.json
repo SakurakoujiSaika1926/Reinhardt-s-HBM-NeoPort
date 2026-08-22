@@ -1,0 +1,86 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.recycle",
+  "duration": 300,
+  "power": 20000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:broken_item"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:circuit_chip_quantum",
+            "item_count": 1
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_silicon",
+        "count": 8
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:wire_dense",
+        "count": 2,
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 48,
+            "material": "bscco"
+          }
+        }
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:ingot_pc",
+        "count": 4
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:pellet_charged",
+        "count": 4
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:wire_fine",
+        "count": 8,
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7900,
+            "material": "gold"
+          }
+        }
+      },
+      "weight": 75
+    }
+  ],
+  "output_mode": "independent",
+  "expensive_output_weights": [
+    50,
+    50,
+    50,
+    50,
+    50
+  ],
+  "output_fluids": [
+    {
+      "fluid": "helium4",
+      "amount": 188
+    }
+  ]
+}

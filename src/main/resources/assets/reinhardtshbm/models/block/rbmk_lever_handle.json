@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/rbmk_lever",
+  "visibility": {
+    "Base": false,
+    "Lever": true
+  }
+}

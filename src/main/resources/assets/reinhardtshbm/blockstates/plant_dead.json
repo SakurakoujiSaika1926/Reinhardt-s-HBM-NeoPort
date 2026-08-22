@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "kind=big_flower": {
+      "model": "reinhardtshbm:block/plant_dead_big_flower"
+    },
+    "kind=fern": {
+      "model": "reinhardtshbm:block/plant_dead_fern"
+    },
+    "kind=flower": {
+      "model": "reinhardtshbm:block/plant_dead_flower"
+    },
+    "kind=generic": {
+      "model": "reinhardtshbm:block/plant_dead_generic"
+    },
+    "kind=grass": {
+      "model": "reinhardtshbm:block/plant_dead_grass"
+    }
+  }
+}

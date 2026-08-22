@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_fluid","input":{"fluid":"water","amount":2000},"output1":{"fluid":"hydrogen","amount":200},"output2":{"fluid":"oxygen","amount":200},"duration":10}

@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.stone",
+  "blueprint_pools": [
+    "discover."
+  ],
+  "duration": 60,
+  "power": 500,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 1000
+    },
+    {
+      "fluid": "lava",
+      "amount": 25
+    },
+    {
+      "fluid": "air",
+      "amount": 4000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "minecraft:stone"
+    }
+  ],
+  "output_fluids": []
+}

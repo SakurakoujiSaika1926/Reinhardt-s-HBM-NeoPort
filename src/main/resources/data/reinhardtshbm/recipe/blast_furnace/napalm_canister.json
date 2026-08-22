@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:canister_full"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "gasoline"
+      }
+    }
+  },
+  "input_b": { "item": "minecraft:slime_ball" },
+  "result": { "id": "reinhardtshbm:canister_napalm" }
+}

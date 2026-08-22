@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:rbmk_outgasser",
+  "group": "outgasser.mushroom",
+  "ingredient": {
+    "item": "minecraft:red_mushroom"
+  },
+  "item_output": {
+    "id": "reinhardtshbm:mush"
+  }
+}

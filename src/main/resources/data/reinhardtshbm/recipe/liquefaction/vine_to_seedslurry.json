@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.seedslurry",
+  "ingredient": {
+    "item": "minecraft:vine"
+  },
+  "output": {
+    "fluid": "seedslurry",
+    "amount": 100
+  }
+}

@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.bitumen",
+    "output":  {
+                   "fluid":  "bitumen",
+                   "amount":  50
+               },
+    "duration":  20,
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:tars"
+                                       },
+                        "count":  1
+                    }
+}

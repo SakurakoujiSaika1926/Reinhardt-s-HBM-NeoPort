@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:block/red_connector_world",
+  "display": {
+    "gui": {
+      "rotation": [30, 45, 0],
+      "translation": [8, 2, 8],
+      "scale": [0.75, 0.75, 0.75]
+    },
+    "ground": {
+      "translation": [8, 1, 8],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "fixed": {
+      "translation": [8, 0, 8],
+      "scale": [0.65, 0.65, 0.65]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [8, 2, 8],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [8, 2, 8],
+      "scale": [0.45, 0.45, 0.45]
+    }
+  }
+}

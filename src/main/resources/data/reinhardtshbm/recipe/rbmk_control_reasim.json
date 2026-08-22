@@ -1,0 +1,28 @@
+﻿{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " B ",
+    "GRG",
+    " B "
+  ],
+  "key": {
+    "G": {
+      "item": "reinhardtshbm:ingot_graphite"
+    },
+    "B": {
+      "item": "reinhardtshbm:motor"
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_absorber"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_control_reasim"
+  }
+}

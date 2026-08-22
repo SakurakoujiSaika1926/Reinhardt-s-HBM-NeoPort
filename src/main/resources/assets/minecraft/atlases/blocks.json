@@ -1,0 +1,172 @@
+{
+  "sources": [
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "block/forgefluid",
+      "prefix": "block/forgefluid/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/particleaccelerator",
+      "prefix": "models/particleaccelerator/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/fusion",
+      "prefix": "models/fusion/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/machines",
+      "prefix": "models/machines/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/network",
+      "prefix": "models/network/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/turrets",
+      "prefix": "models/turrets/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/projectiles",
+      "prefix": "models/projectiles/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/weapons",
+      "prefix": "models/weapons/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/effect",
+      "prefix": "models/effect/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/bombs",
+      "prefix": "models/bombs/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/soyuz",
+      "prefix": "models/soyuz/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/soyuz_capsule",
+      "prefix": "models/soyuz_capsule/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/tank",
+      "prefix": "models/tank/"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/lilboy"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/mine_fat"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/bombs/mine_marelet"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/nmine"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/compact_launcher"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/launchpad",
+      "prefix": "models/launchpad/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/missile_parts",
+      "prefix": "models/missile_parts/"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/boxcar"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/thegadget3_"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/soyuz_launcher",
+      "prefix": "models/soyuz_launcher/"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_straight"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_end"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_curve_tl"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_curve_tr"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_curve_bl"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_curve_br"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_junction_0"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_junction_1"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_junction_2"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_junction_3"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:block/boxduct_exhaust_junction_4"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/egg_glyphid"
+                 },
+    "parent":  "minecraft:item/generated"
+}

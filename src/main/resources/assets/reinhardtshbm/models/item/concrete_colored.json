@@ -1,0 +1,20 @@
+{
+  "parent": "reinhardtshbm:block/concrete_colored_white",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/concrete_colored_orange" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/concrete_colored_magenta" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:block/concrete_colored_light_blue" },
+    { "predicate": { "minecraft:custom_model_data": 4 }, "model": "reinhardtshbm:block/concrete_colored_yellow" },
+    { "predicate": { "minecraft:custom_model_data": 5 }, "model": "reinhardtshbm:block/concrete_colored_lime" },
+    { "predicate": { "minecraft:custom_model_data": 6 }, "model": "reinhardtshbm:block/concrete_colored_pink" },
+    { "predicate": { "minecraft:custom_model_data": 7 }, "model": "reinhardtshbm:block/concrete_colored_gray" },
+    { "predicate": { "minecraft:custom_model_data": 8 }, "model": "reinhardtshbm:block/concrete_colored_silver" },
+    { "predicate": { "minecraft:custom_model_data": 9 }, "model": "reinhardtshbm:block/concrete_colored_cyan" },
+    { "predicate": { "minecraft:custom_model_data": 10 }, "model": "reinhardtshbm:block/concrete_colored_purple" },
+    { "predicate": { "minecraft:custom_model_data": 11 }, "model": "reinhardtshbm:block/concrete_colored_blue" },
+    { "predicate": { "minecraft:custom_model_data": 12 }, "model": "reinhardtshbm:block/concrete_colored_brown" },
+    { "predicate": { "minecraft:custom_model_data": 13 }, "model": "reinhardtshbm:block/concrete_colored_green" },
+    { "predicate": { "minecraft:custom_model_data": 14 }, "model": "reinhardtshbm:block/concrete_colored_red" },
+    { "predicate": { "minecraft:custom_model_data": 15 }, "model": "reinhardtshbm:block/concrete_colored_black" }
+  ]
+}

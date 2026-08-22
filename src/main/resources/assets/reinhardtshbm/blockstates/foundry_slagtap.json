@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/foundry_slagtap", "y": 90 },
+    "facing=east": { "model": "reinhardtshbm:block/foundry_slagtap", "y": 180 },
+    "facing=south": { "model": "reinhardtshbm:block/foundry_slagtap", "y": 270 },
+    "facing=west": { "model": "reinhardtshbm:block/foundry_slagtap" }
+  }
+}

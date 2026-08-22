@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:raw_copper_block"
+                   },
+    "input_count":  2,
+    "result":  {
+                   "id":  "reinhardtshbm:powder_copper",
+                   "count":  27
+               }
+}

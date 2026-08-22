@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/chopper_gun"
+                 },
+    "parent":  "minecraft:item/generated"
+}

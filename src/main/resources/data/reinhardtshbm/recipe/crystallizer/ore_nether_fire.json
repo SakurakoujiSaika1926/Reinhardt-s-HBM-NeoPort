@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer",
+  "ingredient": { "item": "reinhardtshbm:ore_nether_fire" },
+  "acid": { "fluid": "peroxide", "amount": 500 },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:crystal_phosphorus" }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/brick_dungeon_tile"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

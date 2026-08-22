@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/wrench"
+                 },
+    "parent":  "minecraft:item/generated"
+}

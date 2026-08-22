@@ -1,0 +1,30 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    " W ",
+                    "RRR",
+                    " W "
+                ],
+    "key":  {
+                "W":  {
+                          "tag":  "c:plates/polymer"
+                      },
+                "R":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:wire_fine"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  31,
+                                                                           "material":  "red_copper"
+                                                                       }
+                                         }
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:red_cable",
+                   "count":  16
+               }
+}

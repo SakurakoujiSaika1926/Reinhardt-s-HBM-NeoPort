@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "D",
+    "S",
+    "D"
+  ],
+  "key": {
+    "D": { "tag": "c:ingots/phosphorus" },
+    "S": { "type": "neoforge:components", "items": ["reinhardtshbm:ammo_arty"], "components": { "minecraft:custom_data": { "variant": "ammo_arty" }, "minecraft:custom_model_data": 0 } }
+  },
+  "result": { "id": "reinhardtshbm:ammo_arty", "components": { "minecraft:custom_data": { "variant": "ammo_arty_phosphorus" }, "minecraft:custom_model_data": 5 } }
+}

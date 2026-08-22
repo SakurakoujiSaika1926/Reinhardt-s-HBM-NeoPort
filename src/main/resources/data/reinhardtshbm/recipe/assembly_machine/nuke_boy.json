@@ -1,0 +1,44 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.littleboy",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:fins_small_steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/blue"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuke_boy"
+  }
+}

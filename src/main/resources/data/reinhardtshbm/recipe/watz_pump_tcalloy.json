@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MPM",
+    "PCP",
+    "PSP"
+  ],
+  "key": {
+    "M": {
+      "item": "reinhardtshbm:motor_desh"
+    },
+    "P": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 36,
+          "material": "tcalloy"
+        }
+      }
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_bismoid"
+    },
+    "S": {
+      "tag": "c:pipes/dura_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:watz_pump"
+  }
+}

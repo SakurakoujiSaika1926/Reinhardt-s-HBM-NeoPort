@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/nugget_au198"
+                 },
+    "parent":  "minecraft:item/generated"
+}

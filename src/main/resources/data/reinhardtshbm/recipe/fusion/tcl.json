@@ -1,0 +1,29 @@
+{
+  "type": "reinhardtshbm:fusion",
+  "group": "fus.tcl",
+  "ignition_temp": 2500000,
+  "output_temp": 6250000,
+  "neutron_flux": 500.0,
+  "power": 25000,
+  "duration": 100,
+  "r": 0.8,
+  "g": 0.6,
+  "b": 0.4,
+  "icon": {
+    "id": "reinhardtshbm:powder_chlorophyte"
+  },
+  "input_fluids": [
+    {
+      "fluid": "tritium",
+      "amount": 10
+    },
+    {
+      "fluid": "chlorine",
+      "amount": 10
+    }
+  ],
+  "output_item": {
+    "id": "reinhardtshbm:powder_chlorophyte",
+    "count": 1
+  }
+}

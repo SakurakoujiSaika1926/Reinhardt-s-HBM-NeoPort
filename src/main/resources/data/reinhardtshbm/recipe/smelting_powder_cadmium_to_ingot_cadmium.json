@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:powder_cadmium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_cadmium"
+               },
+    "experience":  1,
+    "cookingtime":  200
+}

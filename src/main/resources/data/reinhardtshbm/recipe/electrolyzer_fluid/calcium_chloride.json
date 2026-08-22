@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_fluid","input":{"fluid":"calcium_chloride","amount":250},"output1":{"fluid":"chlorine","amount":125},"output2":{"fluid":"calcium_solution","amount":125}}

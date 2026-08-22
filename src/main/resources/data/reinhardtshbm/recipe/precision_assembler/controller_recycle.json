@@ -1,0 +1,88 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.recycle",
+  "duration": 400,
+  "power": 15000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:broken_item"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:circuit_controller",
+            "item_count": 1
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_chip",
+        "count": 32
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_capacitor",
+        "count": 32
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_capacitor_tantalium",
+        "count": 16
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_controller_chassis",
+        "count": 1
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:upgrade_speed_1",
+        "count": 1
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:wire_fine",
+        "count": 16,
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "weight": 90
+    }
+  ],
+  "output_mode": "independent",
+  "expensive_output_weights": [
+    50,
+    50,
+    50,
+    50,
+    50,
+    50
+  ],
+  "output_fluids": [
+    {
+      "fluid": "perfluoromethyl",
+      "amount": 900
+    }
+  ]
+}

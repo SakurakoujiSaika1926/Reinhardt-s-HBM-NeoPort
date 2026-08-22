@@ -1,0 +1,5 @@
+newmtl hbm
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+d 0.5
+map_Kd reinhardtshbm:block/machine_chemical_plant_fluid

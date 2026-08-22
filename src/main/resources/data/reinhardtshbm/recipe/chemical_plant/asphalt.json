@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.asphalt",
+  "duration": 100,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "minecraft:gravel"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:sand"
+      },
+      "count": 6
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "bitumen",
+      "amount": 1000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:asphalt",
+      "count": 16
+    }
+  ],
+  "output_fluids": []
+}

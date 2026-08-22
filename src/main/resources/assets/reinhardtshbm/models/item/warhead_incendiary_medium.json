@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/warhead_incendiary_medium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

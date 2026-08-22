@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:coil_tungsten"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_tungsten"
+               }
+}

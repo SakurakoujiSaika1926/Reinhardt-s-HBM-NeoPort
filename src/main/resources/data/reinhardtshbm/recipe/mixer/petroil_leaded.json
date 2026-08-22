@@ -1,0 +1,27 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.petroil_leaded",
+    "output":  {
+                   "fluid":  "petroil_leaded",
+                   "amount":  12000
+               },
+    "duration":  40,
+    "input1":  {
+                   "fluid":  "petroil",
+                   "amount":  10000
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "type":  "neoforge:components",
+                                           "items":  [
+                                                         "reinhardtshbm:fuel_additive"
+                                                     ],
+                                           "components":  {
+                                                              "minecraft:custom_data":  {
+                                                                                            "variant":  "antiknock"
+                                                                                        }
+                                                          }
+                                       },
+                        "count":  1
+                    }
+}

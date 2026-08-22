@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "reinhardtshbm:block/pwr_casing_blank",
+    "front": "reinhardtshbm:block/pwr_controller",
+    "side": "reinhardtshbm:block/pwr_casing_blank"
+  }
+}

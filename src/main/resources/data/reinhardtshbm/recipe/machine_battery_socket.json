@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "I I",
+    "I I",
+    "IRI"
+  ],
+  "key": {
+    "I": { "item": "reinhardtshbm:plate_polymer" },
+    "R": { "item": "reinhardtshbm:coil_copper" }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_battery_socket"
+  }
+}

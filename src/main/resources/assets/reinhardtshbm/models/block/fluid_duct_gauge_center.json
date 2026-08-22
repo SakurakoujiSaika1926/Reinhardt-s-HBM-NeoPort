@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/fluid_pipe_center",
+  "textures": {
+    "pipe": "reinhardtshbm:block/fluid_duct_mk2",
+    "overlay": "reinhardtshbm:block/fluid_duct_mk2_overlay"
+  }
+}

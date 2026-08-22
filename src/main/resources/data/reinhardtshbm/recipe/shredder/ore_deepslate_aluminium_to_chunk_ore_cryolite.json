@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_deepslate_aluminium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:chunk_ore_cryolite",
+                   "count":  2
+               }
+}

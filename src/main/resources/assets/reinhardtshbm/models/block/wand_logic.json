@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "reinhardtshbm:block/wand_logic",
+    "down": "reinhardtshbm:block/wand_logic_top",
+    "up": "reinhardtshbm:block/wand_logic_top",
+    "north": "reinhardtshbm:block/wand_logic",
+    "south": "reinhardtshbm:block/wand_logic",
+    "west": "reinhardtshbm:block/wand_logic",
+    "east": "reinhardtshbm:block/wand_logic"
+  }
+}

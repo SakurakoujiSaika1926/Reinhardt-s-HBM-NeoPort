@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:cell_empty" },
+    { "item": "reinhardtshbm:lithium" }
+  ],
+  "result": { "id": "reinhardtshbm:pile_rod_lithium" }
+}

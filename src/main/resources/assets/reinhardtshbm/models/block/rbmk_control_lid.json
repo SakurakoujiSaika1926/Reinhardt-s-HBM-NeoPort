@@ -1,0 +1,20 @@
+{
+  "textures": {
+    "particle": "reinhardtshbm:block/rbmk/rbmk_control",
+    "lid": "reinhardtshbm:block/rbmk/rbmk_control"
+  },
+  "elements": [
+    {
+      "from": [3, 0, 3],
+      "to": [13, 2, 13],
+      "faces": {
+        "down": { "texture": "#lid" },
+        "up": { "texture": "#lid" },
+        "north": { "texture": "#lid" },
+        "south": { "texture": "#lid" },
+        "west": { "texture": "#lid" },
+        "east": { "texture": "#lid" }
+      }
+    }
+  ]
+}

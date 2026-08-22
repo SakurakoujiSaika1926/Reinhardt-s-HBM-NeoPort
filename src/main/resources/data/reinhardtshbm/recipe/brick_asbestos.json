@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    " A ",
+    "ABA",
+    " A "
+  ],
+  "key": {
+    "A": {
+      "tag": "c:ingots/asbestos"
+    },
+    "B": {
+      "item": "reinhardtshbm:brick_light"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:brick_asbestos",
+    "count": 2
+  }
+}

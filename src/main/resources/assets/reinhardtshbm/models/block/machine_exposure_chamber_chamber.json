@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/machine_exposure_chamber",
+  "visibility": {
+    "Magnets": false,
+    "Core": false
+  }
+}

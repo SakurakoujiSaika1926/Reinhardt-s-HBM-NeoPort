@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_pu240"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_pu240",
+                   "count":  9
+               }
+}

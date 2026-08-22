@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:compressor",
+    "group":  "compressor.perfluoromethyl",
+    "input":  {
+                  "fluid":  "perfluoromethyl",
+                  "amount":  1000,
+                  "pressure":  1
+              },
+    "output":  {
+                   "fluid":  "perfluoromethyl_cold",
+                   "amount":  1000,
+                   "pressure":  0
+               },
+    "duration":  50
+}

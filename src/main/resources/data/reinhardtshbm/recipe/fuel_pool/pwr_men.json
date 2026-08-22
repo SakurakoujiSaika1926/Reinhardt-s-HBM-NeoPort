@@ -1,0 +1,22 @@
+{
+  "type": "reinhardtshbm:fuel_pool",
+  "group": "pwr",
+  "input": {
+    "item": "reinhardtshbm:pwr_fuel_hot",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "men"
+      },
+      "minecraft:custom_model_data": 3
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:pwr_fuel_depleted",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "men"
+      },
+      "minecraft:custom_model_data": 3
+    }
+  }
+}

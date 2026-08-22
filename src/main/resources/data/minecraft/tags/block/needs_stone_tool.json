@@ -1,0 +1,22 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "reinhardtshbm:cluster_aluminium",
+                   "reinhardtshbm:cluster_copper",
+                   "reinhardtshbm:cluster_iron",
+                   "reinhardtshbm:cluster_titanium",
+                   "reinhardtshbm:ore_sulfur",
+                   "reinhardtshbm:ore_deepslate_sulfur",
+                   "reinhardtshbm:ore_niter",
+                   "reinhardtshbm:ore_deepslate_niter",
+                   "reinhardtshbm:ore_aluminium",
+                   "reinhardtshbm:ore_deepslate_aluminium",
+                   "reinhardtshbm:ore_fluorite",
+                   "reinhardtshbm:ore_deepslate_fluorite",
+                   "reinhardtshbm:ore_asbestos",
+                   "reinhardtshbm:ore_deepslate_asbestos",
+                   "reinhardtshbm:ore_cinnabar",
+                   "reinhardtshbm:ore_deepslate_cinnabar",
+                   "reinhardtshbm:stone_resource_bauxite"
+               ]
+}

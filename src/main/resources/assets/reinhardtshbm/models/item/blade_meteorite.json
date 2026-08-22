@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/blade_meteorite"
+                 },
+    "parent":  "minecraft:item/generated"
+}

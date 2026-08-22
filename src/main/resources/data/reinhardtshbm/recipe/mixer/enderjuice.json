@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.enderjuice",
+    "output":  {
+                   "fluid":  "enderjuice",
+                   "amount":  100
+               },
+    "duration":  100,
+    "input1":  {
+                   "fluid":  "xpjuice",
+                   "amount":  500
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/diamond"
+                                       },
+                        "count":  1
+                    }
+}

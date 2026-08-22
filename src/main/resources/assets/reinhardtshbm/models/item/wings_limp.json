@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/wings_limp"
+                 },
+    "parent":  "minecraft:item/generated"
+}

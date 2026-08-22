@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:refinery",
+  "group": "refinery.hotcrackoil",
+  "input": { "fluid": "hotcrackoil", "amount": 100 },
+  "outputs": [
+    { "fluid": "naphtha_crack", "amount": 40 },
+    { "fluid": "lightoil_crack", "amount": 30 },
+    { "fluid": "aromatics", "amount": 15 },
+    { "fluid": "unsaturateds", "amount": 15 }
+  ],
+  "byproduct": {
+    "id": "reinhardtshbm:oil_tar",
+    "components": {
+      "minecraft:custom_data": { "variant": "crack" },
+      "minecraft:custom_model_data": 1
+    }
+  },
+  "byproduct_interval": 100,
+  "power": 5
+}

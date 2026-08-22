@@ -1,0 +1,65 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.upgrade_fortune_iii",
+  "duration": 400,
+  "power": 25000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor_tantalium"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:upgrade_fortune_2"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 4
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:upgrade_fortune_3",
+        "count": 1
+      },
+      "weight": 25
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:broken_item",
+        "count": 1,
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:upgrade_fortune_3",
+            "item_count": 1
+          }
+        }
+      },
+      "weight": 75
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "solvent",
+      "amount": 500
+    }
+  ]
+}

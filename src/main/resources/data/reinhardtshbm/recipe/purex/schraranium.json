@@ -1,0 +1,37 @@
+{
+  "type": "reinhardtshbm:purex",
+  "duration": 200,
+  "power": 1000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ingot_schraranium"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "kerosene",
+      "amount": 2000
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 1000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:nugget_schrabidium",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:nugget_uranium",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:nugget_neptunium",
+      "count": 2
+    }
+  ]
+}

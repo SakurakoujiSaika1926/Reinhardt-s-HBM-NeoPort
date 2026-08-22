@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/hazmat_helmet_red"
+                 },
+    "parent":  "minecraft:item/generated"
+}

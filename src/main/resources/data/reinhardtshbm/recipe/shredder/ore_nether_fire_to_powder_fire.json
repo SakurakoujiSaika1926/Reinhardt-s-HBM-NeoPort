@@ -1,0 +1,5 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": { "item": "reinhardtshbm:ore_nether_fire" },
+  "result": { "id": "reinhardtshbm:powder_fire", "count": 6 }
+}

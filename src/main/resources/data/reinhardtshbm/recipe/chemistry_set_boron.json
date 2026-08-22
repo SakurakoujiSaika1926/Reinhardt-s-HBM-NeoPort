@@ -1,0 +1,22 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "GIG",
+                    "GCG"
+                ],
+    "key":  {
+                "G":  {
+                          "item":  "reinhardtshbm:glass_boron"
+                      },
+                "I":  {
+                          "tag":  "c:ingots/steel"
+                      },
+                "C":  {
+                          "tag":  "c:ingots/cobalt"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:chemistry_set_boron"
+               }
+}

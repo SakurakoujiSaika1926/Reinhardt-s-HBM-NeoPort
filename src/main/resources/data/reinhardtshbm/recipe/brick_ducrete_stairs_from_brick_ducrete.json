@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "B  ",
+    "BB ",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:brick_ducrete"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:brick_ducrete_stairs",
+    "count": 4
+  }
+}

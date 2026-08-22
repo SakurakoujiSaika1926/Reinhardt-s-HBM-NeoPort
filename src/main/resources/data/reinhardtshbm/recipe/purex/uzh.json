@@ -1,0 +1,35 @@
+{
+  "type": "reinhardtshbm:purex",
+  "duration": 600,
+  "power": 1000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_uranium_fuel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_zirconium"
+      },
+      "count": 3
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "nitric_acid",
+      "amount": 1000
+    },
+    {
+      "fluid": "hydrogen",
+      "amount": 4000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:billet_uzh",
+      "count": 4
+    }
+  ]
+}

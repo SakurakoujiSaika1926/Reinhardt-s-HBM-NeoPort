@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    " C ",
+                    "CPC",
+                    " C "
+                ],
+    "key":  {
+                "C":  {
+                          "item":  "reinhardtshbm:coil_copper"
+                      },
+                "P":  {
+                          "tag":  "c:plates/iron"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:coil_copper_torus",
+                   "count":  2
+               }
+}

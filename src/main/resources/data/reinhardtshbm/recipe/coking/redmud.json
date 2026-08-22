@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.redmud",
+  "input": { "fluid": "redmud", "amount": 450 },
+  "output": { "id": "minecraft:iron_ingot" },
+  "byproduct": { "fluid": "mercury", "amount": 50 }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:billet_zirconium"
+    },
+    {
+      "item": "reinhardtshbm:billet_zirconium"
+    },
+    {
+      "item": "reinhardtshbm:billet_zirconium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:ingot_zirconium",
+    "count": 2
+  }
+}

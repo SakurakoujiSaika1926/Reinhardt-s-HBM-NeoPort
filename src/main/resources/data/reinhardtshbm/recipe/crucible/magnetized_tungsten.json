@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.magtung",
+  "frequency": 3,
+  "icon": {
+    "id": "reinhardtshbm:ingot_magnetized_tungsten"
+  },
+  "input": [
+    {
+      "material": "tungsten",
+      "amount": 72
+    },
+    {
+      "material": "schrabidium",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "magnetized_tungsten",
+      "amount": 72
+    }
+  ]
+}

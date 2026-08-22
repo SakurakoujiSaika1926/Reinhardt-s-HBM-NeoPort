@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/crate_iron" },
+    "facing=south": { "model": "reinhardtshbm:block/crate_iron", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/crate_iron", "y": 270 },
+    "facing=east": { "model": "reinhardtshbm:block/crate_iron", "y": 90 }
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/orange1"
+                 },
+    "parent":  "minecraft:item/generated"
+}

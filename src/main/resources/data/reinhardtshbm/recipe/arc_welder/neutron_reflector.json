@@ -1,0 +1,24 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.parts",
+    "duration":  400,
+    "consumption":  50000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:ingots/tungsten_carbide"
+                                      },
+                       "count":  2
+                   },
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:plates/dura_steel"
+                                      },
+                       "count":  1
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:neutron_reflector",
+                   "count":  2
+               }
+}

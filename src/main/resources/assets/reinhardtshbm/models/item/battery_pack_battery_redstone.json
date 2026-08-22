@@ -1,0 +1,22 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/battery_pack.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/battery_pack_battery_redstone.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:block/battery_redstone"
+  },
+  "visibility": {
+    "Capacitor": false,
+    "Socket": false  },
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, -2, 0], "scale": [0.40, 0.40, 0.40] },
+    "fixed": { "rotation": [0, 180, 0], "translation": [0, -1, 0], "scale": [0.35, 0.35, 0.35] },
+    "ground": { "translation": [0, 3, 0], "scale": [0.22, 0.22, 0.22] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 0, 0], "scale": [0.28, 0.28, 0.28] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2, 0], "scale": [0.25, 0.25, 0.25] }
+  }
+}

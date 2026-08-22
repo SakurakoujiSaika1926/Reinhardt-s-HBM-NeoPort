@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:gravel"
+                   },
+    "result":  {
+                   "id":  "minecraft:sand"
+               }
+}

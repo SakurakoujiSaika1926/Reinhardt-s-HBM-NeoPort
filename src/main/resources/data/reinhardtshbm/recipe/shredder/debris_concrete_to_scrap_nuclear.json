@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:debris_concrete"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:scrap_nuclear",
+                   "count":  2
+               }
+}

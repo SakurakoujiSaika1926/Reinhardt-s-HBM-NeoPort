@@ -1,0 +1,17 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "#",
+                    "#"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:ingots/steel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:bolt",
+                   "count":  16
+               }
+}

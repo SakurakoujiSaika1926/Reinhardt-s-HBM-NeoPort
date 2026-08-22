@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "B  ",
+    "BB ",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:tile_lab"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:tile_lab_stairs",
+    "count": 8
+  }
+}

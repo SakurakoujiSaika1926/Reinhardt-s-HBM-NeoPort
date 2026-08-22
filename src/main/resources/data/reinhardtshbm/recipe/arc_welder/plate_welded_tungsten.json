@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:arc_welder",
+  "group": "arc_welder.plate_welded",
+  "duration": 1200,
+  "consumption": 250000,
+  "fluid": { "fluid": "oxygen", "amount": 1000 },
+  "inputs": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 7400, "material": "tungsten" } } }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_welded", "components": { "minecraft:custom_data": { "material_id": 7400, "material": "tungsten" } } }
+}

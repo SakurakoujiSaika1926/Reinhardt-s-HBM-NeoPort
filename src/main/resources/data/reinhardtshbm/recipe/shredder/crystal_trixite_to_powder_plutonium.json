@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_trixite"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_plutonium",
+                   "count":  6
+               }
+}

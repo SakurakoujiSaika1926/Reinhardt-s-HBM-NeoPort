@@ -1,0 +1,29 @@
+﻿{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:rbmk_fuel"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "balefire"
+        }
+      }
+    },
+    {
+      "item": "reinhardtshbm:particle_digamma"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rbmk_fuel",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "drx"
+      },
+      "minecraft:custom_model_data": 31
+    }
+  }
+}

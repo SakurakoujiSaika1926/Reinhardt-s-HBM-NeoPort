@@ -1,0 +1,9 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/missile_parts/mp_thruster_20_kerosene.obj",
+  "mtl_override": "reinhardtshbm:models/obj/missile_parts/mp_thruster_20_kerosene.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/missile_parts/thrusters/mp_t_20_kerosene" }
+}

@@ -1,0 +1,23 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.perfluoromethyl",
+    "output":  {
+                   "fluid":  "perfluoromethyl",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "petroleum",
+                   "amount":  1000
+               },
+    "input2":  {
+                   "fluid":  "unsaturateds",
+                   "amount":  500
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/fluorite"
+                                       },
+                        "count":  1
+                    }
+}

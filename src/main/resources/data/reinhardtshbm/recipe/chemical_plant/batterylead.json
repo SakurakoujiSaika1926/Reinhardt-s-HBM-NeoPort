@@ -1,0 +1,38 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.batterylead",
+  "duration": 100,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/lead"
+      },
+      "count": 4
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "sulfuric_acid",
+      "amount": 8000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:battery_pack",
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "battery_lead"
+        },
+        "minecraft:custom_model_data": 1
+      }
+    }
+  ],
+  "output_fluids": []
+}

@@ -1,0 +1,20 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "III",
+                    " B ",
+                    "III"
+                ],
+    "key":  {
+                "I":  {
+                          "tag":  "c:ingots/iron"
+                      },
+                "B":  {
+                          "item":  "minecraft:iron_block"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:anvil_iron"
+               }
+}

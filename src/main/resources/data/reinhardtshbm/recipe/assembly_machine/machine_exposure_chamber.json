@@ -1,0 +1,86 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "machine_exposure_chamber",
+    "duration":  200,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_cast"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  1300,
+                                                                                                "material":  "aluminium"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  12
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/resistant_alloy"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/hard_plastic"
+                                           },
+                            "count":  12
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:wire_dense"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  7900,
+                                                                                                "material":  "gold"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  32
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor_desh"
+                                           },
+                            "count":  2
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:circuit_bismoid"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:battery_pack"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "capacitor_tantalum"
+                                                                                            },
+                                                                  "minecraft:custom_model_data":  9
+                                                              }
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:glass_quartz"
+                                           },
+                            "count":  16
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_exposure_chamber"
+               }
+}

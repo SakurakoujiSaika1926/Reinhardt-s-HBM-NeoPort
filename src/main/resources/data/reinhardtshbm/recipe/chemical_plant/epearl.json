@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.epearl",
+  "duration": 100,
+  "power": 300,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/diamond"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "xpjuice",
+      "amount": 500
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "enderjuice",
+      "amount": 100
+    }
+  ]
+}

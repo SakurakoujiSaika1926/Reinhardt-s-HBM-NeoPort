@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.aluminium",
+  "inputs": [
+    { "ingredient": { "tag": "c:dusts/flux" }, "count": 2 }
+  ],
+  "fluid": { "fluid": "sodium_aluminate", "amount": 150 },
+  "output": { "material": "aluminium", "amount": 432 },
+  "duration": 40,
+  "steam": 200
+}

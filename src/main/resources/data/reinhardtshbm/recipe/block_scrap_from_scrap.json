@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:scrap"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:block_scrap"
+  }
+}

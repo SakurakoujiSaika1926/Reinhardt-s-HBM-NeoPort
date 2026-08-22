@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_plutonium"
+                 },
+    "input":  {
+                  "item":  "reinhardtshbm:pellet_charged"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:nugget_schrabidium"
+               },
+    "antimatter":  1000
+}
+

@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/fluid_pipe_arm",
+  "textures": {
+    "pipe": "reinhardtshbm:block/fluid_duct_paintable_block_exhaust",
+    "overlay": "reinhardtshbm:block/fluid_duct_paintable_overlay"
+  }
+}

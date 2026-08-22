@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.alumina",
+    "output":  {
+                   "fluid":  "alumina",
+                   "amount":  200
+               },
+    "duration":  40,
+    "input1":  {
+                   "fluid":  "sodium_aluminate",
+                   "amount":  150
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/fluorite"
+                                       },
+                        "count":  3
+                    }
+}

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/press_preheater", "y": 0 },
+    "facing=east": { "model": "reinhardtshbm:block/press_preheater", "y": 90 },
+    "facing=south": { "model": "reinhardtshbm:block/press_preheater", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/press_preheater", "y": 270 }
+  }
+}

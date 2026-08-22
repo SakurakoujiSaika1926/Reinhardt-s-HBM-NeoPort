@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.oxygen",
+  "duration": 20,
+  "power": 400,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "air",
+      "amount": 8000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "oxygen",
+      "amount": 500
+    }
+  ]
+}

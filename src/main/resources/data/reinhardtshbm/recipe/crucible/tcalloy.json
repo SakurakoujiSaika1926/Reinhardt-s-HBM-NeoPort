@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.tcalloy",
+  "frequency": 9,
+  "icon": {
+    "id": "reinhardtshbm:ingot_tcalloy"
+  },
+  "input": [
+    {
+      "material": "steel",
+      "amount": 64
+    },
+    {
+      "material": "technetium",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "tcalloy",
+      "amount": 72
+    }
+  ]
+}

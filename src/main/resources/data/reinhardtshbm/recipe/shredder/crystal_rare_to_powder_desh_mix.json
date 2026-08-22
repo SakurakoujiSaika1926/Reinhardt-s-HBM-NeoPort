@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_rare"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_desh_mix",
+                   "count":  2
+               }
+}

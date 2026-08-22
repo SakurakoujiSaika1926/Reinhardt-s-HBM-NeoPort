@@ -1,0 +1,19 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/turrets/turret_sentry.obj",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  true,
+    "emissive_ambient":  false,
+    "visibility":  {
+                       "BarrelL":  false,
+                       "Drum":  true,
+                       "Pivot":  false,
+                       "Body":  false,
+                       "BarrelR":  false,
+                       "Base":  false
+                   },
+    "textures":  {
+                     "particle":  "reinhardtshbm:models/turrets/sentry"
+                 }
+}

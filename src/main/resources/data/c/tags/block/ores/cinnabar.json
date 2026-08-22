@@ -1,0 +1,7 @@
+{
+    "replace":  false,
+    "values":  [
+                   "reinhardtshbm:ore_cinnabar",
+                   "reinhardtshbm:ore_deepslate_cinnabar"
+               ]
+}

@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_lithium"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/lanthanium"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_cerium"
+               },
+    "antimatter":  50
+}
+

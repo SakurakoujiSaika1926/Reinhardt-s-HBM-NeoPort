@@ -1,0 +1,17 @@
+{
+  "type": "reinhardtshbm:silex",
+  "group": "silex.death",
+  "fluid_input": "death",
+  "fluid_produced": 1000,
+  "fluid_consumed": 1000,
+  "wavelength": "gamma",
+  "outputs": [
+    {
+      "item": {
+        "id": "reinhardtshbm:powder_impure_osmiridium",
+        "count": 1
+      },
+      "weight": 1
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_mini_panel",
+  "textures": {
+    "all": "reinhardtshbm:block/rbmk/rbmk_display"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "reinhardtshbm:arc_furnace",
+  "group": "arc_furnace",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "rad_washed",
+        "type": "nonmetal"
+      }
+    }
+  },
+  "liquid": [
+    {
+      "material": "silicon",
+      "amount": 48
+    },
+    {
+      "material": "silicon",
+      "amount": 48
+    }
+  ]
+}

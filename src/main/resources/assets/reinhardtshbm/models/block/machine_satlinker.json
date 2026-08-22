@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": { "side": "reinhardtshbm:block/machine_satlinker_side", "top": "reinhardtshbm:block/machine_satlinker_top", "bottom": "reinhardtshbm:block/machine_satlinker_top" }
+}

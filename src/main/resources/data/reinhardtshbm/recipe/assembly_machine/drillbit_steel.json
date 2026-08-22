@@ -1,0 +1,29 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.drillsteel",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "count":  12,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/steel"
+                                           }
+                        },
+                        {
+                            "count":  4,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/tungsten"
+                                           }
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:drillbit",
+                   "components":  {
+                                      "minecraft:custom_model_data":  0,
+                                      "minecraft:custom_data":  {
+                                                                    "type":  "steel"
+                                                                }
+                                  }
+               }
+}

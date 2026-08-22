@@ -1,0 +1,20 @@
+﻿{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ZRZ",
+    "Z Z",
+    "ZRZ"
+  ],
+  "key": {
+    "Z": {
+      "item": "reinhardtshbm:ingot_zirconium"
+    },
+    "R": {
+      "item": "reinhardtshbm:rod_quad_empty"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_fuel_empty"
+  }
+}

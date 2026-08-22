@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:compressor",
+    "group":  "compressor.blood",
+    "input":  {
+                  "fluid":  "blood",
+                  "amount":  1000,
+                  "pressure":  3
+              },
+    "output":  {
+                   "fluid":  "heavyoil",
+                   "amount":  250,
+                   "pressure":  0
+               },
+    "duration":  200
+}

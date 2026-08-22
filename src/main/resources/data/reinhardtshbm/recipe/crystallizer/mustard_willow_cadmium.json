@@ -1,0 +1,25 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:plant_item"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "mustardwillow"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  },
+  "input_count": 10,
+  "acid": {
+    "fluid": "radiosolvent",
+    "amount": 250
+  },
+  "duration": 100,
+  "result": {
+    "id": "reinhardtshbm:powder_cadmium"
+  }
+}

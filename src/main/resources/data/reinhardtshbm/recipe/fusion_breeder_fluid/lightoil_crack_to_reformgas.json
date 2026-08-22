@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:fusion_breeder_fluid",
+  "group": "fusion_breeder.fluid",
+  "input": {
+    "fluid": "lightoil_crack",
+    "amount": 1000
+  },
+  "output": {
+    "fluid": "reformgas",
+    "amount": 1000
+  }
+}

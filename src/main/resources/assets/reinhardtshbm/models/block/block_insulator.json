@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "reinhardtshbm:block/block_insulator_top",
+    "side": "reinhardtshbm:block/block_insulator_side"
+  }
+}

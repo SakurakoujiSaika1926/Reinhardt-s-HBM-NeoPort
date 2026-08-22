@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:rbmk_outgasser",
+  "group": "outgasser.lithium",
+  "ingredient": {
+    "item": "reinhardtshbm:lithium"
+  },
+  "fluid_output": {
+    "fluid": "tritium",
+    "amount": 1000
+  }
+}

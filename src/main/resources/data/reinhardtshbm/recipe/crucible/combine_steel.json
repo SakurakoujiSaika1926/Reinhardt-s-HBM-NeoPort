@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.cmb",
+  "frequency": 3,
+  "icon": {
+    "id": "reinhardtshbm:ingot_combine_steel"
+  },
+  "input": [
+    {
+      "material": "magnetized_tungsten",
+      "amount": 48
+    },
+    {
+      "material": "mud",
+      "amount": 24
+    }
+  ],
+  "output": [
+    {
+      "material": "combine_steel",
+      "amount": 72
+    }
+  ]
+}

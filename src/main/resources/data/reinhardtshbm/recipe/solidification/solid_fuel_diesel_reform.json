@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.diesel_reform",
+    "input":  {
+                  "fluid":  "diesel_reform",
+                  "amount":  1300
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

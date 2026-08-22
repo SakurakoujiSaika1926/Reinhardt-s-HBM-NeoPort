@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:concrete",
+    "reinhardtshbm:brick_concrete",
+    "reinhardtshbm:brick_concrete_mossy",
+    "reinhardtshbm:brick_concrete_cracked",
+    "reinhardtshbm:brick_concrete_broken"
+  ]
+}

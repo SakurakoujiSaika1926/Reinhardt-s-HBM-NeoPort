@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "MDM",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:ingots/iron"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_capacitor"
+    },
+    "M": {
+      "item": "reinhardtshbm:coil_copper"
+    },
+    "D": {
+      "tag": "c:ingots/red_copper"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_transformer"
+  }
+}

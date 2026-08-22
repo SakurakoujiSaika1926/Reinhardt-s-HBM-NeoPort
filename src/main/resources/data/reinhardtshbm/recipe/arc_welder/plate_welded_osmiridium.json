@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:arc_welder",
+  "group": "arc_welder.plate_welded",
+  "duration": 6000,
+  "consumption": 50000000,
+  "fluid": { "fluid": "reformgas", "amount": 16000 },
+  "inputs": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 7699, "material": "osmiridium" } } }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_welded", "components": { "minecraft:custom_data": { "material_id": 7699, "material": "osmiridium" } } }
+}

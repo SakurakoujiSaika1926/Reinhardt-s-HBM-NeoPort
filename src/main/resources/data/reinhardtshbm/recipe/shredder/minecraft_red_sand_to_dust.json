@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:red_sand"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:dust",
+                   "count":  2
+               }
+}

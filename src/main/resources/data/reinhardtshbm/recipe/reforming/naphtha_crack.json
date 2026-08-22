@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:reforming",
+  "group": "reforming",
+  "input": {
+    "fluid": "naphtha_crack",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "reformate",
+    "amount": 50
+  },
+  "output2": {
+    "fluid": "aromatics",
+    "amount": 10
+  },
+  "output3": {
+    "fluid": "hydrogen",
+    "amount": 5
+  },
+  "power": 20000
+}

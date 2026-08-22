@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_528_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.source",
+  "blueprint_pools": ["528.chip_quantum"],
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:pa_beamline" }, "count": 3 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "lead_plating" } } }, "count": 16 },
+    { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:magnetron" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_quantum" }, "count": 4 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "computer" } } }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:pa_source" }
+}

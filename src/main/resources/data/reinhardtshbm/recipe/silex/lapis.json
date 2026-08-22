@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:silex",
+  "group": "silex.lapis",
+  "ingredient": {
+    "item": "reinhardtshbm:powder_lapis"
+  },
+  "fluid_produced": 100,
+  "fluid_consumed": 100,
+  "wavelength": "ir",
+  "outputs": [
+    {
+      "item": {
+        "id": "reinhardtshbm:sulfur",
+        "count": 1
+      },
+      "weight": 4
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:powder_aluminium",
+        "count": 1
+      },
+      "weight": 3
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:powder_cobalt",
+        "count": 1
+      },
+      "weight": 3
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_cobalt"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_cobalt",
+                        "count":  2
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_iron",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_copper",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_lithium_tiny"
+                    }
+                ]
+}

@@ -1,0 +1,10 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"misc",
+  "pattern":["C","T","C"],
+  "key":{
+    "C":{"type":"neoforge:components","items":["reinhardtshbm:coke"],"components":{"minecraft:custom_data":{"variant":"petroleum"}}},
+    "T":{"tag":"c:tars"}
+  },
+  "result":{"id":"reinhardtshbm:arc_electrode","components":{"minecraft:custom_data":{"variant":"graphite"},"minecraft:custom_model_data":0}}
+}

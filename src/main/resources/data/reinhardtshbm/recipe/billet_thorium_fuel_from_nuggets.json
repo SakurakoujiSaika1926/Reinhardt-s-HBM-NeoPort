@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:nugget_thorium_fuel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:billet_thorium_fuel"
+  }
+}

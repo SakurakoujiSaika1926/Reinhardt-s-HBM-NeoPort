@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/missile_anti_ballistic"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,12 @@
+﻿{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:raw_aluminium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:chunk_ore_cryolite"
+               },
+    "experience":  2.5,
+    "cookingtime":  200
+}

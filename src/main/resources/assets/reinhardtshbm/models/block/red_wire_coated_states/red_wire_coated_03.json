@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "reinhardtshbm:block/red_wire_coated",
+    "north": "reinhardtshbm:block/red_wire_coated_states/03_north",
+    "south": "reinhardtshbm:block/red_wire_coated_states/03_south",
+    "east": "reinhardtshbm:block/red_wire_coated_states/03_east",
+    "west": "reinhardtshbm:block/red_wire_coated_states/03_west",
+    "up": "reinhardtshbm:block/red_wire_coated_states/03_up",
+    "down": "reinhardtshbm:block/red_wire_coated_states/03_down"
+  }
+}

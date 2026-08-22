@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/inf_water_mk2"
+                 },
+    "parent":  "minecraft:item/generated"
+}

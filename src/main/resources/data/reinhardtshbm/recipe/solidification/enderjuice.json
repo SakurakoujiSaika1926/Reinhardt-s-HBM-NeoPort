@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.enderjuice",
+    "input":  {
+                  "fluid":  "enderjuice",
+                  "amount":  100
+              },
+    "output":  {
+                   "id":  "minecraft:ender_pearl"
+               }
+}

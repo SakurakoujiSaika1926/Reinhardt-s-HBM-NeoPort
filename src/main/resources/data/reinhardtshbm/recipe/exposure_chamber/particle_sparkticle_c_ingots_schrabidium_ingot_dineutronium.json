@@ -1,0 +1,13 @@
+﻿{
+    "type":  "reinhardtshbm:exposure_chamber",
+    "group":  "exposure_chamber",
+    "particle":  {
+                     "item":  "reinhardtshbm:particle_sparkticle"
+                 },
+    "ingredient":  {
+                       "tag":  "c:ingots/schrabidium"
+                   },
+    "output":  {
+                   "id":  "reinhardtshbm:ingot_dineutronium"
+               }
+}

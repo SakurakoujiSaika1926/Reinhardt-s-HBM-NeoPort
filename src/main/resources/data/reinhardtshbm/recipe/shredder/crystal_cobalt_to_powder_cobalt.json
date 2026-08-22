@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_cobalt"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_cobalt",
+                   "count":  3
+               }
+}

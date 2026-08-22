@@ -1,0 +1,44 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.batterylithium",
+  "duration": 100,
+  "power": 1000,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/lithium"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/cobalt"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 4
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "oxygen",
+      "amount": 2000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:battery_pack",
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "battery_lithium"
+        },
+        "minecraft:custom_model_data": 2
+      }
+    }
+  ],
+  "output_fluids": []
+}

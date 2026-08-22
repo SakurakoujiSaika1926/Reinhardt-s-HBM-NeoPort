@@ -1,0 +1,8 @@
+{
+  "type":"minecraft:crafting_shaped","category":"misc","pattern":["CPC"],
+  "key":{
+    "C":{"type":"neoforge:components","items":["reinhardtshbm:conveyor_wand"],"components":{"minecraft:custom_data":{"variant":"regular"},"minecraft:custom_model_data":0}},
+    "P":{"tag":"c:plates/iron"}
+  },
+  "result":{"id":"reinhardtshbm:conveyor_wand","components":{"minecraft:custom_data":{"variant":"double"},"minecraft:custom_model_data":2}}
+}

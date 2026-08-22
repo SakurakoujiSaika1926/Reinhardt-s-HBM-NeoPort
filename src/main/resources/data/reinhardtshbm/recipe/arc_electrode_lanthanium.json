@@ -1,0 +1,5 @@
+{
+  "type":"minecraft:crafting_shaped","category":"misc","pattern":["C","T","C"],
+  "key":{"C":{"tag":"c:ingots/lanthanium"},"T":{"item":"minecraft:brick"}},
+  "result":{"id":"reinhardtshbm:arc_electrode","components":{"minecraft:custom_data":{"variant":"lanthanium"},"minecraft:custom_model_data":1}}
+}

@@ -1,0 +1,7 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/cassette",
+                     "layer1":  "reinhardtshbm:item/cassette_overlay"
+                 },
+    "parent":  "minecraft:item/generated"
+}

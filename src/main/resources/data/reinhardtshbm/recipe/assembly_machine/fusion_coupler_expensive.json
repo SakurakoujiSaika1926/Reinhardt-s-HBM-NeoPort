@@ -1,0 +1,60 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "reinhardtshbm:enable_528_mode"
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.fusioncoupler",
+    "duration":  300,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:item_expensive"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "ferro_plating"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:wire_dense"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  48,
+                                                                                                "material":  "bscco"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:item_expensive"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "computer"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  2
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:fusion_coupler"
+               }
+}
+

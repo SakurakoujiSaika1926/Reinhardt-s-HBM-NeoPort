@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.rustysteel",
+  "duration": 40,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:deco_steel"
+      },
+      "count": 8
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 1000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:deco_rusty_steel",
+      "count": 8
+    }
+  ],
+  "output_fluids": []
+}

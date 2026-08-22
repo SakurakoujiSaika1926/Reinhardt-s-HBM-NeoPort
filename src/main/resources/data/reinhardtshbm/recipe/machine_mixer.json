@@ -1,0 +1,29 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "PIP",
+                    "GCG",
+                    "PMP"
+                ],
+    "key":  {
+                "P":  {
+                          "tag":  "c:plates/steel"
+                      },
+                "I":  {
+                          "tag":  "c:ingots/dura_steel"
+                      },
+                "G":  {
+                          "tag":  "c:glass_panes"
+                      },
+                "C":  {
+                          "item":  "reinhardtshbm:circuit_vacuum_tube"
+                      },
+                "M":  {
+                          "item":  "reinhardtshbm:motor"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:machine_mixer"
+               }
+}

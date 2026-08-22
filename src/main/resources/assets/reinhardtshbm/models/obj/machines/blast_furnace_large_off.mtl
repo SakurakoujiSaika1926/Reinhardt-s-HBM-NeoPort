@@ -1,0 +1,34 @@
+newmtl shell
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/blast_furnace_shell
+
+newmtl band
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/blast_furnace_band
+
+newmtl pipe
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/blast_furnace_pipe
+
+newmtl refractory
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/blast_furnace_refractory
+
+newmtl hatch
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/blast_furnace_hatch
+
+newmtl dark
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/blast_furnace_throat_off
+
+newmtl fire
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/blast_furnace_throat_off

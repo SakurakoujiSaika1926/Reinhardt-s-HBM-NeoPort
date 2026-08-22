@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:rod_zirnox_empty" },
+    { "item": "reinhardtshbm:billet_thorium_fuel" },
+    { "item": "reinhardtshbm:billet_thorium_fuel" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_zirnox",
+    "components": {
+      "minecraft:custom_data": { "variant": "thorium_fuel" },
+      "minecraft:custom_model_data": 3
+    }
+  }
+}

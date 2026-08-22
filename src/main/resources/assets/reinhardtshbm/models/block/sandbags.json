@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/sandbags"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/radio_telex"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:nuclear_waste_vitrified_tiny"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:nuclear_waste_vitrified"
+  }
+}

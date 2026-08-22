@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_dual_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_neptunium"
+    },
+    {
+      "item": "reinhardtshbm:billet_neptunium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_dual",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "np237"
+      },
+      "minecraft:custom_model_data": 7
+    }
+  }
+}

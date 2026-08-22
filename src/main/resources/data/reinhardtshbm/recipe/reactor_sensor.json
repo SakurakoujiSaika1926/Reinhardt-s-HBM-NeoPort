@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["WPW", "CMC", "PPP"],
+  "key": {
+    "W": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:wire_fine"],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 7400,
+          "material": "tungsten"
+        }
+      }
+    },
+    "P": { "item": "reinhardtshbm:plate_lead" },
+    "C": { "item": "reinhardtshbm:circuit_basic" },
+    "M": { "item": "reinhardtshbm:magnetron" }
+  },
+  "result": { "id": "reinhardtshbm:reactor_sensor" }
+}

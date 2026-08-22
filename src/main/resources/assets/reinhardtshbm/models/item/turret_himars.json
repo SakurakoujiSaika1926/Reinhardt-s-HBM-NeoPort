@@ -1,0 +1,152 @@
+{
+    "loader":  "neoforge:composite",
+    "gui_light":  "front",
+    "textures":  {
+                     "particle":  "reinhardtshbm:models/turrets/himars"
+                 },
+    "children":  {
+                     "turret_arty_base":  {
+                                              "parent":  "reinhardtshbm:block/turret_arty_base"
+                                          },
+                     "turret_himars_carriage":  {
+                                                    "parent":  "reinhardtshbm:block/turret_himars_carriage"
+                                                },
+                     "turret_himars_launcher":  {
+                                                    "parent":  "reinhardtshbm:block/turret_himars_launcher"
+                                                },
+                     "turret_himars_crane":  {
+                                                 "parent":  "reinhardtshbm:block/turret_himars_crane"
+                                             },
+                     "turret_himars_tube_standard":  {
+                                                         "parent":  "reinhardtshbm:block/turret_himars_tube_standard"
+                                                     }
+                 },
+    "item_render_order":  [
+                              "turret_arty_base",
+                              "turret_himars_carriage",
+                              "turret_himars_launcher",
+                              "turret_himars_crane",
+                              "turret_himars_tube_standard"
+                          ],
+    "display":  {
+                    "gui":  {
+                                "translation":  [
+                                                    0,
+                                                    0,
+                                                    0
+                                                ],
+                                "rotation":  [
+                                                 30,
+                                                 225,
+                                                 0
+                                             ],
+                                "scale":  [
+                                              0.42,
+                                              0.42,
+                                              0.42
+                                          ]
+                            },
+                    "ground":  {
+                                   "translation":  [
+                                                       0,
+                                                       3,
+                                                       0
+                                                   ],
+                                   "rotation":  [
+                                                    0,
+                                                    0,
+                                                    0
+                                                ],
+                                   "scale":  [
+                                                 0.18,
+                                                 0.18,
+                                                 0.18
+                                             ]
+                               },
+                    "fixed":  {
+                                  "translation":  [
+                                                      0,
+                                                      0,
+                                                      0
+                                                  ],
+                                  "rotation":  [
+                                                   0,
+                                                   180,
+                                                   0
+                                               ],
+                                  "scale":  [
+                                                0.34,
+                                                0.34,
+                                                0.34
+                                            ]
+                              },
+                    "thirdperson_righthand":  {
+                                                  "translation":  [
+                                                                      0,
+                                                                      2.5,
+                                                                      0
+                                                                  ],
+                                                  "rotation":  [
+                                                                   75,
+                                                                   45,
+                                                                   0
+                                                               ],
+                                                  "scale":  [
+                                                                0.375,
+                                                                0.375,
+                                                                0.375
+                                                            ]
+                                              },
+                    "thirdperson_lefthand":  {
+                                                 "translation":  [
+                                                                     0,
+                                                                     2.5,
+                                                                     0
+                                                                 ],
+                                                 "rotation":  [
+                                                                  75,
+                                                                  45,
+                                                                  0
+                                                              ],
+                                                 "scale":  [
+                                                               0.375,
+                                                               0.375,
+                                                               0.375
+                                                           ]
+                                             },
+                    "firstperson_righthand":  {
+                                                  "translation":  [
+                                                                      0,
+                                                                      0,
+                                                                      0
+                                                                  ],
+                                                  "rotation":  [
+                                                                   0,
+                                                                   45,
+                                                                   0
+                                                               ],
+                                                  "scale":  [
+                                                                0.4,
+                                                                0.4,
+                                                                0.4
+                                                            ]
+                                              },
+                    "firstperson_lefthand":  {
+                                                 "translation":  [
+                                                                     0,
+                                                                     0,
+                                                                     0
+                                                                 ],
+                                                 "rotation":  [
+                                                                  0,
+                                                                  45,
+                                                                  0
+                                                              ],
+                                                 "scale":  [
+                                                               0.4,
+                                                               0.4,
+                                                               0.4
+                                                           ]
+                                             }
+                }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.water",
+  "ingredient": {
+    "item": "minecraft:snowball"
+  },
+  "output": {
+    "fluid": "water",
+    "amount": 125
+  }
+}

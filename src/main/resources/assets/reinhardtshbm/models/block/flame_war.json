@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/flame_war"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

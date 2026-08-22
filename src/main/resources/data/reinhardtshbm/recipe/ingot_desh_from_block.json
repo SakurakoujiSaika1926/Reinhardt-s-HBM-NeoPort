@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_desh"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_desh",
+                   "count":  9
+               }
+}

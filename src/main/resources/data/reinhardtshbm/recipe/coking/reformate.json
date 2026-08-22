@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.reformate",
+  "input": { "fluid": "reformate", "amount": 130 },
+  "output": { "id": "reinhardtshbm:coke", "components": { "minecraft:custom_data": { "variant": "petroleum" }, "minecraft:custom_model_data": 2 } },
+  "byproduct": { "fluid": "gas_coker", "amount": 13 }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/stairs",
+  "textures": {
+    "bottom": "reinhardtshbm:block/ducrete",
+    "top": "reinhardtshbm:block/ducrete",
+    "side": "reinhardtshbm:block/ducrete"
+  }
+}

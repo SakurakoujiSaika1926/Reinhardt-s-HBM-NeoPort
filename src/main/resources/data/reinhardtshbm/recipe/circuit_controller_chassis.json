@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "CBB",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:ingots/plastic"
+    },
+    "C": {
+      "item": "reinhardtshbm:crt_display"
+    },
+    "B": {
+      "item": "reinhardtshbm:circuit_pcb"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:circuit_controller_chassis"
+  }
+}

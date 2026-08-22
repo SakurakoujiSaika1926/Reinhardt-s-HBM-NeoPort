@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/missile_skin_camo"
+                 },
+    "parent":  "minecraft:item/generated"
+}

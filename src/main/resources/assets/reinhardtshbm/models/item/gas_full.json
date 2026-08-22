@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/gas_empty",
+    "layer1": "reinhardtshbm:item/gas_bottle",
+    "layer2": "reinhardtshbm:item/gas_label",
+    "layer3": "reinhardtshbm:item/gas_cap"
+  }
+}

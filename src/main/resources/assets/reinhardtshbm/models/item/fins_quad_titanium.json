@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/fins_quad_titanium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

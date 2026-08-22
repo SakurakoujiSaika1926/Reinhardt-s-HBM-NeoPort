@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/template_glass_pane_side_alt",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "pane": "reinhardtshbm:block/reinforced_glass_pane",
+    "edge": "reinhardtshbm:block/reinforced_glass_pane_edge"
+  }
+}

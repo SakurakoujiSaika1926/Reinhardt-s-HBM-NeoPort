@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/mold_ingots"
+                 },
+    "parent":  "minecraft:item/generated"
+}

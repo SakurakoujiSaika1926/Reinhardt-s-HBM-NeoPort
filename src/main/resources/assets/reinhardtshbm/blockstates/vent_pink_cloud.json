@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "active=false": { "model": "reinhardtshbm:block/vent_pink_cloud" },
+    "active=true": { "model": "reinhardtshbm:block/vent_pink_cloud" }
+  }
+}

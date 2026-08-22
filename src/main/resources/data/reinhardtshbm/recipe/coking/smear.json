@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.smear",
+  "input": { "fluid": "smear", "amount": 7900 },
+  "output": { "id": "reinhardtshbm:coke", "components": { "minecraft:custom_data": { "variant": "petroleum" }, "minecraft:custom_model_data": 2 } },
+  "byproduct": { "fluid": "oil_coker", "amount": 790 }
+}

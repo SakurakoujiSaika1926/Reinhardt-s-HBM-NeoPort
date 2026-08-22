@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["###", "###"],
+  "key": {"#": {"item": "reinhardtshbm:nugget_au198"}},
+  "result": {"id": "reinhardtshbm:billet_au198"}
+}

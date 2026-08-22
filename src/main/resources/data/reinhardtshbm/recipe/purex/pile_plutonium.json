@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:purex",
+  "group": "autoswitch.pile",
+  "duration": 40,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:pile_rod_plutonium"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "sulfuric_acid",
+      "amount": 100
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:billet_pu_mix",
+      "count": 2
+    },
+    {
+      "id": "reinhardtshbm:billet_uranium"
+    },
+    {
+      "id": "reinhardtshbm:plate_iron",
+      "count": 2
+    }
+  ]
+}

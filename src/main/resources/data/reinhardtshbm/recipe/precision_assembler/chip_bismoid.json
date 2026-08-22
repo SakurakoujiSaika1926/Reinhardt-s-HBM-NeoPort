@@ -1,0 +1,77 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.chip_bismoid",
+  "duration": 200,
+  "power": 1000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_silicon"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/polymer"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/bismoid"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7900,
+            "material": "gold"
+          }
+        }
+      },
+      "count": 4
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_chip_bismoid",
+        "count": 1
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:broken_item",
+        "count": 1,
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:circuit_chip_bismoid",
+            "item_count": 1
+          }
+        }
+      },
+      "weight": 25
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "blueprint_pools": [
+    "528.chip_bismoid"
+  ],
+  "input_fluids": [
+    {
+      "fluid": "perfluoromethyl",
+      "amount": 500
+    }
+  ]
+}

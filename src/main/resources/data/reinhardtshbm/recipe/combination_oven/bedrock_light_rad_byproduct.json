@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.bedrock",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "rad_byproduct",
+        "type": "light"
+      }
+    }
+  },
+  "output": {
+    "id": "reinhardtshbm:bedrock_ore_new",
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "rad_roasted",
+        "type": "light"
+      },
+      "minecraft:custom_model_data": 138
+    }
+  },
+  "fluid": {
+    "fluid": "vitriol",
+    "amount": 50
+  }
+}

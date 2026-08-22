@@ -1,0 +1,38 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.drilltcdiamond",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "count":  1,
+                            "ingredient":  {
+                                               "components":  {
+                                                                  "minecraft:custom_model_data":  6,
+                                                                  "minecraft:custom_data":  {
+                                                                                                "type":  "tcalloy"
+                                                                                            }
+                                                              },
+                                               "items":  [
+                                                             "reinhardtshbm:drillbit"
+                                                         ],
+                                               "type":  "neoforge:components"
+                                           }
+                        },
+                        {
+                            "count":  48,
+                            "ingredient":  {
+                                               "tag":  "c:dusts/diamond"
+                                           }
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:drillbit",
+                   "components":  {
+                                      "minecraft:custom_model_data":  7,
+                                      "minecraft:custom_data":  {
+                                                                    "type":  "tcalloy_diamond"
+                                                                }
+                                  }
+               }
+}

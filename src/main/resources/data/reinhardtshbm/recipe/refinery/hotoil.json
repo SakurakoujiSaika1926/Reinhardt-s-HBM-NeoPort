@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:refinery",
+  "group": "refinery.hotoil",
+  "input": { "fluid": "hotoil", "amount": 100 },
+  "outputs": [
+    { "fluid": "heavyoil", "amount": 50 },
+    { "fluid": "naphtha", "amount": 25 },
+    { "fluid": "lightoil", "amount": 15 },
+    { "fluid": "petroleum", "amount": 10 }
+  ],
+  "byproduct": { "id": "reinhardtshbm:sulfur" },
+  "byproduct_interval": 100,
+  "power": 5
+}

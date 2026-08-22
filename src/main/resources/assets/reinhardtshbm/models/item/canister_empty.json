@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/canister_empty"
+                 },
+    "parent":  "minecraft:item/generated"
+}

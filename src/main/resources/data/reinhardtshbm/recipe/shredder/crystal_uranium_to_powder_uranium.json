@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_uranium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_uranium",
+                   "count":  3
+               }
+}

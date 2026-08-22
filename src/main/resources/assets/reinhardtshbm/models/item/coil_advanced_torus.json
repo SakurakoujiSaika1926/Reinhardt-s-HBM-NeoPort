@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/coil_advanced_torus"
+                 },
+    "parent":  "minecraft:item/generated"
+}

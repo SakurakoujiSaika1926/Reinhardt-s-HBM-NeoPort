@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.naphtha_ds",
+  "input": { "fluid": "naphtha_ds", "amount": 100 },
+  "output1": { "fluid": "xylene", "amount": 60 },
+  "output2": { "fluid": "diesel_reform", "amount": 40 }
+}

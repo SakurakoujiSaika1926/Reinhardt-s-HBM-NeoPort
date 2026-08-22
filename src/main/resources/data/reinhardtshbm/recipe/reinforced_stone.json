@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "building",
+    "pattern":  [
+                    "FBF",
+                    "BFB",
+                    "FBF"
+                ],
+    "key":  {
+                "F":  {
+                          "item":  "minecraft:cobblestone"
+                      },
+                "B":  {
+                          "item":  "minecraft:stone"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:reinforced_stone",
+                   "count":  4
+               }
+}

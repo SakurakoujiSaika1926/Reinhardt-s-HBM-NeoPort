@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "R"
+  ],
+  "key": {
+    "R": {
+      "item": "reinhardtshbm:rbmk_blank"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:deco_rbmk",
+    "count": 8
+  }
+}

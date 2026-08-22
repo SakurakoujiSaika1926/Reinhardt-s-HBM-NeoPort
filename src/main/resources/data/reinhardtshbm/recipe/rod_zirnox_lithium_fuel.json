@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:rod_zirnox_empty" },
+    { "item": "reinhardtshbm:lithium" },
+    { "item": "reinhardtshbm:lithium" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_zirnox",
+    "components": {
+      "minecraft:custom_data": { "variant": "lithium_fuel" },
+      "minecraft:custom_model_data": 9
+    }
+  }
+}

@@ -1,0 +1,52 @@
+﻿{
+    "type":  "reinhardtshbm:electrolyzer_metal",
+    "group":  "electrolyzer_bedrock_ore",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "primary_first",
+                                                                        "type":  "nonmetal"
+                                                                    }
+                                      }
+                   },
+    "output1":  {
+                    "material":  "slag",
+                    "amount":  144
+                },
+    "duration":  20,
+    "byproducts":  [
+                       {
+                           "id":  "reinhardtshbm:bedrock_ore_fragment",
+                           "components":  {
+                                              "minecraft:custom_data":  {
+                                                                            "material_id":  600,
+                                                                            "material":  "coal"
+                                                                        }
+                                          },
+                           "count":  64
+                       },
+                       {
+                           "id":  "reinhardtshbm:bedrock_ore_fragment",
+                           "components":  {
+                                              "minecraft:custom_data":  {
+                                                                            "material_id":  1600,
+                                                                            "material":  "sulfur"
+                                                                        }
+                                          },
+                           "count":  36
+                       },
+                       {
+                           "id":  "reinhardtshbm:bedrock_ore_new",
+                           "components":  {
+                                              "minecraft:custom_data":  {
+                                                                            "grade":  "crumbs",
+                                                                            "type":  "nonmetal"
+                                                                        }
+                                          }
+                       }
+                   ]
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["CDN"],
+  "key": {
+    "C": { "item": "reinhardtshbm:circuit_analog" },
+    "D": { "item": "reinhardtshbm:ducttape" },
+    "N": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:ammo_standard"],
+      "components": {
+        "minecraft:custom_data": { "variant": "nuke_demo" },
+        "minecraft:custom_model_data": 20
+      }
+    }
+  },
+  "result": { "id": "reinhardtshbm:mine_fat" }
+}

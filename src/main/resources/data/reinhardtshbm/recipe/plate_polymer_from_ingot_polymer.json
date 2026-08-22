@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DD"
+  ],
+  "key": {
+    "D": {
+      "tag": "c:ingots/polymer"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:plate_polymer",
+    "count": 8
+  }
+}

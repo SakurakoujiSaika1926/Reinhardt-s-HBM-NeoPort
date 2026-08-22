@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/depth_nether_brick"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

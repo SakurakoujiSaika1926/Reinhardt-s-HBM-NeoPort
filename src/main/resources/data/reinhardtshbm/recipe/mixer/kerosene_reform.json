@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.kerosene_reform",
+    "output":  {
+                   "fluid":  "kerosene_reform",
+                   "amount":  1000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "kerosene",
+                   "amount":  900
+               },
+    "input2":  {
+                   "fluid":  "reformate",
+                   "amount":  100
+               }
+}

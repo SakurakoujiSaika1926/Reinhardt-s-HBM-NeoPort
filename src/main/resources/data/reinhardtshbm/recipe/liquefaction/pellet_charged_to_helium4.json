@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.helium4",
+  "ingredient": {
+    "item": "reinhardtshbm:pellet_charged"
+  },
+  "output": {
+    "fluid": "helium4",
+    "amount": 4000
+  }
+}

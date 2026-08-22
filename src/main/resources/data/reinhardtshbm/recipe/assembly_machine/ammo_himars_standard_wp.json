@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.himarssmallwp",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 24 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 24 },
+    { "ingredient": { "item": "reinhardtshbm:rocket_fuel" }, "count": 48 },
+    { "ingredient": { "tag": "c:ingots/phosphorus" }, "count": 18 },
+    { "ingredient": { "tag": "c:ingots/high_explosive" }, "count": 48 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 6 }
+  ],
+  "result": { "id": "reinhardtshbm:ammo_himars", "components": { "minecraft:custom_data": { "variant": "standard_wp" }, "minecraft:custom_model_data": 3 } }
+}

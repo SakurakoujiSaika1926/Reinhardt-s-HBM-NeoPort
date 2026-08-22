@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.himarssmallnuke",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 24 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 24 },
+    { "ingredient": { "item": "reinhardtshbm:rocket_fuel" }, "count": 48 },
+    { "ingredient": { "item": "reinhardtshbm:ball_tatb" }, "count": 6 },
+    { "ingredient": { "tag": "c:nuggets/pu239" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:neutron_reflector" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 6 }
+  ],
+  "result": { "id": "reinhardtshbm:ammo_himars", "components": { "minecraft:custom_data": { "variant": "standard_mini_nuke" }, "minecraft:custom_model_data": 6 } }
+}

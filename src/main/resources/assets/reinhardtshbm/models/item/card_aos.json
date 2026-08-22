@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/card_aos"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:schist_stratum",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

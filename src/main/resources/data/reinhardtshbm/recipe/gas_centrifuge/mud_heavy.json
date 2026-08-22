@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:gas_centrifuge",
+  "group": "gas_centrifuge",
+  "input": {
+    "fluid": "watz_heavy",
+    "amount": 500
+  },
+  "high_speed": false,
+  "results": [
+    {
+      "id": "reinhardtshbm:powder_iron"
+    },
+    {
+      "id": "reinhardtshbm:dust"
+    },
+    {
+      "id": "reinhardtshbm:nuclear_waste_tiny"
+    }
+  ]
+}

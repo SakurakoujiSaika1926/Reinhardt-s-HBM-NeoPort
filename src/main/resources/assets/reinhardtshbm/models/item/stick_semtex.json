@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/stick_semtex"
+                 },
+    "parent":  "minecraft:item/generated"
+}

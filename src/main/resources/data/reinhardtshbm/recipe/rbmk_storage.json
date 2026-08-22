@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "C",
+    "R",
+    "C"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:crate_steel"
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_blank"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_storage"
+  }
+}

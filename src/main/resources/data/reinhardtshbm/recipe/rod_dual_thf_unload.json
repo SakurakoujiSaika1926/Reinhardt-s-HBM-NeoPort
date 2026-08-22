@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:rod_dual"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "thf"
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:billet_thorium_fuel",
+    "count": 2
+  }
+}

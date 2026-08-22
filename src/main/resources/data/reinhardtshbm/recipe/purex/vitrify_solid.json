@@ -1,0 +1,25 @@
+{
+  "type": "reinhardtshbm:purex",
+  "duration": 300,
+  "power": 1000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:sand_lead"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:nuclear_waste"
+      },
+      "count": 4
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:nuclear_waste_vitrified",
+      "count": 4
+    }
+  ]
+}

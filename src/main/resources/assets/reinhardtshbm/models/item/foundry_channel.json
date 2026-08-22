@@ -1,0 +1,10 @@
+{
+  "parent": "reinhardtshbm:block/foundry_channel_cross",
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.76, 0.76, 0.76] },
+    "fixed": { "rotation": [0, 180, 0], "scale": [0.70, 0.70, 0.70] },
+    "ground": { "translation": [0, 3, 0], "scale": [0.36, 0.36, 0.36] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 2, 0], "scale": [0.44, 0.44, 0.44] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2, 0], "scale": [0.40, 0.40, 0.40] }
+  }
+}

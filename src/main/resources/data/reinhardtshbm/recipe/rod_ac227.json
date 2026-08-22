@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_actinium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "ac227"
+      },
+      "minecraft:custom_model_data": 16
+    }
+  }
+}

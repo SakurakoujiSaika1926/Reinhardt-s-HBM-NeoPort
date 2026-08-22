@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/bedrock_ore_new"
+                 },
+    "parent":  "minecraft:item/generated"
+}

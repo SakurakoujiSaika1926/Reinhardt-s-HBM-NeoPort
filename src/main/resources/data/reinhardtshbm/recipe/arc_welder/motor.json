@@ -1,0 +1,33 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.parts",
+    "duration":  100,
+    "consumption":  400,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:plates/steel"
+                                      },
+                       "count":  2
+                   },
+                   {
+                       "ingredient":  {
+                                          "type":  "neoforge:components",
+                                          "items":  [
+                                                        "reinhardtshbm:wire_dense"
+                                                    ],
+                                          "components":  {
+                                                             "minecraft:custom_data":  {
+                                                                                           "material_id":  31,
+                                                                                           "material":  "red_copper"
+                                                                                       }
+                                                         }
+                                      },
+                       "count":  2
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:motor",
+                   "count":  2
+               }
+}

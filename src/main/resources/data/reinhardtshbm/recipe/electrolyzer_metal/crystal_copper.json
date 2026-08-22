@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_copper"},"output1":{"material":"copper","amount":432},"output2":{"material":"lead","amount":32},"byproducts":[{"id":"reinhardtshbm:powder_lithium_tiny","count":3},{"id":"reinhardtshbm:sulfur","count":2}]}

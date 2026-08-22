@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" T ", "GHG", "CCC"],
+  "key": {
+    "T": { "tag": "c:ingots/high_explosive" },
+    "G": { "item": "reinhardtshbm:ballistite" },
+    "H": { "type": "neoforge:components", "items": ["reinhardtshbm:shell"], "components": { "minecraft:custom_data": { "material_id": 30, "material": "steel" } } },
+    "C": { "tag": "c:ingots/copper" }
+  },
+  "result": { "id": "reinhardtshbm:ammo_shell", "count": 4, "components": { "minecraft:custom_data": { "variant": "explosive" }, "minecraft:custom_model_data": 1 } }
+}

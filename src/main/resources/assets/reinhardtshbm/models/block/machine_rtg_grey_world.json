@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/machine_rtg_grey",
+  "visibility": {
+    "Gen": true
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.recycle",
+  "duration": 600,
+  "power": 250000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:broken_item"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:circuit_controller_quantum",
+            "item_count": 1
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_chip_quantum",
+        "count": 16
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_chip_bismoid",
+        "count": 48
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_atomic_clock",
+        "count": 8
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_controller_advanced",
+        "count": 2
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:upgrade_overdrive_1",
+        "count": 1
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:wire_fine",
+        "count": 32,
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "weight": 75
+    }
+  ],
+  "output_mode": "independent",
+  "expensive_output_weights": [
+    50,
+    50,
+    50,
+    50,
+    50,
+    50
+  ],
+  "output_fluids": [
+    {
+      "fluid": "perfluoromethyl_cold",
+      "amount": 4500
+    }
+  ]
+}

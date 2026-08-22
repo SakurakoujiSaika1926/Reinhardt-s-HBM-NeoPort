@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S S",
+    "S S",
+    "S S"
+  ],
+  "key": {
+    "S": {
+      "item": "reinhardtshbm:steel_beam"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rail_narrow",
+    "count": 64
+  }
+}

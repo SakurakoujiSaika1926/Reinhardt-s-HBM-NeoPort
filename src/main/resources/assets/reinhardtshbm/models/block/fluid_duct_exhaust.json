@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "reinhardtshbm:block/boxduct_exhaust_junction_0"
+  }
+}

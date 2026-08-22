@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:block/connector_red_super_world",
+  "display": {
+    "gui": {
+      "rotation": [30, 45, 0],
+      "translation": [8, 0, 8],
+      "scale": [0.72, 0.72, 0.72]
+    },
+    "ground": {
+      "translation": [8, 1, 8],
+      "scale": [0.38, 0.38, 0.38]
+    },
+    "fixed": {
+      "translation": [8, -1, 8],
+      "scale": [0.62, 0.62, 0.62]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [8, 1, 8],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [8, 1, 8],
+      "scale": [0.42, 0.42, 0.42]
+    }
+  }
+}

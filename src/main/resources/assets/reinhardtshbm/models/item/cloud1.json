@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/cloud1"
+                 },
+    "parent":  "minecraft:item/generated"
+}

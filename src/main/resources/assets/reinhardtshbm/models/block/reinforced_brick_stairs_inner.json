@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "reinhardtshbm:block/reinforced_brick",
+    "top": "reinhardtshbm:block/reinforced_brick",
+    "side": "reinhardtshbm:block/reinforced_brick"
+  }
+}

@@ -1,0 +1,71 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.gasturbine",
+    "duration":  400,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:shell"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  30,
+                                                                                                "material":  "steel"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  10
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:wire_dense"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  7900,
+                                                                                                "material":  "gold"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  12
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:pipes/dura_steel"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:pipes/steel"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:turbine_tungsten"
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/rubber"
+                                           },
+                            "count":  12
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:circuit_basic"
+                                           },
+                            "count":  3
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_turbine_gas"
+               }
+}

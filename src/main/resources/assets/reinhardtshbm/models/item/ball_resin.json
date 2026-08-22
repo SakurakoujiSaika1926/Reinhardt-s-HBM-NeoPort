@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ball_resin"
+                 },
+    "parent":  "minecraft:item/generated"
+}

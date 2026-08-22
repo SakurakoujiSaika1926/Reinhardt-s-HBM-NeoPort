@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:iron_ore",
+    "minecraft:deepslate_iron_ore",
+    "reinhardtshbm:cluster_iron",
+    "reinhardtshbm:cluster_depth_iron"
+  ]
+}

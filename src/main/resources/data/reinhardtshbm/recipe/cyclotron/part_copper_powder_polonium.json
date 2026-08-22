@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_copper"
+                 },
+    "input":  {
+                  "item":  "reinhardtshbm:powder_iodine"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_polonium"
+               },
+    "antimatter":  15
+}
+

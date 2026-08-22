@@ -1,0 +1,24 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.satellites",
+    "duration":  600,
+    "consumption":  50000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:sat_base"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:sat_head_resonator"
+                                      },
+                       "count":  1
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:sat_resonator",
+                   "count":  1
+               }
+}

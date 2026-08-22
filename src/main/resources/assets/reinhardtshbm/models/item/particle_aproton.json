@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/particle_aproton"
+                 },
+    "parent":  "minecraft:item/generated"
+}

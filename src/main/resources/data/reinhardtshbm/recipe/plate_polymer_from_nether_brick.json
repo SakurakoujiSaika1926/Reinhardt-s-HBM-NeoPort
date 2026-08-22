@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BB"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:nether_brick"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:plate_polymer",
+    "count": 4
+  }
+}

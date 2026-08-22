@@ -1,0 +1,8 @@
+{
+    "textures":  {
+                     "top": "reinhardtshbm:block/block_steel",
+                     "bottom": "reinhardtshbm:block/block_steel",
+                     "side": "reinhardtshbm:block/machine_siren"
+                 },
+    "parent":  "minecraft:block/cube_bottom_top"
+}

@@ -1,0 +1,58 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.recycle",
+  "duration": 100,
+  "power": 200,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:broken_item"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:circuit_chip",
+            "item_count": 1
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_silicon",
+        "count": 1
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:plate_polymer",
+        "count": 3
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:wire_fine",
+        "count": 4,
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7900,
+            "material": "gold"
+          }
+        }
+      },
+      "weight": 90
+    }
+  ],
+  "output_mode": "independent",
+  "expensive_output_weights": [
+    50,
+    50,
+    50
+  ]
+}

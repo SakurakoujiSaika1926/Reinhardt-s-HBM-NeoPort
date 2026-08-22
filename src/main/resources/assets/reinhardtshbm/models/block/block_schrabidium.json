@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/block_schrabidium"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

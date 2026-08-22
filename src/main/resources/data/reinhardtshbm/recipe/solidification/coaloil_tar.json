@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.coaloil",
+    "input":  {
+                  "fluid":  "coaloil",
+                  "amount":  200
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:oil_tar",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "coal"
+                                                                },
+                                      "minecraft:custom_model_data":  2
+                                  }
+               }
+}

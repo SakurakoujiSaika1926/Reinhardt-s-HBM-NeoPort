@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "I I",
+    "IPI"
+  ],
+  "key": {
+    "I": { "tag": "c:plates/steel" },
+    "P": { "tag": "c:ingots/steel" }
+  },
+  "result": {
+    "id": "reinhardtshbm:barrel_steel"
+  }
+}

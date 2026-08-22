@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.peroxide",
+  "duration": 50,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "water",
+      "amount": 1000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "peroxide",
+      "amount": 1000
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "reinhardtshbm:enable_528_mode"
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.gascent",
+    "blueprint_pools":  [
+                            "528.gascent"
+                        ],
+    "duration":  400,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:centrifuge_element"
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_welded"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  30,
+                                                                                                "material":  "steel"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:item_expensive"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "heavy_frame"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:item_expensive"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "circuit"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_gascent"
+               }
+}

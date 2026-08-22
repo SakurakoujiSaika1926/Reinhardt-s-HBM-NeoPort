@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:blasting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_coltan"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:fragment_coltan"
+               },
+    "experience":  20,
+    "cookingtime":  100
+}

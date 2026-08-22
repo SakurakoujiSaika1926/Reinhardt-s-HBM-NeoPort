@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "PMP",
+    "PTP"
+  ],
+  "key": {
+    "G": {
+      "item": "reinhardtshbm:steel_grate"
+    },
+    "P": {
+      "item": "reinhardtshbm:plate_steel"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor"
+    },
+    "T": {
+      "item": "reinhardtshbm:tank_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_intake"
+  }
+}

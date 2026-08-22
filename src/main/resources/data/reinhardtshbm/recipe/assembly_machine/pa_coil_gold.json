@@ -1,0 +1,47 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pagold",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7900,
+            "material": "gold"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7900,
+            "material": "gold"
+          }
+        }
+      },
+      "count": 64
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:pa_coil",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "gold"
+      },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ZCZ",
+    "ZRZ",
+    "ZCZ"
+  ],
+  "key": {
+    "C": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_blank"
+    },
+    "Z": {
+      "item": "reinhardtshbm:ingot_zirconium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_rod_reasim"
+  }
+}

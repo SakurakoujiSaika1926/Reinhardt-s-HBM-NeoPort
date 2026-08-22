@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:blasting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:raw_tungsten"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_tungsten"
+               },
+    "experience":  6,
+    "cookingtime":  100
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/med_bag"
+                 },
+    "parent":  "minecraft:item/generated"
+}

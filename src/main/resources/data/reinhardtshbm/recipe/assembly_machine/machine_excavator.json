@@ -1,0 +1,41 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.excavator",
+    "duration":  200,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "count":  8,
+                            "ingredient":  {
+                                               "item":  "minecraft:stone_bricks"
+                                           }
+                        },
+                        {
+                            "count":  8,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/steel"
+                                           }
+                        },
+                        {
+                            "count":  8,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/iron"
+                                           }
+                        },
+                        {
+                            "count":  2,
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor"
+                                           }
+                        },
+                        {
+                            "count":  1,
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:circuit_analog"
+                                           }
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_excavator"
+               }
+}

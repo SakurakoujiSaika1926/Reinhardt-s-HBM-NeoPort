@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:arc_furnace",
+  "group": "arc_furnace",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "sulfuric_roasted",
+        "type": "crystal"
+      }
+    }
+  },
+  "solid": {
+    "id": "reinhardtshbm:bedrock_ore_new",
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "sulfuric_arc",
+        "type": "crystal"
+      },
+      "minecraft:custom_model_data": 101
+    },
+    "count": 4
+  }
+}

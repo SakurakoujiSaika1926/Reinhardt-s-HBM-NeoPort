@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.coalgas",
+  "item_input": { "ingredient": { "item": "minecraft:coal" } },
+  "fluid_input": { "fluid": "heavyoil", "amount": 500 },
+  "fluid_output": { "fluid": "coalgas", "amount": 1000 },
+  "duration": 50
+}

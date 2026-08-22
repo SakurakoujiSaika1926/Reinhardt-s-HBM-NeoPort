@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.maxwell",
+  "blueprint_pools": ["528.bmg"],
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:battery_pack"], "components": { "minecraft:custom_data": { "variant": "capacitor_niobium" }, "minecraft:custom_model_data": 8 } }, "count": 1 },
+    { "ingredient": { "tag": "c:ingots/steel" }, "count": 24 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 2 },
+    { "ingredient": { "tag": "c:pipes/steel" }, "count": 4 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:part_mechanism"], "components": { "minecraft:custom_data": { "material_id": 34, "material": "saturnite" } } }, "count": 3 },
+    { "ingredient": { "item": "reinhardtshbm:magnetron" }, "count": 16 },
+    { "ingredient": { "tag": "c:ingots/resistant_alloy" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:crt_display" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:turret_maxwell" }
+}

@@ -1,0 +1,12 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/rbmk/rbmk_rods_lid.obj",
+  "mtl_override": "reinhardtshbm:models/obj/rbmk/rbmk_rods_blue.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:block/rbmk/rbmk_control_blue"
+  }
+}
+

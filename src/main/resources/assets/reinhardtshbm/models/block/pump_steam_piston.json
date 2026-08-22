@@ -1,0 +1,8 @@
+{
+  "parent": "reinhardtshbm:block/pump_steam_item",
+  "visibility": {
+    "Arms": false,
+    "Rotor": false,
+    "Base": false
+  }
+}

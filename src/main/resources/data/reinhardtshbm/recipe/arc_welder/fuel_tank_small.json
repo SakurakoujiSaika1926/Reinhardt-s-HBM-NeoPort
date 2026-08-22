@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missile_parts",
+    "duration":  60,
+    "consumption":  1000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:plates/aluminium"
+                                      },
+                       "count":  6
+                   },
+                   {
+                       "ingredient":  {
+                                          "tag":  "c:plates/copper"
+                                      },
+                       "count":  4
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:steel_scaffold"
+                                      },
+                       "count":  4
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:fuel_tank_small",
+                   "count":  1
+               }
+}

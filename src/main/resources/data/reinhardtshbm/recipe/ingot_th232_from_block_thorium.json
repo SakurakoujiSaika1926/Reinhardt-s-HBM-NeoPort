@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_thorium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_th232",
+                   "count":  9
+               }
+}

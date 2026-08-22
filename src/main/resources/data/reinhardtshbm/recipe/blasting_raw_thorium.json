@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:blasting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:raw_thorium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_th232"
+               },
+    "experience":  3,
+    "cookingtime":  100
+}

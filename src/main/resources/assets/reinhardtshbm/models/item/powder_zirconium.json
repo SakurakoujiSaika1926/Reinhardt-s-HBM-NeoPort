@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/powder_zirconium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

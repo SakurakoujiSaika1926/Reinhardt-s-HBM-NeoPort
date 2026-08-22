@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "BGB",
+    "BGB"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:plates/copper"
+    },
+    "B": {
+      "tag": "c:ingots/firebrick"
+    },
+    "G": {
+      "item": "reinhardtshbm:steel_grate"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_difurnace_ext"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:ammo_press",
+  "group": "ammo_press.nuke_hive",
+  "input": [
+    {}, { "ingredient": { "tag": "c:ingots/high_explosive" }, "count": 8 }, {},
+    {}, { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:shell"], "components": { "minecraft:custom_data": { "material_id": 50, "material": "weaponsteel" } } }, "count": 2 }, {},
+    {}, { "ingredient": { "item": "reinhardtshbm:plate_steel" }, "count": 4 }, {}
+  ],
+  "result": {
+    "id": "reinhardtshbm:ammo_standard",
+    "components": {
+      "minecraft:custom_data": { "variant": "nuke_hive" },
+      "minecraft:custom_model_data": 24
+    }
+  }
+}

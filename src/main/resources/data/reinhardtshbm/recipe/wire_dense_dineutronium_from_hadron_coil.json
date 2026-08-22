@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:hadron_coil_mese"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:wire_dense",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "material_id": 45,
+        "material": "dineutronium"
+      }
+    }
+  }
+}

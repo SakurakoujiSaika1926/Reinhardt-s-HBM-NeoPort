@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/can_creature"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    " IA",
+    "I  "
+  ],
+  "key": {
+    "A": {
+      "tag": "c:ingots/aluminium"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mirror_tool"
+  }
+}

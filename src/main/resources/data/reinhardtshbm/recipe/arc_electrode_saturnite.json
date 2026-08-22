@@ -1,0 +1,5 @@
+{
+  "type":"minecraft:crafting_shaped","category":"misc","pattern":["C","T","C"],
+  "key":{"C":{"tag":"c:ingots/saturnite"},"T":{"tag":"c:ingots/niobium"}},
+  "result":{"id":"reinhardtshbm:arc_electrode","components":{"minecraft:custom_data":{"variant":"saturnite"},"minecraft:custom_model_data":3}}
+}

@@ -1,0 +1,51 @@
+{
+    "type":  "reinhardtshbm:purex",
+    "group":  "autoswitch.pwr",
+    "duration":  100,
+    "power":  2500,
+    "input_items":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:pwr_fuel_depleted"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "heu233"
+                                                                                            },
+                                                                  "minecraft:custom_model_data":  1
+                                                              }
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "input_fluids":  [
+                         {
+                             "fluid":  "kerosene",
+                             "amount":  500
+                         },
+                         {
+                             "fluid":  "nitric_acid",
+                             "amount":  250
+                         }
+                     ],
+    "output_items":  [
+                         {
+                             "id":  "reinhardtshbm:nugget_u235",
+                             "count":  3
+                         },
+                         {
+                             "id":  "reinhardtshbm:nugget_pu238",
+                             "count":  3
+                         },
+                         {
+                             "id":  "reinhardtshbm:nugget_technetium",
+                             "count":  1
+                         },
+                         {
+                             "id":  "reinhardtshbm:nuclear_waste_tiny",
+                             "count":  5
+                         }
+                     ]
+}

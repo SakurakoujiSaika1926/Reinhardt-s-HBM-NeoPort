@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_tcalloy"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_tcalloy",
+                   "count":  9
+               }
+}

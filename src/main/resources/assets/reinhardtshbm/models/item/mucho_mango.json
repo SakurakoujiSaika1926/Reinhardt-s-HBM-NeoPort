@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/mucho_mango"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,12 @@
+{
+  "loader": "neoforge:composite",
+  "children": {
+    "bedrock": {
+      "parent": "reinhardtshbm:block/ore_volcano"
+    },
+    "molten": {
+      "parent": "reinhardtshbm:block/ore_volcano_overlay"
+    }
+  },
+  "item_render_order": ["bedrock", "molten"]
+}

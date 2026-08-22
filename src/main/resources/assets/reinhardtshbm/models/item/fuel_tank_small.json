@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/fuel_tank_small"
+                 },
+    "parent":  "minecraft:item/generated"
+}

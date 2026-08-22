@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/pink_planks"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

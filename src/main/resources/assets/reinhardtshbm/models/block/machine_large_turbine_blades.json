@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/machine_large_turbine",
+  "visibility": {
+    "Body": false,
+    "Glass_Glaass": false
+  }
+}

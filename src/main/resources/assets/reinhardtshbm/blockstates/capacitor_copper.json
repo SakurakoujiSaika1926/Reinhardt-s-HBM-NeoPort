@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "reinhardtshbm:block/capacitor_copper",
+      "x": 180
+    },
+    "facing=up": {
+      "model": "reinhardtshbm:block/capacitor_copper"
+    },
+    "facing=north": {
+      "model": "reinhardtshbm:block/capacitor_copper",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "reinhardtshbm:block/capacitor_copper",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "reinhardtshbm:block/capacitor_copper",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "reinhardtshbm:block/capacitor_copper",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

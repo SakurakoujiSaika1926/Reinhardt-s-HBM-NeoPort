@@ -1,0 +1,19 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "I",
+                    "P"
+                ],
+    "key":  {
+                "I":  {
+                          "tag":  "c:plates/polymer"
+                      },
+                "P":  {
+                          "tag":  "c:plates/copper"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:circuit_pcb"
+               }
+}

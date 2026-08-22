@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "reinhardtshbm:block/block_tungsten",
+    "front": "reinhardtshbm:block/fusion_hatch",
+    "side": "reinhardtshbm:block/fusion_heater_side"
+  }
+}

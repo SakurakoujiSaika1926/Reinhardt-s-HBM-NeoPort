@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "chem.shellchlorine",
+  "duration": 100,
+  "power": 1000,
+  "ingredients": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:ammo_arty"], "components": { "minecraft:custom_data": { "variant": "ammo_arty" }, "minecraft:custom_model_data": 0 } }, "count": 1 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 1 }
+  ],
+  "input_fluids": [
+    { "fluid": "chlorine", "amount": 4000 }
+  ],
+  "result": { "id": "reinhardtshbm:ammo_arty", "components": { "minecraft:custom_data": { "variant": "ammo_arty_chlorine" }, "minecraft:custom_model_data": 9 } }
+}

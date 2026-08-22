@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/neptunium_fuel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_neptunium_fuel"
+               }
+}

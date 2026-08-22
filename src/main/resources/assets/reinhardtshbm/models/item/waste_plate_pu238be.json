@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/waste_plate_pu238be"
+                 },
+    "parent":  "minecraft:item/generated"
+}

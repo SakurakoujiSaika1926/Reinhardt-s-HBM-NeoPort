@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/sat_gerald"
+                 },
+    "parent":  "minecraft:item/generated"
+}

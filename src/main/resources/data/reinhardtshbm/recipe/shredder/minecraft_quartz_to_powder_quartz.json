@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:quartz"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_quartz"
+               }
+}

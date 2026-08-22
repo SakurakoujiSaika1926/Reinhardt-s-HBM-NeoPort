@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/geiger"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

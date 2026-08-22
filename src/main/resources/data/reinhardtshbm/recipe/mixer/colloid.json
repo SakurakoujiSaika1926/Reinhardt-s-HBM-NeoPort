@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.colloid",
+    "output":  {
+                   "fluid":  "colloid",
+                   "amount":  500
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "water",
+                   "amount":  500
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "item":  "reinhardtshbm:dust"
+                                       },
+                        "count":  1
+                    }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/crt_display"
+                 },
+    "parent":  "minecraft:item/generated"
+}

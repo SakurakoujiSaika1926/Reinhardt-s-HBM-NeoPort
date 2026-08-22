@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:rod_zirnox_depleted"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "u235_fuel"
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:waste_u235",
+    "count": 2,
+    "components": {"minecraft:custom_data": {"spentFuelPoolCooling": true}}
+  }
+}

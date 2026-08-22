@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ore_gneiss_uranium"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

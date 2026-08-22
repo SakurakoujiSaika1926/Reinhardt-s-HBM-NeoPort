@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:block_slag"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:ingot_raw",
+    "count": 9,
+    "components": {
+      "minecraft:custom_data": {
+        "material_id": 41,
+        "material": "slag"
+      }
+    }
+  }
+}

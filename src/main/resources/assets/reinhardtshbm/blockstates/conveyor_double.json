@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north,curve=0": { "model": "reinhardtshbm:block/conveyor_double", "uvlock": true },
+    "facing=east,curve=0": { "model": "reinhardtshbm:block/conveyor_double", "y": 90, "uvlock": true },
+    "facing=south,curve=0": { "model": "reinhardtshbm:block/conveyor_double", "y": 180, "uvlock": true },
+    "facing=west,curve=0": { "model": "reinhardtshbm:block/conveyor_double", "y": 270, "uvlock": true },
+    "facing=north,curve=1": { "model": "reinhardtshbm:block/conveyor_double_curve_left", "uvlock": true },
+    "facing=east,curve=1": { "model": "reinhardtshbm:block/conveyor_double_curve_left", "y": 90, "uvlock": true },
+    "facing=south,curve=1": { "model": "reinhardtshbm:block/conveyor_double_curve_left", "y": 180, "uvlock": true },
+    "facing=west,curve=1": { "model": "reinhardtshbm:block/conveyor_double_curve_left", "y": 270, "uvlock": true },
+    "facing=north,curve=2": { "model": "reinhardtshbm:block/conveyor_double_curve_right", "uvlock": true },
+    "facing=east,curve=2": { "model": "reinhardtshbm:block/conveyor_double_curve_right", "y": 90, "uvlock": true },
+    "facing=south,curve=2": { "model": "reinhardtshbm:block/conveyor_double_curve_right", "y": 180, "uvlock": true },
+    "facing=west,curve=2": { "model": "reinhardtshbm:block/conveyor_double_curve_right", "y": 270, "uvlock": true }
+  }
+}

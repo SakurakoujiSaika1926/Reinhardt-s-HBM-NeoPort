@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/gun_b92_ammo"
+                 },
+    "parent":  "minecraft:item/generated"
+}

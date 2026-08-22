@@ -1,0 +1,14 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/conveyor_press.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/conveyor_press.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "Press": false,
+    "Piston": false,
+    "Belt": false
+  },
+  "textures": { "particle": "reinhardtshbm:models/machines/conveyor_press" }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:nugget_pu238"
+    },
+    {
+      "item": "reinhardtshbm:nugget_pu238"
+    },
+    {
+      "item": "reinhardtshbm:nugget_pu238"
+    },
+    {
+      "item": "reinhardtshbm:nugget_beryllium"
+    },
+    {
+      "item": "reinhardtshbm:nugget_beryllium"
+    },
+    {
+      "item": "reinhardtshbm:nugget_beryllium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:billet_pu238be"
+  }
+}

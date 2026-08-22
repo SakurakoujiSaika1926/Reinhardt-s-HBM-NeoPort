@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_coltan"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_coltan",
+                   "count":  2
+               }
+}

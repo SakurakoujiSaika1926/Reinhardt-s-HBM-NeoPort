@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.lightoil_vacuum",
+  "input": { "fluid": "lightoil_vacuum", "amount": 100 },
+  "output1": { "fluid": "kerosene", "amount": 70 },
+  "output2": { "fluid": "reformgas", "amount": 30 }
+}

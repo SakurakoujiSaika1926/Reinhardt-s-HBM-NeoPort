@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.sas3",
+  "duration": 200,
+  "power": 5000,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/schrabidium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/sulfur"
+      },
+      "count": 2
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "peroxide",
+      "amount": 2000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "sas3",
+      "amount": 1000
+    }
+  ]
+}

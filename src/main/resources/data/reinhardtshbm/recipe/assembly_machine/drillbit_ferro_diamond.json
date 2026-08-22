@@ -1,0 +1,38 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.drillferrodiamond",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "count":  1,
+                            "ingredient":  {
+                                               "components":  {
+                                                                  "minecraft:custom_model_data":  8,
+                                                                  "minecraft:custom_data":  {
+                                                                                                "type":  "ferro"
+                                                                                            }
+                                                              },
+                                               "items":  [
+                                                             "reinhardtshbm:drillbit"
+                                                         ],
+                                               "type":  "neoforge:components"
+                                           }
+                        },
+                        {
+                            "count":  56,
+                            "ingredient":  {
+                                               "tag":  "c:dusts/diamond"
+                                           }
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:drillbit",
+                   "components":  {
+                                      "minecraft:custom_model_data":  9,
+                                      "minecraft:custom_data":  {
+                                                                    "type":  "ferro_diamond"
+                                                                }
+                                  }
+               }
+}

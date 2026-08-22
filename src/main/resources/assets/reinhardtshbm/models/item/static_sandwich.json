@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/static_sandwich"
+                 },
+    "parent":  "minecraft:item/generated"
+}

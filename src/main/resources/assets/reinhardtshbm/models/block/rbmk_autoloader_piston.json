@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/rbmk_autoloader",
+  "visibility": {
+    "Piston": true,
+    "Base": false
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/ammo_shell"
+  },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/ammo_shell_explosive" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/ammo_shell_apfsds_t" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:item/ammo_shell_apfsds_du" },
+    { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:item/ammo_shell_w9" }
+  ]
+}

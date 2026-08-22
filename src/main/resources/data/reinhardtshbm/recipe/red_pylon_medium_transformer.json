@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:red_pylon_medium_wood" },
+    { "tag": "c:plates/polymer" },
+    { "item": "reinhardtshbm:coil_copper" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:red_pylon_medium_transformer",
+    "count": 1
+  }
+}

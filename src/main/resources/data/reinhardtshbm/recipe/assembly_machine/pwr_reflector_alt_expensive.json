@@ -1,0 +1,12 @@
+{
+  "neoforge:conditions": [{ "type": "reinhardtshbm:enable_528_mode" }],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pwrreflectoralt",
+  "duration": 200,
+  "power": 500,
+  "ingredients": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "steel_plating" } } }, "count": 1 },
+    { "ingredient": { "tag": "c:plates/weaponsteel" }, "count": 32 }
+  ],
+  "result": { "id": "reinhardtshbm:pwr_reflector", "count": 4 }
+}

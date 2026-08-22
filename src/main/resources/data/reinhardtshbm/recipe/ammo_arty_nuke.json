@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "type": "neoforge:components", "items": ["reinhardtshbm:ammo_arty"], "components": { "minecraft:custom_data": { "variant": "ammo_arty_he" }, "minecraft:custom_model_data": 2 } },
+    { "item": "reinhardtshbm:boy_bullet" },
+    { "item": "reinhardtshbm:boy_target" },
+    { "item": "reinhardtshbm:boy_shielding" },
+    { "item": "reinhardtshbm:circuit_controller" },
+    { "item": "reinhardtshbm:ducttape" }
+  ],
+  "result": { "id": "reinhardtshbm:ammo_arty", "components": { "minecraft:custom_data": { "variant": "ammo_arty_nuke" }, "minecraft:custom_model_data": 4 } }
+}

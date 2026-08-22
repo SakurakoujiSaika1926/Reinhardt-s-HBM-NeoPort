@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/machine_industrial_turbine",
+  "visibility": {
+    "Gauge": false,
+    "Flywheel": false
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/survey_scanner"
+                 },
+    "parent":  "minecraft:item/generated"
+}

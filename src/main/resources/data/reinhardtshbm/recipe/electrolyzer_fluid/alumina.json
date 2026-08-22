@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_fluid","input":{"fluid":"alumina","amount":200},"output1":{"fluid":"carbondioxide","amount":100},"output2":{"fluid":"none","amount":0},"duration":40,"byproducts":[{"id":"reinhardtshbm:powder_aluminium","count":7},{"id":"reinhardtshbm:fluorite","count":2}]}

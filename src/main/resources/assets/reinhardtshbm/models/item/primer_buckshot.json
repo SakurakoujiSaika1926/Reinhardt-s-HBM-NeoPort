@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/primer_buckshot"
+                 },
+    "parent":  "minecraft:item/generated"
+}

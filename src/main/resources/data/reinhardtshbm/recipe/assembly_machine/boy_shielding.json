@@ -1,0 +1,23 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.boyshield",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:neutron_reflector"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:boy_shielding"
+  }
+}

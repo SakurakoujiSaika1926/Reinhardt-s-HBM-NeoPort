@@ -1,0 +1,17 @@
+{
+  "parent": "reinhardtshbm:block/oil_spill",
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 6, 16],
+      "faces": {
+        "down": { "texture": "#layer", "cullface": "down" },
+        "up": { "texture": "#layer" },
+        "north": { "texture": "#layer" },
+        "south": { "texture": "#layer" },
+        "west": { "texture": "#layer" },
+        "east": { "texture": "#layer" }
+      }
+    }
+  ]
+}

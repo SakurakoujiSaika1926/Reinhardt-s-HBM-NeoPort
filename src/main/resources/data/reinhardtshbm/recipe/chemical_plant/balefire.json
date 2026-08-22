@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.balefire",
+  "duration": 100,
+  "power": 10000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:egg_balefire_shard"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "kerosene",
+      "amount": 6000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:powder_balefire"
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "balefire",
+      "amount": 8000
+    }
+  ]
+}

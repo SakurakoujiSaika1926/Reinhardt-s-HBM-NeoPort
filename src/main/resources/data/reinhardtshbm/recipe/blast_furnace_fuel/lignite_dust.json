@@ -1,0 +1,5 @@
+{
+  "type": "reinhardtshbm:blast_furnace_fuel",
+  "ingredient": { "tag": "c:dusts/lignite" },
+  "power": 150
+}

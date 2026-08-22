@@ -1,0 +1,36 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.laminate",
+  "duration": 20,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:glass_blocks"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:bolts/steel"
+      },
+      "count": 4
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "xylene",
+      "amount": 50
+    },
+    {
+      "fluid": "phosgene",
+      "amount": 50
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:reinforced_laminate"
+    }
+  ],
+  "output_fluids": []
+}

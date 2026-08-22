@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/wand_logic", "y": 180 },
+    "facing=south": { "model": "reinhardtshbm:block/wand_logic" },
+    "facing=west": { "model": "reinhardtshbm:block/wand_logic", "y": 90 },
+    "facing=east": { "model": "reinhardtshbm:block/wand_logic", "y": 270 }
+  }
+}

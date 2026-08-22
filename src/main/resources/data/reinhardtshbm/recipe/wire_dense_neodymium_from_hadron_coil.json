@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:hadron_coil_neodymium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:wire_dense",
+    "count": 4,
+    "components": {
+      "minecraft:custom_data": {
+        "material_id": 6000,
+        "material": "neodymium"
+      }
+    }
+  }
+}

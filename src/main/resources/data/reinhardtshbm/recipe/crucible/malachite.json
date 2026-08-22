@@ -1,0 +1,28 @@
+﻿{
+    "type":  "reinhardtshbm:crucible",
+    "group":  "crucible.malachite",
+    "frequency":  6,
+    "icon":  {
+                 "id":  "reinhardtshbm:ingot_copper"
+             },
+    "input":  [
+                  {
+                      "material":  "malachite",
+                      "amount":  144
+                  },
+                  {
+                      "material":  "flux",
+                      "amount":  16
+                  }
+              ],
+    "output":  [
+                   {
+                       "material":  "copper",
+                       "amount":  72
+                   },
+                   {
+                       "material":  "slag",
+                       "amount":  24
+                   }
+               ]
+}

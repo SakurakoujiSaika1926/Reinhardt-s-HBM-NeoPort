@@ -1,0 +1,9 @@
+{
+    "ambientocclusion": false,
+    "render_type": "minecraft:cutout",
+    "parent": "block/fence_post",
+    "textures": {
+        "texture": "reinhardtshbm:block/fence_metal_post",
+        "particle": "reinhardtshbm:block/fence_metal_post"
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "multipart": [
+    { "apply": { "model": "reinhardtshbm:block/fluid_duct_neo_center" } },
+    { "when": { "north": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_neo_arm" } },
+    { "when": { "south": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_neo_arm", "y": 180 } },
+    { "when": { "east": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_neo_arm", "y": 90 } },
+    { "when": { "west": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_neo_arm", "y": 270 } },
+    { "when": { "up": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_neo_arm", "x": 270 } },
+    { "when": { "down": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_neo_arm", "x": 90 } }
+  ]
+}

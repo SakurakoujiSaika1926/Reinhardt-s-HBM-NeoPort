@@ -1,0 +1,27 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.fullerene",
+    "output":  {
+                   "fluid":  "fullerene",
+                   "amount":  250
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "radiosolvent",
+                   "amount":  500
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "type":  "neoforge:components",
+                                           "items":  [
+                                                         "reinhardtshbm:powder_ash"
+                                                     ],
+                                           "components":  {
+                                                              "minecraft:custom_data":  {
+                                                                                            "variant":  "soot"
+                                                                                        }
+                                                          }
+                                       },
+                        "count":  1
+                    }
+}

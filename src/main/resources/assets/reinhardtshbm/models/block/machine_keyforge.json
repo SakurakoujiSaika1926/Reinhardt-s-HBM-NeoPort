@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "reinhardtshbm:block/machine_keyforge_side",
+    "down": "reinhardtshbm:block/machine_keyforge_bottom",
+    "up": "reinhardtshbm:block/machine_keyforge_top",
+    "north": "reinhardtshbm:block/machine_keyforge_side",
+    "south": "reinhardtshbm:block/machine_keyforge_side",
+    "west": "reinhardtshbm:block/machine_keyforge_side",
+    "east": "reinhardtshbm:block/machine_keyforge_side"
+  }
+}

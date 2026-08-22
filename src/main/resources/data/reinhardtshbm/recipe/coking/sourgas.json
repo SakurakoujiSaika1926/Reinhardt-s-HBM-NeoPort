@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.sourgas",
+  "input": { "fluid": "sourgas", "amount": 1000 },
+  "output": { "id": "reinhardtshbm:sulfur" },
+  "byproduct": { "fluid": "gas_coker", "amount": 150 }
+}

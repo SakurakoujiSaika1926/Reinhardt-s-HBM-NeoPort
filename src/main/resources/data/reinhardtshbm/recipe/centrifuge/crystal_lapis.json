@@ -1,0 +1,25 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_lapis"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_lapis",
+                        "count":  4
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_lapis",
+                        "count":  4
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_cobalt"
+                    },
+                    {
+                        "id":  "reinhardtshbm:gem_sodalite",
+                        "count":  2
+                    }
+                ]
+}

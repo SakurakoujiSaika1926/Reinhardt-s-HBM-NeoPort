@@ -1,0 +1,12 @@
+﻿{
+    "type":  "minecraft:smelting",
+    "category":  "blocks",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:sand_boron"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:glass_boron"
+               },
+    "experience":  0.25,
+    "cookingtime":  200
+}

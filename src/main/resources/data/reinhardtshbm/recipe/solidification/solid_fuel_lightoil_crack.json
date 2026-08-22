@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.lightoil_crack",
+    "input":  {
+                  "fluid":  "lightoil_crack",
+                  "amount":  1900
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

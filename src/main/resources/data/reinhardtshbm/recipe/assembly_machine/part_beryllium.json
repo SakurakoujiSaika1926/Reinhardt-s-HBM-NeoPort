@@ -1,0 +1,18 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "part_beryllium",
+    "duration":  40,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:dusts/beryllium"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:part_beryllium",
+                   "count":  8
+               }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/battery_sc_americium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

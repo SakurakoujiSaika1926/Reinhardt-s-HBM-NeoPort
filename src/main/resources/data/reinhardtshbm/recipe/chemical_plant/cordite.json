@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.cordite",
+  "duration": 40,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/niter"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_sawdust"
+      },
+      "count": 2
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "gas",
+      "amount": 200
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:cordite",
+      "count": 4
+    }
+  ],
+  "output_fluids": []
+}

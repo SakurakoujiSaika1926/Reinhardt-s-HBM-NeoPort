@@ -1,0 +1,8 @@
+{
+    "ambientocclusion":  false,
+    "render_type":  "minecraft:cutout",
+    "textures":  {
+                     "all":  "reinhardtshbm:block/fence_metal"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

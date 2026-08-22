@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPL",
+    " MD",
+    " SC"
+  ],
+  "key": {
+    "P": { "tag": "c:plates/steel" },
+    "L": { "type": "neoforge:components", "items": ["reinhardtshbm:part_mechanism"], "components": { "minecraft:custom_data": { "material_id": 49, "material": "gunmetal" } } },
+    "M": { "item": "reinhardtshbm:motor" },
+    "D": { "item": "reinhardtshbm:crt_display" },
+    "S": { "item": "reinhardtshbm:steel_scaffold" },
+    "C": { "item": "reinhardtshbm:circuit_basic" }
+  },
+  "result": { "id": "reinhardtshbm:turret_sentry" }
+}

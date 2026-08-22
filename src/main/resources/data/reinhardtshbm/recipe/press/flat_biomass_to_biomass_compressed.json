@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:press",
+    "group":  "press.flat",
+    "stamp":  "flat",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:biomass"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:biomass_compressed"
+               }
+}

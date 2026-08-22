@@ -1,0 +1,47 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.coltancleaning",
+  "duration": 60,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/coltan"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/coal"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "peroxide",
+      "amount": 250
+    },
+    {
+      "fluid": "hydrogen",
+      "amount": 500
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:powder_coltan"
+    },
+    {
+      "id": "reinhardtshbm:powder_niobium"
+    },
+    {
+      "id": "reinhardtshbm:dust"
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "water",
+      "amount": 500
+    }
+  ]
+}

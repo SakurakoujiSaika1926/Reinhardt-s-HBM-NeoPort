@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "SS"
+  ],
+  "key": {
+    "S": {
+      "item": "reinhardtshbm:steel_grate_wide"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:steel_grate"
+  }
+}

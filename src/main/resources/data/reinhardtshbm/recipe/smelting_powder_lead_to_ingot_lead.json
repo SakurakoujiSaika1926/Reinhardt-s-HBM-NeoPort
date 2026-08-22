@@ -1,0 +1,12 @@
+{
+    "type":  "minecraft:smelting",
+    "category":  "misc",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:powder_lead"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_lead"
+               },
+    "experience":  1,
+    "cookingtime":  200
+}

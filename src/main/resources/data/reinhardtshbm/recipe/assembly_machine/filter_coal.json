@@ -1,0 +1,29 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.filtercoal",
+  "duration": 50,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_coal"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:string"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:paper"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:filter_coal"
+  }
+}

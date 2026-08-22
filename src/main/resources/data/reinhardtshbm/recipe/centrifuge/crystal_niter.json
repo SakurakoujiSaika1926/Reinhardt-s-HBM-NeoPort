@@ -1,0 +1,25 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_niter"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:niter",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:niter",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:niter",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_lithium_tiny"
+                    }
+                ]
+}

@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:crystal_phosphorus"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_fire",
+                   "count":  8
+               }
+}

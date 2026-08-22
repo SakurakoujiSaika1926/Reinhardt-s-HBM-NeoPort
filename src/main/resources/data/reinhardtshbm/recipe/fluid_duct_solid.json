@@ -1,0 +1,24 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "SAS",
+                    "ADA",
+                    "SAS"
+                ],
+    "key":  {
+                "S":  {
+                          "tag":  "c:ingots/steel"
+                      },
+                "A":  {
+                          "tag":  "c:plates/aluminium"
+                      },
+                "D":  {
+                          "item":  "reinhardtshbm:ducttape"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:fluid_duct_solid",
+                   "count":  8
+               }
+}

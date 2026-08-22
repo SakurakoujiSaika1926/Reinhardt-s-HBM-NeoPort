@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/machine_pyrooven",
+  "visibility": {
+    "Oven": true
+  }
+}

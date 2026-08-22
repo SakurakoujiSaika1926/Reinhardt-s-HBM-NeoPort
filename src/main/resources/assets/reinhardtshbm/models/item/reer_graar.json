@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/reer_graar"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ore_beryllium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_beryllium",
+                   "count":  2
+               }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.biogas",
+  "duration": 60,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:biomass"
+      },
+      "count": 16
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "air",
+      "amount": 4000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "biogas",
+      "amount": 2000
+    }
+  ]
+}

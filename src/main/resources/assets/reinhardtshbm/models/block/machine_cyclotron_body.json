@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/machine_cyclotron",
+  "visibility": {
+    "B1": false,
+    "B2": false,
+    "B3": false,
+    "B4": false
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/u233"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:nugget_u233",
+                   "count":  9
+               }
+}

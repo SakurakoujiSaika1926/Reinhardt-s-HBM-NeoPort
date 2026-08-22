@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:compressor",
+    "group":  "compressor.petroleum",
+    "input":  {
+                  "fluid":  "petroleum",
+                  "amount":  2000,
+                  "pressure":  1
+              },
+    "output":  {
+                   "fluid":  "lpg",
+                   "amount":  1000,
+                   "pressure":  0
+               },
+    "duration":  20
+}

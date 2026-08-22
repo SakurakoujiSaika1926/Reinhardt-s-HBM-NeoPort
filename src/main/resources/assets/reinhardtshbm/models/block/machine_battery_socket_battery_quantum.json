@@ -1,0 +1,1 @@
+{"loader":"neoforge:obj","model":"reinhardtshbm:models/obj/machines/battery_socket.obj","mtl_override":"reinhardtshbm:models/obj/machines/battery_socket_battery_quantum.mtl","automatic_culling":false,"shade_quads":true,"flip_v":true,"textures":{"particle":"reinhardtshbm:block/battery_quantum"},"visibility":{"Socket":false,"Supports":false,"Capacitor":false}}

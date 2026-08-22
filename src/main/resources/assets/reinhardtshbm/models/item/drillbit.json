@@ -1,0 +1,68 @@
+{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/drillbit_base"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  0
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_steel"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_steel_diamond"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_hss"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_hss_diamond"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  4
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_desh"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  5
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_desh_diamond"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  6
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_tcalloy"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  7
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_tcalloy_diamond"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  8
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_ferro"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  9
+                                        },
+                          "model":  "reinhardtshbm:item/drillbit_ferro_diamond"
+                      }
+                  ]
+}

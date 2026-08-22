@@ -1,0 +1,20 @@
+newmtl maxwell
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/maxwell
+
+newmtl connector
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/connector
+
+newmtl carriage_ciws
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/carriage_ciws
+
+newmtl base
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/base
+

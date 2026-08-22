@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ingot_cerium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

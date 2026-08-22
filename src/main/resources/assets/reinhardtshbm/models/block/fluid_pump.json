@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "reinhardtshbm:block/fluid_duct_solid_o",
+    "side": "reinhardtshbm:block/machine_fluidtank",
+    "top": "reinhardtshbm:block/fluid_duct_solid"
+  }
+}

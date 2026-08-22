@@ -1,0 +1,35 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.drilldura",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "count":  12,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/dura_steel"
+                                           }
+                        },
+                        {
+                            "count":  12,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/plastic"
+                                           }
+                        },
+                        {
+                            "count":  8,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/titanium"
+                                           }
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:drillbit",
+                   "components":  {
+                                      "minecraft:custom_model_data":  2,
+                                      "minecraft:custom_data":  {
+                                                                    "type":  "hss"
+                                                                }
+                                  }
+               }
+}

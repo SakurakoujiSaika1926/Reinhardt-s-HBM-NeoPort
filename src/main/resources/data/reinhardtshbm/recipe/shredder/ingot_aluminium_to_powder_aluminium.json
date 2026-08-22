@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ingot_aluminium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_aluminium"
+               }
+}

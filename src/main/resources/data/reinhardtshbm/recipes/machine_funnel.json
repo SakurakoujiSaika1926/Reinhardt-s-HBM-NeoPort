@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S S",
+    "SRS",
+    " S "
+  ],
+  "key": {
+    "S": { "item": "reinhardtshbm:ingot_steel" },
+    "R": { "item": "minecraft:redstone" }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_funnel",
+    "count": 1
+  }
+}

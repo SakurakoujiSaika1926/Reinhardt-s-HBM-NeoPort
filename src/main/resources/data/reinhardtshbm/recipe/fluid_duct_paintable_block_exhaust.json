@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "SAS",
+                    "A A",
+                    "SAS"
+                ],
+    "key":  {
+                "S":  {
+                          "tag":  "c:ingots/iron"
+                      },
+                "A":  {
+                          "tag":  "c:plates/polymer"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:fluid_duct_paintable_block_exhaust",
+                   "count":  8
+               }
+}

@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,lit=false": { "model": "reinhardtshbm:block/empty" },
+    "facing=north,lit=true": { "model": "reinhardtshbm:block/empty" },
+    "facing=east,lit=false": { "model": "reinhardtshbm:block/empty" },
+    "facing=east,lit=true": { "model": "reinhardtshbm:block/empty" },
+    "facing=south,lit=false": { "model": "reinhardtshbm:block/empty" },
+    "facing=south,lit=true": { "model": "reinhardtshbm:block/empty" },
+    "facing=west,lit=false": { "model": "reinhardtshbm:block/empty" },
+    "facing=west,lit=true": { "model": "reinhardtshbm:block/empty" }
+  }
+}

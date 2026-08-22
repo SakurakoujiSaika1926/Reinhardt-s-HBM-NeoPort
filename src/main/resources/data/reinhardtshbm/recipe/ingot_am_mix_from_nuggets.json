@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/am_mix"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_am_mix"
+               }
+}

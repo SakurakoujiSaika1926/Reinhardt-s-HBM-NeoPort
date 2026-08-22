@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/ladder",
+  "textures": {
+    "particle": "reinhardtshbm:block/ladder_titanium",
+    "texture": "reinhardtshbm:block/ladder_titanium"
+  }
+}

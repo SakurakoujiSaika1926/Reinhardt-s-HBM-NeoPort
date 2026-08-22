@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ore_nether_tungsten"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

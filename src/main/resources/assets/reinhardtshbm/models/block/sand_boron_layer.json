@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/thin_block",
+  "textures": {
+    "particle": "reinhardtshbm:block/sand_boron",
+    "texture": "reinhardtshbm:block/sand_boron"
+  }
+}

@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_tantalium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_tantalium",
+                   "count":  9
+               }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/fusion_core"
+                 },
+    "parent":  "minecraft:item/generated"
+}

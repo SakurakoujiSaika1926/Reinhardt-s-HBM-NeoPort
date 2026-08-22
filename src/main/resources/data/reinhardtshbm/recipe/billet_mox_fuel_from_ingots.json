@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:ingot_mox_fuel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:billet_mox_fuel",
+    "count": 3
+  }
+}

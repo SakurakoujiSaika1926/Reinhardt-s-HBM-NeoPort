@@ -1,0 +1,30 @@
+﻿{
+    "type":  "reinhardtshbm:arc_welder",
+    "group":  "arc_welder.missiles",
+    "duration":  300,
+    "consumption":  25000,
+    "inputs":  [
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:warhead_incendiary_large"
+                                      },
+                       "count":  1
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:fuel_tank_medium"
+                                      },
+                       "count":  2
+                   },
+                   {
+                       "ingredient":  {
+                                          "item":  "reinhardtshbm:thruster_medium"
+                                      },
+                       "count":  4
+                   }
+               ],
+    "result":  {
+                   "id":  "reinhardtshbm:missile_inferno",
+                   "count":  1
+               }
+}

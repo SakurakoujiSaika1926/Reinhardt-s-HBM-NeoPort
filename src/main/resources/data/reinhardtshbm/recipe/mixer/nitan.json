@@ -1,0 +1,23 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.nitan",
+    "output":  {
+                   "fluid":  "nitan",
+                   "amount":  1000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "kerosene",
+                   "amount":  600
+               },
+    "input2":  {
+                   "fluid":  "mercury",
+                   "amount":  200
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "item":  "reinhardtshbm:powder_nitan_mix"
+                                       },
+                        "count":  1
+                    }
+}

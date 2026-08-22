@@ -1,0 +1,42 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.blueprints",
+  "duration": 6000,
+  "power": 20000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "minecraft:paper"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/blue"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:pufferfish"
+      },
+      "count": 4
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:blueprint_folder",
+        "count": 1
+      },
+      "weight": 10
+    },
+    {
+      "result": {
+        "id": "minecraft:paper",
+        "count": 16
+      },
+      "weight": 90
+    }
+  ]
+}

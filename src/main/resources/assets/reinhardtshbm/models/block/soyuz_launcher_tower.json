@@ -1,0 +1,13 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/launch/soyuz_launcher_tower.obj",
+  "mtl_override": "reinhardtshbm:models/obj/launch/soyuz_launcher_tower.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/soyuz_launcher/launcher_tower",
+    "texture": "reinhardtshbm:models/soyuz_launcher/launcher_tower"
+  }
+}

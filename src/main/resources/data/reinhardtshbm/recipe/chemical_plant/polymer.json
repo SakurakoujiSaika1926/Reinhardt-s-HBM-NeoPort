@@ -1,0 +1,33 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.polymer",
+  "duration": 100,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/coal"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/fluorite"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "petroleum",
+      "amount": 500,
+      "pressure": 1
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ingot_polymer"
+    }
+  ],
+  "output_fluids": []
+}

@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer",
+  "ingredient": { "tag": "c:ores/copper" },
+  "acid": { "fluid": "peroxide", "amount": 500 },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:crystal_copper" }
+}

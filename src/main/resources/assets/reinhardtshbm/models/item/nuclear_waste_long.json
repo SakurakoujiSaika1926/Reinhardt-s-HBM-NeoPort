@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/nuclear_waste_long"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.calcium_solution",
+  "input": { "fluid": "calcium_solution", "amount": 125 },
+  "output": { "id": "reinhardtshbm:powder_calcium" },
+  "byproduct": { "fluid": "spentsteam", "amount": 100 }
+}

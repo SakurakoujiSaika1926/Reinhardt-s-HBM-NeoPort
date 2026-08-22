@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/powder_i131_tiny"
+                 },
+    "parent":  "minecraft:item/generated"
+}

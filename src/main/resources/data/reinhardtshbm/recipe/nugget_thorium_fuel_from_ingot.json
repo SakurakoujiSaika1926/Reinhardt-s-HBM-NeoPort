@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/thorium_fuel"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:nugget_thorium_fuel",
+                   "count":  9
+               }
+}

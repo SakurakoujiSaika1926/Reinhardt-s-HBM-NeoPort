@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.sodium",
+    "input":  {
+                  "fluid":  "sodium",
+                  "amount":  100
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_sodium"
+               }
+}

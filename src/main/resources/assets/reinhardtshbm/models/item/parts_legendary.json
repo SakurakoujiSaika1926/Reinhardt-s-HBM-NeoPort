@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/parts_legendary"
+                 },
+    "parent":  "minecraft:item/generated"
+}

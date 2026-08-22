@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/gravel_obsidian"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

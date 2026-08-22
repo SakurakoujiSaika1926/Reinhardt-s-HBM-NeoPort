@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/australium_iii"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/safety_fuse"
+                 },
+    "parent":  "minecraft:item/generated"
+}

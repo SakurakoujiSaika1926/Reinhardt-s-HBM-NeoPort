@@ -1,0 +1,28 @@
+﻿{
+    "neoforge:conditions":  [
+                                 {
+                                     "type":  "reinhardtshbm:enable_infinite_water_tank_recipes"
+                                 }
+                             ],
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "AAA",
+                    "WDW",
+                    "AAA"
+                ],
+    "key":  {
+                "A":  {
+                          "tag":  "c:plates/aluminium"
+                      },
+                "D":  {
+                          "item":  "minecraft:diamond"
+                      },
+                "W":  {
+                          "item":  "minecraft:water_bucket"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:inf_water"
+               }
+}

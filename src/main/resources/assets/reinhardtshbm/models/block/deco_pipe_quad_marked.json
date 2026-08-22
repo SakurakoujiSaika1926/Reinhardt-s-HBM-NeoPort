@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/building/pipe_quad_marked.obj",
+  "mtl_override": "reinhardtshbm:models/obj/building/pipe_framed.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": false,
+  "textures": {
+    "particle": "reinhardtshbm:block/pipe_top"
+  }
+}

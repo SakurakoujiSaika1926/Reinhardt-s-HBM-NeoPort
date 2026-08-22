@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:item/deco_toaster_iron",
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/deco_toaster_steel" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/deco_toaster_wood" }
+  ]
+}

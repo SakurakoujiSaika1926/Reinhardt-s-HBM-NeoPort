@@ -1,0 +1,53 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "reinhardtshbm:enable_528_mode"
+                                              }
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.fusioncollector",
+    "duration":  300,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_cast"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  43,
+                                                                                                "material":  "cdalloy"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/steel"
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/graphite"
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/hard_plastic"
+                                           },
+                            "count":  4
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:fusion_collector"
+               }
+}
+

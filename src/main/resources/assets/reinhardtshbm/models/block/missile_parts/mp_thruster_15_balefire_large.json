@@ -1,0 +1,9 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/missile_parts/mp_thruster_15_balefire_large.obj",
+  "mtl_override": "reinhardtshbm:models/obj/missile_parts/mp_thruster_15_balefire_large.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/missile_parts/thrusters/mp_t_15_balefire_large" }
+}

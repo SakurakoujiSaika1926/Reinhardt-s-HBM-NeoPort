@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "STS",
+    " D "
+  ],
+  "key": {
+    "S": {
+      "tag": "c:plates/steel"
+    },
+    "T": {
+      "tag": "c:ingots/tungsten"
+    },
+    "D": {
+      "tag": "c:bolts/dura_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:piston_selenium"
+  }
+}

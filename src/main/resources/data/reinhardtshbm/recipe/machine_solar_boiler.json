@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SHS",
+    "DHD",
+    "SHS"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:ingots/steel"
+    },
+    "H": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "D": {
+      "tag": "c:dyes/black"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:machine_solar_boiler"
+  }
+}

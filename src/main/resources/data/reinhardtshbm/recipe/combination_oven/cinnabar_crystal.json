@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.cinnabar",
+  "input": {
+    "tag": "c:crystals/cinnabar"
+  },
+  "output": {
+    "id": "reinhardtshbm:sulfur"
+  },
+  "fluid": {
+    "fluid": "mercury",
+    "amount": 100
+  }
+}

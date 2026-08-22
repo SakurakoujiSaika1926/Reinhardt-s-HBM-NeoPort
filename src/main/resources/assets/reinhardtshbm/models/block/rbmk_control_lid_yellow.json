@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/rbmk_control_lid",
+  "textures": {
+    "lid": "reinhardtshbm:block/rbmk/rbmk_control_yellow"
+  }
+}

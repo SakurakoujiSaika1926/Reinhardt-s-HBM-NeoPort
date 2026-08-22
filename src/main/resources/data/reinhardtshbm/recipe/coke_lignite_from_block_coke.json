@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:block_coke"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "type": "lignite"
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:coke",
+    "count": 9,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "lignite"
+      },
+      "minecraft:custom_model_data": 1
+    }
+  }
+}

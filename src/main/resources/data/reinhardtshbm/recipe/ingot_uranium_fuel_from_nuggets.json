@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/uranium_fuel"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_uranium_fuel"
+               }
+}

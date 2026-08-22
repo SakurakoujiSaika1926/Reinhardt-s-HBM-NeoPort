@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "I I",
+    "IPI"
+  ],
+  "key": {
+    "I": { "tag": "c:ingots/tcalloy" },
+    "P": { "tag": "c:plates/titanium" }
+  },
+  "result": {
+    "id": "reinhardtshbm:barrel_tcalloy"
+  }
+}

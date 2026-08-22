@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.redcopper",
+  "frequency": 2,
+  "icon": {
+    "id": "reinhardtshbm:ingot_red_copper"
+  },
+  "input": [
+    {
+      "material": "copper",
+      "amount": 8
+    },
+    {
+      "material": "redstone",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "red_copper",
+      "amount": 16
+    }
+  ]
+}

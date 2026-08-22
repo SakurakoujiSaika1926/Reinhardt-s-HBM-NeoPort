@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "B  ",
+    "BB ",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:cmb_brick_reinforced"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:cmb_brick_reinforced_stairs",
+    "count": 8
+  }
+}

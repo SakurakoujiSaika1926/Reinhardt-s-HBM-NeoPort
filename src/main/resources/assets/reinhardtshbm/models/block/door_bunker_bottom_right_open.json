@@ -1,0 +1,7 @@
+{
+    "textures":  {
+                     "top":  "reinhardtshbm:block/door_bunker_upper",
+                     "bottom":  "reinhardtshbm:block/door_bunker_lower"
+                 },
+    "parent":  "minecraft:block/door_bottom_right_open"
+}

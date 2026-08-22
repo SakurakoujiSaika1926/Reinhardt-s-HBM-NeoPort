@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:ore_oil_sand",
+    "reinhardtshbm:sand_quartz",
+    "reinhardtshbm:sand_boron",
+    "reinhardtshbm:sand_lead",
+    "reinhardtshbm:sand_uranium",
+    "reinhardtshbm:sand_polonium"
+  ]
+}

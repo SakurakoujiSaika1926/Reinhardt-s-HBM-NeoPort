@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "reinhardtshbm:block/wand_loot",
+    "down": "reinhardtshbm:block/wand_loot_top",
+    "up": "reinhardtshbm:block/wand_loot_top",
+    "north": "reinhardtshbm:block/wand_loot",
+    "south": "reinhardtshbm:block/wand_loot",
+    "west": "reinhardtshbm:block/wand_loot",
+    "east": "reinhardtshbm:block/wand_loot"
+  }
+}

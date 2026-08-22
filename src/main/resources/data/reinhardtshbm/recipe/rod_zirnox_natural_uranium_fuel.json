@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:rod_zirnox_empty" },
+    { "item": "reinhardtshbm:billet_uranium" },
+    { "item": "reinhardtshbm:billet_uranium" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_zirnox",
+    "components": {
+      "minecraft:custom_data": { "variant": "natural_uranium_fuel" },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

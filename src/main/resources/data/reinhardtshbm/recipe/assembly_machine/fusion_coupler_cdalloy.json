@@ -1,0 +1,62 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "reinhardtshbm:enable_528_mode"
+                                              }
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.fusioncoupler",
+    "duration":  300,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_welded"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  43,
+                                                                                                "material":  "cdalloy"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/copper"
+                                           },
+                            "count":  32
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:wire_dense"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  48,
+                                                                                                "material":  "bscco"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:circuit_bismoid"
+                                           },
+                            "count":  4
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:fusion_coupler"
+               }
+}
+

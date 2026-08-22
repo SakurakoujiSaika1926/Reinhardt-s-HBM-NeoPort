@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.petroil",
+    "output":  {
+                   "fluid":  "petroil",
+                   "amount":  1000
+               },
+    "duration":  30,
+    "input1":  {
+                   "fluid":  "reclaimed",
+                   "amount":  800
+               },
+    "input2":  {
+                   "fluid":  "lubricant",
+                   "amount":  200
+               }
+}

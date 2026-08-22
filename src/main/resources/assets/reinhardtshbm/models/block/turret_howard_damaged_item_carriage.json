@@ -1,0 +1,18 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/turrets/turret_howard.obj",
+  "mtl_override": "reinhardtshbm:models/obj/turrets/turret_howard_item_rusted.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "visibility": {
+    "Body": false,
+    "BarrelsTop": false,
+    "Carriage": true,
+    "BarrelsBottom": false
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/turrets/rusted/carriage_ciws"
+  }
+}

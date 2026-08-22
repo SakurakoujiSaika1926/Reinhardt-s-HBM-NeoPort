@@ -1,0 +1,32 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.bscco",
+  "frequency": 3,
+  "icon": {
+    "id": "reinhardtshbm:ingot_bscco"
+  },
+  "input": [
+    {
+      "material": "bismuth",
+      "amount": 16
+    },
+    {
+      "material": "strontium",
+      "amount": 16
+    },
+    {
+      "material": "calcium",
+      "amount": 16
+    },
+    {
+      "material": "copper",
+      "amount": 24
+    }
+  ],
+  "output": [
+    {
+      "material": "bscco",
+      "amount": 72
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.chip_quantum",
+  "duration": 300,
+  "power": 20000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_silicon"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 48,
+            "material": "bscco"
+          }
+        }
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hardplastic"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:pellet_charged"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7900,
+            "material": "gold"
+          }
+        }
+      },
+      "count": 8
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_chip_quantum",
+        "count": 1
+      },
+      "weight": 90
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:broken_item",
+        "count": 1,
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:circuit_chip_quantum",
+            "item_count": 1
+          }
+        }
+      },
+      "weight": 10
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "blueprint_pools": [
+    "528.chip_quantum"
+  ],
+  "input_fluids": [
+    {
+      "fluid": "helium4",
+      "amount": 250
+    }
+  ]
+}

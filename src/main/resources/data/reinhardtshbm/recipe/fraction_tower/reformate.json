@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.reformate",
+  "input": { "fluid": "reformate", "amount": 100 },
+  "output1": { "fluid": "aromatics", "amount": 40 },
+  "output2": { "fluid": "xylene", "amount": 60 }
+}

@@ -1,0 +1,10 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_top_piped",
+  "textures": {
+    "end": "reinhardtshbm:block/rbmk/rbmk_control_top",
+    "side": "reinhardtshbm:block/rbmk/rbmk_control_side",
+    "lid": "reinhardtshbm:block/rbmk/rbmk_control",
+    "pipe_top": "reinhardtshbm:block/rbmk/rbmk_control_pipe_top",
+    "pipe_side": "reinhardtshbm:block/rbmk/rbmk_control_pipe_side"
+  }
+}

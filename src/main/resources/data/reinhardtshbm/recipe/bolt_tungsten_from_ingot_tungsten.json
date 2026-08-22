@@ -1,0 +1,17 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "#",
+                    "#"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:ingots/tungsten"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:bolt_tungsten",
+                   "count":  16
+               }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/drax_mk3"
+                 },
+    "parent":  "minecraft:item/generated"
+}

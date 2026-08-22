@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:coil_advanced_torus"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_advanced_alloy",
+                   "count":  2
+               }
+}

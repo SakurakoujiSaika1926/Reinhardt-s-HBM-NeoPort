@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/ingot_u238m2"
+                 },
+    "parent":  "minecraft:item/generated"
+}

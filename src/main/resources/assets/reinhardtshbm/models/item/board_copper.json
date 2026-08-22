@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/board_copper"
+                 },
+    "parent":  "minecraft:item/generated"
+}

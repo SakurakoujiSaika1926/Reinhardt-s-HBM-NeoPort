@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/pwr_neutron_source"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

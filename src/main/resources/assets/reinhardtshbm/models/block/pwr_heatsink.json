@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/pwr_heatsink"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

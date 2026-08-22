@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down": { "model": "reinhardtshbm:block/wand_jigsaw", "x": 90 },
+    "facing=up": { "model": "reinhardtshbm:block/wand_jigsaw", "x": 270 },
+    "facing=north": { "model": "reinhardtshbm:block/wand_jigsaw", "y": 180 },
+    "facing=south": { "model": "reinhardtshbm:block/wand_jigsaw" },
+    "facing=west": { "model": "reinhardtshbm:block/wand_jigsaw", "y": 90 },
+    "facing=east": { "model": "reinhardtshbm:block/wand_jigsaw", "y": 270 }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "R",
+    "C",
+    "B"
+  ],
+  "key": {
+    "R": {
+      "item": "reinhardtshbm:radio_torch_receiver"
+    },
+    "B": {
+      "item": "reinhardtshbm:rbmk_display_blank"
+    },
+    "C": {
+      "item": "reinhardtshbm:coil_tungsten"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_indicator"
+  }
+}

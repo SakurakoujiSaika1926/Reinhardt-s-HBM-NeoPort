@@ -1,0 +1,33 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "WRW",
+                    "RIR",
+                    "WRW"
+                ],
+    "key":  {
+                "W":  {
+                          "tag":  "c:plates/polymer"
+                      },
+                "R":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:wire_fine"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  31,
+                                                                           "material":  "red_copper"
+                                                                       }
+                                         }
+                      },
+                "I":  {
+                          "tag":  "c:ingots/red_copper"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:red_wire_coated",
+                   "count":  16
+               }
+}

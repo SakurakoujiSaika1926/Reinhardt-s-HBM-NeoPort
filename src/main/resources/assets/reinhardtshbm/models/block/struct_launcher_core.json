@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/struct_launcher_core"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

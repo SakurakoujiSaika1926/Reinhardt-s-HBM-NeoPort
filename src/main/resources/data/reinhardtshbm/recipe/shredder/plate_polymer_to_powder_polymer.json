@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:plate_polymer"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_polymer"
+               }
+}

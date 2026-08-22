@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.diesel_crack",
+    "input":  {
+                  "fluid":  "diesel_crack",
+                  "amount":  3400
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

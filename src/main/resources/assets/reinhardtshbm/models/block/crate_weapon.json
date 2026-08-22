@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/crate_weapon"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

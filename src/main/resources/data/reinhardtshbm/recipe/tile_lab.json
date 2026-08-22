@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CBC",
+    "CBC",
+    "CBC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:brick"
+    },
+    "B": {
+      "tag": "c:ingots/asbestos"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:tile_lab",
+    "count": 4
+  }
+}

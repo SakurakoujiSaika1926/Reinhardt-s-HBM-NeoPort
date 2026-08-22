@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:radiation",
+    "reinhardtshbm:digamma",
+    "reinhardtshbm:meteorite",
+    "reinhardtshbm:shrapnel",
+    "reinhardtshbm:sedna_physical",
+    "reinhardtshbm:sedna_explosive",
+    "reinhardtshbm:electricity",
+    "reinhardtshbm:microwave",
+    "reinhardtshbm:death",
+    "reinhardtshbm:cloud"
+  ]
+}

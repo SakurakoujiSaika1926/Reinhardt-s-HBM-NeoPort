@@ -1,0 +1,39 @@
+{
+  "type": "reinhardtshbm:purex",
+  "group": "autoswitch.zirnox",
+  "duration": 100,
+  "power": 1000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:waste_u233"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "kerosene",
+      "amount": 500
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 250
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:nugget_u235"
+    },
+    {
+      "id": "reinhardtshbm:nugget_neptunium"
+    },
+    {
+      "id": "reinhardtshbm:nugget_technetium"
+    },
+    {
+      "id": "reinhardtshbm:nuclear_waste_tiny",
+      "count": 3
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.drillduradiamond",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "count":  1,
+                            "ingredient":  {
+                                               "components":  {
+                                                                  "minecraft:custom_model_data":  2,
+                                                                  "minecraft:custom_data":  {
+                                                                                                "type":  "hss"
+                                                                                            }
+                                                              },
+                                               "items":  [
+                                                             "reinhardtshbm:drillbit"
+                                                         ],
+                                               "type":  "neoforge:components"
+                                           }
+                        },
+                        {
+                            "count":  24,
+                            "ingredient":  {
+                                               "tag":  "c:dusts/diamond"
+                                           }
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:drillbit",
+                   "components":  {
+                                      "minecraft:custom_model_data":  3,
+                                      "minecraft:custom_data":  {
+                                                                    "type":  "hss_diamond"
+                                                                }
+                                  }
+               }
+}

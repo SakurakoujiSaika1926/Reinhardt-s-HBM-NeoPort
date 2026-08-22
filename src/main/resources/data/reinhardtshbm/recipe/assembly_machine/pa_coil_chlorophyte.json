@@ -1,0 +1,53 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pachlorophyte",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_chlorophyte"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:pa_coil",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "chlorophyte"
+      },
+      "minecraft:custom_model_data": 3
+    }
+  }
+}

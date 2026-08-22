@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/charge_semtex"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

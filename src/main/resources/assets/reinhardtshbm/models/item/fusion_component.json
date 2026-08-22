@@ -1,0 +1,8 @@
+{
+  "parent": "reinhardtshbm:block/fusion_component",
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:block/fusion_component_bscco_welded" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:block/fusion_component_blanket" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:block/fusion_component_motor" }
+  ]
+}

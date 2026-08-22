@@ -1,0 +1,62 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fracker",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:pipes/steel"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:concrete_smooth"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:drill_titanium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/desh"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_fracking_tower"
+  }
+}

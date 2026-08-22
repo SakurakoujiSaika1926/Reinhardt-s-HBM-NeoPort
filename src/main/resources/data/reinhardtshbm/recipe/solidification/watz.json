@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.watz",
+    "input":  {
+                  "fluid":  "watz",
+                  "amount":  1000
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:ingot_mud"
+               }
+}

@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_top_glass_lid",
+  "textures": {
+    "end": "reinhardtshbm:block/rbmk/rbmk_reflector_top",
+    "side": "reinhardtshbm:block/rbmk/rbmk_reflector_side",
+    "glass_top": "reinhardtshbm:block/rbmk/rbmk_reflector_glass_top",
+    "glass_side": "reinhardtshbm:block/rbmk/rbmk_reflector_glass_side"
+  }
+}

@@ -1,0 +1,15 @@
+﻿{
+    "type":  "reinhardtshbm:cyclotron",
+    "group":  "cyclotron",
+    "particle":  {
+                     "item":  "reinhardtshbm:part_copper"
+                 },
+    "input":  {
+                  "tag":  "c:dusts/gold"
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:powder_uranium"
+               },
+    "antimatter":  15
+}
+

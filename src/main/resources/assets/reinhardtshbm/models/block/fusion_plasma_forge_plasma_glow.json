@@ -1,0 +1,27 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/fusion/plasma_forge.obj",
+  "mtl_override": "reinhardtshbm:models/obj/fusion/plasma_glow.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": true,
+  "visibility": {
+    "SliderStriker": false,
+    "ArmLowerStriker": false,
+    "ArmUpperStriker": false,
+    "StrikerMount": false,
+    "StrikerLeft": false,
+    "StrikerRight": false,
+    "PistonLeft": false,
+    "PistonRight": false,
+    "SliderJet": false,
+    "ArmLowerJet": false,
+    "ArmUpperJet": false,
+    "Jet": false,
+    "Body": false
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/fusion/plasma_glow"
+  }
+}

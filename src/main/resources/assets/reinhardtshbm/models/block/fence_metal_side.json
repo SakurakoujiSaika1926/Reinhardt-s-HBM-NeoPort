@@ -1,0 +1,8 @@
+{
+    "ambientocclusion": false,
+    "render_type": "minecraft:cutout",
+    "parent": "reinhardtshbm:block/fence_flat_side",
+    "textures": {
+        "texture": "reinhardtshbm:block/fence_metal"
+    }
+}

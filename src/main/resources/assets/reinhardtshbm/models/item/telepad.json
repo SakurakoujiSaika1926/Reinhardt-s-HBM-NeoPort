@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/telepad"
+                 },
+    "parent":  "minecraft:item/generated"
+}

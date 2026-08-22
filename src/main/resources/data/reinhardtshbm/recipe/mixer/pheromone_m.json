@@ -1,0 +1,23 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.pheromone_m",
+    "output":  {
+                   "fluid":  "pheromone_m",
+                   "amount":  2000
+               },
+    "duration":  10,
+    "input1":  {
+                   "fluid":  "pheromone",
+                   "amount":  1500
+               },
+    "input2":  {
+                   "fluid":  "blood",
+                   "amount":  500
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "item":  "reinhardtshbm:pill_herbal"
+                                       },
+                        "count":  1
+                    }
+}

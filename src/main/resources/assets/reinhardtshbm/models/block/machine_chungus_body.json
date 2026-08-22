@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/machine_chungus",
+  "visibility": {
+    "Lever": false,
+    "Blades": false
+  }
+}

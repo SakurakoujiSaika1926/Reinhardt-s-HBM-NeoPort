@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/bombs/landmine/ap_mine.obj",
+  "mtl_override": "reinhardtshbm:models/obj/bombs/landmine/mine_ap_stone.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": { "particle": "reinhardtshbm:models/bombs/mine_ap_stone" }
+}

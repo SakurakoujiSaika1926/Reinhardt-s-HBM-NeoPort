@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "tag": "c:ores/iron" },
+  "input_b": { "tag": "c:dusts/flux" },
+  "result": { "id": "reinhardtshbm:ingot_steel", "count": 3 }
+}

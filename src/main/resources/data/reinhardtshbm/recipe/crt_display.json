@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "SGS",
+    " T "
+  ],
+  "key": {
+    "A": {
+      "tag": "c:dusts/aluminium"
+    },
+    "S": {
+      "tag": "c:plates/steel"
+    },
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "T": {
+      "item": "reinhardtshbm:circuit_vacuum_tube"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:crt_display",
+    "count": 4
+  }
+}

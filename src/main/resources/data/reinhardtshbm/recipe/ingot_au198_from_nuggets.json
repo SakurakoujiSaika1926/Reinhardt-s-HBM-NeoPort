@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/au198"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_au198"
+               }
+}

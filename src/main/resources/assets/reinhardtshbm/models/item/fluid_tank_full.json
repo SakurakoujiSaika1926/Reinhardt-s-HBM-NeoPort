@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/fluid_tank",
+    "layer1": "reinhardtshbm:item/fluid_tank_overlay"
+  }
+}

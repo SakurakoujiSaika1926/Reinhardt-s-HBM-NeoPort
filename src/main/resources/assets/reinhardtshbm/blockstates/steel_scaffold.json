@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "orient=horizontal_north_south": { "model": "reinhardtshbm:block/steel_scaffold" },
+    "orient=horizontal_east_west": { "model": "reinhardtshbm:block/steel_scaffold" },
+    "orient=vertical_north_south": { "model": "reinhardtshbm:block/steel_scaffold" },
+    "orient=vertical_east_west": { "model": "reinhardtshbm:block/steel_scaffold" }
+  }
+}

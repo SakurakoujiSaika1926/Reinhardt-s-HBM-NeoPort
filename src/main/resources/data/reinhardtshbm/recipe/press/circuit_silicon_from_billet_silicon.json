@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:press",
+    "group":  "press.circuit",
+    "stamp":  "circuit",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:billet_silicon"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:circuit_silicon"
+               }
+}

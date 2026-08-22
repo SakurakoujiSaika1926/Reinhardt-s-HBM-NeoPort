@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y,aluminium=false,active=false": { "model": "reinhardtshbm:block/block_graphite_source" },
+    "axis=x,aluminium=false,active=false": { "model": "reinhardtshbm:block/block_graphite_source", "z": 90, "uvlock": true },
+    "axis=z,aluminium=false,active=false": { "model": "reinhardtshbm:block/block_graphite_source", "x": 90, "uvlock": true },
+    "axis=y,aluminium=true,active=false": { "model": "reinhardtshbm:block/block_graphite_source_aluminum" },
+    "axis=x,aluminium=true,active=false": { "model": "reinhardtshbm:block/block_graphite_source_aluminum", "z": 90, "uvlock": true },
+    "axis=z,aluminium=true,active=false": { "model": "reinhardtshbm:block/block_graphite_source_aluminum", "x": 90, "uvlock": true },
+    "axis=y,aluminium=false,active=true": { "model": "reinhardtshbm:block/block_graphite_source" },
+    "axis=x,aluminium=false,active=true": { "model": "reinhardtshbm:block/block_graphite_source", "z": 90, "uvlock": true },
+    "axis=z,aluminium=false,active=true": { "model": "reinhardtshbm:block/block_graphite_source", "x": 90, "uvlock": true },
+    "axis=y,aluminium=true,active=true": { "model": "reinhardtshbm:block/block_graphite_source_aluminum" },
+    "axis=x,aluminium=true,active=true": { "model": "reinhardtshbm:block/block_graphite_source_aluminum", "z": 90, "uvlock": true },
+    "axis=z,aluminium=true,active=true": { "model": "reinhardtshbm:block/block_graphite_source_aluminum", "x": 90, "uvlock": true }
+  }
+}

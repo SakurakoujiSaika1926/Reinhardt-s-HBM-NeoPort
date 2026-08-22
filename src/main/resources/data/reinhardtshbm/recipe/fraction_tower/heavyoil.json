@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.heavyoil",
+  "input": { "fluid": "heavyoil", "amount": 100 },
+  "output1": { "fluid": "bitumen", "amount": 30 },
+  "output2": { "fluid": "smear", "amount": 70 }
+}

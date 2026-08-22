@@ -1,0 +1,48 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "reinhardtshbm:enable_528_mode"
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.pumpjack",
+    "duration":  400,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:item_expensive"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "variant":  "heavy_frame"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:pipes/steel"
+                                           },
+                            "count":  12
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:motor_desh"
+                                           },
+                            "count":  3
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:drill_titanium"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:machine_pumpjack"
+               }
+}

@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:pyrolysis",
+  "group": "pyrolysis.syngas",
+  "item_input": { "ingredient": { "tag": "c:gems/coke" } },
+  "fluid_input": { "fluid": "steam", "amount": 250 },
+  "fluid_output": { "fluid": "syngas", "amount": 1000 },
+  "duration": 100
+}

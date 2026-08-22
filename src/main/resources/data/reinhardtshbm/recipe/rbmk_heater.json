@@ -1,0 +1,43 @@
+﻿{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CIC",
+    "PRP",
+    "CIC"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:pipes/copper"
+    },
+    "P": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "R": {
+      "item": "reinhardtshbm:rbmk_blank"
+    },
+    "I": {
+      "tag": "c:ingots/plastic"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rbmk_heater"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.batterysodium",
+  "duration": 100,
+  "power": 10000,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/sodium"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/iron"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 12
+    }
+  ],
+  "input_fluids": [],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:battery_pack",
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "battery_sodium"
+        },
+        "minecraft:custom_model_data": 3
+      }
+    }
+  ],
+  "output_fluids": []
+}

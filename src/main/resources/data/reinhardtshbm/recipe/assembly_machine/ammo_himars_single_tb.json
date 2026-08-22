@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.himarslargetb",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 24 },
+    { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:rocket_fuel" }, "count": 36 },
+    { "ingredient": { "item": "reinhardtshbm:ball_tatb" }, "count": 24 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fluid_tank_full"], "components": { "minecraft:custom_data": { "fluid": "kerosene_reform" } } }, "count": 16 },
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:fluid_tank_full"], "components": { "minecraft:custom_data": { "fluid": "peroxide" } } }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:ammo_himars", "components": { "minecraft:custom_data": { "variant": "single_tb" }, "minecraft:custom_model_data": 5 } }
+}

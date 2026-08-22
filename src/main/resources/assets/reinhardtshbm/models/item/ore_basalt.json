@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/ore_basalt_sulfur",
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:block/ore_basalt_fluorite" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:block/ore_basalt_asbestos" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:block/ore_basalt_gem" },
+    { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:block/ore_basalt_molysite" }
+  ]
+}

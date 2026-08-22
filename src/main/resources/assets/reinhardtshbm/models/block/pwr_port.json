@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/pwr_port"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

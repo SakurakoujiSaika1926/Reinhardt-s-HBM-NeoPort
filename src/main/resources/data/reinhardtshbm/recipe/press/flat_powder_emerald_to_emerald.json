@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:press",
+    "group":  "press.flat",
+    "stamp":  "flat",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:powder_emerald"
+                   },
+    "result":  {
+                   "id":  "minecraft:emerald"
+               }
+}

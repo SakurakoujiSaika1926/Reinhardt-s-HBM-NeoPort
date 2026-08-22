@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/hand_drill_desh"
+                 },
+    "parent":  "minecraft:item/generated"
+}

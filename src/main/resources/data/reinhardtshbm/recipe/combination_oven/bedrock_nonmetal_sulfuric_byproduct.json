@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.bedrock",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "sulfuric_byproduct",
+        "type": "nonmetal"
+      }
+    }
+  },
+  "output": {
+    "id": "reinhardtshbm:bedrock_ore_new",
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "sulfuric_roasted",
+        "type": "nonmetal"
+      },
+      "minecraft:custom_model_data": 94
+    }
+  },
+  "fluid": {
+    "fluid": "vitriol",
+    "amount": 50
+  }
+}

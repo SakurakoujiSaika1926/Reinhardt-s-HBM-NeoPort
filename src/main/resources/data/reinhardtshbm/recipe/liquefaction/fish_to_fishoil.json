@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.fishoil",
+  "ingredient": {
+    "tag": "minecraft:fishes"
+  },
+  "output": {
+    "fluid": "fishoil",
+    "amount": 100
+  }
+}

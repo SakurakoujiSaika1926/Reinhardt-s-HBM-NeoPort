@@ -1,0 +1,13 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "tag": "c:ingots/advanced_alloy"
+    }
+  ],
+  "results": [
+    {
+      "id": "reinhardtshbm:plate_advanced_alloy"
+    }
+  ]
+}

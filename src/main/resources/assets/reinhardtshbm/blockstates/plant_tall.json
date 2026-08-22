@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "meta=0": { "model": "reinhardtshbm:block/plant_tall_weed_lower" },
+    "meta=1": { "model": "reinhardtshbm:block/plant_tall_cd2_lower" },
+    "meta=2": { "model": "reinhardtshbm:block/plant_tall_cd3_lower" },
+    "meta=3": { "model": "reinhardtshbm:block/plant_tall_cd4_lower" },
+    "meta=4": { "model": "reinhardtshbm:block/plant_tall_cd4_lower" },
+    "meta=5": { "model": "reinhardtshbm:block/plant_tall_cd4_lower" },
+    "meta=6": { "model": "reinhardtshbm:block/plant_tall_cd4_lower" },
+    "meta=7": { "model": "reinhardtshbm:block/plant_tall_cd4_lower" },
+    "meta=8": { "model": "reinhardtshbm:block/plant_tall_weed_upper" },
+    "meta=9": { "model": "reinhardtshbm:block/plant_tall_cd2_upper" },
+    "meta=10": { "model": "reinhardtshbm:block/plant_tall_cd3_upper" },
+    "meta=11": { "model": "reinhardtshbm:block/plant_tall_cd4_upper" }
+  }
+}

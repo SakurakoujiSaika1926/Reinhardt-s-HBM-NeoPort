@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:ingot_schrabidium"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_schrabidium"
+               }
+}

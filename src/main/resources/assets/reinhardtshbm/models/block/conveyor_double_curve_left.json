@@ -1,0 +1,1 @@
+{ "parent": "reinhardtshbm:block/conveyor_curve_base", "textures": { "belt": "reinhardtshbm:block/conveyor_double_curve_left", "side": "reinhardtshbm:block/conveyor_side" } }

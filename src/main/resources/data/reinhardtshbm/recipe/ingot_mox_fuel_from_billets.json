@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:billet_mox_fuel"
+    },
+    {
+      "item": "reinhardtshbm:billet_mox_fuel"
+    },
+    {
+      "item": "reinhardtshbm:billet_mox_fuel"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:ingot_mox_fuel",
+    "count": 2
+  }
+}

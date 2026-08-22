@@ -1,0 +1,59 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.upgrade_fortune_ii",
+  "duration": 300,
+  "power": 10000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor_tantalium"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:upgrade_fortune_1"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 4
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:upgrade_fortune_2",
+        "count": 1
+      },
+      "weight": 50
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:broken_item",
+        "count": 1,
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:upgrade_fortune_2",
+            "item_count": 1
+          }
+        }
+      },
+      "weight": 50
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ]
+}

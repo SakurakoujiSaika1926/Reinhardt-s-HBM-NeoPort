@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.desh",
+  "inputs": [
+    { "ingredient": { "tag": "c:dusts/desh_ready" } }
+  ],
+  "fluid": { "fluid": "lightoil", "amount": 100 },
+  "output": { "material": "desh", "amount": 144 },
+  "duration": 100,
+  "steam": 200
+}

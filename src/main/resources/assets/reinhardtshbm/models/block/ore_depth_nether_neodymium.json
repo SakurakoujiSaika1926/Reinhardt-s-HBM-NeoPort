@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/ore_depth_nether_neodymium"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

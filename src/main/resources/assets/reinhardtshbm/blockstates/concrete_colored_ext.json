@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "meta=0": { "model": "reinhardtshbm:block/concrete_colored_ext_machine" },
+    "meta=1": { "model": "reinhardtshbm:block/concrete_colored_ext_machine_stripe" },
+    "meta=2": { "model": "reinhardtshbm:block/concrete_colored_ext_indigo" },
+    "meta=3": { "model": "reinhardtshbm:block/concrete_colored_ext_purple" },
+    "meta=4": { "model": "reinhardtshbm:block/concrete_colored_ext_pink" },
+    "meta=5": { "model": "reinhardtshbm:block/concrete_colored_ext_hazard" },
+    "meta=6": { "model": "reinhardtshbm:block/concrete_colored_ext_sand" },
+    "meta=7": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=8": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=9": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=10": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=11": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=12": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=13": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=14": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" },
+    "meta=15": { "model": "reinhardtshbm:block/concrete_colored_ext_bronze" }
+  }
+}

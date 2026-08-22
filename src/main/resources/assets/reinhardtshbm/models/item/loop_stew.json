@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/loop_stew"
+                 },
+    "parent":  "minecraft:item/generated"
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " B ",
+    " W ",
+    " B "
+  ],
+  "key": {
+    "B": { "item": "reinhardtshbm:ingot_boron" },
+    "W": { "tag": "minecraft:planks" }
+  },
+  "result": { "id": "reinhardtshbm:pile_rod_boron" }
+}

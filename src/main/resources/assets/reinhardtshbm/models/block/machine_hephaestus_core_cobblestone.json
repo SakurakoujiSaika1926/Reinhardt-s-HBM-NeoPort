@@ -1,0 +1,16 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/hephaestus.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/hephaestus_cobblestone.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "Rotor": false,
+    "Core": true,
+    "Main": false
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/cobblestone"
+  }
+}

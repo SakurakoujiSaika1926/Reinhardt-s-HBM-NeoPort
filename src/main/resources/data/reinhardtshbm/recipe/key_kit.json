@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PKP",
+    "DTD",
+    "PKP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/gold"
+    },
+    "K": {
+      "item": "reinhardtshbm:key"
+    },
+    "D": {
+      "tag": "c:dusts/desh"
+    },
+    "T": {
+      "tag": "c:tools/screwdrivers"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:key_kit"
+  }
+}

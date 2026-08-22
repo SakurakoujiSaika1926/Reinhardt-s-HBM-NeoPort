@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.sugar_cane",
+  "input": {
+    "item": "minecraft:sugar_cane"
+  },
+  "output": {
+    "id": "minecraft:sugar",
+    "count": 2
+  },
+  "fluid": {
+    "fluid": "ethanol",
+    "amount": 50
+  }
+}

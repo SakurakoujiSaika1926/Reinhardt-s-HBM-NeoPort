@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/waste_planks"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

@@ -1,0 +1,7 @@
+{
+    "textures":  {
+                     "top":  "reinhardtshbm:block/door_red_upper",
+                     "bottom":  "reinhardtshbm:block/door_red_lower"
+                 },
+    "parent":  "minecraft:block/door_bottom_left"
+}

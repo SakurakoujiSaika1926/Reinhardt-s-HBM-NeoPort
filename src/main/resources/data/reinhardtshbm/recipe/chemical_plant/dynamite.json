@@ -1,0 +1,34 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.dynamite",
+  "duration": 50,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "minecraft:sugar"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/niter"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:sands"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ball_dynamite",
+      "count": 2
+    }
+  ],
+  "output_fluids": []
+}

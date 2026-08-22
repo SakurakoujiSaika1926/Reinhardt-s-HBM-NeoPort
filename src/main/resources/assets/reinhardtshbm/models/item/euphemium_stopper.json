@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/euphemium_stopper"
+                 },
+    "parent":  "minecraft:item/generated"
+}

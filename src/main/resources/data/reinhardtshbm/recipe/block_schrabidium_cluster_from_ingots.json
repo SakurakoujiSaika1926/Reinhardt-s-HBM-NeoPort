@@ -1,0 +1,23 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "building",
+    "pattern":  [
+                    "#S#",
+                    "SXS",
+                    "#S#"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:ingots/schrabidium"
+                      },
+                "S":  {
+                          "tag":  "c:ingots/starmetal"
+                      },
+                "X":  {
+                          "tag":  "c:ingots/schrabidate"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:block_schrabidium_cluster"
+               }
+}

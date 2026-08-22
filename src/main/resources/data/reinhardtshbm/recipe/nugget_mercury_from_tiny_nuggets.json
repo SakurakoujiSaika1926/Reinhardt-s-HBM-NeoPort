@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/mercury_tiny"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:nugget_mercury"
+               }
+}

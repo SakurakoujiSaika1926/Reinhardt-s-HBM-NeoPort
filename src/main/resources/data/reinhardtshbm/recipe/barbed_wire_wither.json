@@ -1,0 +1,14 @@
+﻿{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB",
+    "BIB",
+    "BBB"
+  ],
+  "key": {
+    "B": { "item": "reinhardtshbm:barbed_wire" },
+    "I": { "item": "minecraft:wither_skeleton_skull" }
+  },
+  "result": { "id": "reinhardtshbm:barbed_wire_wither", "count": 8 }
+}

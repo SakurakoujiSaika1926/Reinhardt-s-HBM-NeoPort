@@ -1,0 +1,21 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "S ",
+                    "AA",
+                    "AA"
+                ],
+    "key":  {
+                "S":  {
+                          "tag":  "c:plates/steel"
+                      },
+                "A":  {
+                          "tag":  "c:plates/aluminium"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:canister_empty",
+                   "count":  2
+               }
+}

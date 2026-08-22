@@ -1,0 +1,12 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_segment",
+  "textures": {
+    "end": "reinhardtshbm:block/rbmk/rbmk_moderator_top",
+    "side": "reinhardtshbm:block/rbmk/rbmk_moderator_side",
+    "inner": "reinhardtshbm:block/rbmk/rbmk_element_inner",
+    "cover_top": "reinhardtshbm:block/rbmk/rbmk_moderator_cover_top",
+    "cover_side": "reinhardtshbm:block/rbmk/rbmk_moderator_cover_side",
+    "glass_top": "reinhardtshbm:block/rbmk/rbmk_moderator_glass_top",
+    "glass_side": "reinhardtshbm:block/rbmk/rbmk_moderator_glass_side"
+  }
+}

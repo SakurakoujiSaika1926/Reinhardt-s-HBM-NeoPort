@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["IGI", "ICI", "IDI"],
+  "key": {
+    "I": { "tag": "c:plates/iron" },
+    "G": { "item": "minecraft:iron_bars" },
+    "C": { "item": "reinhardtshbm:pellet_gas" },
+    "D": { "item": "minecraft:dispenser" }
+  },
+  "result": { "id": "reinhardtshbm:vent_chlorine" }
+}

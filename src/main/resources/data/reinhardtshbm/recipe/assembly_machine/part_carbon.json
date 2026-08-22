@@ -1,0 +1,18 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "part_carbon",
+    "duration":  40,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:dusts/coal"
+                                           },
+                            "count":  1
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:part_carbon",
+                   "count":  8
+               }
+}

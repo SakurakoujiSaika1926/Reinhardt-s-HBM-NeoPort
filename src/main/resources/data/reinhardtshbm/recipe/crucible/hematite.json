@@ -1,0 +1,28 @@
+﻿{
+    "type":  "reinhardtshbm:crucible",
+    "group":  "crucible.hematite",
+    "frequency":  6,
+    "icon":  {
+                 "id":  "minecraft:iron_ingot"
+             },
+    "input":  [
+                  {
+                      "material":  "hematite",
+                      "amount":  144
+                  },
+                  {
+                      "material":  "flux",
+                      "amount":  16
+                  }
+              ],
+    "output":  [
+                   {
+                       "material":  "iron",
+                       "amount":  72
+                   },
+                   {
+                       "material":  "slag",
+                       "amount":  24
+                   }
+               ]
+}

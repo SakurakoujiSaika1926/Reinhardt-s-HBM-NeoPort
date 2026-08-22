@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/struct_watz_core"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

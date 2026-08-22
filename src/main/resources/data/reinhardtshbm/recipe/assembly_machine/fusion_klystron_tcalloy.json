@@ -1,0 +1,83 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "reinhardtshbm:enable_528_mode"
+                                              }
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.fusionklystron",
+    "duration":  300,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_welded"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  7400,
+                                                                                                "material":  "tungsten"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  4
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:plate_cast"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  36,
+                                                                                                "material":  "tcalloy"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:plates/copper"
+                                           },
+                            "count":  32
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/hard_plastic"
+                                           },
+                            "count":  16
+                        },
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:wire_dense"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  48,
+                                                                                                "material":  "bscco"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  8
+                        },
+                        {
+                            "ingredient":  {
+                                               "item":  "reinhardtshbm:circuit_bismoid"
+                                           },
+                            "count":  2
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:fusion_klystron"
+               }
+}
+

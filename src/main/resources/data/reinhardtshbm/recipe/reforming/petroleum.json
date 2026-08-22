@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:reforming",
+  "group": "reforming",
+  "input": {
+    "fluid": "petroleum",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "unsaturateds",
+    "amount": 85
+  },
+  "output2": {
+    "fluid": "reformgas",
+    "amount": 10
+  },
+  "output3": {
+    "fluid": "hydrogen",
+    "amount": 5
+  },
+  "power": 20000
+}

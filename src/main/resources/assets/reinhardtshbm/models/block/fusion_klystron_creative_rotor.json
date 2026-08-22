@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/fusion_klystron_creative",
+  "visibility": {
+    "Pipes": false,
+    "Klystron": false
+  }
+}

@@ -1,0 +1,25 @@
+newmtl base
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/rusted/base
+
+newmtl carriage
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/rusted/carriage_ciws
+
+newmtl connector
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/connector
+
+newmtl body
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/rusted/howard
+
+newmtl barrels
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/turrets/rusted/howard_barrels
+

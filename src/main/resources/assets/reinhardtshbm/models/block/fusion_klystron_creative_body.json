@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/fusion_klystron_creative",
+  "visibility": {
+    "Rotor": false
+  }
+}

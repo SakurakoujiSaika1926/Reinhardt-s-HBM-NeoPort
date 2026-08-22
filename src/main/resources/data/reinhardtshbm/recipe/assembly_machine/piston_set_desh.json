@@ -1,0 +1,22 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pistonsetdesh",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:ingots/desh" }, "count": 24 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 12 },
+    { "ingredient": { "tag": "c:plates/copper" }, "count": 24 },
+    { "ingredient": { "tag": "c:ingots/tungsten" }, "count": 16 },
+    { "ingredient": { "tag": "c:pipes/dura_steel" }, "count": 4 }
+  ],
+  "result": {
+    "id": "reinhardtshbm:piston_set",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "desh"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  }
+}

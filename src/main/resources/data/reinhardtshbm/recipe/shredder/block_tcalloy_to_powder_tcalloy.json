@@ -1,0 +1,10 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:block_tcalloy"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_tcalloy",
+                   "count":  9
+               }
+}

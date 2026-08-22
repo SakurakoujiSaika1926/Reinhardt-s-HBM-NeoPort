@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "bitumen",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "oil",
+    "amount": 80
+  },
+  "output2": {
+    "fluid": "aromatics",
+    "amount": 20
+  }
+}

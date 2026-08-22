@@ -1,0 +1,13 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "reinhardtshbm:block_actinium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_actinium",
+                   "count":  9
+               }
+}

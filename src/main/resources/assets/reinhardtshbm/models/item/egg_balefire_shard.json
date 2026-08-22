@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/egg_balefire_shard"
+                 },
+    "parent":  "minecraft:item/generated"
+}

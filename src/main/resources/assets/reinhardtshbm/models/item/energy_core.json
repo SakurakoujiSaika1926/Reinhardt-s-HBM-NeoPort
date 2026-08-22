@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/energy_core"
+                 },
+    "parent":  "minecraft:item/generated"
+}

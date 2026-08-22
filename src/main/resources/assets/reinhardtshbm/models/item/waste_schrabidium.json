@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/waste_schrabidium"
+                 },
+    "parent":  "minecraft:item/generated"
+}

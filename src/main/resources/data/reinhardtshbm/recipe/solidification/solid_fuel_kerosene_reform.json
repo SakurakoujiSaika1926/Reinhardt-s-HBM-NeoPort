@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.kerosene_reform",
+    "input":  {
+                  "fluid":  "kerosene_reform",
+                  "amount":  280
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

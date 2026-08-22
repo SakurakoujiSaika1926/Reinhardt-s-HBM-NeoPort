@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:fragment_boron"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_boron_tiny"
+               }
+}

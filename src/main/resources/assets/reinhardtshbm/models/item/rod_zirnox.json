@@ -1,0 +1,65 @@
+{
+  "parent": "reinhardtshbm:item/rod_zirnox_natural_uranium_fuel",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_uranium_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_th232_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_thorium_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_mox_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_plutonium_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_u233_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 7
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_u235_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 8
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_les_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_lithium_fuel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 10
+      },
+      "model": "reinhardtshbm:item/rod_zirnox_zfb_mox_fuel"
+    }
+  ]
+}

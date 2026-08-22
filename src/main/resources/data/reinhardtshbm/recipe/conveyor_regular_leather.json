@@ -1,0 +1,6 @@
+{
+  "type":"minecraft:crafting_shaped","category":"misc",
+  "pattern":["LLL","I I","LLL"],
+  "key":{"L":{"item":"minecraft:leather"},"I":{"tag":"c:ingots/iron"}},
+  "result":{"id":"reinhardtshbm:conveyor_wand","count":16,"components":{"minecraft:custom_data":{"variant":"regular"},"minecraft:custom_model_data":0}}
+}

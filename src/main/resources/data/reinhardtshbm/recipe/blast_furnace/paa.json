@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "tag": "c:plates/gold" },
+  "input_b": { "item": "reinhardtshbm:plate_mixed" },
+  "result": { "id": "reinhardtshbm:plate_paa", "count": 2 }
+}

@@ -1,0 +1,19 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "III",
+                    "SSS"
+                ],
+    "key":  {
+                "I":  {
+                          "item":  "minecraft:brick"
+                      },
+                "S":  {
+                          "item":  "minecraft:obsidian"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:stamp_obsidian_flat"
+               }
+}

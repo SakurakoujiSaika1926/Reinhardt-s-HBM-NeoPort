@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/elec_sword"
+                 },
+    "parent":  "minecraft:item/generated"
+}

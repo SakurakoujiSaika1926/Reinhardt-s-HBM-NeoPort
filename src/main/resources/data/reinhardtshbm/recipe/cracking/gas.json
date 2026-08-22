@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "gas",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "petroleum",
+    "amount": 30
+  },
+  "output2": {
+    "fluid": "unsaturateds",
+    "amount": 20
+  }
+}

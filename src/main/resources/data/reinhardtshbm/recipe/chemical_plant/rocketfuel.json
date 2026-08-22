@@ -1,0 +1,32 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.rocketfuel",
+  "duration": 200,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:solid_fuel"
+      },
+      "count": 2
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "petroleum",
+      "amount": 200,
+      "pressure": 1
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 100
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:rocket_fuel",
+      "count": 4
+    }
+  ],
+  "output_fluids": []
+}

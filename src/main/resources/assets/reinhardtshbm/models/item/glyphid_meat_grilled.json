@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/glyphid_meat_grilled"
+                 },
+    "parent":  "minecraft:item/generated"
+}

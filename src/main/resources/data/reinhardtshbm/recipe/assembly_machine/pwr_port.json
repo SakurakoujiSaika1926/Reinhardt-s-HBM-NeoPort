@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pwrport",
+  "duration": 200,
+  "power": 500,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/lead" }, "count": 4 },
+    { "ingredient": { "tag": "c:concretes" }, "count": 4 },
+    { "ingredient": { "tag": "c:pipes/steel" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:pwr_port", "count": 4 }
+}

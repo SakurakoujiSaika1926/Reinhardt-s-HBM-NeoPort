@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "I",
+    "N",
+    "W"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:plates/polymer"
+    },
+    "N": {
+      "tag": "c:nuggets/tantalium"
+    },
+    "W": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 1300,
+          "material": "aluminium"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:circuit_capacitor_tantalium"
+  }
+}

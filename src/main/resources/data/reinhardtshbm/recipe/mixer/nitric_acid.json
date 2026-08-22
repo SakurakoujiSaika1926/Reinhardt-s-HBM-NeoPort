@@ -1,0 +1,19 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.nitric_acid",
+    "output":  {
+                   "fluid":  "nitric_acid",
+                   "amount":  1000
+               },
+    "duration":  50,
+    "input1":  {
+                   "fluid":  "sulfuric_acid",
+                   "amount":  500
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/niter"
+                                       },
+                        "count":  1
+                    }
+}

@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/battery_advanced_cell"
+                 },
+    "parent":  "minecraft:item/generated"
+}

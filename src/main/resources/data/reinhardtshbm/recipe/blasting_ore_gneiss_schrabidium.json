@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:ore_gneiss_schrabidium" },
+  "result": { "id": "reinhardtshbm:ingot_schrabidium" },
+  "experience": 128,
+  "cookingtime": 100
+}

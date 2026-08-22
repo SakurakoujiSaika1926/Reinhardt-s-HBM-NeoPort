@@ -1,0 +1,34 @@
+{
+  "type": "reinhardtshbm:fusion",
+  "group": "fus.bf",
+  "ignition_temp": 1000000,
+  "output_temp": 12500000,
+  "neutron_flux": 2000.0,
+  "power": 25000,
+  "duration": 100,
+  "r": 0.2,
+  "g": 1.0,
+  "b": 0.2,
+  "icon": {
+    "id": "reinhardtshbm:fluid_icon",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "balefire"
+      }
+    }
+  },
+  "input_fluids": [
+    {
+      "fluid": "balefire",
+      "amount": 15
+    },
+    {
+      "fluid": "amat",
+      "amount": 5
+    }
+  ],
+  "output_item": {
+    "id": "reinhardtshbm:powder_balefire",
+    "count": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north,lit=false": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=north,lit=true": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=east,lit=false": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=east,lit=true": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=south,lit=false": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=south,lit=true": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=west,lit=false": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=west,lit=true": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=up,lit=false": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=up,lit=true": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=down,lit=false": { "model": "reinhardtshbm:block/machine_mining_laser" },
+    "facing=down,lit=true": { "model": "reinhardtshbm:block/machine_mining_laser" }
+  }
+}

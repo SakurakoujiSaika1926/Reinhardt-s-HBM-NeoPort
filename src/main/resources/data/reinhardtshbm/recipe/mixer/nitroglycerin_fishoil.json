@@ -1,0 +1,17 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.nitroglycerin",
+    "output":  {
+                   "fluid":  "nitroglycerin",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "fishoil",
+                   "amount":  500
+               },
+    "input2":  {
+                   "fluid":  "nitric_acid",
+                   "amount":  500
+               }
+}

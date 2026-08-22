@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "B  ",
+    "BB ",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:brick_fire"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:brick_fire_stairs",
+    "count": 4
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.helium3",
+  "duration": 200,
+  "power": 2000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:moon_turf"
+      },
+      "count": 8
+    }
+  ],
+  "input_fluids": [],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "helium3",
+      "amount": 1000
+    }
+  ]
+}

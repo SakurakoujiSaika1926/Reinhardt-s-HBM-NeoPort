@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "reinhardtshbm:plate_bismuth"
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:powder_bismuth"
+               }
+}

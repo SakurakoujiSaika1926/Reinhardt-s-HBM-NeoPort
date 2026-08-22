@@ -1,0 +1,17 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/u233"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:ingot_u233"
+               }
+}

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:ore_gneiss_copper" },
+  "result": { "id": "reinhardtshbm:ingot_copper" },
+  "experience": 2.5,
+  "cookingtime": 200
+}

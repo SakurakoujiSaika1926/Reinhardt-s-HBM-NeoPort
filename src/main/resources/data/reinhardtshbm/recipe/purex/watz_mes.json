@@ -1,0 +1,53 @@
+{
+  "type": "reinhardtshbm:purex",
+  "group": "autoswitch.watz",
+  "duration": 60,
+  "power": 10000,
+  "input_items": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:watz_pellet_depleted"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "watz_type": "mes"
+          },
+          "minecraft:custom_model_data": 2
+        }
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "kerosene",
+      "amount": 500
+    },
+    {
+      "fluid": "nitric_acid",
+      "amount": 250
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:nugget_solinium",
+      "count": 12
+    },
+    {
+      "id": "reinhardtshbm:nugget_tantalium",
+      "count": 6
+    },
+    {
+      "id": "reinhardtshbm:nuclear_waste",
+      "count": 2
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "watz",
+      "amount": 1000
+    }
+  ]
+}

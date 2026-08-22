@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:entity/legacy_himars_single",
+  "textures": {
+    "single": "reinhardtshbm:models/projectiles/himars_single_tb",
+    "particle": "reinhardtshbm:models/projectiles/himars_single_tb"
+  }
+}

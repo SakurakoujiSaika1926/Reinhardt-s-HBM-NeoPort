@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.steel",
+  "inputs": [
+    { "ingredient": { "tag": "c:crystals/iron" }, "count": 9 },
+    { "ingredient": { "tag": "c:gems/coke" } },
+    { "ingredient": { "tag": "c:dusts/flux" } }
+  ],
+  "output": { "material": "steel", "amount": 576 },
+  "duration": 400,
+  "steam": 25
+}

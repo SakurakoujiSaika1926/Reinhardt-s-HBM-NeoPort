@@ -1,0 +1,17 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "building",
+    "pattern":  [
+                    "###",
+                    "###",
+                    "###"
+                ],
+    "key":  {
+                "#":  {
+                          "tag":  "c:ingots/schrabidium"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:block_schrabidium"
+               }
+}

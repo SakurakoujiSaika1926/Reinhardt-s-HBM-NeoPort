@@ -1,0 +1,27 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.birkeland",
+  "blueprint_pools": [
+    "alt..birkeland"
+  ],
+  "duration": 200,
+  "power": 5000,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "air",
+      "amount": 8000
+    },
+    {
+      "fluid": "water",
+      "amount": 2000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "nitric_acid",
+      "amount": 1000
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+﻿{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "item":  "minecraft:deepslate"
+                   },
+    "result":  {
+                   "id":  "minecraft:gravel"
+               }
+}

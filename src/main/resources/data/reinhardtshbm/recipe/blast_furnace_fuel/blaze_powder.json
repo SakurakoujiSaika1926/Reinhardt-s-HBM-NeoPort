@@ -1,0 +1,5 @@
+{
+  "type": "reinhardtshbm:blast_furnace_fuel",
+  "ingredient": { "item": "minecraft:blaze_powder" },
+  "power": 300
+}

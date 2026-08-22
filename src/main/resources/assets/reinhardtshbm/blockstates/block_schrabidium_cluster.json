@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "reinhardtshbm:block/block_schrabidium_cluster"
+    },
+    "axis=z": {
+      "model": "reinhardtshbm:block/block_schrabidium_cluster",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "reinhardtshbm:block/block_schrabidium_cluster",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

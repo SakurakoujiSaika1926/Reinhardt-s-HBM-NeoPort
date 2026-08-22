@@ -1,0 +1,22 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:ores/quartz"
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_quartz"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_quartz"
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_lithium_tiny"
+                    },
+                    {
+                        "id":  "minecraft:netherrack"
+                    }
+                ]
+}

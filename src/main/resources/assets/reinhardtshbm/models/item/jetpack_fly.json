@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/jetpack_fly"
+                 },
+    "parent":  "minecraft:item/generated"
+}

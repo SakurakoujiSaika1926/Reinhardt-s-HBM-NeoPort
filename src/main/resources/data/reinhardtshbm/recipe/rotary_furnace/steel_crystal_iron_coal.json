@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.steel",
+  "inputs": [
+    { "ingredient": { "tag": "c:crystals/iron" }, "count": 9 },
+    { "ingredient": { "item": "minecraft:coal" } }
+  ],
+  "output": { "material": "steel", "amount": 288 },
+  "duration": 200,
+  "steam": 25
+}

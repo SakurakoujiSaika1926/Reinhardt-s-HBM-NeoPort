@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I",
+    "F"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "F": {
+      "item": "reinhardtshbm:rag_damp"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:gas_mask_filter_rag"
+  }
+}

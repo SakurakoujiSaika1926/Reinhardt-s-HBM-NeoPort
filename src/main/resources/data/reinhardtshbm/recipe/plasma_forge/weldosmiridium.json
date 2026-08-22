@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.weldosmiridium",
+  "auto_switch_group": "autoswitch.weldPlates",
+  "duration": 3000,
+  "power": 50000000,
+  "ignition_temp": 500000,
+  "input_items": [
+    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 7699, "material": "osmiridium" } } }, "count": 2 }
+  ],
+  "input_fluids": [
+    { "fluid": "reformgas", "amount": 16000 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_welded", "components": { "minecraft:custom_data": { "material_id": 7699, "material": "osmiridium" } } }
+}

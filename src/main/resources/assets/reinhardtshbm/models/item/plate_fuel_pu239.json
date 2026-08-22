@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/plate_fuel_pu239"
+                 },
+    "parent":  "minecraft:item/generated"
+}

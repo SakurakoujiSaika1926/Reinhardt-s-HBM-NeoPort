@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/horseshoe_magnet"
+                 },
+    "parent":  "minecraft:item/generated"
+}

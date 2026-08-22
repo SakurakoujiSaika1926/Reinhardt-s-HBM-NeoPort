@@ -1,0 +1,11 @@
+﻿{
+    "type":  "reinhardtshbm:solidification",
+    "group":  "solidifier.naphtha_crack",
+    "input":  {
+                  "fluid":  "naphtha_crack",
+                  "amount":  20000
+              },
+    "output":  {
+                   "id":  "reinhardtshbm:solid_fuel"
+               }
+}

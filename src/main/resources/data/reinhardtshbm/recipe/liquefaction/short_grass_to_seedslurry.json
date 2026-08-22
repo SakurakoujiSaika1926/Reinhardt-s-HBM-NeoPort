@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.seedslurry",
+  "ingredient": {
+    "item": "minecraft:short_grass"
+  },
+  "output": {
+    "fluid": "seedslurry",
+    "amount": 100
+  }
+}

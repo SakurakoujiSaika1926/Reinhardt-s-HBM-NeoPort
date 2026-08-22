@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/mask_of_infamy"
+                 },
+    "parent":  "minecraft:item/generated"
+}

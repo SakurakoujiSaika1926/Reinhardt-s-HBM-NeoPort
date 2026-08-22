@@ -1,0 +1,22 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:clay_ball"
+                        },
+                        {
+                            "item":  "minecraft:clay_ball"
+                        },
+                        {
+                            "item":  "minecraft:clay_ball"
+                        },
+                        {
+                            "tag":  "c:ores/aluminium"
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:ball_fireclay",
+                   "count":  4
+               }
+}

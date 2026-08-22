@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/billet_balefire_gold"
+                 },
+    "parent":  "minecraft:item/generated"
+}

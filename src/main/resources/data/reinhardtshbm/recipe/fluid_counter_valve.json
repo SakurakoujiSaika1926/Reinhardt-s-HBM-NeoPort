@@ -1,0 +1,19 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "S",
+                    "W"
+                ],
+    "key":  {
+                "S":  {
+                          "item":  "reinhardtshbm:circuit_chip"
+                      },
+                "W":  {
+                          "item":  "reinhardtshbm:fluid_switch"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:fluid_counter_valve"
+               }
+}

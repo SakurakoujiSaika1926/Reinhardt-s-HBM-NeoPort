@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_dual_empty"
+    },
+    {
+      "item": "reinhardtshbm:billet_thorium_fuel"
+    },
+    {
+      "item": "reinhardtshbm:billet_thorium_fuel"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_dual",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "thf"
+      },
+      "minecraft:custom_model_data": 5
+    }
+  }
+}

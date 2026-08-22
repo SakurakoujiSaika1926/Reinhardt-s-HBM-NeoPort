@@ -1,0 +1,4 @@
+{
+  "parent": "reinhardtshbm:block/machine_microwave",
+  "visibility": { "window_Cube.002": false, "mainbody_Cube.001": false }
+}

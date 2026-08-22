@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/gas_flammable"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

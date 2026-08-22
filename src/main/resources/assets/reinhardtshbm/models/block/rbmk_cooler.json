@@ -1,0 +1,14 @@
+{
+  "parent": "reinhardtshbm:block/template/rbmk_piped_column",
+  "textures": {
+    "end": "reinhardtshbm:block/rbmk/rbmk_cooler_top",
+    "side": "reinhardtshbm:block/rbmk/rbmk_cooler_side",
+    "inner": "reinhardtshbm:block/rbmk/rbmk_element_inner",
+    "cover_top": "reinhardtshbm:block/rbmk/rbmk_cooler_cover_top",
+    "cover_side": "reinhardtshbm:block/rbmk/rbmk_cooler_cover_side",
+    "glass_top": "reinhardtshbm:block/rbmk/rbmk_cooler_glass_top",
+    "glass_side": "reinhardtshbm:block/rbmk/rbmk_cooler_glass_side",
+    "pipe_top": "reinhardtshbm:block/rbmk/rbmk_cooler_top",
+    "pipe_side": "reinhardtshbm:block/rbmk/rbmk_cooler_side"
+  }
+}

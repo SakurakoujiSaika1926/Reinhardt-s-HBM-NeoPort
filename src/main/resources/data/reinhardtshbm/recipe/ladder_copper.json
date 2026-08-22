@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "LLL",
+    "L#L",
+    "LLL"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:ladder"
+    },
+    "#": {
+      "tag": "c:ingots/copper"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:ladder_copper",
+    "count": 8
+  }
+}

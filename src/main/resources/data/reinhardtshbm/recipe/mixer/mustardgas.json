@@ -1,0 +1,23 @@
+﻿{
+    "type":  "reinhardtshbm:mixer",
+    "group":  "mixer.mustardgas",
+    "output":  {
+                   "fluid":  "mustardgas",
+                   "amount":  1000
+               },
+    "duration":  20,
+    "input1":  {
+                   "fluid":  "reformgas",
+                   "amount":  750
+               },
+    "input2":  {
+                   "fluid":  "chlorine",
+                   "amount":  250
+               },
+    "solid_input":  {
+                        "ingredient":  {
+                                           "tag":  "c:dusts/sulfur"
+                                       },
+                        "count":  1
+                    }
+}

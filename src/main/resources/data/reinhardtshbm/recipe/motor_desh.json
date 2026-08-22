@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PCP",
+    "DMD",
+    "PCP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:ingots/plastic"
+    },
+    "C": {
+      "item": "reinhardtshbm:coil_gold_torus"
+    },
+    "D": {
+      "tag": "c:ingots/desh"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:motor_desh"
+  }
+}

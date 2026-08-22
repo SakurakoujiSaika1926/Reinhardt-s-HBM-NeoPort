@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "reinhardtshbm:block/mush_block_inside",
+    "side": "reinhardtshbm:block/mush_block_skin"
+  }
+}

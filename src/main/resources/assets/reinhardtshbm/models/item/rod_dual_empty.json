@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/rod_dual_empty"
+                 },
+    "parent":  "minecraft:item/generated"
+}

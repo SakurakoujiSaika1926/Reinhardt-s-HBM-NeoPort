@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DSD",
+    "SCS",
+    "DSD"
+  ],
+  "key": {
+    "D": { "tag": "c:ingots/phosphorus" },
+    "S": { "type": "neoforge:components", "items": ["reinhardtshbm:ammo_arty"], "components": { "minecraft:custom_data": { "variant": "ammo_arty_phosphorus" }, "minecraft:custom_model_data": 5 } },
+    "C": { "item": "reinhardtshbm:det_cord" }
+  },
+  "result": { "id": "reinhardtshbm:ammo_arty", "components": { "minecraft:custom_data": { "variant": "ammo_arty_phosphorus_multi" }, "minecraft:custom_model_data": 7 } }
+}

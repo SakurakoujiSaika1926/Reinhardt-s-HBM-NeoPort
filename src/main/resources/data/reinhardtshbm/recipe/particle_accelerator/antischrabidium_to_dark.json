@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:particle_accelerator",
+  "input1": {
+    "item": "reinhardtshbm:particle_aschrab"
+  },
+  "input2": {
+    "item": "reinhardtshbm:particle_aschrab"
+  },
+  "momentum": 10000,
+  "output1": {
+    "id": "reinhardtshbm:particle_dark"
+  }
+}

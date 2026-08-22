@@ -1,0 +1,29 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "WWW",
+                    "WIW",
+                    "WWW"
+                ],
+    "key":  {
+                "W":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:wire_fine"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  7900,
+                                                                           "material":  "gold"
+                                                                       }
+                                         }
+                      },
+                "I":  {
+                          "item":  "minecraft:iron_ingot"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:coil_gold"
+               }
+}

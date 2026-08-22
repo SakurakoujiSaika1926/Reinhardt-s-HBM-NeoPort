@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/machine_autosaw",
+  "visibility": {
+    "Engine": true
+  }
+}

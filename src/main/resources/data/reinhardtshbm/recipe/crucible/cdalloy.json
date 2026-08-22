@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:crucible",
+  "group": "crucible.cdalloy",
+  "frequency": 9,
+  "icon": {
+    "id": "reinhardtshbm:ingot_cdalloy"
+  },
+  "input": [
+    {
+      "material": "steel",
+      "amount": 64
+    },
+    {
+      "material": "cadmium",
+      "amount": 8
+    }
+  ],
+  "output": [
+    {
+      "material": "cdalloy",
+      "amount": 72
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.oil_tar",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:oil_tar"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "wood"
+      }
+    }
+  },
+  "output": {
+    "id": "reinhardtshbm:coke",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "coal"
+      },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

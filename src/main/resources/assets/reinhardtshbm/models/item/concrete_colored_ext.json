@@ -1,0 +1,12 @@
+{
+  "parent": "reinhardtshbm:block/concrete_colored_ext_machine",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/concrete_colored_ext_machine_stripe" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/concrete_colored_ext_indigo" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:block/concrete_colored_ext_purple" },
+    { "predicate": { "minecraft:custom_model_data": 4 }, "model": "reinhardtshbm:block/concrete_colored_ext_pink" },
+    { "predicate": { "minecraft:custom_model_data": 5 }, "model": "reinhardtshbm:block/concrete_colored_ext_hazard" },
+    { "predicate": { "minecraft:custom_model_data": 6 }, "model": "reinhardtshbm:block/concrete_colored_ext_sand" },
+    { "predicate": { "minecraft:custom_model_data": 7 }, "model": "reinhardtshbm:block/concrete_colored_ext_bronze" }
+  ]
+}

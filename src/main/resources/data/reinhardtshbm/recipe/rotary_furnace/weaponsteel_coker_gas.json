@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:rotary_furnace",
+  "group": "rotary_furnace.weaponsteel",
+  "inputs": [
+    { "ingredient": { "tag": "c:ingots/steel" } },
+    { "ingredient": { "tag": "c:dusts/flux" }, "count": 2 }
+  ],
+  "fluid": { "fluid": "gas_coker", "amount": 100 },
+  "output": { "material": "weaponsteel", "amount": 144 },
+  "duration": 200,
+  "steam": 400
+}

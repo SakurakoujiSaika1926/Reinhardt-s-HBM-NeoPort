@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.plateeuphemium",
+  "duration": 600,
+  "power": 10000000,
+  "ignition_temp": 1000000,
+  "input_items": [
+    { "ingredient": { "tag": "c:ingots/euphemium" }, "count": 4 },
+    { "ingredient": { "tag": "c:dusts/at209" }, "count": 3 },
+    { "ingredient": { "tag": "c:dusts/bismuth" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:gem_volcanic" }, "count": 1 },
+    { "ingredient": { "tag": "c:ingots/osmiridium" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_euphemium", "count": 4 }
+}

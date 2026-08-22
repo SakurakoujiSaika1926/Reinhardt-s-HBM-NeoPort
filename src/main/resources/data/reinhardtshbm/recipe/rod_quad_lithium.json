@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rod_quad_empty"
+    },
+    {
+      "item": "reinhardtshbm:lithium"
+    },
+    {
+      "item": "reinhardtshbm:lithium"
+    },
+    {
+      "item": "reinhardtshbm:lithium"
+    },
+    {
+      "item": "reinhardtshbm:lithium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rod_quad",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "lithium"
+      },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    { "item": "minecraft:stone" },
+    { "item": "minecraft:stone" },
+    { "item": "minecraft:stone" },
+    { "item": "reinhardtshbm:powder_limestone" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:lightstone",
+    "count": 4
+  }
+}

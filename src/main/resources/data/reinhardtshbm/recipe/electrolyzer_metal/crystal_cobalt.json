@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_metal","ingredient":{"item":"reinhardtshbm:crystal_cobalt"},"output1":{"material":"cobalt","amount":216},"output2":{"material":"iron","amount":288},"byproducts":[{"id":"reinhardtshbm:powder_copper","count":4},{"id":"reinhardtshbm:powder_lithium_tiny","count":3}]}

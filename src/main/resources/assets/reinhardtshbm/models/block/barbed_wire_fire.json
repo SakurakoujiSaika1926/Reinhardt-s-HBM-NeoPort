@@ -1,0 +1,12 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/blocks/barbed_wire_fire.obj",
+    "mtl_override":  "reinhardtshbm:models/obj/blocks/barbed_wire_fire.mtl",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  false,
+    "textures":  {
+                     "particle":  "reinhardtshbm:block/barbed_wire_fire"
+                 },
+    "render_type":  "minecraft:cutout"
+}

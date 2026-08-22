@@ -1,0 +1,66 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.recycle",
+  "duration": 400,
+  "power": 25000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:broken_item"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:upgrade_power_3",
+            "item_count": 1
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_chip",
+        "count": 16
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_capacitor_tantalium",
+        "count": 16
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:upgrade_power_2",
+        "count": 1
+      },
+      "weight": 75
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:ingot_rubber",
+        "count": 4
+      },
+      "weight": 75
+    }
+  ],
+  "output_mode": "independent",
+  "expensive_output_weights": [
+    50,
+    50,
+    50,
+    50
+  ],
+  "output_fluids": [
+    {
+      "fluid": "solvent",
+      "amount": 375
+    }
+  ]
+}

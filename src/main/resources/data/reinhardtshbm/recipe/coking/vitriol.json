@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:coking",
+  "group": "coking.vitriol",
+  "input": { "fluid": "vitriol", "amount": 4000 },
+  "output": { "id": "reinhardtshbm:powder_iron" },
+  "byproduct": { "fluid": "sulfuric_acid", "amount": 500 }
+}

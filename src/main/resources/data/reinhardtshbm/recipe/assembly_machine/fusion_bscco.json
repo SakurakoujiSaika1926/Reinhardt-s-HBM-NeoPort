@@ -1,0 +1,60 @@
+﻿{
+    "neoforge:conditions":  [
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "reinhardtshbm:enable_528_mode"
+                                              }
+                                }
+                            ],
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.fusionbscco",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "ingredient":  {
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:wire_dense"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  48,
+                                                                                                "material":  "bscco"
+                                                                                            }
+                                                              }
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:pipes/copper"
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/resistant_alloy"
+                                           },
+                            "count":  1
+                        },
+                        {
+                            "ingredient":  {
+                                               "tag":  "c:ingots/plastic"
+                                           },
+                            "count":  4
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:fusion_component",
+                   "count":  2,
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "bscco"
+                                                                },
+                                      "minecraft:custom_model_data":  0
+                                  }
+               }
+}
+

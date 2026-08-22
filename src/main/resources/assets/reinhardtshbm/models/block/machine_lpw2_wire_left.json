@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/machine_lpw2",
+  "visibility": {
+    "WireLeft": true
+  }
+}

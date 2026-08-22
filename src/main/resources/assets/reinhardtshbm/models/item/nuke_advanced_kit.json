@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/nuke_advanced_kit"
+                 },
+    "parent":  "minecraft:item/generated"
+}

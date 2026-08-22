@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:electrolyzer_fluid","input":{"fluid":"slop","amount":1000},"output1":{"fluid":"mercury","amount":250},"output2":{"fluid":"none","amount":0},"byproducts":[{"id":"reinhardtshbm:niter","count":2},{"id":"reinhardtshbm:powder_limestone","count":2},{"id":"reinhardtshbm:sulfur","count":1}]}

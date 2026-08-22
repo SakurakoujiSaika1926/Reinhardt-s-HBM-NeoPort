@@ -1,0 +1,25 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.bakelite",
+  "duration": 100,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "aromatics",
+      "amount": 500,
+      "pressure": 1
+    },
+    {
+      "fluid": "petroleum",
+      "amount": 500,
+      "pressure": 1
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ingot_bakelite"
+    }
+  ],
+  "output_fluids": []
+}

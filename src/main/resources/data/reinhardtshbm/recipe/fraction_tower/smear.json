@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:fraction_tower",
+  "group": "fraction.smear",
+  "input": { "fluid": "smear", "amount": 100 },
+  "output1": { "fluid": "heatingoil", "amount": 60 },
+  "output2": { "fluid": "lubricant", "amount": 40 }
+}

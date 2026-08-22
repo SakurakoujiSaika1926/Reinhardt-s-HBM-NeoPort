@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/schrabidium_hammer"
+                 },
+    "parent":  "minecraft:item/generated"
+}

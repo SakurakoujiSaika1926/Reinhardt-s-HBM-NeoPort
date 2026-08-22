@@ -1,0 +1,35 @@
+﻿{
+    "type":  "reinhardtshbm:assembly_machine",
+    "group":  "ass.drillferro",
+    "duration":  100,
+    "power":  100,
+    "ingredients":  [
+                        {
+                            "count":  24,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/ferrouranium"
+                                           }
+                        },
+                        {
+                            "count":  12,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/resistant_alloy"
+                                           }
+                        },
+                        {
+                            "count":  4,
+                            "ingredient":  {
+                                               "tag":  "c:ingots/bismuth"
+                                           }
+                        }
+                    ],
+    "result":  {
+                   "id":  "reinhardtshbm:drillbit",
+                   "components":  {
+                                      "minecraft:custom_model_data":  8,
+                                      "minecraft:custom_data":  {
+                                                                    "type":  "ferro"
+                                                                }
+                                  }
+               }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.hardplastic",
+  "duration": 100,
+  "power": 1000,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "xylene",
+      "amount": 500,
+      "pressure": 2
+    },
+    {
+      "fluid": "phosgene",
+      "amount": 500,
+      "pressure": 2
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ingot_pc"
+    }
+  ],
+  "output_fluids": []
+}

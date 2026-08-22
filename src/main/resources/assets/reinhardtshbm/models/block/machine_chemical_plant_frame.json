@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/machine_chemical_plant",
+  "visibility": {
+    "Fluid": false,
+    "Spinner": false,
+    "Slider": false,
+    "Base": false
+  }
+}

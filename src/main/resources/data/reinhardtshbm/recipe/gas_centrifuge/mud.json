@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:gas_centrifuge",
+  "group": "gas_centrifuge",
+  "input": {
+    "fluid": "watz",
+    "amount": 1000
+  },
+  "output": {
+    "fluid": "watz_heavy",
+    "amount": 500
+  },
+  "high_speed": false,
+  "results": [
+    {
+      "id": "reinhardtshbm:powder_lead"
+    },
+    {
+      "id": "reinhardtshbm:dust"
+    }
+  ]
+}

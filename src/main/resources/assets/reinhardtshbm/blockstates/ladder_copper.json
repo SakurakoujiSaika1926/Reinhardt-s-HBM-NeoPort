@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/ladder_copper" },
+    "facing=east": { "model": "reinhardtshbm:block/ladder_copper", "y": 90 },
+    "facing=south": { "model": "reinhardtshbm:block/ladder_copper", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/ladder_copper", "y": 270 }
+  }
+}

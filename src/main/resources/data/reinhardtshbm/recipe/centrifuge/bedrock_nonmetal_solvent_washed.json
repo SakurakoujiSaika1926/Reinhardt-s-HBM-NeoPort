@@ -1,0 +1,56 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "solvent_washed",
+                                                                        "type":  "nonmetal"
+                                                                    }
+                                      }
+                   },
+    "input_count":  1,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "material_id":  1500,
+                                                                         "material":  "phosphorus"
+                                                                     }
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "material_id":  900,
+                                                                         "material":  "fluorite"
+                                                                     }
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "material_id":  1600,
+                                                                         "material":  "sulfur"
+                                                                     }
+                                       }
+                    },
+                    {
+                        "id":  "reinhardtshbm:bedrock_ore_new",
+                        "components":  {
+                                           "minecraft:custom_data":  {
+                                                                         "grade":  "crumbs",
+                                                                         "type":  "nonmetal"
+                                                                     },
+                                           "minecraft:custom_model_data":  82
+                                       }
+                    }
+                ]
+}

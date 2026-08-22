@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "layer0":  "reinhardtshbm:item/insert_esapi"
+                 },
+    "parent":  "minecraft:item/generated"
+}
