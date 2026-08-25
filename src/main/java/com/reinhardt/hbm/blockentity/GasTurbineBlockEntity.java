@@ -567,12 +567,12 @@ public class GasTurbineBlockEntity extends BlockEntity implements PowerEndpoint,
             }
         }
 
-        pullFluids(level);
-        sendSteam(level);
         this.powerBeforeNet = Math.min(this.power, ENERGY_CAPACITY);
         this.power = BatteryPackItem.chargeFromMachine(this.items[BATTERY_SLOT], this.power);
         PowerNetworkManager.tickFromEndpoint(level, this);
         this.power = Math.min(this.power, ENERGY_CAPACITY);
+        pullFluids(level);
+        sendSteam(level);
         setChanged();
         if (level.getGameTime() % 10L == 0L) {
             sync();

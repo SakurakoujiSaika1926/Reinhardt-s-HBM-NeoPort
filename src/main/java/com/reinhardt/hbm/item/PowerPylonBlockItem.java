@@ -21,6 +21,10 @@ public final class PowerPylonBlockItem extends BlockItem {
 
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        // PylonRedWire had no IItemRenderer in 1.7.10; its inventory form is the registered block icon.
+        if (this.kind == PowerPylonBlock.Kind.RED_PYLON) {
+            return;
+        }
         consumer.accept(new IClientItemExtensions() {
             private final PowerPylonItemRenderer renderer = new PowerPylonItemRenderer(kind);
 

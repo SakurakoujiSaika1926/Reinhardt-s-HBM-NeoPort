@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:press",
+  "group": "press.flat",
+  "stamp": "flat",
+  "ingredient": { "tag": "c:gems/coke" },
+  "result": { "id": "reinhardtshbm:ingot_graphite" }
+}

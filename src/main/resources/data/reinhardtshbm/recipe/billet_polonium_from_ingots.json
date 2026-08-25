@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["##"],
+  "key": { "#": { "tag": "c:ingots/polonium" } },
+  "result": { "id": "reinhardtshbm:billet_polonium", "count": 3 }
+}

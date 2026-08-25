@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [{ "item": "reinhardtshbm:billet_pb209" }],
+  "result": { "id": "reinhardtshbm:nugget_pb209", "count": 6 }
+}

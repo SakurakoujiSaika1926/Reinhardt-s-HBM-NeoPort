@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["SUS", "RPR", "SUS"],
+  "key": {
+    "S": { "item": "reinhardtshbm:semtex" },
+    "U": { "item": "reinhardtshbm:block_u238" },
+    "R": { "item": "reinhardtshbm:ingot_tantalium" },
+    "P": { "item": "reinhardtshbm:billet_pu239" }
+  },
+  "result": { "id": "reinhardtshbm:fissure_bomb" }
+}

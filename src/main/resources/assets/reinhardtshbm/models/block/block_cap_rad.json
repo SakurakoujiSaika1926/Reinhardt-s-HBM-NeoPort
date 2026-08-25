@@ -1,0 +1,7 @@
+{
+    "parent": "minecraft:block/cube_column",
+    "textures": {
+        "side": "reinhardtshbm:block/block_cap_rad",
+        "end": "reinhardtshbm:block/block_cap_rad_top"
+    }
+}

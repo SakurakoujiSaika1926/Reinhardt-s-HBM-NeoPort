@@ -52,6 +52,8 @@ public final class FoundryMaterial {
         bootstrapped = true;
 
         FoundryMaterial stone = material(0, "stone", "stone", 0x4D2F23);
+        nonSmeltable(3, "wood", "wood", 0x896727);
+        nonSmeltable(4, "bone", "bone", 0xFFFEEE);
         additive(699, "carbon", "coal", 0x404040);
         convert(nonSmeltable(600, "coal", "coal", 0x404040), get("carbon"), 2, 1);
         convert(nonSmeltable(601, "lignite", "lignite", 0x472913), get("carbon"), 3, 1);
@@ -117,6 +119,11 @@ public final class FoundryMaterial {
         material(50, "weaponsteel", "weaponsteel", 0x808080);
         material(12600, "schrabidate", "schrabidate", 0x6589B4);
         material(45, "dineutronium", "dineutronium", 0x455289);
+        nonSmeltable(20_001, "polymer", "polymer", 0x272727);
+        nonSmeltable(20_002, "bakelite", "bakelite", 0xC93940);
+        nonSmeltable(20_003, "rubber", "rubber", 0x4B4A3F);
+        nonSmeltable(20_004, "pc", "pc", 0xE1DBB8);
+        nonSmeltable(20_005, "pvc", "pvc", 0xF0F0F0);
 
         BY_NAME.put("alloy", get("advanced_alloy"));
         BY_NAME.put("mingrade", get("red_copper"));

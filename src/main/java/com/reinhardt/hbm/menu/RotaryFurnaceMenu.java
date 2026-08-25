@@ -3,6 +3,7 @@ package com.reinhardt.hbm.menu;
 import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
+import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmMenus;
 import net.minecraft.core.BlockPos;
@@ -39,10 +40,11 @@ public class RotaryFurnaceMenu extends AbstractContainerMenu {
         this.container = container;
         this.data = data;
 
-        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.INPUT_A_SLOT, 44, 18));
-        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.INPUT_B_SLOT, 44, 40));
-        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.INPUT_C_SLOT, 44, 62));
-        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.FUEL_SLOT, 116, 62));
+        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.INPUT_A_SLOT, 8, 18));
+        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.INPUT_B_SLOT, 26, 18));
+        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.INPUT_C_SLOT, 44, 18));
+        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.FLUID_IDENTIFIER_SLOT, 8, 54));
+        this.addSlot(new ValidatedSlot(container, RotaryFurnaceBlockEntity.FUEL_SLOT, 44, 54));
 
         addPlayerInventory(playerInventory, 8, 104);
         addDataSlots(data);
@@ -62,6 +64,10 @@ public class RotaryFurnaceMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
                 return ItemStack.EMPTY;
             }
+        } else if (stack.getItem() instanceof FluidIdentifierItem
+                && moveItemStackTo(stack, RotaryFurnaceBlockEntity.FLUID_IDENTIFIER_SLOT,
+                RotaryFurnaceBlockEntity.FLUID_IDENTIFIER_SLOT + 1, false)) {
+            return moved;
         } else if (this.container.canPlaceItem(RotaryFurnaceBlockEntity.FUEL_SLOT, stack)
                 && moveItemStackTo(stack, RotaryFurnaceBlockEntity.FUEL_SLOT, RotaryFurnaceBlockEntity.FUEL_SLOT + 1, false)) {
             return moved;
@@ -154,6 +160,10 @@ public class RotaryFurnaceMenu extends AbstractContainerMenu {
 
     public int burnScaled(int pixels) {
         return Math.min(pixels, this.burnTime() * pixels / maxBurnTime());
+    }
+
+    public int progressScaled(int pixels) {
+        return Math.min(pixels, this.progress() * pixels / 10_000);
     }
 
     public int outputScaled(int pixels) {

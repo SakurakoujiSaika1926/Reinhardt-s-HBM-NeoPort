@@ -40,9 +40,5 @@ public class StorageCrateScreen extends AbstractContainerScreen<StorageCrateMenu
         boolean hot = this.menu.hot();
         guiGraphics.drawString(this.font, this.title, this.titleLabelX, 6, kind.titleColor(hot), false);
         guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, kind.inventoryLabelColor(hot), false);
-        if (kind == StorageCrateBlockEntity.Kind.TUNGSTEN && hot) {
-            String sparks = this.menu.joules() + "SPK";
-            guiGraphics.drawString(this.font, sparks, this.imageWidth - 8 - this.font.width(sparks), this.inventoryLabelY, 0xFFCA53, false);
-        }
     }
 }

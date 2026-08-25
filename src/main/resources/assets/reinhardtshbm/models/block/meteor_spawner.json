@@ -1,6 +1,12 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "reinhardtshbm:block/meteor_polished",
+    "up": "reinhardtshbm:block/meteor_spawner_top",
+    "north": "reinhardtshbm:block/meteor_spawner_side",
+    "south": "reinhardtshbm:block/meteor_spawner_side",
+    "west": "reinhardtshbm:block/meteor_spawner_side",
+    "east": "reinhardtshbm:block/meteor_spawner_side",
+    "particle": "reinhardtshbm:block/meteor_spawner_side"
+  }
 }

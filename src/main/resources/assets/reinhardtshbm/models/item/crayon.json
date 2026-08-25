@@ -1,6 +1,7 @@
 {
     "textures":  {
-                     "layer0":  "reinhardtshbm:item/crayon"
+                     "layer0":  "reinhardtshbm:item/crayon",
+                     "layer1":  "reinhardtshbm:item/crayon_overlay"
                  },
     "parent":  "minecraft:item/generated"
 }

@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/canned_beef"
+  },
+  "overrides": [
+    {"predicate": {"custom_model_data": 1}, "model": "reinhardtshbm:item/canned_tuna"},
+    {"predicate": {"custom_model_data": 2}, "model": "reinhardtshbm:item/canned_mystery"},
+    {"predicate": {"custom_model_data": 3}, "model": "reinhardtshbm:item/canned_pashtet"},
+    {"predicate": {"custom_model_data": 4}, "model": "reinhardtshbm:item/canned_cheese"},
+    {"predicate": {"custom_model_data": 5}, "model": "reinhardtshbm:item/canned_slime"},
+    {"predicate": {"custom_model_data": 6}, "model": "reinhardtshbm:item/canned_milk"},
+    {"predicate": {"custom_model_data": 7}, "model": "reinhardtshbm:item/canned_ass"},
+    {"predicate": {"custom_model_data": 8}, "model": "reinhardtshbm:item/canned_pizza"},
+    {"predicate": {"custom_model_data": 9}, "model": "reinhardtshbm:item/canned_tube"},
+    {"predicate": {"custom_model_data": 10}, "model": "reinhardtshbm:item/canned_tomato"},
+    {"predicate": {"custom_model_data": 11}, "model": "reinhardtshbm:item/canned_asbestos"},
+    {"predicate": {"custom_model_data": 12}, "model": "reinhardtshbm:item/canned_bhole"},
+    {"predicate": {"custom_model_data": 13}, "model": "reinhardtshbm:item/canned_hotdogs"},
+    {"predicate": {"custom_model_data": 14}, "model": "reinhardtshbm:item/canned_leftovers"},
+    {"predicate": {"custom_model_data": 15}, "model": "reinhardtshbm:item/canned_yogurt"},
+    {"predicate": {"custom_model_data": 16}, "model": "reinhardtshbm:item/canned_stew"},
+    {"predicate": {"custom_model_data": 17}, "model": "reinhardtshbm:item/canned_chinese"},
+    {"predicate": {"custom_model_data": 18}, "model": "reinhardtshbm:item/canned_oil"},
+    {"predicate": {"custom_model_data": 19}, "model": "reinhardtshbm:item/canned_fist"},
+    {"predicate": {"custom_model_data": 20}, "model": "reinhardtshbm:item/canned_spam"},
+    {"predicate": {"custom_model_data": 21}, "model": "reinhardtshbm:item/canned_fried"},
+    {"predicate": {"custom_model_data": 22}, "model": "reinhardtshbm:item/canned_napalm"},
+    {"predicate": {"custom_model_data": 23}, "model": "reinhardtshbm:item/canned_diesel"},
+    {"predicate": {"custom_model_data": 24}, "model": "reinhardtshbm:item/canned_kerosene"},
+    {"predicate": {"custom_model_data": 25}, "model": "reinhardtshbm:item/canned_recursion"},
+    {"predicate": {"custom_model_data": 26}, "model": "reinhardtshbm:item/canned_bark"}
+  ]
+}

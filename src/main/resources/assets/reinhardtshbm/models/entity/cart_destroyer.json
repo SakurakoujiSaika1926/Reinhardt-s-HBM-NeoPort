@@ -1,0 +1,8 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/cart_destroyer.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/cart_destroyer.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:entity/cart_destroyer", "texture": "reinhardtshbm:entity/cart_destroyer" }
+}

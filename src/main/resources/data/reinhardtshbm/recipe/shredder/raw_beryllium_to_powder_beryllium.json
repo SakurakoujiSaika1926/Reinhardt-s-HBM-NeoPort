@@ -3,7 +3,6 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_beryllium"
                    },
-    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_beryllium",
                    "count":  3

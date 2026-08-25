@@ -1,7 +1,6 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/vinyl_tile"
-                          }
-                 }
+{
+  "variants": {
+    "meta=0": { "model": "reinhardtshbm:block/vinyl_tile_large" },
+    "meta=1": { "model": "reinhardtshbm:block/vinyl_tile_small" }
+  }
 }

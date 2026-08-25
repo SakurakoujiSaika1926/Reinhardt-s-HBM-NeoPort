@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:item/upgrade_ejector_1",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:item/upgrade_ejector_2" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:item/upgrade_ejector_3" }
+  ]
+}

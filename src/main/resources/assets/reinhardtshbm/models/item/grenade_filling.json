@@ -1,6 +1,18 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
-                 },
-    "parent":  "minecraft:item/generated"
+    "parent": "minecraft:item/generated",
+    "textures": { "layer0": "reinhardtshbm:item/grenade_filling.powder" },
+    "overrides": [
+        { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/grenade_filling.he" },
+        { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/grenade_filling.demo" },
+        { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:item/grenade_filling.inc" },
+        { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:item/grenade_filling.wp" },
+        { "predicate": { "custom_model_data": 5 }, "model": "reinhardtshbm:item/grenade_filling.cluster" },
+        { "predicate": { "custom_model_data": 6 }, "model": "reinhardtshbm:item/grenade_filling.emp" },
+        { "predicate": { "custom_model_data": 7 }, "model": "reinhardtshbm:item/grenade_filling.plasma" },
+        { "predicate": { "custom_model_data": 8 }, "model": "reinhardtshbm:item/grenade_filling.laser" },
+        { "predicate": { "custom_model_data": 9 }, "model": "reinhardtshbm:item/grenade_filling.cluster_heavy" },
+        { "predicate": { "custom_model_data": 10 }, "model": "reinhardtshbm:item/grenade_filling.nuclear" },
+        { "predicate": { "custom_model_data": 11 }, "model": "reinhardtshbm:item/grenade_filling.nuclear_demo" },
+        { "predicate": { "custom_model_data": 12 }, "model": "reinhardtshbm:item/grenade_filling.schrab" }
+    ]
 }

@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/ore_sellafield_radgem"
-                          }
-                 }
+  "variants": {
+    "": [
+      { "model": "reinhardtshbm:block/ore_sellafield_radgem_0" },
+      { "model": "reinhardtshbm:block/ore_sellafield_radgem_1" },
+      { "model": "reinhardtshbm:block/ore_sellafield_radgem_2" },
+      { "model": "reinhardtshbm:block/ore_sellafield_radgem_3" }
+    ]
+  }
 }

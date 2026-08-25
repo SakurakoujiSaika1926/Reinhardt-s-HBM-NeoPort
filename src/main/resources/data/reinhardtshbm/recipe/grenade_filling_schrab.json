@@ -1,0 +1,41 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "BCB",
+                    "TST",
+                    "BCB"
+                ],
+    "key":  {
+                "B":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:plate_cast"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  39,
+                                                                           "material":  "combine_steel"
+                                                                       }
+                                         }
+                      },
+                "C":  {
+                          "item":  "reinhardtshbm:circuit_controller"
+                      },
+                "T":  {
+                          "item":  "reinhardtshbm:ball_tatb"
+                      },
+                "S":  {
+                          "item":  "reinhardtshbm:cell_sas3"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_filling",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "schrab"
+                                                                },
+                                      "minecraft:custom_model_data":  12
+                                  }
+               }
+}

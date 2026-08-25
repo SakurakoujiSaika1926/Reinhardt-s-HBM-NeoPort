@@ -10,12 +10,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
-public class BatteryPackItem extends LegacyVariantItem {
+public class BatteryPackItem extends LegacyVariantItem implements HbmChargeableItem {
     private static final String CHARGE_TAG = "charge";
     private static final Map<String, BatterySpec> SPECS = specs();
 
@@ -24,12 +26,17 @@ public class BatteryPackItem extends LegacyVariantItem {
     }
 
     @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        ObjMachineBlockItem.installRenderer(consumer);
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         BatterySpec spec = spec(stack);
         long charge = storedCharge(stack);
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.battery.energy", shortNumber(charge), shortNumber(spec.capacity()), percent(charge, spec.capacity())).withStyle(ChatFormatting.GREEN));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.battery.charge_rate", shortNumber(spec.chargeRate())).withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.battery.discharge_rate", shortNumber(spec.dischargeRate())).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.battery.energy", formatShortNumber(charge), formatShortNumber(spec.capacity()), percent(charge, spec.capacity())).withStyle(ChatFormatting.GREEN));
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.battery.charge_rate", formatShortNumber(spec.chargeRate())).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.battery.discharge_rate", formatShortNumber(spec.dischargeRate())).withStyle(ChatFormatting.YELLOW));
         tooltip.add(Component.translatable("item.reinhardtshbm.battery_pack").withStyle(ChatFormatting.DARK_GRAY));
     }
 
@@ -37,11 +44,11 @@ public class BatteryPackItem extends LegacyVariantItem {
     public void addCreativeVariants(CreativeModeTab.Output output) {
         for (Variant variant : variants()) {
             ItemStack empty = stackFor(this, variant.id());
-            setCharge(empty, 0L);
+            hbmSetCharge(empty, 0L);
             output.accept(empty);
 
             ItemStack full = stackFor(this, variant.id());
-            setCharge(full, SPECS.get(variant.id()).capacity());
+            hbmSetCharge(full, SPECS.get(variant.id()).capacity());
             output.accept(full);
         }
     }
@@ -65,7 +72,10 @@ public class BatteryPackItem extends LegacyVariantItem {
     }
 
     public static boolean isBattery(ItemStack stack) {
-        return !stack.isEmpty() && (stack.getItem() instanceof BatteryPackItem || stack.getItem() instanceof InfiniteBatteryItem);
+        return !stack.isEmpty() && (stack.getItem() instanceof BatteryPackItem
+                || stack.getItem() instanceof SelfChargingBatteryItem
+                || stack.getItem() instanceof InfiniteBatteryItem
+                || stack.getItem() instanceof HbmChargeableItem);
     }
 
     public static long dischargeIntoMachine(ItemStack stack, long stored, long capacity) {
@@ -76,6 +86,18 @@ public class BatteryPackItem extends LegacyVariantItem {
             long extracted = Math.min(capacity - stored, InfiniteBatteryItem.TRANSFER_RATE);
             return stored + Math.max(0L, extracted);
         }
+        if (stack.getItem() instanceof SelfChargingBatteryItem battery) {
+            long extracted = Math.min(capacity - stored, battery.output(stack));
+            return stored + Math.max(0L, extracted);
+        }
+        if (stack.getItem() instanceof HbmChargeableItem item) {
+            long charge = item.hbmCharge(stack);
+            long extracted = Math.min(Math.min(capacity - stored, item.hbmDischargeRate(stack)), charge);
+            if (extracted > 0L) {
+                item.hbmSetCharge(stack, charge - extracted);
+            }
+            return stored + Math.max(0L, extracted);
+        }
         BatteryPackItem item = (BatteryPackItem) stack.getItem();
         BatterySpec spec = item.spec(stack);
         long charge = item.storedCharge(stack);
@@ -83,7 +105,7 @@ public class BatteryPackItem extends LegacyVariantItem {
         if (extracted <= 0L) {
             return stored;
         }
-        item.setCharge(stack, charge - extracted);
+        item.hbmSetCharge(stack, charge - extracted);
         return stored + extracted;
     }
 
@@ -94,6 +116,17 @@ public class BatteryPackItem extends LegacyVariantItem {
         if (stack.getItem() instanceof InfiniteBatteryItem) {
             return stored;
         }
+        if (stack.getItem() instanceof SelfChargingBatteryItem) {
+            return stored;
+        }
+        if (stack.getItem() instanceof HbmChargeableItem item) {
+            long charge = item.hbmCharge(stack);
+            long inserted = Math.min(Math.min(stored, item.hbmChargeRate(stack)), item.hbmCapacity(stack) - charge);
+            if (inserted > 0L) {
+                item.hbmSetCharge(stack, charge + inserted);
+            }
+            return stored - Math.max(0L, inserted);
+        }
         BatteryPackItem item = (BatteryPackItem) stack.getItem();
         BatterySpec spec = item.spec(stack);
         long charge = item.storedCharge(stack);
@@ -101,13 +134,19 @@ public class BatteryPackItem extends LegacyVariantItem {
         if (inserted <= 0L) {
             return stored;
         }
-        item.setCharge(stack, charge + inserted);
+        item.hbmSetCharge(stack, charge + inserted);
         return stored - inserted;
     }
 
     public static long charge(ItemStack stack) {
         if (stack.getItem() instanceof InfiniteBatteryItem) {
             return InfiniteBatteryItem.POWER;
+        }
+        if (stack.getItem() instanceof SelfChargingBatteryItem battery) {
+            return battery.output(stack);
+        }
+        if (stack.getItem() instanceof HbmChargeableItem item) {
+            return item.hbmCharge(stack);
         }
         if (!(stack.getItem() instanceof BatteryPackItem item)) {
             return 0L;
@@ -119,6 +158,12 @@ public class BatteryPackItem extends LegacyVariantItem {
         if (stack.getItem() instanceof InfiniteBatteryItem) {
             return InfiniteBatteryItem.POWER;
         }
+        if (stack.getItem() instanceof SelfChargingBatteryItem battery) {
+            return battery.output(stack);
+        }
+        if (stack.getItem() instanceof HbmChargeableItem item) {
+            return item.hbmCapacity(stack);
+        }
         if (!(stack.getItem() instanceof BatteryPackItem item)) {
             return 0L;
         }
@@ -128,6 +173,12 @@ public class BatteryPackItem extends LegacyVariantItem {
     public static long chargeRate(ItemStack stack) {
         if (stack.getItem() instanceof InfiniteBatteryItem) {
             return 0L;
+        }
+        if (stack.getItem() instanceof SelfChargingBatteryItem) {
+            return 0L;
+        }
+        if (stack.getItem() instanceof HbmChargeableItem item) {
+            return item.hbmChargeRate(stack);
         }
         if (!(stack.getItem() instanceof BatteryPackItem item)) {
             return 0L;
@@ -139,6 +190,12 @@ public class BatteryPackItem extends LegacyVariantItem {
         if (stack.getItem() instanceof InfiniteBatteryItem) {
             return InfiniteBatteryItem.TRANSFER_RATE;
         }
+        if (stack.getItem() instanceof SelfChargingBatteryItem battery) {
+            return battery.output(stack);
+        }
+        if (stack.getItem() instanceof HbmChargeableItem item) {
+            return item.hbmDischargeRate(stack);
+        }
         if (!(stack.getItem() instanceof BatteryPackItem item)) {
             return 0L;
         }
@@ -146,11 +203,15 @@ public class BatteryPackItem extends LegacyVariantItem {
     }
 
     public static void setStoredCharge(ItemStack stack, long charge) {
-        if (stack.getItem() instanceof InfiniteBatteryItem) {
+        if (stack.getItem() instanceof InfiniteBatteryItem || stack.getItem() instanceof SelfChargingBatteryItem) {
+            return;
+        }
+        if (stack.getItem() instanceof HbmChargeableItem item) {
+            item.hbmSetCharge(stack, charge);
             return;
         }
         if (stack.getItem() instanceof BatteryPackItem item) {
-            item.setCharge(stack, charge);
+            item.hbmSetCharge(stack, charge);
         }
     }
 
@@ -168,6 +229,9 @@ public class BatteryPackItem extends LegacyVariantItem {
         if (stack.getItem() instanceof InfiniteBatteryItem) {
             return "battery_creative";
         }
+        if (stack.getItem() instanceof SelfChargingBatteryItem) {
+            return "battery_sc";
+        }
         if (!(stack.getItem() instanceof BatteryPackItem item)) {
             return "";
         }
@@ -178,20 +242,45 @@ public class BatteryPackItem extends LegacyVariantItem {
         return SPECS.getOrDefault(variant(stack).id(), SPECS.get("battery_redstone"));
     }
 
+    @Override
+    public long hbmCharge(ItemStack stack) {
+        return storedCharge(stack);
+    }
+
+    @Override
+    public long hbmCapacity(ItemStack stack) {
+        return spec(stack).capacity();
+    }
+
+    @Override
+    public long hbmChargeRate(ItemStack stack) {
+        return spec(stack).chargeRate();
+    }
+
+    @Override
+    public long hbmDischargeRate(ItemStack stack) {
+        return spec(stack).dischargeRate();
+    }
+
+    @Override
+    public void hbmSetCharge(ItemStack stack, long charge) {
+        setStoredChargeInternal(stack, charge);
+    }
+
     private long storedCharge(ItemStack stack) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         long value = tag.contains(CHARGE_TAG) ? tag.getLong(CHARGE_TAG) : 0L;
         return Math.max(0L, Math.min(value, spec(stack).capacity()));
     }
 
-    private void setCharge(ItemStack stack, long charge) {
+    private void setStoredChargeInternal(ItemStack stack, long charge) {
         BatterySpec spec = spec(stack);
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putLong(CHARGE_TAG, Math.max(0L, Math.min(charge, spec.capacity())));
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
-    private static String shortNumber(long value) {
+    public static String formatShortNumber(long value) {
         if (value >= 1_000_000_000L) {
             return trim(value / 1_000_000_000.0D) + "G";
         }

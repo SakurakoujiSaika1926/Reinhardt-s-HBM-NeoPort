@@ -2,5 +2,5 @@
     "textures":  {
                      "layer0":  "reinhardtshbm:item/reacher"
                  },
-    "parent":  "minecraft:item/generated"
+    "parent":  "minecraft:item/handheld"
 }

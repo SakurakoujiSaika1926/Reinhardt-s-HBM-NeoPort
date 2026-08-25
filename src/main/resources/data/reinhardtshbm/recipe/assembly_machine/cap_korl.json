@@ -1,0 +1,11 @@
+{
+    "type": "reinhardtshbm:assembly_machine",
+    "group": "ass.capkorl",
+    "duration": 10,
+    "power": 100,
+    "ingredients": [
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_korl" } },
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_korl" } }
+    ],
+    "result": { "id": "reinhardtshbm:block_cap", "components": { "minecraft:custom_data": { "type": "korl" }, "minecraft:custom_model_data": 4 } }
+}

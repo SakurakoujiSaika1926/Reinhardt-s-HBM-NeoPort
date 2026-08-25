@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -7,6 +8,7 @@ import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
@@ -25,9 +27,15 @@ import java.util.List;
 
 public class HbmFluidDuctItem extends Item {
     private static final String FLUID = "fluid";
+    private final String itemId;
 
     public HbmFluidDuctItem(Properties properties) {
+        this(properties, "ff_fluid_duct");
+    }
+
+    public HbmFluidDuctItem(Properties properties, String itemId) {
         super(properties);
+        this.itemId = itemId;
     }
 
     @Override
@@ -84,15 +92,19 @@ public class HbmFluidDuctItem extends Item {
     public void addCreativeVariants(CreativeModeTab.Output output) {
         for (HbmFluidDefinition definition : HbmFluids.niceOrder()) {
             if (definition.allowsFluidIdentifier()) {
-                output.accept(forFluid(definition, 1));
+                output.accept(stackForFluid(definition, 1));
             }
         }
     }
 
-    public static ItemStack forFluid(HbmFluidDefinition definition, int count) {
-        ItemStack stack = new ItemStack(com.reinhardt.hbm.registry.HbmItems.FF_FLUID_DUCT.get(), count);
+    public ItemStack stackForFluid(HbmFluidDefinition definition, int count) {
+        ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id(this.itemId)), count);
         setFluid(stack, definition);
         return stack;
+    }
+
+    public static ItemStack forFluid(HbmFluidDefinition definition, int count) {
+        return ((HbmFluidDuctItem) com.reinhardt.hbm.registry.HbmItems.FF_FLUID_DUCT.get()).stackForFluid(definition, count);
     }
 
     public static HbmFluidDefinition fluid(ItemStack stack) {

@@ -18,17 +18,22 @@ import org.jetbrains.annotations.Nullable;
 
 public class AshpitBlock extends LargeMachineBlock implements EntityBlock {
     public AshpitBlock(Properties properties) {
-        super(properties, Footprint.centered(1, 1, 1), Shapes.block(), RotationBasis.MODERN_NORTH);
+        // MachineAshpit is a BlockDummyable machine authored in the old SOUTH
+        // basis. Its 3x3 footprint must rotate with that same basis.
+        super(properties, Footprint.centered(1, 1, 1), Shapes.block(), RotationBasis.HBM_LEGACY_SOUTH);
     }
 
     @Override
     public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+        // The original renderer draws Main, Door and Inner as separate OBJ
+        // groups. Rendering the block model as well duplicates the shell.
+        return RenderShape.INVISIBLE;
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer && level.getBlockEntity(pos) instanceof AshpitBlockEntity ashpit) {
+            ashpit.startOpen(serverPlayer);
             serverPlayer.openMenu(ashpit, buffer -> buffer.writeBlockPos(pos));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

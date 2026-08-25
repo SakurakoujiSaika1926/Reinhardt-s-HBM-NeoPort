@@ -12,7 +12,7 @@ import net.minecraft.world.item.component.CustomData;
 import java.util.List;
 
 /** 1.7.10 ItemSatChip: each satellite module carries its mutable frequency in NBT. */
-public final class SatelliteChipItem extends Item {
+public class SatelliteChipItem extends Item {
     private static final String FREQUENCY_KEY = "freq";
     private final String descriptionKey;
 

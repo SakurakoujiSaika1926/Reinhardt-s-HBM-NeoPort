@@ -1259,6 +1259,11 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         return false;
     }
 
+    /** Entry point for the original ItemDyatlov, which bypassed fuel safety checks. */
+    public void forceMeltdown(Level level, BlockPos pos) {
+        meltdown(level, pos);
+    }
+
     private void meltdown(Level level, BlockPos pos) {
         if (level.isClientSide || meltingDown) {
             return;

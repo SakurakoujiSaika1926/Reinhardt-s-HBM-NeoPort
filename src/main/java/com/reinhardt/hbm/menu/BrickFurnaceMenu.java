@@ -60,7 +60,12 @@ public final class BrickFurnaceMenu extends AbstractContainerMenu {
         if (index < MACHINE_SLOTS) {
             if (!moveItemStackTo(stack, PLAYER_START, HOTBAR_END, true)) return ItemStack.EMPTY;
         } else if (BrickFurnaceBlockEntity.fuelDuration(stack) > 0) {
-            if (!moveItemStackTo(stack, BrickFurnaceBlockEntity.FUEL_SLOT, BrickFurnaceBlockEntity.FUEL_SLOT + 1, false)) return ItemStack.EMPTY;
+            // 1.7.10 tries the fuel slot first, then falls back to the input slot
+            // when the fuel slot cannot accept the stack.
+            if (!moveItemStackTo(stack, BrickFurnaceBlockEntity.FUEL_SLOT, BrickFurnaceBlockEntity.FUEL_SLOT + 1, false)
+                    && !moveItemStackTo(stack, BrickFurnaceBlockEntity.INPUT_SLOT, BrickFurnaceBlockEntity.INPUT_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
         } else if (!moveItemStackTo(stack, BrickFurnaceBlockEntity.INPUT_SLOT, BrickFurnaceBlockEntity.INPUT_SLOT + 1, false)) {
             if (index < PLAYER_END) {
                 if (!moveItemStackTo(stack, HOTBAR_START, HOTBAR_END, false)) return ItemStack.EMPTY;

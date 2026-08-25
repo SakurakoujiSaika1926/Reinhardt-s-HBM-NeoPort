@@ -49,7 +49,10 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
         boolean nether = isNether(level);
-        boolean placed = generateBedrockOre(level, origin.getX(), origin.getZ(), random, nether);
+        // 1.7.10 places deposits in the central two-by-two area of each generated chunk.
+        int centerX = origin.getX() + random.nextInt(2) + 8;
+        int centerZ = origin.getZ() + random.nextInt(2) + 8;
+        boolean placed = generateBedrockOre(level, centerX, centerZ, random, nether);
         return placed;
     }
 
@@ -58,7 +61,7 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
         boolean placed = false;
         double density = BedrockOreBaseItem.getAverageOreLevel(centerX, centerZ);
         ItemStack resource = nether
-                ? weightedNetherResource(level, centerX >> 4, centerZ >> 4)
+                ? weightedNetherResource(random)
                 : new ItemStack(HbmItems.BEDROCK_ORE_BASE.get());
         HbmFluidStack acid = nether ? HbmFluidStack.EMPTY : boreFluid(density);
         int tier = nether ? 1 : boreTier(density);
@@ -67,25 +70,24 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
             for (int dz = -1; dz <= 1; dz++) {
                 int x = centerX + dx;
                 int z = centerZ + dz;
-                for (int y = level.getMinBuildHeight(); y <= level.getMinBuildHeight() + 6 && y < level.getMaxBuildHeight(); y++) {
-                    pos.set(x, y, z);
-                    BlockState state = level.getBlockState(pos);
-                    if (!state.is(Blocks.BEDROCK)) {
-                        continue;
+                int y = level.getMinBuildHeight();
+                pos.set(x, y, z);
+                BlockState state = level.getBlockState(pos);
+                if (!state.is(Blocks.BEDROCK)) {
+                    continue;
+                }
+                if (dx == 0 && dz == 0 || random.nextBoolean()) {
+                    level.setBlock(pos, HbmBlocks.ORE_BEDROCK_BLOCK.get().defaultBlockState(), SET_FLAGS);
+                    if (level.getBlockEntity(pos) instanceof com.reinhardt.hbm.blockentity.BedrockOreBlockEntity ore) {
+                        ore.configure(
+                                resource.copy(),
+                                acid,
+                                color,
+                                tier,
+                                random.nextInt(10)
+                        );
                     }
-                    if (dx == 0 && dz == 0 || random.nextBoolean()) {
-                        level.setBlock(pos, HbmBlocks.ORE_BEDROCK_BLOCK.get().defaultBlockState(), SET_FLAGS);
-                        if (level.getBlockEntity(pos) instanceof com.reinhardt.hbm.blockentity.BedrockOreBlockEntity ore) {
-                            ore.configure(
-                                    resource.copy(),
-                                    acid,
-                                    color,
-                                    tier,
-                                    random.nextInt(10)
-                            );
-                        }
-                        placed = true;
-                    }
+                    placed = true;
                 }
             }
         }
@@ -115,13 +117,19 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
         }
     }
 
-    private static ItemStack weightedNetherResource(WorldGenLevel level, int chunkX, int chunkZ) {
-        RandomSource random = RandomSource.create(level.getSeed() ^ (chunkX * 341873128712L) ^ (chunkZ * 132897987541L));
-        int roll = random.nextInt(3);
-        if (roll == 0) {
+    private static ItemStack weightedNetherResource(RandomSource random) {
+        int glowstoneWeight = Math.max(0, HbmConfig.BEDROCK_ORE_NETHER_GLOWSTONE_WEIGHT.get());
+        int phosphorusWeight = Math.max(0, HbmConfig.BEDROCK_ORE_NETHER_PHOSPHORUS_WEIGHT.get());
+        int quartzWeight = Math.max(0, HbmConfig.BEDROCK_ORE_NETHER_QUARTZ_WEIGHT.get());
+        int totalWeight = glowstoneWeight + phosphorusWeight + quartzWeight;
+        if (totalWeight <= 0) {
             return new ItemStack(Items.GLOWSTONE_DUST, 4);
         }
-        if (roll == 1) {
+        int roll = random.nextInt(totalWeight);
+        if (roll < glowstoneWeight) {
+            return new ItemStack(Items.GLOWSTONE_DUST, 4);
+        }
+        if (roll < glowstoneWeight + phosphorusWeight) {
             return new ItemStack(item("powder_fire"), 4);
         }
         return new ItemStack(Items.QUARTZ, 4);

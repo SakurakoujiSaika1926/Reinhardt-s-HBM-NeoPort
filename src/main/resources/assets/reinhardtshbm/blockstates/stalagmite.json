@@ -1,7 +1,6 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/stalagmite"
-                          }
-                 }
+{
+  "variants": {
+    "material=0": { "model": "reinhardtshbm:block/stalagmite_sulfur" },
+    "material=1": { "model": "reinhardtshbm:block/stalagmite_asbestos" }
+  }
 }

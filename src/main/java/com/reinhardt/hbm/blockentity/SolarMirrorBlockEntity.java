@@ -24,6 +24,7 @@ public class SolarMirrorBlockEntity extends BlockEntity {
 
     public static void tick(Level level, BlockPos pos, BlockState state, SolarMirrorBlockEntity mirror) {
         if (level.isClientSide) {
+            mirror.tickClient(level);
             return;
         }
         mirror.tickServer(level);
@@ -89,6 +90,16 @@ public class SolarMirrorBlockEntity extends BlockEntity {
 
         if (wasOn != this.on || level.getGameTime() % 20L == 0L) {
             sync();
+        }
+    }
+
+    private void tickClient(Level level) {
+        if (!this.on || this.target.getY() < this.worldPosition.getY()) {
+            return;
+        }
+        BlockEntity targetEntity = level.getBlockEntity(this.target.below());
+        if (targetEntity instanceof SolarBoilerBlockEntity boiler) {
+            boiler.registerActiveMirror(this.worldPosition);
         }
     }
 

@@ -16,6 +16,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
 
@@ -44,6 +45,26 @@ public class LargeFluidTankBlockEntity extends FluidTankBlockEntity {
 
     public boolean tilted() {
         return this.tilted;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        if (this.level == null || this.level.getBlockEntity(this.worldPosition) != this) {
+            return false;
+        }
+        Direction facing = getBlockState().hasProperty(LargeFluidTankBlock.FACING)
+                ? getBlockState().getValue(LargeFluidTankBlock.FACING)
+                : Direction.SOUTH;
+        for (BlockPos part : LargeFluidTankBlock.occupiedPositions(this.worldPosition, facing)) {
+            if (player.distanceToSqr(
+                    part.getX() + 0.5D,
+                    part.getY() + 0.5D,
+                    part.getZ() + 0.5D
+            ) <= 64.0D) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

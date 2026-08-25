@@ -3,7 +3,6 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_cobalt"
                    },
-    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_cobalt",
                    "count":  3

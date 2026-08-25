@@ -2,6 +2,7 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.satellite.SatelliteSavedData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -76,6 +77,8 @@ public class SoyuzEntity extends Entity {
             if (getY() > 600.0D) {
                 if (this.mode == 1) {
                     spawnCapsule();
+                } else if (level() instanceof ServerLevel serverLevel) {
+                    SatelliteSavedData.get(serverLevel).orbit(this.payload[0]);
                 }
                 discard();
             }

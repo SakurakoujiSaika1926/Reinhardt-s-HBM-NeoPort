@@ -1,0 +1,27 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "F",
+                    "I",
+                    "F"
+                ],
+    "key":  {
+                "F":  {
+                          "tag":  "c:ingots/high_explosive"
+                      },
+                "I":  {
+                          "item":  "reinhardtshbm:plate_polymer"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_filling",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "demo"
+                                                                },
+                                      "minecraft:custom_model_data":  2
+                                  },
+                   "count":  4
+               }
+}

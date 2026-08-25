@@ -69,6 +69,87 @@ public final class HbmArmorMaterials {
     public static final DeferredHolder<ArmorMaterial, ArmorMaterial> SCHRABIDIUM = register(
             "schrabidium", 3, 6, 8, 3, 50, 2.0F, commonTag("ingots/schrabidium")
     );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> BISMUTH = register(
+            "bismuth", 3, 6, 8, 3, 100, 0.0F, commonTag("plates/bismuth")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> EUPHEMIUM = register(
+            "euphemium", 3, 6, 8, 3, 100, 0.0F, commonTag("ingots/euphemium")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> ZIRCONIUM = register(
+            "zirconium", 1, 3, 5, 2, 1_000, 0.0F, commonTag("ingots/zirconium")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> RAGS = register(
+            "rags", 1, 1, 1, 1, 0, 0.0F, item("rag")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> GOGGLES = register(
+            "goggles", 2, 5, 6, 2, 9, 0.0F, Ingredient::of
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> ASH_GLASSES = register(
+            "ashglasses", 2, 5, 6, 2, 9, 0.0F, Ingredient::of
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> RAGS_DAMP = register(
+            "rag_damp", 1, 1, 1, 1, 0, 0.0F, item("rag")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> RAGS_PISS = register(
+            "rag_piss", 1, 1, 1, 1, 0, 0.0F, item("rag")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> HAT = register(
+            "hat", 3, 6, 8, 3, 12, 0.0F, commonTag("ingots/advanced_alloy")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> NO9 = register(
+            "no9", 3, 6, 8, 3, 5, 0.0F, commonTag("ingots/steel")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> JACKT = register(
+            "jackt", 3, 6, 8, 3, 5, 0.0F, commonTag("ingots/steel")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> JACKT2 = register(
+            "jackt2", 3, 6, 8, 3, 5, 0.0F, commonTag("ingots/steel")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> LIQUIDATOR = register(
+            "liquidator", 3, 6, 8, 3, 10, 0.0F, commonTag("plates/lead")
+    );
+    /** Vanilla 1.7.10 ArmorMaterial.IRON values used exclusively by MaskOfInfamy. */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> INFAMY = register(
+            "infamy", 2, 5, 6, 2, 9, 0.0F, Ingredient::of
+    );
+    // 1.7.10 powered-suit materials. The behaviour is defined by their item groups;
+    // these entries preserve the original defense and repair component data.
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> T51 = register(
+            "t51", 3, 8, 6, 3, 0, 0.0F, item("plate_armor_titanium")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> STEAMSUIT = register(
+            "steamsuit", 3, 8, 6, 3, 0, 0.0F, commonTag("ingots/desh")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> DIESELSUIT = register(
+            "dieselsuit", 3, 8, 6, 3, 0, 0.0F, commonTag("plates/copper")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> AJR = register(
+            "ajr", 3, 8, 6, 3, 0, 0.0F, item("plate_armor_ajr")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> NCRPA = register(
+            "ncrpa", 3, 8, 6, 3, 0, 0.0F, item("plate_armor_ajr")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> BLACKJACK = register(
+            "blackjack", 3, 8, 6, 3, 0, 0.0F, item("plate_armor_lunar")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> ENVSUIT = register(
+            "envsuit", 3, 8, 6, 3, 10, 0.0F, item("plate_armor_hev")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> HEV = register(
+            "hev", 3, 8, 6, 3, 0, 0.0F, item("plate_armor_hev")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> FAU = register(
+            "fau", 3, 8, 6, 3, 0, 0.0F, item("plate_armor_fau")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> DNS = register(
+            "dns", 3, 8, 6, 3, 0, 0.0F, item("plate_armor_dnt")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> TAURUN = register(
+            "taurun", 3, 8, 6, 3, 10, 0.0F, commonTag("plates/iron")
+    );
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> TRENCHMASTER = register(
+            "trenchmaster", 3, 8, 6, 3, 0, 0.0F, commonTag("plates/iron")
+    );
 
     private HbmArmorMaterials() {
     }

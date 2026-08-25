@@ -1,0 +1,60 @@
+{
+  "parent": "reinhardtshbm:item/rbmk_pellet_thmeu_e0",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e1"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e2"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e3"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e4"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e5"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e6"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 7
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e7"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 8
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e8"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9
+      },
+      "model": "reinhardtshbm:item/rbmk_pellet_thmeu_e9"
+    }
+  ]
+}
+

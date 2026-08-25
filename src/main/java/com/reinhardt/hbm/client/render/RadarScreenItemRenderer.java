@@ -12,8 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /** Real OBJ item renderer using RenderRadarScreen's inventory transform source. */
 public final class RadarScreenItemRenderer extends BlockEntityWithoutLevelRenderer {
-    private static final float GUI_SCALE = 5.5F / 16.0F;
-
     public RadarScreenItemRenderer() {
         super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
     }
@@ -30,12 +28,15 @@ public final class RadarScreenItemRenderer extends BlockEntityWithoutLevelRender
 
     private static void applyLegacyTransform(ItemDisplayContext context, PoseStack poseStack) {
         if (context == ItemDisplayContext.GUI) {
-            // RenderRadarScreen's IItemRenderer was called after ItemRenderBase
-            // had already applied the inventory basis. Keep that basis here;
-            // otherwise the old inventory transform is displaced and enlarged.
             LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
-            poseStack.translate(0.0D, -3.0D / 16.0D, -0.5D / 16.0D);
-            poseStack.scale(GUI_SCALE, GUI_SCALE, GUI_SCALE);
+            // RenderRadarScreen#getRenderer: translate(0, -3, 0), scale(5.5),
+            // then renderCommonWithStack translates the model by Z -0.5.
+            // ItemRenderBase already contributes its 1/16 base scale; these
+            // are the original model-space coordinates and must not be divided
+            // by 16 a second time.
+            poseStack.translate(0.0D, -3.0D, 0.0D);
+            poseStack.scale(5.5F, 5.5F, 5.5F);
+            poseStack.translate(0.0D, 0.0D, -0.5D);
             return;
         }
         poseStack.translate(0.5D, 0.25D, 0.0D);

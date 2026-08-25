@@ -116,7 +116,7 @@ public class OilPumpjackBlock extends LargeMachineBlock implements EntityBlock {
         Direction facing = state.hasProperty(FACING) ? state.getValue(FACING) : Direction.NORTH;
         for (OilDerrickBlockEntity.Port port : OilDerrickBlockEntity.pumpjackPorts(corePos, facing)) {
             refreshConnector(level, port.pos());
-            refreshConnector(level, port.connectorPos());
+            refreshConnector(level, port.accessPos());
         }
     }
 

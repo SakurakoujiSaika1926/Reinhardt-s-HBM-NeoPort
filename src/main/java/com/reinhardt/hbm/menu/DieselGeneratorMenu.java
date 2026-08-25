@@ -41,7 +41,9 @@ public class DieselGeneratorMenu extends AbstractContainerMenu {
 
         this.addSlot(new ValidatedSlot(container, DieselGeneratorBlockEntity.SLOT_INPUT, 44, 17));
         this.addSlot(new TakeOnlySlot(container, DieselGeneratorBlockEntity.SLOT_OUTPUT, 44, 53));
-        this.addSlot(new ValidatedSlot(container, DieselGeneratorBlockEntity.SLOT_BATTERY, 152, 53));
+        this.addSlot(new ValidatedSlot(container, DieselGeneratorBlockEntity.SLOT_BATTERY, 116, 53));
+        this.addSlot(new ValidatedSlot(container, DieselGeneratorBlockEntity.SLOT_IDENTIFIER_INPUT, 8, 17));
+        this.addSlot(new TakeOnlySlot(container, DieselGeneratorBlockEntity.SLOT_IDENTIFIER_OUTPUT, 8, 53));
         addPlayerInventory(playerInventory, 8, 84);
         addDataSlots(data);
     }
@@ -98,6 +100,10 @@ public class DieselGeneratorMenu extends AbstractContainerMenu {
 
         if (index < MACHINE_SLOT_COUNT) {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (this.container.canPlaceItem(DieselGeneratorBlockEntity.SLOT_IDENTIFIER_INPUT, stack)) {
+            if (!moveItemStackTo(stack, DieselGeneratorBlockEntity.SLOT_IDENTIFIER_INPUT, DieselGeneratorBlockEntity.SLOT_IDENTIFIER_INPUT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else if (this.container.canPlaceItem(DieselGeneratorBlockEntity.SLOT_INPUT, stack)) {

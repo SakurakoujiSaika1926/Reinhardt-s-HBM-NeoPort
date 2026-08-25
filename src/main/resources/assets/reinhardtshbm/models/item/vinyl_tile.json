@@ -1,3 +1,6 @@
 {
-    "parent":  "reinhardtshbm:block/vinyl_tile"
+  "parent": "reinhardtshbm:block/vinyl_tile_large",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/vinyl_tile_small" }
+  ]
 }

@@ -51,6 +51,12 @@
     {
       "type": "neoforge:namespaced_directory",
       "namespace": "reinhardtshbm",
+      "source": "models/armor",
+      "prefix": "models/armor/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
       "source": "models/effect",
       "prefix": "models/effect/"
     },
@@ -71,6 +77,12 @@
       "namespace": "reinhardtshbm",
       "source": "models/soyuz_capsule",
       "prefix": "models/soyuz_capsule/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/legacy",
+      "prefix": "models/legacy/"
     },
     {
       "type": "neoforge:namespaced_directory",

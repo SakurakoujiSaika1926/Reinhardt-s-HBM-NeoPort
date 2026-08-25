@@ -2,6 +2,7 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.PowerPylonBlock;
 import com.reinhardt.hbm.blockentity.PowerPylonBlockEntity;
@@ -24,7 +25,6 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerPylonBlockEntity> {
-    private static final ModelResourceLocation RED_PYLON = MachineModelRenderer.standalone("block/red_pylon_world");
     private static final ModelResourceLocation RED_CONNECTOR = MachineModelRenderer.standalone("block/red_connector_world");
     private static final ModelResourceLocation CONNECTOR_RED_SUPER = MachineModelRenderer.standalone("block/connector_red_super_world");
     private static final ModelResourceLocation RED_PYLON_LARGE = MachineModelRenderer.standalone("block/red_pylon_large_world");
@@ -35,12 +35,15 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
     private static final ModelResourceLocation SUBSTATION = MachineModelRenderer.standalone("block/substation_world");
     private static final ResourceLocation WIRE_TEXTURE = ReinhardtsHBM.id("textures/models/network/wire.png");
     private static final ResourceLocation WIRE_GREYSCALE_TEXTURE = ReinhardtsHBM.id("textures/models/network/wire_greyscale.png");
+    private static final ResourceLocation RED_PYLON_TEXTURE =
+            ReinhardtsHBM.id("textures/models/network/modelpylon.png");
+    private final LegacyRedPylonModel redPylonModel;
 
     public PowerPylonBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        this.redPylonModel = new LegacyRedPylonModel(context.bakeLayer(LegacyRedPylonModel.LAYER));
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(RED_PYLON);
         event.register(RED_CONNECTOR);
         event.register(CONNECTOR_RED_SUPER);
         event.register(RED_PYLON_LARGE);
@@ -65,10 +68,14 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
     private void renderModel(PowerPylonBlockEntity pylon, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = pylon.getBlockState();
         Direction facing = state.hasProperty(PowerPylonBlock.FACING) ? state.getValue(PowerPylonBlock.FACING) : Direction.SOUTH;
+        if (pylon.kind() == PowerPylonBlock.Kind.RED_PYLON) {
+            renderLegacyRedPylon(poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         ModelResourceLocation model = switch (pylon.kind()) {
             case RED_CONNECTOR -> RED_CONNECTOR;
             case CONNECTOR_RED_SUPER -> CONNECTOR_RED_SUPER;
-            case RED_PYLON -> RED_PYLON;
+            case RED_PYLON -> throw new IllegalStateException("Legacy red pylon uses ModelPylon geometry");
             case RED_PYLON_MEDIUM_WOOD -> RED_PYLON_MEDIUM_WOOD;
             case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> RED_PYLON_MEDIUM_WOOD_TRANSFORMER;
             case RED_PYLON_MEDIUM_STEEL -> RED_PYLON_MEDIUM_STEEL;
@@ -90,6 +97,18 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
             }
         }
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private void renderLegacyRedPylon(PoseStack poseStack, MultiBufferSource bufferSource,
+                                      int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        // RenderPylon: translate(x + 0.5, y + 0.625, z + 0.5), then rotate Z 180 degrees.
+        poseStack.translate(0.5F, 0.625F, 0.5F);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+        this.redPylonModel.render(poseStack,
+                bufferSource.getBuffer(RenderType.entityCutoutNoCull(RED_PYLON_TEXTURE)),
+                packedLight, packedOverlay);
         poseStack.popPose();
     }
 

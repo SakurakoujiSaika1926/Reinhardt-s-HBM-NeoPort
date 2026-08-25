@@ -206,7 +206,7 @@ public class StrandCasterBlockEntity extends BlockEntity implements CrucibleAcce
 
     @Override
     public boolean canAcceptPartialPour(Level level, BlockPos pos, double x, double y, double z, Direction side, FoundryMaterialStack stack) {
-        if (side != Direction.UP || stack == null || stack.material().behavior() != FoundryMaterial.SmeltingBehavior.SMELTABLE) {
+        if (side != Direction.UP || stack == null) {
             return false;
         }
         BlockPos unrotated = unrotatedOffset(pos);
@@ -501,13 +501,11 @@ public class StrandCasterBlockEntity extends BlockEntity implements CrucibleAcce
         if (stack == null || stack.amount() <= 0) {
             return false;
         }
-        if (this.type != null && this.amount > 0 && this.type != stack.material()) {
+        if (this.type != null && this.type != stack.material()) {
             return false;
         }
         FoundryMoldItem.Mold mold = getInstalledMold();
-        return mold != null
-                && this.amount < castingLimit()
-                && mold.outputFor(stack.material()).isPresent();
+        return mold != null && this.amount < castingLimit();
     }
 
     private int castingLimit() {

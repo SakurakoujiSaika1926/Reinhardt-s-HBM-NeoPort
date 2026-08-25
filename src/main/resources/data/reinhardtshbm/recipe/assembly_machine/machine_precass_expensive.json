@@ -1,0 +1,56 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.precass",
+  "duration": 1200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "steel_plating"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/zirconium"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "circuit"
+          }
+        }
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_precass"
+  }
+}

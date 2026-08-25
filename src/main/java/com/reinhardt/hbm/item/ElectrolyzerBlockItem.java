@@ -13,10 +13,18 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+
+import java.util.function.Consumer;
 
 public class ElectrolyzerBlockItem extends BlockItem {
     public ElectrolyzerBlockItem(Block block, Item.Properties properties) {
         super(block, properties);
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        ObjMachineBlockItem.installRenderer(consumer);
     }
 
     @Override

@@ -16,6 +16,7 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
     private static final String XENON_TAG = "xenon";
     private static final String CORE_HEAT_TAG = "coreHeat";
     private static final String HULL_HEAT_TAG = "hullHeat";
+    private final String fixedFuelId;
 
     public static final List<String> FUEL_IDS = List.of(
             "ueu",
@@ -54,10 +55,29 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
 
     public RbmkFuelRodItem(Properties properties) {
         super(properties.stacksTo(1), "rbmk_fuel", variants(FUEL_IDS.toArray(String[]::new)));
+        this.fixedFuelId = null;
+    }
+
+    /**
+     * Direct 1.7.10 registration form.  The old game registered every fuel
+     * rod as a separate item, so its fuel type must not depend on mutable
+     * variant data attached to the stack.
+     */
+    public RbmkFuelRodItem(Properties properties, String fixedFuelId) {
+        super(properties.stacksTo(1), "rbmk_fuel", variants(fixedFuelId));
+        this.fixedFuelId = fixedFuelId;
+    }
+
+    @Override
+    public Component getName(ItemStack stack) {
+        if (this.fixedFuelId != null) {
+            return Component.translatable("item.reinhardtshbm.rbmk_fuel_" + this.fixedFuelId);
+        }
+        return super.getName(stack);
     }
 
     public Fuel fuel(ItemStack stack) {
-        String id = variant(stack).id();
+        String id = this.fixedFuelId == null ? variant(stack).id() : this.fixedFuelId;
         for (Fuel fuel : FUELS) {
             if (fuel.id().equals(id)) {
                 return fuel;
@@ -458,6 +478,7 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
             new Fuel("zfb_bismuth", "Bismuth ZFB", 50_000_000D, 20D, 0D, BurnFunction.SQUARE_ROOT).heat(1.75D).melt(2744D),
             new Fuel("zfb_pu241", "Pu-241 ZFB", 50_000_000D, 20D, 0D, BurnFunction.SQUARE_ROOT).melt(2865D),
             new Fuel("zfb_am_mix", "Fuel Grade Americium ZFB", 50_000_000D, 20D, 0D, BurnFunction.LINEAR).heat(1.75D).melt(2744D),
-            new Fuel("drx", "Digamma", 10_000_000D, 1000D, 10D, BurnFunction.QUADRATIC).heat(0.1D).melt(100_000D)
+            new Fuel("drx", "Digamma", 10_000_000D, 1000D, 10D, BurnFunction.QUADRATIC).heat(0.1D).melt(100_000D),
+            new Fuel("test", "THE VOICES", 1_000_000D, 100D, 0D, BurnFunction.EXPERIMENTAL).heat(1.0D).melt(100_000D)
     );
 }

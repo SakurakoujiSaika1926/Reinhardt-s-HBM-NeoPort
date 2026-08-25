@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
+                     "layer0":  "reinhardtshbm:item/singularity_counter_resonant"
                  },
     "parent":  "minecraft:item/generated"
 }

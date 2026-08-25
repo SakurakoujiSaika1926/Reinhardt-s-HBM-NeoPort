@@ -1,0 +1,11 @@
+{
+    "type": "reinhardtshbm:assembly_machine",
+    "group": "ass.capnuka",
+    "duration": 10,
+    "power": 100,
+    "ingredients": [
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_nuka" } },
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_nuka" } }
+    ],
+    "result": { "id": "reinhardtshbm:block_cap", "components": { "minecraft:custom_data": { "type": "nuka" }, "minecraft:custom_model_data": 0 } }
+}

@@ -1,0 +1,29 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "TPT",
+                    "CPC",
+                    "TPT"
+                ],
+    "key":  {
+                "T":  {
+                          "item":  "reinhardtshbm:ball_tatb"
+                      },
+                "C":  {
+                          "item":  "reinhardtshbm:neutron_reflector"
+                      },
+                "P":  {
+                          "tag":  "c:nuggets/pu239"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_filling",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "nuclear_demo"
+                                                                },
+                                      "minecraft:custom_model_data":  11
+                                  }
+               }
+}

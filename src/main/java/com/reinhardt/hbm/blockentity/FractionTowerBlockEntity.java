@@ -34,6 +34,7 @@ public class FractionTowerBlockEntity extends BlockEntity {
     private static final int PUSH_PER_PORT = 4_000;
 
     private final HbmFluidTank[] tanks = new HbmFluidTank[TANK_COUNT];
+    private HbmFluidDefinition configuredInput = defaultInput();
 
     public FractionTowerBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.FRACTION_TOWER.get(), pos, blockState);
@@ -57,11 +58,10 @@ public class FractionTowerBlockEntity extends BlockEntity {
         if (definition == null || definition.isNone()) {
             return;
         }
-        if (this.tanks[0].amount() == 0 || this.tanks[0].type() == definition) {
-            this.tanks[0].setType(definition);
-            setupTanks();
-            sync();
-        }
+        this.configuredInput = definition;
+        this.tanks[0].setType(definition);
+        setupTanks();
+        sync();
     }
 
     public Component tankLine(int index) {
@@ -102,6 +102,7 @@ public class FractionTowerBlockEntity extends BlockEntity {
         for (int index = 0; index < TANK_COUNT; index++) {
             tag.put("Tank" + index, this.tanks[index].save());
         }
+        tag.putString("ConfiguredInput", this.configuredInput.name());
     }
 
     @Override
@@ -110,8 +111,10 @@ public class FractionTowerBlockEntity extends BlockEntity {
         for (int index = 0; index < TANK_COUNT; index++) {
             this.tanks[index].load(tag.getCompound("Tank" + index));
         }
-        if (this.tanks[0].amount() == 0 && this.tanks[0].type().isNone()) {
-            this.tanks[0].setType(defaultInput());
+        this.configuredInput = HbmFluids.byName(tag.getString("ConfiguredInput"))
+                .orElseGet(() -> this.tanks[0].type().isNone() ? defaultInput() : this.tanks[0].type());
+        if (this.tanks[0].amount() == 0) {
+            this.tanks[0].setType(this.configuredInput);
         }
         setupTanks();
     }
@@ -150,6 +153,7 @@ public class FractionTowerBlockEntity extends BlockEntity {
         for (int index = 0; index < TANK_COUNT; index++) {
             upper.tanks[index].setType(this.tanks[index].type());
         }
+        upper.configuredInput = this.configuredInput;
 
         int oil = Math.min(this.tanks[0].amount(), upper.tanks[0].capacity() - upper.tanks[0].amount());
         int left = Math.min(upper.tanks[1].amount(), this.tanks[1].capacity() - this.tanks[1].amount());
@@ -171,7 +175,7 @@ public class FractionTowerBlockEntity extends BlockEntity {
         Optional<net.minecraft.world.item.crafting.RecipeHolder<FractionTowerRecipe>> holder = currentRecipe();
         if (holder.isEmpty()) {
             if (this.tanks[0].amount() == 0) {
-                this.tanks[0].clear();
+                this.tanks[0].setType(this.configuredInput);
             }
             if (this.tanks[1].amount() == 0) {
                 this.tanks[1].clear();
@@ -199,6 +203,9 @@ public class FractionTowerBlockEntity extends BlockEntity {
         }
 
         this.tanks[0].drain(recipe.input().fluid(), recipe.input().amount(), false);
+        if (this.tanks[0].amount() == 0) {
+            this.tanks[0].setType(this.configuredInput);
+        }
         this.tanks[1].fill(recipe.output1().fluid(), recipe.output1().amount(), false);
         this.tanks[2].fill(recipe.output2().fluid(), recipe.output2().amount(), false);
     }
@@ -231,13 +238,13 @@ public class FractionTowerBlockEntity extends BlockEntity {
     }
 
     private Optional<net.minecraft.world.item.crafting.RecipeHolder<FractionTowerRecipe>> currentRecipe() {
-        if (this.level == null || this.tanks[0].type().isNone()) {
+        if (this.level == null || this.configuredInput.isNone()) {
             return Optional.empty();
         }
         return this.level.getRecipeManager()
                 .getAllRecipesFor(HbmRecipeTypes.FRACTION_TOWER.get())
                 .stream()
-                .filter(holder -> holder.value().input().fluid() == this.tanks[0].type())
+                .filter(holder -> holder.value().input().fluid() == this.configuredInput)
                 .findFirst();
     }
 
@@ -313,7 +320,7 @@ public class FractionTowerBlockEntity extends BlockEntity {
                 return false;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(stack.getFluid()).orElse(HbmFluids.none());
-            return !fluid.isNone() && (tanks[0].type().isNone() || tanks[0].type() == fluid);
+            return !fluid.isNone() && fluid == configuredInput;
         }
 
         @Override
@@ -322,7 +329,7 @@ public class FractionTowerBlockEntity extends BlockEntity {
                 return 0;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(resource.getFluid()).orElse(HbmFluids.none());
-            if (fluid.isNone() || (!tanks[0].type().isNone() && tanks[0].type() != fluid)) {
+            if (fluid.isNone() || fluid != configuredInput) {
                 return 0;
             }
             int accepted = tanks[0].fill(fluid, resource.getAmount(), action.simulate());

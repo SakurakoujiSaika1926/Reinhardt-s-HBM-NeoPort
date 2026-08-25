@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/pipette_laboratory",
+    "layer1": "reinhardtshbm:item/pipette_laboratory_overlay"
+  }
+}

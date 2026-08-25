@@ -531,7 +531,8 @@ public class CrystallizerBlockEntity extends BlockEntity implements PowerEndpoin
 
     private int currentDemand() {
         int speed = Math.min(upgradeLevel(MachineUpgradeItem.UpgradeType.SPEED), 3);
-        return BASE_DEMAND + Math.min(speed * 1000, 3000);
+        int effect = Math.min(upgradeLevel(MachineUpgradeItem.UpgradeType.EFFECT), 3);
+        return BASE_DEMAND + speed * BASE_DEMAND + effect * BASE_DEMAND * 2;
     }
 
     private int currentCycleCount() {
@@ -540,10 +541,6 @@ public class CrystallizerBlockEntity extends BlockEntity implements PowerEndpoin
     }
 
     private int requiredAcid(int base) {
-        int efficiency = Math.min(upgradeLevel(MachineUpgradeItem.UpgradeType.EFFECT), 3);
-        if (efficiency > 0) {
-            return base * (efficiency + 2);
-        }
         return base;
     }
 

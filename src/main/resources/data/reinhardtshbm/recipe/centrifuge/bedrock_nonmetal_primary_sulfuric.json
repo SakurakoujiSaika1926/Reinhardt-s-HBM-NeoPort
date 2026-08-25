@@ -17,25 +17,25 @@
     "results":  [
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "primary_nosulfuric",
                                                                          "type":  "nonmetal"
                                                                      },
                                            "minecraft:custom_model_data":  40
-                                       }
+                                       },
+                        "count":  2
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "sulfuric_byproduct",
                                                                          "type":  "nonmetal"
                                                                      },
                                            "minecraft:custom_model_data":  88
-                                       }
+                                       },
+                        "count":  2
                     }
                 ]
 }

@@ -21,6 +21,7 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> BOILER = sound("block.boiler");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOILER_GROAN = sound("block.boiler_groan");
     public static final DeferredHolder<SoundEvent, SoundEvent> PRESS_OPERATE = sound("block.pressoperate");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PYRO_OVEN_OPERATE = sound("block.pyro_operate");
     public static final DeferredHolder<SoundEvent, SoundEvent> CENTRIFUGE_OPERATE = sound("block.centrifugeoperate");
     public static final DeferredHolder<SoundEvent, SoundEvent> PIPE_PLACED = sound("block.pipeplaced");
     public static final DeferredHolder<SoundEvent, SoundEvent> STEAM_ENGINE_OPERATE = sound("block.steam_engine_operate");
@@ -54,7 +55,11 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> RBMK_EXPLOSION = sound("block.rbmk_explosion");
     public static final DeferredHolder<SoundEvent, SoundEvent> RBMK_SHUTDOWN = sound("block.shutdown");
     public static final DeferredHolder<SoundEvent, SoundEvent> DIGAMMA_FLASH = sound("weapon.dflash");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_TESLA = sound("weapon.tesla");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_CRUCIBLE_DEPLOY = sound("weapon.crucible_deploy");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_CRUCIBLE_SWING = sound("weapon.crucible_swing");
     public static final DeferredHolder<SoundEvent, SoundEvent> FLAMETHROWER_SHOOT = sound("weapon.flamethrower_shoot");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_SPARK_SHOOT = sound("weapon.spark_shoot");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_EXPLOSION_MEDIUM = sound("weapon.explosion_medium");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_EXPLOSION_SMALL_NEAR = sound("weapon.explosion_small_near");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_EXPLOSION_SMALL_FAR = sound("weapon.explosion_small_far");
@@ -88,9 +93,29 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> PIN_UNLOCK = sound("item.pinunlock");
     public static final DeferredHolder<SoundEvent, SoundEvent> PIN_BREAK = sound("item.pinbreak");
     public static final DeferredHolder<SoundEvent, SoundEvent> UPGRADE_PLUG = sound("item.upgradeplug");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SUIT_BATTERY = sound("item.battery");
     public static final DeferredHolder<SoundEvent, SoundEvent> PLAYER_COUGH = sound("player.cough");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLAYER_GULP = sound("player.gulp");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLAYER_GROAN = sound("player.groan");
+    public static final DeferredHolder<SoundEvent, SoundEvent> POTATOS_RANDOM = sound("potatos.random");
     public static final DeferredHolder<SoundEvent, SoundEvent> VOMIT = sound("entity.vomit");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DUCC = sound("entity.ducc");
     public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_OLD_EXPLOSION = sound("entity.oldexplosion");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_BOMBER_LOOP = sound("entity.bomber_loop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_BOMBER_SMALL_LOOP = sound("entity.bomber_small_loop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_UFO_BEAM = sound("entity.ufo_beam");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_UFO_BLAST = sound("entity.ufo_blast");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_BALLS_LASER = sound("weapon.balls_laser");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_OSIPR_SHOOT = sound("weapon.osipr_shoot");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_CHOPPER_FLYING_LOOP = sound("entity.chopper_flying_loop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_CHOPPER_DROP = sound("entity.chopper_drop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_CHOPPER_CHARGE = sound("entity.chopper_charge");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_CHOPPER_DAMAGE = sound("entity.chopper_damage");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_CHOPPER_MINE_LOOP = sound("entity.chopper_mine_loop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_CHOPPER_CRASHING_LOOP = sound("entity.chopper_crashing_loop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENTITY_BOMB_WHISTLE = sound("entity.bomb_whistle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_MISSILE_TAKEOFF = sound("weapon.missile_takeoff");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_TRAIN_IMPACT = sound("weapon.train_impact");
     public static final DeferredHolder<SoundEvent, SoundEvent> METEORITE_FALLING_LOOP = sound("entity.meteoritefallingloop");
     public static final DeferredHolder<SoundEvent, SoundEvent> SOYUZ_READY = sound("block.soyuzready");
     public static final DeferredHolder<SoundEvent, SoundEvent> SOYUZ_TAKEOFF = sound("entity.soyuztakeoff");
@@ -119,9 +144,15 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> TECH_BOOP = sound("tool.techboop");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOLT_GUN = sound("item.boltgun");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_LANDMINE_ARM = sound("weapon.fstbmb_start");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHARGE_START = WEAPON_LANDMINE_ARM;
+    public static final DeferredHolder<SoundEvent, SoundEvent> CHARGE_BEEP = sound("weapon.fstbmb_ping");
     public static final DeferredHolder<SoundEvent, SoundEvent> BLOCK_DEBRIS = sound("block.debris");
     public static final DeferredHolder<SoundEvent, SoundEvent> METAL_IMPACT = sound("block.metal_impact");
     public static final DeferredHolder<SoundEvent, SoundEvent> ARC_FURNACE_OPERATE = sound("block.arc_furnace_operate");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RECORD_LAMBDA_CORE = sound("music.record_lambda_core");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RECORD_SECTOR_SWEEP = sound("music.record_sector_sweep");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RECORD_VORTAL_COMBAT = sound("music.record_vortal_combat");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RECORD_GLASS = sound("music.transmission");
 
     private HbmSoundEvents() {
     }

@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/sellafield_bedrock"
-                          }
-                 }
+  "variants": {
+    "": [
+      { "model": "reinhardtshbm:block/sellafield_slaked" },
+      { "model": "reinhardtshbm:block/sellafield_slaked_1" },
+      { "model": "reinhardtshbm:block/sellafield_slaked_2" },
+      { "model": "reinhardtshbm:block/sellafield_slaked_3" }
+    ]
+  }
 }

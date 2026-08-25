@@ -1,0 +1,29 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.ballsotron",
+  "duration": 1200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:plate_welded"],
+        "components": { "minecraft:custom_data": { "material_id": 2200, "material": "titanium" } }
+      },
+      "count": 32
+    },
+    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 64 },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:wire_dense"],
+        "components": { "minecraft:custom_data": { "material_id": 7900, "material": "gold" } }
+      },
+      "count": 64
+    },
+    { "ingredient": { "item": "reinhardtshbm:block_u238" }, "count": 10 },
+    { "ingredient": { "item": "reinhardtshbm:mech_key" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:spawn_worm" }
+}

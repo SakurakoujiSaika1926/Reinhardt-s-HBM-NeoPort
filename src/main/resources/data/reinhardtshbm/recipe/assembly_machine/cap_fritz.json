@@ -1,0 +1,11 @@
+{
+    "type": "reinhardtshbm:assembly_machine",
+    "group": "ass.capfritz",
+    "duration": 10,
+    "power": 100,
+    "ingredients": [
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_fritz" } },
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_fritz" } }
+    ],
+    "result": { "id": "reinhardtshbm:block_cap", "components": { "minecraft:custom_data": { "type": "fritz" }, "minecraft:custom_model_data": 5 } }
+}

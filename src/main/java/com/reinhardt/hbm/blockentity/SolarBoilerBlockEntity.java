@@ -21,7 +21,9 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SolarBoilerBlockEntity extends BlockEntity {
     // TileEntitySolarBoiler in 1.7.10 stores only one bucket tenth of water
@@ -33,6 +35,9 @@ public class SolarBoilerBlockEntity extends BlockEntity {
     private final HbmFluidTank outputTank = new HbmFluidTank(steam(), OUTPUT_CAPACITY);
     private int heat;
     private int heatDisplay;
+    // Matches TileEntitySolarBoiler's delayed client-side mirror queue.
+    private final Set<BlockPos> primaryMirrors = new LinkedHashSet<>();
+    private final Set<BlockPos> secondaryMirrors = new LinkedHashSet<>();
 
     public SolarBoilerBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.SOLAR_BOILER.get(), pos, blockState);
@@ -40,6 +45,7 @@ public class SolarBoilerBlockEntity extends BlockEntity {
 
     public static void tick(Level level, BlockPos pos, BlockState state, SolarBoilerBlockEntity boiler) {
         if (level.isClientSide) {
+            boiler.tickClient();
             return;
         }
         boiler.tickServer(level);
@@ -65,6 +71,16 @@ public class SolarBoilerBlockEntity extends BlockEntity {
         if (amount > 0) {
             this.heat += amount;
         }
+    }
+
+    public void registerActiveMirror(BlockPos mirrorPos) {
+        if (this.level != null && this.level.isClientSide) {
+            this.primaryMirrors.add(mirrorPos.immutable());
+        }
+    }
+
+    public Set<BlockPos> activeMirrors() {
+        return Set.copyOf(this.secondaryMirrors);
     }
 
     @Nullable
@@ -133,6 +149,12 @@ public class SolarBoilerBlockEntity extends BlockEntity {
         if (level.getGameTime() % 10L == 0L) {
             sync();
         }
+    }
+
+    private void tickClient() {
+        this.secondaryMirrors.clear();
+        this.secondaryMirrors.addAll(this.primaryMirrors);
+        this.primaryMirrors.clear();
     }
 
     private void tryConvert() {

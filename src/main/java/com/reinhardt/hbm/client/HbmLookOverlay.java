@@ -2,6 +2,8 @@ package com.reinhardt.hbm.client;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.WandStructureBlock;
+import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.GasTurbineBlock;
 import com.reinhardt.hbm.blockentity.AirCompressorBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticCrackerBlockEntity;
 import com.reinhardt.hbm.blockentity.ChimneyBlockEntity;
@@ -15,16 +17,17 @@ import com.reinhardt.hbm.blockentity.HeatBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
 import com.reinhardt.hbm.blockentity.GroundwaterPumpBlockEntity;
 import com.reinhardt.hbm.blockentity.GeothermalHeatExchangerBlockEntity;
+import com.reinhardt.hbm.blockentity.GasTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.IndustrialTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.LeviathanTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.PoweredSteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
+import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.SolarBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamEngineBlockEntity;
-import com.reinhardt.hbm.blockentity.SteamTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.StirlingGeneratorBlockEntity;
 import com.reinhardt.hbm.blockentity.StrandCasterBlockEntity;
 import com.reinhardt.hbm.blockentity.WandJigsawBlockEntity;
@@ -34,10 +37,12 @@ import com.reinhardt.hbm.blockentity.WandStructureBlockEntity;
 import com.reinhardt.hbm.blockentity.WandTandemBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.FoundryMoldItem;
+import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -52,6 +57,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID, value = Dist.CLIENT)
@@ -87,6 +93,22 @@ public final class HbmLookOverlay {
             return;
         }
 
+        if (coreEntity instanceof RotaryFurnaceBlockEntity furnace) {
+            OverlayData data = rotaryFurnaceOverlay(coreState, furnace, corePos, hit.getBlockPos());
+            if (data != null) {
+                renderGeneric(event.getGuiGraphics(), minecraft.font, data);
+            }
+            return;
+        }
+
+        if (coreEntity instanceof GasTurbineBlockEntity turbine) {
+            OverlayData data = gasTurbineOverlay(coreState, turbine, corePos, hit.getBlockPos());
+            if (data != null) {
+                renderGeneric(event.getGuiGraphics(), minecraft.font, data);
+            }
+            return;
+        }
+
         OverlayData data = overlayData(coreState, coreEntity);
         if (data == null) {
             return;
@@ -106,9 +128,9 @@ public final class HbmLookOverlay {
                 || entity instanceof HeatBoilerBlockEntity
                 || entity instanceof SolarBoilerBlockEntity
                 || entity instanceof SteamEngineBlockEntity
+                || entity instanceof GasTurbineBlockEntity
                 || entity instanceof IndustrialTurbineBlockEntity
                 || entity instanceof LeviathanTurbineBlockEntity
-                || entity instanceof SteamTurbineBlockEntity
                 || entity instanceof SteamCondenserBlockEntity
                 || entity instanceof PoweredSteamCondenserBlockEntity
                 || entity instanceof CoolingTowerBlockEntity
@@ -123,6 +145,7 @@ public final class HbmLookOverlay {
                 || entity instanceof GeothermalHeatExchangerBlockEntity
                 || entity instanceof StrandCasterBlockEntity
                 || entity instanceof ConveyorPressBlockEntity
+                || entity instanceof RotaryFurnaceBlockEntity
                 || entity instanceof LegacyMachineBlockEntity
                 || entity instanceof RbmkComponentBlockEntity
                 || entity instanceof WandStructureBlockEntity
@@ -157,9 +180,6 @@ public final class HbmLookOverlay {
         }
         if (entity instanceof LeviathanTurbineBlockEntity turbine) {
             return leviathanTurbineOverlay(state, turbine);
-        }
-        if (entity instanceof SteamTurbineBlockEntity turbine) {
-            return turbineOverlay(state, turbine);
         }
         if (entity instanceof SteamCondenserBlockEntity condenser) {
             return condenserOverlay(state, condenser);
@@ -266,15 +286,6 @@ public final class HbmLookOverlay {
         lines.add(flueOrSmokeLine());
         lines.add(fluidLine("-> ", boiler.inputTank()));
         lines.add(fluidLine("<- ", boiler.outputTank()));
-        return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
-    }
-
-    private static OverlayData turbineOverlay(BlockState state, SteamTurbineBlockEntity turbine) {
-        List<OverlayLine> lines = new ArrayList<>();
-        lines.add(fluidLine("-> ", turbine.inputTank()));
-        lines.add(fluidLine("<- ", turbine.outputTank()));
-        lines.add(OverlayLine.white(String.format("%,d HE", turbine.power())));
-        lines.add(OverlayLine.white(String.format("%,d HE/t", turbine.lastOutput())));
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
 
@@ -422,6 +433,65 @@ public final class HbmLookOverlay {
         return new OverlayData(state.getBlock().getName(), 0xFF4000, lines);
     }
 
+    /** MachineRotaryFurnace#printHook from 1.7.10: only the four actual ports show data. */
+    @Nullable
+    private static OverlayData rotaryFurnaceOverlay(BlockState state, RotaryFurnaceBlockEntity furnace,
+                                                    BlockPos corePos, BlockPos hitPos) {
+        Direction facing = state.hasProperty(LargeMachineBlock.FACING)
+                ? state.getValue(LargeMachineBlock.FACING)
+                : Direction.SOUTH;
+        Direction turn = LegacyMachineGeometry.forgeRotateDown(facing);
+        BlockPos steamNear = corePos.relative(facing.getOpposite()).relative(turn.getOpposite());
+        BlockPos steamFar = corePos.relative(facing.getOpposite()).relative(turn.getOpposite(), 2);
+        BlockPos additiveFront = corePos.relative(facing).relative(turn, 2);
+        BlockPos additiveBack = corePos.relative(facing.getOpposite()).relative(turn, 2);
+        BlockPos fuel = corePos.relative(facing).relative(turn);
+        List<OverlayLine> lines = new ArrayList<>();
+
+        if (hitPos.equals(steamNear) || hitPos.equals(steamFar)) {
+            lines.add(new OverlayLine("-> " + Component.translatable(furnace.steamTank().type().translationKey()).getString(), 0x00FF00));
+            lines.add(new OverlayLine("<- " + Component.translatable(furnace.spentSteamTank().type().translationKey()).getString(), 0xFF0000));
+        } else if (hitPos.equals(additiveFront) || hitPos.equals(additiveBack)) {
+            lines.add(new OverlayLine("-> " + Component.translatable(furnace.additiveTank().type().translationKey()).getString(), 0x00FF00));
+        } else if (hitPos.equals(fuel)) {
+            lines.add(new OverlayLine("-> Fuel", 0xFFFF00));
+        } else {
+            return null;
+        }
+        return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+    }
+
+    /** MachineTurbineGas#printHook from 1.7.10: only service dummies expose an overlay. */
+    @Nullable
+    private static OverlayData gasTurbineOverlay(BlockState state, GasTurbineBlockEntity turbine,
+                                                  BlockPos corePos, BlockPos hitPos) {
+        Direction facing = state.hasProperty(GasTurbineBlock.FACING)
+                ? state.getValue(GasTurbineBlock.FACING)
+                : Direction.SOUTH;
+        List<OverlayLine> lines = new ArrayList<>();
+
+        for (GasTurbineBlockEntity.Port port : GasTurbineBlockEntity.portsFor(corePos, facing)) {
+            if (!port.pos().equals(hitPos)) {
+                continue;
+            }
+            switch (port.kind()) {
+                case FUEL_LUBE -> {
+                    lines.add(fluidNameLine("-> ", turbine.fuelTank()));
+                    lines.add(fluidNameLine("-> ", turbine.lubricantTank()));
+                }
+                case WATER -> lines.add(fluidNameLine("-> ", turbine.waterTank()));
+                case STEAM -> lines.add(fluidNameLine("<- ", turbine.steamTank()));
+            }
+            return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+        }
+
+        if (GasTurbineBlockEntity.powerConnectors(corePos, facing).contains(hitPos)) {
+            lines.add(OverlayLine.white("<- Power"));
+            return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+        }
+        return null;
+    }
+
     /** 1.7.10 MachineConveyorPress#printHook. */
     private static OverlayData conveyorPressOverlay(BlockState state, ConveyorPressBlockEntity press) {
         List<OverlayLine> lines = new ArrayList<>();
@@ -518,13 +588,37 @@ public final class HbmLookOverlay {
 
     @Nullable
     private static OverlayData legacyMachineOverlay(BlockState state, LegacyMachineBlockEntity machine) {
-        if (!machine.machineId().equals("machine_thresher")) {
+        if (machine.machineId().equals("machine_teleporter")) {
+            List<OverlayLine> lines = new ArrayList<>();
+            if (!machine.hasTeleporterTarget()) {
+                lines.add(new OverlayLine(Component.translatable("overlay.reinhardtshbm.teleporter.no_destination").getString(), 0xFF5555));
+            } else {
+                int powerColor = machine.energyStored() >= 1_000_000L ? 0x00FF00 : 0xFF5555;
+                lines.add(new OverlayLine(Component.translatable(
+                        "overlay.reinhardtshbm.teleporter.power",
+                        String.format(Locale.US, "%,d", machine.energyStored()),
+                        String.format(Locale.US, "%,d", machine.energyCapacity())
+                ).getString(), powerColor));
+                lines.add(OverlayLine.white(Component.translatable(
+                        "overlay.reinhardtshbm.teleporter.destination",
+                        machine.teleporterTargetX(),
+                        machine.teleporterTargetY(),
+                        machine.teleporterTargetZ(),
+                        machine.teleporterLegacyDimensionId()
+                ).getString()));
+            }
+            return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+        }
+        if (!machine.machineId().equals("machine_thresher") && !machine.machineId().equals("machine_autosaw")) {
             return null;
         }
         List<OverlayLine> lines = new ArrayList<>();
         lines.add(fluidLine("", machine.inputTank()));
-        if (machine.thresherSuspended()) {
+        if (machine.machineId().equals("machine_thresher") && machine.thresherSuspended()) {
             lines.add(new OverlayLine(Component.translatable("block.reinhardtshbm.machine_thresher.suspended").getString(), 0xFF5555));
+        }
+        if (machine.machineId().equals("machine_autosaw") && machine.autosawSuspended()) {
+            lines.add(new OverlayLine(Component.translatable("block.reinhardtshbm.machine_autosaw.suspended").getString(), 0xFF5555));
         }
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
@@ -539,6 +633,10 @@ public final class HbmLookOverlay {
 
     private static OverlayLine fluidLine(String prefix, HbmFluidTank tank) {
         return OverlayLine.white(fluidText(prefix, tank));
+    }
+
+    private static OverlayLine fluidNameLine(String prefix, HbmFluidTank tank) {
+        return OverlayLine.white(prefix + Component.translatable(tank.type().translationKey()).getString());
     }
 
     private static String fluidText(String prefix, HbmFluidTank tank) {

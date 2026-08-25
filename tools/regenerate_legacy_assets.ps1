@@ -28,7 +28,7 @@ function Copy-TextureOrFallback($Kind, $Id, $Fallback) {
         Copy-Item -LiteralPath $source -Destination $target -Force
         return "reinhardtshbm:$Kind/$Id"
     }
-    return $Fallback
+    throw "Missing legacy $Kind texture for '$Id'. Add an explicit 1.7.10 asset mapping before regenerating resources."
 }
 
 $coreItems = @(
@@ -48,17 +48,14 @@ New-Item -ItemType Directory -Force -Path (Join-Path $assets "textures\item") | 
 New-Item -ItemType Directory -Force -Path (Join-Path $assets "textures\block") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $data "reinhardtshbm\loot_table\blocks") | Out-Null
 
-Copy-Item -LiteralPath (Join-Path $legacyAssets "textures\items\ingot_steel.png") -Destination (Join-Path $assets "textures\item\legacy_placeholder.png") -Force
-Copy-Item -LiteralPath (Join-Path $legacyAssets "textures\blocks\reinforced_stone.png") -Destination (Join-Path $assets "textures\block\legacy_placeholder.png") -Force
-
-$legacyItems = Get-Content (Join-Path $legacyDir "items.txt")
+$legacyItems = Get-Content (Join-Path $legacyDir "item_catalog.txt")
 $legacyBlocks = Get-Content (Join-Path $legacyDir "blocks.txt")
 $blockSet = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($id in $legacyBlocks) { [void]$blockSet.Add($id) }
 
 foreach ($id in $legacyItems) {
     if ($blockSet.Contains($id)) { continue }
-    $texture = Copy-TextureOrFallback "item" $id "reinhardtshbm:item/legacy_placeholder"
+    $texture = Copy-TextureOrFallback "item" $id $null
     New-JsonFile (Join-Path $assets "models\item\$id.json") @{
         parent = "minecraft:item/generated"
         textures = @{ layer0 = $texture }
@@ -66,7 +63,7 @@ foreach ($id in $legacyItems) {
 }
 
 foreach ($id in $legacyBlocks) {
-    $texture = Copy-TextureOrFallback "block" $id "reinhardtshbm:block/legacy_placeholder"
+    $texture = Copy-TextureOrFallback "block" $id $null
     New-JsonFile (Join-Path $assets "models\block\$id.json") @{
         parent = "minecraft:block/cube_all"
         textures = @{ all = $texture }

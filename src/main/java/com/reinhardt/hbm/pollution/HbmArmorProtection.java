@@ -2,6 +2,8 @@ package com.reinhardt.hbm.pollution;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.item.GasMaskItem;
+import com.reinhardt.hbm.item.FilterableGasMask;
+import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -72,11 +74,22 @@ public final class HbmArmorProtection {
             return true;
         }
 
-        if (!(head.getItem() instanceof GasMaskItem gasMask) || gasMask.blacklist().contains(hazardClass)) {
+        if (hasFilterProtection(head, entity, hazardClass, filterDamage)) {
+            return true;
+        }
+        for (ItemStack attachment : ArmorModHandler.pryMods(head, entity.registryAccess())) {
+            if (hasFilterProtection(attachment, entity, hazardClass, filterDamage)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasFilterProtection(ItemStack mask, LivingEntity entity, HazardClass hazardClass, int filterDamage) {
+        if (!(mask.getItem() instanceof FilterableGasMask gasMask) || gasMask.blacklist().contains(hazardClass)) {
             return false;
         }
-
-        ItemStack installedFilter = GasMaskItem.getInstalledFilter(head, entity.registryAccess());
+        ItemStack installedFilter = GasMaskItem.getInstalledFilter(mask, entity.registryAccess());
         if (installedFilter.isEmpty()) {
             return false;
         }
@@ -85,7 +98,7 @@ public final class HbmArmorProtection {
             return false;
         }
         if (filterDamage > 0) {
-            GasMaskItem.damageInstalledFilter(head, entity, filterDamage);
+            GasMaskItem.damageInstalledFilter(mask, entity, filterDamage);
         }
         return true;
     }

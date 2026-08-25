@@ -1,0 +1,6 @@
+{
+  "comparator_output": 1,
+  "description": {"translate": "jukebox_song.reinhardtshbm.record_ss"},
+  "length_in_seconds": 166.504,
+  "sound_event": "reinhardtshbm:music.record_sector_sweep"
+}

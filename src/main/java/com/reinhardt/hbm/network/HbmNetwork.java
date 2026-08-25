@@ -13,6 +13,7 @@ public final class HbmNetwork {
         registrar.playToServer(AnnihilatorControlPayload.TYPE, AnnihilatorControlPayload.STREAM_CODEC, AnnihilatorControlPayload::handle);
         registrar.playToServer(SetFluidIdentifierPayload.TYPE, SetFluidIdentifierPayload.STREAM_CODEC, SetFluidIdentifierPayload::handle);
         registrar.playToServer(SettingsToolKeysPayload.TYPE, SettingsToolKeysPayload.STREAM_CODEC, SettingsToolKeysPayload::handle);
+        registrar.playToServer(ToggleMagnetPayload.TYPE, ToggleMagnetPayload.STREAM_CODEC, ToggleMagnetPayload::handle);
         registrar.playToServer(ToggleHeaterPayload.TYPE, ToggleHeaterPayload.STREAM_CODEC, ToggleHeaterPayload::handle);
         registrar.playToServer(HeatExchangerControlPayload.TYPE, HeatExchangerControlPayload.STREAM_CODEC, HeatExchangerControlPayload::handle);
         registrar.playToServer(GasTurbineControlPayload.TYPE, GasTurbineControlPayload.STREAM_CODEC, GasTurbineControlPayload::handle);
@@ -23,6 +24,7 @@ public final class HbmNetwork {
         registrar.playToServer(FunnelControlPayload.TYPE, FunnelControlPayload.STREAM_CODEC, FunnelControlPayload::handle);
         registrar.playToServer(MissileAssemblyControlPayload.TYPE, MissileAssemblyControlPayload.STREAM_CODEC, MissileAssemblyControlPayload::handle);
         registrar.playToServer(RadarControlPayload.TYPE, RadarControlPayload.STREAM_CODEC, RadarControlPayload::handle);
+        registrar.playToServer(RadarCommandPayload.TYPE, RadarCommandPayload.STREAM_CODEC, RadarCommandPayload::handle);
         registrar.playToServer(FusionMachineControlPayload.TYPE, FusionMachineControlPayload.STREAM_CODEC, FusionMachineControlPayload::handle);
         registrar.playToServer(MixerControlPayload.TYPE, MixerControlPayload.STREAM_CODEC, MixerControlPayload::handle);
         registrar.playToServer(ResearchReactorControlPayload.TYPE, ResearchReactorControlPayload.STREAM_CODEC, ResearchReactorControlPayload::handle);
@@ -41,6 +43,8 @@ public final class HbmNetwork {
         registrar.playToServer(TurretChekhovControlPayload.TYPE, TurretChekhovControlPayload.STREAM_CODEC, TurretChekhovControlPayload::handle);
         registrar.playToServer(LegacyTurretControlPayload.TYPE, LegacyTurretControlPayload.STREAM_CODEC, LegacyTurretControlPayload::handle);
         registrar.playToServer(WandConfigPayload.TYPE, WandConfigPayload.STREAM_CODEC, WandConfigPayload::handle);
+        registrar.playToServer(SetRttyPagerChannelPayload.TYPE, SetRttyPagerChannelPayload.STREAM_CODEC, SetRttyPagerChannelPayload::handle);
+        registrar.playToServer(BobmazonOrderPayload.TYPE, BobmazonOrderPayload.STREAM_CODEC, BobmazonOrderPayload::handle);
         registrar.playToClient(PlayerInformPayload.TYPE, PlayerInformPayload.STREAM_CODEC, PlayerInformPayload::handle);
         registrar.playToClient(PollutionSyncPayload.TYPE, PollutionSyncPayload.STREAM_CODEC, PollutionSyncPayload::handle);
         registrar.playToClient(BatteryReddSyncPayload.TYPE, BatteryReddSyncPayload.STREAM_CODEC, BatteryReddSyncPayload::handle);

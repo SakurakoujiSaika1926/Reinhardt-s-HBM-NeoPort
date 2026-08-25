@@ -1,6 +1,8 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "reinhardtshbm:block/frozen_dirt",
+    "side": "reinhardtshbm:block/frozen_grass_side",
+    "top": "reinhardtshbm:block/frozen_grass_top"
+  }
 }

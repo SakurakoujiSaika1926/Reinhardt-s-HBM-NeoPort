@@ -3,7 +3,6 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_titanium"
                    },
-    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_titanium",
                    "count":  3

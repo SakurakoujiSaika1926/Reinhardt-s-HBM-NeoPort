@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" P ", "KDK", " P "],
+  "key": {
+    "P": { "tag": "c:plates/titanium" },
+    "K": { "type": "neoforge:components", "items": ["reinhardtshbm:fluid_tank_full"], "components": { "minecraft:custom_data": { "fluid": "kerosene" } } },
+    "D": { "type": "neoforge:components", "items": ["reinhardtshbm:drone"], "components": { "reinhardtshbm:drone_type": 1 } }
+  },
+  "result": { "id": "reinhardtshbm:drone", "components": { "reinhardtshbm:drone_type": 3 } }
+}

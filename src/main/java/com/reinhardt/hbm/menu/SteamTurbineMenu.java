@@ -111,7 +111,7 @@ public class SteamTurbineMenu extends AbstractContainerMenu {
     }
 
     public int inputCapacity() {
-        return SteamTurbineBlockEntity.INPUT_CAPACITY;
+        return SteamTurbineBlockEntity.inputCapacity();
     }
 
     public com.reinhardt.hbm.fluid.HbmFluidDefinition outputFluid() {
@@ -135,7 +135,7 @@ public class SteamTurbineMenu extends AbstractContainerMenu {
     }
 
     public int powerScaled(int pixels) {
-        return Math.min(pixels, (int) (this.power() * (long) pixels / SteamTurbineBlockEntity.ENERGY_CAPACITY));
+        return Math.min(pixels, (int) (this.power() * (long) pixels / SteamTurbineBlockEntity.energyCapacity()));
     }
 
     public int inputScaled(int pixels) {

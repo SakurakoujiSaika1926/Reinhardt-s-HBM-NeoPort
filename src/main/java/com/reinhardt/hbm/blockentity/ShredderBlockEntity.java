@@ -13,9 +13,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -49,7 +52,6 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
     public static final int PROCESSING_SPEED = 60;
     public static final long ENERGY_CAPACITY = 10_000L;
     public static final long DEMAND_PER_TICK = 5L;
-    public static final long INPUT_RATE = 120L;
 
     private static final int[] ALL_SLOTS = createSlots(INPUT_START, SLOT_COUNT);
 
@@ -115,7 +117,7 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
         if (this.energyStored >= ENERGY_CAPACITY) {
             return 0L;
         }
-        return Math.min(INPUT_RATE, ENERGY_CAPACITY - this.energyStored);
+        return ENERGY_CAPACITY - this.energyStored;
     }
 
     @Override
@@ -131,7 +133,7 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
         return Component.translatable(
                 "message.reinhardtshbm.power.shredder",
                 this.lastInput,
-                INPUT_RATE,
+                ENERGY_CAPACITY,
                 this.energyStored,
                 ENERGY_CAPACITY,
                 percent,
@@ -213,7 +215,7 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
         if (isInputSlot(slot)) {
-            return !stack.isEmpty() && !(stack.getItem() instanceof BladesItem) && hasRecipe(stack);
+            return canAcceptInput(stack);
         }
         if (slot == LEFT_BLADE_SLOT || slot == RIGHT_BLADE_SLOT) {
             return stack.getItem() instanceof BladesItem;
@@ -245,7 +247,26 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction direction) {
-        return canPlaceItem(slot, stack);
+        if ((slot >= OUTPUT_START && slot != LEFT_BLADE_SLOT && slot != RIGHT_BLADE_SLOT) || !canPlaceItem(slot, stack)) {
+            return false;
+        }
+
+        ItemStack existing = this.items.get(slot);
+        if (existing.isEmpty()) {
+            return true;
+        }
+
+        int size = existing.getCount();
+        for (int inputSlot = INPUT_START; inputSlot < INPUT_END; inputSlot++) {
+            ItemStack input = this.items.get(inputSlot);
+            if (input.isEmpty()) {
+                return false;
+            }
+            if (ItemStack.isSameItemSameComponents(input, stack) && input.getCount() < size) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -277,8 +298,8 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
         return BladesItem.gearState(this.items.get(RIGHT_BLADE_SLOT));
     }
 
-    public boolean canAcceptInput(ItemStack stack) {
-        return !stack.isEmpty() && hasRecipe(stack);
+    public static boolean canAcceptInput(ItemStack stack) {
+        return !stack.isEmpty() && !(stack.getItem() instanceof BladesItem);
     }
 
     public ContainerData getMenuData() {
@@ -318,16 +339,23 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
     }
 
     private void tickWork() {
-        this.energyStored = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.energyStored, ENERGY_CAPACITY);
+        if (this.progress == 0) {
+            this.soundCycle = 0;
+        }
 
         if (!canProcess()) {
             this.progress = 0;
             setLit(false);
+            chargeFromBattery();
+            setChanged();
             return;
         }
 
         if (this.energyStored < DEMAND_PER_TICK) {
+            this.progress = 0;
             setLit(false);
+            chargeFromBattery();
+            setChanged();
             return;
         }
 
@@ -342,6 +370,7 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
             this.progress = 0;
             this.completedCycles++;
         }
+        chargeFromBattery();
         setChanged();
     }
 
@@ -377,27 +406,13 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
     private void processItems() {
         for (int inputSlot = INPUT_START; inputSlot < INPUT_END; inputSlot++) {
             ItemStack input = this.items.get(inputSlot);
-            if (input.isEmpty()) {
+            if (input.isEmpty() || !hasSpace(input)) {
                 continue;
             }
 
-            Optional<RecipeHolder<ShredderRecipe>> recipeHolder = getRecipe(input);
-            if (recipeHolder.isEmpty()) {
-                continue;
-            }
-
-            ShredderRecipe recipe = recipeHolder.get().value();
-            if (input.getCount() < recipe.inputCount()) {
-                continue;
-            }
-
-            ItemStack result = recipe.assemble(new SingleRecipeInput(input), this.level.registryAccess());
-            if (result.isEmpty() || !hasSpace(result)) {
-                continue;
-            }
-
+            ItemStack result = getResult(input);
             insertOutput(result);
-            input.shrink(recipe.inputCount());
+            input.shrink(1);
             if (input.isEmpty()) {
                 this.items.set(inputSlot, ItemStack.EMPTY);
             }
@@ -405,29 +420,19 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
     }
 
     private boolean canProcessInput(ItemStack input) {
-        Optional<RecipeHolder<ShredderRecipe>> recipeHolder = getRecipe(input);
-        if (recipeHolder.isEmpty()) {
-            return false;
-        }
-
-        ShredderRecipe recipe = recipeHolder.get().value();
-        return input.getCount() >= recipe.inputCount() && hasSpace(recipe.result());
+        return !input.isEmpty() && hasSpace(input);
     }
 
-    private boolean hasSpace(ItemStack result) {
+    private boolean hasSpace(ItemStack input) {
+        ItemStack result = getResult(input);
         if (result.isEmpty()) {
             return false;
         }
 
-        int spaceLeft = 0;
         for (int slot = OUTPUT_START; slot < OUTPUT_END; slot++) {
             ItemStack output = this.items.get(slot);
-            if (output.isEmpty()) {
-                spaceLeft += result.getMaxStackSize();
-            } else if (ItemStack.isSameItemSameComponents(output, result)) {
-                spaceLeft += output.getMaxStackSize() - output.getCount();
-            }
-            if (spaceLeft >= result.getCount()) {
+            if (output.isEmpty() || (ItemStack.isSameItemSameComponents(output, result)
+                    && output.getCount() + result.getCount() <= result.getMaxStackSize())) {
                 return true;
             }
         }
@@ -435,25 +440,19 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
     }
 
     private void insertOutput(ItemStack result) {
-        int itemsLeft = result.getCount();
-        for (int slot = OUTPUT_START; slot < OUTPUT_END && itemsLeft > 0; slot++) {
+        for (int slot = OUTPUT_START; slot < OUTPUT_END; slot++) {
             ItemStack output = this.items.get(slot);
-            if (!output.isEmpty() && ItemStack.isSameItemSameComponents(output, result)) {
-                int amount = Math.min(itemsLeft, output.getMaxStackSize() - output.getCount());
-                if (amount > 0) {
-                    output.grow(amount);
-                    itemsLeft -= amount;
-                }
+            if (!output.isEmpty() && ItemStack.isSameItemSameComponents(output, result)
+                    && output.getCount() + result.getCount() <= result.getMaxStackSize()) {
+                output.grow(result.getCount());
+                return;
             }
         }
 
-        for (int slot = OUTPUT_START; slot < OUTPUT_END && itemsLeft > 0; slot++) {
+        for (int slot = OUTPUT_START; slot < OUTPUT_END; slot++) {
             if (this.items.get(slot).isEmpty()) {
-                int amount = Math.min(itemsLeft, result.getMaxStackSize());
-                ItemStack inserted = result.copy();
-                inserted.setCount(amount);
-                this.items.set(slot, inserted);
-                itemsLeft -= amount;
+                this.items.set(slot, result.copy());
+                return;
             }
         }
     }
@@ -463,17 +462,14 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
         BladesItem.damageBlade(this.items.get(RIGHT_BLADE_SLOT));
     }
 
-    private boolean hasRecipe(ItemStack stack) {
-        return this.level != null && getRecipe(stack).isPresent();
-    }
-
     private ItemStack getResult(ItemStack stack) {
         if (this.level == null) {
             return ItemStack.EMPTY;
         }
         return getRecipe(stack)
                 .map(recipe -> recipe.value().assemble(new SingleRecipeInput(stack), this.level.registryAccess()))
-                .orElse(ItemStack.EMPTY);
+                .orElseGet(() -> dynamicTagResult(stack)
+                        .orElseGet(() -> new ItemStack(com.reinhardt.hbm.registry.HbmItems.SCRAP.get())));
     }
 
     private Optional<RecipeHolder<ShredderRecipe>> getRecipe(ItemStack stack) {
@@ -537,5 +533,77 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
                 pos.getZ() + 0.5D,
                 stack.copy()
         ));
+    }
+
+    private void chargeFromBattery() {
+        this.energyStored = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.energyStored, ENERGY_CAPACITY);
+    }
+
+    /**
+     * Direct translation of ShredderRecipes.registerPost(): 1.7.10 generated
+     * these recipes from every ore-dictionary material after all mods loaded.
+     */
+    private static Optional<ItemStack> dynamicTagResult(ItemStack stack) {
+        return stack.getTags()
+                .map(TagKey::location)
+                .filter(tag -> tag.getNamespace().equals("c") || tag.getNamespace().equals("forge"))
+                .map(ShredderBlockEntity::dynamicTagResult)
+                .flatMap(Optional::stream)
+                .findFirst();
+    }
+
+    private static Optional<ItemStack> dynamicTagResult(ResourceLocation tag) {
+        String[] path = tag.getPath().split("/", 2);
+        if (path.length != 2 || path[1].isBlank()) {
+            return Optional.empty();
+        }
+
+        String category = path[0];
+        String material = canonicalMaterialName(path[1]);
+        return switch (category) {
+            case "ingots", "plates", "gems", "crystals" -> dustFor(tag.getNamespace(), material, 1);
+            case "ores" -> dustFor(tag.getNamespace(), material, 2);
+            case "storage_blocks" -> blockDustFor(tag.getNamespace(), material);
+            case "tiny_dusts" -> Optional.of(new ItemStack(com.reinhardt.hbm.registry.HbmItems.DUST_TINY.get()));
+            case "dusts" -> Optional.of(new ItemStack(com.reinhardt.hbm.registry.HbmItems.DUST.get()));
+            default -> Optional.empty();
+        };
+    }
+
+    private static Optional<ItemStack> blockDustFor(String namespace, String material) {
+        Optional<ItemStack> dust = dustFor(namespace, material, 1);
+        if (dust.isEmpty()) {
+            return Optional.empty();
+        }
+
+        boolean hasIngotOrGem = itemTagHasEntries(namespace, "ingots/" + material)
+                || itemTagHasEntries(namespace, "gems/" + material);
+        ItemStack result = dust.get();
+        result.setCount(hasIngotOrGem ? 9 : 4);
+        return Optional.of(result);
+    }
+
+    private static Optional<ItemStack> dustFor(String namespace, String material, int count) {
+        TagKey<net.minecraft.world.item.Item> dustTag = TagKey.create(
+                Registries.ITEM,
+                ResourceLocation.fromNamespaceAndPath(namespace, "dusts/" + material)
+        );
+        return BuiltInRegistries.ITEM.getTag(dustTag)
+                .flatMap(entries -> entries.stream().findFirst())
+                .map(entry -> new ItemStack(entry.value(), count));
+    }
+
+    private static boolean itemTagHasEntries(String namespace, String path) {
+        TagKey<net.minecraft.world.item.Item> tag = TagKey.create(
+                Registries.ITEM,
+                ResourceLocation.fromNamespaceAndPath(namespace, path)
+        );
+        return BuiltInRegistries.ITEM.getTag(tag)
+                .map(entries -> entries.iterator().hasNext())
+                .orElse(false);
+    }
+
+    private static String canonicalMaterialName(String material) {
+        return material.equals("aluminum") ? "aluminium" : material;
     }
 }

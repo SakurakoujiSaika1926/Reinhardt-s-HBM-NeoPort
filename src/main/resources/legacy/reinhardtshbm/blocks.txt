@@ -175,10 +175,6 @@ cable_detector
 cable_diode
 cable_switch
 capacitor_copper
-charge_c4
-charge_dynamite
-charge_miner
-charge_semtex
 charger
 chimney_brick
 chimney_industrial
@@ -348,7 +344,6 @@ filing_cabinet
 fire_digamma
 fire_door
 fireworks
-fissure_bomb
 flame_war
 float_bomb
 floodlight

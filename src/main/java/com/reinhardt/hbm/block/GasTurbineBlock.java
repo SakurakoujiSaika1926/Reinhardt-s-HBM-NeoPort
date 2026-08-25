@@ -3,6 +3,7 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.blockentity.GasTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
+import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -10,10 +11,15 @@ import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -101,6 +107,27 @@ public class GasTurbineBlock extends Block implements EntityBlock {
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(
+            ItemStack stack,
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hitResult
+    ) {
+        if (stack.getItem() instanceof FluidIdentifierItem
+                && level.getBlockEntity(pos) instanceof GasTurbineBlockEntity turbine) {
+            if (!level.isClientSide) {
+                turbine.pasteFluidSetting(FluidIdentifierItem.primary(stack), level, player, pos);
+                level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.25F, 1.2F);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override

@@ -177,6 +177,9 @@ public class HbmFluidTank implements IFluidHandler {
             clear();
             return;
         }
+        if (tag.contains("capacity")) {
+            this.capacity = Math.max(0, tag.getInt("capacity"));
+        }
         this.type = HbmFluids.byName(tag.getString("type")).orElse(HbmFluids.none());
         this.amount = Math.max(0, Math.min(capacity, tag.getInt("amount")));
         this.pressure = Math.max(0, tag.getInt("pressure"));

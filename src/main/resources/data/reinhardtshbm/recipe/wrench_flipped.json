@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["S", "D", "W"],
+  "key": {
+    "S": { "item": "minecraft:iron_sword" },
+    "D": { "item": "reinhardtshbm:ducttape" },
+    "W": { "item": "reinhardtshbm:wrench" }
+  },
+  "result": { "id": "reinhardtshbm:wrench_flipped" }
+}

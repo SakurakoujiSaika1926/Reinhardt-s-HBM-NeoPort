@@ -11,9 +11,11 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class FluidBarrelBlockItem extends BlockItem {
     private final FluidBarrelBlock.Kind kind;
@@ -21,6 +23,13 @@ public class FluidBarrelBlockItem extends BlockItem {
     public FluidBarrelBlockItem(FluidBarrelBlock block, Properties properties, FluidBarrelBlock.Kind kind) {
         super(block, properties);
         this.kind = kind;
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        // Fluid barrel items need the complete OBJ barrel, not the fallback
+        // flat inventory model used by the blockstate's connection variants.
+        ObjMachineBlockItem.installRenderer(consumer);
     }
 
     @Override

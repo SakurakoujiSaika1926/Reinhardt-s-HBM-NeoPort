@@ -3,12 +3,10 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.blockentity.BedrockOreBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
+import com.reinhardt.hbm.item.DrillbitItem;
 import com.reinhardt.hbm.registry.HbmFluids;
-import com.reinhardt.hbm.ReinhardtsHBM;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -58,17 +56,19 @@ public class BedrockOreBlock extends Block implements EntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!level.isClientSide) {
-            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-            if (ReinhardtsHBM.MOD_ID.equals(itemId.getNamespace()) && "drillbit".equals(itemId.getPath())) {
-                ore.setTier(Math.max(1, ore.tier() + 1));
+            if (stack.getItem() instanceof DrillbitItem) {
+                // 1.7.10 writes the held drillbit's actual tier, rather than incrementing the node.
+                ore.setTier(DrillbitItem.typeOf(stack).tier());
             } else if (FluidUtil.getFluidHandler(stack.copyWithCount(1)).isPresent()) {
                 FluidUtil.getFluidHandler(stack.copyWithCount(1)).ifPresent(handler -> {
                     net.neoforged.neoforge.fluids.FluidStack fluid = handler.drain(Integer.MAX_VALUE, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.SIMULATE);
-                    HbmFluidDefinition type = HbmFluids.fromNeoFluid(fluid.getFluid()).orElse(HbmFluids.none());
-                    ore.setAcidRequirement(type.isNone() ? HbmFluidStack.EMPTY : new HbmFluidStack(type, fluid.getAmount()));
+                    if (!fluid.isEmpty()) {
+                        HbmFluidDefinition type = HbmFluids.fromNeoFluid(fluid.getFluid()).orElse(HbmFluids.none());
+                        ore.setAcidRequirement(type.isNone() ? HbmFluidStack.EMPTY : new HbmFluidStack(type, fluid.getAmount()));
+                    }
                 });
             } else {
-                ore.setResource(stack.copyWithCount(Math.min(stack.getCount(), 64)));
+                ore.configure(stack.copy(), ore.acidRequirement(), ore.color(), ore.tier(), level.random.nextInt(10));
             }
             player.displayClientMessage(Component.translatable("message.reinhardtshbm.bedrock_ore.updated"), true);
         }

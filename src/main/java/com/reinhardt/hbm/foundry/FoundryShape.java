@@ -15,6 +15,12 @@ public enum FoundryShape {
     WELDED_PLATE(432, "plate_welded"),
     PIPE(216, "pipe"),
     SHELL(288, "shell"),
+    LIGHT_BARREL(216, "part_barrel_light"),
+    HEAVY_BARREL(432, "part_barrel_heavy"),
+    LIGHT_RECEIVER(288, "part_receiver_light"),
+    HEAVY_RECEIVER(648, "part_receiver_heavy"),
+    STOCK(288, "part_stock"),
+    GRIP(144, "part_grip"),
     BLOCK(648, "block");
 
     private final int quanta;

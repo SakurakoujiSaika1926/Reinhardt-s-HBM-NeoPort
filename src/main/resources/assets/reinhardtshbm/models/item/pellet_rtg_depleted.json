@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
+                     "layer0":  "reinhardtshbm:item/pellet_rtg_depleted"
                  },
     "parent":  "minecraft:item/generated"
 }

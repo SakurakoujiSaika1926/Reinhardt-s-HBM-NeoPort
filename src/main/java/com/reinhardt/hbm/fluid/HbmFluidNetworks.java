@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.fluid;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
+import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -94,6 +96,49 @@ public final class HbmFluidNetworks {
         return false;
     }
 
+    /**
+     * The direct modern counterpart to FluidDuctBase#getDebugInfo().  It only
+     * reports a live connected component, never a guessed machine endpoint.
+     */
+    public static List<String> debugInfo(Level level, BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof FluidPipeBlockEntity pipe)) {
+            return List.of();
+        }
+        HbmFluidDefinition type = pipe.type();
+        if (type == null || type.isNone()) {
+            return List.of("Fluid: none", "Links: 0", "Subscribers: 0", "Providers: 0", "Transfer: 0");
+        }
+
+        Set<BlockPos> pipes = cachedPipes(level, pos, type);
+        int links = 0;
+        for (BlockPos pipePos : pipes) {
+            for (Direction direction : Direction.values()) {
+                if (pipes.contains(pipePos.relative(direction))) {
+                    links++;
+                }
+            }
+        }
+        int subscribers = 0;
+        int providers = 0;
+        FluidStack probe = HbmFluids.toNeoStack(type, MAX_BALANCE_PER_ENDPOINT);
+        for (Endpoint endpoint : endpoints(level, type, pipes, null).endpoints()) {
+            if (endpoint.handler().fill(probe, IFluidHandler.FluidAction.SIMULATE) > 0) {
+                subscribers++;
+            }
+            FluidStack supplied = endpoint.handler().drain(probe, IFluidHandler.FluidAction.SIMULATE);
+            if (!supplied.isEmpty() && HbmFluids.fromNeoFluid(supplied.getFluid()).filter(definition -> definition == type).isPresent()) {
+                providers++;
+            }
+        }
+        return List.of(
+                "Fluid: " + type.name(),
+                "Links: " + links / 2,
+                "Subscribers: " + subscribers,
+                "Providers: " + providers,
+                "Transfer: " + network(level).lastTransfer(cursorKey(type, pipes))
+        );
+    }
+
     public static FluidStack drainFrom(Level level, BlockPos target, Direction side, HbmFluidDefinition type, int amount, @Nullable BlockPos excluded, boolean execute) {
         if (type == null || type.isNone() || amount <= 0) {
             return FluidStack.EMPTY;
@@ -158,6 +203,9 @@ public final class HbmFluidNetworks {
         if (execute && lastSuccessIndex >= 0) {
             network.advance(CursorKind.DRAIN, selection.cursorKey(), lastSuccessIndex + 1, selection.endpoints().size());
         }
+        if (execute && drainedTotal > 0) {
+            network.recordTransfer(selection.cursorKey(), drainedTotal);
+        }
         return drainedTotal <= 0 ? FluidStack.EMPTY : HbmFluids.toNeoStack(type, drainedTotal);
     }
 
@@ -190,6 +238,9 @@ public final class HbmFluidNetworks {
 
         if (execute && lastSuccessIndex >= 0) {
             network.advance(CursorKind.FILL, selection.cursorKey(), lastSuccessIndex + 1, selection.endpoints().size());
+        }
+        if (execute && filled > 0) {
+            network.recordTransfer(selection.cursorKey(), filled);
         }
         return filled;
     }
@@ -254,15 +305,29 @@ public final class HbmFluidNetworks {
                             new EndpointKey(endpoint.pos(), endpoint.side()),
                             available,
                             demand,
-                            PowerEndpoint.ConnectionPriority.NORMAL
+                            fluidEndpointPriority(level, endpoint)
                     ));
                 }
             }
             if (!endpoints.isEmpty()) {
-                snapshots.add(new BalanceComponentSnapshot(type.name(), endpoints));
+                snapshots.add(new BalanceComponentSnapshot(type.name(), component.pipes(), endpoints));
             }
         }
         return new BalanceSnapshot(gameTime, snapshots);
+    }
+
+    private static PowerEndpoint.ConnectionPriority fluidEndpointPriority(Level level, Endpoint endpoint) {
+        BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
+        FluidTankBlockEntity tank = null;
+        if (blockEntity instanceof FluidTankBlockEntity directTank) {
+            tank = directTank;
+        } else if (blockEntity instanceof MachineDummyBlockEntity dummy
+                && dummy.core() instanceof FluidTankBlockEntity dummyTank) {
+            tank = dummyTank;
+        }
+        return tank != null && tank.mode() == FluidTankBlockEntity.Mode.BUFFER
+                ? PowerEndpoint.ConnectionPriority.LOW
+                : PowerEndpoint.ConnectionPriority.NORMAL;
     }
 
     private static BalanceResult solveBalance(BalanceSnapshot snapshot) {
@@ -285,12 +350,12 @@ public final class HbmFluidNetworks {
         }
         int planned = (int) Math.min(Integer.MAX_VALUE, Math.min(totalAvailable, totalDemand));
         if (planned <= 0) {
-            return BalanceComponentResult.empty(component.typeName());
+            return BalanceComponentResult.empty(component.typeName(), component.pipes());
         }
 
         Map<EndpointKey, Integer> providers = distributeBalanceProviders(component.endpoints(), planned, gameTime + 17L);
         Map<EndpointKey, Integer> receivers = distributeBalanceReceivers(component.endpoints(), planned, gameTime);
-        return new BalanceComponentResult(component.typeName(), providers, receivers);
+        return new BalanceComponentResult(component.typeName(), component.pipes(), providers, receivers);
     }
 
     private static Map<EndpointKey, Integer> distributeBalanceReceivers(
@@ -393,6 +458,7 @@ public final class HbmFluidNetworks {
             if (drained <= 0) {
                 continue;
             }
+            network(level).recordTransfer(cursorKey(type, component.pipes()), drained);
             Map<EndpointKey, Integer> receiverAllocations = component.receiverAllocations();
             int plannedReceivers = 0;
             for (int amount : receiverAllocations.values()) {
@@ -487,7 +553,7 @@ public final class HbmFluidNetworks {
     private record BalanceSnapshot(long gameTime, List<BalanceComponentSnapshot> components) {
     }
 
-    private record BalanceComponentSnapshot(String typeName, List<BalanceEndpointSnapshot> endpoints) {
+    private record BalanceComponentSnapshot(String typeName, Set<BlockPos> pipes, List<BalanceEndpointSnapshot> endpoints) {
     }
 
     private record BalanceEndpointSnapshot(
@@ -504,11 +570,12 @@ public final class HbmFluidNetworks {
 
     private record BalanceComponentResult(
             String typeName,
+            Set<BlockPos> pipes,
             Map<EndpointKey, Integer> providerAllocations,
             Map<EndpointKey, Integer> receiverAllocations
     ) {
-        private static BalanceComponentResult empty(String typeName) {
-            return new BalanceComponentResult(typeName, Map.of(), Map.of());
+        private static BalanceComponentResult empty(String typeName, Set<BlockPos> pipes) {
+            return new BalanceComponentResult(typeName, pipes, Map.of(), Map.of());
         }
     }
 
@@ -537,11 +604,14 @@ public final class HbmFluidNetworks {
         private final Map<BlockPos, PipeNode> pipes = new HashMap<>();
         private final Map<EndpointCursorKey, Integer> fillCursors = new HashMap<>();
         private final Map<EndpointCursorKey, Integer> drainCursors = new HashMap<>();
+        private final Map<EndpointCursorKey, Integer> lastTransfers = new HashMap<>();
+        private final Map<EndpointCursorKey, Integer> currentTransfers = new HashMap<>();
         private Map<PipeComponentKey, PipeComponent> componentsByPipe = Map.of();
         private CompletableFuture<SolveResult> inFlight;
         private CompletableFuture<BalanceResult> balanceInFlight;
         private long graphVersion;
         private long lastBalanceTick = Long.MIN_VALUE;
+        private long transferTick = Long.MIN_VALUE;
         private boolean dirty = true;
 
         synchronized void upsert(BlockPos pos, Set<String> typeNames, boolean open) {
@@ -583,11 +653,27 @@ public final class HbmFluidNetworks {
             cursorMap(kind).put(key, Math.floorMod(nextIndex, size));
         }
 
+        synchronized int lastTransfer(EndpointCursorKey key) {
+            return this.lastTransfers.getOrDefault(key, 0);
+        }
+
+        synchronized void recordTransfer(EndpointCursorKey key, int amount) {
+            if (amount > 0) {
+                this.currentTransfers.merge(key, amount, Integer::sum);
+            }
+        }
+
         void tickBalance(Level level) {
             BalanceResult completed = null;
             Set<PipeComponent> components = Set.of();
             synchronized (this) {
                 tick();
+                if (this.transferTick != level.getGameTime()) {
+                    this.lastTransfers.clear();
+                    this.lastTransfers.putAll(this.currentTransfers);
+                    this.currentTransfers.clear();
+                    this.transferTick = level.getGameTime();
+                }
                 if (this.balanceInFlight != null && this.balanceInFlight.isDone()) {
                     completed = this.balanceInFlight.join();
                     this.balanceInFlight = null;

@@ -2,6 +2,7 @@ package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.client.sound.IndustrialTurbineClientSounds;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -35,7 +36,6 @@ import java.util.List;
 public class IndustrialTurbineBlockEntity extends BlockEntity implements PowerEndpoint, FluidCopiable {
     public static final int BASE_INPUT_CAPACITY = 750_000;
     public static final int BASE_OUTPUT_CAPACITY = 3_000_000;
-    private static final double EFFICIENCY = 1.0D;
     private static final double CONSUMPTION_PERCENT = 0.2D;
     private static final double FLYWHEEL_MAX_ENERGY = 50_000_000.0D;
 
@@ -328,8 +328,9 @@ public class IndustrialTurbineBlockEntity extends BlockEntity implements PowerEn
             this.lastPowerTarget = 0L;
             return;
         }
-        this.maxPower = (long) (maxOps * step.heatEnergy() * step.turbineEfficiency() * EFFICIENCY);
-        this.flywheelEnergy += (long) (ops * step.heatEnergy() * step.turbineEfficiency() * EFFICIENCY);
+        double efficiency = HbmConfig.INDUSTRIAL_TURBINE_EFFICIENCY.get();
+        this.maxPower = (long) (maxOps * step.heatEnergy() * step.turbineEfficiency() * efficiency);
+        this.flywheelEnergy += (long) (ops * step.heatEnergy() * step.turbineEfficiency() * efficiency);
     }
 
     private void updateFlywheel() {
@@ -403,8 +404,8 @@ public class IndustrialTurbineBlockEntity extends BlockEntity implements PowerEn
             this.configuredInput = steam();
             this.inputTank.clear();
             this.outputTank.clear();
-            this.inputTank.setCapacity(BASE_INPUT_CAPACITY);
-            this.outputTank.setCapacity(BASE_OUTPUT_CAPACITY);
+            this.inputTank.setCapacity(HbmConfig.INDUSTRIAL_TURBINE_INPUT_CAPACITY.get());
+            this.outputTank.setCapacity(HbmConfig.INDUSTRIAL_TURBINE_OUTPUT_CAPACITY.get());
             this.inputTank.setType(steam());
             this.outputTank.setType(spentSteam());
         });
@@ -449,20 +450,22 @@ public class IndustrialTurbineBlockEntity extends BlockEntity implements PowerEn
     }
 
     private static int inputCapacity(HbmFluidDefinition input) {
+        int baseCapacity = HbmConfig.INDUSTRIAL_TURBINE_INPUT_CAPACITY.get();
         return switch (input.name()) {
-            case "hotsteam" -> BASE_INPUT_CAPACITY / 10;
-            case "superhotsteam" -> BASE_INPUT_CAPACITY / 100;
-            case "ultrahotsteam" -> BASE_INPUT_CAPACITY / 1000;
-            default -> BASE_INPUT_CAPACITY;
+            case "hotsteam" -> baseCapacity / 10;
+            case "superhotsteam" -> baseCapacity / 100;
+            case "ultrahotsteam" -> baseCapacity / 1000;
+            default -> baseCapacity;
         };
     }
 
     private static int outputCapacity(HbmFluidDefinition input) {
+        int baseCapacity = HbmConfig.INDUSTRIAL_TURBINE_OUTPUT_CAPACITY.get();
         return switch (input.name()) {
-            case "hotsteam" -> BASE_OUTPUT_CAPACITY / 10;
-            case "superhotsteam" -> BASE_OUTPUT_CAPACITY / 100;
-            case "ultrahotsteam" -> BASE_OUTPUT_CAPACITY / 1000;
-            default -> BASE_OUTPUT_CAPACITY;
+            case "hotsteam" -> baseCapacity / 10;
+            case "superhotsteam" -> baseCapacity / 100;
+            case "ultrahotsteam" -> baseCapacity / 1000;
+            default -> baseCapacity;
         };
     }
 

@@ -1,6 +1,7 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/ingot_meteorite"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "reinhardtshbm:item/ingot_meteorite" },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/ingot_meteorite_hot" }
+  ]
 }

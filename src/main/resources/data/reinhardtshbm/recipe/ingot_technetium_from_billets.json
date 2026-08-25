@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [{ "item": "reinhardtshbm:billet_technetium" }, { "item": "reinhardtshbm:billet_technetium" }, { "item": "reinhardtshbm:billet_technetium" }],
+  "result": { "id": "reinhardtshbm:ingot_technetium", "count": 2 }
+}

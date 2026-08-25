@@ -10,11 +10,14 @@ import com.reinhardt.hbm.item.DrillbitItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.item.LegacyBedrockOreStageItem;
+import com.reinhardt.hbm.item.LegacyByproductItem;
 import com.reinhardt.hbm.item.MetalFenceBlockItem;
 import com.reinhardt.hbm.item.MeteorOreBlockItem;
 import com.reinhardt.hbm.item.NuclearWasteItem;
 import com.reinhardt.hbm.item.OilTarItem;
 import com.reinhardt.hbm.item.OreBasaltBlockItem;
+import com.reinhardt.hbm.item.SellafieldBlockItem;
 import com.reinhardt.hbm.item.ToasterBlockItem;
 import com.reinhardt.hbm.item.FoundryMoldItem;
 import com.reinhardt.hbm.item.FusionComponentBlockItem;
@@ -80,6 +83,10 @@ public final class HbmCreativeTabs {
                         for (var oreDrop : HbmItems.ORE_DROPS) {
                             if (oreDrop.get() instanceof LegacyVariantItem variantItem) {
                                 variantItem.addCreativeVariants(output);
+                            } else if (oreDrop.get() instanceof LegacyBedrockOreStageItem bedrockOre) {
+                                bedrockOre.addCreativeVariants(output);
+                            } else if (oreDrop.get() instanceof LegacyByproductItem byproduct) {
+                                byproduct.addCreativeVariants(output);
                             } else if (oreDrop.get() instanceof BedrockOreItem bedrockOre) {
                                 bedrockOre.addCreativeVariants(output);
                             } else if (oreDrop.get() instanceof BedrockOreFragmentItem fragment) {
@@ -120,6 +127,8 @@ public final class HbmCreativeTabs {
                                 output.accept(LegacyVariantItem.stackFor(HbmItems.COKE, "coal"));
                                 output.accept(LegacyVariantItem.stackFor(HbmItems.COKE, "lignite"));
                                 output.accept(LegacyVariantItem.stackFor(HbmItems.COKE, "petroleum"));
+                            } else if (material == HbmItems.BRIQUETTE || material == HbmItems.CASING) {
+                                ((LegacyVariantItem) material.get()).addCreativeVariants(output);
                             } else if (material == HbmItems.FALLOUT_ITEM) {
                                 output.accept(material);
                             } else if (material.get() instanceof com.reinhardt.hbm.item.OilTarItem oilTar) {
@@ -199,6 +208,10 @@ public final class HbmCreativeTabs {
                         for (var component : HbmItems.MACHINE_COMPONENTS) {
                             if (component.get() instanceof LegacyVariantItem variantItem) {
                                 variantItem.addCreativeVariants(output);
+                            } else if (component.get() instanceof com.reinhardt.hbm.item.LegacyMetaUpgradeItem upgrade) {
+                                upgrade.addCreativeVariants(output);
+                            } else if (component.get() instanceof com.reinhardt.hbm.item.FoundryShapeItem shapeItem) {
+                                shapeItem.addCreativeVariants(output);
                             } else if (component.get() instanceof DrillbitItem drillbit) {
                                 drillbit.addCreativeVariants(output);
                             } else {
@@ -273,7 +286,11 @@ public final class HbmCreativeTabs {
                         output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_tantalum"));
                         output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_bismuth"));
                         output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_spark"));
+                        ((com.reinhardt.hbm.item.SelfChargingBatteryItem) HbmItems.BATTERY_SC.get()).addCreativeVariants(output);
                         output.accept(HbmItems.BATTERY_CREATIVE);
+                        output.accept(HbmItems.BATTERY_POTATO);
+                        output.accept(HbmItems.BATTERY_POTATOS);
+                        output.accept(HbmItems.CUBE_POWER);
                         output.accept(HbmBlocks.MACHINE_BATTERY_REDD);
                         output.accept(HbmBlocks.MACHINE_BATTERY_SOCKET);
                     })
@@ -337,6 +354,15 @@ public final class HbmCreativeTabs {
                         for (var item : HbmItems.RBMK_FUEL_ROD_ITEMS) {
                             if (item.get() instanceof LegacyVariantItem variantItem) {
                                 variantItem.addCreativeVariants(output);
+                            } else if (item.get() instanceof com.reinhardt.hbm.item.RbmkPelletItem pelletItem) {
+                                pelletItem.addCreativeVariants(output);
+                            } else {
+                                output.accept(item);
+                            }
+                        }
+                        for (var item : HbmItems.RBMK_PELLET_ITEMS) {
+                            if (item.get() instanceof com.reinhardt.hbm.item.RbmkPelletItem pelletItem) {
+                                pelletItem.addCreativeVariants(output);
                             } else {
                                 output.accept(item);
                             }
@@ -370,7 +396,9 @@ public final class HbmCreativeTabs {
                             output.accept(block);
                         }
                         for (var item : HbmItems.NUCLEAR_WEAPON_ITEMS) {
-                            output.accept(item);
+                            if (!HbmItems.isHiddenMissilePart(item) && !HbmItems.isHiddenLegacyMissile(item)) {
+                                output.accept(item);
+                            }
                         }
                         for (var item : HbmItems.SATELLITE_ITEMS) {
                             output.accept(item);
@@ -413,8 +441,8 @@ public final class HbmCreativeTabs {
                         for (var item : HbmItems.FLUID_ITEMS) {
                             if (item.get() instanceof com.reinhardt.hbm.item.HbmFluidContainerItem container) {
                                 acceptFluidContainerVariants(output, container);
-                            } else if (item.get() instanceof com.reinhardt.hbm.item.HbmFluidDuctItem) {
-                                acceptFluidDuctVariants(output);
+                            } else if (item.get() instanceof com.reinhardt.hbm.item.HbmFluidDuctItem duct) {
+                                duct.addCreativeVariants(output);
                             } else {
                                 output.accept(item);
                             }
@@ -439,7 +467,7 @@ public final class HbmCreativeTabs {
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_REFINERY.get()))
                     .displayItems((parameters, output) -> {
                         for (var block : HbmBlocks.PETROLEUM_BLOCKS) {
-                            output.accept(block);
+                            output.accept(BuiltInRegistries.ITEM.get(block.getId()));
                         }
                         for (var block : HbmBlocks.OIL_FIELD_BLOCKS) {
                             output.accept(block);
@@ -525,7 +553,7 @@ public final class HbmCreativeTabs {
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_EXCAVATOR.get()))
                     .displayItems((parameters, output) -> {
                         for (var block : HbmBlocks.MINING_PROCESSING_BLOCKS) {
-                            output.accept(block);
+                            output.accept(BuiltInRegistries.ITEM.get(block.getId()));
                         }
                     })
                     .build()
@@ -561,6 +589,16 @@ public final class HbmCreativeTabs {
                                 concrete.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof MetalFenceBlockItem metalFence) {
                                 metalFence.addCreativeVariants(output);
+                            } else if (block.get().asItem() instanceof SellafieldBlockItem sellafield) {
+                                sellafield.addCreativeVariants(output);
+                            } else if (block.get().asItem() instanceof com.reinhardt.hbm.item.GlyphBlockItem glyph) {
+                                glyph.addCreativeVariants(output);
+                            } else if (block.get().asItem() instanceof com.reinhardt.hbm.item.CaveSpikeBlockItem spike) {
+                                spike.addCreativeVariants(output);
+                            } else if (block.get().asItem() instanceof com.reinhardt.hbm.item.CapBlockItem caps) {
+                                caps.addCreativeVariants(output);
+                            } else if (block.get().asItem() instanceof ConcreteColoredBlockItem variants) {
+                                variants.addCreativeVariants(output);
                             } else {
                                 output.accept(block);
                             }
@@ -606,6 +644,18 @@ public final class HbmCreativeTabs {
                                 folders.addCreativeVariants(output);
                             } else if (tool.get() instanceof com.reinhardt.hbm.item.SirenTrackItem tracks) {
                                 tracks.addCreativeVariants(output);
+                            } else if (tool.get() instanceof com.reinhardt.hbm.item.GuideBookItem guideBook) {
+                                guideBook.addCreativeVariants(output);
+                            } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyHolotapeImageItem holotapes) {
+                                holotapes.addCreativeVariants(output);
+                            } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyBombCallerItem bombCaller) {
+                                bombCaller.addCreativeVariants(output);
+                            } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyMinecartItem carts) {
+                                carts.addCreativeVariants(output);
+                            } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyDroneItem drones) {
+                                drones.addCreativeVariants(output);
+                            } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyTrainItem trains) {
+                                trains.addCreativeVariants(output);
                             } else {
                                 output.accept(tool);
                             }
@@ -646,9 +696,14 @@ public final class HbmCreativeTabs {
                     .title(Component.translatable("creative_tab.reinhardtshbm.legacy_items"))
                     .icon(() -> new ItemStack(HbmItems.INGOT_ADVANCED_ALLOY.get()))
                     .displayItems((parameters, output) -> {
+                        for (var item : HbmItems.PORTED_PLAIN_ITEMS) {
+                            if (!HbmItems.isHiddenPortedPlainItem(item) && !isPetroleumLegacyItem(item)) {
+                                outputLegacyItem(output, item);
+                            }
+                        }
                         for (var item : LegacyHbmContent.LEGACY_ITEMS) {
                             if (!isPetroleumLegacyItem(item)) {
-                                output.accept(item);
+                                outputLegacyItem(output, item);
                             }
                         }
                     })
@@ -671,6 +726,22 @@ public final class HbmCreativeTabs {
     );
 
     private HbmCreativeTabs() {
+    }
+
+    private static void outputLegacyItem(CreativeModeTab.Output output, net.neoforged.neoforge.registries.DeferredItem<Item> item) {
+        if (item.get() instanceof com.reinhardt.hbm.item.LegacyConserveItem conserve) {
+            conserve.addCreativeVariants(output);
+        } else if (item.get() instanceof com.reinhardt.hbm.item.LegacyCrayonItem crayon) {
+            crayon.addCreativeVariants(output);
+        } else if (item.get() instanceof com.reinhardt.hbm.item.LegacySpecialFoodItem food) {
+            food.addCreativeVariants(output);
+        } else if (item.get() instanceof LegacyVariantItem variant) {
+            variant.addCreativeVariants(output);
+        } else if (item.get() instanceof com.reinhardt.hbm.item.UniversalGrenadeItem grenade) {
+            grenade.addCreativeVariants(output);
+        } else {
+            output.accept(item);
+        }
     }
 
     private static final Set<String> PETROLEUM_LEGACY_BLOCKS = Set.of(
@@ -721,14 +792,6 @@ public final class HbmCreativeTabs {
         for (var definition : HbmFluids.niceOrder()) {
             if (container.kind().allows(definition)) {
                 output.accept(container.filledStack(definition));
-            }
-        }
-    }
-
-    private static void acceptFluidDuctVariants(CreativeModeTab.Output output) {
-        for (var definition : HbmFluids.niceOrder()) {
-            if (definition.allowsFluidIdentifier()) {
-                output.accept(HbmFluidDuctItem.forFluid(definition, 1));
             }
         }
     }

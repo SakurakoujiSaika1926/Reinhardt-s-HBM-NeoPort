@@ -1,6 +1,11 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/marshmallow"
-                 },
-    "parent":  "minecraft:item/generated"
+    "parent":  "reinhardtshbm:item/marshmallow.raw",
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  1
+                                        },
+                          "model":  "reinhardtshbm:item/marshmallow_roasted"
+                      }
+                  ]
 }

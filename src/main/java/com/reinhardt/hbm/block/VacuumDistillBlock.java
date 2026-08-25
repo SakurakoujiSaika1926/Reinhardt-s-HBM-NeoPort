@@ -103,14 +103,10 @@ public class VacuumDistillBlock extends LargeMachineBlock implements EntityBlock
         }
         for (VacuumDistillBlockEntity.Port port : VacuumDistillBlockEntity.portsFor(corePos)) {
             BlockPos connectorPos = port.connectorPos();
+            level.invalidateCapabilities(port.pos());
+            level.invalidateCapabilities(connectorPos);
             EnergyCableBlock.refreshConnections(level, connectorPos);
-            for (Direction direction : Direction.values()) {
-                BlockPos neighbor = connectorPos.relative(direction);
-                BlockState state = level.getBlockState(neighbor);
-                if (state.getBlock() instanceof FluidDuctBlock duct) {
-                    duct.refreshConnections(level, neighbor);
-                }
-            }
+            CatalyticCrackerBlock.refreshDuctsAtPort(level, port.pos(), connectorPos);
         }
     }
 

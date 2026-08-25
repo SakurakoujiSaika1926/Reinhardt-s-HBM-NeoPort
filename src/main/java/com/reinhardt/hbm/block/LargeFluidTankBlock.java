@@ -2,7 +2,6 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.LargeFluidTankBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
-import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -20,6 +19,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -91,13 +91,46 @@ public class LargeFluidTankBlock extends Block implements EntityBlock {
         } finally {
             RELOCATING.set(false);
         }
-        if (level.getBlockEntity(corePos) instanceof LargeFluidTankBlockEntity tank) {
-            tank.loadFromItem(stack);
-            tank.refreshConnectionsAfterPlacement();
+        finishPlacement(level, corePos, state, placer, stack);
+    }
+
+    public InteractionResult placeFromLegacyAnchor(UseOnContext context) {
+        BlockPlaceContext placeContext = new BlockPlaceContext(context);
+        Level level = context.getLevel();
+        Direction facing = placeContext.getHorizontalDirection().getOpposite();
+        BlockPos anchorPos = placeContext.getClickedPos();
+        BlockPos corePos = anchorPos.relative(facing, -LEGACY_CORE_OFFSET);
+        Set<BlockPos> occupied = occupiedPositions(corePos, facing);
+
+        for (BlockPos occupiedPos : occupied) {
+            if (!level.getWorldBorder().isWithinBounds(occupiedPos)
+                    || !level.getBlockState(occupiedPos).canBeReplaced(placeContext)) {
+                return InteractionResult.FAIL;
+            }
         }
-        MachineDummyBlock.runWithoutCoreDestroy(() -> placeDummies(level, corePos, facing));
-        LargeMachineBlock.pushEntitiesOutOfPositions(level, corePos, facing,
-                occupiedPositions(corePos, facing), placer);
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
+        BlockState state = defaultBlockState().setValue(FACING, facing);
+        if (!level.setBlock(corePos, state, Block.UPDATE_ALL)) {
+            return InteractionResult.FAIL;
+        }
+        finishPlacement(level, corePos, state, context.getPlayer(), context.getItemInHand());
+
+        net.minecraft.world.level.block.SoundType sound = state.getSoundType(level, corePos, context.getPlayer());
+        level.playSound(
+                context.getPlayer(),
+                corePos,
+                sound.getPlaceSound(),
+                SoundSource.BLOCKS,
+                (sound.getVolume() + 1.0F) * 0.5F,
+                sound.getPitch() * 0.8F
+        );
+        if (context.getPlayer() == null || !context.getPlayer().getAbilities().instabuild) {
+            context.getItemInHand().shrink(1);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Nullable
@@ -169,8 +202,8 @@ public class LargeFluidTankBlock extends Block implements EntityBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState,
                             boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !RELOCATING.get()) {
-            if (level.getBlockEntity(pos) instanceof MachineInventory inventory) {
-                inventory.dropContents(level, pos);
+            if (level.getBlockEntity(pos) instanceof LargeFluidTankBlockEntity tank) {
+                tank.dropInventoryContentsOnly(level, pos);
             }
             Direction facing = state.getValue(FACING);
             MachineDummyBlock.runWithoutCoreDestroy(() -> removeDummies(level, pos, facing));
@@ -243,6 +276,20 @@ public class LargeFluidTankBlock extends Block implements EntityBlock {
                 dummy.setCorePos(corePos);
             }
         }
+    }
+
+    private static void finishPlacement(Level level, BlockPos corePos, BlockState state,
+                                        @Nullable LivingEntity placer, ItemStack stack) {
+        Direction facing = state.getValue(FACING);
+        if (level.getBlockEntity(corePos) instanceof LargeFluidTankBlockEntity tank) {
+            tank.loadFromItem(stack);
+        }
+        MachineDummyBlock.runWithoutCoreDestroy(() -> placeDummies(level, corePos, facing));
+        if (level.getBlockEntity(corePos) instanceof LargeFluidTankBlockEntity tank) {
+            tank.refreshConnectionsAfterPlacement();
+        }
+        LargeMachineBlock.pushEntitiesOutOfPositions(
+                level, corePos, facing, occupiedPositions(corePos, facing), placer);
     }
 
     private static void removeDummies(Level level, BlockPos corePos, Direction facing) {

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["G", "T", "C"],
+  "key": { "G": { "tag": "c:dyes/green" }, "T": { "item": "minecraft:redstone_torch" }, "C": { "item": "reinhardtshbm:circuit_basic" } },
+  "result": { "id": "reinhardtshbm:drone_waypoint", "count": 4 }
+}

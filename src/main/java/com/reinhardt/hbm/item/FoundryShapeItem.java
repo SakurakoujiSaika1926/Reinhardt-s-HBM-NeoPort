@@ -10,94 +10,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
-import java.util.Set;
-
 public class FoundryShapeItem extends Item {
     private static final String MATERIAL_ID = "material_id";
     private static final String MATERIAL = "material";
-    private static final Set<String> CAST_PLATE_MATERIALS = Set.of(
-            "iron",
-            "gold",
-            "schrabidium",
-            "schrabidate",
-            "titanium",
-            "copper",
-            "tungsten",
-            "aluminium",
-            "lead",
-            "zirconium",
-            "osmiridium",
-            "steel",
-            "advanced_alloy",
-            "dura_steel",
-            "desh",
-            "starmetal",
-            "ferrouranium",
-            "tcalloy",
-            "cdalloy",
-            "bismuth_bronze",
-            "arsenic_bronze",
-            "combine_steel",
-            "weaponsteel",
-            "saturnite"
-    );
-    private static final Set<String> FINE_WIRE_MATERIALS = Set.of(
-            "carbon",
-            "gold",
-            "schrabidium",
-            "copper",
-            "tungsten",
-            "aluminium",
-            "lead",
-            "zirconium",
-            "steel",
-            "red_copper",
-            "advanced_alloy",
-            "magnetized_tungsten"
-    );
-    private static final Set<String> DENSE_WIRE_MATERIALS = Set.of(
-            "gold",
-            "schrabidium",
-            "schrabidate",
-            "titanium",
-            "copper",
-            "tungsten",
-            "red_copper",
-            "advanced_alloy",
-            "starmetal",
-            "dineutronium",
-            "neodymium",
-            "niobium",
-            "bscco",
-            "magnetized_tungsten"
-    );
-    private static final Set<String> WELDED_PLATE_MATERIALS = Set.of(
-            "iron",
-            "steel",
-            "copper",
-            "titanium",
-            "zirconium",
-            "aluminium",
-            "tungsten",
-            "tcalloy",
-            "cdalloy",
-            "combine_steel",
-            "osmiridium"
-    );
-    private static final Set<String> SHELL_MATERIALS = Set.of(
-            "titanium",
-            "copper",
-            "aluminium",
-            "steel",
-            "weaponsteel",
-            "saturnite"
-    );
-    private static final Set<String> MECHANISM_MATERIALS = Set.of(
-            "gunmetal",
-            "weaponsteel",
-            "saturnite"
-    );
-
     private final FoundryShape shape;
 
     public FoundryShapeItem(Properties properties, FoundryShape shape) {
@@ -123,7 +38,7 @@ public class FoundryShapeItem extends Item {
 
     public void addCreativeVariants(CreativeModeTab.Output output) {
         for (FoundryMaterial material : FoundryMaterial.ordered()) {
-            if (material.behavior() == FoundryMaterial.SmeltingBehavior.SMELTABLE && supports(this.shape, material)) {
+            if (supports(this.shape, material)) {
                 output.accept(stackFor(this, material));
             }
         }
@@ -154,26 +69,10 @@ public class FoundryShapeItem extends Item {
         if (material == null) {
             return false;
         }
-        String name = material.name();
-        return switch (shape) {
-            case CAST_PLATE -> CAST_PLATE_MATERIALS.contains(name);
-            case WIRE -> FINE_WIRE_MATERIALS.contains(name);
-            case DENSE_WIRE -> DENSE_WIRE_MATERIALS.contains(name);
-            case WELDED_PLATE -> WELDED_PLATE_MATERIALS.contains(name);
-            case SHELL -> SHELL_MATERIALS.contains(name);
-            case MECHANISM -> MECHANISM_MATERIALS.contains(name);
-            default -> true;
-        };
+        return com.reinhardt.hbm.foundry.FoundryMaterialShapes.supports(shape, material);
     }
 
     private String itemName() {
-        return switch (this.shape) {
-            case CAST_PLATE -> "plate_cast";
-            case WELDED_PLATE -> "plate_welded";
-            case WIRE -> "wire_fine";
-            case DENSE_WIRE -> "wire_dense";
-            case MECHANISM -> "part_mechanism";
-            default -> this.shape.key();
-        };
+        return this.shape.key();
     }
 }

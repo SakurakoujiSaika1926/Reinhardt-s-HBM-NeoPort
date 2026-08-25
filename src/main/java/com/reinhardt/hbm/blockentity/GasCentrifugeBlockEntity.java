@@ -63,6 +63,8 @@ public class GasCentrifugeBlockEntity extends BlockEntity implements PowerEndpoi
     public static final int FAST_CONSUMPTION = 300;
     private static final int TOWER_HEIGHT = 4;
     private static final Set<String> KNOWN_INPUT_FLUIDS = Set.of("uf6", "leuf6", "meuf6", "heuf6", "puf6", "watz", "watz_heavy");
+    private static final String LOW_ENRICHED_UF6 = "leuf6";
+    private static final String MEDIUM_ENRICHED_UF6 = "meuf6";
 
     private static final int[] OUTPUT_SLOTS = {0, 1, 2, 3};
 
@@ -215,6 +217,10 @@ public class GasCentrifugeBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private boolean allowsFluidPort(BlockPos queriedPos, @Nullable Direction side) {
+        // The three upper segments are legacy proxy-combo fluid ports on every face.
+        if (isTowerFluidPort(queriedPos)) {
+            return true;
+        }
         if (queriedPos.equals(this.worldPosition)) {
             return side == null || isConnectionPort(this.worldPosition.relative(side), side);
         }
@@ -222,6 +228,13 @@ public class GasCentrifugeBlockEntity extends BlockEntity implements PowerEndpoi
             return isConnectionPosition(queriedPos);
         }
         return isConnectionPort(queriedPos, side);
+    }
+
+    private boolean isTowerFluidPort(BlockPos pos) {
+        return pos.getX() == this.worldPosition.getX()
+                && pos.getZ() == this.worldPosition.getZ()
+                && pos.getY() > this.worldPosition.getY()
+                && pos.getY() < this.worldPosition.getY() + TOWER_HEIGHT;
     }
 
     private boolean isConnectionPosition(BlockPos pos) {
@@ -414,6 +427,101 @@ public class GasCentrifugeBlockEntity extends BlockEntity implements PowerEndpoi
         } else {
             setLit(false);
         }
+
+        if (level.getGameTime() % 10L == 0L) {
+            if (!transferOutputToAdjacentCascade(level)) {
+                convertStandaloneLowEnrichedOutput();
+            }
+        }
+    }
+
+    /**
+     * Directly adjacent gas centrifuges form the legacy enrichment cascade. This is
+     * separate from the real-fluid pipe capability: the old machine transferred to
+     * the next centrifuge itself every ten ticks.
+     */
+    private boolean transferOutputToAdjacentCascade(Level level) {
+        Direction facing = getBlockState().hasProperty(CentrifugeBlock.FACING)
+                ? getBlockState().getValue(CentrifugeBlock.FACING)
+                : Direction.NORTH;
+        BlockEntity target = level.getBlockEntity(this.worldPosition.relative(facing.getOpposite()));
+        if (!(target instanceof GasCentrifugeBlockEntity centrifuge)) {
+            return false;
+        }
+        return centrifuge.receiveCascadeOutput(this, this.outputTank.type(), this.outputTank.amount());
+    }
+
+    /**
+     * A compatible cascade neighbour returns true while full as well, matching the
+     * old attemptTransfer contract and preventing the standalone two-stage yield.
+     */
+    private boolean receiveCascadeOutput(GasCentrifugeBlockEntity source, HbmFluidDefinition fluid, int offered) {
+        if (fluid == null || fluid.isNone() || !isValidInputFluid(fluid) || !acceptsCascadeFamily(fluid)) {
+            return false;
+        }
+        if (this.inputTank.amount() > 0 && this.inputTank.type() != fluid) {
+            return false;
+        }
+        if (this.inputTank.amount() == 0 && this.inputTank.type() != fluid) {
+            this.inputTank.clear();
+        }
+
+        int accepted = this.inputTank.fill(fluid, offered, false);
+        if (accepted <= 0) {
+            return true;
+        }
+
+        source.outputTank.drain(fluid, accepted, false);
+        this.progress = 0;
+        this.syncFluidChange();
+        source.syncFluidChange();
+        return true;
+    }
+
+    private boolean acceptsCascadeFamily(HbmFluidDefinition incoming) {
+        HbmFluidDefinition configured = configuredInputFluid();
+        if (configured.isNone()) {
+            configured = this.inputTank.type();
+        }
+        if (configured.isNone()) {
+            return true;
+        }
+        return cascadeFamily(configured).equals(cascadeFamily(incoming));
+    }
+
+    private HbmFluidDefinition configuredInputFluid() {
+        ItemStack identifier = this.items.get(FLUID_ID_SLOT);
+        return identifier.getItem() instanceof FluidIdentifierItem
+                ? FluidIdentifierItem.primary(identifier)
+                : HbmFluids.none();
+    }
+
+    private static String cascadeFamily(HbmFluidDefinition fluid) {
+        return switch (fluid.name()) {
+            case "uf6", "leuf6", "meuf6", "heuf6" -> "uf6";
+            case "puf6" -> "puf6";
+            case "watz", "watz_heavy" -> "watz";
+            default -> "";
+        };
+    }
+
+    private void convertStandaloneLowEnrichedOutput() {
+        if (!LOW_ENRICHED_UF6.equals(this.inputTank.type().name())
+                || !MEDIUM_ENRICHED_UF6.equals(this.outputTank.type().name())
+                || this.outputTank.amount() < 600) {
+            return;
+        }
+
+        ItemStack uraniumFuel = new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("nugget_uranium_fuel")), 6);
+        ItemStack fluorite = new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("fluorite")));
+        if (uraniumFuel.isEmpty() || fluorite.isEmpty() || !canFitOutputs(List.of(uraniumFuel, fluorite))) {
+            return;
+        }
+
+        this.outputTank.drain(this.outputTank.type(), 600, false);
+        insertOutput(uraniumFuel);
+        insertOutput(fluorite);
+        syncFluidChange();
     }
 
     private void updateWorkStats() {

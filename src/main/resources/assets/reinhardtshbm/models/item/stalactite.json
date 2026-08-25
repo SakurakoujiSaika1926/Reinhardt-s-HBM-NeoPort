@@ -1,3 +1,6 @@
 {
-    "parent":  "reinhardtshbm:block/stalactite"
+  "parent": "reinhardtshbm:block/stalactite_sulfur",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/stalactite_asbestos" }
+  ]
 }

@@ -2,8 +2,14 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -19,6 +25,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.BlockHitResult;
+import org.joml.Vector3f;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -27,6 +34,9 @@ import org.jetbrains.annotations.Nullable;
  * not an approximation of the rendered mesh.
  */
 public class LegacyMachineBlock extends LargeMachineBlock implements EntityBlock {
+    private static final DustParticleOptions FORCEFIELD_DUST =
+            new DustParticleOptions(new Vector3f(1.0F, 0.0F, 0.0F), 1.0F);
+
     public LegacyMachineBlock(BlockBehaviour.Properties properties, Footprint footprint, VoxelShape coreShape) {
         super(properties, footprint, coreShape, RotationBasis.HBM_LEGACY_SOUTH);
     }
@@ -50,12 +60,44 @@ public class LegacyMachineBlock extends LargeMachineBlock implements EntityBlock
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (player.isCrouching()) {
-            return InteractionResult.PASS;
+    public void animateTick(BlockState state, Level level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        if (!BuiltInRegistries.BLOCK.getKey(this).getPath().equals("machine_forcefield")
+                || !(level.getBlockEntity(pos) instanceof LegacyMachineBlockEntity machine)) {
+            return;
         }
+        if (machine.forcefieldCooldown() > 0) {
+            for (int i = 0; i < 4; i++) {
+                level.addParticle(ParticleTypes.SMOKE,
+                        pos.getX() + random.nextFloat(), pos.getY() + 2.0D,
+                        pos.getZ() + random.nextFloat(), 0.0D, 0.0D, 0.0D);
+            }
+        } else if (machine.forcefieldRenderable()) {
+            for (int i = 0; i < 4; i++) {
+                level.addParticle(machine.forcefieldColor() == 0xFF0000 ? ParticleTypes.LAVA : FORCEFIELD_DUST,
+                        pos.getX() + random.nextFloat(), pos.getY() + 2.0D,
+                        pos.getZ() + random.nextFloat(), 0.0D, 0.0D, 0.0D);
+            }
+        }
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof LegacyMachineBlockEntity machine)) {
             return InteractionResult.PASS;
+        }
+        if ((machine.machineId().equals("machine_radar") || machine.machineId().equals("machine_radar_large"))
+                && pos.getY() < HbmConfig.RADAR_ALTITUDE.get()) {
+            if (level.isClientSide) {
+                player.displayClientMessage(Component.translatable("message.reinhardtshbm.radar.altitude")
+                        .withStyle(ChatFormatting.RED), false);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+        // MachineOrbus uses crouching right-click as a non-GUI interaction.
+        if (player.isCrouching()) {
+            return machine.machineId().equals("machine_orbus")
+                    ? InteractionResult.sidedSuccess(level.isClientSide)
+                    : InteractionResult.PASS;
         }
         if (machine.handleEmptyHandInteraction(player)) {
             return InteractionResult.sidedSuccess(level.isClientSide);

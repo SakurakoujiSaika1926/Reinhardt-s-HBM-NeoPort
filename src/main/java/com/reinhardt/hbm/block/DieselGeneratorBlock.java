@@ -2,13 +2,22 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.DieselGeneratorBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
+import com.reinhardt.hbm.fluid.CombustibleFuelGrade;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.RandomSource;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -25,6 +34,8 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class DieselGeneratorBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -61,6 +72,40 @@ public class DieselGeneratorBlock extends Block implements EntityBlock {
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof DieselGeneratorBlockEntity diesel)
+                || !diesel.hasAcceptableFuel()
+                || diesel.fuelTank().amount() <= 0) {
+            return;
+        }
+        Direction facing = state.getValue(FACING);
+        Direction side = facing.getClockWise();
+        level.addParticle(
+                ParticleTypes.SMOKE,
+                pos.getX() + 0.5D - facing.getStepX() * 0.6D + side.getStepX() * 0.1875D,
+                pos.getY() + 0.3125D,
+                pos.getZ() + 0.5D - facing.getStepZ() * 0.6D + side.getStepZ() * 0.1875D,
+                0.0D,
+                0.0D,
+                0.0D
+        );
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.diesel.fuel_efficiency").withStyle(ChatFormatting.YELLOW));
+        for (CombustibleFuelGrade grade : List.of(CombustibleFuelGrade.MEDIUM, CombustibleFuelGrade.HIGH, CombustibleFuelGrade.AERO)) {
+            int efficiency = (int) Math.round(DieselGeneratorBlockEntity.fuelEfficiency(grade) * 100.0D);
+            tooltip.add(Component.translatable(
+                    "tooltip.reinhardtshbm.diesel.grade",
+                    Component.translatable(grade.translationKey()).withStyle(ChatFormatting.YELLOW),
+                    Component.literal(efficiency + "%").withStyle(ChatFormatting.RED)
+            ));
+        }
     }
 
     @Nullable

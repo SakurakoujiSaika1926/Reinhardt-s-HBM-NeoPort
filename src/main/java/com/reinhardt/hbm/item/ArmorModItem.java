@@ -3,6 +3,8 @@ package com.reinhardt.hbm.item;
 import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -57,6 +59,28 @@ public class ArmorModItem extends Item {
             case BOOTS -> this.boots;
             default -> false;
         };
+    }
+
+    /**
+     * Direct equivalent of 1.7.10 ItemArmorMod#modUpdate. The armor event
+     * dispatches this once for every installed modifier on the server.
+     */
+    public void tickArmor(Player player, ItemStack armor) {
+    }
+
+    /** Direct equivalent of 1.7.10 ItemArmorMod#modDamage. */
+    public float modifyArmorDamage(Player player, ItemStack armor, DamageSource source, float amount) {
+        return amount;
+    }
+
+    /** Attribute contribution calculated once per player tick from installed mods. */
+    public double extraHealth() {
+        return 0.0D;
+    }
+
+    /** Equivalent to the old operation-2 movement-speed modifier. */
+    public double movementMultiplier() {
+        return 1.0D;
     }
 
     @Override

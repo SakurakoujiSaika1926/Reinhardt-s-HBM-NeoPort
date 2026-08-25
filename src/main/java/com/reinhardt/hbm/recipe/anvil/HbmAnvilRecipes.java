@@ -99,19 +99,21 @@ public final class HbmAnvilRecipes {
             addAnvilUpgrade(baseAnvil, "ingot_osmiridium", HbmBlocks.ANVIL_OSMIRIDIUM.get());
         }
 
-        addSmithing(3, item("ingot_meteorite_forged", 1), ingredient("ingot_meteorite", 1), ingredient("ingot_meteorite", 1));
-        addSmithing(3, item("blade_meteorite", 1), ingredient("ingot_meteorite_forged", 1), ingredient("ingot_meteorite_forged", 1));
-        addSmithing(3, item("meteorite_sword_reforged", 1), ingredient("meteorite_sword_seared", 1), ingredient("ingot_meteorite_forged", 1));
-        addSmithing(3, item("cobalt_decorated_sword", 1), ingredient("cobalt_sword", 1), ingredient("ingot_meteorite", 1));
-        addSmithing(3, item("cobalt_decorated_pickaxe", 1), ingredient("cobalt_pickaxe", 1), ingredient("ingot_meteorite", 1));
-        addSmithing(3, item("cobalt_decorated_axe", 1), ingredient("cobalt_axe", 1), ingredient("ingot_meteorite", 1));
-        addSmithing(3, item("cobalt_decorated_shovel", 1), ingredient("cobalt_shovel", 1), ingredient("ingot_meteorite", 1));
+        addHotSmithing(3, item("ingot_meteorite_forged", 1), ingredient("ingot_meteorite", 1), ingredient("ingot_meteorite", 1));
+        addHotSmithing(3, item("blade_meteorite", 1), ingredient("ingot_meteorite_forged", 1), ingredient("ingot_meteorite_forged", 1));
+        addHotSmithing(3, item("meteorite_sword_reforged", 1), ingredient("meteorite_sword_seared", 1), ingredient("ingot_meteorite_forged", 1));
+        addHotSmithing(3, item("cobalt_decorated_sword", 1), ingredient("cobalt_sword", 1), ingredient("ingot_meteorite", 1));
+        addHotSmithing(3, item("cobalt_decorated_pickaxe", 1), ingredient("cobalt_pickaxe", 1), ingredient("ingot_meteorite", 1));
+        addHotSmithing(3, item("cobalt_decorated_axe", 1), ingredient("cobalt_axe", 1), ingredient("ingot_meteorite", 1));
+        addHotSmithing(3, item("cobalt_decorated_shovel", 1), ingredient("cobalt_shovel", 1), ingredient("ingot_meteorite", 1));
+        addHotSmithing(3, item("cobalt_decorated_hoe", 1), ingredient("cobalt_hoe", 1), ingredient("ingot_meteorite", 1));
         addSmithing(1, item("ingot_gunmetal", 1), ingredient("ingot_copper", 1, mc("copper_ingot")), ingredient("ingot_aluminium", 1));
         registerMoldSmithingRecipes();
     }
 
     private static void registerConstruction() {
         Set<String> plateMaterials = new LinkedHashSet<>();
+        addLegacyBat9000RecyclingRecipe();
         addPlateRecipe(plateMaterials, "iron", 3, mc("iron_ingot"));
         addPlateRecipe(plateMaterials, "gold", 3, mc("gold_ingot"));
         addPlateRecipe(plateMaterials, "copper", 3, mc("copper_ingot"), hbm("ingot_copper"));
@@ -317,6 +319,17 @@ public final class HbmAnvilRecipes {
                 blockItem("machine_rotary_furnace", 1),
                 2
         );
+        // MachineAnnihilator, AnvilRecipes#registerConstructionRecipes (1.7.10).
+        addConstruction(
+                List.of(
+                        ingredient(mc("stone_bricks"), 16),
+                        tagIngredient(commonTag("ingots/firebrick"), 16, hbm("ingot_firebrick")),
+                        tagIngredient(commonTag("ingots/iron"), 8, mc("iron_ingot")),
+                        tagIngredient(commonTag("ingots/copper"), 8, hbm("ingot_copper"))
+                ),
+                blockItem("machine_annihilator", 1),
+                2
+        );
         addConstruction(
                 List.of(ingredient("ingot_steel", 8), ingredient("plate_copper", 4), ingredient("motor", 2), ingredient("circuit_vacuum_tube", 4)),
                 blockItem("machine_assembly_machine", 1),
@@ -485,6 +498,17 @@ public final class HbmAnvilRecipes {
                 ),
                 blockItem("chimney_industrial", 1),
                 3
+        );
+        // AnvilRecipes#constructionRecipes, HBM 1.7.10: combination furnace.
+        addConstruction(
+                List.of(
+                        ingredient(mc("stone_bricks"), 8),
+                        tagIngredient(ItemTags.LOGS, 16, mc("oak_log")),
+                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 2, HbmItems.PLATE_CAST.get()),
+                        ingredient(mc("bricks"), 16)
+                ),
+                blockItem("furnace_combination", 1),
+                2
         );
         addConstruction(
                 List.of(
@@ -657,6 +681,12 @@ public final class HbmAnvilRecipes {
         }
     }
 
+    private static void addHotSmithing(int tier, Optional<ItemStack> output, Optional<AnvilIngredient> left, Optional<AnvilIngredient> right) {
+        if (output.isPresent() && left.isPresent() && right.isPresent()) {
+            SMITHING.add(new AnvilSmithingHotRecipe(tier, output.get(), left.get(), right.get()));
+        }
+    }
+
     private static void addMoldSmithing(int moldId, Optional<AnvilIngredient> reference, Optional<AnvilIngredient> moldBase) {
         if (reference.isPresent() && moldBase.isPresent()) {
             SMITHING.add(new AnvilMoldSmithingRecipe(
@@ -697,6 +727,25 @@ public final class HbmAnvilRecipes {
             inputs.add(input.get());
         }
         CONSTRUCTION.add(AnvilConstructionRecipe.construction(inputs, output.get(), tier));
+    }
+
+    private static void addLegacyBat9000RecyclingRecipe() {
+        FoundryMaterial tcalloy = FoundryMaterial.get("tcalloy");
+        Optional<ItemStack> steelPlates = item("plate_steel", 16);
+        if (tcalloy == null || steelPlates.isEmpty()) {
+            return;
+        }
+
+        CONSTRUCTION.add(new AnvilConstructionRecipe(
+                List.of(AnvilIngredient.of(HbmBlocks.MACHINE_BAT9000.get(), 1)),
+                List.of(
+                        new AnvilOutput(FoundryShapeItem.stackFor(HbmItems.PLATE_WELDED.get(), tcalloy, 4)),
+                        new AnvilOutput(steelPlates.get())
+                ),
+                3,
+                -1,
+                AnvilConstructionRecipe.OverlayType.RECYCLING
+        ));
     }
 
     private static Optional<AnvilIngredient> ingredientOptional(String path, int count) {

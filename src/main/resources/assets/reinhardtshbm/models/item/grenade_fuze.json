@@ -1,6 +1,10 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
-                 },
-    "parent":  "minecraft:item/generated"
+    "parent": "minecraft:item/generated",
+    "textures": { "layer0": "reinhardtshbm:item/grenade_fuze.s3" },
+    "overrides": [
+        { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/grenade_fuze.s7" },
+        { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/grenade_fuze.s15" },
+        { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:item/grenade_fuze.impact" },
+        { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:item/grenade_fuze.airburst" }
+    ]
 }

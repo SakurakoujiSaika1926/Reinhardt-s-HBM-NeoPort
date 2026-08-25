@@ -1,0 +1,7 @@
+{
+    "parent": "minecraft:block/cube_column",
+    "textures": {
+        "side": "reinhardtshbm:block/block_cap_nuka",
+        "end": "reinhardtshbm:block/block_cap_nuka_top"
+    }
+}

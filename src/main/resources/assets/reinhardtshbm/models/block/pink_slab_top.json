@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": { "bottom": "reinhardtshbm:block/pink_planks", "top": "reinhardtshbm:block/pink_planks", "side": "reinhardtshbm:block/pink_planks", "particle": "reinhardtshbm:block/pink_planks" }
+}

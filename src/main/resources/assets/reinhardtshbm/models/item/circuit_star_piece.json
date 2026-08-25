@@ -1,0 +1,27 @@
+{
+  "parent": "reinhardtshbm:item/circuit_star_piece_board_blank",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:item/circuit_star_piece_board_transistor" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:item/circuit_star_piece_board_converter" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:item/circuit_star_piece_bridge_north" },
+    { "predicate": { "minecraft:custom_model_data": 4 }, "model": "reinhardtshbm:item/circuit_star_piece_bridge_south" },
+    { "predicate": { "minecraft:custom_model_data": 5 }, "model": "reinhardtshbm:item/circuit_star_piece_bridge_io" },
+    { "predicate": { "minecraft:custom_model_data": 6 }, "model": "reinhardtshbm:item/circuit_star_piece_bridge_bus" },
+    { "predicate": { "minecraft:custom_model_data": 7 }, "model": "reinhardtshbm:item/circuit_star_piece_bridge_chipset" },
+    { "predicate": { "minecraft:custom_model_data": 8 }, "model": "reinhardtshbm:item/circuit_star_piece_bridge_cmos" },
+    { "predicate": { "minecraft:custom_model_data": 9 }, "model": "reinhardtshbm:item/circuit_star_piece_bridge_bios" },
+    { "predicate": { "minecraft:custom_model_data": 10 }, "model": "reinhardtshbm:item/circuit_star_piece_cpu_register" },
+    { "predicate": { "minecraft:custom_model_data": 11 }, "model": "reinhardtshbm:item/circuit_star_piece_cpu_clock" },
+    { "predicate": { "minecraft:custom_model_data": 12 }, "model": "reinhardtshbm:item/circuit_star_piece_cpu_logic" },
+    { "predicate": { "minecraft:custom_model_data": 13 }, "model": "reinhardtshbm:item/circuit_star_piece_cpu_cache" },
+    { "predicate": { "minecraft:custom_model_data": 14 }, "model": "reinhardtshbm:item/circuit_star_piece_cpu_ext" },
+    { "predicate": { "minecraft:custom_model_data": 15 }, "model": "reinhardtshbm:item/circuit_star_piece_cpu_socket" },
+    { "predicate": { "minecraft:custom_model_data": 16 }, "model": "reinhardtshbm:item/circuit_star_piece_mem_socket" },
+    { "predicate": { "minecraft:custom_model_data": 17 }, "model": "reinhardtshbm:item/circuit_star_piece_mem_16k_a" },
+    { "predicate": { "minecraft:custom_model_data": 18 }, "model": "reinhardtshbm:item/circuit_star_piece_mem_16k_b" },
+    { "predicate": { "minecraft:custom_model_data": 19 }, "model": "reinhardtshbm:item/circuit_star_piece_mem_16k_c" },
+    { "predicate": { "minecraft:custom_model_data": 20 }, "model": "reinhardtshbm:item/circuit_star_piece_mem_16k_d" },
+    { "predicate": { "minecraft:custom_model_data": 21 }, "model": "reinhardtshbm:item/circuit_star_piece_card_board" },
+    { "predicate": { "minecraft:custom_model_data": 22 }, "model": "reinhardtshbm:item/circuit_star_piece_card_processor" }
+  ]
+}

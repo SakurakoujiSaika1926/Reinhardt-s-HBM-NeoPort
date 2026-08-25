@@ -1,6 +1,21 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/gem_alexandrite"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "reinhardtshbm:item/gem_alexandrite_00" },
+  "overrides": [
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.06666667 }, "model": "reinhardtshbm:item/gem_alexandrite_01" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.13333333 }, "model": "reinhardtshbm:item/gem_alexandrite_02" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.20000000 }, "model": "reinhardtshbm:item/gem_alexandrite_03" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.26666667 }, "model": "reinhardtshbm:item/gem_alexandrite_04" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.33333333 }, "model": "reinhardtshbm:item/gem_alexandrite_05" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.40000000 }, "model": "reinhardtshbm:item/gem_alexandrite_06" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.46666667 }, "model": "reinhardtshbm:item/gem_alexandrite_07" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.53333333 }, "model": "reinhardtshbm:item/gem_alexandrite_08" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.60000000 }, "model": "reinhardtshbm:item/gem_alexandrite_09" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.66666667 }, "model": "reinhardtshbm:item/gem_alexandrite_10" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.73333333 }, "model": "reinhardtshbm:item/gem_alexandrite_11" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.80000000 }, "model": "reinhardtshbm:item/gem_alexandrite_12" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.86666667 }, "model": "reinhardtshbm:item/gem_alexandrite_13" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 0.93333333 }, "model": "reinhardtshbm:item/gem_alexandrite_14" },
+    { "predicate": { "reinhardtshbm:alexandrite_light": 1.00000000 }, "model": "reinhardtshbm:item/gem_alexandrite_15" }
+  ]
 }

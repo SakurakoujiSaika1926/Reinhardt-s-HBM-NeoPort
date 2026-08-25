@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "L L",
+    "I I",
+    "ILI"
+  ],
+  "key": {
+    "L": { "item": "reinhardtshbm:lodestone" },
+    "I": { "tag": "c:ingots/iron" }
+  },
+  "result": { "id": "reinhardtshbm:horseshoe_magnet" }
+}

@@ -7,7 +7,7 @@
     "SCS"
   ],
   "key": {
-    "S": { "item": "reinhardtshbm:plate_steel" },
+    "S": { "tag": "c:plates/steel" },
     "C": { "item": "reinhardtshbm:circuit_vacuum_tube" },
     "M": { "item": "reinhardtshbm:motor" },
     "W": { "item": "minecraft:crafting_table" }

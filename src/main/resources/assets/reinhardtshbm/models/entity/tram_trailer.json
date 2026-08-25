@@ -1,0 +1,8 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/tram_trailer.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/tram_trailer.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/legacy/tram_trailer", "texture": "reinhardtshbm:models/legacy/tram_trailer" }
+}

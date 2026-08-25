@@ -1,4 +1,24 @@
 {
+  "music.record_lambda_core": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:music/record_lambda_core", "stream": true}]
+  },
+  "music.record_sector_sweep": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:music/record_sector_sweep", "stream": true}]
+  },
+  "music.record_vortal_combat": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:music/record_vortal_combat", "stream": true}]
+  },
+  "music.transmission": {
+    "category": "record",
+    "sounds": [{"name": "reinhardtshbm:music/record_glass", "stream": true}]
+  },
+  "item.battery": {
+    "category": "player",
+    "sounds": [{"name": "reinhardtshbm:tool/battery", "stream": false}]
+  },
   "block.sonar_ping": {
     "category": "block",
     "sounds": [
@@ -16,6 +36,23 @@
         "stream": false
       }
     ]
+  },
+  "weapon.tesla": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:weapon/tesla1",
+      "reinhardtshbm:weapon/tesla2",
+      "reinhardtshbm:weapon/tesla3",
+      "reinhardtshbm:weapon/tesla4"
+    ]
+  },
+  "weapon.crucible_deploy": {
+    "category": "player",
+    "sounds": [{"name": "reinhardtshbm:weapon/crucible_deploy", "stream": false}]
+  },
+  "weapon.crucible_swing": {
+    "category": "player",
+    "sounds": [{"name": "reinhardtshbm:weapon/crucible_swing", "stream": false}]
   },
   "block.motor": {
     "subtitle": "subtitles.block.motor",
@@ -90,6 +127,15 @@
     "sounds": [
       {
         "name": "reinhardtshbm:block/pressoperate",
+        "stream": false
+      }
+    ]
+  },
+  "block.pyro_operate": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/pyroOperate",
         "stream": false
       }
     ]
@@ -261,6 +307,14 @@
       }
     ]
   },
+  "weapon.spark_shoot": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:weapon/sparkshoot1",
+      "reinhardtshbm:weapon/sparkshoot2",
+      "reinhardtshbm:weapon/sparkshoot3"
+    ]
+  },
   "weapon.explosion_medium": {
     "sounds": [
       {
@@ -390,6 +444,36 @@
       "reinhardtshbm:player/cough4"
     ]
   },
+  "player.gulp": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:player/gulp1",
+      "reinhardtshbm:player/gulp2",
+      "reinhardtshbm:player/gulp3",
+      "reinhardtshbm:player/gulp4"
+    ]
+  },
+  "player.groan": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:player/groan1",
+      "reinhardtshbm:player/groan2",
+      "reinhardtshbm:player/groan3"
+    ]
+  },
+  "potatos.random": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:potatos/randResponse0",
+      "reinhardtshbm:potatos/randResponse1",
+      "reinhardtshbm:potatos/randResponse2",
+      "reinhardtshbm:potatos/randResponse3",
+      "reinhardtshbm:potatos/randResponse4",
+      "reinhardtshbm:potatos/randResponse5",
+      "reinhardtshbm:potatos/randResponse6",
+      "reinhardtshbm:potatos/randResponse7"
+    ]
+  },
   "entity.vomit": {
     "subtitle": "subtitles.entity.vomit",
     "category": "neutral",
@@ -398,6 +482,13 @@
         "name": "reinhardtshbm:player/vomit",
         "stream": false
       }
+    ]
+  },
+  "entity.ducc": {
+    "category": "neutral",
+    "sounds": [
+      "reinhardtshbm:entity/ducc1",
+      "reinhardtshbm:entity/ducc2"
     ]
   },
   "block.fensuhum": {
@@ -813,6 +904,26 @@
       }
     ]
   },
+  "entity.bomber_loop": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/bomber1", "stream": true}]
+  },
+  "entity.bomber_small_loop": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/bomber2", "stream": true}]
+  },
+  "entity.bomb_whistle": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/bombWhistle", "stream": false}]
+  },
+  "weapon.missile_takeoff": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:weapon/missileTakeOff", "stream": false}]
+  },
+  "weapon.train_impact": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:weapon/trainImpact", "stream": false}]
+  },
   "weapon.explosionlargenear": {
     "category": "block",
     "sounds": [
@@ -904,5 +1015,54 @@
         "stream": false
       }
     ]
+  },
+  "weapon.fstbmb_ping": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/fstbmb_ping",
+        "stream": false
+      }
+    ]
+  }
+  ,"entity.ufo_beam": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/ufo_beam_short", "stream": false}]
+  }
+  ,"entity.ufo_blast": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/ufo_blast", "stream": false}]
+  }
+  ,"weapon.balls_laser": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:weapon/balls_laser", "stream": false}]
+  }
+  ,"weapon.osipr_shoot": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:weapon/osipr_shoot", "stream": false}]
+  }
+  ,"entity.chopper_flying_loop": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/chopper_flying_loop", "stream": true}]
+  }
+  ,"entity.chopper_drop": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/chopper_drop", "stream": false}]
+  }
+  ,"entity.chopper_charge": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/chopper_charge", "stream": false}]
+  }
+  ,"entity.chopper_damage": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/chopper_damage", "stream": false}]
+  }
+  ,"entity.chopper_mine_loop": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/chopper_mine_loop", "stream": true}]
+  }
+  ,"entity.chopper_crashing_loop": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/chopper_crashing_loop", "stream": true}]
   }
 }

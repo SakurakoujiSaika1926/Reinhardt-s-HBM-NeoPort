@@ -1,6 +1,14 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "reinhardtshbm:item/battery_sc.empty",
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/battery_sc.waste" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/battery_sc.ra226" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:item/battery_sc.tc99" },
+    { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:item/battery_sc.co60" },
+    { "predicate": { "custom_model_data": 5 }, "model": "reinhardtshbm:item/battery_sc.pu238" },
+    { "predicate": { "custom_model_data": 6 }, "model": "reinhardtshbm:item/battery_sc.po210" },
+    { "predicate": { "custom_model_data": 7 }, "model": "reinhardtshbm:item/battery_sc.au198" },
+    { "predicate": { "custom_model_data": 8 }, "model": "reinhardtshbm:item/battery_sc.pb209" },
+    { "predicate": { "custom_model_data": 9 }, "model": "reinhardtshbm:item/battery_sc.am241" }
+  ]
 }

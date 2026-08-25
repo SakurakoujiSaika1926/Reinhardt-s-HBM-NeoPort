@@ -17,36 +17,36 @@
     "results":  [
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "primary_nosolvent",
                                                                          "type":  "nonmetal"
                                                                      },
                                            "minecraft:custom_model_data":  52
-                                       }
+                                       },
+                        "count":  2
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "sulfuric_byproduct",
                                                                          "type":  "nonmetal"
                                                                      },
                                            "minecraft:custom_model_data":  88
-                                       }
+                                       },
+                        "count":  2
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "solvent_byproduct",
                                                                          "type":  "nonmetal"
                                                                      },
                                            "minecraft:custom_model_data":  112
-                                       }
+                                       },
+                        "count":  2
                     }
                 ]
 }

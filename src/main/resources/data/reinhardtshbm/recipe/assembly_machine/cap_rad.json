@@ -1,0 +1,11 @@
+{
+    "type": "reinhardtshbm:assembly_machine",
+    "group": "ass.caprad",
+    "duration": 10,
+    "power": 100,
+    "ingredients": [
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_rad" } },
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_rad" } }
+    ],
+    "result": { "id": "reinhardtshbm:block_cap", "components": { "minecraft:custom_data": { "type": "rad" }, "minecraft:custom_model_data": 3 } }
+}

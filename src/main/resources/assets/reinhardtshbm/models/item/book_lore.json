@@ -1,6 +1,8 @@
 {
     "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
+                     "layer0":  "reinhardtshbm:item/book_lore",
+                     "layer1":  "reinhardtshbm:item/book_cover",
+                     "layer2":  "reinhardtshbm:item/book_title"
                  },
     "parent":  "minecraft:item/generated"
 }

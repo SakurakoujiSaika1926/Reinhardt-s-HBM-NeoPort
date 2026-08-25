@@ -1,7 +1,6 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/stalactite"
-                          }
-                 }
+{
+  "variants": {
+    "material=0": { "model": "reinhardtshbm:block/stalactite_sulfur" },
+    "material=1": { "model": "reinhardtshbm:block/stalactite_asbestos" }
+  }
 }

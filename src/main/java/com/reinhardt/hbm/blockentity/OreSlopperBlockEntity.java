@@ -13,6 +13,7 @@ import com.reinhardt.hbm.menu.OreSlopperMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
+import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.util.LegacyMachineGeometry;
@@ -28,6 +29,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -37,8 +40,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -414,6 +421,7 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
                 this.progress -= this.processTime;
                 processOneOre();
             }
+            damageEntitiesInShredder();
         } else {
             this.progress = 0;
         }
@@ -433,6 +441,19 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
 
         if (!this.processing) {
             return;
+        }
+
+        if (this.animation == SlopperAnimation.DUMPING && this.level != null) {
+            Direction dir = OreSlopperBlock.legacyDirFromFacing(facing());
+            this.level.addParticle(
+                    new BlockParticleOption(ParticleTypes.BLOCK, Blocks.IRON_BLOCK.defaultBlockState()),
+                    this.worldPosition.getX() + 0.5D + dir.getStepX() + this.level.random.nextGaussian() * 0.25D,
+                    this.worldPosition.getY() + 4.25D,
+                    this.worldPosition.getZ() + 0.5D + dir.getStepZ() + this.level.random.nextGaussian() * 0.25D,
+                    0.0D,
+                    -0.2D,
+                    0.0D
+            );
         }
 
         this.blades += 15.0F;
@@ -495,6 +516,33 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
         this.processTime = Math.max(150, 600 - speed * 150);
         this.consumption = CONSUMPTION_BASE + (CONSUMPTION_BASE * speed) / 2 + (CONSUMPTION_BASE * efficiency);
         this.waterUsed = WATER_USED_BASE;
+    }
+
+    /**
+     * 1.7.10 checks this exact one-by-two-by-two volume one block in front of
+     * the active shredder and applies the turbofan's lethal damage every tick.
+     */
+    private void damageEntitiesInShredder() {
+        if (this.level == null) {
+            return;
+        }
+        Direction dir = OreSlopperBlock.legacyDirFromFacing(facing());
+        AABB blades = new AABB(
+                this.worldPosition.getX() - 0.5D,
+                this.worldPosition.getY() + 1.0D,
+                this.worldPosition.getZ() - 0.5D,
+                this.worldPosition.getX() + 1.5D,
+                this.worldPosition.getY() + 3.0D,
+                this.worldPosition.getZ() + 1.5D
+        ).move(dir.getStepX(), 0.0D, dir.getStepZ());
+
+        for (Entity entity : this.level.getEntitiesOfClass(Entity.class, blades)) {
+            boolean wasAlive = entity.isAlive();
+            entity.hurt(this.level.damageSources().source(HbmDamageTypes.TURBOFAN), 1_000.0F);
+            if (wasAlive && !entity.isAlive() && entity instanceof LivingEntity living) {
+                TurretCasingEffects.spawnMaxwellGib(this.level, living, false);
+            }
+        }
     }
 
     private void processOneOre() {
@@ -624,6 +672,12 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
         ports.add(new Port(this.worldPosition.relative(dir.getOpposite(), 2).relative(rot, 2), rot));
         ports.add(new Port(this.worldPosition.relative(dir.getOpposite(), 2).relative(rot.getOpposite(), 2), rot.getOpposite()));
         return ports;
+    }
+
+    private Direction facing() {
+        return this.getBlockState().hasProperty(LargeMachineBlock.FACING)
+                ? this.getBlockState().getValue(LargeMachineBlock.FACING)
+                : Direction.NORTH;
     }
 
     private static HbmFluidDefinition water() {

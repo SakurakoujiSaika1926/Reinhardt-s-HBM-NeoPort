@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PWP",
+    "SSS",
+    "CCC"
+  ],
+  "key": {
+    "P": { "item": "reinhardtshbm:pedestal_steel" },
+    "W": { "item": "reinhardtshbm:wrench" },
+    "S": { "tag": "c:plates/steel" },
+    "C": { "item": "reinhardtshbm:steel_scaffold" }
+  },
+  "result": { "id": "reinhardtshbm:machine_missile_assembly" }
+}

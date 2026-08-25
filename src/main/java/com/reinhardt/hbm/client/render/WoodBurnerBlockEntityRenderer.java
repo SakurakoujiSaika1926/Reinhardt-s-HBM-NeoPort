@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -39,7 +40,11 @@ public class WoodBurnerBlockEntityRenderer implements BlockEntityRenderer<WoodBu
 
     @Override
     public AABB getRenderBoundingBox(WoodBurnerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 4.0D, 3.0D);
+        BlockPos pos = blockEntity.getBlockPos();
+        return new AABB(
+                pos.getX() - 1.0D, pos.getY(), pos.getZ() - 1.0D,
+                pos.getX() + 2.0D, pos.getY() + 6.0D, pos.getZ() + 2.0D
+        );
     }
 
     private static float legacyYaw(Direction facing) {

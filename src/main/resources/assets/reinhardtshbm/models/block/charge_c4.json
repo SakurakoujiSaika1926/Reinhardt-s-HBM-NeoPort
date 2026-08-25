@@ -1,6 +1,16 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/charge_c4"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/bombs/charge_c4.obj",
+  "mtl_override": "reinhardtshbm:models/obj/bombs/charge_c4.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:block/charge_c4" },
+  "display": {
+    "gui": { "rotation": [0, -90, -90], "translation": [0, 6, 0], "scale": [0.8, 0.8, 0.8] },
+    "fixed": { "rotation": [0, -90, -90], "translation": [0, 6, 0], "scale": [0.8, 0.8, 0.8] },
+    "ground": { "translation": [0, 6, 0], "scale": [0.65, 0.65, 0.65] },
+    "firstperson_righthand": { "rotation": [0, -90, -90], "translation": [0, 6, 0], "scale": [0.65, 0.65, 0.65] },
+    "thirdperson_righthand": { "rotation": [0, -90, -90], "translation": [0, 6, 0], "scale": [0.65, 0.65, 0.65] }
+  }
 }

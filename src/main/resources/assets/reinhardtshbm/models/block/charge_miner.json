@@ -1,6 +1,13 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/charge_miner"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/bombs/charge_dynamite.obj",
+  "mtl_override": "reinhardtshbm:models/obj/bombs/charge_miner.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:block/charge_miner" },
+  "display": {
+    "gui": { "rotation": [0, -90, -90], "translation": [0, 6, 0], "scale": [0.8, 0.8, 0.8] },
+    "fixed": { "rotation": [0, -90, -90], "translation": [0, 6, 0], "scale": [0.8, 0.8, 0.8] }
+  }
 }

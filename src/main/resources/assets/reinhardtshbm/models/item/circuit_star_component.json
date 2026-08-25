@@ -1,0 +1,8 @@
+{
+  "parent": "reinhardtshbm:item/circuit_star_component_chipset",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:item/circuit_star_component_cpu" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:item/circuit_star_component_ram" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:item/circuit_star_component_card" }
+  ]
+}

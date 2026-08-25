@@ -1,6 +1,12 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "down":  "reinhardtshbm:block/guide_bottom",
+                     "up":  "reinhardtshbm:block/guide_top",
+                     "north":  "reinhardtshbm:block/guide_front",
+                     "south":  "reinhardtshbm:block/guide_back",
+                     "west":  "reinhardtshbm:block/guide_side_left",
+                     "east":  "reinhardtshbm:block/guide_side_right",
+                     "particle":  "reinhardtshbm:block/guide_side_left"
                  },
-    "parent":  "minecraft:block/cube_all"
+    "parent":  "minecraft:block/cube"
 }

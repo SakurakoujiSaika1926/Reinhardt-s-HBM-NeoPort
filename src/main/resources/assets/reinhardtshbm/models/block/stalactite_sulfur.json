@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": { "cross": "reinhardtshbm:block/stalactite.sulfur", "particle": "reinhardtshbm:block/stalactite.sulfur" }
+}

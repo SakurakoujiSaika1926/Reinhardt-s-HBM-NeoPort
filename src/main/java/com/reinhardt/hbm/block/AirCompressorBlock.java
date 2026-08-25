@@ -13,15 +13,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class AirCompressorBlock extends LargeMachineBlock implements EntityBlock {
-    public static final Footprint FOOTPRINT = Footprint.fromOffsets(
-            BlockPos.ZERO,
-            new BlockPos(1, 0, 0),
-            new BlockPos(0, 0, 1),
-            new BlockPos(1, 0, 1)
-    );
+    public static final Footprint FOOTPRINT = Footprint.box(-1, 0, 0, 0, -1, 0);
 
     public AirCompressorBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
     }
 
     @Nullable

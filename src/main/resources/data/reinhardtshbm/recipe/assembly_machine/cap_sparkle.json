@@ -1,0 +1,11 @@
+{
+    "type": "reinhardtshbm:assembly_machine",
+    "group": "ass.capsparkle",
+    "duration": 10,
+    "power": 100,
+    "ingredients": [
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_sparkle" } },
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_sparkle" } }
+    ],
+    "result": { "id": "reinhardtshbm:block_cap", "components": { "minecraft:custom_data": { "type": "sparkle" }, "minecraft:custom_model_data": 2 } }
+}

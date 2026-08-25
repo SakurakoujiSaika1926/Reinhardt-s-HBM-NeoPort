@@ -1048,7 +1048,7 @@ public class ChemicalPlantBlockEntity extends BlockEntity implements PowerEndpoi
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(stack.getFluid()).orElse(HbmFluids.none());
             HbmFluidTank input = inputTanks[tank];
-            return !fluid.isNone() && input.type() == fluid && input.pressure() == 0;
+            return !fluid.isNone() && input.type() == fluid;
         }
 
         @Override
@@ -1066,10 +1066,13 @@ public class ChemicalPlantBlockEntity extends BlockEntity implements PowerEndpoi
                 if (remaining <= 0) {
                     break;
                 }
-                if (tank.type() != fluid || tank.pressure() != 0) {
+                if (tank.type() != fluid) {
                     continue;
                 }
-                int accepted = tank.fill(fluid, remaining, action.simulate());
+                // The selected recipe configures the legacy tank pressure.
+                // NeoForge FluidStack has no equivalent pressure field, so a
+                // pipe must retain that configured value while filling it.
+                int accepted = tank.fill(fluid, remaining, tank.pressure(), action.simulate());
                 filled += accepted;
                 remaining -= accepted;
             }
@@ -1094,7 +1097,7 @@ public class ChemicalPlantBlockEntity extends BlockEntity implements PowerEndpoi
                 if (remaining <= 0) {
                     break;
                 }
-                if (tank.type() != fluid || tank.pressure() != 0) {
+                if (tank.type() != fluid) {
                     continue;
                 }
                 HbmFluidStack stack = tank.drain(fluid, remaining, action.simulate());
@@ -1113,7 +1116,7 @@ public class ChemicalPlantBlockEntity extends BlockEntity implements PowerEndpoi
                 return FluidStack.EMPTY;
             }
             for (HbmFluidTank tank : outputTanks) {
-                if (tank.amount() <= 0 || tank.type().isNone() || tank.pressure() != 0) {
+                if (tank.amount() <= 0 || tank.type().isNone()) {
                     continue;
                 }
                 HbmFluidDefinition fluid = tank.type();

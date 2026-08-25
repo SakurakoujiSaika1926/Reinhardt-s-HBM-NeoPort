@@ -65,6 +65,7 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
     private static final ModelResourceLocation PRECASS_HEAD = MachineModelRenderer.standalone("block/machine_precass_head1");
     private static final ModelResourceLocation PRECASS_SPIKE = MachineModelRenderer.standalone("block/machine_precass_spike1");
     private static final ModelResourceLocation MISSILE_ASSEMBLY = MachineModelRenderer.standalone("block/machine_missile_assembly");
+    private static final ModelResourceLocation MISSILE_STRUT = MachineModelRenderer.standalone("block/missile_strut");
     // Exact 1.7.10 RenderRadar / RenderRadarLarge object groups. Keeping the
     // base and dish independent prevents a static full OBJ from masking motion.
     private static final ModelResourceLocation RADAR_BASE = MachineModelRenderer.standalone("block/machine_radar_base");
@@ -77,6 +78,7 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
     private static final ModelResourceLocation RADGEN_LIGHT = MachineModelRenderer.standalone("block/machine_radgen_light");
     private static final ModelResourceLocation RADGEN_GLASS = MachineModelRenderer.standalone("block/machine_radgen_glass");
     private static final ModelResourceLocation RADIOLYSIS = MachineModelRenderer.standalone("block/machine_radiolysis");
+    private static final ModelResourceLocation BREEDER = MachineModelRenderer.standalone("block/machine_reactor_breeding");
     // RenderTurbofan renders its original Body, Blades and Afterburner groups separately.
     private static final ModelResourceLocation TURBOFAN_BODY = MachineModelRenderer.standalone("block/machine_turbofan_body");
     private static final ModelResourceLocation TURBOFAN_BLADES = MachineModelRenderer.standalone("block/machine_turbofan_blades");
@@ -153,6 +155,7 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
         event.register(PRECASS_HEAD);
         event.register(PRECASS_SPIKE);
         event.register(MISSILE_ASSEMBLY);
+        event.register(MISSILE_STRUT);
         MissileMultipartRenderer.registerAdditionalModels(event);
         event.register(RADAR_BASE);
         event.register(RADAR_DISH);
@@ -163,6 +166,7 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
         event.register(RADGEN_LIGHT);
         event.register(RADGEN_GLASS);
         event.register(RADIOLYSIS);
+        event.register(BREEDER);
         event.register(TURBOFAN_BODY);
         event.register(TURBOFAN_BLADES);
         event.register(TURBOFAN_AFTERBURNER_OFF);
@@ -230,17 +234,34 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
     @Override
     public AABB getRenderBoundingBox(LegacyMachineBlockEntity machine) {
         return switch (machine.machineId()) {
+            // TileEntityMachineMissileAssembly returned INFINITE_EXTENT_AABB:
+            // the assembled missile and its supports can extend far beyond the core.
+            case "machine_missile_assembly" -> AABB.INFINITE;
             case "machine_autosaw" -> new AABB(machine.getBlockPos()).inflate(12.0D, 6.0D, 12.0D);
             case "machine_pyrooven" -> new AABB(machine.getBlockPos()).inflate(5.0D, 4.0D, 5.0D);
             case "machine_sawmill" -> new AABB(machine.getBlockPos()).inflate(2.0D, 3.0D, 2.0D);
             case "machine_rtg_grey" -> new AABB(machine.getBlockPos()).inflate(1.0D);
             case "machine_annihilator" -> new AABB(machine.getBlockPos()).inflate(5.0D, 9.0D, 5.0D);
             case "machine_forcefield" -> new AABB(machine.getBlockPos()).inflate(2.0D, 2.0D, 2.0D);
-            case "machine_orbus" -> new AABB(machine.getBlockPos()).inflate(3.0D, 5.0D, 3.0D);
+            // TileEntityMachineOrbus#getRenderBoundingBox: x/z -2..+3, y 0..+5.
+            case "machine_orbus" -> new AABB(
+                    machine.getBlockPos().getX() - 2.0D, machine.getBlockPos().getY(), machine.getBlockPos().getZ() - 2.0D,
+                    machine.getBlockPos().getX() + 3.0D, machine.getBlockPos().getY() + 5.0D, machine.getBlockPos().getZ() + 3.0D
+            );
             case "machine_precass" -> new AABB(machine.getBlockPos()).inflate(2.0D, 4.0D, 2.0D);
-            case "machine_missile_assembly", "machine_radar" -> new AABB(machine.getBlockPos()).inflate(2.0D, 2.0D, 2.0D);
-            case "machine_radar_large" -> new AABB(machine.getBlockPos()).inflate(4.0D, 10.0D, 4.0D);
-            case "machine_radgen", "machine_radiolysis" -> new AABB(machine.getBlockPos()).inflate(3.0D, 4.0D, 3.0D);
+            case "machine_radar" -> new AABB(machine.getBlockPos()).inflate(2.0D, 2.0D, 2.0D);
+            // TileEntityMachineRadarLarge#getRenderBoundingBox: x/z -5..+6, y 0..+10.
+            case "machine_radar_large" -> new AABB(
+                    machine.getBlockPos().getX() - 5.0D, machine.getBlockPos().getY(), machine.getBlockPos().getZ() - 5.0D,
+                    machine.getBlockPos().getX() + 6.0D, machine.getBlockPos().getY() + 10.0D, machine.getBlockPos().getZ() + 6.0D
+            );
+            // TileEntityMachineRadGen explicitly returned INFINITE_EXTENT_AABB.
+            case "machine_radgen" -> AABB.INFINITE;
+            // TileEntityMachineRadiolysis#getRenderBoundingBox: x/z -1..+2, y 0..+3.
+            case "machine_radiolysis" -> new AABB(
+                    machine.getBlockPos().getX() - 1.0D, machine.getBlockPos().getY(), machine.getBlockPos().getZ() - 1.0D,
+                    machine.getBlockPos().getX() + 2.0D, machine.getBlockPos().getY() + 3.0D, machine.getBlockPos().getZ() + 2.0D
+            );
             case "machine_turbofan" -> new AABB(machine.getBlockPos()).inflate(4.0D, 4.0D, 4.0D);
             case "machine_thresher", "machine_lpw2" -> new AABB(
                     machine.getBlockPos().getX() - 10.0D, machine.getBlockPos().getY(), machine.getBlockPos().getZ() - 10.0D,
@@ -248,6 +269,17 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
             );
             default -> new AABB(machine.getBlockPos());
         };
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen(LegacyMachineBlockEntity machine) {
+        return machine.machineId().equals("machine_missile_assembly");
+    }
+
+    @Override
+    public int getViewDistance() {
+        // TileEntityMachineMissileAssembly#getMaxRenderDistanceSquared = 65,536.
+        return 256;
     }
 
     static void renderItemPyro(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
@@ -258,8 +290,8 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
         renderAutosawParts(0.0D, 80.0D, System.currentTimeMillis() % 3600L * 0.1D, 0.0D, state, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
-    static void renderItemSawmill(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        renderSawmillParts(System.currentTimeMillis() % 3600L * 0.1F, true, state, poseStack, bufferSource, packedLight, packedOverlay);
+    static void renderItemSawmill(BlockState state, boolean hasBlade, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        renderSawmillParts(System.currentTimeMillis() % 3600L * 0.1F, hasBlade, state, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
     static void renderItemRtg(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
@@ -529,7 +561,8 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
         poseStack.mulPose(yaw(180.0F));
-        renderForcefieldHardware(state, poseStack, bufferSource, packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FORCEFIELD_BASE), poseStack,
+                bufferSource, state, packedLight, packedOverlay);
         if (machine.forcefieldRenderable()) {
             poseStack.pushPose();
             poseStack.translate(0.0D, 0.5D, 0.0D);
@@ -537,6 +570,15 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
                     machine.forcefieldRadius(), machine.forcefieldColor());
             poseStack.popPose();
         }
+        poseStack.pushPose();
+        if (machine.forcefieldRenderable()) {
+            float rotation = (System.currentTimeMillis() / 10.0F) % 360.0F;
+            poseStack.mulPose(yaw(-rotation));
+        }
+        poseStack.translate(0.0D, 1.0D, 0.0D);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FORCEFIELD_TOP), poseStack,
+                bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
         poseStack.popPose();
     }
 
@@ -786,6 +828,7 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
         }
         ModelResourceLocation model = switch (id) {
             case "machine_radiolysis" -> RADIOLYSIS;
+            case "machine_reactor_breeding" -> BREEDER;
             default -> null;
         };
         if (id.equals("machine_radar") || id.equals("machine_radar_large")) {
@@ -805,8 +848,15 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
             renderAnnihilatorParts(0.0F, 0.0F, state, poseStack, bufferSource, packedLight, packedOverlay);
         } else {
             if (inventory) {
-                poseStack.translate(0.0F, -2.5F, 0.0F);
-                poseStack.scale(3.0F, 3.0F, 3.0F);
+                // ItemRenderLibrary uses distinct inventory poses for these
+                // two complete OBJ assemblies.
+                if (id.equals("machine_reactor_breeding")) {
+                    poseStack.translate(0.0F, -4.5F, 0.0F);
+                    poseStack.scale(4.5F, 4.5F, 4.5F);
+                } else {
+                    poseStack.translate(0.0F, -2.5F, 0.0F);
+                    poseStack.scale(3.0F, 3.0F, 3.0F);
+                }
             }
             MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
         }
@@ -821,6 +871,8 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
             poseStack.translate(0.0F, -1.0F, 0.0F);
             poseStack.scale(4.5F, 4.5F, 4.5F);
         }
+        // ItemRenderLibrary applies this model-space scale to every radgen
+        // item render before drawing Base, Rotor, and Light.
         poseStack.scale(0.5F, 0.5F, 0.5F);
         poseStack.translate(0.5F, 0.0F, 0.0F);
         renderRadGenParts(true, 0.0F, state, poseStack, bufferSource, packedLight, packedOverlay);
@@ -1067,6 +1119,7 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
         poseStack.mulPose(yaw(missileAssemblyYaw(facing(state))));
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MISSILE_ASSEMBLY), poseStack, bufferSource, state, packedLight, packedOverlay);
         if (height > 0.0F) {
+            renderMissileStruts(height, state, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.translate(0.0F, 1.5F, 0.0F);
             poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.PI, 0.0F, 0.0F, 1.0F)));
             poseStack.translate(-height / 2.0F, 0.0F, 0.0F);
@@ -1075,6 +1128,23 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
             MissileMultipartRenderer.render(state, poseStack, bufferSource, packedLight, packedOverlay, warhead, fuselage, fins, thruster);
         }
         poseStack.popPose();
+    }
+
+    /** Direct port of RenderMissileAssembly's height-dependent support gantry. */
+    private static void renderMissileStruts(float height, BlockState state, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        int range = (int) (height / 2.0F - 1.0F);
+        int step = range >= 2 ? 2 : 1;
+        for (int offset = -range; offset <= range; offset += step) {
+            if (offset == 0) {
+                continue;
+            }
+            poseStack.pushPose();
+            poseStack.translate(offset, 0.0F, 0.0F);
+            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MISSILE_STRUT), poseStack,
+                    bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
+        }
     }
 
     /** Direct transform port of RenderTurbofan, including the negative-Z blade axis. */
@@ -1165,7 +1235,7 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
                 : 0.0D;
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        renderAutosawParts(machine.autosawYaw(), 80.0D - machine.autosawPitch(), machine.autosawSpin(), engine,
+        renderAutosawParts(machine.autosawYaw(partialTick), 80.0D - machine.autosawPitch(partialTick), machine.autosawSpin(partialTick), engine,
                 state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
@@ -1355,10 +1425,10 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
     /** RenderLPW2's metadata-minus-offset table expressed in modern FACING values. */
     private static float lpw2Yaw(Direction facing) {
         return switch (facing) {
-            case NORTH -> 270.0F;
-            case SOUTH -> 90.0F;
-            case EAST -> 180.0F;
-            case WEST -> 0.0F;
+            case NORTH -> 90.0F;
+            case SOUTH -> 270.0F;
+            case EAST -> 0.0F;
+            case WEST -> 180.0F;
             default -> 0.0F;
         };
     }

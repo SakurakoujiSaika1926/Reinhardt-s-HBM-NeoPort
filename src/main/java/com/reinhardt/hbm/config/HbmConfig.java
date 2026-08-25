@@ -9,6 +9,42 @@ public final class HbmConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_528_MODE;
     public static final ModConfigSpec.BooleanValue ENABLE_EXPENSIVE_MODE;
     public static final ModConfigSpec.BooleanValue ENABLE_INFINITE_WATER_TANK_RECIPES;
+    public static final ModConfigSpec.BooleanValue ENABLE_BOMBER_SHORT_MODE;
+    public static final ModConfigSpec.BooleanValue SCALE_RTG_POWER;
+    public static final ModConfigSpec.BooleanValue ENABLE_RTG_DECAY;
+    public static final ModConfigSpec.IntValue INDUSTRIAL_TURBINE_INPUT_CAPACITY;
+    public static final ModConfigSpec.IntValue INDUSTRIAL_TURBINE_OUTPUT_CAPACITY;
+    public static final ModConfigSpec.DoubleValue INDUSTRIAL_TURBINE_EFFICIENCY;
+    public static final ModConfigSpec.LongValue STEAM_TURBINE_MAX_POWER;
+    public static final ModConfigSpec.IntValue STEAM_TURBINE_INPUT_CAPACITY;
+    public static final ModConfigSpec.IntValue STEAM_TURBINE_OUTPUT_CAPACITY;
+    public static final ModConfigSpec.IntValue STEAM_TURBINE_MAX_STEAM_PER_TICK;
+    public static final ModConfigSpec.DoubleValue STEAM_TURBINE_EFFICIENCY;
+    public static final ModConfigSpec.IntValue STEAM_ENGINE_STEAM_CAPACITY;
+    public static final ModConfigSpec.IntValue STEAM_ENGINE_SPENT_STEAM_CAPACITY;
+    public static final ModConfigSpec.DoubleValue STEAM_ENGINE_EFFICIENCY;
+    public static final ModConfigSpec.DoubleValue STIRLING_DIFFUSION;
+    public static final ModConfigSpec.DoubleValue STIRLING_EFFICIENCY;
+    public static final ModConfigSpec.IntValue STIRLING_MAX_HEAT_NORMAL;
+    public static final ModConfigSpec.IntValue STIRLING_MAX_HEAT_STEEL;
+    public static final ModConfigSpec.IntValue STIRLING_OVERSPEED_LIMIT;
+    public static final ModConfigSpec.LongValue FORCEFIELD_MAX_POWER;
+    public static final ModConfigSpec.IntValue FORCEFIELD_BASE_CONSUMPTION;
+    public static final ModConfigSpec.IntValue FORCEFIELD_RADIUS_CONSUMPTION;
+    public static final ModConfigSpec.IntValue FORCEFIELD_SHIELD_CONSUMPTION;
+    public static final ModConfigSpec.IntValue FORCEFIELD_BASE_RADIUS;
+    public static final ModConfigSpec.IntValue FORCEFIELD_RADIUS_UPGRADE;
+    public static final ModConfigSpec.IntValue FORCEFIELD_SHIELD_UPGRADE;
+    public static final ModConfigSpec.DoubleValue FORCEFIELD_COOLDOWN_MODIFIER;
+    public static final ModConfigSpec.DoubleValue FORCEFIELD_HEALTH_REGEN_MODIFIER;
+    public static final ModConfigSpec.LongValue RADAR_POWER_CAP;
+    public static final ModConfigSpec.LongValue RADAR_CONSUMPTION;
+    public static final ModConfigSpec.IntValue RADAR_RANGE;
+    public static final ModConfigSpec.IntValue RADAR_LARGE_RANGE;
+    public static final ModConfigSpec.IntValue RADAR_BUFFER;
+    public static final ModConfigSpec.IntValue RADAR_ALTITUDE;
+    public static final ModConfigSpec.IntValue RADAR_CHUNK_LOAD_CAP;
+    public static final ModConfigSpec.BooleanValue RADAR_GENERATE_CHUNKS;
     public static final ModConfigSpec.IntValue CIWS_ACCURACY;
     public static final ModConfigSpec.DoubleValue MINE_AP_DAMAGE;
     public static final ModConfigSpec.DoubleValue MINE_HE_DAMAGE;
@@ -80,6 +116,9 @@ public final class HbmConfig {
     public static final ModConfigSpec.IntValue BEDROCK_OIL_POROUS_Y_VARIANCE;
     public static final ModConfigSpec.BooleanValue GENERATE_BEDROCK_ORES;
     public static final ModConfigSpec.IntValue BEDROCK_ORE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue BEDROCK_ORE_NETHER_GLOWSTONE_WEIGHT;
+    public static final ModConfigSpec.IntValue BEDROCK_ORE_NETHER_PHOSPHORUS_WEIGHT;
+    public static final ModConfigSpec.IntValue BEDROCK_ORE_NETHER_QUARTZ_WEIGHT;
     public static final ModConfigSpec.IntValue METEORITE_SPAWN;
     public static final ModConfigSpec.IntValue CHLORINE_GEYSER_SPAWN_RATE;
     public static final ModConfigSpec.BooleanValue ENABLE_METEOR_STRIKES;
@@ -151,6 +190,138 @@ public final class HbmConfig {
                         "Enable crafting recipes for the Infinite Water Tank and Infinite Water Tank Mk2. Default: false."
                 )
                 .define("enableInfiniteWaterTankRecipes", false);
+        builder.pop();
+
+        builder.push("airstrikes");
+        ENABLE_BOMBER_SHORT_MODE = builder
+                .comment("Spawn bombers closer to the target. HBM 1.7.10 default: false.")
+                .define("enableBomberShortMode", false);
+        builder.pop();
+
+        builder.push("machines");
+        SCALE_RTG_POWER = builder
+                .comment("RTG 燃料输出是否随剩余寿命降低。HBM 1.7.10 默认值：false。")
+                .define("scaleRtgPower", false);
+        ENABLE_RTG_DECAY = builder
+                .comment("RTG 燃料是否衰变为枯竭靶丸。HBM 1.7.10 默认值：true；528 模式强制启用。")
+                .define("enableRtgDecay", true);
+        builder.pop();
+
+        builder.push("industrialTurbine");
+        INDUSTRIAL_TURBINE_INPUT_CAPACITY = builder
+                .comment("工业汽轮机输入蒸汽容量。1.7.10 默认值：750000 mB。")
+                .defineInRange("inputTankSize", 750_000, 1, Integer.MAX_VALUE);
+        INDUSTRIAL_TURBINE_OUTPUT_CAPACITY = builder
+                .comment("工业汽轮机输出乏蒸汽容量。1.7.10 默认值：3000000 mB。")
+                .defineInRange("outputTankSize", 3_000_000, 1, Integer.MAX_VALUE);
+        INDUSTRIAL_TURBINE_EFFICIENCY = builder
+                .comment("工业汽轮机效率倍率。1.7.10 默认值：1.0。")
+                .defineInRange("efficiency", 1.0D, 0.0D, Double.MAX_VALUE);
+        builder.pop();
+
+        builder.push("steamTurbine");
+        STEAM_TURBINE_MAX_POWER = builder
+                .comment("小型汽轮机的最大电力缓存。HBM 1.7.10 默认值：1000000 HE。")
+                .defineInRange("maxPower", 1_000_000L, 1L, Long.MAX_VALUE);
+        STEAM_TURBINE_INPUT_CAPACITY = builder
+                .comment("小型汽轮机输入蒸汽容量。HBM 1.7.10 默认值：64000 mB。")
+                .defineInRange("inputTankSize", 64_000, 1, Integer.MAX_VALUE);
+        STEAM_TURBINE_OUTPUT_CAPACITY = builder
+                .comment("小型汽轮机输出乏蒸汽容量。HBM 1.7.10 默认值：128000 mB。")
+                .defineInRange("outputTankSize", 128_000, 1, Integer.MAX_VALUE);
+        STEAM_TURBINE_MAX_STEAM_PER_TICK = builder
+                .comment("小型汽轮机每 tick 最多处理的蒸汽量。HBM 1.7.10 默认值：6000 mB。")
+                .defineInRange("maxSteamPerTick", 6_000, 1, Integer.MAX_VALUE);
+        STEAM_TURBINE_EFFICIENCY = builder
+                .comment("小型汽轮机效率倍率。HBM 1.7.10 默认值：0.85。")
+                .defineInRange("efficiency", 0.85D, 0.0D, Double.MAX_VALUE);
+        builder.pop();
+
+        builder.push("steamEngine");
+        STEAM_ENGINE_STEAM_CAPACITY = builder
+                .comment("蒸汽机输入蒸汽容量。HBM 1.7.10 默认值：2000 mB。")
+                .defineInRange("steamCap", 2_000, 1, Integer.MAX_VALUE);
+        STEAM_ENGINE_SPENT_STEAM_CAPACITY = builder
+                .comment("蒸汽机输出乏蒸汽容量。HBM 1.7.10 默认值：20 mB。")
+                .defineInRange("spentSteamCap", 20, 1, Integer.MAX_VALUE);
+        STEAM_ENGINE_EFFICIENCY = builder
+                .comment("蒸汽机发电效率倍率。HBM 1.7.10 默认值：0.85。")
+                .defineInRange("efficiency", 0.85D, 0.0D, Double.MAX_VALUE);
+        builder.pop();
+
+        builder.push("stirling");
+        STIRLING_DIFFUSION = builder
+                .comment("斯特林发电机每 tick 从热源提取的热量比例。HBM 1.7.10 默认值：0.1。")
+                .defineInRange("diffusion", 0.1D, 0.0D, Double.MAX_VALUE);
+        STIRLING_EFFICIENCY = builder
+                .comment("斯特林发电机热能转电能效率。HBM 1.7.10 默认值：0.5。")
+                .defineInRange("efficiency", 0.5D, 0.0D, Double.MAX_VALUE);
+        STIRLING_MAX_HEAT_NORMAL = builder
+                .comment("普通斯特林发电机的超速热量阈值。HBM 1.7.10 默认值：300 TU/t。")
+                .defineInRange("maxHeatNormal", 300, 1, Integer.MAX_VALUE);
+        STIRLING_MAX_HEAT_STEEL = builder
+                .comment("重型斯特林发电机的超速热量阈值。HBM 1.7.10 默认值：1500 TU/t。")
+                .defineInRange("maxHeatSteel", 1_500, 1, Integer.MAX_VALUE);
+        STIRLING_OVERSPEED_LIMIT = builder
+                .comment("斯特林发电机连续超速多少 tick 后抛出齿轮。HBM 1.7.10 默认值：300。")
+                .defineInRange("overspeedLimit", 300, 1, Integer.MAX_VALUE);
+        builder.pop();
+
+        builder.push("forcefield");
+        FORCEFIELD_MAX_POWER = builder
+                .comment("力场发生器的最大储能。1.7.10 默认值：1000000。")
+                .defineInRange("maxPower", 1_000_000L, 0L, Long.MAX_VALUE);
+        FORCEFIELD_BASE_CONSUMPTION = builder
+                .comment("力场发生器的基础耗电量。1.7.10 默认值：1000 HE/t。")
+                .defineInRange("baseConsumption", 1000, 0, Integer.MAX_VALUE);
+        FORCEFIELD_RADIUS_CONSUMPTION = builder
+                .comment("每个半径升级增加的耗电量。1.7.10 默认值：500 HE/t。")
+                .defineInRange("radiusConsumption", 500, 0, Integer.MAX_VALUE);
+        FORCEFIELD_SHIELD_CONSUMPTION = builder
+                .comment("每个护盾升级增加的耗电量。1.7.10 默认值：250 HE/t。")
+                .defineInRange("shieldConsumption", 250, 0, Integer.MAX_VALUE);
+        FORCEFIELD_BASE_RADIUS = builder
+                .comment("力场发生器的基础半径。1.7.10 默认值：16。")
+                .defineInRange("baseRadius", 16, 0, Integer.MAX_VALUE);
+        FORCEFIELD_RADIUS_UPGRADE = builder
+                .comment("每个半径升级增加的半径。1.7.10 默认值：16。")
+                .defineInRange("radiusUpgrade", 16, 0, Integer.MAX_VALUE);
+        FORCEFIELD_SHIELD_UPGRADE = builder
+                .comment("每个护盾升级增加的生命值。1.7.10 默认值：50。")
+                .defineInRange("shieldUpgrade", 50, 0, Integer.MAX_VALUE);
+        FORCEFIELD_COOLDOWN_MODIFIER = builder
+                .comment("力场耗尽后的冷却时间倍率。1.7.10 默认值：1.0。")
+                .defineInRange("cooldownModifier", 1.0D, 0.0D, Double.MAX_VALUE);
+        FORCEFIELD_HEALTH_REGEN_MODIFIER = builder
+                .comment("力场生命值恢复倍率。1.7.10 默认值：1.0。")
+                .defineInRange("healthRegenModifier", 1.0D, 0.0D, Double.MAX_VALUE);
+        builder.pop();
+
+        builder.push("radar");
+        RADAR_POWER_CAP = builder
+                .comment("雷达最大储能。1.7.10 默认值：100000 HE。")
+                .defineInRange("powerCap", 100_000L, 0L, Long.MAX_VALUE);
+        RADAR_CONSUMPTION = builder
+                .comment("雷达每 tick 扫描耗能。1.7.10 默认值：500 HE/t。")
+                .defineInRange("consumption", 500L, 0L, Long.MAX_VALUE);
+        RADAR_RANGE = builder
+                .comment("雷达扫描半径。1.7.10 默认值：1000 格。")
+                .defineInRange("radarRange", 1_000, 1, 30_000);
+        RADAR_LARGE_RANGE = builder
+                .comment("大型雷达扫描半径。1.7.10 默认值：3000 格。")
+                .defineInRange("radarLargeRange", 3_000, 1, 30_000);
+        RADAR_BUFFER = builder
+                .comment("雷达忽略低于本体该高度范围内目标的缓冲距离。1.7.10 默认值：30 格。")
+                .defineInRange("radarBuffer", 30, 0, 1_024);
+        RADAR_ALTITUDE = builder
+                .comment("雷达允许工作的最低高度。1.7.10 默认值：Y=55。")
+                .defineInRange("radarAltitude", 55, -64, 2_048);
+        RADAR_CHUNK_LOAD_CAP = builder
+                .comment("雷达地形图每 tick 最多请求的未加载区块数。1.7.10 默认值：10。")
+                .defineInRange("chunkLoadCap", 10, 0, 100);
+        RADAR_GENERATE_CHUNKS = builder
+                .comment("雷达地形图是否允许生成此前不存在的区块。1.7.10 默认值：false。")
+                .define("generateChunks", false);
         builder.pop();
 
         builder.push("weapons");
@@ -373,11 +544,20 @@ public final class HbmConfig {
                 .comment("基岩油田多孔岩脉 Y 随机范围。HBM 1.12.2 默认：50。")
                 .defineInRange("bedrockOilPorousStoneYVariance", 50, 0, 512);
         GENERATE_BEDROCK_ORES = builder
-                .comment("是否生成基岩矿。HBM 1.12.2 默认：true。")
+                .comment("是否生成通用基岩矿。HBM 1.7.10 默认：true。")
                 .define("generateBedrockOres", true);
         BEDROCK_ORE_SPAWN_RATE = builder
-                .comment("基岩矿生成间隔，数值越大越稀有。HBM 1.12.2 默认：10。")
+                .comment("通用基岩矿生成间隔，数值越大越稀有。HBM 1.7.10 默认：10。")
                 .defineInRange("bedrockOreSpawnRate", 10, 1, 1_000_000);
+        BEDROCK_ORE_NETHER_GLOWSTONE_WEIGHT = builder
+                .comment("下界荧石通用基岩矿的生成权重。HBM 1.7.10 默认：100。")
+                .defineInRange("bedrockOreNetherGlowstoneWeight", 100, 0, 1_000_000);
+        BEDROCK_ORE_NETHER_PHOSPHORUS_WEIGHT = builder
+                .comment("下界磷通用基岩矿的生成权重。HBM 1.7.10 默认：50。")
+                .defineInRange("bedrockOreNetherPhosphorusWeight", 50, 0, 1_000_000);
+        BEDROCK_ORE_NETHER_QUARTZ_WEIGHT = builder
+                .comment("下界石英通用基岩矿的生成权重。HBM 1.7.10 默认：100。")
+                .defineInRange("bedrockOreNetherQuartzWeight", 100, 0, 1_000_000);
         METEORITE_SPAWN = builder
                 .comment("Fallen meteorite worldgen interval in chunks. Matches HBM 1.7.10 default: 200.")
                 .defineInRange("meteoriteSpawnRate", 200, 1, 1_000_000);
@@ -489,5 +669,15 @@ public final class HbmConfig {
         int min = Math.min(minValue.get(), maxValue.get());
         int max = Math.max(minValue.get(), maxValue.get());
         return min + random.nextInt(max - min + 1);
+    }
+
+    /** Mirrors VersatileConfig's 1.7.10 RTG rule: 528 mode forces decay. */
+    public static boolean rtgDecay() {
+        return ENABLE_528_MODE.get() || ENABLE_RTG_DECAY.get();
+    }
+
+    /** Mirrors VersatileConfig's 1.7.10 RTG rule: 528 mode forces output scaling. */
+    public static boolean scaleRtgPower() {
+        return ENABLE_528_MODE.get() || SCALE_RTG_POWER.get();
     }
 }

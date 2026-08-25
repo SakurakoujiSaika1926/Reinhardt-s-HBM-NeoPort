@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/block_cap"
-                          }
-                 }
+    "variants": {
+        "type=nuka": { "model": "reinhardtshbm:block/block_cap_nuka" },
+        "type=quantum": { "model": "reinhardtshbm:block/block_cap_quantum" },
+        "type=sparkle": { "model": "reinhardtshbm:block/block_cap_sparkle" },
+        "type=rad": { "model": "reinhardtshbm:block/block_cap_rad" },
+        "type=korl": { "model": "reinhardtshbm:block/block_cap_korl" },
+        "type=fritz": { "model": "reinhardtshbm:block/block_cap_fritz" }
+    }
 }

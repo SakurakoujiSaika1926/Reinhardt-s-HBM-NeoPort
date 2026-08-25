@@ -25,17 +25,13 @@ public class IndustrialTurbineBlock extends LargeMachineBlock implements EntityB
     public static final Footprint FOOTPRINT = Footprint.box(-1, 1, 0, 2, -3, 3);
 
     public IndustrialTurbineBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = context.getHorizontalDirection().getOpposite();
-        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT)) {
-            return null;
-        }
-        return this.defaultBlockState().setValue(FACING, facing);
+        return super.getStateForPlacement(context);
     }
 
     @Nullable

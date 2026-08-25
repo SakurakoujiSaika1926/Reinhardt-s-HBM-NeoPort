@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["T", "C", "B"],
+  "key": { "T": { "item": "reinhardtshbm:drone_waypoint_request" }, "C": { "item": "reinhardtshbm:crate_steel" }, "B": { "item": "reinhardtshbm:circuit_advanced" } },
+  "result": { "id": "reinhardtshbm:drone_dock" }
+}

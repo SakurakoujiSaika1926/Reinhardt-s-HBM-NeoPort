@@ -1,6 +1,17 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/parts_legendary"
-                 },
-    "parent":  "minecraft:item/generated"
+    "parent":  "reinhardtshbm:item/parts_legendary.tier1",
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  1
+                                        },
+                          "model":  "reinhardtshbm:item/parts_legendary.tier2"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  2
+                                        },
+                          "model":  "reinhardtshbm:item/parts_legendary.tier3"
+                      }
+                  ]
 }

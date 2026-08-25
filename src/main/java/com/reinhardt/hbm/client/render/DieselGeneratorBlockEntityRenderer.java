@@ -30,7 +30,7 @@ public class DieselGeneratorBlockEntityRenderer implements BlockEntityRenderer<D
         // The diesel generator OBJ is authored around a centered local origin (-0.5..0.5),
         // so rotating it like a normal 0..1 block model introduces a half-block offset.
         MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyDieselYaw(facing));
-        if (diesel.running()) {
+        if (diesel.hasAcceptableFuel() && diesel.fuelTank().amount() > 0) {
             poseStack.translate(
                     Math.sin((diesel.getLevel() == null ? 0L : diesel.getLevel().getGameTime()) / 2.5D) * 0.005D,
                     0.0D,

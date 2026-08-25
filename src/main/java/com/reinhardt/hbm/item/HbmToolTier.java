@@ -11,7 +11,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.ItemLike;
 
 public enum HbmToolTier implements Tier {
+    WOOD_COMPAT(0, 59, 2.0F, 0.0F, 15, "minecraft:stick"),
+    PIPE_LEAD(1, 250, 1.5F, 3.0F, 25, "pipe_lead"),
+    BOTTLE_OPENER(1, 250, 1.5F, 0.5F, 200, "plate_steel"),
+    SCHRABIDIUM_HAMMER(3, 0, 50.0F, 999_999_996.0F, 200, "block_schrabidium"),
     SCHRABIDIUM(4, 10000, 50.0F, 100.0F, 200, "ingot_schrabidium"),
+    CHAINSAW(3, 1500, 50.0F, 22.0F, 0, "ingot_steel"),
     STEEL(2, 500, 7.5F, 2.0F, 10, "ingot_steel"),
     TITANIUM(2, 750, 9.0F, 2.5F, 15, "ingot_titanium"),
     ALLOY(3, 2000, 15.0F, 5.0F, 5, "ingot_advanced_alloy"),

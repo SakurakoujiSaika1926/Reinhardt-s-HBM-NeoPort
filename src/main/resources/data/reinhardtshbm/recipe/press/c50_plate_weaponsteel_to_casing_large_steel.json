@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:press",
+  "group": "press.c50",
+  "stamp": "c50",
+  "ingredient": { "tag": "c:plates/weaponsteel" },
+  "result": {
+    "id": "reinhardtshbm:casing",
+    "count": 2,
+    "components": {
+      "minecraft:custom_data": { "variant": "large_steel" },
+      "minecraft:custom_model_data": 3
+    }
+  }
+}

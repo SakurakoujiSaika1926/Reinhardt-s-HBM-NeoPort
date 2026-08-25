@@ -50,6 +50,11 @@ public class SteamEngineBlockEntityRenderer implements BlockEntityRenderer<Steam
         return new AABB(blockEntity.getBlockPos()).inflate(6.0D, 3.0D, 6.0D);
     }
 
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
+
     static void renderParts(float rot, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
 

@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.reinhardt.hbm.item.StirlingGeneratorBlockItem;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -41,7 +42,8 @@ public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevel
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         PartSet parts = PartSet.forStack(stack);
         BlockState state = parts.block.defaultBlockState();
-        float rot = (System.currentTimeMillis() % 3600L) * 0.1F;
+        boolean hasCog = StirlingGeneratorBlockItem.hasCog(stack);
+        float rot = hasCog ? (System.currentTimeMillis() % 3600L) * 0.1F : 0.0F;
 
         poseStack.pushPose();
         fitModelToItemCube(poseStack);
@@ -49,12 +51,14 @@ public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevel
 
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.world), poseStack, bufferSource, state, packedLight, packedOverlay);
 
-        poseStack.pushPose();
-        poseStack.translate(0.5F, 1.375F, 0.5F);
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rot), 0.0F, 0.0F, 1.0F)));
-        poseStack.translate(-0.5F, -1.375F, -0.5F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cog), poseStack, bufferSource, state, packedLight, packedOverlay);
-        poseStack.popPose();
+        if (hasCog) {
+            poseStack.pushPose();
+            poseStack.translate(0.5F, 1.375F, 0.5F);
+            poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rot), 0.0F, 0.0F, 1.0F)));
+            poseStack.translate(-0.5F, -1.375F, -0.5F);
+            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cog), poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
+        }
 
         poseStack.pushPose();
         poseStack.translate(0.5F, 1.375F, 0.75F);

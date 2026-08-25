@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/bot_prime_head.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/bot_prime_head.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/legacy/mark_zero_head"
+  }
+}

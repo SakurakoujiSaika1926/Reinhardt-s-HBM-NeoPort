@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/rbmk_pellet_meu",
+    "layer1": "reinhardtshbm:item/rbmk_pellet_overlay_e1",
+    "layer2": "reinhardtshbm:item/rbmk_pellet_overlay_xenon"
+  }
+}
+

@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.rtgunit",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:plate_cast"],
+        "components": { "minecraft:custom_data": { "material_id": 8200, "material": "lead" } }
+      },
+      "count": 2
+    },
+    { "ingredient": { "tag": "c:plates/copper" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:thermo_element" }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:rtg_unit" }
+}

@@ -1,3 +1,6 @@
 {
-  "parent": "reinhardtshbm:block/red_pylon_world"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:block/red_pylon"
+  }
 }

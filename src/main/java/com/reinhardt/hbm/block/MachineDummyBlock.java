@@ -16,6 +16,7 @@ import com.reinhardt.hbm.blockentity.FractionTowerBlockEntity;
 import com.reinhardt.hbm.blockentity.FusionMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.GasCentrifugeBlockEntity;
 import com.reinhardt.hbm.blockentity.GeothermalHeatExchangerBlockEntity;
+import com.reinhardt.hbm.blockentity.GasTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.HeatBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
 import com.reinhardt.hbm.blockentity.IndustrialTurbineBlockEntity;
@@ -50,6 +51,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
@@ -168,6 +170,10 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                     && machine.handleEmptyHandInteraction(player)) {
                 return InteractionResult.CONSUME;
             }
+            if (coreEntity instanceof LegacyMachineBlockEntity machine
+                    && machine.machineId().equals("machine_orbus") && player.isCrouching()) {
+                return InteractionResult.CONSUME;
+            }
             if (coreEntity instanceof FractionTowerBlockEntity tower) {
                 FractionTowerBlock.printTowerInfo(player, corePos, tower);
                 return InteractionResult.CONSUME;
@@ -216,6 +222,17 @@ public class MachineDummyBlock extends Block implements EntityBlock {
     ) {
         if (stack.getItem() instanceof WiringRedCopperItem) {
             return WiringRedCopperItem.useItemOnBlock(stack, level, player, pos);
+        }
+        if (stack.getItem() instanceof com.reinhardt.hbm.item.BlowtorchItem blowtorch
+                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof FluidTankBlockEntity tank) {
+            if (tank.isDamaged()) {
+                if (!level.isClientSide && blowtorch.canTorch(stack) && tank.repair(player)) {
+                    blowtorch.consumeTorchFuel(stack);
+                    return ItemInteractionResult.sidedSuccess(false);
+                }
+                return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            }
         }
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof ConveyorPressBlockEntity press
@@ -266,6 +283,16 @@ public class MachineDummyBlock extends Block implements EntityBlock {
         }
         if (stack.getItem() instanceof FluidIdentifierItem
                 && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof GasTurbineBlockEntity turbine) {
+            if (!level.isClientSide) {
+                turbine.pasteFluidSetting(FluidIdentifierItem.primary(stack), level, player, pos);
+                level.playSound(null, dummy.getCorePos(), SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.BLOCKS, 0.25F, 1.2F);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (stack.getItem() instanceof FluidIdentifierItem
+                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof GeothermalHeatExchangerBlockEntity exchanger) {
             if (!level.isClientSide && exchanger.applyFluidIdentifier(FluidIdentifierItem.primary(stack))) {
                 level.playSound(null, dummy.getCorePos(), SoundEvents.EXPERIENCE_ORB_PICKUP,
@@ -297,7 +324,9 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                 && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof FluidTankBlockEntity tank) {
             if (!level.isClientSide) {
-                tank.setType(FluidIdentifierItem.primary(stack));
+                if (!tank.isDamaged()) {
+                    tank.setType(FluidIdentifierItem.primary(stack));
+                }
                 level.playSound(null, dummy.getCorePos(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.25F, 1.2F);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
@@ -360,6 +389,17 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             if (!level.isClientSide) {
                 electrolyzer.pasteFluidSetting(FluidIdentifierItem.primary(stack), level, player, pos);
                 level.playSound(null, dummy.getCorePos(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.25F, 1.2F);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (stack.getItem() instanceof FluidIdentifierItem
+                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof LegacyMachineBlockEntity machine
+                && machine.machineId().equals("machine_turbofan")) {
+            if (!level.isClientSide) {
+                machine.pasteFluidSetting(FluidIdentifierItem.primary(stack), level, player, dummy.getCorePos());
+                level.playSound(null, dummy.getCorePos(), SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.BLOCKS, 0.25F, 1.2F);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
@@ -441,6 +481,18 @@ public class MachineDummyBlock extends Block implements EntityBlock {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
+    @Override
+    public void onBlockExploded(BlockState state, Level level, BlockPos pos, Explosion explosion) {
+        if (!level.isClientSide
+                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof FluidTankBlockEntity tank) {
+            tank.handleExplosion(explosion);
+            runWithoutCoreDestroy(() -> level.removeBlock(pos, false));
+            return;
+        }
+        super.onBlockExploded(state, level, pos, explosion);
+    }
+
     public static void runWithoutCoreDestroy(Runnable action) {
         boolean previous = SUPPRESS_CORE_DESTROY.get();
         SUPPRESS_CORE_DESTROY.set(true);
@@ -456,6 +508,10 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             BlockPos corePos = dummy.getCorePos();
             int yOffset = pos.getY() - corePos.getY();
             BlockEntity core = level.getBlockEntity(corePos);
+            if (core instanceof LegacyMachineBlockEntity machine && machine.machineId().equals("machine_sawmill")) {
+                BlockState coreState = level.getBlockState(corePos);
+                return SawmillBlock.shapeForPart(coreState.getValue(LargeMachineBlock.FACING), pos.subtract(corePos));
+            }
             if (core instanceof GasFlareBlockEntity) {
                 return GasFlareBlock.shapeForPart(pos.subtract(corePos));
             }

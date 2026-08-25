@@ -155,11 +155,15 @@ public final class LegacyProjectileUtil {
     }
 
     public static void fixedDamageExplosion(Entity source, Vec3 pos, float radius, float damage, boolean breakBlocks) {
-        Level level = source.level();
+        fixedDamageExplosion(source.level(), source, pos, radius, damage, breakBlocks);
+    }
+
+    public static void fixedDamageExplosion(Level level, @Nullable Entity source, Vec3 pos,
+                                            float radius, float damage, boolean breakBlocks) {
         if (breakBlocks && level instanceof ServerLevel serverLevel) {
             allocateLegacyWeaponExplosionBlocks(source, serverLevel, pos, radius);
         }
-        applyLegacyFixedCrossDamage(source, pos, radius, damage, 1.0D);
+        applyLegacyFixedCrossDamage(level, source, pos, radius, damage, 1.0D);
         sendSmallExplosionEffect(level, pos, 10, 2.5F, 1.0F);
     }
 
@@ -626,7 +630,11 @@ public final class LegacyProjectileUtil {
     }
 
     private static void applyLegacyFixedCrossDamage(Entity source, Vec3 pos, float radius, float fixedDamage, double nodeDist) {
-        Level level = source.level();
+        applyLegacyFixedCrossDamage(source.level(), source, pos, radius, fixedDamage, nodeDist);
+    }
+
+    private static void applyLegacyFixedCrossDamage(Level level, @Nullable Entity source, Vec3 pos,
+                                                    float radius, float fixedDamage, double nodeDist) {
         double size = radius * 2.0D;
         AABB area = new AABB(pos, pos).inflate(size + 1.0D);
         Vec3[] nodes = legacyCrossNodes(pos, nodeDist);
@@ -871,7 +879,8 @@ public final class LegacyProjectileUtil {
         level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.HOSTILE, 12.0F, 0.9F + level.random.nextFloat() * 0.2F);
     }
 
-    private static void sendSmallExplosionEffect(Level level, Vec3 pos, int cloudCount, float cloudScale, float cloudSpeedMultiplier) {
+    /** Shared 1.7.10 ExplosionEffectWeapon-compatible small explosion visual. */
+    public static void sendSmallExplosionEffect(Level level, Vec3 pos, int cloudCount, float cloudScale, float cloudSpeedMultiplier) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }

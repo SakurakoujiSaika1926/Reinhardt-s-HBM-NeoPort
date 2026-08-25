@@ -9,6 +9,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -19,6 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.MenuProvider;
@@ -38,13 +42,21 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
     private int ashLevelMisc;
     private int ashLevelFly;
     private int ashLevelSoot;
+    private int playersUsing;
+    private float doorAngle;
+    private float previousDoorAngle;
+    private boolean full;
 
     public AshpitBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.ASHPIT.get(), pos, blockState);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, AshpitBlockEntity ashpit) {
-        ashpit.processAsh();
+        if (level.isClientSide) {
+            ashpit.tickClientDoor();
+        } else {
+            ashpit.processAsh();
+        }
     }
 
     public void addFlyAsh(long amount) {
@@ -73,29 +85,30 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
     }
 
     private void processAsh() {
-        this.ashLevelWood = processAsh(this.ashLevelWood, "wood", THRESHOLD_WOOD);
-        this.ashLevelCoal = processAsh(this.ashLevelCoal, "coal", THRESHOLD_COAL);
-        this.ashLevelMisc = processAsh(this.ashLevelMisc, "misc", THRESHOLD_MISC);
-        this.ashLevelFly = processAsh(this.ashLevelFly, "fly", THRESHOLD_FLY);
-        this.ashLevelSoot = processAsh(this.ashLevelSoot, "soot", THRESHOLD_SOOT);
-    }
-
-    private int processAsh(int level, String variant, int threshold) {
-        while (level >= threshold) {
-            if (!addAshStack(variant)) {
-                return level;
-            }
-            level -= threshold;
+        boolean wasFull = this.full;
+        if (processAsh(this.ashLevelWood, "wood", THRESHOLD_WOOD)) this.ashLevelWood -= THRESHOLD_WOOD;
+        if (processAsh(this.ashLevelCoal, "coal", THRESHOLD_COAL)) this.ashLevelCoal -= THRESHOLD_COAL;
+        if (processAsh(this.ashLevelMisc, "misc", THRESHOLD_MISC)) this.ashLevelMisc -= THRESHOLD_MISC;
+        if (processAsh(this.ashLevelFly, "fly", THRESHOLD_FLY)) this.ashLevelFly -= THRESHOLD_FLY;
+        if (processAsh(this.ashLevelSoot, "soot", THRESHOLD_SOOT)) this.ashLevelSoot -= THRESHOLD_SOOT;
+        this.full = !this.isEmpty();
+        if (wasFull != this.full) {
+            syncStatus();
         }
-        return level;
     }
 
-    private boolean addAshStack(String variant) {
+    /** Direct port of TileEntityAshpit#processAsh, including its legacy wood-counter side effect. */
+    private boolean processAsh(int level, String variant, int threshold) {
+        if (level < threshold) {
+            return false;
+        }
         ItemStack produced = LegacyVariantItem.stackFor(HbmItems.POWDER_ASH, variant);
         for (int slot = 0; slot < items.size(); slot++) {
             ItemStack current = items.get(slot);
             if (current.isEmpty()) {
                 items.set(slot, produced);
+                // 1.7.10 writes this field directly even for coal/fly/soot.
+                this.ashLevelWood -= threshold;
                 setChanged();
                 return true;
             }
@@ -108,6 +121,41 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
         return false;
     }
 
+    /** Direct client port of TileEntityAshpit's door animation. */
+    private void tickClientDoor() {
+        this.previousDoorAngle = this.doorAngle;
+        float swingSpeed = this.doorAngle / 10.0F + 3.0F;
+        if (this.playersUsing > 0) {
+            this.doorAngle = Math.min(135.0F, this.doorAngle + swingSpeed);
+        } else {
+            this.doorAngle = Math.max(0.0F, this.doorAngle - swingSpeed);
+        }
+    }
+
+    public float doorAngle(float partialTick) {
+        return this.previousDoorAngle + (this.doorAngle - this.previousDoorAngle) * partialTick;
+    }
+
+    public boolean isFull() {
+        return this.full;
+    }
+
+    @Override
+    public void startOpen(Player player) {
+        if (!player.level().isClientSide) {
+            this.playersUsing++;
+            syncStatus();
+        }
+    }
+
+    @Override
+    public void stopOpen(Player player) {
+        if (!player.level().isClientSide && this.playersUsing > 0) {
+            this.playersUsing--;
+            syncStatus();
+        }
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
@@ -117,6 +165,8 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
         tag.putInt("ashLevelMisc", ashLevelMisc);
         tag.putInt("ashLevelFly", ashLevelFly);
         tag.putInt("ashLevelSoot", ashLevelSoot);
+        tag.putInt("playersUsing", this.playersUsing);
+        tag.putBoolean("full", this.full);
     }
 
     @Override
@@ -128,6 +178,8 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
         this.ashLevelMisc = tag.getInt("ashLevelMisc");
         this.ashLevelFly = tag.getInt("ashLevelFly");
         this.ashLevelSoot = tag.getInt("ashLevelSoot");
+        this.playersUsing = Math.max(0, tag.getInt("playersUsing"));
+        this.full = tag.getBoolean("full");
     }
 
     @Override
@@ -216,6 +268,25 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new AshpitMenu(containerId, playerInventory, this);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        saveAdditional(tag, registries);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    private void syncStatus() {
+        setChanged();
+        if (this.level != null && !this.level.isClientSide) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     private static int saturatingAdd(int current, long amount) {

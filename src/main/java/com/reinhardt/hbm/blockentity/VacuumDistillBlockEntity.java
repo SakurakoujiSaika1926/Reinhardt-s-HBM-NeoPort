@@ -590,6 +590,7 @@ public class VacuumDistillBlockEntity extends BlockEntity implements PowerEndpoi
         if (this.level != null && !this.level.isClientSide) {
             for (Port port : ports(this.level)) {
                 this.level.invalidateCapabilities(port.pos());
+                this.level.invalidateCapabilities(port.connectorPos());
             }
         }
     }

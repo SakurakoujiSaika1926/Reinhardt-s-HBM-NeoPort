@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.upgrade",
+  "duration": 200,
+  "consumption": 1000,
+  "toppings": [
+    { "ingredient": { "item": "reinhardtshbm:circuit_chip" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_capacitor" }, "count": 4 }
+  ],
+  "pcb": [
+    { "ingredient": { "item": "reinhardtshbm:upgrade_template" }, "count": 1 },
+    { "ingredient": { "item": "minecraft:glowstone_dust" }, "count": 4 }
+  ],
+  "solder": [],
+  "result": { "id": "reinhardtshbm:upgrade_radius" }
+}

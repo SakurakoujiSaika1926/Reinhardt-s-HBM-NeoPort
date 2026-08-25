@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/sellafield"
-                          }
-                 }
+  "variants": {
+    "level=0": { "model": "reinhardtshbm:block/sellafield_0" },
+    "level=1": { "model": "reinhardtshbm:block/sellafield_1" },
+    "level=2": { "model": "reinhardtshbm:block/sellafield_2" },
+    "level=3": { "model": "reinhardtshbm:block/sellafield_3" },
+    "level=4": { "model": "reinhardtshbm:block/sellafield_4" },
+    "level=5": { "model": "reinhardtshbm:block/sellafield_5" }
+  }
 }

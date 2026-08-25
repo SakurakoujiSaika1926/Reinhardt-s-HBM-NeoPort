@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -59,12 +60,15 @@ public class PowerPylonBlock extends Block implements EntityBlock {
     }
 
     @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.ENTITYBLOCK_ANIMATED;
+    }
+
+    @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = this.kind.connector()
                 ? context.getClickedFace()
-                // 1.7.10 stores the player's horizontal direction directly in
-                // the core metadata. Mounts and render rotations use that value.
-                : context.getHorizontalDirection();
+                : context.getHorizontalDirection().getOpposite();
         BlockState state = this.defaultBlockState().setValue(FACING, facing);
         if (!canPlaceFootprint(context, state)) {
             return null;

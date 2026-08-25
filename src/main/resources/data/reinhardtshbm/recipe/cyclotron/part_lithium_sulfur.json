@@ -5,7 +5,7 @@
                      "item":  "reinhardtshbm:part_lithium"
                  },
     "input":  {
-                  "item":  "reinhardtshbm:powder_fire"
+                  "tag":  "c:dusts/phosphorus"
               },
     "output":  {
                    "id":  "reinhardtshbm:sulfur"

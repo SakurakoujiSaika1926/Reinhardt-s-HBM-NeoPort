@@ -1,3 +1,20 @@
 {
-    "parent":  "reinhardtshbm:block/brick_jungle_glyph"
+  "parent": "reinhardtshbm:block/brick_jungle_glyph_0",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/brick_jungle_glyph_1" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/brick_jungle_glyph_2" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:block/brick_jungle_glyph_3" },
+    { "predicate": { "minecraft:custom_model_data": 4 }, "model": "reinhardtshbm:block/brick_jungle_glyph_4" },
+    { "predicate": { "minecraft:custom_model_data": 5 }, "model": "reinhardtshbm:block/brick_jungle_glyph_5" },
+    { "predicate": { "minecraft:custom_model_data": 6 }, "model": "reinhardtshbm:block/brick_jungle_glyph_6" },
+    { "predicate": { "minecraft:custom_model_data": 7 }, "model": "reinhardtshbm:block/brick_jungle_glyph_7" },
+    { "predicate": { "minecraft:custom_model_data": 8 }, "model": "reinhardtshbm:block/brick_jungle_glyph_8" },
+    { "predicate": { "minecraft:custom_model_data": 9 }, "model": "reinhardtshbm:block/brick_jungle_glyph_9" },
+    { "predicate": { "minecraft:custom_model_data": 10 }, "model": "reinhardtshbm:block/brick_jungle_glyph_10" },
+    { "predicate": { "minecraft:custom_model_data": 11 }, "model": "reinhardtshbm:block/brick_jungle_glyph_11" },
+    { "predicate": { "minecraft:custom_model_data": 12 }, "model": "reinhardtshbm:block/brick_jungle_glyph_12" },
+    { "predicate": { "minecraft:custom_model_data": 13 }, "model": "reinhardtshbm:block/brick_jungle_glyph_13" },
+    { "predicate": { "minecraft:custom_model_data": 14 }, "model": "reinhardtshbm:block/brick_jungle_glyph_14" },
+    { "predicate": { "minecraft:custom_model_data": 15 }, "model": "reinhardtshbm:block/brick_jungle_glyph_15" }
+  ]
 }

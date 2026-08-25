@@ -18,6 +18,7 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -161,11 +162,26 @@ public final class PrecisionAssemblerRecipeSelectorScreen extends Screen {
         for (PrecisionAssemblerRecipe.ChanceOutput output : recipe.outputs()) lines.add(output.stack().getHoverName().copy().withStyle(ChatFormatting.YELLOW).append(Component.literal(" " + output.weight() + "%").withStyle(ChatFormatting.GRAY)));
         lines.add(Component.translatable("info.reinhardtshbm.template_in").withStyle(ChatFormatting.GRAY));
         for (PrecisionAssemblerRecipe.CountedIngredient ingredient : recipe.ingredients()) {
-            ItemStack[] options = ingredient.ingredient().getItems();
-            if (options.length > 0) lines.add(Component.literal(" - ").withStyle(ChatFormatting.GRAY).append(options[0].getHoverName()).append(Component.literal(" x" + ingredient.count())));
+            ItemStack display = displayIngredient(ingredient);
+            if (!display.isEmpty()) lines.add(Component.literal(" - ").withStyle(ChatFormatting.GRAY).append(display.getHoverName()).append(Component.literal(" x" + ingredient.count())));
+        }
+        lines.add(Component.translatable("info.reinhardtshbm.template_out").withStyle(ChatFormatting.GRAY));
+        for (PrecisionAssemblerRecipe.ChanceOutput output : recipe.outputs()) {
+            lines.add(Component.literal(" - ").withStyle(ChatFormatting.GRAY)
+                    .append(output.stack().getHoverName())
+                    .append(Component.literal(" x" + output.stack().getCount())));
         }
         lines.add(Component.translatable("info.reinhardtshbm.template_power", recipe.power()).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("info.reinhardtshbm.template_duration", recipe.duration()).withStyle(ChatFormatting.GRAY));
         return lines;
+    }
+
+    static ItemStack displayIngredient(PrecisionAssemblerRecipe.CountedIngredient ingredient) {
+        ItemStack display = Arrays.stream(ingredient.ingredient().getItems())
+                .findFirst()
+                .orElse(ItemStack.EMPTY)
+                .copy();
+        if (!display.isEmpty()) display.setCount(ingredient.count());
+        return display;
     }
 }

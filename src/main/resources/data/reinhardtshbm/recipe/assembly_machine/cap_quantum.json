@@ -1,0 +1,11 @@
+{
+    "type": "reinhardtshbm:assembly_machine",
+    "group": "ass.capquantum",
+    "duration": 10,
+    "power": 100,
+    "ingredients": [
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_quantum" } },
+        { "count": 64, "ingredient": { "item": "reinhardtshbm:cap_quantum" } }
+    ],
+    "result": { "id": "reinhardtshbm:block_cap", "components": { "minecraft:custom_data": { "type": "quantum" }, "minecraft:custom_model_data": 1 } }
+}

@@ -3,7 +3,6 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_coltan"
                    },
-    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_coltan",
                    "count":  3

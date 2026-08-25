@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["BCB", "SDS", "BCB"],
+  "key": {
+    "B": { "tag": "c:nuggets/bismuth" },
+    "C": { "type": "neoforge:components", "items": ["reinhardtshbm:wire_dense"], "components": { "minecraft:custom_data": { "material_id": 6000, "material": "neodymium" } } },
+    "S": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 30, "material": "steel" } } },
+    "D": { "tag": "c:ingots/dura_steel" }
+  },
+  "result": { "id": "reinhardtshbm:motor_bismuth" }
+}

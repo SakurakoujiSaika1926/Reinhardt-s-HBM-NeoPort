@@ -3,7 +3,6 @@ package com.reinhardt.hbm.menu;
 import com.reinhardt.hbm.blockentity.ShredderBlockEntity;
 import com.reinhardt.hbm.item.BladesItem;
 import com.reinhardt.hbm.registry.HbmMenus;
-import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -15,7 +14,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class ShredderMenu extends AbstractContainerMenu {
@@ -71,7 +69,7 @@ public class ShredderMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, ShredderBlockEntity.BATTERY_SLOT, ShredderBlockEntity.BATTERY_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (hasRecipe(stack, player)) {
+        } else if (ShredderBlockEntity.canAcceptInput(stack)) {
             if (!moveItemStackTo(stack, ShredderBlockEntity.INPUT_START, ShredderBlockEntity.INPUT_END, false)) {
                 return ItemStack.EMPTY;
             }
@@ -172,15 +170,6 @@ public class ShredderMenu extends AbstractContainerMenu {
             return shredder;
         }
         return new SimpleContainer(MACHINE_SLOT_COUNT);
-    }
-
-    private static boolean hasRecipe(ItemStack stack, Player player) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-        return player.level().getRecipeManager()
-                .getRecipeFor(HbmRecipeTypes.SHREDDER.get(), new SingleRecipeInput(stack), player.level())
-                .isPresent();
     }
 
     private static final class InputSlot extends Slot {

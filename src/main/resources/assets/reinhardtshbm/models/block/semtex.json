@@ -1,6 +1,8 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "bottom":  "reinhardtshbm:block/semtex_bottom",
+                     "side":  "reinhardtshbm:block/semtex_side",
+                     "top":  "reinhardtshbm:block/semtex_top"
                  },
-    "parent":  "minecraft:block/cube_all"
+    "parent":  "minecraft:block/cube_bottom_top"
 }

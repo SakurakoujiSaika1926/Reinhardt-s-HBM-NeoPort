@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.forcefield",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/dura_steel" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:plate_desh" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:coil_gold_torus" }, "count": 6 },
+    { "ingredient": { "item": "reinhardtshbm:coil_magnetized_tungsten" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:upgrade_radius" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:upgrade_health" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:machine_transformer" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_forcefield" }
+}

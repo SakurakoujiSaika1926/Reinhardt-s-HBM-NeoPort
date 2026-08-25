@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "reinhardtshbm:item/cart.wood", "layer1": "reinhardtshbm:item/cart_overlay.empty" },
+  "overrides": [
+    { "predicate": { "reinhardtshbm:cart_variant": 1 }, "model": "reinhardtshbm:item/cart_vanilla_crate" },
+    { "predicate": { "reinhardtshbm:cart_variant": 10 }, "model": "reinhardtshbm:item/cart_wood_empty" },
+    { "predicate": { "reinhardtshbm:cart_variant": 13 }, "model": "reinhardtshbm:item/cart_wood_powder" },
+    { "predicate": { "reinhardtshbm:cart_variant": 14 }, "model": "reinhardtshbm:item/cart_wood_semtex" },
+    { "predicate": { "reinhardtshbm:cart_variant": 20 }, "model": "reinhardtshbm:item/cart_steel_empty" },
+    { "predicate": { "reinhardtshbm:cart_variant": 22 }, "model": "reinhardtshbm:item/cart_steel_destroyer" },
+    { "predicate": { "reinhardtshbm:cart_variant": 23 }, "model": "reinhardtshbm:item/cart_steel_powder" },
+    { "predicate": { "reinhardtshbm:cart_variant": 24 }, "model": "reinhardtshbm:item/cart_steel_semtex" },
+    { "predicate": { "reinhardtshbm:cart_variant": 30 }, "model": "reinhardtshbm:item/cart_painted_empty" },
+    { "predicate": { "reinhardtshbm:cart_variant": 32 }, "model": "reinhardtshbm:item/cart_painted_destroyer" },
+    { "predicate": { "reinhardtshbm:cart_variant": 33 }, "model": "reinhardtshbm:item/cart_painted_powder" },
+    { "predicate": { "reinhardtshbm:cart_variant": 34 }, "model": "reinhardtshbm:item/cart_painted_semtex" }
+  ]
+}

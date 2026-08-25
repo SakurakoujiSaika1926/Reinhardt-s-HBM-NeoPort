@@ -67,7 +67,7 @@
 
 - [ ] FEnSU - `machine_battery_redd`
 - [ ] 电池座 - `machine_battery_socket`
-- [ ] 重型磁约束储罐 - `machine_orbus`
+- [ ] 重型磁约束储罐 - `machine_orbus`（已移植，待游戏内验证）
 - [ ] HE->RF 转换器 - `machine_converter_he_rf`
 - [ ] RF->HE 转换器 - `machine_converter_rf_he`
 - [ ] 功率检测器 - `machine_detector`
@@ -125,8 +125,9 @@
 ## 自动化与工具
 
 - [ ] 输送带锻压机 - `machine_conveyor_press`
+- [x] 火力锻压机 - `machine_press`
 - [ ] 组合漏斗 - `machine_funnel`
-- [ ] 精密装配机 - `machine_precass`
+- [x] 精密装配机 - `machine_precass`
 - [ ] 导弹装配台 - `machine_missile_assembly`
 - [ ] 锁匠桌 - `machine_keyforge`
 - [ ] 传送机 - `machine_teleporter`
@@ -140,4 +141,3 @@
 - [ ] 警报器 - `machine_siren`
 - [ ] LPW-2 空间站推进器 - `machine_lpw2`
 - [ ] 武器改装台 - `machine_weapon_table`
-

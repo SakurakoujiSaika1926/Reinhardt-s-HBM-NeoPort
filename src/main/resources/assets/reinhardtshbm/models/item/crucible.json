@@ -1,6 +1,3 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/crucible"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "minecraft:builtin/entity"
 }

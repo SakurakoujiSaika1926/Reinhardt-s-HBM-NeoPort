@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "type": "neoforge:components", "items": ["reinhardtshbm:drone"], "components": { "reinhardtshbm:drone_type": 1 } }
+  ],
+  "result": { "id": "reinhardtshbm:drone", "components": { "reinhardtshbm:drone_type": 0 } }
+}

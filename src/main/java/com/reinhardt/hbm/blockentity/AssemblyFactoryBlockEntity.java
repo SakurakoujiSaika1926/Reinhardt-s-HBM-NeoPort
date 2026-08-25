@@ -66,7 +66,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     public static final int RECIPE_TANK_CAPACITY = 4_000;
     public static final int COOLANT_TANK_CAPACITY = 4_000;
     public static final long BASE_ENERGY_CAPACITY = 1_000_000L;
-    public static final int DATA_COUNT = 58;
+    public static final int DATA_COUNT = 68;
 
     private static final int DATA_MODULE_START = 4;
     private static final int DATA_PER_MODULE = 6;
@@ -102,11 +102,12 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         public int get(int index) {
             if (index >= DATA_TANK_START && index < DATA_COUNT) {
                 int tankData = index - DATA_TANK_START;
-                HbmFluidTank tank = tankByFlatIndex(tankData / 3);
-                return switch (tankData % 3) {
+                HbmFluidTank tank = tankByFlatIndex(tankData / 4);
+                return switch (tankData % 4) {
                     case 0 -> tank.type().oldId();
-                    case 1 -> tank.amount();
-                    case 2 -> tank.pressure();
+                    case 1 -> tank.capacity();
+                    case 2 -> tank.amount();
+                    case 3 -> tank.pressure();
                     default -> 0;
                 };
             }
@@ -136,11 +137,12 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         public void set(int index, int value) {
             if (index >= DATA_TANK_START && index < DATA_COUNT) {
                 int tankData = index - DATA_TANK_START;
-                HbmFluidTank tank = tankByFlatIndex(tankData / 3);
-                switch (tankData % 3) {
+                HbmFluidTank tank = tankByFlatIndex(tankData / 4);
+                switch (tankData % 4) {
                     case 0 -> tank.setType(HbmFluids.byOldId(value).orElse(HbmFluids.none()));
-                    case 1 -> tank.setAmount(value);
-                    case 2 -> tank.setPressure(value);
+                    case 1 -> tank.setCapacity(value);
+                    case 2 -> tank.setAmount(value);
+                    case 3 -> tank.setPressure(value);
                     default -> {
                     }
                 }
@@ -939,7 +941,6 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             ports.add(new Port(pos.offset(offset(facing, i, rot, -2)).above(3), Direction.UP));
         }
         ports.addAll(ioConnectorPorts());
-        ports.addAll(coolantConnectorPorts());
         return List.copyOf(ports);
     }
 

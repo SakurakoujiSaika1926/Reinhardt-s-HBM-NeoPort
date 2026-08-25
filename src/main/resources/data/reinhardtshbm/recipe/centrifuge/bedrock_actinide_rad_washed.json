@@ -17,6 +17,7 @@
     "results":  [
                     {
                         "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "count":  1,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "material_id":  4399,
@@ -26,15 +27,7 @@
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  4399,
-                                                                         "material":  "technetium"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "count":  1,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "material_id":  9238,

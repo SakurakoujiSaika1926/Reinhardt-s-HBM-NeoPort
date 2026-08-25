@@ -1,6 +1,10 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/pipette_boron"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/pipette_boron",
+    "layer1": "reinhardtshbm:item/pipette_empty"
+  },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/pipette_boron_filled" }
+  ]
 }

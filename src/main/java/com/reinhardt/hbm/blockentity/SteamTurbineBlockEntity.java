@@ -4,6 +4,7 @@ import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.HbmThermalConversions;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
@@ -48,22 +49,12 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
     public static final int OUTPUT_CONTAINER_RESULT_SLOT = 6;
     public static final int SLOT_COUNT = 7;
     public static final int DATA_COUNT = 7;
-    public static final int INPUT_CAPACITY = 64_000;
-    public static final int OUTPUT_CAPACITY = 128_000;
-    public static final long ENERGY_CAPACITY = 1_000_000L;
-    private static final int INPUT_PER_TICK = 6_000;
-    private static final double SMALL_TURBINE_EFFICIENCY = 0.85D;
-    private static final int[] AUTOMATION_SLOTS = {
-            INPUT_CONTAINER_SLOT,
-            INPUT_CONTAINER_RESULT_SLOT,
-            OUTPUT_CONTAINER_SLOT,
-            OUTPUT_CONTAINER_RESULT_SLOT
-    };
-    private static final int[] NO_SLOTS = {};
+    private static final int[] BATTERY_AUTOMATION_SLOT = {BATTERY_SLOT};
+    private static final int[] OUTPUT_AUTOMATION_SLOT = {OUTPUT_CONTAINER_RESULT_SLOT};
 
     private final ItemStack[] items = new ItemStack[SLOT_COUNT];
-    private final HbmFluidTank inputTank = new HbmFluidTank(HbmFluids.byName("steam").orElse(HbmFluids.none()), INPUT_CAPACITY);
-    private final HbmFluidTank outputTank = new HbmFluidTank(HbmFluids.byName("spentsteam").orElse(HbmFluids.none()), OUTPUT_CAPACITY);
+    private final HbmFluidTank inputTank = new HbmFluidTank(HbmFluids.byName("steam").orElse(HbmFluids.none()), inputCapacity());
+    private final HbmFluidTank outputTank = new HbmFluidTank(HbmFluids.byName("spentsteam").orElse(HbmFluids.none()), outputCapacity());
     private HbmFluidDefinition configuredInput = HbmFluids.byName("steam").orElse(HbmFluids.none());
     private long power;
     private long lastOutput;
@@ -112,14 +103,16 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
         if (level.isClientSide) {
             return;
         }
-        turbine.tickContainers();
         turbine.applyIdentifier();
+        turbine.tickInputContainer();
+        // 1.7.10 distributes the stored buffer before its passive loss and this tick's generation.
+        PowerNetworkManager.tickFromEndpoint(level, turbine);
         turbine.power = BatteryPackItem.chargeFromMachine(turbine.items[BATTERY_SLOT], turbine.power);
         turbine.power = (long) (turbine.power * 0.95D);
         turbine.tryConvert();
         turbine.sendOutputFluid(level);
-        PowerNetworkManager.tickFromEndpoint(level, turbine);
-        turbine.power = Math.min(ENERGY_CAPACITY, turbine.power);
+        turbine.tickOutputContainer();
+        turbine.power = Math.min(energyCapacity(), turbine.power);
         turbine.setChanged();
         if (level.getGameTime() % 10L == 0L) {
             turbine.sync();
@@ -148,6 +141,18 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
 
     public HbmFluidDefinition configuredInput() {
         return this.configuredInput;
+    }
+
+    public static int inputCapacity() {
+        return HbmConfig.STEAM_TURBINE_INPUT_CAPACITY.get();
+    }
+
+    public static int outputCapacity() {
+        return HbmConfig.STEAM_TURBINE_OUTPUT_CAPACITY.get();
+    }
+
+    public static long energyCapacity() {
+        return HbmConfig.STEAM_TURBINE_MAX_POWER.get();
     }
 
     public void setConfiguredInput(HbmFluidDefinition fluid) {
@@ -207,7 +212,7 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
                 "message.reinhardtshbm.power.steam_turbine",
                 this.lastOutput,
                 this.power,
-                ENERGY_CAPACITY,
+                energyCapacity(),
                 this.inputTank.amount(),
                 this.outputTank.amount()
         );
@@ -281,17 +286,17 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return side == null ? NO_SLOTS : AUTOMATION_SLOTS;
+        return side == Direction.DOWN ? OUTPUT_AUTOMATION_SLOT : BATTERY_AUTOMATION_SLOT;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
-        return (slot == INPUT_CONTAINER_SLOT || slot == OUTPUT_CONTAINER_SLOT) && canPlaceItem(slot, stack);
+        return slot == BATTERY_SLOT && canPlaceItem(slot, stack);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == INPUT_CONTAINER_RESULT_SLOT || slot == OUTPUT_CONTAINER_RESULT_SLOT;
+        return false;
     }
 
     @Override
@@ -393,6 +398,8 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
     }
 
     private void setupTanks() {
+        this.inputTank.setCapacity(inputCapacity());
+        this.outputTank.setCapacity(outputCapacity());
         HbmThermalConversions.turbineStep(this.configuredInput).ifPresentOrElse(step -> {
             if (this.inputTank.amount() == 0 && this.inputTank.type() != step.input()) {
                 this.inputTank.setType(step.input());
@@ -413,19 +420,19 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
         HbmThermalConversions.turbineStep(this.configuredInput).ifPresent(step -> {
             int inputOps = this.inputTank.amount() / step.amountReq();
             int outputOps = (this.outputTank.capacity() - this.outputTank.amount()) / step.amountProduced();
-            int cap = INPUT_PER_TICK / step.amountReq();
+            int cap = HbmConfig.STEAM_TURBINE_MAX_STEAM_PER_TICK.get() / step.amountReq();
             int ops = Math.min(inputOps, Math.min(outputOps, cap));
             if (ops <= 0) {
                 return;
             }
             this.inputTank.drain(step.input(), ops * step.amountReq(), false);
             this.outputTank.fill(step.output(), ops * step.amountProduced(), false);
-            this.power = Math.min(ENERGY_CAPACITY, this.power + (long) (ops * step.heatEnergy() * step.turbineEfficiency() * SMALL_TURBINE_EFFICIENCY));
+            this.power += (long) (ops * step.heatEnergy() * step.turbineEfficiency() * HbmConfig.STEAM_TURBINE_EFFICIENCY.get());
             this.active = true;
         });
     }
 
-    private void tickContainers() {
+    private void tickInputContainer() {
         ItemStack input = this.items[INPUT_CONTAINER_SLOT];
         if (isFilledInputContainer(input) && this.items[INPUT_CONTAINER_RESULT_SLOT].isEmpty()) {
             HbmFluidDefinition fluid = HbmFluidContainerItem.fluid(input);
@@ -440,6 +447,9 @@ public class SteamTurbineBlockEntity extends BlockEntity implements PowerEndpoin
             }
         }
 
+    }
+
+    private void tickOutputContainer() {
         ItemStack output = this.items[OUTPUT_CONTAINER_SLOT];
         if (isEmptyFluidContainer(output) && this.items[OUTPUT_CONTAINER_RESULT_SLOT].isEmpty()) {
             HbmFluidContainerItem item = (HbmFluidContainerItem) output.getItem();

@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/ore_sellafield_uranium_scorched"
-                          }
-                 }
+  "variants": {
+    "": [
+      { "model": "reinhardtshbm:block/ore_sellafield_uranium_scorched_0" },
+      { "model": "reinhardtshbm:block/ore_sellafield_uranium_scorched_1" },
+      { "model": "reinhardtshbm:block/ore_sellafield_uranium_scorched_2" },
+      { "model": "reinhardtshbm:block/ore_sellafield_uranium_scorched_3" }
+    ]
+  }
 }

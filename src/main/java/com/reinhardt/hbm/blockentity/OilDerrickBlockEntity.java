@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.OilDerrickBlock;
+import com.reinhardt.hbm.block.OilPumpjackBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -13,6 +15,7 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
+import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -23,7 +26,6 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -213,8 +215,8 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
         return List.of(
                 new Port(offset(pos, rot, 2, dir, 2), dir),
                 new Port(offset(pos, rot, 2, dir, -2), dir.getOpposite()),
-                new Port(offset(pos, rot, 4, dir, -2), dir),
-                new Port(offset(pos, rot, 4, dir, 2), dir.getOpposite())
+                new Port(offset(pos, rot, 4, dir, 2), dir),
+                new Port(offset(pos, rot, 4, dir, -2), dir.getOpposite())
         );
     }
 
@@ -348,7 +350,25 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        if (this.level == null || this.level.getBlockEntity(this.worldPosition) != this) {
+            return false;
+        }
+        LargeMachineBlock.Footprint footprint = kind() == Kind.PUMPJACK
+                ? OilPumpjackBlock.FOOTPRINT
+                : OilDerrickBlock.FOOTPRINT;
+        Direction facing = facing();
+        for (BlockPos offset : footprint.offsets()) {
+            BlockPos part = this.worldPosition.offset(LegacyMachineGeometry.rotate(
+                    offset, facing, LargeMachineBlock.RotationBasis.MODERN_NORTH));
+            if (player.distanceToSqr(
+                    part.getX() + 0.5D,
+                    part.getY() + 0.5D,
+                    part.getZ() + 0.5D
+            ) <= 64.0D) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -500,7 +520,7 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
             FluidStack stack = HbmFluids.toNeoStack(tank.type(), Math.min(PUSH_PER_PORT, tank.amount()));
             int accepted = HbmFluidNetworks.fillInto(
                     level,
-                    port.connectorPos(),
+                    port.pos(),
                     port.face().getOpposite(),
                     stack,
                     this.worldPosition,
@@ -882,12 +902,8 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     public record Port(BlockPos pos, Direction face) {
-        public BlockPos connectorPos() {
-            return this.pos.relative(this.face).immutable();
-        }
-
         public BlockPos accessPos() {
-            return connectorPos();
+            return this.pos.relative(this.face.getOpposite()).immutable();
         }
     }
 

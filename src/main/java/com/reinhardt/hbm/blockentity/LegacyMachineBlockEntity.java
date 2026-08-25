@@ -12,11 +12,12 @@ import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.RtgDepletedPelletItem;
 import com.reinhardt.hbm.item.RtgPelletItem;
 import com.reinhardt.hbm.item.ScrewdriverItem;
-import com.reinhardt.hbm.item.SatelliteChipItem;
 import com.reinhardt.hbm.item.RadarLinkerItem;
+import com.reinhardt.hbm.api.machine.RadarCommandReceiver;
 import com.reinhardt.hbm.block.MustardWillowTallBlock;
 import com.reinhardt.hbm.api.entity.LegacyRadarDetectable;
 import com.reinhardt.hbm.item.StampItem;
+import com.reinhardt.hbm.entity.SawbladeEntity;
 import com.reinhardt.hbm.machine.AnnihilatorRecipes;
 import com.reinhardt.hbm.machine.AnnihilatorSavedData;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
@@ -25,6 +26,7 @@ import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.CombustibleFuelGrade;
 import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -43,10 +45,14 @@ import com.reinhardt.hbm.pollution.HbmPollutionConstants;
 import com.reinhardt.hbm.pollution.HbmPollutionType;
 import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.radiation.HbmHazardSystem;
+import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
+import com.reinhardt.hbm.util.FluidCopiable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -56,6 +62,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -68,6 +75,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -83,14 +91,18 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -100,6 +112,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.ArrayDeque;
@@ -110,6 +123,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Entity backing the machine_ blocks that were present in the original 1.7.10
@@ -117,7 +131,9 @@ import java.util.Set;
  * blocks never become independent machines.
  */
 public final class LegacyMachineBlockEntity extends BlockEntity
-        implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
+        implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider, FluidCopiable {
+    private static final DustParticleOptions TELEPORTER_PARTICLE =
+            new DustParticleOptions(new Vector3f(0.4F, 0.8F, 1.0F), 1.0F);
     public static final int MAX_SLOT_COUNT = 27;
     public static final int SLOT_COUNT = MAX_SLOT_COUNT;
     public static final int DATA_COUNT = 17;
@@ -139,7 +155,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private int forcefieldMaxHealth = 100;
     private int forcefieldRadius = 16;
     private int forcefieldPowerConsumption;
-    private int forcefieldColor = 0x00FF00;
+    private int forcefieldColor = 0x0000FF;
     private boolean forcefieldOn;
     private int forcefieldCooldown;
     private int forcefieldBlink;
@@ -154,13 +170,21 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private int sawmillHeat;
     private float sawmillRotation;
     private float sawmillRotationSpeed;
+    private int sawmillWarnCooldown;
+    private int sawmillOverspeed;
     private boolean autosawOn;
     private boolean autosawSuspended;
     private float autosawYaw;
     private float autosawPitch;
+    private float autosawPreviousYaw;
+    private float autosawPreviousPitch;
+    private float autosawSyncYaw;
+    private float autosawSyncPitch;
+    private int autosawTurnProgress;
     private int autosawState;
     private int autosawForceSkip;
     private float autosawSpin;
+    private float autosawPreviousSpin;
     private boolean thresherOn;
     private boolean thresherSuspended;
     private int thresherDelay;
@@ -232,6 +256,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private float radarPreviousRotation;
     private byte[] radarMap = new byte[40_000];
     private final List<RadarTarget> radarTargets = new ArrayList<>();
+    private final Map<Long, CompletableFuture<Boolean>> radarChunkReads = new HashMap<>();
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -255,7 +280,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 case 7 -> id.equals("machine_teleporter")
                         ? LegacyMachineBlockEntity.this.teleporterTargetZ : LegacyMachineBlockEntity.this.tankOldId(1);
                 case 8 -> id.equals("machine_teleporter")
-                        ? LegacyMachineBlockEntity.this.teleporterDimensionId() : LegacyMachineBlockEntity.this.tankAmount(1);
+                        ? LegacyMachineBlockEntity.this.teleporterLegacyDimensionId() : LegacyMachineBlockEntity.this.tankAmount(1);
                 case 9 -> id.equals("machine_autocrafter")
                         ? LegacyMachineBlockEntity.this.autocrafterRecipeIndex
                         : id.equals("machine_orbus") ? LegacyMachineBlockEntity.this.orbusMode : LegacyMachineBlockEntity.this.tankOldId(2);
@@ -363,8 +388,6 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             tickForcefield(level);
         } else if (machineId().equals("machine_orbus")) {
             tickOrbus();
-        } else if (machineId().equals("machine_satlinker")) {
-            tickSatLinker(level);
         } else if (machineId().equals("machine_teleporter")) {
             tickTeleporter(level);
         } else if (machineId().equals("machine_radgen")) {
@@ -395,14 +418,15 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     /** Direct port of TileEntityMachineRadarNT#updateEntity and #allocateTargets. */
     private void tickRadar(Level level) {
         long beforeCharge = this.energy;
-        this.energy = BatteryPackItem.dischargeIntoMachine(this.items.get(9), this.energy, profile().energyCapacity());
+        this.energy = BatteryPackItem.dischargeIntoMachine(this.items.get(9), this.energy, energyCapacity());
         this.radarJammed = false;
 
         List<RadarTarget> previousTargets = List.copyOf(this.radarTargets);
         this.radarTargets.clear();
         int redPower = 0;
-        if (this.worldPosition.getY() >= 55 && this.energy >= 500L) {
-            this.energy -= 500L;
+        long consumption = radarConsumption();
+        if (this.worldPosition.getY() >= radarAltitude() && this.energy >= consumption) {
+            this.energy -= consumption;
             int range = radarRange();
             AABB bounds = new AABB(
                     this.worldPosition.getX() + 0.5D - range, level.getMinBuildHeight(), this.worldPosition.getZ() + 0.5D - range,
@@ -412,8 +436,14 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                     this.radarScanMissiles, this.radarScanShells, this.radarScanPlayers, this.radarSmartMode
             );
             for (Entity entity : level.getEntities((Entity) null, bounds, Entity::isAlive)) {
-                if (entity.getY() - this.worldPosition.getY() <= 30.0D) {
+                if (entity.getY() - this.worldPosition.getY() <= radarBuffer()) {
                     continue;
+                }
+                if (entity instanceof LivingEntity living
+                        && HbmLivingRadiation.get(living).getDigamma() > 0.001F) {
+                    this.radarJammed = true;
+                    this.radarTargets.clear();
+                    break;
                 }
                 RadarTarget target = radarTarget(entity, params);
                 if (target == null) {
@@ -489,6 +519,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (this.radarMap.length != 40_000) {
             this.radarMap = new byte[40_000];
         }
+        ServerLevel serverLevel = level instanceof ServerLevel server ? server : null;
+        int chunkLoads = 0;
+        int chunkLoadCap = HbmConfig.RADAR_CHUNK_LOAD_CAP.get();
         long page = level.getGameTime() % 400L;
         for (int offset = 0; offset < 100; offset++) {
             int index = (int) page * 100 + offset;
@@ -496,14 +529,72 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             int z = this.worldPosition.getZ() - range + (index / 200) * range * 2 / 200;
             BlockPos samplePos = new BlockPos(x, 0, z);
             if (level.hasChunkAt(samplePos)) {
-                int height = Math.max(50, Math.min(128, level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, x, z)));
-                this.radarMap[index] = (byte) height;
+                writeRadarMapHeight(level, index, x, z);
+                continue;
             }
+            if (serverLevel == null || this.radarMap[index] != 0 || chunkLoads >= chunkLoadCap) {
+                continue;
+            }
+
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+            long chunkKey = ChunkPos.asLong(chunkX, chunkZ);
+            if (HbmConfig.RADAR_GENERATE_CHUNKS.get()) {
+                // This is the direct modern equivalent of getChunkFromChunkCoords.
+                serverLevel.getChunkSource().getChunk(chunkX, chunkZ, ChunkStatus.FULL, true);
+                if (level.hasChunkAt(samplePos)) {
+                    writeRadarMapHeight(level, index, x, z);
+                }
+                chunkLoads++;
+                continue;
+            }
+
+            CompletableFuture<Boolean> diskRead = this.radarChunkReads.get(chunkKey);
+            if (diskRead == null) {
+                // WorldUtil.provideChunk only loaded an existing chunk file and never generated terrain.
+                this.radarChunkReads.put(chunkKey, serverLevel.getChunkSource().chunkMap
+                        .read(new ChunkPos(chunkX, chunkZ))
+                        .handle((storedChunk, error) -> error == null && storedChunk.isPresent()));
+                chunkLoads++;
+                continue;
+            }
+            if (!diskRead.isDone()) {
+                continue;
+            }
+            this.radarChunkReads.remove(chunkKey);
+            if (!diskRead.getNow(false)) {
+                continue;
+            }
+            serverLevel.getChunkSource().getChunk(chunkX, chunkZ, ChunkStatus.FULL, true);
+            if (level.hasChunkAt(samplePos)) {
+                writeRadarMapHeight(level, index, x, z);
+            }
+            chunkLoads++;
         }
     }
 
+    private void writeRadarMapHeight(Level level, int index, int x, int z) {
+        int height = Math.max(50, Math.min(128,
+                level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, x, z)));
+        this.radarMap[index] = (byte) height;
+    }
+
     private int radarRange() {
-        return machineId().equals("machine_radar_large") ? 3_000 : 1_000;
+        return machineId().equals("machine_radar_large")
+                ? HbmConfig.RADAR_LARGE_RANGE.get()
+                : HbmConfig.RADAR_RANGE.get();
+    }
+
+    private long radarConsumption() {
+        return HbmConfig.RADAR_CONSUMPTION.get();
+    }
+
+    private int radarBuffer() {
+        return HbmConfig.RADAR_BUFFER.get();
+    }
+
+    public int radarAltitude() {
+        return HbmConfig.RADAR_ALTITUDE.get();
     }
 
     /** Direct port of TileEntityMachineAnnihilator#updateEntity. */
@@ -630,6 +721,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     /** Client animation state for the legacy precision assembler and turbofan. */
     private void tickClient() {
         if (this.level == null) return;
+        if (machineId().equals("machine_teleporter")) {
+            tickTeleporterClient();
+            return;
+        }
         if (machineId().equals("machine_radar") || machineId().equals("machine_radar_large")) {
             this.radarPreviousRotation = this.radarRotation;
             if (this.energy > 0L) {
@@ -658,11 +753,47 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             } else {
                 this.thresherAngle = this.thresherSyncAngle;
             }
+            if (this.thresherOn && !this.thresherSuspended) {
+                // TileEntityMachineThresher emits one stationary smoke particle each client tick.
+                Direction dir = facing();
+                Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
+                this.level.addParticle(ParticleTypes.SMOKE,
+                        this.worldPosition.getX() + 0.5D + dir.getStepX() * 0.8125D + rot.getStepX() * 0.375D,
+                        this.worldPosition.getY() + 1.5625D,
+                        this.worldPosition.getZ() + 0.5D + dir.getStepZ() * 0.8125D + rot.getStepZ() * 0.375D,
+                        0.0D, 0.0D, 0.0D);
+            }
             com.reinhardt.hbm.client.sound.ThresherClientSounds.tick(this);
+            return;
+        }
+        if (machineId().equals("machine_autosaw")) {
+            this.autosawPreviousYaw = this.autosawYaw;
+            this.autosawPreviousPitch = this.autosawPitch;
+            this.autosawPreviousSpin = this.autosawSpin;
+            if (this.autosawOn && !this.autosawSuspended) {
+                this.autosawSpin += 15.0F;
+            }
+            if (this.autosawSpin >= 360.0F) {
+                this.autosawSpin -= 360.0F;
+                this.autosawPreviousSpin -= 360.0F;
+            }
+            if (this.autosawTurnProgress > 0) {
+                this.autosawYaw += Mth.wrapDegrees(this.autosawSyncYaw - this.autosawYaw) / this.autosawTurnProgress;
+                this.autosawPitch += Mth.wrapDegrees(this.autosawSyncPitch - this.autosawPitch) / this.autosawTurnProgress;
+                this.autosawTurnProgress--;
+            } else {
+                this.autosawYaw = this.autosawSyncYaw;
+                this.autosawPitch = this.autosawSyncPitch;
+            }
+            com.reinhardt.hbm.client.sound.AutosawClientSounds.tick(this);
             return;
         }
         if (machineId().equals("machine_turbofan")) {
             tickTurbofanClient();
+            return;
+        }
+        if (machineId().equals("machine_pyrooven")) {
+            tickPyroOvenClient();
             return;
         }
         if (!machineId().equals("machine_precass")) return;
@@ -672,6 +803,17 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 : (int) Math.min(5L, Math.max(1L, gameTime - this.precisionAssemblerLastClientTick));
         for (int step = 0; step < steps; step++) stepPrecisionAssemblerAnimation();
         this.precisionAssemblerLastClientTick = gameTime;
+    }
+
+    /** Direct port of TileEntityMachineTeleporter's charged-pad red-dust effect. */
+    private void tickTeleporterClient() {
+        if (this.teleporterTargetY == -1 || this.energy < 1_000_000L) {
+            return;
+        }
+        double x = this.worldPosition.getX() + 0.5D + this.level.random.nextGaussian() * 0.25D;
+        double y = this.worldPosition.getY() + 1.0D + this.level.random.nextDouble() * 2.0D;
+        double z = this.worldPosition.getZ() + 0.5D + this.level.random.nextGaussian() * 0.25D;
+        this.level.addParticle(TELEPORTER_PARTICLE, x, y, z, 0.0D, 0.0D, 0.0D);
     }
 
     private void tickTurbofanClient() {
@@ -687,6 +829,34 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             this.turbofanLastSpin -= 360.0F;
         }
         com.reinhardt.hbm.client.sound.TurbofanClientSounds.tick(this);
+    }
+
+    /** Client effects copied from TileEntityMachinePyroOven#updateEntity. */
+    private void tickPyroOvenClient() {
+        Direction dir = facing();
+        Direction rot = LegacyMachineGeometry.forgeRotateDown(dir);
+        double x = this.worldPosition.getX() + 0.5D - rot.getStepX();
+        double z = this.worldPosition.getZ() + 0.5D - rot.getStepZ();
+        double y = this.worldPosition.getY() + 3.0D;
+        if (this.pyroProgressing) {
+            if (this.level.random.nextInt(20) == 0) {
+                this.level.addParticle(ParticleTypes.CLOUD, x - dir.getStepX() * 0.875D, y, z - dir.getStepZ() * 0.875D, 0.0D, 0.05D, 0.0D);
+            }
+            if (this.level.random.nextInt(20) == 0) {
+                this.level.addParticle(ParticleTypes.CLOUD, x - dir.getStepX() * 2.375D, y, z - dir.getStepZ() * 2.375D, 0.0D, 0.05D, 0.0D);
+            }
+            if (this.level.random.nextInt(20) == 0) {
+                this.level.addParticle(ParticleTypes.CLOUD, x + dir.getStepX() * 0.875D, y, z + dir.getStepZ() * 0.875D, 0.0D, 0.05D, 0.0D);
+            }
+            if (this.level.random.nextInt(20) == 0) {
+                this.level.addParticle(ParticleTypes.CLOUD, x + dir.getStepX() * 2.375D, y, z + dir.getStepZ() * 2.375D, 0.0D, 0.05D, 0.0D);
+            }
+        }
+        if (this.pyroVenting && this.level.getGameTime() % 2L == 0L) {
+            double soot = 0x20 / 255.0D;
+            this.level.addParticle(HbmParticleTypes.PYRO_OVEN_TOWER.get(), x, y, z, soot, soot, soot);
+        }
+        com.reinhardt.hbm.client.sound.PyroOvenClientSounds.tick(this);
     }
 
     private void stepPrecisionAssemblerAnimation() {
@@ -820,7 +990,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     private void setupPrecisionAssemblerTanks(PrecisionAssemblerRecipe recipe) {
         if (recipe.inputFluids().isEmpty()) {
-            if (this.tanks[0].amount() == 0) this.tanks[0].clear();
+            // ModuleMachineBase#setupTanks resets a tank whenever the selected
+            // legacy recipe has no matching fluid input.
+            this.tanks[0].clear();
             this.tanks[0].setCapacity(4_000);
         } else {
             PrecisionAssemblerRecipe.FluidStack input = recipe.inputFluids().getFirst();
@@ -828,7 +1000,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             this.tanks[0].setCapacity(Math.max(Math.max(this.tanks[0].amount(), input.amount() * 2), 4_000));
         }
         if (recipe.outputFluids().isEmpty()) {
-            if (this.tanks[1].amount() == 0) this.tanks[1].clear();
+            this.tanks[1].clear();
             this.tanks[1].setCapacity(4_000);
         } else {
             PrecisionAssemblerRecipe.FluidStack output = recipe.outputFluids().getFirst();
@@ -913,10 +1085,13 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private void tickForcefield(Level level) {
         int radiusUpgrades = upgradeCount("upgrade_radius");
         int healthUpgrades = upgradeCount("upgrade_health");
-        this.forcefieldRadius = 16 + radiusUpgrades * 16;
-        this.forcefieldMaxHealth = 100 + healthUpgrades * 50;
-        this.forcefieldPowerConsumption = 1_000 + radiusUpgrades * 500 + healthUpgrades * 250;
-        this.energy = BatteryPackItem.dischargeIntoMachine(this.items.get(0), this.energy, profile().energyCapacity());
+        this.forcefieldRadius = HbmConfig.FORCEFIELD_BASE_RADIUS.get()
+                + radiusUpgrades * HbmConfig.FORCEFIELD_RADIUS_UPGRADE.get();
+        this.forcefieldMaxHealth = 100 + healthUpgrades * HbmConfig.FORCEFIELD_SHIELD_UPGRADE.get();
+        this.forcefieldPowerConsumption = HbmConfig.FORCEFIELD_BASE_CONSUMPTION.get()
+                + radiusUpgrades * HbmConfig.FORCEFIELD_RADIUS_CONSUMPTION.get()
+                + healthUpgrades * HbmConfig.FORCEFIELD_SHIELD_CONSUMPTION.get();
+        this.energy = BatteryPackItem.dischargeIntoMachine(this.items.get(0), this.energy, energyCapacity());
 
         if (this.forcefieldHealth > this.forcefieldMaxHealth) {
             this.forcefieldHealth = this.forcefieldMaxHealth;
@@ -930,8 +1105,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (this.forcefieldCooldown > 0) {
             this.forcefieldCooldown--;
         } else if (this.forcefieldHealth < this.forcefieldMaxHealth) {
-            this.forcefieldHealth = Math.min(this.forcefieldMaxHealth,
-                    this.forcefieldHealth + Math.max(1, (int) (this.forcefieldMaxHealth / 100.0D)));
+            this.forcefieldHealth += (int) ((this.forcefieldMaxHealth / 100)
+                    * HbmConfig.FORCEFIELD_HEALTH_REGEN_MODIFIER.get());
+            this.forcefieldHealth = Math.min(this.forcefieldMaxHealth, this.forcefieldHealth);
         }
 
         if (this.forcefieldOn && this.forcefieldCooldown == 0 && this.forcefieldHealth > 0
@@ -945,7 +1121,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (this.energy < this.forcefieldPowerConsumption) {
             this.energy = 0;
         }
-        setChanged();
+        // TileEntityForceField sent its complete state every server tick. The
+        // renderer and menu need the same authoritative radius/color/cooldown.
+        setChangedAndSync();
     }
 
     /** Direct port of TileEntityBarrel's identifier, drain-canister and fill-canister processing. */
@@ -1014,9 +1192,12 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         List<Entity> previousInside = new ArrayList<>(this.forcefieldInside);
         this.forcefieldOutside.clear();
         this.forcefieldInside.clear();
-        AABB scan = new AABB(this.worldPosition).inflate(radius + 25.0D);
+        Vec3 center = Vec3.atCenterOf(this.worldPosition);
+        AABB scan = new AABB(
+                center.x - radius - 25.0D, center.y - radius - 25.0D, center.z - radius - 25.0D,
+                center.x + radius + 25.0D, center.y + radius + 25.0D, center.z + radius + 25.0D
+        );
         for (Entity entity : level.getEntities((Entity) null, scan, candidate -> !(candidate instanceof Player))) {
-            Vec3 center = Vec3.atCenterOf(this.worldPosition);
             Vec3 position = entity.position();
             boolean outside = position.distanceToSqr(center) > (double) radius * radius;
             if (!previousOutside.contains(entity) && !previousInside.contains(entity)) {
@@ -1024,11 +1205,11 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 continue;
             }
             if (previousOutside.contains(entity) && !outside) {
-                ejectForcefieldEntity(level, entity, center, radius + 1.0D, false);
+                ejectForcefieldEntity(level, entity, center, radius + 1.0D, true);
                 damageForcefield(entity, forcefieldImpact(entity));
                 this.forcefieldOutside.add(entity);
             } else if (previousInside.contains(entity) && outside) {
-                ejectForcefieldEntity(level, entity, center, Math.max(0.0D, radius - 1.0D), true);
+                ejectForcefieldEntity(level, entity, center, Math.max(0.0D, radius - 1.0D), false);
                 damageForcefield(entity, forcefieldImpact(entity));
                 this.forcefieldInside.add(entity);
             } else {
@@ -1037,21 +1218,41 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
     }
 
-    private void ejectForcefieldEntity(Level level, Entity entity, Vec3 center, double distance, boolean outward) {
-        Vec3 direction = entity.position().subtract(center);
+    private void ejectForcefieldEntity(Level level, Entity entity, Vec3 center, double distance, boolean crossingInwards) {
+        // The old implementation builds a vector from the entity to the
+        // emitter, places the entity on the permitted side of the sphere,
+        // then nudges it by the reflected motion vector.
+        Vec3 direction = center.subtract(entity.position());
         if (direction.lengthSqr() < 1.0E-6D) direction = new Vec3(0.0D, 1.0D, 0.0D);
         direction = direction.normalize();
-        if (!outward) direction = direction.scale(-1.0D);
-        Vec3 target = center.add(direction.scale(distance));
+        Vec3 target = center.subtract(direction.scale(distance));
+        double speed = getMotionWithFallback(entity);
+        Vec3 motion = direction.scale(crossingInwards ? -speed : speed);
+        entity.setYRot(0.0F);
+        entity.setXRot(0.0F);
         entity.setPos(target.x, target.y, target.z);
-        double speed = entity.getDeltaMovement().length();
-        entity.setDeltaMovement(direction.scale(Math.max(speed, 0.1D)));
-        level.playSound(null, entity.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 2.5F, 1.0F);
+        entity.setDeltaMovement(motion);
+        entity.setPos(entity.getX() - motion.x, entity.getY() - motion.y, entity.getZ() - motion.z);
+        level.playSound(null, entity.blockPosition(), HbmSoundEvents.WEAPON_SPARK_SHOOT.get(),
+                SoundSource.BLOCKS, 2.5F, 1.0F);
     }
 
     private int forcefieldImpact(Entity entity) {
         double mass = entity.getBbHeight() * entity.getBbWidth() * entity.getBbWidth();
-        return (int) (mass * entity.getDeltaMovement().length() * 50.0D);
+        return (int) (mass * getMotionWithFallback(entity) * 50.0D);
+    }
+
+    private double getMotionWithFallback(Entity entity) {
+        Vec3 current = entity.getDeltaMovement();
+        // Keep the legacy fallback, including its original Y reference in the
+        // X component, so zero-motion entities use the same impact estimate.
+        Vec3 previous = new Vec3(entity.getX() - entity.yo, entity.getY() - entity.yo,
+                entity.getZ() - entity.zo);
+        double currentSpeed = current.length();
+        double previousSpeed = previous.length();
+        if (currentSpeed == 0.0D) return previousSpeed;
+        if (previousSpeed == 0.0D) return currentSpeed;
+        return Math.min(currentSpeed, previousSpeed);
     }
 
     private void damageForcefield(Entity entity, int amount) {
@@ -1060,26 +1261,16 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (amount >= Math.max(1, this.forcefieldMaxHealth / 250)) this.forcefieldBlink = 5;
         if (this.forcefieldHealth <= 0) {
             this.forcefieldHealth = 0;
-            this.forcefieldCooldown = 100 + (int) (this.forcefieldRadius);
+            this.forcefieldCooldown = 100 + (int) (this.forcefieldRadius
+                    * HbmConfig.FORCEFIELD_COOLDOWN_MODIFIER.get());
         }
-    }
-
-    /** Direct port of TileEntityMachineSatLinker#updateEntity. */
-    private void tickSatLinker(Level level) {
-        if (isSatelliteChip(this.items.get(0)) && isSatelliteChip(this.items.get(1))) {
-            setSatelliteFrequency(this.items.get(1), satelliteFrequency(this.items.get(0)));
-        }
-        if (isSatelliteChip(this.items.get(2))) {
-            int frequency;
-            do {
-                frequency = level.random.nextInt(100_000);
-            } while (frequency == satelliteFrequency(this.items.get(2)) && level.random.nextInt(8) != 0);
-            setSatelliteFrequency(this.items.get(2), frequency);
-        }
-        setChanged();
     }
 
     private void tickTeleporter(Level level) {
+        // TileEntityMachineTeleporter sent its complete target/power state every 15 ticks.
+        if (level.getGameTime() % 15L == 0L) {
+            setChangedAndSync();
+        }
         if (this.teleporterTargetY < 0 || this.energy < 1_000_000L) return;
         AABB pad = new AABB(this.worldPosition.getX() + 0.25D, this.worldPosition.getY(), this.worldPosition.getZ() + 0.25D,
                 this.worldPosition.getX() + 0.75D, this.worldPosition.getY() + 2.0D, this.worldPosition.getZ() + 0.75D);
@@ -1092,7 +1283,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return this.lastInput > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) this.lastInput;
     }
 
-    private int teleporterDimensionId() {
+    public int teleporterLegacyDimensionId() {
         return switch (this.teleporterTargetDimension) {
             case "minecraft:the_nether" -> -1;
             case "minecraft:the_end" -> 1;
@@ -1133,6 +1324,18 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return this.teleporterTargetY >= 0;
     }
 
+    public int teleporterTargetX() {
+        return this.teleporterTargetX;
+    }
+
+    public int teleporterTargetY() {
+        return this.teleporterTargetY;
+    }
+
+    public int teleporterTargetZ() {
+        return this.teleporterTargetZ;
+    }
+
     public void toggleForcefield() {
         if (!machineId().equals("machine_forcefield")) {
             return;
@@ -1141,22 +1344,12 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         this.setChangedAndSync();
     }
 
-    private static boolean isSatelliteChip(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof SatelliteChipItem;
-    }
-
-    private static int satelliteFrequency(ItemStack stack) {
-        return SatelliteChipItem.frequency(stack);
-    }
-
-    private static void setSatelliteFrequency(ItemStack stack, int frequency) {
-        SatelliteChipItem.setFrequency(stack, frequency);
-    }
-
     private void teleportEntity(Level source, Entity entity) {
         if (this.energy < 1_000_000L) return;
         ServerLevel destination = teleporterTargetLevel(source);
         if (destination == null) return;
+        source.playSound(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 1.5D, this.worldPosition.getZ() + 0.5D,
+                SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F, 1.0F);
         double x = this.teleporterTargetX + 0.5D;
         double y = this.teleporterTargetY + 1.5D + entity.getBbHeight() * 0.5D;
         double z = this.teleporterTargetZ + 0.5D;
@@ -1167,7 +1360,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         } else {
             entity.teleportTo(destination, x, y, z, Set.<RelativeMovement>of(), entity.getYRot(), entity.getXRot());
         }
-        source.playSound(null, this.worldPosition, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F, 1.0F);
+        source.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F, 1.0F);
         this.energy -= 1_000_000L;
         setChanged();
     }
@@ -1192,11 +1385,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             changed = wasOn != this.autosawOn;
         }
         if (!this.autosawOn || this.autosawSuspended) {
-            if (changed) setChanged();
+            if (changed) setChangedAndSync();
             return;
         }
 
-        this.autosawSpin = (this.autosawSpin + 15.0F) % 360.0F;
         Vec3 armTip = autosawArmTip();
         damageAutosawEntities(level, armTip);
 
@@ -1221,11 +1413,17 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 this.autosawState = 0;
             }
         }
-        setChanged();
+        // TileEntityMachineAutosaw sends its active pose every server tick;
+        // the client mirrors the old three-tick yaw/pitch interpolation.
+        setChangedAndSync();
     }
 
     /** Direct port of TileEntityMachineThresher, including its fixed 7x7 cut path. */
     private void tickThresher(Level level) {
+        boolean previousOn = this.thresherOn;
+        float previousAngle = this.thresherAngle;
+        HbmFluidDefinition previousTankType = this.inputTank == null ? null : this.inputTank.type();
+        int previousTankAmount = this.inputTank == null ? 0 : this.inputTank.amount();
         if (level.getGameTime() % 20L == 0L && !this.thresherSuspended) {
             if (this.inputTank != null && this.inputTank.amount() > 0 && isThresherFuel(this.inputTank.type())) {
                 this.inputTank.drain(this.inputTank.type(), 1, false);
@@ -1236,17 +1434,14 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
         if (!this.thresherOn || this.thresherSuspended) {
             this.thresherSyncAngle = this.thresherAngle;
-            if (level.getGameTime() % 5L == 0L) setChangedAndSync();
+            syncThresherState(level, previousOn, previousAngle, previousTankType, previousTankAmount);
             return;
         }
 
-        boolean stateChanged = false;
         if (this.thresherState == 0) {
-            if (this.thresherDelay > 0) {
-                this.thresherDelay--;
-            } else {
+            this.thresherDelay--;
+            if (this.thresherDelay <= 0) {
                 this.thresherState = 1;
-                stateChanged = true;
             }
         }
 
@@ -1260,23 +1455,21 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (this.thresherState == 1 && this.thresherAngle >= 82.5F) {
             this.thresherAngle = 82.5F;
             this.thresherState = 2;
-            stateChanged = true;
         } else if (this.thresherState == 2 && this.thresherAngle <= 0.0F) {
             this.thresherAngle = 0.0F;
             this.thresherState = 0;
             this.thresherDelay = 200 + level.random.nextInt(100);
-            stateChanged = true;
         }
 
-        Vec3 end = thresherArmTip();
-        thresherDamageEntities(level, end);
         if (this.thresherAngle > 0.0F) {
+            Vec3 end = thresherArmTip();
+            thresherDamageEntities(level, end);
             Direction side = LegacyMachineGeometry.forgeRotateDown(facing());
             for (int index = -3; index <= 3; index++) {
                 BlockPos target = BlockPos.containing(end.x + side.getStepX() * index, this.worldPosition.getY(),
                         end.z + side.getStepZ() * index);
                 BlockState targetState = level.getBlockState(target);
-                if (targetState.isCollisionShapeFullBlock(level, target)) {
+                if (targetState.isSolidRender(level, target)) {
                     this.thresherState = 2;
                     break;
                 }
@@ -1285,7 +1478,17 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
 
         this.thresherSyncAngle = this.thresherAngle;
-        if (stateChanged || level.getGameTime() % 3L == 0L) {
+        syncThresherState(level, previousOn, previousAngle, previousTankType, previousTankAmount);
+    }
+
+    /** Mirrors TileEntityLoadedBase#networkPackNT(100): changing packets immediately, otherwise every second. */
+    private void syncThresherState(Level level, boolean previousOn, float previousAngle,
+                                   @Nullable HbmFluidDefinition previousTankType, int previousTankAmount) {
+        boolean changed = previousOn != this.thresherOn
+                || Float.compare(previousAngle, this.thresherAngle) != 0
+                || (this.inputTank != null && (previousTankType != this.inputTank.type()
+                || previousTankAmount != this.inputTank.amount()));
+        if (changed || level.getGameTime() % 20L == 0L) {
             setChangedAndSync();
         } else {
             setChanged();
@@ -1294,13 +1497,21 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     private Vec3 thresherArmTip() {
         Direction forward = facing();
-        float yaw = thresherYaw(forward);
         float angle = (float) Math.toRadians(82.5F - this.thresherAngle);
-        Vec3 upper = new Vec3(0.0D, 0.0D, -4.0D).xRot(angle).yRot((float) Math.toRadians(yaw));
-        Vec3 lower = new Vec3(0.0D, 0.0D, -4.0D).xRot(-angle).yRot((float) Math.toRadians(yaw));
-        Vec3 tip = new Vec3(0.0D, 0.0D, -2.0D).yRot((float) Math.toRadians(yaw));
-        return new Vec3(this.worldPosition.getX() + 0.5D + forward.getStepX(), this.worldPosition.getY() + 0.5D,
-                this.worldPosition.getZ() + 0.5D + forward.getStepZ()).add(upper).add(lower).add(tip);
+        Vec3 upper = new Vec3(-forward.getStepX() * 4.0D, 0.0D, -forward.getStepZ() * 4.0D);
+        Vec3 lower = upper;
+        if (forward.getStepZ() != 0) {
+            upper = upper.xRot(angle);
+            lower = lower.xRot(-angle);
+        }
+        if (forward.getStepX() != 0) {
+            upper = upper.zRot(angle);
+            lower = lower.zRot(-angle);
+        }
+        Vec3 pivot = new Vec3(this.worldPosition.getX() + 0.5D - forward.getStepX(), this.worldPosition.getY() + 0.5D,
+                this.worldPosition.getZ() + 0.5D - forward.getStepZ());
+        Vec3 tip = new Vec3(-forward.getStepX() * 2.0D, 0.0D, -forward.getStepZ() * 2.0D);
+        return pivot.add(upper).add(lower).add(tip);
     }
 
     private void thresherProcessTarget(Level level, BlockPos pos, BlockState state) {
@@ -1320,9 +1531,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             thresherCutCane(level, pos, state.getBlock());
             return;
         }
-        if (state.getBlock() instanceof net.minecraft.world.level.block.CropBlock crop
-                && crop.isMaxAge(state)) {
-            thresherCutCrop(level, pos, state, crop);
+        if (state.getBlock() instanceof BonemealableBlock growable
+                && !growable.isValidBonemealTarget(level, pos, state)) {
+            thresherCutCrop(level, pos, state);
         }
     }
 
@@ -1355,15 +1566,14 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
     }
 
-    private void thresherCutCrop(Level level, BlockPos pos, BlockState state, net.minecraft.world.level.block.CropBlock crop) {
+    private void thresherCutCrop(Level level, BlockPos pos, BlockState state) {
         boolean replanted = false;
         BlockState replacement = Blocks.AIR.defaultBlockState();
         level.levelEvent(2001, pos, Block.getId(state));
         List<ItemStack> drops = new ArrayList<>(Block.getDrops(state, (ServerLevel) level, pos, level.getBlockEntity(pos), null, ItemStack.EMPTY));
         for (ItemStack drop : drops) {
-            if (!replanted && drop.getItem() instanceof net.minecraft.world.item.BlockItem blockItem
-                    && blockItem.getBlock() == state.getBlock()) {
-                BlockState candidate = crop.getStateForAge(0);
+            if (!replanted && drop.getItem() instanceof net.minecraft.world.item.BlockItem blockItem) {
+                BlockState candidate = blockItem.getBlock().defaultBlockState();
                 if (candidate.canSurvive(level, pos)) {
                     replacement = candidate;
                     drop.shrink(1);
@@ -1373,7 +1583,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             thresherDrop(level, drop, pos);
         }
         if (!replanted && state.is(Blocks.WHEAT)) {
-            replacement = crop.getStateForAge(0);
+            replacement = Blocks.WHEAT.defaultBlockState();
         }
         level.setBlock(pos, replacement, Block.UPDATE_ALL);
     }
@@ -1527,18 +1737,22 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
         // The original sends the process fluid through all five side ports.
         changed |= sendPyroOutput(level);
+        boolean wasVenting = this.pyroVenting;
         this.pyroVenting = sendPyroSmoke(level);
-        changed |= this.pyroVenting;
+        changed |= wasVenting != this.pyroVenting;
 
         int speed = pyroUpgradeLevel(MachineUpgradeItem.UpgradeType.SPEED);
         int powerSaving = pyroUpgradeLevel(MachineUpgradeItem.UpgradeType.POWER);
         int overdrive = pyroUpgradeLevel(MachineUpgradeItem.UpgradeType.OVERDRIVE);
         long consumption = pyroConsumption(speed + overdrive * 2, powerSaving);
+        // The old tile checks this pre-overdrive requirement, then subtracts
+        // the full overdrive draw after the process advances.
+        long minimumConsumption = pyroConsumption(speed, powerSaving);
         Optional<PyroOvenRecipe> holder = pyroRecipe(level);
         boolean wasProgressing = this.pyroProgressing;
         this.pyroProgressing = false;
 
-        if (holder.isPresent() && canProcessPyro(holder.get(), consumption)) {
+        if (holder.isPresent() && canProcessPyro(holder.get(), minimumConsumption)) {
             PyroOvenRecipe recipe = holder.get();
             int duration = Math.max(1, (recipe.duration() - speed * (recipe.duration() / 4)) / (overdrive * 2 + 1));
             this.pyroDuration = duration;
@@ -1654,7 +1868,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
         HbmFluidDefinition selected = FluidIdentifierItem.primary(identifier);
         HbmFluidTank fuel = tank(0);
-        if (selected.isNone() || fuel == null || fuel.amount() > 0 || fuel.type() == selected) {
+        if (selected.isNone() || fuel == null || fuel.type() == selected) {
             return false;
         }
         fuel.setType(selected);
@@ -1811,8 +2025,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                     blood.fill(HbmFluids.byName("blood").orElse(HbmFluids.none()), 50, false);
                     this.turbofanShowBlood = true;
                 }
-                level.playSound(null, entity.blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS,
-                        2.0F, 0.95F + level.random.nextFloat() * 0.2F);
+                TurretCasingEffects.spawnMaxwellGib(level, (LivingEntity) entity, false);
             }
         }
     }
@@ -1847,7 +2060,43 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 .filter(recipe -> recipe.value().matches(input, level))
                 .map(RecipeHolder::value)
                 .findFirst();
-        return staticRecipe.isPresent() ? staticRecipe : pyroSolidFuelRecipe();
+        if (staticRecipe.isPresent()) {
+            return staticRecipe;
+        }
+        Optional<PyroOvenRecipe> bedrockRecipe = pyroBedrockOreRecipe();
+        return bedrockRecipe.isPresent() ? bedrockRecipe : pyroSolidFuelRecipe();
+    }
+
+    /** Direct runtime equivalent of PyroOvenRecipes' BedrockOreType loop. */
+    private Optional<PyroOvenRecipe> pyroBedrockOreRecipe() {
+        ItemStack input = this.items.get(1);
+        if (!(input.getItem() instanceof BedrockOreItem)) {
+            return Optional.empty();
+        }
+        BedrockOreItem.Grade roastedGrade = switch (BedrockOreItem.gradeOf(input)) {
+            case BASE -> BedrockOreItem.Grade.BASE_ROASTED;
+            case PRIMARY -> BedrockOreItem.Grade.PRIMARY_ROASTED;
+            case SULFURIC_BYPRODUCT -> BedrockOreItem.Grade.SULFURIC_ROASTED;
+            case SOLVENT_BYPRODUCT -> BedrockOreItem.Grade.SOLVENT_ROASTED;
+            case RAD_BYPRODUCT -> BedrockOreItem.Grade.RAD_ROASTED;
+            default -> null;
+        };
+        if (roastedGrade == null) {
+            return Optional.empty();
+        }
+        ItemStack output = BedrockOreItem.stackFor(
+                HbmItems.BEDROCK_ORE_NEW,
+                roastedGrade,
+                BedrockOreItem.typeOf(input)
+        );
+        return Optional.of(new PyroOvenRecipe(
+                "pyrolysis.bedrock_ore",
+                new PyroOvenRecipe.ItemInput(Ingredient.of(input.getItem()), 1),
+                PyroOvenRecipe.FluidInput.EMPTY,
+                output,
+                new PyroOvenRecipe.FluidOutput(HbmFluids.byName("vitriol").orElse(HbmFluids.none()), 50),
+                10
+        ));
     }
 
     /**
@@ -2147,6 +2396,8 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             this.progress = 0;
             this.sawmillHeat = 0;
             this.sawmillRotationSpeed = 0.0F;
+            this.sawmillWarnCooldown = 0;
+            this.sawmillOverspeed = 0;
             return;
         }
 
@@ -2156,6 +2407,8 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             if (pulled > 0) {
                 source.useHeat(pulled);
                 this.sawmillHeat += pulled;
+            } else {
+                this.sawmillHeat = Math.max(this.sawmillHeat - Math.max(this.sawmillHeat / 1000, 1), 0);
             }
         } else {
             this.sawmillHeat = Math.max(this.sawmillHeat - Math.max(this.sawmillHeat / 1000, 1), 0);
@@ -2167,14 +2420,13 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         boolean changed = false;
         if (this.sawmillHeat >= 100) {
             ItemStack result = sawmillOutput(level, this.items.get(0));
-            if (!result.isEmpty() && this.items.get(1).isEmpty() && this.items.get(2).isEmpty()) {
+            if (!result.isEmpty()) {
                 this.progress += this.sawmillHeat / 10;
                 if (this.progress >= profile().processTime()) {
                     this.progress = 0;
-                    this.items.get(0).shrink(1);
-                    if (this.items.get(0).isEmpty()) {
-                        this.items.set(0, ItemStack.EMPTY);
-                    }
+                    // TileEntitySawmill clears the singleton input and overwrites
+                    // both output slots at completion, including automation cases.
+                    this.items.set(0, ItemStack.EMPTY);
                     this.items.set(1, result.copy());
                     if (!isSawdust(result)) {
                         float chance = result.is(Items.STICK) ? 0.1F : 0.5F;
@@ -2192,9 +2444,27 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 this.progress = 0;
                 changed = true;
             }
+            sawmillDamageEntities(level);
         } else if (this.progress != 0) {
             this.progress = 0;
             changed = true;
+        }
+
+        if (this.sawmillWarnCooldown > 0) {
+            this.sawmillWarnCooldown--;
+        }
+        if (this.sawmillHeat > 300) {
+            this.sawmillOverspeed++;
+            if (this.sawmillOverspeed > 60 && this.sawmillWarnCooldown == 0) {
+                this.sawmillWarnCooldown = 100;
+                level.playSound(null, this.worldPosition, HbmSoundEvents.WARN_OVERSPEED.get(), SoundSource.BLOCKS, 2.0F, 1.0F);
+            }
+            if (this.sawmillOverspeed > 300) {
+                ejectSawmillBlade(level);
+                changed = true;
+            }
+        } else {
+            this.sawmillOverspeed = 0;
         }
 
         // The old tile clears received heat at the end of every server tick.
@@ -2205,6 +2475,50 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (changed || level.getGameTime() % 5L == 0L) {
             setChangedAndSync();
         }
+    }
+
+    private void sawmillDamageEntities(Level level) {
+        // TileEntitySawmill uses a 0.125-block blade strip, rotated with
+        // ForgeDirection#getRotation(UP) rather than the machine render yaw.
+        Direction forward = facing();
+        Direction bladeSide = LegacyMachineGeometry.forgeRotateUp(forward);
+        double centerX = this.worldPosition.getX() + 0.5D + bladeSide.getStepX() * 0.9375D;
+        double centerZ = this.worldPosition.getZ() + 0.5D + bladeSide.getStepZ() * 0.9375D;
+        double halfX = Math.abs(forward.getStepX()) + Math.abs(bladeSide.getStepX()) * 0.0625D;
+        double halfZ = Math.abs(forward.getStepZ()) + Math.abs(bladeSide.getStepZ()) * 0.0625D;
+        AABB cutter = new AABB(centerX - halfX, this.worldPosition.getY() + 0.375D, centerZ - halfZ,
+                centerX + halfX, this.worldPosition.getY() + 2.375D, centerZ + halfZ);
+
+        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, cutter)) {
+            if (!entity.isAlive() || !entity.hurt(level.damageSources().source(HbmDamageTypes.TURBOFAN), 100.0F)) {
+                continue;
+            }
+            level.playSound(null, entity.blockPosition(), SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.BLOCKS, 2.0F,
+                    0.95F + level.random.nextFloat() * 0.2F);
+            if (level instanceof ServerLevel serverLevel) {
+                int count = Math.min((int) Math.ceil(entity.getMaxHealth() / 4.0F), 250) * 4;
+                serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.REDSTONE_BLOCK.defaultBlockState()),
+                        entity.getX(), entity.getY() + entity.getBbHeight() * 0.5D, entity.getZ(),
+                        count, 0.0D, 0.0D, 0.0D, 0.1D);
+            }
+        }
+    }
+
+    private void ejectSawmillBlade(Level level) {
+        this.sawmillHasBlade = false;
+        level.explode(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 1.0D,
+                this.worldPosition.getZ() + 0.5D, 5.0F, Level.ExplosionInteraction.NONE);
+        Direction forward = facing();
+        Direction flight = LegacyMachineGeometry.forgeRotateDown(forward);
+        SawbladeEntity blade = new SawbladeEntity(level,
+                this.worldPosition.getX() + 0.5D + forward.getStepX(),
+                this.worldPosition.getY() + 1.0D,
+                this.worldPosition.getZ() + 0.5D + forward.getStepZ())
+                .setOrientation(forward.ordinal());
+        blade.setDeltaMovement(flight.getStepX(), 1.0D + (this.sawmillHeat - 100) * 0.0001D, flight.getStepZ());
+        level.addFreshEntity(blade);
+        this.sawmillOverspeed = 0;
+        this.sawmillWarnCooldown = 0;
     }
 
     private ItemStack sawmillOutput(Level level, ItemStack input) {
@@ -2284,15 +2598,16 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         this.energy -= profile.energyPerTick();
         this.progress++;
         if (this.progress >= profile.processTime()) {
-            NonNullList<ItemStack> remaining = selected.value().getRemainingItems(input);
             for (int slot = 10; slot < 19; slot++) {
                 ItemStack stack = this.items.get(slot);
                 if (!stack.isEmpty()) {
+                    ItemStack ingredient = stack.copyWithCount(1);
                     stack.shrink(1);
-                    if (stack.isEmpty()) this.items.set(slot, ItemStack.EMPTY);
+                    if (stack.isEmpty()) {
+                        this.items.set(slot, ItemStack.EMPTY);
+                        restoreAutocrafterContainer(slot, ingredient);
+                    }
                 }
-                ItemStack remainder = remaining.get(slot - 10);
-                if (!remainder.isEmpty()) this.items.set(slot, remainder.copy());
             }
             insertExactOutput(result, 19);
             this.progress = 0;
@@ -2410,7 +2725,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 }
             }
         }
-        return stack.getItem() instanceof BedrockOreItem ? "bedrock" : "exact";
+        if (stack.getItem() instanceof BedrockOreItem) {
+            return "bedrock";
+        }
+        return hasLegacySubtype(stack) ? "exact" : "wildcard";
     }
 
     private static boolean autocrafterFilterMatches(ItemStack filter, String mode, ItemStack input) {
@@ -2418,7 +2736,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             return false;
         }
         return switch (mode) {
-            case "exact" -> ItemStack.isSameItemSameComponents(input, filter);
+            case "exact" -> autocrafterExactMatches(input, filter);
             case "wildcard" -> input.is(filter.getItem());
             case "bedrock" -> input.getItem() instanceof BedrockOreItem
                     && input.is(filter.getItem())
@@ -2429,6 +2747,58 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     private static String bedrockGrade(ItemStack stack) {
         return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString("grade");
+    }
+
+    /**
+     * 1.7.10's ItemStack#isItemEqual compared the item and metadata only.  The
+     * migration stores former metadata in these explicit variant components;
+     * machine state, durability and arbitrary custom data must not affect a
+     * template match.
+     */
+    private static boolean autocrafterExactMatches(ItemStack input, ItemStack filter) {
+        return input.is(filter.getItem())
+                && legacySubtypeKey(input).equals(legacySubtypeKey(filter));
+    }
+
+    private static boolean hasLegacySubtype(ItemStack stack) {
+        if (stack.getItem() instanceof LegacyVariantItem) {
+            return true;
+        }
+        CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return data.contains("variant") || data.contains("material_id") || data.contains("material")
+                || stack.get(DataComponents.CUSTOM_MODEL_DATA) != null;
+    }
+
+    private static String legacySubtypeKey(ItemStack stack) {
+        if (stack.getItem() instanceof LegacyVariantItem variantItem) {
+            return "variant:" + variantItem.variant(stack).id();
+        }
+        CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        for (String key : List.of("variant", "material_id", "material")) {
+            if (data.contains(key, Tag.TAG_STRING)) {
+                return key + ":string:" + data.getString(key);
+            }
+            if (data.contains(key, Tag.TAG_INT)) {
+                return key + ":int:" + data.getInt(key);
+            }
+        }
+        CustomModelData modelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
+        return modelData == null ? "default" : "model:" + modelData.value();
+    }
+
+    private void restoreAutocrafterContainer(int slot, ItemStack ingredient) {
+        Item item = ingredient.getItem();
+        if (!item.hasCraftingRemainingItem(ingredient)) {
+            return;
+        }
+        ItemStack container = item.getCraftingRemainingItem(ingredient);
+        if (container.isEmpty()) {
+            return;
+        }
+        if (container.isDamageableItem() && container.getDamageValue() > container.getMaxDamage()) {
+            return;
+        }
+        this.items.set(slot, container);
     }
 
     private static List<String> autocrafterItemTags(ItemStack stack) {
@@ -2498,7 +2868,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 changed = true;
             }
         }
-        this.rtgHeat = (int) Math.min(600L, heat);
+        this.rtgHeat = (int) Math.min(HbmConfig.rtgDecay() ? 600L : 200L, heat);
         if (heat > 0L && this.energy < profile().energyCapacity()) {
             this.energy = Math.min(profile().energyCapacity(), this.energy + heat * 5L);
             this.completed++;
@@ -2553,10 +2923,12 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 if (level.getGameTime() % crackTime == 0L && crackRadiolysis(outputs)) {
                     changed = true;
                 }
-                if (heat >= 200L && level.getGameTime() % 100L == 0L && sterilizeContaminatedFood()) {
-                    changed = true;
-                }
             }
+        }
+        // TileEntityMachineRadiolysis sterilizes contaminated food based only
+        // on RTG heat; it does not require a configured radiolysis fluid.
+        if (heat >= 200L && level.getGameTime() % 100L == 0L && sterilizeContaminatedFood()) {
+            changed = true;
         }
         if (changed) setChanged();
     }
@@ -2835,6 +3207,12 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     }
 
     public long energyCapacity() {
+        if (machineId().equals("machine_forcefield")) {
+            return HbmConfig.FORCEFIELD_MAX_POWER.get();
+        }
+        if (machineId().equals("machine_radar") || machineId().equals("machine_radar_large")) {
+            return HbmConfig.RADAR_POWER_CAP.get();
+        }
         return machineId().equals("machine_precass") ? this.precisionAssemblerMaxPower : profile().energyCapacity();
     }
 
@@ -2922,16 +3300,33 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     public boolean canAcceptPrecisionAssemblerInput(ItemStack stack) {
         if (stack.isEmpty() || this.level == null) return false;
-        for (RecipeHolder<PrecisionAssemblerRecipe> holder : availablePrecisionAssemblerRecipes(this.level)) {
-            for (PrecisionAssemblerRecipe.CountedIngredient ingredient : holder.value().ingredients()) {
-                if (ingredient.ingredient().test(stack)) return true;
-            }
-        }
-        return false;
+        return selectedPrecisionAssemblerRecipe(this.level)
+                .map(holder -> holder.value().ingredients().stream().anyMatch(ingredient -> ingredient.ingredient().test(stack)))
+                .orElse(false);
+    }
+
+    /** Exact ModuleMachineBase#isItemValid contract for the nine ordered inputs. */
+    private boolean canAcceptPrecisionAssemblerInput(int slot, ItemStack stack) {
+        if (slot < 4 || slot > 12 || stack.isEmpty() || this.level == null) return false;
+        int recipeSlot = slot - 4;
+        return selectedPrecisionAssemblerRecipe(this.level)
+                .map(holder -> recipeSlot < holder.value().ingredients().size()
+                        && holder.value().ingredients().get(recipeSlot).ingredient().test(stack))
+                .orElse(false);
     }
 
     public boolean sawmillHasBlade() {
         return this.sawmillHasBlade;
+    }
+
+    public void setSawmillHasBlade(boolean hasBlade) {
+        if (!machineId().equals("machine_sawmill")) {
+            return;
+        }
+        this.sawmillHasBlade = hasBlade;
+        this.sawmillWarnCooldown = 0;
+        this.sawmillOverspeed = 0;
+        this.setChangedAndSync();
     }
 
     public float sawmillRotation() {
@@ -2959,6 +3354,30 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     /** Implements MachineSawmill's old right-click path for held items. */
     public boolean handleItemInteraction(Player player, ItemStack heldStack) {
+        if (machineId().equals("machine_orbus")) {
+            // MachineOrbus consumes every crouching interaction. With a fluid
+            // identifier it changes only the accepted tank type; 1.7.10 never
+            // drained or cleared the existing contents here.
+            if (!player.isCrouching()) {
+                return false;
+            }
+            if (heldStack.getItem() instanceof FluidIdentifierItem) {
+                HbmFluidTank tank = tank(0);
+                if (tank != null) {
+                    HbmFluidDefinition fluid = FluidIdentifierItem.primary(heldStack);
+                    tank.setType(fluid);
+                    this.setChangedAndSync();
+                    player.displayClientMessage(
+                            Component.literal("Changed type to ")
+                                    .withStyle(net.minecraft.ChatFormatting.YELLOW)
+                                    .append(Component.translatable(fluid.translationKey()))
+                                    .append("!"),
+                            false
+                    );
+                }
+            }
+            return true;
+        }
         if (machineId().equals("machine_conveyor_press")) {
             if (isStamp(heldStack) && this.items.get(0).isEmpty()) {
                 this.items.set(0, heldStack.copyWithCount(1));
@@ -2979,25 +3398,28 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 HbmFluidDefinition fuel = FluidIdentifierItem.primary(heldStack);
                 if (isAutosawFuel(fuel) && this.inputTank != null) {
                     this.inputTank.setType(fuel);
-                    this.setChanged();
+                    this.setChangedAndSync();
                     return true;
                 }
             }
             if (ScrewdriverItem.isScrewdriver(heldStack)) {
                 this.autosawSuspended = !this.autosawSuspended;
-                this.setChanged();
+                this.setChangedAndSync();
                 return true;
             }
             return false;
         }
         if (machineId().equals("machine_thresher")) {
-            if (heldStack.getItem() instanceof FluidIdentifierItem) {
+            if (!player.isCrouching() && heldStack.getItem() instanceof FluidIdentifierItem) {
                 HbmFluidDefinition fuel = FluidIdentifierItem.primary(heldStack);
                 if (isThresherFuel(fuel) && this.inputTank != null) {
                     this.inputTank.setType(fuel);
                     this.setChangedAndSync();
                     player.displayClientMessage(
-                            Component.literal("Changed type to ").append(Component.translatable(fuel.translationKey())).append("!"),
+                            Component.literal("Changed type to ")
+                                    .withStyle(net.minecraft.ChatFormatting.YELLOW)
+                                    .append(Component.translatable(fuel.translationKey()))
+                                    .append("!"),
                             false
                     );
                     return true;
@@ -3010,21 +3432,25 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             }
             return false;
         }
+        if (machineId().equals("machine_turbofan") && heldStack.getItem() instanceof FluidIdentifierItem) {
+            pasteFluidSetting(FluidIdentifierItem.primary(heldStack), this.level, player, this.worldPosition);
+            return true;
+        }
         if (!machineId().equals("machine_sawmill")) {
             return false;
         }
         if (this.level == null || this.level.isClientSide) {
             return true;
         }
-        if (!this.items.get(1).isEmpty() || !this.items.get(2).isEmpty()) {
-            return collectSawmillOutputs(player);
-        }
         if (!this.sawmillHasBlade && isLegacyItem(heldStack, "sawblade")) {
             heldStack.shrink(1);
             this.sawmillHasBlade = true;
             this.setChangedAndSync();
-            this.level.playSound(null, this.worldPosition, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.5F, 0.75F);
+            this.level.playSound(null, this.worldPosition, HbmSoundEvents.UPGRADE_PLUG.get(), SoundSource.BLOCKS, 1.5F, 0.75F);
             return true;
+        }
+        if (!this.items.get(1).isEmpty() || !this.items.get(2).isEmpty()) {
+            return collectSawmillOutputs(player);
         }
         if (this.items.get(0).isEmpty() && !heldStack.isEmpty() && !sawmillOutput(this.level, heldStack).isEmpty()) {
             this.items.set(0, heldStack.copyWithCount(1));
@@ -3086,6 +3512,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return this.forcefieldRadius;
     }
 
+    public int forcefieldCooldown() {
+        return this.forcefieldCooldown;
+    }
+
     public void cycleOrbusMode() {
         if (!machineId().equals("machine_orbus")) {
             return;
@@ -3096,6 +3526,31 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     public HbmFluidTank tank(int index) {
         return index >= 0 && index < this.tanks.length ? this.tanks[index] : null;
+    }
+
+    @Override
+    public int[] getFluidIdsToCopy() {
+        if (!machineId().equals("machine_turbofan")) {
+            return new int[0];
+        }
+        return new int[]{
+                tankOldId(0), tankOldId(1), tankOldId(2), tankOldId(3), tankOldId(4)
+        };
+    }
+
+    @Override
+    public void pasteFluidSetting(HbmFluidDefinition fluid, Level level, Player player, BlockPos pos) {
+        if (!machineId().equals("machine_turbofan") || fluid == null || fluid.isNone()) {
+            return;
+        }
+        HbmFluidTank fuel = tank(0);
+        if (fuel == null || fuel.type() == fluid) {
+            return;
+        }
+        // FluidTank#setType is the old setTankType behavior: changing the
+        // identifier also discards the incompatible fuel already stored.
+        fuel.setType(fluid);
+        setChangedAndSync();
     }
 
     public int radiolysisHeat() {
@@ -3137,9 +3592,12 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             return new LegacyFluidHandler(new int[]{0}, new int[0]);
         }
         if (machineId().equals("machine_thresher")) {
-            // TileEntityMachineThresher exposes its single receiver on the core
-            // and deliberately refuses the top face.
-            if (!this.worldPosition.equals(accessorPos) || side == Direction.UP) {
+            // TileEntityMachineThresher only subscribes at the two lateral
+            // positions derived from dir.getRotation(UP), never the front,
+            // rear, top, or bottom face.
+            Direction left = LegacyMachineGeometry.forgeRotateUp(facing());
+            Direction right = left.getOpposite();
+            if (!this.worldPosition.equals(accessorPos) || (side != left && side != right)) {
                 return null;
             }
             return new LegacyFluidHandler(new int[]{0}, new int[0]);
@@ -3185,6 +3643,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return this.autosawOn;
     }
 
+    public boolean autosawSuspended() {
+        return this.autosawSuspended;
+    }
+
     public boolean thresherOn() {
         return this.thresherOn;
     }
@@ -3201,16 +3663,16 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return this.thresherPreviousSpin + (this.thresherSpin - this.thresherPreviousSpin) * partialTick;
     }
 
-    public float autosawYaw() {
-        return this.autosawYaw;
+    public float autosawYaw(float partialTick) {
+        return this.autosawPreviousYaw + (this.autosawYaw - this.autosawPreviousYaw) * partialTick;
     }
 
-    public float autosawPitch() {
-        return this.autosawPitch;
+    public float autosawPitch(float partialTick) {
+        return this.autosawPreviousPitch + (this.autosawPitch - this.autosawPreviousPitch) * partialTick;
     }
 
-    public float autosawSpin() {
-        return this.autosawSpin;
+    public float autosawSpin(float partialTick) {
+        return this.autosawPreviousSpin + (this.autosawSpin - this.autosawPreviousSpin) * partialTick;
     }
 
     public double conveyorPress() {
@@ -3265,6 +3727,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     public boolean radarShowMap() { return this.radarShowMap; }
     public boolean radarJammed() { return this.radarJammed; }
     public int radarRangeValue() { return radarRange(); }
+    public long radarConsumptionValue() { return radarConsumption(); }
     public int radarRedPower() { return this.radarLastRedPower; }
     public float radarRotation(float partialTick) {
         return this.radarPreviousRotation + (this.radarRotation - this.radarPreviousRotation) * partialTick;
@@ -3284,7 +3747,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             case 3 -> this.radarSmartMode = !this.radarSmartMode;
             case 4 -> this.radarRedMode = !this.radarRedMode;
             case 5 -> this.radarShowMap = !this.radarShowMap;
-            case 6 -> this.radarMap = new byte[40_000];
+            case 6 -> {
+                this.radarMap = new byte[40_000];
+                this.radarChunkReads.clear();
+            }
             default -> { return; }
         }
         setChangedAndSync();
@@ -3296,6 +3762,41 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 (containerId, inventory, menuPlayer) -> new com.reinhardt.hbm.menu.RadarSlotsMenu(containerId, inventory, this),
                 Component.translatable("block.reinhardtshbm." + machineId())
         ), buffer -> buffer.writeBlockPos(this.worldPosition));
+    }
+
+    /** Direct server-side equivalent of GUIMachineRadarNT's 1-8 relay command keys. */
+    public boolean issueRadarCommand(ServerPlayer player, int relaySlot, int targetEntityId, int targetX, int targetZ) {
+        if ((!machineId().equals("machine_radar") && !machineId().equals("machine_radar_large"))
+                || relaySlot < 0 || relaySlot >= 8 || this.level == null) {
+            return false;
+        }
+        ItemStack link = this.items.get(relaySlot);
+        if (!(link.getItem() instanceof RadarLinkerItem)) {
+            return false;
+        }
+        BlockPos targetPos = RadarLinkerItem.position(link);
+        if (targetPos == null) {
+            return false;
+        }
+        BlockEntity target = this.level.getBlockEntity(targetPos);
+        if (target instanceof MachineDummyBlockEntity dummy) {
+            target = dummy.core();
+        }
+        if (!(target instanceof RadarCommandReceiver receiver)) {
+            return false;
+        }
+        boolean accepted;
+        if (targetEntityId >= 0) {
+            Entity entity = this.level.getEntity(targetEntityId);
+            accepted = entity != null && receiver.sendCommandEntity(entity);
+        } else {
+            accepted = receiver.sendCommandPosition(targetX, this.worldPosition.getY(), targetZ);
+        }
+        if (accepted) {
+            this.level.playSound(null, player.getX(), player.getY(), player.getZ(), HbmSoundEvents.TECH_BLEEP.get(),
+                    SoundSource.PLAYERS, 1.0F, 1.0F);
+        }
+        return accepted;
     }
 
     public String annihilatorPool() {
@@ -3561,7 +4062,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (profile.energyOutput() || capacity <= 0L || this.energy >= capacity) {
             return 0L;
         }
-        long demand = machineId().equals("machine_precass") ? this.precisionAssemblerDemand : profile.energyPerTick();
+        long demand = machineId().equals("machine_teleporter") ? capacity - this.energy
+                : machineId().equals("machine_precass") ? this.precisionAssemblerDemand
+                : (machineId().equals("machine_radar") || machineId().equals("machine_radar_large"))
+                        ? radarConsumption() : profile.energyPerTick();
         return Math.min(demand, capacity - this.energy);
     }
 
@@ -3644,7 +4148,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                     || (slot == 1 && stack.getItem() instanceof FluidIdentifierItem);
         }
         if (id.equals("machine_radar") || id.equals("machine_radar_large")) {
-            if (slot >= 0 && slot <= 7) return stack.is(HbmItems.SAT_RELAY.get());
+            if (slot >= 0 && slot <= 7) return stack.is(HbmItems.SAT_RELAY.get()) || stack.getItem() instanceof RadarLinkerItem;
             if (slot == 8) return stack.getItem() instanceof RadarLinkerItem;
             return slot == 9 && BatteryPackItem.isBattery(stack);
         }
@@ -3656,13 +4160,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 return MachineUpgradeItem.isMachineUpgrade(stack)
                         && (type == MachineUpgradeItem.UpgradeType.SPEED || type == MachineUpgradeItem.UpgradeType.POWER || type == MachineUpgradeItem.UpgradeType.OVERDRIVE);
             }
-            if (slot >= 4 && slot <= 12) {
-                Optional<RecipeHolder<PrecisionAssemblerRecipe>> recipe = this.level == null ? Optional.empty() : selectedPrecisionAssemblerRecipe(this.level);
-                int recipeSlot = slot - 4;
-                return recipe.map(holder -> recipeSlot < holder.value().ingredients().size()
-                        && holder.value().ingredients().get(recipeSlot).ingredient().test(stack)).orElse(false);
-            }
-            return false;
+            return canAcceptPrecisionAssemblerInput(slot, stack);
         }
         if (id.equals("machine_autocrafter")) {
             if (slot == 20) return BatteryPackItem.isBattery(stack);
@@ -3681,11 +4179,6 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 default -> false;
             };
         }
-        if (id.equals("machine_satlinker")) {
-            // TileEntityMachineSatLinker deliberately rejected sided insertion;
-            // its three slots are operated through its dedicated GUI only.
-            return false;
-        }
         if (id.equals("machine_forcefield")) {
             return (slot == 0 && BatteryPackItem.isBattery(stack)) || slot == 1;
         }
@@ -3702,7 +4195,8 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                     output -> canPlaceOrbusOutput(5, output));
         }
         if (id.equals("machine_sawmill")) {
-            return slot == 0 && !sawmillOutput(this.level, stack).isEmpty();
+            return slot == 0 && this.items.get(0).isEmpty() && this.items.get(1).isEmpty() && this.items.get(2).isEmpty()
+                    && stack.getCount() == 1 && this.level != null && !sawmillOutput(this.level, stack).isEmpty();
         }
         if (id.equals("machine_conveyor_press")) {
             return slot == 0 && isStamp(stack);
@@ -3711,7 +4205,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             return stack.getItem() instanceof RtgPelletItem;
         }
         if (id.equals("machine_radgen")) {
-            return slot < 12 && isRadGenFuel(stack);
+            return canPlaceRadGenFuel(slot, stack);
         }
         if (id.equals("machine_pyrooven")) {
             return slot == 0 ? BatteryPackItem.isBattery(stack)
@@ -3742,6 +4236,30 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return slot < profile().outputStart();
     }
 
+    /** Exact TileEntityMachineRadGen#isItemValidForSlot balancing rule. */
+    private boolean canPlaceRadGenFuel(int slot, ItemStack stack) {
+        if (slot < 0 || slot >= 12 || !isRadGenFuel(stack)) {
+            return false;
+        }
+
+        ItemStack current = this.items.get(slot);
+        if (current.isEmpty()) {
+            return true;
+        }
+
+        int currentCount = current.getCount();
+        for (int inputSlot = 0; inputSlot < 12; inputSlot++) {
+            ItemStack held = this.items.get(inputSlot);
+            if (held.isEmpty()) {
+                return false;
+            }
+            if (ItemStack.isSameItemSameComponents(held, stack) && held.getCount() < currentCount) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public int[] getSlotsForFace(Direction side) {
         if (machineId().equals("machine_annihilator")) {
@@ -3755,13 +4273,6 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
         if (machineId().equals("machine_orbus")) {
             return new int[]{2, 3, 4, 5};
-        }
-        if (machineId().equals("machine_satlinker")) {
-            return switch (side) {
-                case UP -> new int[]{0};
-                case DOWN -> new int[]{1};
-                default -> new int[]{2};
-            };
         }
         if (machineId().equals("machine_missile_assembly")) {
             // TileEntityMachineMissileAssembly only advertises its chip slot.
@@ -3795,9 +4306,6 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
         if (machineId().equals("machine_precass")) {
             return slot >= 13 || precisionAssemblerInputClogged(slot);
-        }
-        if (machineId().equals("machine_satlinker")) {
-            return true;
         }
         if (machineId().equals("machine_rtg_grey")) {
             return false;
@@ -3884,9 +4392,6 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (machineId().equals("machine_orbus")) {
             return new com.reinhardt.hbm.menu.OrbusMenu(containerId, inventory, this);
         }
-        if (machineId().equals("machine_satlinker")) {
-            return new com.reinhardt.hbm.menu.SatelliteLinkerMenu(containerId, inventory, this);
-        }
         if (machineId().equals("machine_radiolysis")) {
             return new com.reinhardt.hbm.menu.RadiolysisMenu(containerId, inventory, this);
         }
@@ -3913,7 +4418,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     @Override
     public void dropContents(Level level, BlockPos pos) {
-        for (ItemStack stack : this.items) {
+        int firstDroppedSlot = machineId().equals("machine_autocrafter") ? 10 : 0;
+        for (int slot = firstDroppedSlot; slot < this.items.size(); slot++) {
+            ItemStack stack = this.items.get(slot);
             if (!stack.isEmpty()) {
                 Block.popResource(level, pos, stack);
             }
@@ -3968,13 +4475,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         tag.putFloat("autosaw_pitch", this.autosawPitch);
         tag.putInt("autosaw_state", this.autosawState);
         tag.putInt("autosaw_force_skip", this.autosawForceSkip);
-        tag.putFloat("autosaw_spin", this.autosawSpin);
         tag.putBoolean("thresher_on", this.thresherOn);
         tag.putBoolean("thresher_suspended", this.thresherSuspended);
-        tag.putInt("thresher_delay", this.thresherDelay);
         tag.putInt("thresher_state", this.thresherState);
         tag.putFloat("thresher_angle", this.thresherAngle);
-        tag.putFloat("thresher_spin", this.thresherSpin);
         tag.putDouble("conveyor_press", this.conveyorPress);
         tag.putBoolean("conveyor_retracting", this.conveyorRetracting);
         tag.putInt("conveyor_delay", this.conveyorDelay);
@@ -4057,7 +4561,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         this.forcefieldMaxHealth = Math.max(1, tag.getInt("forcefield_max_health"));
         this.forcefieldRadius = Math.max(0, tag.getInt("forcefield_radius"));
         this.forcefieldPowerConsumption = Math.max(0, tag.getInt("forcefield_power_consumption"));
-        this.forcefieldColor = tag.contains("forcefield_color") ? tag.getInt("forcefield_color") : 0x00FF00;
+        this.forcefieldColor = tag.contains("forcefield_color") ? tag.getInt("forcefield_color") : 0x0000FF;
         this.forcefieldOn = tag.getBoolean("forcefield_on");
         this.forcefieldCooldown = Math.max(0, tag.getInt("forcefield_cooldown"));
         this.forcefieldBlink = Math.max(0, tag.getInt("forcefield_blink"));
@@ -4072,18 +4576,34 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         this.sawmillRotationSpeed = Math.max(0.0F, tag.getFloat("sawmill_rotation_speed"));
         this.autosawOn = tag.getBoolean("autosaw_on");
         this.autosawSuspended = tag.getBoolean("autosaw_suspended");
-        this.autosawYaw = tag.getFloat("autosaw_yaw");
-        this.autosawPitch = tag.getFloat("autosaw_pitch");
+        float savedAutosawYaw = tag.getFloat("autosaw_yaw");
+        float savedAutosawPitch = tag.getFloat("autosaw_pitch");
         this.autosawState = Math.max(0, Math.min(2, tag.getInt("autosaw_state")));
         this.autosawForceSkip = Math.max(0, tag.getInt("autosaw_force_skip"));
-        this.autosawSpin = tag.getFloat("autosaw_spin");
+        if (this.level != null && this.level.isClientSide) {
+            // TileEntityMachineAutosaw#deserialize assigns a three-tick turn window.
+            this.autosawSyncYaw = savedAutosawYaw;
+            this.autosawSyncPitch = savedAutosawPitch;
+            this.autosawTurnProgress = 3;
+        } else {
+            this.autosawYaw = savedAutosawYaw;
+            this.autosawPitch = savedAutosawPitch;
+            this.autosawPreviousYaw = savedAutosawYaw;
+            this.autosawPreviousPitch = savedAutosawPitch;
+            this.autosawSyncYaw = savedAutosawYaw;
+            this.autosawSyncPitch = savedAutosawPitch;
+            this.autosawTurnProgress = 0;
+        }
         this.thresherOn = tag.getBoolean("thresher_on");
         this.thresherSuspended = tag.getBoolean("thresher_suspended");
-        this.thresherDelay = Math.max(0, tag.getInt("thresher_delay"));
+        if (this.level == null || !this.level.isClientSide) {
+            // The original TE did not persist the wait delay or client-only wheel phase.
+            this.thresherDelay = 0;
+            this.thresherSpin = 0.0F;
+            this.thresherPreviousSpin = 0.0F;
+        }
         this.thresherState = Math.max(0, Math.min(2, tag.getInt("thresher_state")));
         float savedThresherAngle = Math.max(0.0F, Math.min(82.5F, tag.getFloat("thresher_angle")));
-        this.thresherSpin = tag.getFloat("thresher_spin");
-        this.thresherPreviousSpin = this.thresherSpin;
         if (this.level != null && this.level.isClientSide) {
             // TileEntityMachineThresher's packet interpolation is three ticks.
             this.thresherSyncAngle = savedThresherAngle;

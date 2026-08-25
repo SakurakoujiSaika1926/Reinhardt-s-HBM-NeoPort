@@ -259,8 +259,12 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
         if (isCoolantAccessor(accessorPos, side)) {
             return new ChemicalFactoryFluidHandler(-2);
         }
-        int module = moduleForAccessor(accessorPos, side);
-        return new ChemicalFactoryFluidHandler(module >= 0 ? module : -3);
+        // TileEntityMachineChemicalFactory exposes its twelve input and
+        // twelve output tanks through every normal connection point. The
+        // four recipe-field faces are visual labels, not per-module pipes.
+        return isProcessAccessor(accessorPos, side)
+                ? new ChemicalFactoryFluidHandler(-1)
+                : new ChemicalFactoryFluidHandler(-3);
     }
 
     public boolean isAutomationPort(BlockPos accessorPos) {
@@ -268,7 +272,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
     }
 
     public boolean allowsAutomationPort(BlockPos accessorPos, @Nullable Direction side) {
-        return isCoolantAccessor(accessorPos, side) || moduleForAccessor(accessorPos, side) >= 0;
+        return isCoolantAccessor(accessorPos, side) || isProcessAccessor(accessorPos, side);
     }
 
     public HbmFluidTank inputTank(int index) {
@@ -881,15 +885,14 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
         }
     }
 
-    private int moduleForAccessor(BlockPos accessorPos, @Nullable Direction side) {
-        List<Port> ports = ioAccessorPorts();
-        for (int module = 0; module < ports.size(); module++) {
-            Port port = ports.get(module);
-            if (port.pos().equals(accessorPos) && (side == null || port.face() == side)) {
-                return module;
+    private boolean isProcessAccessor(BlockPos accessorPos, @Nullable Direction side) {
+        for (Port port : processConnectorPorts()) {
+            BlockPos innerPort = port.pos().relative(port.face().getOpposite());
+            if (innerPort.equals(accessorPos) && (side == null || port.face() == side)) {
+                return true;
             }
         }
-        return -1;
+        return false;
     }
 
     private boolean isCoolantAccessor(BlockPos accessorPos, @Nullable Direction side) {
@@ -899,6 +902,37 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
             }
         }
         return false;
+    }
+
+    /**
+     * The 1.7.10 factory ran its input/output transfer loop over the 12 base
+     * and 10 top positions from getConPos(), plus the four displayed recipe
+     * field faces. All of them operate on the same process-tank arrays.
+     */
+    private List<Port> processConnectorPorts() {
+        ArrayList<Port> ports = new ArrayList<>(26);
+        BlockPos pos = this.worldPosition;
+        ports.add(new Port(pos.offset(3, 0, -2), Direction.EAST));
+        ports.add(new Port(pos.offset(3, 0, 0), Direction.EAST));
+        ports.add(new Port(pos.offset(3, 0, 2), Direction.EAST));
+        ports.add(new Port(pos.offset(-3, 0, -2), Direction.WEST));
+        ports.add(new Port(pos.offset(-3, 0, 0), Direction.WEST));
+        ports.add(new Port(pos.offset(-3, 0, 2), Direction.WEST));
+        ports.add(new Port(pos.offset(-2, 0, 3), Direction.SOUTH));
+        ports.add(new Port(pos.offset(0, 0, 3), Direction.SOUTH));
+        ports.add(new Port(pos.offset(2, 0, 3), Direction.SOUTH));
+        ports.add(new Port(pos.offset(-2, 0, -3), Direction.NORTH));
+        ports.add(new Port(pos.offset(0, 0, -3), Direction.NORTH));
+        ports.add(new Port(pos.offset(2, 0, -3), Direction.NORTH));
+
+        Direction facing = facing();
+        Direction rot = facing.getClockWise();
+        for (int i = -2; i <= 2; i++) {
+            ports.add(new Port(pos.offset(offset(facing, i, rot, 2)).above(3), Direction.UP));
+            ports.add(new Port(pos.offset(offset(facing, i, rot, -2)).above(3), Direction.UP));
+        }
+        ports.addAll(ioConnectorPorts());
+        return List.copyOf(ports);
     }
 
     private List<Port> powerPorts() {
@@ -1136,7 +1170,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
             if (this.module == -3) {
                 return 0;
             }
-            return this.module == -2 ? 2 : this.module >= 0 ? TANKS_PER_MODULE * 2 : TANK_COUNT;
+            return this.module == -2 ? 2 : this.module >= 0 ? TANKS_PER_MODULE * 2 : inputTanks.length + outputTanks.length;
         }
 
         @Override
@@ -1173,7 +1207,11 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
                 if (remaining <= 0 || !canFillTank(tank, fluid)) {
                     continue;
                 }
-                int accepted = tank.fill(fluid, remaining, action.simulate());
+                // Process tanks are conformed to their selected recipe before
+                // pipe transfer. NeoForge fluid stacks do not carry HBM's
+                // legacy pressure field, so retain the configured tank
+                // pressure instead of replacing it with the stack default.
+                int accepted = tank.fill(fluid, remaining, tank.pressure(), action.simulate());
                 filled += accepted;
                 remaining -= accepted;
             }
@@ -1195,7 +1233,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
             int remaining = resource.getAmount();
             int drained = 0;
             for (HbmFluidTank tank : drainableTanks()) {
-                if (remaining <= 0 || tank.type() != fluid || tank.pressure() != 0) {
+                if (remaining <= 0 || tank.type() != fluid) {
                     continue;
                 }
                 HbmFluidStack stack = tank.drain(fluid, remaining, action.simulate());
@@ -1214,7 +1252,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
                 return FluidStack.EMPTY;
             }
             for (HbmFluidTank tank : drainableTanks()) {
-                if (tank.amount() <= 0 || tank.type().isNone() || tank.pressure() != 0) {
+                if (tank.amount() <= 0 || tank.type().isNone()) {
                     continue;
                 }
                 HbmFluidDefinition fluid = tank.type();
@@ -1241,7 +1279,11 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
                 int output = tank - TANKS_PER_MODULE;
                 return output >= 0 && output < TANKS_PER_MODULE ? outputTanks[tankIndex(this.module, output)] : null;
             }
-            return tank >= 0 && tank < TANK_COUNT ? tankByFlatIndex(tank) : null;
+            if (tank >= 0 && tank < inputTanks.length) {
+                return inputTanks[tank];
+            }
+            int output = tank - inputTanks.length;
+            return output >= 0 && output < outputTanks.length ? outputTanks[output] : null;
         }
 
         private List<HbmFluidTank> fillableTanks() {
@@ -1258,9 +1300,8 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
                 }
                 return tanks;
             }
-            ArrayList<HbmFluidTank> tanks = new ArrayList<>(inputTanks.length + 1);
+            ArrayList<HbmFluidTank> tanks = new ArrayList<>(inputTanks.length);
             tanks.addAll(List.of(inputTanks));
-            tanks.add(waterTank);
             return tanks;
         }
 
@@ -1278,14 +1319,13 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
                 }
                 return tanks;
             }
-            ArrayList<HbmFluidTank> tanks = new ArrayList<>(outputTanks.length + 1);
+            ArrayList<HbmFluidTank> tanks = new ArrayList<>(outputTanks.length);
             tanks.addAll(List.of(outputTanks));
-            tanks.add(spentSteamTank);
             return tanks;
         }
 
         private boolean canFillTank(HbmFluidTank tank, HbmFluidDefinition fluid) {
-            return !fluid.isNone() && (tank.type().isNone() || tank.type() == fluid) && tank.pressure() == 0;
+            return !fluid.isNone() && (tank.type().isNone() || tank.type() == fluid);
         }
     }
 

@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class DieselGeneratorClientSounds {
-    private static final double START_DISTANCE = 24.0D;
-    private static final double AUDIBLE_DISTANCE = 24.0D;
+    private static final double START_DISTANCE = 10.0D;
+    private static final double AUDIBLE_DISTANCE = 10.0D;
     private static final int KEEP_ALIVE_TICKS = 20;
     private static final Map<BlockPos, WorkingSound> WORKING_SOUNDS = new HashMap<>();
 
@@ -87,7 +87,7 @@ public final class DieselGeneratorClientSounds {
                 return;
             }
             double distance = Math.sqrt(minecraft.player.distanceToSqr(this.x, this.y, this.z));
-            this.volume = distance >= AUDIBLE_DISTANCE ? 0.0F : (float) (1.6D * (1.0D - distance / AUDIBLE_DISTANCE));
+            this.volume = distance >= AUDIBLE_DISTANCE ? 0.0F : (float) (1.0D - distance / AUDIBLE_DISTANCE);
             this.pitch = 1.0F;
         }
 

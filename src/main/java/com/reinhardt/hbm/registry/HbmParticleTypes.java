@@ -92,6 +92,14 @@ public final class HbmParticleTypes {
             PARTICLES.register("landmine_smoke", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> LANDMINE_FOAM =
             PARTICLES.register("landmine_foam", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> DRAIN_TOWER =
+            PARTICLES.register("drain_tower", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> PYRO_OVEN_TOWER =
+            PARTICLES.register("pyro_oven_tower", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROTARY_FURNACE_TOWER =
+            PARTICLES.register("rotary_furnace_tower", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> DRAIN_SPLASH =
+            PARTICLES.register("drain_splash", () -> new SimpleParticleType(false));
 
     private HbmParticleTypes() {
     }

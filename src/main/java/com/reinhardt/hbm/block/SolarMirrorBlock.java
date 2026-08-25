@@ -35,7 +35,7 @@ public class SolarMirrorBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide || blockEntityType != HbmBlockEntities.SOLAR_MIRROR.get()) {
+        if (blockEntityType != HbmBlockEntities.SOLAR_MIRROR.get()) {
             return null;
         }
         return (tickerLevel, pos, tickerState, blockEntity) -> SolarMirrorBlockEntity.tick(

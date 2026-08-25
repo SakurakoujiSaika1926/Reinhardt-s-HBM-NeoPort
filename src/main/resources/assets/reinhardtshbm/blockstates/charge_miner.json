@@ -1,7 +1,10 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/charge_miner"
-                          }
-                 }
+{
+  "variants": {
+    "facing=down": { "model": "reinhardtshbm:block/empty" },
+    "facing=up": { "model": "reinhardtshbm:block/empty" },
+    "facing=north": { "model": "reinhardtshbm:block/empty" },
+    "facing=south": { "model": "reinhardtshbm:block/empty" },
+    "facing=west": { "model": "reinhardtshbm:block/empty" },
+    "facing=east": { "model": "reinhardtshbm:block/empty" }
+  }
 }

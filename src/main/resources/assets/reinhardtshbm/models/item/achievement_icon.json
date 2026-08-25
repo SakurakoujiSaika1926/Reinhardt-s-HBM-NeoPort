@@ -1,6 +1,59 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
-                 },
-    "parent":  "minecraft:item/generated"
+    "parent":  "reinhardtshbm:item/achievement_icon.gofish",
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  1
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.acid"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  2
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.balls"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  3
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.digammasee"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  4
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.digammafeel"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  5
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.digammaknow"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  6
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.digammakauaimoho"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  7
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.digammaupontop"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  8
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.digammaforourright"
+                      },
+                      {
+                          "predicate":  {
+                                            "minecraft:custom_model_data":  9
+                                        },
+                          "model":  "reinhardtshbm:item/achievement_icon.questionmark"
+                      }
+                  ]
 }

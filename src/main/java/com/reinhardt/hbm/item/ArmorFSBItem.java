@@ -46,6 +46,15 @@ public class ArmorFSBItem extends ArmorItem {
     }
 
     public static boolean hasFSBArmor(Player player) {
+        return hasFSBArmor(player, true);
+    }
+
+    /** Matches 1.7.10's hasFSBArmorIgnoreCharge(), used by HEV battery blocks. */
+    public static boolean hasFSBArmorIgnoringCharge(Player player) {
+        return hasFSBArmor(player, false);
+    }
+
+    private static boolean hasFSBArmor(Player player, boolean requireEnabled) {
         if (player == null) {
             return false;
         }
@@ -65,6 +74,9 @@ public class ArmorFSBItem extends ArmorItem {
                 return false;
             }
             if (!armor.fsbGroup.equals(chestplate.fsbGroup)) {
+                return false;
+            }
+            if (requireEnabled && !armor.isArmorEnabled(stack)) {
                 return false;
             }
         }
@@ -109,6 +121,14 @@ public class ArmorFSBItem extends ArmorItem {
                     false
             ));
         }
+    }
+
+    /**
+     * Fuelled and powered 1.7.10 suits only enabled their set bonuses while
+     * every equipped component still had usable fuel or charge.
+     */
+    public boolean isArmorEnabled(ItemStack stack) {
+        return true;
     }
 
     @Override

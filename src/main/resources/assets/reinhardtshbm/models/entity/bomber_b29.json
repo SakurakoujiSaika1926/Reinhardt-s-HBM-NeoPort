@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/bomber_b29.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/bomber_b29.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/legacy/b29_0",
+    "texture": "reinhardtshbm:models/legacy/b29_0"
+  }
+}

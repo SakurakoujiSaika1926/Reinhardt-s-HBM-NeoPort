@@ -1,0 +1,32 @@
+{
+    "type":  "reinhardtshbm:crystallizer",
+    "group":  "crystallizer.bedrock_ore",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "crumbs",
+                                                                        "type":  "light"
+                                                                    }
+                                      }
+                   },
+    "input_count":  64,
+    "acid":  {
+                 "fluid":  "slop",
+                 "amount":  1000
+             },
+    "duration":  200,
+    "result":  {
+                   "id":  "reinhardtshbm:bedrock_ore_new",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "grade":  "base",
+                                                                    "type":  "light"
+                                                                },
+                                      "minecraft:custom_model_data":  0
+                                  }
+               }
+}

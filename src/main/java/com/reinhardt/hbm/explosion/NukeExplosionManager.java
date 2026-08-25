@@ -76,7 +76,7 @@ public final class NukeExplosionManager {
         scheduleLegacyNuke(level, x, y, z, MISSILE_RADIUS);
     }
 
-    private static void scheduleLegacyNuke(ServerLevel level, double x, double y, double z, int radius) {
+    public static void scheduleLegacyNuke(ServerLevel level, double x, double y, double z, int radius) {
         TASKS.computeIfAbsent(level.dimension().location(), unused -> new ArrayDeque<>())
                 .add(new NukeTask(new Vec3(x, y, z), radius * 2, radius));
         playInitialSound(level, x, y, z);

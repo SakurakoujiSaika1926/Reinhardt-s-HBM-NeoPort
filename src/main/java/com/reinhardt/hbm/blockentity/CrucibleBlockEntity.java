@@ -125,6 +125,14 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
         }
         crucible.tryRecipe();
         crucible.tryPourStacks();
+        // TileEntityCrucible emitted soot for each occupied molten stack while it
+        // attempted to pour, not merely while an input was actively smelting.
+        if (!crucible.wasteStack.isEmpty()) {
+            HbmPollution.increment(level, pos, HbmPollutionType.SOOT, HbmPollutionConstants.SOOT_PER_SECOND / 20.0D);
+        }
+        if (!crucible.recipeStack.isEmpty()) {
+            HbmPollution.increment(level, pos, HbmPollutionType.SOOT, HbmPollutionConstants.SOOT_PER_SECOND / 20.0D);
+        }
         crucible.cleanupStacks();
 
         crucible.setChanged();
@@ -448,10 +456,6 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
         int delta = (int) ((this.heat - (MAX_HEAT / 2)) * 0.05D);
         this.progress += delta;
         this.heat -= delta;
-        if (this.level != null) {
-            HbmPollution.increment(this.level, this.worldPosition, HbmPollutionType.SOOT, HbmPollutionConstants.SOOT_PER_SECOND / 20.0D);
-        }
-
         if (this.progress >= PROCESS_TIME) {
             this.progress = 0;
             List<FoundryMaterialStack> materials = FoundryMaterial.smeltingMaterialsFromItem(getItem(slot));
@@ -460,7 +464,7 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
                 boolean recipeMaterial = recipe.isPresent()
                         && (amountInRecipe(recipe.get().value().input(), material.material()) > 0
                         || amountInRecipe(recipe.get().value().output(), material.material()) > 0);
-                if (recipe.isEmpty() || recipeMaterial) {
+                if (recipeMaterial) {
                     addToStack(this.recipeStack, material);
                 } else {
                     addToStack(this.wasteStack, material);
@@ -564,11 +568,9 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
             }
 
             if (required == 0) {
-                if (recipe.isEmpty()) {
-                    recipeAmount += material.amount();
-                } else {
-                    wasteAmount += material.amount();
-                }
+                // With no selected recipe, legacy crucibles classify all input
+                // as waste and discharge it through the rear pour outlet.
+                wasteAmount += material.amount();
             } else {
                 int maximum = required * RECIPE_CAPACITY / Math.max(1, recipeContent);
                 int stored = amountIn(this.recipeStack, material.material());

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" S ", "PDP", "PDP"],
+  "key": {
+    "S": { "item": "reinhardtshbm:safety_fuse" },
+    "P": { "item": "minecraft:paper" },
+    "D": { "item": "reinhardtshbm:ball_dynamite" }
+  },
+  "result": { "id": "reinhardtshbm:stick_dynamite", "count": 4 }
+}

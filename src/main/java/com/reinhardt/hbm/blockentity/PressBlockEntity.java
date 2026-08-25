@@ -155,7 +155,9 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
                 this.worldPosition.north().immutable(),
                 this.worldPosition.east().immutable(),
                 this.worldPosition.south().immutable(),
-                this.worldPosition.west().immutable()
+                this.worldPosition.west().immutable(),
+                this.worldPosition.above().immutable(),
+                this.worldPosition.below().immutable()
         );
     }
 
@@ -169,7 +171,7 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         if (kind() != Kind.ELECTRIC || this.energyStored >= ELECTRIC_ENERGY_CAPACITY) {
             return 0L;
         }
-        return Math.min(Math.max(ELECTRIC_DEMAND_PER_TICK, currentElectricDemand()), ELECTRIC_ENERGY_CAPACITY - this.energyStored);
+        return ELECTRIC_ENERGY_CAPACITY - this.energyStored;
     }
 
     @Override
@@ -289,7 +291,9 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         return switch (slot) {
             case FIRE_FUEL_SLOT -> WoodBurnerBlockEntity.fuelDuration(stack) > 0;
             case STAMP_SLOT -> StampItem.isStamp(stack);
-            case INPUT_SLOT -> !StampItem.isRegisteredStamp(stack) && WoodBurnerBlockEntity.fuelDuration(stack) <= 0 && canAcceptInput(stack);
+            // TileEntityMachinePress accepted any non-fuel, non-stamp item in the
+            // input slot. Recipe matching controls operation, not storage.
+            case INPUT_SLOT -> !StampItem.isRegisteredStamp(stack) && WoodBurnerBlockEntity.fuelDuration(stack) <= 0;
             case OUTPUT_SLOT -> false;
             default -> slot >= FIRE_STORAGE_START && slot < FIRE_STORAGE_END;
         };
@@ -518,7 +522,9 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
                 int speedLevel = 1 + Math.min(3, upgradeLevel(MachineUpgradeItem.UpgradeType.SPEED));
                 double processSpeed = this.retracting ? 20.0D : 45.0D;
                 processSpeed *= 1.0D + speedLevel / 4.0D;
-                int step = Math.max(1, (int) Math.round(processSpeed));
+                // The legacy Java assignment truncated the upgraded movement
+                // step instead of rounding it.
+                int step = Math.max(1, (int) processSpeed);
 
                 if (this.retracting) {
                     this.progress -= step;
@@ -539,8 +545,6 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             } else {
                 this.delay--;
             }
-        } else if (this.progress > 0) {
-            this.retracting = true;
         }
 
         setLit(active || this.progress > 0);

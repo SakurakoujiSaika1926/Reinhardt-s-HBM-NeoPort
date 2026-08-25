@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" S ", "PDP", "PDP"],
+  "key": {
+    "S": { "item": "reinhardtshbm:det_cord" },
+    "P": { "item": "minecraft:paper" },
+    "D": { "item": "reinhardtshbm:ingot_semtex" }
+  },
+  "result": { "id": "reinhardtshbm:stick_semtex", "count": 4 }
+}

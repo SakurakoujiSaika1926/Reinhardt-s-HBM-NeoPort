@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.util;
 
 import com.reinhardt.hbm.item.ArmorModItem;
+import com.reinhardt.hbm.item.HealthArmorModItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -109,6 +110,24 @@ public final class ArmorModHandler {
             }
         }
         return slots;
+    }
+
+    /** Returns the old ItemModHealth bonuses installed in the extra slots. */
+    public static double healthBonus(Iterable<ItemStack> armor, HolderLookup.Provider registries) {
+        double result = 0.0D;
+        for (ItemStack stack : armor) {
+            CompoundTag root = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            CompoundTag mods = root.getCompound(MOD_COMPOUND_KEY);
+            CompoundTag saved = mods.getCompound(MOD_SLOT_KEY + EXTRA);
+            if (saved.isEmpty()) {
+                continue;
+            }
+            ItemStack mod = ItemStack.parseOptional(registries, saved);
+            if (mod.getItem() instanceof ArmorModItem armorMod) {
+                result += armorMod.extraHealth();
+            }
+        }
+        return result;
     }
 
     public static String slotTranslationKey(int slot) {

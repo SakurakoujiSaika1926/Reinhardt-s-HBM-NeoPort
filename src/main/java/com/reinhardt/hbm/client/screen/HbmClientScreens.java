@@ -64,6 +64,10 @@ public final class HbmClientScreens {
         event.register(HbmMenus.NUKE_BOY.get(), NukeBoyScreen::new);
         event.register(HbmMenus.SOYUZ_LAUNCHER.get(), SoyuzLauncherScreen::new);
         event.register(HbmMenus.SOYUZ_CAPSULE.get(), SoyuzCapsuleScreen::new);
+        event.register(HbmMenus.TOOLBOX.get(), ToolboxScreen::new);
+        event.register(HbmMenus.CRAFT_BOOK.get(), LegacyCraftBookScreen::new);
+        event.register(HbmMenus.HELD_INVENTORY.get(), LegacyHeldInventoryScreen::new);
+        event.register(HbmMenus.REBAR_PLACER.get(), RebarPlacerScreen::new);
         event.register(HbmMenus.WASTE_DRUM.get(), WasteDrumScreen::new);
         event.register(HbmMenus.PUREX.get(), PurexScreen::new);
         event.register(HbmMenus.ICF_PRESS.get(), IcfPressScreen::new);
@@ -103,6 +107,8 @@ public final class HbmClientScreens {
         event.register(HbmMenus.CRUCIBLE.get(), CrucibleScreen::new);
         event.register(HbmMenus.STRAND_CASTER.get(), StrandCasterScreen::new);
         event.register(HbmMenus.STORAGE_CRATE.get(), StorageCrateScreen::new);
+        event.register(HbmMenus.SAFE.get(), SafeScreen::new);
+        event.register(HbmMenus.MASS_STORAGE.get(), MassStorageScreen::new);
         event.register(HbmMenus.BATTERY_REDD.get(), BatteryReddScreen::new);
         event.register(HbmMenus.BATTERY_SOCKET.get(), BatterySocketScreen::new);
         event.register(HbmMenus.RADGEN.get(), RadGenScreen::new);
@@ -119,5 +125,9 @@ public final class HbmClientScreens {
         event.register(HbmMenus.RADIOLYSIS.get(), RadiolysisScreen::new);
         event.register(HbmMenus.RADAR.get(), RadarScreen::new);
         event.register(HbmMenus.RADAR_SLOTS.get(), RadarSlotsScreen::new);
+        event.register(HbmMenus.DRONE_CRATE.get(), DroneCrateScreen::new);
+        event.register(HbmMenus.DRONE_DOCK.get(), DroneGridScreen::new);
+        event.register(HbmMenus.DRONE_PROVIDER.get(), DroneGridScreen::new);
+        event.register(HbmMenus.DRONE_REQUESTER.get(), DroneRequesterScreen::new);
     }
 }

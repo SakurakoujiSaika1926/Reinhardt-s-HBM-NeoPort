@@ -17,6 +17,7 @@
     "results":  [
                     {
                         "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "count":  9,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "material_id":  1,
@@ -26,6 +27,7 @@
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_fragment",
+                        "count":  4,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "material_id":  8001,

@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/bobmazon_drop.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/bobmazon_drop.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/legacy/bobmazon",
+    "texture": "reinhardtshbm:models/legacy/bobmazon"
+  }
+}

@@ -144,6 +144,8 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.create(ReinhardtsHBM.MOD_ID, "storage_drum", StorageDrumJeiRecipe.class);
     public static final RecipeType<BoilingJeiRecipe> BOILING =
             RecipeType.create(ReinhardtsHBM.MOD_ID, "boiling", BoilingJeiRecipe.class);
+    public static final RecipeType<OreSlopperJeiRecipe> ORE_SLOPPER =
+            RecipeType.create(ReinhardtsHBM.MOD_ID, "ore_slopper", OreSlopperJeiRecipe.class);
     public static final RecipeType<RecipeHolder<PurexRecipe>> PUREX =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("purex"));
     public static final RecipeType<RecipeHolder<FusionRecipe>> FUSION =
@@ -178,6 +180,8 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("fraction_tower"));
     public static final RecipeType<RecipeHolder<CrackingRecipe>> CRACKING =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("cracking"));
+    public static final RecipeType<RadiolysisJeiRecipe> RADIOLYSIS =
+            RecipeType.create(ReinhardtsHBM.MOD_ID, "radiolysis", RadiolysisJeiRecipe.class);
     public static final RecipeType<RecipeHolder<ReformingRecipe>> REFORMING =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("reforming"));
     public static final RecipeType<RecipeHolder<HydrotreatingRecipe>> HYDROTREATING =
@@ -239,6 +243,7 @@ public class HbmJeiPlugin implements IModPlugin {
                 new FuelPoolRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new StorageDrumRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new BoilingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new OreSlopperRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new PurexRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new FusionRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new PlasmaForgeRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
@@ -256,6 +261,7 @@ public class HbmJeiPlugin implements IModPlugin {
                 new LiquefactionRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new FractionTowerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new CrackingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new RadiolysisRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new ReformingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new HydrotreatingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new BlastFurnaceRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
@@ -272,6 +278,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipes(ANVIL_SMITHING, HbmAnvilRecipes.smithing());
         registration.addRecipes(BOILING, BoilingJeiRecipe.createAll());
         registration.addRecipes(SAWMILL, SawmillJeiRecipe.createAll());
+        registration.addRecipes(ORE_SLOPPER, java.util.List.of(OreSlopperJeiRecipe.create()));
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
@@ -373,6 +380,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipes(FRACTION_TOWER, fractionTowerRecipes);
         List<RecipeHolder<CrackingRecipe>> crackingRecipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.CRACKING.get());
         registration.addRecipes(CRACKING, crackingRecipes);
+        registration.addRecipes(RADIOLYSIS, RadiolysisJeiRecipe.createAll(minecraft.level.getRecipeManager()));
         List<RecipeHolder<ReformingRecipe>> reformingRecipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.REFORMING.get());
         registration.addRecipes(REFORMING, reformingRecipes);
         List<RecipeHolder<HydrotreatingRecipe>> hydrotreatingRecipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.HYDROTREATING.get());
@@ -421,6 +429,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_ARC_WELDER.get(), ARC_WELDER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_COMPRESSOR.get(), COMPRESSOR);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_COMPRESSOR_COMPACT.get(), COMPRESSOR);
+        registration.addRecipeCatalyst(HbmBlocks.MACHINE_RADIOLYSIS.get(), RADIOLYSIS);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_MIXER.get(), MIXER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_AMMO_PRESS.get(), AMMO_PRESS);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_CRYSTALLIZER.get(), CRYSTALLIZER);
@@ -445,6 +454,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_STORAGE_DRUM.get(), STORAGE_DRUM);
         registration.addRecipeCatalyst(HbmBlocks.HEAT_BOILER.get(), BOILING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_INDUSTRIAL_BOILER.get(), BOILING);
+        registration.addRecipeCatalyst(HbmBlocks.MACHINE_ORE_SLOPPER.get(), ORE_SLOPPER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_PUREX.get(), PUREX);
         registration.addRecipeCatalyst(HbmBlocks.FUSION_TORUS.get(), FUSION);
         registration.addRecipeCatalyst(HbmBlocks.FUSION_PLASMA_FORGE.get(), PLASMA_FORGE);

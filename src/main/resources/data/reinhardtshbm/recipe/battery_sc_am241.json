@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "type": "neoforge:components", "items": ["reinhardtshbm:battery_sc"], "components": { "minecraft:custom_data": { "variant": "empty" }, "minecraft:custom_model_data": 0 } },
+    { "item": "reinhardtshbm:billet_am241" }, { "item": "reinhardtshbm:billet_am241" }
+  ],
+  "result": { "id": "reinhardtshbm:battery_sc", "components": { "minecraft:custom_data": { "variant": "am241" }, "minecraft:custom_model_data": 9 } }
+}

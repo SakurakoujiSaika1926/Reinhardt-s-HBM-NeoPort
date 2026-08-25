@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/ore_deepcleaned",
+    "layer1": "reinhardtshbm:item/ore_overlay"
+  }
+}

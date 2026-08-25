@@ -1,6 +1,12 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "reinhardtshbm:block/mass_storage_top_iron",
+    "up": "reinhardtshbm:block/mass_storage_top_iron",
+    "north": "reinhardtshbm:block/mass_storage_front_iron",
+    "south": "reinhardtshbm:block/mass_storage_side_iron",
+    "west": "reinhardtshbm:block/mass_storage_side_iron",
+    "east": "reinhardtshbm:block/mass_storage_side_iron",
+    "particle": "reinhardtshbm:block/mass_storage_side_iron"
+  }
 }

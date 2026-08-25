@@ -1,0 +1,5 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "reinhardtshbm:item/train.cargo_tram" },
+  "overrides": [ { "predicate": { "reinhardtshbm:train_variant": 1 }, "model": "reinhardtshbm:item/train_cargo_tram_trailer" } ]
+}

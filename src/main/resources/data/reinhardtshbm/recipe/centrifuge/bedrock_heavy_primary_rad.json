@@ -17,47 +17,47 @@
     "results":  [
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "primary_norad",
                                                                          "type":  "heavy"
                                                                      },
                                            "minecraft:custom_model_data":  61
-                                       }
+                                       },
+                        "count":  2
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "sulfuric_byproduct",
                                                                          "type":  "heavy"
                                                                      },
                                            "minecraft:custom_model_data":  85
-                                       }
+                                       },
+                        "count":  2
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "solvent_byproduct",
                                                                          "type":  "heavy"
                                                                      },
                                            "minecraft:custom_model_data":  109
-                                       }
+                                       },
+                        "count":  2
                     },
                     {
                         "id":  "reinhardtshbm:bedrock_ore_new",
-                        "count":  2,
                         "components":  {
                                            "minecraft:custom_data":  {
                                                                          "grade":  "rad_byproduct",
                                                                          "type":  "heavy"
                                                                      },
                                            "minecraft:custom_model_data":  133
-                                       }
+                                       },
+                        "count":  2
                     }
                 ]
 }

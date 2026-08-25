@@ -185,21 +185,19 @@ public class AssemblyFactoryMenu extends AbstractContainerMenu {
     }
 
     public HbmFluidDefinition tankFluid(int tank) {
-        return HbmFluids.byOldId(this.data.get(DATA_TANK_START + tank * 3)).orElse(HbmFluids.none());
+        return HbmFluids.byOldId(this.data.get(DATA_TANK_START + tank * 4)).orElse(HbmFluids.none());
     }
 
     public int tankAmount(int tank) {
-        return this.data.get(DATA_TANK_START + tank * 3 + 1);
+        return this.data.get(DATA_TANK_START + tank * 4 + 2);
     }
 
     public int tankPressure(int tank) {
-        return this.data.get(DATA_TANK_START + tank * 3 + 2);
+        return this.data.get(DATA_TANK_START + tank * 4 + 3);
     }
 
     public int tankCapacity(int tank) {
-        return tank < AssemblyFactoryBlockEntity.MODULE_COUNT * 2
-                ? AssemblyFactoryBlockEntity.RECIPE_TANK_CAPACITY
-                : AssemblyFactoryBlockEntity.COOLANT_TANK_CAPACITY;
+        return Math.max(1, this.data.get(DATA_TANK_START + tank * 4 + 1));
     }
 
     public Optional<RecipeHolder<AssemblyMachineRecipe>> selectedRecipe(int module) {

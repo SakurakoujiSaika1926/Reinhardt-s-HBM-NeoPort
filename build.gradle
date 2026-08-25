@@ -182,6 +182,41 @@ tasks.register('validateObjModels') {
             }
         }
 
+        def objMachineRenderer = file('src/main/java/com/reinhardt/hbm/client/render/ObjMachineItemRenderer.java')
+        def objMachineSource = objMachineRenderer.getText('UTF-8')
+        def objMachineItemIds = [] as Set
+        (objMachineSource =~ /add\(profiles,\s*"([a-z0-9_]+)"/).each { match ->
+            objMachineItemIds << match[1]
+        }
+        objMachineItemIds.each { itemId ->
+            def modelFile = new File(modelRoot, "item/${itemId}.json")
+            def visited = [] as Set
+            while (modelFile.isFile() && visited.add(modelFile.canonicalPath)) {
+                def model = parseJson(modelFile)
+                if (model.loader == 'neoforge:obj') {
+                    def objFile = resolveAssetFile(assetRoot, model.model as String)
+                    def mtlFile = resolveAssetFile(assetRoot, model.mtl_override as String)
+                    if (objFile == null || !objFile.isFile()) {
+                        problems << "OBJ machine item '${itemId}' references missing model '${model.model}'."
+                    }
+                    if (mtlFile == null || !mtlFile.isFile()) {
+                        problems << "OBJ machine item '${itemId}' references missing material '${model.mtl_override}'."
+                    }
+                    modelFile = null
+                    break
+                }
+                if (!(model.parent instanceof String) || !model.parent.startsWith("${project.mod_id}:")) {
+                    problems << "OBJ machine item '${itemId}' resolves to a non-OBJ model at ${project.relativePath(modelFile)}."
+                    modelFile = null
+                    break
+                }
+                modelFile = new File(modelRoot, "${model.parent.substring(project.mod_id.length() + 1)}.json")
+            }
+            if (modelFile != null) {
+                problems << "OBJ machine item '${itemId}' has a missing or cyclic model parent chain."
+            }
+        }
+
         assetRoot.eachFileRecurse { assetFile ->
             if (!assetFile.isFile()) {
                 return
@@ -1005,6 +1040,24 @@ tasks.register('validatePortRegressionFixes') {
              file('src/main/java/com/reinhardt/hbm/client/render/MicrowaveItemRenderer.java'),
              file('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineItemRenderer.java'),
              file('src/main/java/com/reinhardt/hbm/client/model/LegacyMachineItemModel.java'),
+             file('src/main/java/com/reinhardt/hbm/client/model/ObjItemAutoFitModel.java'),
+             file('src/main/java/com/reinhardt/hbm/client/render/LegacyRedPylonModel.java'),
+             file('src/main/java/com/reinhardt/hbm/client/render/PowerPylonBlockEntityRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/client/render/PowerPylonItemRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/client/render/LegacyTankItemRenderer.java'),
+             file('src/main/java/com/reinhardt/hbm/block/PowerPylonBlock.java'),
+             file('src/main/java/com/reinhardt/hbm/block/OilDerrickBlock.java'),
+             file('src/main/java/com/reinhardt/hbm/block/OilPumpjackBlock.java'),
+             file('src/main/java/com/reinhardt/hbm/block/LargeFluidTankBlock.java'),
+             file('src/main/java/com/reinhardt/hbm/block/BigAssTankBlock.java'),
+             file('src/main/java/com/reinhardt/hbm/blockentity/OilDerrickBlockEntity.java'),
+             file('src/main/java/com/reinhardt/hbm/blockentity/LargeFluidTankBlockEntity.java'),
+             file('src/main/java/com/reinhardt/hbm/blockentity/FluidTankBlockEntity.java'),
+             file('src/main/java/com/reinhardt/hbm/item/LegacyTankBlockItem.java'),
+             file('src/main/java/com/reinhardt/hbm/item/PowerPylonBlockItem.java'),
+             file('src/main/java/com/reinhardt/hbm/item/WiringRedCopperItem.java'),
+             file('src/main/java/com/reinhardt/hbm/registry/HbmCapabilities.java'),
+             file('src/main/resources/assets/reinhardtshbm/models/item/red_pylon.json'),
             file('src/main/java/com/reinhardt/hbm/client/render/MachineModelRenderer.java'),
             file('src/main/java/com/reinhardt/hbm/client/render/ConveyorPressBlockEntityRenderer.java'),
             file('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineBlockEntityRenderer.java'),
@@ -1039,6 +1092,24 @@ tasks.register('validatePortRegressionFixes') {
          def legacyMachineItemRenderer = source('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineItemRenderer.java')
          def legacyMachineRenderer = source('src/main/java/com/reinhardt/hbm/client/render/LegacyMachineBlockEntityRenderer.java')
          def legacyMachineItemModel = source('src/main/java/com/reinhardt/hbm/client/model/LegacyMachineItemModel.java')
+         def objItemAutoFitModel = source('src/main/java/com/reinhardt/hbm/client/model/ObjItemAutoFitModel.java')
+         def legacyRedPylonModel = source('src/main/java/com/reinhardt/hbm/client/render/LegacyRedPylonModel.java')
+         def powerPylonRenderer = source('src/main/java/com/reinhardt/hbm/client/render/PowerPylonBlockEntityRenderer.java')
+         def powerPylonItemRenderer = source('src/main/java/com/reinhardt/hbm/client/render/PowerPylonItemRenderer.java')
+         def legacyTankItemRenderer = source('src/main/java/com/reinhardt/hbm/client/render/LegacyTankItemRenderer.java')
+         def powerPylonBlock = source('src/main/java/com/reinhardt/hbm/block/PowerPylonBlock.java')
+         def oilDerrickBlock = source('src/main/java/com/reinhardt/hbm/block/OilDerrickBlock.java')
+         def oilPumpjackBlock = source('src/main/java/com/reinhardt/hbm/block/OilPumpjackBlock.java')
+         def largeFluidTankBlock = source('src/main/java/com/reinhardt/hbm/block/LargeFluidTankBlock.java')
+         def bigAssTankBlock = source('src/main/java/com/reinhardt/hbm/block/BigAssTankBlock.java')
+         def oilDerrick = source('src/main/java/com/reinhardt/hbm/blockentity/OilDerrickBlockEntity.java')
+         def largeFluidTank = source('src/main/java/com/reinhardt/hbm/blockentity/LargeFluidTankBlockEntity.java')
+         def fluidTank = source('src/main/java/com/reinhardt/hbm/blockentity/FluidTankBlockEntity.java')
+         def legacyTankBlockItem = source('src/main/java/com/reinhardt/hbm/item/LegacyTankBlockItem.java')
+         def powerPylonBlockItem = source('src/main/java/com/reinhardt/hbm/item/PowerPylonBlockItem.java')
+         def wiring = source('src/main/java/com/reinhardt/hbm/item/WiringRedCopperItem.java')
+         def capabilities = source('src/main/java/com/reinhardt/hbm/registry/HbmCapabilities.java')
+         def redPylonItemModel = source('src/main/resources/assets/reinhardtshbm/models/item/red_pylon.json')
          def compressorScreen = source('src/main/java/com/reinhardt/hbm/client/screen/CompressorScreen.java')
         def hydrotreater = source('src/main/java/com/reinhardt/hbm/client/screen/HydrotreaterScreen.java')
         def fluidTooltipRenderer = source('src/main/java/com/reinhardt/hbm/client/screen/HbmFluidTooltipRenderer.java')
@@ -1158,10 +1229,10 @@ tasks.register('validatePortRegressionFixes') {
              problems << 'FEnSU must expose the six external 1.7.10 power connectors and sample redstone only from their internal port proxies.'
          }
          def radarScreenItem = source('src/main/java/com/reinhardt/hbm/client/render/RadarScreenItemRenderer.java')
-         if (!radarScreenItem.contains('private static final float GUI_SCALE = 5.5F / 16.0F;')
-                 || !radarScreenItem.contains('poseStack.translate(0.0D, -3.0D / 16.0D, -0.5D / 16.0D);')
+         if (!radarScreenItem.contains('poseStack.translate(0.0D, -3.0D / 16.0D, -0.5D / 16.0D);')
+                || !radarScreenItem.contains('poseStack.scale(5.5F, 5.5F, 5.5F);')
                  || !radarScreenItem.contains('RadarScreenBlockEntityRenderer.renderAssembly(')) {
-             problems << 'Radar screen item must retain the verified 1.7.10 inventory translations in normalized item units.'
+             problems << 'Radar screen item must retain the normalized 1.7.10 inventory transform order.'
          }
          if (!legacyMachineRenderer.contains('case "machine_autosaw"')
                  || !source('src/main/java/com/reinhardt/hbm/blockentity/LegacyMachineProfile.java').contains('entry("machine_autosaw", 0, 0, 0L, 0L, 1, false, tanks(100), indices(0), indices(), false)')) {
@@ -1181,6 +1252,79 @@ tasks.register('validatePortRegressionFixes') {
             if (!zhCn.contains("\"${key}\"") || !enUs.contains("\"${key}\"")) {
                 problems << "Missing required microwave, hydrotreater, or arc furnace menu localization key ${key}."
             }
+        }
+
+        def dedicatedBewlrItems = [
+                'pump_steam', 'pump_electric', 'machine_bat9000', 'machine_bigasstank', 'deco_toaster',
+                'red_connector', 'connector_red_super', 'red_pylon_medium_wood',
+                'red_pylon_medium_transformer', 'red_pylon_steel', 'red_pylon_steel_transformer',
+                'red_pylon_large', 'substation'
+        ]
+        dedicatedBewlrItems.each { id ->
+            if (!legacyMachineItemModel.contains("\"${id}\"")
+                    || !objItemAutoFitModel.contains("\"${id}\"")) {
+                problems << "Dedicated BEWLR item ${id} must be custom-rendered and excluded from generic OBJ auto-fit."
+            }
+        }
+        if (!powerPylonBlock.contains('return RenderShape.ENTITYBLOCK_ANIMATED;')
+                || !powerPylonBlock.contains('context.getHorizontalDirection().getOpposite()')
+                || !wiring.contains('public InteractionResult onItemUseFirst(')) {
+            problems << 'Power pylons must render only through their BER, retain 1.7.10 placement metadata, and let the cable drum interact before the block.'
+        }
+        [
+                'texOffs(0, 96)', '16.0F, 16.0F, 16.0F',
+                'texOffs(1, 1)', '4.0F, 73.0F, 4.0F',
+                'texOffs(24, 1)', '6.0F, 4.0F, 6.0F',
+                'texOffs(25, 17)', '6.0F, 2.0F, 6.0F',
+                'LayerDefinition.create(mesh, 64, 128)'
+        ].each { required ->
+            if (!legacyRedPylonModel.contains(required)) {
+                problems << "Ordinary red pylon is missing exact 1.7.10 ModelPylon geometry/UV contract '${required}'."
+            }
+        }
+        if (!clientRenderers.contains('LegacyRedPylonModel.LAYER, LegacyRedPylonModel::createLayer')
+                || !powerPylonRenderer.contains('poseStack.translate(0.5F, 0.625F, 0.5F);')
+                || !powerPylonRenderer.contains('Axis.ZP.rotationDegrees(180.0F)')
+                || !powerPylonBlockItem.contains('this.kind == PowerPylonBlock.Kind.RED_PYLON')
+                || !redPylonItemModel.contains('"parent": "minecraft:item/generated"')
+                || !redPylonItemModel.contains('"layer0": "reinhardtshbm:block/red_pylon"')
+                || legacyMachineItemModel.contains('"red_pylon"')
+                || objItemAutoFitModel.contains('|| path.equals("red_pylon")')) {
+            problems << 'Ordinary red pylon must use exact legacy ModelPylon world rendering and the original 1.7.10 flat inventory icon.'
+        }
+        if (!powerPylonItemRenderer.contains('renderCommon() runs after renderInventory() for GUI items too.')
+                || !powerPylonItemRenderer.contains('renderCommonWithStack runs after renderInventory() for GUI items too.')) {
+            problems << 'Pylon item renderers must apply the 1.7.10 common transform after the GUI inventory transform.'
+        }
+
+        def oilFluidRegistrations = (capabilities =~ /Capabilities\.FluidHandler\.BLOCK,\s*HbmBlockEntities\.OIL_DERRICK\.get\(\)/).findAll().size()
+        if (oilFluidRegistrations != 1
+                || !oilDerrick.contains('return this.pos.relative(this.face.getOpposite()).immutable();')
+                || oilDerrick.contains('public BlockPos connectorPos()')
+                || !oilDerrick.contains('new Port(offset(pos, rot, 4, dir, 2), dir)')
+                || !oilDerrick.contains('new Port(offset(pos, rot, 4, dir, -2), dir.getOpposite())')
+                || !oilDerrickBlock.contains('refreshConnector(level, port.accessPos());')
+                || !oilPumpjackBlock.contains('refreshConnector(level, port.accessPos());')) {
+            problems << 'Oil derrick/pumpjack must expose one fluid capability registration and keep external pipe positions separate from internal dummy access positions.'
+        }
+        if (!oilDerrick.contains('OilDerrickBlock.FOOTPRINT')
+                || !oilDerrick.contains('OilPumpjackBlock.FOOTPRINT')
+                || !oilDerrick.contains('LegacyMachineGeometry.rotate(')) {
+            problems << 'Oil derrick menus must validate player distance against the complete rotated 1.7.10 footprint.'
+        }
+
+        if (!legacyTankBlockItem.contains('tank.placeFromLegacyAnchor(context)')
+                || !largeFluidTankBlock.contains('LEGACY_CORE_OFFSET = 6')
+                || !largeFluidTankBlock.contains('occupiedPositions(corePos, facing)')
+                || !largeFluidTank.contains('LargeFluidTankBlock.occupiedPositions(this.worldPosition, facing)')) {
+            problems << 'The active Big-Ass Tank must place from the 1.7.10 offset-6 anchor and keep its full footprint valid for GUI interaction.'
+        }
+        if (!largeFluidTankBlock.contains('tank.dropInventoryContentsOnly(level, pos);')
+                || !bigAssTankBlock.contains('tank.dropInventoryContentsOnly(level, pos);')
+                || !fluidTank.contains('public void dropInventoryContentsOnly(')
+                || !legacyTankItemRenderer.contains('if (this.kind == Kind.BIG_ASS_TANK)')
+                || !legacyTankItemRenderer.contains('poseStack.scale(0.5F, 0.5F, 0.5F);')) {
+            problems << 'Persistent giant tanks must retain fluid in their dropped item, drop only inventory slots, and keep the 1.7.10 Big-Ass Tank item scale.'
         }
 
         if (!problems.isEmpty()) {
@@ -1394,7 +1538,7 @@ tasks.register('validatePowerParity') {
                 'private static final double FLYWHEEL_MAX_ENERGY = 50_000_000.0D;',
                 'private long maxPower;',
                 'private long flywheelEnergy;',
-                'this.flywheelEnergy += (long) (ops * step.heatEnergy() * step.turbineEfficiency() * EFFICIENCY);',
+                'this.flywheelEnergy += (long) (ops * step.heatEnergy() * step.turbineEfficiency() * efficiency);',
                 'this.spin = this.flywheelEnergy / FLYWHEEL_MAX_ENERGY;',
                 'this.lastPowerTarget = Math.min((long) (Math.max(this.spin, 0.05D) * this.maxPower), this.flywheelEnergy);',
                 'this.flywheelEnergy -= this.lastPowerTarget;',
@@ -1494,7 +1638,10 @@ tasks.named('build') {
     dependsOn tasks.named('validatePortRegressionFixes')
     dependsOn tasks.named('validateThermalParity')
     dependsOn tasks.named('validatePowerParity')
-    finalizedBy tasks.named('deployClientMod')
+    // Deployment is opt-in so validation cannot replace a running client's jar.
+    if (findProperty('deploy_client_mod') == 'true') {
+        finalizedBy tasks.named('deployClientMod')
+    }
 }
 
 idea {

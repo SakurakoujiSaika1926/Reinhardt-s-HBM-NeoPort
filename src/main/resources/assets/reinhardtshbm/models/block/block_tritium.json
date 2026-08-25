@@ -1,6 +1,7 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "side": "reinhardtshbm:block/block_tritium_side",
+    "end": "reinhardtshbm:block/block_tritium_top"
+  }
 }

@@ -18,7 +18,7 @@ public class GasMaskFilterItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack filter = player.getItemInHand(hand);
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
-        if (!(helmet.getItem() instanceof GasMaskItem)) {
+        if (!(helmet.getItem() instanceof FilterableGasMask)) {
             return InteractionResultHolder.pass(filter);
         }
 

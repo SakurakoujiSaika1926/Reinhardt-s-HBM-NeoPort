@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "type": "neoforge:components", "items": ["reinhardtshbm:battery_sc"], "components": { "minecraft:custom_data": { "variant": "empty" }, "minecraft:custom_model_data": 0 } },
+    { "item": "reinhardtshbm:billet_technetium" }, { "item": "reinhardtshbm:billet_technetium" }
+  ],
+  "result": { "id": "reinhardtshbm:battery_sc", "components": { "minecraft:custom_data": { "variant": "tc99" }, "minecraft:custom_model_data": 3 } }
+}

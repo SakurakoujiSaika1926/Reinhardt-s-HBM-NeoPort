@@ -6,6 +6,7 @@ import com.reinhardt.hbm.fluid.CombustibleFuelGrade;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.BatteryPackItem;
+import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.menu.DieselGeneratorMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
@@ -51,7 +52,9 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
     public static final int SLOT_BATTERY = 2;
-    public static final int SLOT_COUNT = 3;
+    public static final int SLOT_IDENTIFIER_INPUT = 3;
+    public static final int SLOT_IDENTIFIER_OUTPUT = 4;
+    public static final int SLOT_COUNT = 5;
     public static final int DATA_COUNT = 7;
     private static final int SMOKE_BUFFER_CAPACITY = 100;
     private static final int[] TOP_SLOTS = {SLOT_INPUT};
@@ -131,8 +134,12 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
         if (!acceptsFuel(fluid)) {
             return 0L;
         }
-        double efficiency = FUEL_EFFICIENCY.getOrDefault(fluid.combustibleFuelGrade(), 0.0D);
+        double efficiency = fuelEfficiency(fluid.combustibleFuelGrade());
         return (long) (fluid.combustibleHeatEnergy() / 1000.0D * efficiency);
+    }
+
+    public static double fuelEfficiency(CombustibleFuelGrade grade) {
+        return FUEL_EFFICIENCY.getOrDefault(grade, 0.0D);
     }
 
     public HbmFluidTank fuelTank() {
@@ -153,6 +160,10 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
 
     public long hePerTick() {
         return heFromFuel(this.fuelTank.type());
+    }
+
+    public boolean hasAcceptableFuel() {
+        return acceptsFuel(this.fuelTank.type());
     }
 
     @Nullable
@@ -267,6 +278,7 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
         return switch (slot) {
             case SLOT_INPUT -> canDrainIntoFuel(stack);
             case SLOT_BATTERY -> isBattery(stack);
+            case SLOT_IDENTIFIER_INPUT -> stack.getItem() instanceof FluidIdentifierItem;
             default -> false;
         };
     }
@@ -377,7 +389,8 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
     }
 
     private void tickServer(Level level) {
-        boolean changed = transferFluidInput();
+        boolean changed = applyFluidIdentifierSlot();
+        changed |= transferFluidInput();
         this.powerCap = this.fuelTank.type().name().equals("nitan") ? BASE_MAX_POWER * 10L : BASE_MAX_POWER;
         this.power = BatteryPackItem.chargeFromMachine(this.items.get(SLOT_BATTERY), this.power);
         this.running = false;
@@ -387,6 +400,11 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
             this.running = true;
             HbmFluidDefinition burnedFuel = this.fuelTank.type();
             this.fuelTank.drain(this.fuelTank.type(), 1, false);
+            // The legacy FluidTank retains its configured type when it reaches
+            // zero, so the generator never switches fuel types implicitly.
+            if (this.fuelTank.amount() == 0) {
+                this.fuelTank.setType(burnedFuel);
+            }
             if (level.getGameTime() % 5L == 0L) {
                 HbmPollution.bufferedLegacyPolluteFluid(level, this.worldPosition, burnedFuel, HbmPollution.ReleaseType.BURN, 5.0D, this::smokeTank);
             }
@@ -417,6 +435,25 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
             this.items.set(SLOT_INPUT, ItemStack.EMPTY);
         }
         return moved;
+    }
+
+    /**
+     * Mirrors FluidTank#setType(3, 4, slots) from 1.7.10: changing the
+     * selected fuel clears the tank and moves the identifier to its output.
+     */
+    private boolean applyFluidIdentifierSlot() {
+        ItemStack identifier = this.items.get(SLOT_IDENTIFIER_INPUT);
+        if (!(identifier.getItem() instanceof FluidIdentifierItem)) {
+            return false;
+        }
+        HbmFluidDefinition selected = FluidIdentifierItem.primary(identifier);
+        if (this.fuelTank.type() == selected || !this.items.get(SLOT_IDENTIFIER_OUTPUT).isEmpty()) {
+            return false;
+        }
+        this.fuelTank.setType(selected);
+        this.items.set(SLOT_IDENTIFIER_OUTPUT, identifier.copy());
+        this.items.set(SLOT_IDENTIFIER_INPUT, ItemStack.EMPTY);
+        return true;
     }
 
     private boolean canDrainIntoFuel(ItemStack stack) {

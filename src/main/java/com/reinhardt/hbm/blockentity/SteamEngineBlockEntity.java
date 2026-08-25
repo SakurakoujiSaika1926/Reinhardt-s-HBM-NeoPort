@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -33,14 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SteamEngineBlockEntity extends BlockEntity implements PowerEndpoint {
-    public static final int STEAM_CAPACITY = 2_000;
-    public static final int SPENT_STEAM_CAPACITY = 20;
-    private static final double EFFICIENCY = 0.85D;
-    private static final int MAX_PULL_PER_PORT = 2_000;
-    private static final int MAX_PUSH_PER_PORT = 2_000;
-
-    private final HbmFluidTank inputTank = new HbmFluidTank(steam(), STEAM_CAPACITY);
-    private final HbmFluidTank outputTank = new HbmFluidTank(spentSteam(), SPENT_STEAM_CAPACITY);
+    private final HbmFluidTank inputTank;
+    private final HbmFluidTank outputTank;
     private long powerBuffer;
     private long lastOutput;
     private boolean active;
@@ -50,6 +45,8 @@ public class SteamEngineBlockEntity extends BlockEntity implements PowerEndpoint
 
     public SteamEngineBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.STEAM_ENGINE.get(), pos, blockState);
+        this.inputTank = new HbmFluidTank(steam(), HbmConfig.STEAM_ENGINE_STEAM_CAPACITY.get());
+        this.outputTank = new HbmFluidTank(spentSteam(), HbmConfig.STEAM_ENGINE_SPENT_STEAM_CAPACITY.get());
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SteamEngineBlockEntity engine) {
@@ -200,17 +197,14 @@ public class SteamEngineBlockEntity extends BlockEntity implements PowerEndpoint
 
     private void tickServer(Level level) {
         ensureTankTypes();
-        boolean oldActive = this.active;
-
         tryConvert(level);
         pullInput(level);
         sendOutput(level);
         PowerNetworkManager.tickFromEndpoint(level, this);
 
         setChanged();
-        if (oldActive != this.active || level.getGameTime() % 10L == 0L) {
-            sync();
-        }
+        // TileEntitySteamEngine sent power, rotor and tank state every tick.
+        sync();
     }
 
     private void tickClient() {
@@ -236,7 +230,8 @@ public class SteamEngineBlockEntity extends BlockEntity implements PowerEndpoint
 
             this.inputTank.drain(step.input(), ops * step.amountReq(), false);
             this.outputTank.fill(step.output(), ops * step.amountProduced(), false);
-            this.powerBuffer = (long) (ops * step.heatEnergy() * step.turbineEfficiency() * EFFICIENCY);
+            this.powerBuffer = (long) (ops * step.heatEnergy() * step.turbineEfficiency()
+                    * HbmConfig.STEAM_ENGINE_EFFICIENCY.get());
             this.active = true;
         });
 
@@ -279,7 +274,7 @@ public class SteamEngineBlockEntity extends BlockEntity implements PowerEndpoint
                     port.connectorPos(),
                     port.face().getOpposite(),
                     steam(),
-                    Math.min(MAX_PULL_PER_PORT, space),
+                    space,
                     this.worldPosition,
                     true
             );
@@ -298,8 +293,7 @@ public class SteamEngineBlockEntity extends BlockEntity implements PowerEndpoint
             if (this.outputTank.amount() <= 0) {
                 break;
             }
-            int amount = Math.min(MAX_PUSH_PER_PORT, this.outputTank.amount());
-            FluidStack stack = HbmFluids.toNeoStack(this.outputTank.type(), amount);
+            FluidStack stack = HbmFluids.toNeoStack(this.outputTank.type(), this.outputTank.amount());
             int accepted = HbmFluidNetworks.fillInto(
                     level,
                     port.connectorPos(),

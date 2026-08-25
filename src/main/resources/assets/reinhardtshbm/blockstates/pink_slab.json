@@ -1,7 +1,7 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/pink_slab"
-                          }
-                 }
+{
+  "variants": {
+    "type=bottom": { "model": "reinhardtshbm:block/pink_slab" },
+    "type=top": { "model": "reinhardtshbm:block/pink_slab_top" },
+    "type=double": { "model": "reinhardtshbm:block/pink_double_slab" }
+  }
 }

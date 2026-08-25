@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.client.sound.BoilerClientSounds;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -8,6 +9,7 @@ import com.reinhardt.hbm.fluid.HbmThermalConversions;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.util.FluidCopiable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.sounds.SoundSource;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +64,7 @@ public class HeatBoilerBlockEntity extends BlockEntity implements FluidCopiable 
 
     public static void tick(Level level, BlockPos pos, BlockState state, HeatBoilerBlockEntity boiler) {
         if (level.isClientSide) {
+            BoilerClientSounds.tick(boiler);
             return;
         }
         if (boiler.exploded) {
@@ -72,7 +76,7 @@ public class HeatBoilerBlockEntity extends BlockEntity implements FluidCopiable 
         }
         boiler.setupTanks();
         boiler.pullHeatFromBelow(level);
-        boiler.tryConvert();
+        boiler.tryConvert(level);
         boiler.sendOutput(level, state);
         boiler.setChanged();
         if (level.getGameTime() % 10L == 0L) {
@@ -203,9 +207,6 @@ public class HeatBoilerBlockEntity extends BlockEntity implements FluidCopiable 
     }
 
     private void pullHeatFromBelow(Level level) {
-        if (this.heat >= maxHeat()) {
-            return;
-        }
         HeatSourceBlockEntity source = heatSourceBelow(level);
         if (source == null) {
             coolPassively();
@@ -213,12 +214,19 @@ public class HeatBoilerBlockEntity extends BlockEntity implements FluidCopiable 
         }
 
         int diff = source.getHeatStored() - this.heat;
-        if (diff <= 0) {
+        if (diff == 0) {
             return;
         }
-        int pulled = (int) Math.ceil(diff * diffusion());
-        source.useHeat(pulled);
-        this.heat = Math.min(maxHeat(), this.heat + pulled);
+        if (diff > 0) {
+            int pulled = (int) Math.ceil(diff * diffusion());
+            pulled = Math.min(pulled, maxHeat() - this.heat);
+            if (pulled > 0) {
+                source.useHeat(pulled);
+                this.heat = Math.min(maxHeat(), this.heat + pulled);
+            }
+            return;
+        }
+        coolPassively();
     }
 
     @Nullable
@@ -240,7 +248,7 @@ public class HeatBoilerBlockEntity extends BlockEntity implements FluidCopiable 
         }
     }
 
-    private void tryConvert() {
+    private void tryConvert(Level level) {
         this.active = false;
         HbmThermalConversions.firstBoilerStep(this.configuredInput).ifPresent(step -> {
             int heatReq = (int) Math.max(step.heatReq() / step.boilerEfficiency(), 1.0D);
@@ -261,6 +269,18 @@ public class HeatBoilerBlockEntity extends BlockEntity implements FluidCopiable 
             this.outputTank.fill(step.output(), step.amountProduced() * ops, false);
             this.heat -= heatReq * ops;
             this.active = true;
+            if (level.random.nextInt(400) == 0) {
+                level.playSound(
+                        null,
+                        this.worldPosition.getX() + 0.5D,
+                        this.worldPosition.getY() + 2.0D,
+                        this.worldPosition.getZ() + 0.5D,
+                        HbmSoundEvents.BOILER_GROAN.get(),
+                        SoundSource.BLOCKS,
+                        0.5F,
+                        1.0F
+                );
+            }
         });
     }
 

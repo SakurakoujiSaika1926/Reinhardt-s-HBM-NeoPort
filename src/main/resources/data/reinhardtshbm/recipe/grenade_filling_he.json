@@ -1,0 +1,27 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "F",
+                    "I",
+                    "F"
+                ],
+    "key":  {
+                "F":  {
+                          "item":  "reinhardtshbm:ball_dynamite"
+                      },
+                "I":  {
+                          "item":  "reinhardtshbm:plate_polymer"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_filling",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "he"
+                                                                },
+                                      "minecraft:custom_model_data":  1
+                                  },
+                   "count":  4
+               }
+}

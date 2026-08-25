@@ -43,10 +43,6 @@ public final class MicrowaveScreen extends AbstractContainerScreen<MicrowaveMenu
             guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
                     "tooltip.reinhardtshbm.energy", this.menu.energy(), MicrowaveBlockEntity.MAX_POWER)), mouseX, mouseY);
         }
-        if (isHovering(104, 34, 22, 16, mouseX, mouseY)) {
-            guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
-                    "tooltip.reinhardtshbm.progress", this.menu.progress(), MicrowaveBlockEntity.MAX_TIME)), mouseX, mouseY);
-        }
     }
 
     @Override

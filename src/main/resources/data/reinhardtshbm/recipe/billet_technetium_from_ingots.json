@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["##"],
+  "key": { "#": { "tag": "c:ingots/technetium" } },
+  "result": { "id": "reinhardtshbm:billet_technetium", "count": 3 }
+}

@@ -133,6 +133,8 @@ public record ArcFurnaceRecipe(
                         || path.startsWith("ingots/")
                         || path.equals("ores")
                         || path.startsWith("ores/")
+                        || path.equals("raw_materials")
+                        || path.startsWith("raw_materials/")
                         || path.equals("plates")
                         || path.startsWith("plates/"));
     }

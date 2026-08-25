@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
+                     "layer0":  "reinhardtshbm:item/toolbox"
                  },
     "parent":  "minecraft:item/generated"
 }

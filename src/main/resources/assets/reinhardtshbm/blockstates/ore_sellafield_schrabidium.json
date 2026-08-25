@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/ore_sellafield_schrabidium"
-                          }
-                 }
+  "variants": {
+    "": [
+      { "model": "reinhardtshbm:block/ore_sellafield_schrabidium_0" },
+      { "model": "reinhardtshbm:block/ore_sellafield_schrabidium_1" },
+      { "model": "reinhardtshbm:block/ore_sellafield_schrabidium_2" },
+      { "model": "reinhardtshbm:block/ore_sellafield_schrabidium_3" }
+    ]
+  }
 }

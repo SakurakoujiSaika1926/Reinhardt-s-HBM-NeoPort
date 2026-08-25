@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["PGP", "L L", "PGP"],
+  "key": {
+    "P": { "tag": "c:ingots/plastic" },
+    "G": { "type": "neoforge:components", "items": ["reinhardtshbm:wire_fine"], "components": { "minecraft:custom_data": { "material_id": 7900, "material": "gold" } } },
+    "L": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 8200, "material": "lead" } } }
+  },
+  "result": { "id": "reinhardtshbm:battery_sc", "components": { "minecraft:custom_data": { "variant": "empty" }, "minecraft:custom_model_data": 0 } }
+}

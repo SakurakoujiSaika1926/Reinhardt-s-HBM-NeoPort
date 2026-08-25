@@ -1,0 +1,1 @@
+{ "parent": "minecraft:item/generated", "textures": { "layer0": "reinhardtshbm:item/cart.steel", "layer1": "reinhardtshbm:item/cart_overlay.semtex" } }

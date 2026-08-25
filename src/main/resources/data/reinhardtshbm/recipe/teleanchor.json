@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ODO",
+    "EAE",
+    "ODO"
+  ],
+  "key": {
+    "O": { "item": "minecraft:obsidian" },
+    "D": { "item": "minecraft:diamond" },
+    "E": { "item": "reinhardtshbm:powder_magic" },
+    "A": { "item": "reinhardtshbm:gem_alexandrite" }
+  },
+  "result": { "id": "reinhardtshbm:teleanchor" }
+}

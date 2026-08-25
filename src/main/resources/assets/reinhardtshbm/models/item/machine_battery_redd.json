@@ -1,3 +1,17 @@
 {
-    "parent":  "reinhardtshbm:block/machine_battery_redd"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/fensu2_base.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/fensu2.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/fensu2"
+  },
+  "visibility": {
+    "Base": true,
+    "Wheel": false,
+    "Lights": false,
+    "Plasma": false
+  }
 }

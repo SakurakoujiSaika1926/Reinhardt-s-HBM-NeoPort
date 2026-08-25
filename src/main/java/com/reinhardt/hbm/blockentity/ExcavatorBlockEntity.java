@@ -595,10 +595,6 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
         if (stack.is(HbmItems.BEDROCK_ORE_BASE.get())) {
             BedrockOreBaseItem.setOreAmount(stack, pos.getX(), pos.getZ(), 1.0D + drill.fortune() * 0.1D);
         }
-        int bonus = Math.max(1, (int) Math.floor(1.0D + drill.fortune() * 0.1D));
-        if (!stack.is(HbmItems.BEDROCK_ORE_BASE.get())) {
-            stack.setCount(Math.min(stack.getMaxStackSize(), stack.getCount() * bonus));
-        }
         insertOrBuffer(stack);
     }
 

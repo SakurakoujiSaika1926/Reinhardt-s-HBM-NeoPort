@@ -1,7 +1,8 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/mass_storage_iron"
-                          }
-                 }
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/mass_storage_iron" },
+    "facing=east": { "model": "reinhardtshbm:block/mass_storage_iron", "y": 90 },
+    "facing=south": { "model": "reinhardtshbm:block/mass_storage_iron", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/mass_storage_iron", "y": 270 }
+  }
 }

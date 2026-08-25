@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.StirlingGeneratorBlockEntity;
+import com.reinhardt.hbm.item.StirlingGeneratorBlockItem;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,7 +22,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
+
+import java.util.List;
 
 public class StirlingGeneratorBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -47,7 +51,21 @@ public class StirlingGeneratorBlock extends Block implements EntityBlock {
         if (!level.isClientSide) {
             LargeMachineBlock.placeDummies(level, pos, state.getValue(FACING), FOOTPRINT);
             LargeMachineBlock.pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), FOOTPRINT, placer);
+            if (level.getBlockEntity(pos) instanceof StirlingGeneratorBlockEntity stirling) {
+                stirling.setHasCog(StirlingGeneratorBlockItem.hasCog(stack));
+            }
         }
+    }
+
+    @Override
+    public List<net.minecraft.world.item.ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        if (params.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY)
+                instanceof StirlingGeneratorBlockEntity stirling && !stirling.hasCog()) {
+            net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(this);
+            StirlingGeneratorBlockItem.setHasCog(stack, false);
+            return List.of(stack);
+        }
+        return super.getDrops(state, params);
     }
 
     @Override

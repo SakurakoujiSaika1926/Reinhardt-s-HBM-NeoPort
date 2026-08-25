@@ -24,6 +24,7 @@ public class BatterySocketBlockEntityRenderer implements BlockEntityRenderer<Bat
     private static final ModelResourceLocation BATTERY_LITHIUM = MachineModelRenderer.standalone("block/machine_battery_socket_battery_lithium");
     private static final ModelResourceLocation BATTERY_SODIUM = MachineModelRenderer.standalone("block/machine_battery_socket_battery_sodium");
     private static final ModelResourceLocation BATTERY_SCHRABIDIUM = MachineModelRenderer.standalone("block/machine_battery_socket_battery_schrabidium");
+    private static final ModelResourceLocation BATTERY_SC = MachineModelRenderer.standalone("block/machine_battery_socket_battery_sc");
     private static final ModelResourceLocation BATTERY_QUANTUM = MachineModelRenderer.standalone("block/machine_battery_socket_battery_quantum");
     private static final ModelResourceLocation CAPACITOR_COPPER = MachineModelRenderer.standalone("block/machine_battery_socket_capacitor_copper");
     private static final ModelResourceLocation CAPACITOR_GOLD = MachineModelRenderer.standalone("block/machine_battery_socket_capacitor_gold");
@@ -37,6 +38,7 @@ public class BatterySocketBlockEntityRenderer implements BlockEntityRenderer<Bat
             Map.entry("battery_lithium", BATTERY_LITHIUM),
             Map.entry("battery_sodium", BATTERY_SODIUM),
             Map.entry("battery_schrabidium", BATTERY_SCHRABIDIUM),
+            Map.entry("battery_sc", BATTERY_SC),
             Map.entry("battery_quantum", BATTERY_QUANTUM),
             Map.entry("battery_creative", BATTERY_QUANTUM),
             Map.entry("capacitor_copper", CAPACITOR_COPPER),

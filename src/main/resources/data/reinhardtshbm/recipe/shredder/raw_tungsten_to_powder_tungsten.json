@@ -3,7 +3,6 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_tungsten"
                    },
-    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_tungsten",
                    "count":  3

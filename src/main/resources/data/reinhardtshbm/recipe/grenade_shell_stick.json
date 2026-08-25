@@ -1,0 +1,48 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "S",
+                    "B",
+                    "W"
+                ],
+    "key":  {
+                "S":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:shell"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  30,
+                                                                           "material":  "steel"
+                                                                       }
+                                         }
+                      },
+                "B":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:bolt"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  30,
+                                                                           "material":  "steel"
+                                                                       }
+                                         }
+                      },
+                "W":  {
+                          "tag":  "minecraft:planks"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_shell",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "stick"
+                                                                },
+                                      "minecraft:custom_model_data":  1
+                                  },
+                   "count":  4
+               }
+}

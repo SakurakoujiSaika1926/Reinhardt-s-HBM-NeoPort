@@ -1,7 +1,19 @@
 ﻿{
     "variants":  {
-                     "":  {
+                     "facing=north":  {
                               "model":  "reinhardtshbm:block/book_guide"
+                          },
+                     "facing=east":  {
+                              "model":  "reinhardtshbm:block/book_guide",
+                              "y":  90
+                          },
+                     "facing=south":  {
+                              "model":  "reinhardtshbm:block/book_guide",
+                              "y":  180
+                          },
+                     "facing=west":  {
+                              "model":  "reinhardtshbm:block/book_guide",
+                              "y":  270
                           }
                  }
 }

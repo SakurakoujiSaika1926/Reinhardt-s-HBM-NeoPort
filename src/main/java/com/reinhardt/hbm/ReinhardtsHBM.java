@@ -1,6 +1,8 @@
 package com.reinhardt.hbm;
 
 import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.config.HbmClientConfig;
+import com.reinhardt.hbm.item.LegacyItemComponents;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmArmorMaterials;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -38,6 +40,7 @@ public class ReinhardtsHBM {
         modEventBus.addListener(HbmNetwork::register);
         modEventBus.addListener(HbmChunkTickets::register);
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, HbmConfig.SPEC);
+        ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.CLIENT, HbmClientConfig.SPEC);
 
         HbmFluids.bootstrap();
         LegacyHbmContent.bootstrap();
@@ -52,6 +55,7 @@ public class ReinhardtsHBM {
         HbmEntityTypes.register(modEventBus);
         HbmMobEffects.register(modEventBus);
         HbmRecipeTypes.register(modEventBus);
+        LegacyItemComponents.register(modEventBus);
         HbmConditionSerializers.register(modEventBus);
         HbmSoundEvents.register(modEventBus);
         HbmWorldgenFeatures.register(modEventBus);

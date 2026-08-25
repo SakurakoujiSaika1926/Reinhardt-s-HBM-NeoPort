@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.BigAssTankBlockEntity;
-import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -163,8 +162,8 @@ public class BigAssTankBlock extends LargeMachineBlock implements EntityBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !RELOCATING.get()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof MachineInventory inventory) {
-                inventory.dropContents(level, pos);
+            if (blockEntity instanceof BigAssTankBlockEntity tank) {
+                tank.dropInventoryContentsOnly(level, pos);
             }
             level.invalidateCapabilities(pos);
             LargeMachineBlock.removeDummies(level, pos, state.getValue(FACING), machineFootprint(), RotationBasis.HBM_LEGACY_SOUTH);

@@ -1,0 +1,8 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/cart.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/cart.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:entity/cart", "texture": "reinhardtshbm:entity/cart" }
+}

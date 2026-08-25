@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.StirlingGeneratorBlock;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.entity.CogEntity;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.power.PowerEndpoint;
@@ -31,12 +32,6 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEndpoint {
-    private static final double DIFFUSION = 0.1D;
-    private static final double EFFICIENCY = 0.5D;
-    private static final int MAX_HEAT_NORMAL = 300;
-    private static final int MAX_HEAT_STEEL = 1_500;
-    private static final int OVERSPEED_LIMIT = 300;
-
     private long powerBuffer;
     private long lastOutput;
     private long visualOutput;
@@ -112,6 +107,15 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
 
     public boolean hasCog() {
         return this.hasCog;
+    }
+
+    public void setHasCog(boolean hasCog) {
+        this.hasCog = hasCog;
+        if (!hasCog) {
+            this.overspeed = 0;
+            this.warnCooldown = 0;
+        }
+        setChanged();
     }
 
     public int heat() {
@@ -224,19 +228,24 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
 
     private void generateFromNearbyHeat(Level level, BlockState state) {
         long oldVisualOutput = this.visualOutput;
-        this.powerBuffer = 0L;
-        this.visualOutput = 0L;
-        this.heat = 0;
-
         if (!this.hasCog) {
             this.overspeed = 0;
             this.warnCooldown = 0;
+            if (this.powerBuffer > 0L) {
+                this.powerBuffer--;
+            }
+            this.visualOutput = this.powerBuffer;
+            this.heat = 0;
+            setChanged();
             syncVisuals(level, oldVisualOutput);
             return;
         }
 
+        this.powerBuffer = 0L;
+        this.visualOutput = 0L;
+        this.heat = 0;
         pullHeatFromBelow(level);
-        this.powerBuffer = (long) (this.heat * (state.is(HbmBlocks.MACHINE_STIRLING_CREATIVE.get()) ? 1.0D : EFFICIENCY));
+        this.powerBuffer = (long) (this.heat * (state.is(HbmBlocks.MACHINE_STIRLING_CREATIVE.get()) ? 1.0D : HbmConfig.STIRLING_EFFICIENCY.get()));
         this.visualOutput = this.powerBuffer;
 
         if (this.warnCooldown > 0) {
@@ -248,7 +257,7 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
                 this.warnCooldown = 100;
                 level.playSound(null, this.worldPosition, HbmSoundEvents.WARN_OVERSPEED.get(), SoundSource.BLOCKS, 2.0F, 1.0F);
             }
-            if (this.overspeed > OVERSPEED_LIMIT) {
+            if (this.overspeed > HbmConfig.STIRLING_OVERSPEED_LIMIT.get()) {
                 ejectCog(level, state);
             }
         } else {
@@ -291,7 +300,7 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
         }
 
         if (source != null) {
-            int pulled = (int) (source.getHeatStored() * DIFFUSION);
+            int pulled = (int) (source.getHeatStored() * HbmConfig.STIRLING_DIFFUSION.get());
             if (pulled > 0) {
                 source.useHeat(pulled);
                 this.heat += pulled;
@@ -312,9 +321,7 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
         }
 
         this.lastSpin = this.spin;
-        if (this.hasCog) {
-            this.spin += momentum;
-        }
+        this.spin += momentum;
         if (this.spin >= 360F) {
             this.spin -= 360F;
             this.lastSpin -= 360F;
@@ -322,13 +329,12 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
     }
 
     private void syncVisuals(Level level, long oldVisualOutput) {
-        boolean changedActiveState = oldVisualOutput == 0L != (this.visualOutput == 0L);
-        if (changedActiveState || level.getGameTime() % 10L == 0L) {
-            level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
-        }
+        level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
     }
 
     private int maxHeat(BlockState state) {
-        return state.is(HbmBlocks.MACHINE_STIRLING.get()) ? MAX_HEAT_NORMAL : MAX_HEAT_STEEL;
+        return state.is(HbmBlocks.MACHINE_STIRLING.get())
+                ? HbmConfig.STIRLING_MAX_HEAT_NORMAL.get()
+                : HbmConfig.STIRLING_MAX_HEAT_STEEL.get();
     }
 }

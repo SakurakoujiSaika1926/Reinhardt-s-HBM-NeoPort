@@ -9,6 +9,7 @@ import com.reinhardt.hbm.pollution.HbmPollution;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.util.FluidCopiable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,6 +40,7 @@ public class DrainBlockEntity extends BlockEntity implements FluidCopiable {
 
     public static void tick(Level level, BlockPos pos, BlockState state, DrainBlockEntity drain) {
         if (level.isClientSide) {
+            drain.emitDischargeParticles(level, pos, state);
             return;
         }
         if (drain.tank.amount() <= 0) {
@@ -114,6 +116,27 @@ public class DrainBlockEntity extends BlockEntity implements FluidCopiable {
             this.level.invalidateCapabilities(this.worldPosition);
             this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
+    }
+
+    private void emitDischargeParticles(Level level, BlockPos pos, BlockState state) {
+        if (this.tank.amount() <= 0) {
+            return;
+        }
+        Direction facing = state.hasProperty(LargeMachineBlock.FACING)
+                ? state.getValue(LargeMachineBlock.FACING)
+                : Direction.NORTH;
+        HbmFluidDefinition fluid = this.tank.type();
+        int color = fluid.color();
+        double red = ((color >> 16) & 0xFF) / 255.0D;
+        double green = ((color >> 8) & 0xFF) / 255.0D;
+        double blue = (color & 0xFF) / 255.0D;
+        double x = pos.getX() + 0.5D - facing.getStepX() * 2.5D;
+        double y = pos.getY() + 0.5D;
+        double z = pos.getZ() + 0.5D - facing.getStepZ() * 2.5D;
+        level.addParticle(fluid.hasTrait(HbmFluidTrait.GASEOUS)
+                        ? HbmParticleTypes.DRAIN_TOWER.get()
+                        : HbmParticleTypes.DRAIN_SPLASH.get(),
+                x, y, z, red, green, blue);
     }
 
     private void tryPlaceOilSpill(Level level, BlockState state, int amount, HbmFluidDefinition fluid) {

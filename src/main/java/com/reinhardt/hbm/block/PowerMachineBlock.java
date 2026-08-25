@@ -7,6 +7,8 @@ import com.reinhardt.hbm.blockentity.WoodBurnerBlockEntity;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -119,6 +121,26 @@ public class PowerMachineBlock extends Block implements EntityBlock {
         if (!state.is(oldState.getBlock())) {
             PowerNetworkManager.markDirty(level);
         }
+    }
+
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        super.animateTick(state, level, pos, random);
+        if ((this.type != MachineType.ELECTRIC_FURNACE && this.type != MachineType.ELECTRIC_FURNACE_ON)
+                || !state.getValue(LIT)) {
+            return;
+        }
+
+        Direction facing = state.getValue(FACING);
+        double sideOffset = 0.52D;
+        double sideRandom = random.nextFloat() * 0.6D - 0.3D;
+        double y = pos.getY() + random.nextFloat() * 6.0D / 16.0D;
+        double x = pos.getX() + 0.5D + facing.getStepX() * sideOffset
+                + (facing.getAxis() == Direction.Axis.Z ? sideRandom : 0.0D);
+        double z = pos.getZ() + 0.5D + facing.getStepZ() * sideOffset
+                + (facing.getAxis() == Direction.Axis.X ? sideRandom : 0.0D);
+        level.addParticle(ParticleTypes.SMOKE, x, y, z, 0.0D, 0.0D, 0.0D);
+        level.addParticle(ParticleTypes.FLAME, x, y, z, 0.0D, 0.0D, 0.0D);
     }
 
     @Override

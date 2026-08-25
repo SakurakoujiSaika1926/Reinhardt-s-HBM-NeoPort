@@ -15,9 +15,11 @@ import com.reinhardt.hbm.client.model.IndustrialTurbineItemModel;
 import com.reinhardt.hbm.client.model.LargeFactoryItemModel;
 import com.reinhardt.hbm.client.model.LandmineItemModel;
 import com.reinhardt.hbm.client.model.ObjItemAutoFitModel;
+import com.reinhardt.hbm.client.model.ObjMachineItemModel;
 import com.reinhardt.hbm.client.model.PurexItemModel;
 import com.reinhardt.hbm.client.model.LegacyMachineItemModel;
 import com.reinhardt.hbm.client.model.RedCableNeoBakedModel;
+import com.reinhardt.hbm.client.model.ReedsBakedModel;
 import com.reinhardt.hbm.client.model.SteamEngineItemModel;
 import com.reinhardt.hbm.client.model.SteelScaffoldBakedModel;
 import com.reinhardt.hbm.client.model.StirlingGeneratorItemModel;
@@ -26,6 +28,10 @@ import com.reinhardt.hbm.client.particle.ChimneySmokeParticle;
 import com.reinhardt.hbm.client.particle.ArcFurnaceSmokeParticle;
 import com.reinhardt.hbm.client.particle.ContrailParticle;
 import com.reinhardt.hbm.client.particle.CoolingTowerParticle;
+import com.reinhardt.hbm.client.particle.DrainSplashParticle;
+import com.reinhardt.hbm.client.particle.DrainTowerParticle;
+import com.reinhardt.hbm.client.particle.PyroOvenTowerParticle;
+import com.reinhardt.hbm.client.particle.RotaryFurnaceTowerParticle;
 import com.reinhardt.hbm.client.particle.FalloutRainParticle;
 import com.reinhardt.hbm.client.particle.FlamethrowerParticle;
 import com.reinhardt.hbm.client.particle.GasFlameParticle;
@@ -54,25 +60,75 @@ import com.reinhardt.hbm.client.particle.VomitParticle;
 import com.reinhardt.hbm.item.FluidIconItem;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
+import com.reinhardt.hbm.item.LegacyPipetteItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.IcfPelletItem;
+import com.reinhardt.hbm.item.LegacyCrayonItem;
+import com.reinhardt.hbm.item.LegacyMinecartItem;
+import com.reinhardt.hbm.item.LegacyTrainItem;
+import com.reinhardt.hbm.item.LegacyDroneItem;
+import com.reinhardt.hbm.entity.LegacyRequestDroneEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.registry.LegacyHbmContent;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.world.level.LightLayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.registries.DeferredItem;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class HbmClientRenderers {
     private HbmClientRenderers() {
+    }
+
+    @SubscribeEvent
+    public static void registerItemProperties(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            ItemProperties.register(HbmItems.CART.get(), ReinhardtsHBM.id("cart_variant"),
+                    (stack, level, entity, seed) -> LegacyMinecartItem.base(stack).ordinal() * 10.0F + LegacyMinecartItem.type(stack).ordinal());
+            ItemProperties.register(HbmItems.TRAIN.get(), ReinhardtsHBM.id("train_variant"),
+                    (stack, level, entity, seed) -> LegacyTrainItem.type(stack).ordinal());
+            ItemProperties.register(HbmItems.DRONE.get(), ReinhardtsHBM.id("drone_type"),
+                    (stack, level, entity, seed) -> LegacyDroneItem.Type.fromStack(stack).ordinal());
+        });
+        event.enqueueWork(() -> ItemProperties.register(HbmItems.GEM_ALEXANDRITE.get(), ReinhardtsHBM.id("alexandrite_light"),
+                (stack, level, entity, seed) -> {
+                    Minecraft minecraft = Minecraft.getInstance();
+                    if (minecraft.level == null || minecraft.player == null) {
+                        return 0.0F;
+                    }
+                    return minecraft.level.getBrightness(LightLayer.BLOCK, minecraft.player.blockPosition()) / 15.0F;
+                }));
+    }
+
+    @SubscribeEvent
+    public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(LegacyRedPylonModel.LAYER, LegacyRedPylonModel::createLayer);
+        event.registerLayerDefinition(LegacyChopperModel.LAYER, LegacyChopperModel::createLayer);
+        event.registerLayerDefinition(LegacyChopperMineModel.LAYER, LegacyChopperMineModel::createLayer);
+    }
+
+    @SubscribeEvent
+    public static void addPlayerLayers(EntityRenderersEvent.AddLayers event) {
+        for (var skin : event.getSkins()) {
+            PlayerRenderer renderer = event.getSkin(skin);
+            if (renderer != null) {
+                renderer.addLayer(new TeslaBackLayer(renderer));
+            }
+        }
     }
 
     @SubscribeEvent
@@ -101,6 +157,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.COMPRESSOR.get(), CompressorBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.MIXER.get(), MixerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.FUNNEL.get(), FunnelBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.ASHPIT.get(), AshpitBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.AMMO_PRESS.get(), AmmoPressBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.PRESS.get(), PressBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.HEAT_BOILER.get(), HeatBoilerBlockEntityRenderer::new);
@@ -153,6 +210,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.FEL.get(), FelBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.PARTICLE_ACCELERATOR.get(), ParticleAcceleratorBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.MINING_LASER.get(), MiningLaserBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.TESLA_COIL.get(), TeslaCoilBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.EXCAVATOR.get(), ExcavatorBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.DRAIN.get(), DrainBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.ORE_SLOPPER.get(), OreSlopperBlockEntityRenderer::new);
@@ -168,6 +226,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.WATZ_PUMP.get(), WatzPumpBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.NUKE_BOY.get(), NukeBoyBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.LANDMINE.get(), LandmineBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.WALL_CHARGE.get(), WallChargeBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.LAUNCHER.get(), LauncherBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SOYUZ_LAUNCHER.get(), SoyuzLauncherBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SOYUZ_CAPSULE.get(), SoyuzCapsuleBlockEntityRenderer::new);
@@ -186,10 +245,28 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.LEGACY_MACHINE.get(), LegacyMachineBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.HEXAFLUORIDE_TANK.get(), HexafluorideTankBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.RADAR_SCREEN.get(), RadarScreenBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.REBAR.get(), RebarBlockEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.COG.get(), CogEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.SAWBLADE.get(), SawbladeEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.CONVEYOR_ITEM.get(), ConveyorMovingItemRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.RBMK_DEBRIS.get(), RbmkDebrisEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.MINE_RUBBLE.get(), MineRubbleEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.RUBBER_BOAT.get(), RubberBoatEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.DUCK.get(), LegacyDuckEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.DELIVERY_DRONE.get(), LegacyDroneEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.REQUEST_DRONE.get(), LegacyDroneEntityRenderer<LegacyRequestDroneEntity>::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOMBER.get(), LegacyBomberEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_UFO.get(), LegacyUfoEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_CHOPPER.get(), LegacyChopperEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_CHOPPER_MINE.get(), LegacyChopperMineEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_WORM_HEAD.get(), LegacyWormEntityRenderer.Head::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_WORM_BODY.get(), LegacyWormEntityRenderer.Body::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOSS_PROJECTILE.get(), LegacyBossProjectileEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOMBLET.get(), NoopRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOXCAR.get(), NoopRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOBMAZON.get(), LegacyBobmazonEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_MINECART.get(), LegacyMinecartEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_TRAIN.get(), LegacyTrainEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.DIGAMMA_SPEAR.get(), DigammaSpearEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.JEREMY_SHELL.get(), JeremyShellEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.CHEKHOV_BULLET.get(), ChekhovBulletEntityRenderer::new);
@@ -199,7 +276,11 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_LINGERING_FIRE.get(), NoopRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_MIST.get(), NoopRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_SHRAPNEL.get(), LegacyShrapnelEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_VORTEX.get(), LegacyVortexEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.METEOR.get(), MeteorEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.TIMED_EXPLOSIVE.get(), TimedExplosiveEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_GRENADE.get(), LegacyGrenadeEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.UNIVERSAL_GRENADE.get(), UniversalGrenadeEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.NUKE_TOREX.get(), NukeTorexEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.SOYUZ.get(), SoyuzEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.SOYUZ_CAPSULE.get(), SoyuzCapsuleEntityRenderer::new);
@@ -247,10 +328,15 @@ public final class HbmClientRenderers {
         event.registerSpriteSet(HbmParticleTypes.GEYSER_FIRE.get(), GasFlameParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.LANDMINE_SMOKE.get(), LandmineSmokeParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.LANDMINE_FOAM.get(), LandmineFoamParticle.Provider::new);
+        event.registerSpriteSet(HbmParticleTypes.DRAIN_TOWER.get(), DrainTowerParticle.Provider::new);
+        event.registerSpriteSet(HbmParticleTypes.PYRO_OVEN_TOWER.get(), PyroOvenTowerParticle.Provider::new);
+        event.registerSpriteSet(HbmParticleTypes.ROTARY_FURNACE_TOWER.get(), RotaryFurnaceTowerParticle.Provider::new);
+        event.registerSpriteSet(HbmParticleTypes.DRAIN_SPLASH.get(), DrainSplashParticle.Provider::new);
     }
 
     @SubscribeEvent
     public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        ObjMachineItemRenderer.registerAdditionalModels(event);
         WoodBurnerBlockEntityRenderer.registerAdditionalModels(event);
         DieselGeneratorBlockEntityRenderer.registerAdditionalModels(event);
         CombustionEngineBlockEntityRenderer.registerAdditionalModels(event);
@@ -277,6 +363,7 @@ public final class HbmClientRenderers {
         CompressorBlockEntityRenderer.registerAdditionalModels(event);
         MixerBlockEntityRenderer.registerAdditionalModels(event);
         FunnelBlockEntityRenderer.registerAdditionalModels(event);
+        AshpitBlockEntityRenderer.registerAdditionalModels(event);
         AmmoPressBlockEntityRenderer.registerAdditionalModels(event);
         PressBlockEntityRenderer.registerAdditionalModels(event);
         HeatBoilerBlockEntityRenderer.registerAdditionalModels(event);
@@ -323,6 +410,7 @@ public final class HbmClientRenderers {
         FelBlockEntityRenderer.registerAdditionalModels(event);
         ParticleAcceleratorBlockEntityRenderer.registerAdditionalModels(event);
         MiningLaserBlockEntityRenderer.registerAdditionalModels(event);
+        TeslaCoilBlockEntityRenderer.registerAdditionalModels(event);
         ExcavatorBlockEntityRenderer.registerAdditionalModels(event);
         DrainBlockEntityRenderer.registerAdditionalModels(event);
         OreSlopperBlockEntityRenderer.registerAdditionalModels(event);
@@ -338,6 +426,7 @@ public final class HbmClientRenderers {
         WatzPumpBlockEntityRenderer.registerAdditionalModels(event);
         NukeBoyBlockEntityRenderer.registerAdditionalModels(event);
         LandmineBlockEntityRenderer.registerAdditionalModels(event);
+        WallChargeBlockEntityRenderer.registerAdditionalModels(event);
         LauncherBlockEntityRenderer.registerAdditionalModels(event);
         SoyuzLauncherBlockEntityRenderer.registerAdditionalModels(event);
         SoyuzCapsuleBlockEntityRenderer.registerAdditionalModels(event);
@@ -354,6 +443,7 @@ public final class HbmClientRenderers {
         HexafluorideTankBlockEntityRenderer.registerAdditionalModels(event);
         RadarScreenBlockEntityRenderer.registerAdditionalModels(event);
         CogEntityRenderer.registerAdditionalModels(event);
+        SawbladeEntityRenderer.registerAdditionalModels(event);
         RbmkDebrisEntityRenderer.registerAdditionalModels(event);
         DigammaSpearEntityRenderer.registerAdditionalModels(event);
         LegacyProjectileEntityRenderer.registerAdditionalModels(event);
@@ -362,6 +452,14 @@ public final class HbmClientRenderers {
         MeteorEntityRenderer.registerAdditionalModels(event);
         SoyuzEntityRenderer.registerAdditionalModels(event);
         SoyuzCapsuleEntityRenderer.registerAdditionalModels(event);
+        LegacyBomberEntityRenderer.registerAdditionalModels(event);
+        LegacyUfoEntityRenderer.registerAdditionalModels(event);
+        LegacyWormEntityRenderer.registerAdditionalModels(event);
+        LegacyBossProjectileEntityRenderer.registerAdditionalModels(event);
+        LegacyDroneEntityRenderer.registerAdditionalModels(event);
+        LegacyBobmazonEntityRenderer.registerAdditionalModels(event);
+        LegacyMinecartEntityRenderer.registerAdditionalModels(event);
+        LegacyTrainEntityRenderer.registerAdditionalModels(event);
     }
 
     @SubscribeEvent
@@ -371,6 +469,7 @@ public final class HbmClientRenderers {
         ExhaustDuctBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         FluidDuctNeoBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         RedCableNeoBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
+        ReedsBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         SteelScaffoldBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         DiFurnaceExtensionModel.replaceModels(event.getModels());
         StirlingGeneratorItemModel.replaceModels(event.getModels());
@@ -385,11 +484,24 @@ public final class HbmClientRenderers {
         LandmineItemModel.replaceModels(event.getModels());
         GeothermalHeatExchangerItemModel.replaceModels(event.getModels());
         ObjItemAutoFitModel.replaceModels(event.getModels());
+        ObjMachineItemModel.replaceModels(event.getModels());
         LegacyMachineItemModel.replaceModels(event.getModels());
     }
 
     @SubscribeEvent
     public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register(
+                LegacyCrayonItem::tint,
+                net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("crayon"))
+        );
+        event.register(
+                com.reinhardt.hbm.item.LegacyBookLoreItem::tint,
+                HbmItems.BOOK_LORE.get()
+        );
+        event.register(
+                com.reinhardt.hbm.item.LegacyCustomKitItem::tint,
+                HbmItems.KIT_CUSTOM.get()
+        );
         event.register(
                 (stack, tintIndex) -> FluidIconItem.fluid(stack).map(definition -> 0xFF000000 | definition.color()).orElse(0xFFFFFFFF),
                 HbmItems.FLUID_ICON.get()
@@ -415,8 +527,37 @@ public final class HbmClientRenderers {
                 HbmItems.GLYPHID_GLAND.get()
         );
         event.register(
+                LegacyPipetteItem::tint,
+                HbmItems.PIPETTE.get(),
+                HbmItems.PIPETTE_BORON.get(),
+                HbmItems.PIPETTE_LABORATORY.get()
+        );
+        event.register(
+                com.reinhardt.hbm.item.LegacyChemicalDyeItem::tint,
+                HbmItems.CHEMICAL_DYE.get()
+        );
+        event.register(
                 HbmFluidDuctItem::tint,
-                HbmItems.FF_FLUID_DUCT.get()
+                HbmItems.FF_FLUID_DUCT.get(),
+                HbmItems.FLUID_DUCT.get()
+        );
+        event.register(
+                com.reinhardt.hbm.item.LegacyBedrockOreStageItem::tint,
+                HbmItems.LEGACY_BEDROCK_ORE.get(),
+                HbmItems.ORE_BEDROCK.get(),
+                HbmItems.ORE_CENTRIFUGED.get(),
+                HbmItems.ORE_CLEANED.get(),
+                HbmItems.ORE_SEPARATED.get(),
+                HbmItems.ORE_PURIFIED.get(),
+                HbmItems.ORE_NITRATED.get(),
+                HbmItems.ORE_NITROCRYSTALLINE.get(),
+                HbmItems.ORE_DEEPCLEANED.get(),
+                HbmItems.ORE_SEARED.get(),
+                HbmItems.ORE_ENRICHED.get()
+        );
+        event.register(
+                com.reinhardt.hbm.item.LegacyByproductItem::tint,
+                HbmItems.ORE_BYPRODUCT.get()
         );
         event.register(
                 (stack, tintIndex) -> {
@@ -430,7 +571,16 @@ public final class HbmClientRenderers {
                 HbmItems.PLATE_WELDED.get(),
                 HbmItems.SHELL.get(),
                 HbmItems.WIRE_FINE.get(),
-                HbmItems.WIRE_DENSE.get()
+                HbmItems.WIRE_DENSE.get(),
+                HbmItems.PIPE.get(),
+                HbmItems.BOLT.get(),
+                HbmItems.PART_MECHANISM.get(),
+                HbmItems.PART_BARREL_LIGHT.get(),
+                HbmItems.PART_BARREL_HEAVY.get(),
+                HbmItems.PART_RECEIVER_LIGHT.get(),
+                HbmItems.PART_RECEIVER_HEAVY.get(),
+                HbmItems.PART_STOCK.get(),
+                HbmItems.PART_GRIP.get()
         );
         event.register(
                 com.reinhardt.hbm.item.RawIngotItem::tint,
@@ -451,6 +601,12 @@ public final class HbmClientRenderers {
 
     @SubscribeEvent
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
+        event.register(
+                (state, level, pos, tintIndex) -> level == null || pos == null
+                        ? 0xFFB2B2B2
+                        : 0xFF000000 | net.minecraft.client.renderer.BiomeColors.getAverageGrassColor(level, pos),
+                HbmBlocks.PLANT_REEDS.get()
+        );
         event.register(
                 (state, level, pos, tintIndex) -> {
                     int age = state.getValue(com.reinhardt.hbm.block.BalefireBlock.AGE);

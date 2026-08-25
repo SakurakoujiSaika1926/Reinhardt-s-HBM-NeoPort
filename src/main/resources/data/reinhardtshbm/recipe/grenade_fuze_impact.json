@@ -1,0 +1,39 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "C",
+                    "S",
+                    "F"
+                ],
+    "key":  {
+                "C":  {
+                          "tag":  "c:dusts/smokeless"
+                      },
+                "S":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:bolt"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  30,
+                                                                           "material":  "steel"
+                                                                       }
+                                         }
+                      },
+                "F":  {
+                          "item":  "reinhardtshbm:safety_fuse"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_fuze",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "impact"
+                                                                },
+                                      "minecraft:custom_model_data":  3
+                                  },
+                   "count":  4
+               }
+}

@@ -17,11 +17,18 @@ public final class RtgDepletedPelletItem extends Item {
     }
 
     @Override
+    public Component getName(ItemStack stack) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        String material = tag.getString("rtg_depleted_material");
+        return material.isBlank()
+                ? super.getName(stack)
+                : Component.translatable("item.reinhardtshbm.pellet_rtg_depleted." + material);
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         String material = tag.getString("rtg_depleted_material");
-        if (!material.isBlank()) {
-            tooltip.add(Component.translatable("item.reinhardtshbm.rtg_depleted_material." + material));
-        }
+        if (!material.isBlank()) tooltip.add(Component.translatable("item.reinhardtshbm.rtg_depleted_material." + material));
     }
 }

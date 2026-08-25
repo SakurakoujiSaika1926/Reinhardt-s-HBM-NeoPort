@@ -77,7 +77,7 @@ public class StorageCrateBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide || blockEntityType != HbmBlockEntities.STORAGE_CRATE.get()) {
+        if (blockEntityType != HbmBlockEntities.STORAGE_CRATE.get()) {
             return null;
         }
         return (tickerLevel, pos, tickerState, blockEntity) -> {

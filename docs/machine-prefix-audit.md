@@ -90,7 +90,7 @@ Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1
 | `machine_microwave` | MachineMicrowave | - | Complete registration | `machine_microwave` | registered |
 | `machine_mining_laser` | MachineMiningLaser | TileEntityMachineMiningLaser -> tileentity_mining_laser | Complete registration | `machine_mining_laser` | registered |
 | `machine_minirtg` | MachineMiniRTG | TileEntityMachineMiniRTG -> tileentity_mini_rtg | Deprecated in 1.7.10 - not ported | `machine_minirtg` | - |
-| `machine_missile_assembly` | MachineMissileAssembly | TileEntityMachineMissileAssembly -> tileentity_missile_assembly | Complete registration | `machine_missile_assembly` | registered |
+| `machine_missile_assembly` | MachineMissileAssembly | TileEntityMachineMissileAssembly -> tileentity_missile_assembly | Complete 1.7.10 model, support-gantry renderer, menu, manual-only automation, construction, sound, recipe and resource migration | `machine_missile_assembly` | source-audited |
 | `machine_mixer` | MachineMixer | TileEntityMachineMixer -> tileentity_mixer | Complete registration | `machine_mixer` | registered |
 | `machine_orbus` | MachineOrbus | TileEntityMachineOrbus -> tileentity_orbus | Complete registration | `machine_orbus` | registered |
 | `machine_ore_slopper` | MachineOreSlopper | TileEntityMachineOreSlopper -> tileentity_ore_slopper | Complete registration | `machine_ore_slopper` | registered |

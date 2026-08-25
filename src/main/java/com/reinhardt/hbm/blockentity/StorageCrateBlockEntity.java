@@ -3,10 +3,14 @@ package com.reinhardt.hbm.blockentity;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.StorageCrateBlock;
 import com.reinhardt.hbm.menu.StorageCrateMenu;
+import com.reinhardt.hbm.power.PowerEndpoint;
+import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
+import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -22,6 +26,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -30,15 +38,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Optional;
 
-public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider, WorldlyContainer, MachineInventory, LockableBlockEntity {
+public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider, WorldlyContainer, MachineInventory, LockableBlockEntity, PowerEndpoint {
     public static final String ITEM_DATA_KEY = "crate_data";
+    private static final long TUNGSTEN_PULSE_REQUEST = 10_000_001L;
+    private static final ResourceLocation BILLET_POLONIUM = ReinhardtsHBM.id("billet_polonium");
+    private static final ResourceLocation BILLET_YHARONITE = ReinhardtsHBM.id("billet_yharonite");
 
     private final ItemStack[] items;
     private final Kind kind;
     private final int[] slotsForFace;
     private int heatTimer;
-    private long joules;
     private int lock;
     private boolean locked;
     private double lockMod = 0.1D;
@@ -56,11 +67,17 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, StorageCrateBlockEntity crate) {
+        if (crate.kind == Kind.TUNGSTEN && !level.isClientSide) {
+            PowerNetworkManager.tickFromEndpoint(level, crate);
+        }
         if (crate.heatTimer > 0) {
             crate.heatTimer--;
             if (crate.heatTimer == 0) {
                 crate.sync();
             }
+        }
+        if (level.isClientSide && crate.kind == Kind.TUNGSTEN && crate.heatTimer > 0) {
+            crate.spawnLegacyHeatParticles(level, pos);
         }
     }
 
@@ -70,10 +87,6 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
 
     public int heatTimer() {
         return this.heatTimer;
-    }
-
-    public long joules() {
-        return this.joules;
     }
 
     @Override
@@ -149,7 +162,51 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return isValidSlot(slot);
+        if (!isValidSlot(slot) || this.locked) {
+            return false;
+        }
+        return this.kind != Kind.TUNGSTEN || tungstenCanExtract(stack);
+    }
+
+    @Override
+    public BlockPos getPowerPos() {
+        return this.worldPosition;
+    }
+
+    @Override
+    public long getAvailableOutput() {
+        return 0L;
+    }
+
+    @Override
+    public long getRequestedInput() {
+        return this.kind == Kind.TUNGSTEN ? TUNGSTEN_PULSE_REQUEST : 0L;
+    }
+
+    @Override
+    public void applyPower(long usedOutput, long receivedInput) {
+        if (this.kind != Kind.TUNGSTEN || receivedInput <= 0L || this.level == null) {
+            return;
+        }
+
+        this.heatTimer = 5;
+        for (int slot = 0; slot < this.items.length; slot++) {
+            ItemStack input = this.items[slot];
+            if (input.isEmpty()) {
+                continue;
+            }
+            ItemStack result = tungstenResult(input, receivedInput);
+            if (!result.isEmpty() && result.getCount() * input.getCount() <= result.getMaxStackSize()) {
+                result.setCount(result.getCount() * input.getCount());
+                this.items[slot] = result;
+            }
+        }
+        sync();
+    }
+
+    @Override
+    public Component getPowerStatus() {
+        return Component.translatable("block.reinhardtshbm.crate_tungsten");
     }
 
     @Override
@@ -307,6 +364,61 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
         return slot >= 0 && slot < this.items.length;
     }
 
+    private boolean tungstenCanExtract(ItemStack stack) {
+        if (isItem(stack, BILLET_POLONIUM) || (stack.is(HbmItems.CRUCIBLE.get()) && stack.getDamageValue() > 0)) {
+            return false;
+        }
+        return smeltingResult(stack).isEmpty();
+    }
+
+    private ItemStack tungstenResult(ItemStack input, long pulse) {
+        if (pulse > 10_000_000L) {
+            if (isItem(input, BILLET_POLONIUM)) {
+                return new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(BILLET_YHARONITE));
+            }
+            if (input.is(HbmItems.CRUCIBLE.get()) && input.getDamageValue() > 0) {
+                return new ItemStack(HbmItems.CRUCIBLE.get());
+            }
+        }
+        return smeltingResult(input);
+    }
+
+    private ItemStack smeltingResult(ItemStack input) {
+        if (this.level == null || input.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        Optional<RecipeHolder<SmeltingRecipe>> recipe = this.level.getRecipeManager().getRecipeFor(
+                RecipeType.SMELTING, new SingleRecipeInput(input), this.level
+        );
+        return recipe.map(holder -> holder.value().assemble(new SingleRecipeInput(input), this.level.registryAccess()))
+                .orElse(ItemStack.EMPTY);
+    }
+
+    private static boolean isItem(ItemStack stack, ResourceLocation id) {
+        return net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(id);
+    }
+
+    private void spawnLegacyHeatParticles(Level level, BlockPos pos) {
+        for (int side = 0; side < 5; side++) {
+            double x = pos.getX() + level.random.nextDouble();
+            double y = pos.getY() + level.random.nextDouble();
+            double z = pos.getZ() + level.random.nextDouble();
+            if (side == 0) {
+                y = pos.getY() + 1.1D;
+            } else if (side == 1) {
+                x = pos.getX() - 0.1D;
+            } else if (side == 2) {
+                x = pos.getX() + 1.1D;
+            } else if (side == 3) {
+                z = pos.getZ() - 0.1D;
+            } else {
+                z = pos.getZ() + 1.1D;
+            }
+            level.addParticle(ParticleTypes.FLAME, x, y, z, 0.0D, 0.0D, 0.0D);
+            level.addParticle(ParticleTypes.SMOKE, x, y, z, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
     private static void drop(Level level, BlockPos pos, ItemStack stack) {
         if (!stack.isEmpty()) {
             level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, stack.copy()));
@@ -318,7 +430,6 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
         super.saveAdditional(tag, registries);
         tag.put("Items", writeItemData(registries));
         tag.putInt("HeatTimer", this.heatTimer);
-        tag.putLong("Joules", this.joules);
         tag.putInt("lock", this.lock);
         tag.putBoolean("isLocked", this.locked);
         tag.putDouble("lockMod", this.lockMod);
@@ -330,7 +441,6 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
         super.loadAdditional(tag, registries);
         readItemData(tag.getCompound("Items"), registries);
         this.heatTimer = tag.getInt("HeatTimer");
-        this.joules = tag.getLong("Joules");
         this.lock = tag.getInt("lock");
         this.locked = tag.getBoolean("isLocked");
         this.lockMod = tag.getDouble("lockMod");

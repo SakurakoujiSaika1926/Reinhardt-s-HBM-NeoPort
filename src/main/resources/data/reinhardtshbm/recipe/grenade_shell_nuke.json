@@ -1,0 +1,39 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    " S ",
+                    "CMC",
+                    " S "
+                ],
+    "key":  {
+                "C":  {
+                          "item":  "reinhardtshbm:circuit_advanced"
+                      },
+                "M":  {
+                          "item":  "reinhardtshbm:mechanism_special"
+                      },
+                "S":  {
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:shell"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  50,
+                                                                           "material":  "weaponsteel"
+                                                                       }
+                                         }
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_shell",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "nuke"
+                                                                },
+                                      "minecraft:custom_model_data":  3
+                                  },
+                   "count":  2
+               }
+}

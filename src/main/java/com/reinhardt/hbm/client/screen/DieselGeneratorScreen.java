@@ -45,15 +45,14 @@ public class DieselGeneratorScreen extends AbstractContainerScreen<DieselGenerat
         }
         if (isHovering(-16, 36, 16, 16, mouseX, mouseY)) {
             guiGraphics.renderComponentTooltip(this.font, List.of(
+                    Component.translatable("tooltip.reinhardtshbm.diesel.fuel_consumption"),
                     Component.literal("1 mB/t"),
                     Component.literal("20 mB/s"),
-                    Component.literal("HE/t: " + this.menu.hePerTick())
+                    Component.translatable("tooltip.reinhardtshbm.diesel.fuel_consumption_constant")
             ), mouseX, mouseY);
         }
         if (!this.menu.running() && !this.menu.fuelFluid().isNone() && this.menu.hePerTick() <= 0 && isHovering(-16, 68, 16, 16, mouseX, mouseY)) {
-            guiGraphics.renderComponentTooltip(this.font, List.of(
-                    Component.literal("Error: Unsupported fuel")
-            ), mouseX, mouseY);
+            guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable("tooltip.reinhardtshbm.diesel.unsupported_fuel")), mouseX, mouseY);
         }
     }
 

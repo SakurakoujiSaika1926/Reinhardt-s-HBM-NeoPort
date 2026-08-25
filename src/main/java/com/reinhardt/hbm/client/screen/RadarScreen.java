@@ -7,6 +7,7 @@ import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.RadarTarget;
 import com.reinhardt.hbm.menu.RadarMenu;
 import com.reinhardt.hbm.network.RadarControlPayload;
+import com.reinhardt.hbm.network.RadarCommandPayload;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -15,12 +16,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
 /** Direct visual layout port of GUIMachineRadarNT's main display. */
 public final class RadarScreen extends AbstractContainerScreen<RadarMenu> {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/gui_radar_nt.png");
+    private int lastMouseX;
+    private int lastMouseY;
 
     public RadarScreen(RadarMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -30,6 +34,8 @@ public final class RadarScreen extends AbstractContainerScreen<RadarMenu> {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
@@ -54,7 +60,7 @@ public final class RadarScreen extends AbstractContainerScreen<RadarMenu> {
         drawToggle(graphics, 3, 118, machine.radarSmartMode());
         drawToggle(graphics, 4, 128, machine.radarRedMode());
         drawToggle(graphics, 5, 138, machine.radarShowMap());
-        if (power < 500L) return;
+        if (power < machine.radarConsumptionValue()) return;
 
         if (machine.radarShowMap()) drawMap(graphics);
         drawSweep(graphics, machine.radarRotation(partialTick));
@@ -132,7 +138,7 @@ public final class RadarScreen extends AbstractContainerScreen<RadarMenu> {
                 int x = (int) ((target.x() - menu.blockPos().getX()) / ((double) menu.machine().radarRangeValue() * 2.0D + 1.0D) * 192.0D) + leftPos + 104;
                 int z = (int) ((target.z() - menu.blockPos().getZ()) / ((double) menu.machine().radarRangeValue() * 2.0D + 1.0D) * 192.0D) + topPos + 113;
                 if (mouseX + 5 > x && mouseX - 4 <= x && mouseY + 5 > z && mouseY - 4 <= z) {
-                    graphics.renderComponentTooltip(font, List.of(Component.literal(target.name()),
+                    graphics.renderComponentTooltip(font, List.of(Component.translatable(target.name()),
                             Component.literal(target.x() + " / " + target.z()),
                             Component.translatable("gui.reinhardtshbm.radar.altitude", target.y())), mouseX, mouseY);
                     return;
@@ -158,5 +164,42 @@ public final class RadarScreen extends AbstractContainerScreen<RadarMenu> {
 
     private boolean inside(double mouseX, double mouseY, int x, int y, int width, int height) {
         return mouseX >= leftPos + x && mouseX < leftPos + x + width && mouseY >= topPos + y && mouseY < topPos + y + height;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_8
+                && inside(lastMouseX, lastMouseY, 8, 17, 200, 200)) {
+            int relaySlot = keyCode - GLFW.GLFW_KEY_1;
+            RadarTarget target = targetAt(lastMouseX, lastMouseY);
+            if (target != null) {
+                PacketDistributor.sendToServer(new RadarCommandPayload(menu.blockPos(), relaySlot,
+                        target.entityId(), 0, 0));
+            } else {
+                LegacyMachineBlockEntity machine = menu.machine();
+                if (machine == null) return true;
+                int range = machine.radarRangeValue();
+                int x = (int) ((lastMouseX - leftPos - 108) * ((double) range * 2.0D + 1.0D) / 192.0D + menu.blockPos().getX());
+                int z = (int) ((lastMouseY - topPos - 117) * ((double) range * 2.0D + 1.0D) / 192.0D + menu.blockPos().getZ());
+                PacketDistributor.sendToServer(new RadarCommandPayload(menu.blockPos(), relaySlot, -1, x, z));
+            }
+            if (minecraft != null) minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private RadarTarget targetAt(int mouseX, int mouseY) {
+        LegacyMachineBlockEntity machine = menu.machine();
+        if (machine == null) return null;
+        int range = machine.radarRangeValue();
+        for (RadarTarget target : menu.targets()) {
+            int x = (int) ((target.x() - menu.blockPos().getX()) / ((double) range * 2.0D + 1.0D) * 192.0D) + leftPos + 104;
+            int z = (int) ((target.z() - menu.blockPos().getZ()) / ((double) range * 2.0D + 1.0D) * 192.0D) + topPos + 113;
+            if (mouseX + 5 > x && mouseX - 4 <= x && mouseY + 5 > z && mouseY - 4 <= z) {
+                return target;
+            }
+        }
+        return null;
     }
 }

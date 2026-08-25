@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" P ", "HCH", " B "],
+  "key": {
+    "P": { "tag": "c:ingots/plastic" },
+    "H": { "tag": "c:pipes/steel" },
+    "C": { "item": "reinhardtshbm:circuit_vacuum_tube" },
+    "B": { "type": "neoforge:components", "items": ["reinhardtshbm:shell"], "components": { "minecraft:custom_data": { "material_id": 30, "material": "steel" } } }
+  },
+  "result": { "id": "reinhardtshbm:drone", "count": 2, "components": { "reinhardtshbm:drone_type": 0 } }
+}

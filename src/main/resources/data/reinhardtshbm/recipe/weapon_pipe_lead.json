@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "II",
+    " I",
+    " I"
+  ],
+  "key": {
+    "I": { "item": "reinhardtshbm:pipe_lead" }
+  },
+  "result": { "id": "reinhardtshbm:weapon_pipe_lead" }
+}

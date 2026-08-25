@@ -22,6 +22,10 @@ import java.util.Optional;
 /** Exact 176x256 precision assembler GUI, based on GUIMachinePrecAss. */
 public final class PrecisionAssemblerScreen extends AbstractContainerScreen<PrecisionAssemblerMenu> {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/processing/gui_precass.png");
+    private static final float GHOST_ITEM_ALPHA = 0.20F;
+    private static final float GHOST_SLOT_OVERLAY_ALPHA = 0.50F;
+    private static final int GHOST_COUNT_COLOR = 0xB0FFFFFF;
+    private static final int GHOST_COUNT_SHADOW = 0x60000000;
 
     public PrecisionAssemblerScreen(PrecisionAssemblerMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -46,7 +50,6 @@ public final class PrecisionAssemblerScreen extends AbstractContainerScreen<Prec
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
-        this.renderTooltip(graphics, mouseX, mouseY);
     }
 
     @Override
@@ -109,16 +112,30 @@ public final class PrecisionAssemblerScreen extends AbstractContainerScreen<Prec
         for (int index = 0; index < ingredients.size(); index++) {
             Slot slot = this.menu.getSlot(PrecisionAssemblerMenu.INPUT_START + index);
             if (slot.hasItem()) continue;
-            ItemStack[] options = ingredients.get(index).ingredient().getItems();
-            if (options.length == 0) continue;
-            ItemStack ghost = options[0].copyWithCount(ingredients.get(index).count());
-            GhostItemRenderer.render(graphics, ghost, this.leftPos + slot.x, this.topPos + slot.y, 0.20F);
+            ItemStack ghost = PrecisionAssemblerRecipeSelectorScreen.displayIngredient(ingredients.get(index));
+            if (ghost.isEmpty()) continue;
+            int x = this.leftPos + slot.x;
+            int y = this.topPos + slot.y;
+            GhostItemRenderer.render(graphics, ghost, x, y, GHOST_ITEM_ALPHA);
             // GUIMachinePrecAss overlays the matching slot art at 50% alpha;
             // a solid veil obscures and visually doubles the ghost item.
-            graphics.setColor(1.0F, 1.0F, 1.0F, 0.50F);
-            graphics.blit(TEXTURE, this.leftPos + slot.x, this.topPos + slot.y, slot.x, slot.y, 16, 16);
+            graphics.setColor(1.0F, 1.0F, 1.0F, GHOST_SLOT_OVERLAY_ALPHA);
+            graphics.blit(TEXTURE, x, y, slot.x, slot.y, 16, 16);
             graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            renderGhostCount(graphics, ghost, x, y);
         }
+    }
+
+    private void renderGhostCount(GuiGraphics graphics, ItemStack ghost, int x, int y) {
+        if (ghost.getCount() <= 1) return;
+        String count = String.valueOf(ghost.getCount());
+        int textX = x + 17 - this.font.width(count);
+        int textY = y + 9;
+        graphics.pose().pushPose();
+        graphics.pose().translate(0.0F, 0.0F, 200.0F);
+        graphics.drawString(this.font, count, textX + 1, textY + 1, GHOST_COUNT_SHADOW, false);
+        graphics.drawString(this.font, count, textX, textY, GHOST_COUNT_COLOR, false);
+        graphics.pose().popPose();
     }
 
     private void drawFluid(GuiGraphics graphics, int tank, int x, int y) {

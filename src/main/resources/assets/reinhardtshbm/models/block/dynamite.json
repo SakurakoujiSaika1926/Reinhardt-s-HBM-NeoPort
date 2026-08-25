@@ -1,6 +1,8 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "bottom":  "reinhardtshbm:block/dynamite_bottom",
+                     "side":  "reinhardtshbm:block/dynamite_side",
+                     "top":  "reinhardtshbm:block/dynamite_top"
                  },
-    "parent":  "minecraft:block/cube_all"
+    "parent":  "minecraft:block/cube_bottom_top"
 }

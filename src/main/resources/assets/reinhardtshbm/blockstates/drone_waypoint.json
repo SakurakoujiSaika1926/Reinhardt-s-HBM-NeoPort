@@ -1,7 +1,10 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/drone_waypoint"
-                          }
-                 }
+{
+  "variants": {
+    "facing=up": { "model": "reinhardtshbm:block/drone_waypoint" },
+    "facing=down": { "model": "reinhardtshbm:block/drone_waypoint", "x": 180 },
+    "facing=north": { "model": "reinhardtshbm:block/drone_waypoint", "x": 90 },
+    "facing=south": { "model": "reinhardtshbm:block/drone_waypoint", "x": 270 },
+    "facing=west": { "model": "reinhardtshbm:block/drone_waypoint", "z": 90 },
+    "facing=east": { "model": "reinhardtshbm:block/drone_waypoint", "z": 270 }
+  }
 }

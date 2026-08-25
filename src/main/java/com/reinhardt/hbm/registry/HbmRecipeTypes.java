@@ -7,6 +7,7 @@ import com.reinhardt.hbm.recipe.ArcFurnaceRecipe;
 import com.reinhardt.hbm.recipe.AmmoPressRecipe;
 import com.reinhardt.hbm.recipe.BlastFurnaceFuelRecipe;
 import com.reinhardt.hbm.recipe.BlastFurnaceRecipe;
+import com.reinhardt.hbm.recipe.BdclRecipe;
 import com.reinhardt.hbm.recipe.BreederReactorRecipe;
 import com.reinhardt.hbm.recipe.CargoShellRecipe;
 import com.reinhardt.hbm.recipe.CentrifugeRecipe;
@@ -48,6 +49,7 @@ import com.reinhardt.hbm.recipe.SolderingStationRecipe;
 import com.reinhardt.hbm.recipe.SolidificationRecipe;
 import com.reinhardt.hbm.recipe.StorageCrateUpgradeRecipe;
 import com.reinhardt.hbm.recipe.VacuumDistillRecipe;
+import com.reinhardt.hbm.recipe.UniversalGrenadeRecipe;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -226,6 +228,9 @@ public final class HbmRecipeTypes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CrackingRecipe>> CRACKING_SERIALIZER =
             RECIPE_SERIALIZERS.register("cracking", CrackingRecipe.Serializer::new);
 
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BdclRecipe>> BDCL_SERIALIZER =
+            RECIPE_SERIALIZERS.register("bdcl", BdclRecipe.Serializer::new);
+
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ReformingRecipe>> REFORMING_SERIALIZER =
             RECIPE_SERIALIZERS.register("reforming", ReformingRecipe.Serializer::new);
 
@@ -325,11 +330,26 @@ public final class HbmRecipeTypes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CargoShellRecipe>> CARGO_SHELL_SERIALIZER =
             RECIPE_SERIALIZERS.register("cargo_shell", CargoShellRecipe.Serializer::new);
 
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<UniversalGrenadeRecipe>> UNIVERSAL_GRENADE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("universal_grenade", UniversalGrenadeRecipe.Serializer::new);
+
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<StorageCrateUpgradeRecipe>> CRATE_DESH_UPGRADE_SERIALIZER =
             RECIPE_SERIALIZERS.register("crate_desh_upgrade", StorageCrateUpgradeRecipe.DeshSerializer::new);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<StorageCrateUpgradeRecipe>> CRATE_TUNGSTEN_UPGRADE_SERIALIZER =
             RECIPE_SERIALIZERS.register("crate_tungsten_upgrade", StorageCrateUpgradeRecipe.TungstenSerializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<StorageCrateUpgradeRecipe>> SAFE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("safe", StorageCrateUpgradeRecipe.SafeSerializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<StorageCrateUpgradeRecipe>> MASS_STORAGE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("mass_storage", StorageCrateUpgradeRecipe.MassStorageSerializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<StorageCrateUpgradeRecipe>> MASS_STORAGE_DESH_SERIALIZER =
+            RECIPE_SERIALIZERS.register("mass_storage_desh", StorageCrateUpgradeRecipe.MassStorageDeshSerializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<StorageCrateUpgradeRecipe>> MASS_STORAGE_RESISTANT_SERIALIZER =
+            RECIPE_SERIALIZERS.register("mass_storage_resistant", StorageCrateUpgradeRecipe.MassStorageResistantSerializer::new);
 
     private HbmRecipeTypes() {
     }

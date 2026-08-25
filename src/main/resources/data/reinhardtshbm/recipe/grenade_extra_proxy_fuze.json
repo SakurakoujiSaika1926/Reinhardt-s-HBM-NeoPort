@@ -1,0 +1,25 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    "C",
+                    "F"
+                ],
+    "key":  {
+                "C":  {
+                          "item":  "reinhardtshbm:circuit_chip"
+                      },
+                "F":  {
+                          "item":  "reinhardtshbm:safety_fuse"
+                      }
+            },
+    "result":  {
+                   "id":  "reinhardtshbm:grenade_extra",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "proxy_fuze"
+                                                                },
+                                      "minecraft:custom_model_data":  1
+                                  }
+               }
+}

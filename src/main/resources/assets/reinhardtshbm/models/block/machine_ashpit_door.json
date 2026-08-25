@@ -1,0 +1,17 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/heating_oven.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/ashpit.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "visibility": {
+    "Main": false,
+    "Inner": false,
+    "InnerBurning": false
+  },
+  "textures": {
+    "particle": "reinhardtshbm:block/ashpit"
+  }
+}

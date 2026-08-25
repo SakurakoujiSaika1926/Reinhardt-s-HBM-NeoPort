@@ -3,6 +3,8 @@ package com.reinhardt.hbm.registry;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.radiation.HbmLivingHazards;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
+import com.reinhardt.hbm.item.HbmPlayerShield;
+import com.reinhardt.hbm.player.HbmPlayerArmorState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -27,6 +29,22 @@ public final class HbmDataAttachments {
             () -> AttachmentType.builder(HbmLivingHazards::new)
                     .serialize(HbmLivingHazards.CODEC)
                     .sync(HbmLivingHazards.STREAM_CODEC)
+                    .copyOnDeath()
+                    .build()
+    );
+    public static final Supplier<AttachmentType<HbmPlayerShield>> PLAYER_SHIELD = ATTACHMENTS.register(
+            "player_shield",
+            () -> AttachmentType.builder(HbmPlayerShield::new)
+                    .serialize(HbmPlayerShield.CODEC)
+                    .sync(HbmPlayerShield.STREAM_CODEC)
+                    .copyOnDeath()
+                    .build()
+    );
+    public static final Supplier<AttachmentType<HbmPlayerArmorState>> PLAYER_ARMOR_STATE = ATTACHMENTS.register(
+            "player_armor_state",
+            () -> AttachmentType.builder(HbmPlayerArmorState::new)
+                    .serialize(HbmPlayerArmorState.CODEC)
+                    .sync(HbmPlayerArmorState.STREAM_CODEC)
                     .copyOnDeath()
                     .build()
     );

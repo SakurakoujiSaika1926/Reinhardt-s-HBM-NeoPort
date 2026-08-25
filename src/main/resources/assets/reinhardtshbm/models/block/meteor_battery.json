@@ -1,6 +1,8 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "side": "reinhardtshbm:block/meteor_spawner_side",
+    "end": "reinhardtshbm:block/meteor_power",
+    "particle": "reinhardtshbm:block/meteor_spawner_side"
+  }
 }

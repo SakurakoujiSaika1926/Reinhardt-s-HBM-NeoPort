@@ -34,16 +34,25 @@ public class StampItem extends Item {
     }
 
     public static boolean isStamp(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof StampItem stamp && stamp.type() != null;
+        return !stack.isEmpty() && stack.getItem() instanceof StampItem stamp && stamp.type(stack) != null;
     }
 
     @Nullable
     public static StampType stampType(ItemStack stack) {
-        return stack.getItem() instanceof StampItem stamp ? stamp.type() : null;
+        return stack.getItem() instanceof StampItem stamp ? stamp.type(stack) : null;
     }
 
     public static boolean isStampOfType(ItemStack stack, StampType type) {
         return stampType(stack) == type;
+    }
+
+    /**
+     * 1.7.10's ItemStampBook chose its stamp type from the stack metadata.
+     * Fixed-type stamps retain their existing item-level type.
+     */
+    @Nullable
+    public StampType type(ItemStack stack) {
+        return this.type;
     }
 
     public static boolean damageStamp(ItemStack stack) {

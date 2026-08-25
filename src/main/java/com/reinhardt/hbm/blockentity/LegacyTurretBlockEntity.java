@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.api.machine.RadarCommandReceiver;
 import com.reinhardt.hbm.block.LegacyTurretBlock;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.entity.LegacyArtilleryShellEntity;
@@ -78,7 +79,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
+public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider, RadarCommandReceiver {
     public static final int CHIP_SLOT = 0;
     public static final int AMMO_START = 1;
     public static final int AMMO_END = 10;
@@ -1296,6 +1297,17 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         this.targetQueue.add(targetPos);
         setChanged();
         return true;
+    }
+
+    @Override
+    public boolean sendCommandPosition(int x, int y, int z) {
+        // TileEntityTurretBaseArtillery queued block-center coordinates.
+        return enqueueTarget(x + 0.5D, y, z + 0.5D);
+    }
+
+    @Override
+    public boolean sendCommandEntity(Entity target) {
+        return enqueueTarget(target.getX(), target.getY(), target.getZ());
     }
 
     public void addWhitelistName(String name) {

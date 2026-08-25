@@ -45,7 +45,7 @@ public class SteamTurbineScreen extends AbstractContainerScreen<SteamTurbineMenu
             guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
                     "tooltip.reinhardtshbm.energy",
                     this.menu.power(),
-                    SteamTurbineBlockEntity.ENERGY_CAPACITY
+                    SteamTurbineBlockEntity.energyCapacity()
             )), mouseX, mouseY);
         }
     }

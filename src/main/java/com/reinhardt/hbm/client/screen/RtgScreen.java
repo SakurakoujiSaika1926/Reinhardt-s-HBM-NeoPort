@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.item.RtgPelletItem;
 import com.reinhardt.hbm.menu.RtgMenu;
 import com.reinhardt.hbm.registry.HbmItems;
@@ -37,7 +38,8 @@ public final class RtgScreen extends AbstractContainerScreen<RtgMenu> {
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
-        int heat = Math.min(51, this.menu.heat() * 51 / 600);
+        int heatCap = HbmConfig.rtgDecay() ? 600 : 200;
+        int heat = Math.min(51, this.menu.heat() * 51 / heatCap);
         if (heat > 0) {
             graphics.blit(TEXTURE, this.leftPos + 124, this.topPos + 61 - heat,
                     176, 10 + (51 - heat), 16, heat, 256, 256);

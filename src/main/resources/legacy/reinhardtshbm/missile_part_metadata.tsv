@@ -1,0 +1,123 @@
+id	title	author	witty	rarity	hidden
+mp_thruster_10_kerosene					false
+mp_thruster_10_solid					false
+mp_thruster_10_xenon					false
+mp_thruster_15_kerosene					false
+mp_thruster_15_kerosene_dual					false
+mp_thruster_15_kerosene_triple					false
+mp_thruster_15_solid					false
+mp_thruster_15_solid_hexdecuple				UNCOMMON	false
+mp_thruster_15_hydrogen					false
+mp_thruster_15_hydrogen_dual					false
+mp_thruster_15_balefire_short					false
+mp_thruster_15_balefire					false
+mp_thruster_15_balefire_large					false
+mp_thruster_15_balefire_large_rad		The Master		UNCOMMON	false
+mp_thruster_20_kerosene					false
+mp_thruster_20_kerosene_dual					false
+mp_thruster_20_kerosene_triple					false
+mp_thruster_20_solid			It's basically just a big hole at the end of the fuel tank.		false
+mp_thruster_20_solid_multi					false
+mp_thruster_20_solid_multier			Did I miscount? Hope not.		false
+mp_stability_10_flat					false
+mp_stability_10_cruise					false
+mp_stability_10_space			Standing there alone, the ship is waiting / All systems are go, are you sure?	COMMON	false
+mp_stability_15_flat					false
+mp_stability_15_thin					false
+mp_stability_15_soyuz			小芯褞蟹!	COMMON	false
+mp_s_20					false
+mp_fuselage_10_kerosene		Hoboy			false
+mp_fuselage_10_kerosene_camo	Camo			COMMON	false
+mp_fuselage_10_kerosene_desert	Desert Camo			COMMON	false
+mp_fuselage_10_kerosene_sky	Sky Camo			COMMON	false
+mp_fuselage_10_kerosene_flames	Sick Flames			UNCOMMON	false
+mp_fuselage_10_kerosene_insulation	Orange Insulation			COMMON	false
+mp_fuselage_10_kerosene_sleek	IF-R&D			RARE	false
+mp_fuselage_10_kerosene_metal	Bolted Metal	Hoboy		UNCOMMON	false
+mp_fuselage_10_kerosene_taint	Tainted	Sam		UNCOMMON	false
+mp_fuselage_10_solid					false
+mp_fuselage_10_solid_flames	Sick Flames			UNCOMMON	false
+mp_fuselage_10_solid_insulation	Orange Insulation			COMMON	false
+mp_fuselage_10_solid_sleek	IF-R&D			RARE	false
+mp_fuselage_10_solid_soviet_glory	Soviet Glory	Hoboy		EPIC	false
+mp_fuselage_10_solid_cathedral	Unholy Cathedral	Satan	Quakeesque!	RARE	false
+mp_fuselage_10_solid_moonlit	Moonlit	The Master & Hoboy		UNCOMMON	false
+mp_fuselage_10_solid_battery	Ecstatic	wolfmonster222	I got caught eating batteries again :(	UNCOMMON	false
+mp_fuselage_10_solid_duracell	Duracell	Hoboy	The crunchiest battery on the market!	RARE	false
+mp_fuselage_10_xenon					false
+mp_fuselage_10_xenon_bhole	Morceus-1457	Sten89		RARE	false
+mp_fuselage_10_long_kerosene		Hoboy			false
+mp_fuselage_10_long_kerosene_camo	Camo			COMMON	false
+mp_fuselage_10_long_kerosene_desert	Desert Camo			COMMON	false
+mp_fuselage_10_long_kerosene_sky	Sky Camo			COMMON	false
+mp_fuselage_10_long_kerosene_flames	Sick Flames			UNCOMMON	false
+mp_fuselage_10_long_kerosene_insulation	Orange Insulation			COMMON	false
+mp_fuselage_10_long_kerosene_sleek	IF-R&D			RARE	false
+mp_fuselage_10_long_kerosene_metal		Hoboy		UNCOMMON	false
+mp_fuselage_10_long_kerosene_dash	Dash	Sam	I wash my hands of it.	EPIC	true
+mp_fuselage_10_long_kerosene_taint	Tainted	Sam		UNCOMMON	false
+mp_fuselage_10_long_kerosene_vap	Minty Contrail	VT-6/24	Upper rivet!	EPIC	false
+mp_fuselage_10_long_solid					false
+mp_fuselage_10_long_solid_flames	Sick Flames			UNCOMMON	false
+mp_fuselage_10_long_solid_insulation	Orange Insulation			COMMON	false
+mp_fuselage_10_long_solid_sleek	IF-R&D			RARE	false
+mp_fuselage_10_long_solid_soviet_glory	Soviet Glory	Hoboy	Fully Automated Luxury Gay Space Communism!	EPIC	false
+mp_fuselage_10_long_solid_bullet	Bullet Bill	Sam		COMMON	false
+mp_fuselage_10_long_solid_silvermoonlight	Silver Moonlight	The Master		UNCOMMON	false
+mp_fuselage_10_15_kerosene					false
+mp_fuselage_10_15_solid					false
+mp_fuselage_10_15_hydrogen					false
+mp_fuselage_10_15_balefire					false
+mp_fuselage_15_kerosene		Hoboy			false
+mp_fuselage_15_kerosene_camo	Camo			COMMON	false
+mp_fuselage_15_kerosene_desert	Desert Camo			COMMON	false
+mp_fuselage_15_kerosene_sky	Sky Camo			COMMON	false
+mp_fuselage_15_kerosene_insulation	Orange Insulation		Rest in spaghetti Columbia :(	COMMON	false
+mp_fuselage_15_kerosene_metal	Bolted Metal	Hoboy	Metal frame with metal plating reinforced with bolted metal sheets and metal.	UNCOMMON	false
+mp_fuselage_15_kerosene_decorated	Decorated	Hoboy		UNCOMMON	false
+mp_fuselage_15_kerosene_steampunk	Steampunk	Hoboy		RARE	false
+mp_fuselage_15_kerosene_polite	Polite	Hoboy		LEGENDARY	false
+mp_fuselage_15_kerosene_blackjack	Queen Whiskey			LEGENDARY	false
+mp_fuselage_15_kerosene_lambda	Lambda Complex	VT-6/24	MAGNIFICENT MICROWAVE CASSEROLE	RARE	false
+mp_fuselage_15_kerosene_minuteman	MX 1702	Spexta		UNCOMMON	false
+mp_fuselage_15_kerosene_pip	LittlePip	The Doctor	31!	EPIC	true
+mp_fuselage_15_kerosene_taint	Tainted	Sam	DUN-DUN!	UNCOMMON	false
+mp_fuselage_15_kerosene_yuck	Flesh	Hoboy	Note: Never clean DNA vials with your own spit.	EPIC	false
+mp_fuselage_15_solid					false
+mp_fuselage_15_solid_insulation	Orange Insulation			COMMON	false
+mp_fuselage_15_solid_desh	Desh Plating	Hoboy		RARE	false
+mp_fuselage_15_solid_soviet_glory	Soviet Glory	Hoboy		RARE	false
+mp_fuselage_15_solid_soviet_stank	Soviet Stank	Hoboy	Aged like a fine wine! Well, almost.	EPIC	false
+mp_fuselage_15_solid_faust	Mighty Lauren	Dr.Nostalgia	Welcome to Subway, may I take your order?	LEGENDARY	false
+mp_fuselage_15_solid_silvermoonlight	Silver Moonlight	The Master		UNCOMMON	false
+mp_fuselage_15_solid_snowy	Chilly Day	Dr.Nostalgia		UNCOMMON	false
+mp_fuselage_15_solid_panorama	Panorama	Hoboy		RARE	false
+mp_fuselage_15_solid_roses	Bed of roses	Hoboy		UNCOMMON	false
+mp_fuselage_15_solid_mimi	Mimi-chan			RARE	false
+mp_fuselage_15_hydrogen					false
+mp_fuselage_15_hydrogen_cathedral	Unholy Cathedral	Satan		UNCOMMON	false
+mp_fuselage_15_balefire					false
+mp_fuselage_15_20_kerosene		Hoboy			false
+mp_fuselage_15_20_kerosene_magnusson	White Forest Rocket	VT-6/24	And get your cranio-conjugal parasite away from my nose cone!	RARE	false
+mp_fuselage_15_20_solid					false
+mp_warhead_10_he					false
+mp_warhead_10_incendiary					false
+mp_warhead_10_buster					false
+mp_warhead_10_nuclear	Tater Tot				false
+mp_warhead_10_nuclear_large	Chernobyl Boris				false
+mp_warhead_10_taint			Eat my taint! Bureaucracy is dead and we killed it!	UNCOMMON	false
+mp_warhead_10_cloud				RARE	false
+mp_warhead_15_he					false
+mp_warhead_15_incendiary					false
+mp_warhead_15_nuclear	Auntie Bertha				false
+mp_warhead_15_nuclear_shark	Discount Bullet Bill		Nose art on a cannon bullet? Who does that?	UNCOMMON	false
+mp_warhead_15_nuclear_mimi	FASHIONABLE MISSILE			RARE	false
+mp_warhead_15_boxcar			?!?!	LEGENDARY	false
+mp_warhead_15_n2			[screams geometrically]	RARE	false
+mp_warhead_15_balefire		VT-6/24	Hightower, never forgetti.	LEGENDARY	false
+mp_warhead_15_turbine				SEWS_CLOTHES_AND_SUCKS_HORSE_COCK	false
+mp_c_1					false
+mp_c_2					false
+mp_c_3					false
+mp_c_4					false
+mp_c_5					false

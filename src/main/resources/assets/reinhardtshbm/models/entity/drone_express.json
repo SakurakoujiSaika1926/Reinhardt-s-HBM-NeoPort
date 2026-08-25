@@ -1,0 +1,9 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/drone.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/drone_express.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "visibility": { "Crate": false, "Barrel": false },
+  "textures": { "particle": "reinhardtshbm:models/legacy/drone_express" }
+}

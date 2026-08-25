@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/** Routes legacy machine items through their OBJ item renderer instead of a flat baked quad. */
+/** Routes items with a dedicated BEWLR through that renderer instead of their fallback baked model. */
 public final class LegacyMachineItemModel implements IDynamicBakedModel {
     /*
      * LegacyMachineItemRenderer reproduces ItemRenderBase itself.  Feeding it
@@ -40,8 +40,12 @@ public final class LegacyMachineItemModel implements IDynamicBakedModel {
         for (String name : List.of(
                 "machine_annihilator", "machine_autosaw", "machine_forcefield", "machine_missile_assembly",
                 "machine_microwave", "machine_orbus", "machine_precass", "machine_pyrooven", "machine_radar", "machine_radar_large",
-                "machine_radgen", "machine_radiolysis", "machine_rtg_grey", "machine_sawmill", "machine_turbofan",
-                "machine_thresher", "machine_lpw2")) {
+                "machine_radgen", "machine_radiolysis", "machine_reactor_breeding", "machine_rtg_grey", "machine_sawmill", "machine_turbofan",
+                "machine_thresher", "machine_lpw2",
+                "pump_steam", "pump_electric", "machine_bat9000", "machine_bigasstank", "deco_toaster",
+                "red_connector", "connector_red_super", "red_pylon_medium_wood",
+                "red_pylon_medium_transformer", "red_pylon_steel", "red_pylon_steel_transformer",
+                "red_pylon_large", "substation")) {
             ModelResourceLocation location = new ModelResourceLocation(
                     ReinhardtsHBM.id(name), ModelResourceLocation.INVENTORY_VARIANT
             );

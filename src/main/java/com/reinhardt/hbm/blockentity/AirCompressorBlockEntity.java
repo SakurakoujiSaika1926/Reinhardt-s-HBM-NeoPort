@@ -179,8 +179,6 @@ public class AirCompressorBlockEntity extends BlockEntity implements PowerEndpoi
 
     private void tickServer(Level level) {
         ensureAirTank();
-        PowerNetworkManager.tickFromEndpoint(level, this);
-
         boolean wasRunning = this.running;
         this.running = false;
         if (this.power >= POWER_PER_TICK) {
@@ -190,6 +188,7 @@ public class AirCompressorBlockEntity extends BlockEntity implements PowerEndpoi
         }
 
         pushAir(level);
+        PowerNetworkManager.tickFromEndpoint(level, this);
         setChanged();
         if (wasRunning != this.running || level.getGameTime() % 10L == 0L) {
             sync(level);

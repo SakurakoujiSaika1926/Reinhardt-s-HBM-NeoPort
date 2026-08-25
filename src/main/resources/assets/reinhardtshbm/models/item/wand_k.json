@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
+                     "layer0":  "reinhardtshbm:item/wand_k"
                  },
     "parent":  "minecraft:item/generated"
 }

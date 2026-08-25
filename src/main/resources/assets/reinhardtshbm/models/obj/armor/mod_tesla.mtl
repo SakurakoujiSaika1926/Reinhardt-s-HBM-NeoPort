@@ -1,0 +1,4 @@
+newmtl mod_tesla
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/armor/mod_tesla

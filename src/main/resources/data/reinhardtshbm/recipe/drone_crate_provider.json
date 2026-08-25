@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["T", "C", "B"],
+  "key": { "T": { "item": "reinhardtshbm:drone_waypoint_request" }, "C": { "item": "reinhardtshbm:crate_steel" }, "B": { "tag": "c:dyes/orange" } },
+  "result": { "id": "reinhardtshbm:drone_crate_provider" }
+}

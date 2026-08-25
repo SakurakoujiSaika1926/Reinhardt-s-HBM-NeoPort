@@ -101,7 +101,7 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
         if (stack.is(Items.CLAY_BALL) || stack.is(HbmItems.BALL_FIRECLAY.get()) || stack.is(Items.NETHERRACK)) {
             return 4;
         }
-        if (stack.is(Items.COBBLESTONE) || stack.is(Items.SAND) || stack.is(ItemTags.LOGS)) {
+        if (stack.is(Items.COBBLESTONE) || stack.is(Items.SAND) || isLegacyLog(stack)) {
             return 2;
         }
         return 1;
@@ -417,6 +417,15 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
             return AshType.WOOD;
         }
         return AshType.MISC;
+    }
+
+    private static boolean isLegacyLog(ItemStack stack) {
+        return stack.is(Items.OAK_LOG)
+                || stack.is(Items.SPRUCE_LOG)
+                || stack.is(Items.BIRCH_LOG)
+                || stack.is(Items.JUNGLE_LOG)
+                || stack.is(Items.ACACIA_LOG)
+                || stack.is(Items.DARK_OAK_LOG);
     }
 
     private void setLit(Level level, boolean lit) {

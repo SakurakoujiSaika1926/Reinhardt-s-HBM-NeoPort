@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/ufo.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/ufo.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/legacy/ufo"
+  }
+}

@@ -22,7 +22,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Set;
 
-public class GasMaskItem extends ArmorItem {
+public class GasMaskItem extends ArmorItem implements FilterableGasMask {
     public static final String FILTER_KEY = "hfrFilter";
 
     private final Kind kind;
@@ -84,7 +84,7 @@ public class GasMaskItem extends ArmorItem {
     }
 
     public static boolean installFilter(ItemStack mask, ItemStack filter, LivingEntity entity) {
-        if (!(mask.getItem() instanceof GasMaskItem gasMask) || !(filter.getItem() instanceof GasMaskFilterItem)) {
+        if (!(mask.getItem() instanceof FilterableGasMask gasMask) || !(filter.getItem() instanceof GasMaskFilterItem)) {
             return false;
         }
         if (!gasMask.isFilterApplicable(filter)) {

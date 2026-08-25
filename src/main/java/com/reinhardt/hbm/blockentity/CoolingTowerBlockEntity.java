@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.CoolingTowerBlock;
+import com.reinhardt.hbm.config.HbmClientConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -56,6 +57,9 @@ public class CoolingTowerBlockEntity extends BlockEntity implements FluidCopiabl
     }
 
     public static void clientTick(Level level, BlockPos pos, BlockState state, CoolingTowerBlockEntity tower) {
+        if (!HbmClientConfig.ENABLE_COOLING_TOWER_PARTICLES.get()) {
+            return;
+        }
         CoolingTowerBlock.Kind kind = tower.kind();
         long interval = kind == CoolingTowerBlock.Kind.LARGE ? 4L : 2L;
         if (tower.waterTimer <= 0 || level.getGameTime() % interval != 0L) {

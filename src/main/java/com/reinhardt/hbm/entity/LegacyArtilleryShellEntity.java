@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.entity;
 
+import com.reinhardt.hbm.api.entity.LegacyRadarDetectable;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmChunkTickets;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
@@ -29,7 +30,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 
-public class LegacyArtilleryShellEntity extends Entity {
+public class LegacyArtilleryShellEntity extends Entity implements LegacyRadarDetectable {
     private static final EntityDataAccessor<Integer> SHELL_TYPE =
             SynchedEntityData.defineId(LegacyArtilleryShellEntity.class, EntityDataSerializers.INT);
     private static final double GRAVITY = 9.81D * 0.05D;
@@ -439,5 +440,31 @@ public class LegacyArtilleryShellEntity extends Entity {
                 serverLevel, this, this.forcedChunkX, this.forcedChunkZ, false, true);
         this.forcedChunkX = Integer.MIN_VALUE;
         this.forcedChunkZ = Integer.MIN_VALUE;
+    }
+
+    @Override
+    public String translationKey() {
+        return "gui.reinhardtshbm.radar.target.artillery";
+    }
+
+    @Override
+    public int blipLevel() {
+        return ARTY;
+    }
+
+    @Override
+    public boolean canBeSeenBy(Object radar) {
+        return true;
+    }
+
+    @Override
+    public boolean paramsApplicable(RadarScanParams params) {
+        // TileEntityMachineRadarNT's legacy converter used scanMissiles for shells.
+        return params.scanMissiles();
+    }
+
+    @Override
+    public boolean suppliesRedstone(RadarScanParams params) {
+        return getDeltaMovement().y < 0.0D;
     }
 }

@@ -2,6 +2,7 @@ package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.MicrowaveBlock;
 import com.reinhardt.hbm.item.BatteryPackItem;
+import com.reinhardt.hbm.entity.LegacyProjectileUtil;
 import com.reinhardt.hbm.menu.MicrowaveMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
@@ -102,13 +103,8 @@ public final class MicrowaveBlockEntity extends BlockEntity implements PowerEndp
         if (this.canProcess(level)) {
             if (this.speed >= MAX_SPEED) {
                 level.removeBlock(this.worldPosition, false);
-                level.explode(null,
-                        this.worldPosition.getX() + 0.5D,
-                        this.worldPosition.getY() + 0.5D,
-                        this.worldPosition.getZ() + 0.5D,
-                        5.0F,
-                        true,
-                        Level.ExplosionInteraction.BLOCK);
+                LegacyProjectileUtil.fixedDamageExplosion(level, null,
+                        this.worldPosition.getCenter(), 5.0F, 50.0F, false);
                 return;
             }
 
@@ -298,7 +294,7 @@ public final class MicrowaveBlockEntity extends BlockEntity implements PowerEndp
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
         return slot == INPUT_SLOT && this.canAcceptInput(stack)
-                || slot == BATTERY_SLOT && ShredderBlockEntity.isBattery(stack);
+                || slot == BATTERY_SLOT;
     }
 
     @Override

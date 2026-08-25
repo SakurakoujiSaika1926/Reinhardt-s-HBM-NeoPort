@@ -18,8 +18,6 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
             MachineModelRenderer.standalone("block/red_connector_world");
     private static final ModelResourceLocation CONNECTOR_RED_SUPER =
             MachineModelRenderer.standalone("block/connector_red_super_world");
-    private static final ModelResourceLocation RED_PYLON =
-            MachineModelRenderer.standalone("block/red_pylon_world");
     private static final ModelResourceLocation MEDIUM_WOOD =
             MachineModelRenderer.standalone("block/red_pylon_medium_wood_world");
     private static final ModelResourceLocation MEDIUM_WOOD_TRANSFORMER =
@@ -32,7 +30,6 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
             MachineModelRenderer.standalone("block/red_pylon_large_world");
     private static final ModelResourceLocation SUBSTATION =
             MachineModelRenderer.standalone("block/substation_world");
-
     private final PowerPylonBlock.Kind kind;
 
     public PowerPylonItemRenderer(PowerPylonBlock.Kind kind) {
@@ -43,6 +40,11 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        if (this.kind == PowerPylonBlock.Kind.RED_CONNECTOR
+                || this.kind == PowerPylonBlock.Kind.CONNECTOR_RED_SUPER) {
+            renderConnectorLegacy(context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (isMedium()) {
             renderMediumLegacy(context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -82,13 +84,9 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
             // ItemRenderLibrary: renderInventory() translates by -5 and scales by 2.25.
             poseStack.translate(0.0F, -5.0F, 0.0F);
             poseStack.scale(2.25F, 2.25F, 2.25F);
-        } else {
-            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-            }
-            // ItemRenderLibrary: renderCommon() scales the complete OBJ by 0.5.
-            poseStack.scale(0.5F, 0.5F, 0.5F);
         }
+        // ItemRenderLibrary: renderCommon() runs after renderInventory() for GUI items too.
+        poseStack.scale(0.5F, 0.5F, 0.5F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LARGE), poseStack,
                 bufferSource, state(), packedLight, packedOverlay);
         poseStack.popPose();
@@ -102,13 +100,9 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
             // ItemRenderLibrary: renderInventory() translates by -2.5 and scales by 4.5.
             poseStack.translate(0.0F, -2.5F, 0.0F);
             poseStack.scale(4.5F, 4.5F, 4.5F);
-        } else {
-            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-            }
-            // ItemRenderLibrary: renderCommon() scales the complete OBJ by 0.5.
-            poseStack.scale(0.5F, 0.5F, 0.5F);
         }
+        // ItemRenderLibrary: renderCommon() runs after renderInventory() for GUI items too.
+        poseStack.scale(0.5F, 0.5F, 0.5F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SUBSTATION), poseStack,
                 bufferSource, state(), packedLight, packedOverlay);
         poseStack.popPose();
@@ -122,13 +116,25 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(1.0F, -5.0F, 0.0F);
             poseStack.scale(4.5F, 4.5F, 4.5F);
-        } else {
-            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-            }
-            poseStack.scale(0.5F, 0.5F, 0.5F);
-            poseStack.translate(0.75F, 0.0F, 0.0F);
         }
+        // RenderPylonMedium#renderCommonWithStack runs after renderInventory() for GUI items too.
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.translate(0.75F, 0.0F, 0.0F);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model()), poseStack,
+                bufferSource, state(), packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private void renderConnectorLegacy(ItemDisplayContext context, PoseStack poseStack,
+                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, this.kind == PowerPylonBlock.Kind.RED_CONNECTOR ? -3.5F : -5.0F, 0.0F);
+            poseStack.scale(7.0F, 7.0F, 7.0F);
+        }
+        poseStack.scale(2.0F, 2.0F, 2.0F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model()), poseStack,
                 bufferSource, state(), packedLight, packedOverlay);
         poseStack.popPose();
@@ -148,7 +154,7 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
         return switch (this.kind) {
             case RED_CONNECTOR -> RED_CONNECTOR;
             case CONNECTOR_RED_SUPER -> CONNECTOR_RED_SUPER;
-            case RED_PYLON -> RED_PYLON;
+            case RED_PYLON -> throw new IllegalStateException("Legacy red pylon uses ModelPylon geometry");
             case RED_PYLON_MEDIUM_WOOD -> MEDIUM_WOOD;
             case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> MEDIUM_WOOD_TRANSFORMER;
             case RED_PYLON_MEDIUM_STEEL -> MEDIUM_STEEL;
@@ -176,7 +182,7 @@ public final class PowerPylonItemRenderer extends BlockEntityWithoutLevelRendere
         return switch (this.kind) {
             case RED_CONNECTOR -> new RenderSpec(model(), 2.0F, 0.0F, 0.28125F, 0.0F);
             case CONNECTOR_RED_SUPER -> new RenderSpec(model(), 1.35F, 0.0F, 0.5F, 0.0F);
-            case RED_PYLON -> new RenderSpec(model(), 0.24F, 0.5F, 2.84375F, 0.5F);
+            case RED_PYLON -> throw new IllegalStateException("Legacy red pylon uses ModelPylon geometry");
             case RED_PYLON_LARGE, SUBSTATION -> throw new IllegalStateException("Legacy item transforms handle this pylon");
             default -> throw new IllegalStateException("Medium pylons use the legacy item transform");
         };

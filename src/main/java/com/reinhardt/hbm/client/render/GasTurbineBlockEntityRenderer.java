@@ -34,6 +34,13 @@ public class GasTurbineBlockEntityRenderer implements BlockEntityRenderer<GasTur
 
     @Override
     public AABB getRenderBoundingBox(GasTurbineBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(7.0D, 4.0D, 7.0D);
+        // TileEntityMachineTurbineGas#getRenderBoundingBox in HBM 1.7.10.
+        double x = blockEntity.getBlockPos().getX();
+        double y = blockEntity.getBlockPos().getY();
+        double z = blockEntity.getBlockPos().getZ();
+        return new AABB(
+                x - 5.0D, y, z - 5.0D,
+                x + 6.0D, y + 3.0D, z + 6.0D
+        );
     }
 }

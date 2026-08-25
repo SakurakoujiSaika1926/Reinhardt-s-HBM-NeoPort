@@ -473,7 +473,9 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
         if (this.level != null) {
             SoyuzEntity soyuz = new SoyuzEntity(this.level, this.mode, targetX(), targetZ(), Math.max(0, this.rocketType));
             soyuz.setPos(this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 1.0D, this.worldPosition.getZ() + 0.5D);
-            if (this.mode == 1) {
+            if (this.mode == 0) {
+                soyuz.setPayload(0, this.items.get(SLOT_SATELLITE));
+            } else {
                 for (int i = SLOT_CARGO_START; i < SLOT_COUNT; i++) {
                     soyuz.setPayload(i - SLOT_CARGO_START, this.items.get(i));
                 }

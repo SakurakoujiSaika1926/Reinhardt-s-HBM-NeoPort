@@ -44,7 +44,6 @@ public class ElectricFurnaceBlockEntity extends BlockEntity implements PowerEndp
     public static final int SLOT_COUNT = 4;
     public static final int DATA_COUNT = 6;
     public static final long DEMAND_PER_TICK = 50L;
-    public static final long INPUT_RATE = 200L;
     public static final long ENERGY_CAPACITY = 100_000L;
 
     private static final int BASE_WORK_TIME = 100;
@@ -59,6 +58,7 @@ public class ElectricFurnaceBlockEntity extends BlockEntity implements PowerEndp
     private int workProgress;
     private int workTime = 100;
     private int completedCycles;
+    private int cooldown;
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
@@ -116,7 +116,7 @@ public class ElectricFurnaceBlockEntity extends BlockEntity implements PowerEndp
         if (this.energyStored >= ENERGY_CAPACITY) {
             return 0L;
         }
-        return Math.min(Math.max(INPUT_RATE, currentConsumption()), ENERGY_CAPACITY - this.energyStored);
+        return ENERGY_CAPACITY - this.energyStored;
     }
 
     @Override
@@ -132,7 +132,7 @@ public class ElectricFurnaceBlockEntity extends BlockEntity implements PowerEndp
         return Component.translatable(
                 "message.reinhardtshbm.power.electric_furnace",
                 this.lastInput,
-                INPUT_RATE,
+                ENERGY_CAPACITY - this.energyStored,
                 this.energyStored,
                 ENERGY_CAPACITY,
                 percent,
@@ -233,7 +233,7 @@ public class ElectricFurnaceBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == OUTPUT_SLOT;
+        return slot == OUTPUT_SLOT || slot == BATTERY_SLOT && BatteryPackItem.charge(stack) <= 0L;
     }
 
     @Override
@@ -312,6 +312,10 @@ public class ElectricFurnaceBlockEntity extends BlockEntity implements PowerEndp
     private void tickWork(Level level) {
         this.energyStored = BatteryPackItem.dischargeIntoMachine(this.batteryStack, this.energyStored, ENERGY_CAPACITY);
 
+        if (this.cooldown > 0) {
+            this.cooldown--;
+        }
+
         Optional<RecipeHolder<SmeltingRecipe>> recipe = canSmelt(level);
         if (recipe.isEmpty()) {
             this.workProgress = 0;
@@ -322,7 +326,17 @@ public class ElectricFurnaceBlockEntity extends BlockEntity implements PowerEndp
         this.workTime = currentWorkTime();
         long consumption = currentConsumption();
         if (this.energyStored < consumption) {
+            this.workProgress = 0;
+            this.cooldown = 20;
             setLit(false);
+            setChanged();
+            return;
+        }
+
+        if (this.cooldown > 0) {
+            this.workProgress = 0;
+            setLit(false);
+            setChanged();
             return;
         }
 

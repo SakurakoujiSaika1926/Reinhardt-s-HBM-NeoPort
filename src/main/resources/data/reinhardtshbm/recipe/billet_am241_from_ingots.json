@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["##"],
+  "key": { "#": { "tag": "c:ingots/am241" } },
+  "result": { "id": "reinhardtshbm:billet_am241", "count": 3 }
+}

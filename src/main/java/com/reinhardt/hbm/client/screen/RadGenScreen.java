@@ -66,9 +66,10 @@ public final class RadGenScreen extends AbstractContainerScreen<RadGenMenu> {
             if (duration <= 0 || !isHovering(65, 18 + slot * 5, 46, 5, mouseX, mouseY)) continue;
             int remaining = Math.max(0, duration - this.menu.progress(slot));
             graphics.renderComponentTooltip(this.font, java.util.List.of(
-                    Component.literal("Slot " + (slot + 1) + ":"),
-                    Component.literal(this.menu.production(slot) + "HE/t for"),
-                    Component.literal(remaining + " ticks (" + (remaining * 100 / duration) + "%)")
+                    Component.translatable("gui.reinhardtshbm.radgen.slot", slot + 1),
+                    Component.translatable("gui.reinhardtshbm.radgen.production", this.menu.production(slot)),
+                    Component.translatable("gui.reinhardtshbm.radgen.remaining", remaining,
+                            remaining * 100 / duration)
             ), mouseX, mouseY);
             break;
         }

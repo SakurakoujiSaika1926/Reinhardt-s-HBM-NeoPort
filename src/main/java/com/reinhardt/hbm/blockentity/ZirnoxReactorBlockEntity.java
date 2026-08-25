@@ -132,6 +132,12 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
         return this.menuData;
     }
 
+    /** Entry point for the original ItemDyatlov, which set Zirnox heat to 200000. */
+    public void forceOverheat() {
+        this.heat = 200_000;
+        setChanged();
+    }
+
     public HbmFluidTank steamTank() {
         return this.steam;
     }

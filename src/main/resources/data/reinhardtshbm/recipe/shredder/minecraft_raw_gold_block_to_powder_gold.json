@@ -3,7 +3,6 @@
     "ingredient":  {
                        "item":  "minecraft:raw_gold_block"
                    },
-    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_gold",
                    "count":  27

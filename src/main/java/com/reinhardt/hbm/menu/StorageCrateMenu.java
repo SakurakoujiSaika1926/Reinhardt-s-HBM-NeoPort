@@ -97,9 +97,6 @@ public class StorageCrateMenu extends AbstractContainerMenu {
         return this.container instanceof StorageCrateBlockEntity crate && crate.heatTimer() > 0;
     }
 
-    public long joules() {
-        return this.container instanceof StorageCrateBlockEntity crate ? crate.joules() : 0L;
-    }
 
     private void addPlayerInventory(Inventory inventory) {
         for (int row = 0; row < 3; row++) {

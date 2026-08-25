@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "L L",
+    "LLL"
+  ],
+  "key": {
+    "L": {
+      "tag": "c:ingots/rubber"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:boat_rubber"
+  }
+}

@@ -13,9 +13,15 @@ import java.util.List;
 
 public class WasteLogBlock extends RotatedPillarBlock {
     private static final MapCodec<WasteLogBlock> CODEC = simpleCodec(WasteLogBlock::new);
+    private final boolean frozen;
 
     public WasteLogBlock(Properties properties) {
+        this(properties, false);
+    }
+
+    public WasteLogBlock(Properties properties, boolean frozen) {
         super(properties);
+        this.frozen = frozen;
     }
 
     @Override
@@ -27,6 +33,9 @@ public class WasteLogBlock extends RotatedPillarBlock {
     protected List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder params) {
         ServerLevel level = params.getLevel();
         RandomSource random = level.random;
+        if (frozen) {
+            return List.of(new ItemStack(Items.SNOWBALL, 2 + random.nextInt(3)));
+        }
         ItemStack drop = random.nextInt(1000) == 0
                 ? new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(com.reinhardt.hbm.ReinhardtsHBM.id("burnt_bark")))
                 : new ItemStack(Items.CHARCOAL, 2 + random.nextInt(3));

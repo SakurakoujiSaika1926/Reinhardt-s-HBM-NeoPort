@@ -1,10 +1,12 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.PowerMachineBlock;
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
+import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.menu.WoodBurnerMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
@@ -499,13 +501,13 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
         } else {
             this.ashLevelMisc += duration;
         }
-        while (this.ashLevelWood >= SOLID_ASH_THRESHOLD && processAsh()) {
+        while (this.ashLevelWood >= SOLID_ASH_THRESHOLD && processAsh(AshType.WOOD)) {
             this.ashLevelWood -= SOLID_ASH_THRESHOLD;
         }
-        while (this.ashLevelCoal >= SOLID_ASH_THRESHOLD && processAsh()) {
+        while (this.ashLevelCoal >= SOLID_ASH_THRESHOLD && processAsh(AshType.COAL)) {
             this.ashLevelCoal -= SOLID_ASH_THRESHOLD;
         }
-        while (this.ashLevelMisc >= SOLID_ASH_THRESHOLD && processAsh()) {
+        while (this.ashLevelMisc >= SOLID_ASH_THRESHOLD && processAsh(AshType.MISC)) {
             this.ashLevelMisc -= SOLID_ASH_THRESHOLD;
         }
 
@@ -519,8 +521,8 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
         return true;
     }
 
-    private boolean processAsh() {
-        ItemStack ash = new ItemStack(HbmItems.POWDER_ASH.get());
+    private boolean processAsh(AshType type) {
+        ItemStack ash = LegacyVariantItem.stackFor(HbmItems.POWDER_ASH, type.variantId());
         if (!canPlaceOutput(ASH_SLOT, ash)) {
             return false;
         }
@@ -532,11 +534,71 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
         if (stack.isEmpty()) {
             return 0;
         }
-        int base = stack.getBurnTime(null);
+        int base = legacyRawFuelDuration(stack);
         if (base <= 0) {
             return 0;
         }
-        return (int) Math.max(1, Math.round(base * fuelTimeMultiplier(stack)));
+        return (int) (base * fuelTimeMultiplier(stack));
+    }
+
+    /**
+     * Direct port of 1.7.10 FuelHandler#getBurnTime.  The old wood burner
+     * obtains its baseline from TileEntityFurnace, which includes HBM's fuel
+     * handler before ModuleBurnTime applies the wood/log multipliers.
+     */
+    private static int legacyRawFuelDuration(ItemStack stack) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (id != null && ReinhardtsHBM.MOD_ID.equals(id.getNamespace())) {
+            int legacyDuration = switch (id.getPath()) {
+                case "solid_fuel" -> 200 * 16;
+                case "solid_fuel_presto" -> 200 * 40;
+                case "solid_fuel_presto_triplet" -> 200 * 200;
+                case "solid_fuel_bf" -> 200 * 160;
+                case "solid_fuel_presto_bf" -> 200 * 400;
+                case "solid_fuel_presto_triplet_bf" -> 200 * 2_000;
+                case "rocket_fuel" -> 200 * 32;
+                case "biomass", "block_scrap" -> 200 * 2;
+                case "biomass_compressed" -> 200 * 4;
+                case "powder_coal" -> 200 * 8;
+                case "scrap" -> 200 / 4;
+                case "dust" -> 200 / 8;
+                case "powder_fire", "crystal_coal" -> 6_400;
+                case "lignite", "powder_lignite" -> 1_200;
+                case "coke" -> 200 * 16;
+                case "block_coke" -> 200 * 160;
+                case "book_guide" -> 200;
+                case "coal_infernal" -> 4_800;
+                case "powder_sawdust" -> 200 / 2;
+                case "briquette" -> briquetteBurnTime(stack);
+                case "powder_ash" -> ashBurnTime(stack);
+                default -> 0;
+            };
+            if (legacyDuration > 0) {
+                return legacyDuration;
+            }
+        }
+        return stack.getBurnTime(null);
+    }
+
+    private static int briquetteBurnTime(ItemStack stack) {
+        return switch (variantId(stack)) {
+            case "coal" -> 200 * 10;
+            case "lignite" -> 200 * 8;
+            case "wood" -> 200 * 2;
+            default -> 0;
+        };
+    }
+
+    private static int ashBurnTime(ItemStack stack) {
+        return switch (variantId(stack)) {
+            case "wood", "misc", "soot" -> 200 / 2;
+            case "coal", "fly" -> 200;
+            default -> 0;
+        };
+    }
+
+    private static String variantId(ItemStack stack) {
+        return stack.getItem() instanceof LegacyVariantItem item ? item.variant(stack).id() : "";
     }
 
     private static double fuelTimeMultiplier(ItemStack stack) {
@@ -694,7 +756,7 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     private void tickClient(BlockState state) {
-        if (this.level == null || this.powerGen <= 0 || this.level.getGameTime() % 5L != 0L) {
+        if (this.level == null || this.powerGen <= 0) {
             return;
         }
         Direction facing = state.hasProperty(PowerMachineBlock.FACING) ? state.getValue(PowerMachineBlock.FACING) : Direction.NORTH;
@@ -756,9 +818,19 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     private enum AshType {
-        WOOD,
-        COAL,
-        MISC
+        WOOD("wood"),
+        COAL("coal"),
+        MISC("misc");
+
+        private final String variantId;
+
+        AshType(String variantId) {
+            this.variantId = variantId;
+        }
+
+        private String variantId() {
+            return this.variantId;
+        }
     }
 
     private record Port(BlockPos pos, Direction face) {

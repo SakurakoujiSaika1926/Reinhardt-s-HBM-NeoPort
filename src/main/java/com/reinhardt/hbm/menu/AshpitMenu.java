@@ -74,6 +74,14 @@ public class AshpitMenu extends AbstractContainerMenu {
         return this.container.stillValid(player);
     }
 
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        if (!player.level().isClientSide && this.container instanceof AshpitBlockEntity ashpit) {
+            ashpit.stopOpen(player);
+        }
+    }
+
     private void addPlayerInventory(Inventory inventory) {
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {

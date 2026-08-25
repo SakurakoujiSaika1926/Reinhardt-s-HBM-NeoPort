@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:press",
+  "group": "press.printing8",
+  "stamp": "printing8",
+  "ingredient": { "item": "minecraft:paper" },
+  "result": {
+    "id": "reinhardtshbm:page_of_",
+    "components": {
+      "minecraft:custom_data": { "variant": "page8" },
+      "minecraft:custom_model_data": 7
+    }
+  }
+}

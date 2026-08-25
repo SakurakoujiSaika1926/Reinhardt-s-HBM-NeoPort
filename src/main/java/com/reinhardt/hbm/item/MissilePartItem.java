@@ -6,8 +6,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.util.RandomSource;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 1.7.10 ItemCustomMissilePart data. The old system keeps the part contract on
@@ -42,13 +50,43 @@ public final class MissilePartItem extends Item {
         }
     }
 
+    private enum LegacyRarity {
+        COMMON(ChatFormatting.GRAY),
+        UNCOMMON(ChatFormatting.YELLOW),
+        RARE(ChatFormatting.AQUA),
+        EPIC(ChatFormatting.LIGHT_PURPLE),
+        LEGENDARY(ChatFormatting.DARK_GREEN),
+        STRANGE(ChatFormatting.DARK_AQUA);
+
+        private final ChatFormatting color;
+
+        LegacyRarity(ChatFormatting color) {
+            this.color = color;
+        }
+
+        private static LegacyRarity fromLegacy(String value) {
+            if (value == null || value.isBlank()) {
+                return null;
+            }
+            return value.equals("SEWS_CLOTHES_AND_SUCKS_HORSE_COCK") ? STRANGE : valueOf(value);
+        }
+    }
+
+    private record Cosmetic(String title, String author, String witty, LegacyRarity rarity, boolean hidden) {
+        private static final Cosmetic EMPTY = new Cosmetic("", "", "", null, false);
+    }
+
+    private static final Map<String, Cosmetic> COSMETICS = loadCosmetics();
+
     private final String legacyId;
     private final Definition definition;
+    private final Cosmetic cosmetic;
 
     public MissilePartItem(Properties properties, String legacyId) {
         super(properties.stacksTo(1));
         this.legacyId = legacyId;
         this.definition = definitionFor(legacyId);
+        this.cosmetic = COSMETICS.getOrDefault(legacyId, Cosmetic.EMPTY);
     }
 
     public Definition definition() {
@@ -68,8 +106,46 @@ public final class MissilePartItem extends Item {
         return stack.isEmpty() ? "" : BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
     }
 
+    public boolean isHiddenInCreative() {
+        return this.cosmetic.hidden();
+    }
+
+    /**
+     * The old ItemLootCrate only accepted cosmetic parts that had called
+     * setRarity(), splitting fuselages by their upper size and everything
+     * else into the misc crate.
+     */
+    public boolean belongsToLegacyLootPool(LootPool pool) {
+        if (this.cosmetic.rarity() == null) {
+            return false;
+        }
+        return switch (pool) {
+            case SIZE_10 -> this.definition.type() == Type.FUSELAGE && this.definition.top() == Size.SIZE_10;
+            case SIZE_15 -> this.definition.type() == Type.FUSELAGE && this.definition.top() == Size.SIZE_15;
+            case MISC -> this.definition.type() != Type.FUSELAGE;
+        };
+    }
+
+    /** Matches ItemLootCrate.choose(): uncommon 1/5 through strange 1/100. */
+    public boolean winsLegacyLootRoll(RandomSource random) {
+        return switch (this.cosmetic.rarity()) {
+            case COMMON -> true;
+            case UNCOMMON -> random.nextInt(5) == 0;
+            case RARE -> random.nextInt(10) == 0;
+            case EPIC -> random.nextInt(25) == 0;
+            case LEGENDARY -> random.nextInt(50) == 0;
+            case STRANGE -> random.nextInt(100) == 0;
+            case null -> false;
+        };
+    }
+
+    public enum LootPool { SIZE_10, SIZE_15, MISC }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        if (!this.cosmetic.title().isBlank()) {
+            tooltip.add(Component.literal("\"" + this.cosmetic.title() + "\"").withStyle(ChatFormatting.DARK_PURPLE));
+        }
         switch (this.definition.type()) {
             case CHIP -> tooltip.add(line("tooltip.reinhardtshbm.missile.inaccuracy", percent(this.definition.primary())));
             case WARHEAD -> {
@@ -98,6 +174,19 @@ public final class MissilePartItem extends Item {
         if (this.definition.type() != Type.CHIP) {
             tooltip.add(line("tooltip.reinhardtshbm.missile.health", this.definition.health()));
         }
+        if (this.cosmetic.rarity() != null) {
+            tooltip.add(line("tooltip.reinhardtshbm.missile.rarity",
+                    Component.translatable("tooltip.reinhardtshbm.missile.rarity." + this.cosmetic.rarity().name().toLowerCase())
+                            .withStyle(this.cosmetic.rarity().color)));
+        }
+        if (!this.cosmetic.author().isBlank()) {
+            tooltip.add(Component.translatable("tooltip.reinhardtshbm.missile.by", this.cosmetic.author())
+                    .withStyle(ChatFormatting.WHITE));
+        }
+        if (!this.cosmetic.witty().isBlank()) {
+            tooltip.add(Component.literal("\"" + this.cosmetic.witty() + "\"")
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC));
+        }
     }
 
     private static Component line(String key, Object value) {
@@ -114,6 +203,31 @@ public final class MissilePartItem extends Item {
 
     private static String percent(float value) {
         return String.format(java.util.Locale.ROOT, "%.1f%%", value * 100.0F);
+    }
+
+    private static Map<String, Cosmetic> loadCosmetics() {
+        InputStream stream = MissilePartItem.class.getClassLoader()
+                .getResourceAsStream("legacy/reinhardtshbm/missile_part_metadata.tsv");
+        if (stream == null) {
+            throw new IllegalStateException("Missing generated legacy missile part metadata.");
+        }
+
+        Map<String, Cosmetic> cosmetics = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            reader.readLine();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] fields = line.split("\\t", -1);
+                if (fields.length != 6) {
+                    throw new IllegalStateException("Malformed legacy missile part metadata: " + line);
+                }
+                cosmetics.put(fields[0], new Cosmetic(
+                        fields[1], fields[2], fields[3], LegacyRarity.fromLegacy(fields[4]), Boolean.parseBoolean(fields[5])));
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read legacy missile part metadata.", exception);
+        }
+        return Map.copyOf(cosmetics);
     }
 
     private static Definition definitionFor(String id) {

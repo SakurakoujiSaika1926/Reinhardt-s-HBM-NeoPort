@@ -1,0 +1,14 @@
+newmtl crucible_guard
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/weapons/crucible_guard
+
+newmtl crucible_blade
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/weapons/crucible_blade
+
+newmtl crucible_hilt
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/weapons/crucible_hilt

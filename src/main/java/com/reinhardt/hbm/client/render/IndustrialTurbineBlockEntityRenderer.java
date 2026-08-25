@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -57,7 +58,15 @@ public class IndustrialTurbineBlockEntityRenderer implements BlockEntityRenderer
 
     @Override
     public AABB getRenderBoundingBox(IndustrialTurbineBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(5.0D, 4.0D, 5.0D);
+        BlockPos pos = blockEntity.getBlockPos();
+        return new AABB(
+                pos.getX() - 3.0D,
+                pos.getY(),
+                pos.getZ() - 3.0D,
+                pos.getX() + 4.0D,
+                pos.getY() + 3.0D,
+                pos.getZ() + 4.0D
+        );
     }
 
     static void renderParts(

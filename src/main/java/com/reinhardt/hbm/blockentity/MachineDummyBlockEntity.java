@@ -136,6 +136,9 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return accelerator.getSlotsForAccessor(this.worldPosition, side);
         }
+        if (core instanceof RotaryFurnaceBlockEntity furnace) {
+            return furnace.getSlotsForAccessor(this.worldPosition, side);
+        }
         if (core instanceof LegacyMachineBlockEntity machine) {
             return machine.allowsItemAutomationPort(this.worldPosition) ? machine.getSlotsForFace(side) : NO_SLOTS;
         }
@@ -162,6 +165,10 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return containsSlot(accelerator.getSlotsForAccessor(this.worldPosition, side), slot)
                     && accelerator.canPlaceItemThroughFace(slot, stack, side);
+        }
+        if (core instanceof RotaryFurnaceBlockEntity furnace) {
+            return containsSlot(furnace.getSlotsForAccessor(this.worldPosition, side), slot)
+                    && furnace.canPlaceItemThroughFace(slot, stack, side);
         }
         if (core instanceof LegacyMachineBlockEntity machine) {
             return machine.allowsItemAutomationPort(this.worldPosition)
@@ -191,6 +198,10 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return containsSlot(accelerator.getSlotsForAccessor(this.worldPosition, side), slot)
                     && accelerator.canTakeItemThroughFace(slot, stack, side);
+        }
+        if (core instanceof RotaryFurnaceBlockEntity furnace) {
+            return containsSlot(furnace.getSlotsForAccessor(this.worldPosition, side), slot)
+                    && furnace.canTakeItemThroughFace(slot, stack, side);
         }
         if (core instanceof LegacyMachineBlockEntity machine) {
             return machine.allowsItemAutomationPort(this.worldPosition)

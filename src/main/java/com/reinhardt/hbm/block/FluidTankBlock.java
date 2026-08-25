@@ -2,6 +2,8 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
+import com.reinhardt.hbm.item.BlowtorchItem;
+import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +21,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -67,7 +70,15 @@ public class FluidTankBlock extends LargeMachineBlock implements EntityBlock {
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!(stack.getItem() instanceof FluidIdentifierItem)) {
+        if (stack.getItem() instanceof BlowtorchItem blowtorch && level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank) {
+            if (tank.isDamaged()) {
+                if (!level.isClientSide && blowtorch.canTorch(stack) && tank.repair(player)) {
+                    blowtorch.consumeTorchFuel(stack);
+                }
+                return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            }
+        }
+        if (!(stack.getItem() instanceof FluidIdentifierItem) || !player.isShiftKeyDown()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank) {
@@ -75,6 +86,15 @@ public class FluidTankBlock extends LargeMachineBlock implements EntityBlock {
             level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.25F, 1.2F);
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public void onBlockExploded(BlockState state, Level level, BlockPos pos, Explosion explosion) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank) {
+            tank.handleExplosion(explosion);
+            return;
+        }
+        super.onBlockExploded(state, level, pos, explosion);
     }
 
     @Override

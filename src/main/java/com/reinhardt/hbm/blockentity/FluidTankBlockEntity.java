@@ -5,13 +5,16 @@ import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
+import com.reinhardt.hbm.fluid.HbmFluidTrait;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.InfiniteFluidContainerItem;
+import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.menu.FluidTankMenu;
 import com.reinhardt.hbm.pollution.HbmPollution;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.util.FluidCopiable;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import net.minecraft.core.BlockPos;
@@ -26,6 +29,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -39,6 +44,8 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +63,6 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     public static final int SLOT_COUNT = 6;
     public static final int DATA_COUNT = 5;
     public static final int CAPACITY = 256_000;
-    private static final int TRANSFER_PER_TICK = 16_000;
     private static final int[] AUTOMATION_SLOTS = {
             ID_SLOT,
             ID_RESULT_SLOT,
@@ -70,6 +76,10 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     private final ItemStack[] items = new ItemStack[SLOT_COUNT];
     private final String displayNameKey;
     private Mode mode = Mode.RECEIVE;
+    private boolean hasExploded;
+    private boolean onFire;
+    @Nullable
+    private net.minecraft.world.level.Explosion lastExplosion;
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
@@ -118,7 +128,9 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, FluidTankBlockEntity tank) {
-        tank.tickContainers();
+        if (!tank.hasExploded) {
+            tank.tickContainers();
+        }
         tank.tickServer(level);
     }
 
@@ -147,6 +159,8 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
         CompoundTag data = root.getCompound(ITEM_DATA_KEY);
         this.tank.load(data.getCompound("Tank"));
         this.mode = Mode.byOrdinal(data.getByte("Mode"));
+        this.hasExploded = data.getBoolean("Exploded");
+        this.onFire = data.getBoolean("OnFire");
         sync();
     }
 
@@ -157,6 +171,10 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
         }
         if (this.mode != Mode.RECEIVE) {
             data.putByte("Mode", (byte) this.mode.ordinal());
+        }
+        if (this.hasExploded) {
+            data.putBoolean("Exploded", true);
+            data.putBoolean("OnFire", this.onFire);
         }
         if (data.isEmpty()) {
             return;
@@ -177,13 +195,68 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     }
 
     public void cycleMode() {
+        if (this.hasExploded) {
+            return;
+        }
         mode = Mode.byOrdinal(mode.ordinal() + 1);
+        sync();
+    }
+
+    public boolean isDamaged() {
+        return this.hasExploded;
+    }
+
+    public boolean repair(Player player) {
+        if (!this.hasExploded || this.level == null || this.level.isClientSide) {
+            return false;
+        }
+        net.minecraft.tags.TagKey<net.minecraft.world.item.Item> steelPlates = net.minecraft.tags.TagKey.create(
+                net.minecraft.core.registries.Registries.ITEM,
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("c", "plates/steel"));
+        int available = 0;
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (stack.is(steelPlates)) {
+                available += stack.getCount();
+            }
+        }
+        if (available < 6) {
+            return false;
+        }
+        int remaining = 6;
+        for (int slot = 0; slot < player.getInventory().getContainerSize() && remaining > 0; slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (!stack.is(steelPlates)) {
+                continue;
+            }
+            int used = Math.min(remaining, stack.getCount());
+            stack.shrink(used);
+            remaining -= used;
+        }
+        this.hasExploded = false;
+        this.onFire = false;
+        this.lastExplosion = null;
+        sync();
+        return true;
+    }
+
+    public void handleExplosion(net.minecraft.world.level.Explosion explosion) {
+        if (this.level == null || this.level.isClientSide || this.lastExplosion == explosion) {
+            return;
+        }
+        this.lastExplosion = explosion;
+        if (this.hasExploded) {
+            this.level.removeBlock(this.worldPosition, false);
+            return;
+        }
+        this.hasExploded = true;
+        this.onFire = this.tank.type().hasTrait(HbmFluidTrait.FLAMMABLE);
         sync();
     }
 
     @Nullable
     public IFluidHandler fluidHandler(BlockPos queriedPos, @Nullable Direction side) {
-        if (!allowsFluidPort(queriedPos, side)) {
+        if (this.hasExploded || !allowsFluidPort(queriedPos, side)) {
             return null;
         }
         return new TankHandler();
@@ -191,7 +264,7 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
 
     @Nullable
     public IFluidHandler fluidHandler(@Nullable Direction side) {
-        return side == null ? new TankHandler() : fluidHandler(this.worldPosition, side);
+        return this.hasExploded ? null : side == null ? new TankHandler() : fluidHandler(this.worldPosition, side);
     }
 
     public List<Port> ports(LevelAccessor level) {
@@ -334,37 +407,126 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     }
 
     private void tickServer(Level level) {
-        if (!mode.canSend() || tank.amount() <= 0 || tank.type().isNone()) {
+        if (level.isClientSide) {
             return;
         }
-        int budget = Math.min(maxProviderTransfer(), tank.amount());
-        for (Port port : ports(level)) {
-            if (budget <= 0) {
-                break;
+        if (!this.hasExploded) {
+            if (mode.canSend() && tank.amount() > 0 && !tank.type().isNone()) {
+                int budget = Math.min(maxProviderTransfer(), tank.amount());
+                for (Port port : ports(level)) {
+                    if (budget <= 0) {
+                        break;
+                    }
+                    FluidStack offered = HbmFluids.toNeoStack(tank.type(), budget);
+                    int accepted = HbmFluidNetworks.fillInto(
+                            level,
+                            port.connectorPos(),
+                            port.face().getOpposite(),
+                            offered,
+                            this.worldPosition,
+                            true
+                    );
+                    if (accepted > 0) {
+                        tank.drain(tank.type(), accepted, false);
+                        budget -= accepted;
+                        sync();
+                    }
+                }
             }
-            FluidStack offered = HbmFluids.toNeoStack(tank.type(), budget);
-            int accepted = HbmFluidNetworks.fillInto(
-                    level,
-                    port.connectorPos(),
-                    port.face().getOpposite(),
-                    offered,
-                    this.worldPosition,
-                    true
-            );
-            if (accepted > 0) {
-                tank.drain(tank.type(), accepted, false);
-                budget -= accepted;
-                sync();
+            checkHazardousFluid(level);
+        } else {
+            leak(level);
+        }
+    }
+
+    private void checkHazardousFluid(Level level) {
+        if (tank.amount() <= 0 || tank.type().isNone()) {
+            return;
+        }
+        HbmFluidDefinition fluid = tank.type();
+        if (fluid.hasTrait(HbmFluidTrait.ANTIMATTER)) {
+            level.explode(null, worldPosition.getX() + 0.5D, worldPosition.getY() + 1.5D,
+                    worldPosition.getZ() + 0.5D, 5.0F, false, Level.ExplosionInteraction.NONE);
+            markDamaged();
+            tank.setAmount(0);
+            sync();
+            return;
+        }
+        if (isHighlyCorrosive(fluid)) {
+            markDamaged();
+            sync();
+        }
+    }
+
+    private void leak(Level level) {
+        if (tank.amount() <= 0 || tank.type().isNone()) {
+            return;
+        }
+        HbmFluidDefinition fluid = tank.type();
+        int leaking = fluid.hasTrait(HbmFluidTrait.ANTIMATTER)
+                ? tank.amount()
+                : isGaseous(fluid) ? Math.min(tank.amount(), Math.max(1, tank.capacity() / 100))
+                : Math.min(tank.amount(), Math.max(1, tank.capacity() / 10_000));
+        if (leaking <= 0) {
+            return;
+        }
+        tank.drain(fluid, leaking, false);
+        if (fluid.hasTrait(HbmFluidTrait.FLAMMABLE) && onFire) {
+            AABB area = new AABB(worldPosition).inflate(1.5D, 4.0D, 1.5D);
+            for (Entity entity : level.getEntitiesOfClass(Entity.class, area)) {
+                entity.setRemainingFireTicks(Math.max(entity.getRemainingFireTicks(), 100));
+                if (entity instanceof net.minecraft.world.entity.LivingEntity living) {
+                    living.hurt(level.damageSources().onFire(), 5.0F);
+                }
+            }
+            if (level.getGameTime() % 5L == 0L && level instanceof ServerLevel serverLevel) {
+                serverLevel.sendParticles(HbmParticleTypes.GAS_FLARE_FLAME.get(),
+                        worldPosition.getX() + 0.5D, worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D,
+                        1, 0.0D, 0.1D, 0.0D, 0.0D);
+            }
+            HbmPollution.polluteFluid(level, worldPosition, fluid, HbmPollution.ReleaseType.BURN, leaking * 5.0D);
+        } else if (isGaseous(fluid)) {
+            if (level.getGameTime() % 5L == 0L && level instanceof ServerLevel serverLevel) {
+                int color = fluid.color();
+                serverLevel.sendParticles(HbmParticleTypes.DRAIN_TOWER.get(),
+                        worldPosition.getX() + 0.5D, worldPosition.getY() + 1.0D, worldPosition.getZ() + 0.5D,
+                        0, ((color >>> 16) & 0xFF) / 255.0D, ((color >>> 8) & 0xFF) / 255.0D,
+                        (color & 0xFF) / 255.0D, 1.0D);
+            }
+            HbmPollution.polluteFluid(level, worldPosition, fluid, HbmPollution.ReleaseType.SPILL, leaking * 5.0D);
+        }
+        sync();
+    }
+
+    private void markDamaged() {
+        this.hasExploded = true;
+        this.onFire = this.tank.type().hasTrait(HbmFluidTrait.FLAMMABLE);
+    }
+
+    private static boolean isGaseous(HbmFluidDefinition fluid) {
+        return fluid.hasTrait(HbmFluidTrait.GASEOUS) || fluid.hasTrait(HbmFluidTrait.EVAPORATES);
+    }
+
+    private static boolean isHighlyCorrosive(HbmFluidDefinition fluid) {
+        for (String token : fluid.rawTraits().split("\\|")) {
+            String[] parts = token.split(":");
+            if (parts.length >= 2 && parts[0].equals("CORROSIVE")) {
+                try {
+                    return Double.parseDouble(parts[1]) > 50.0D;
+                } catch (NumberFormatException ignored) {
+                    return false;
+                }
             }
         }
+        return false;
     }
 
     protected int maxProviderTransfer() {
-        return TRANSFER_PER_TICK;
+        return Math.max(500, tank.amount() / 100);
     }
 
     protected int maxReceiverTransfer() {
-        return Integer.MAX_VALUE;
+        return Math.max(500, (tank.capacity() - tank.amount()) / 100);
     }
 
     private void tickContainers() {
@@ -495,6 +657,11 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
         }
     }
 
+    /** Drops container/identifier slots while leaving persistent tank contents on the block item. */
+    public void dropInventoryContentsOnly(Level level, BlockPos pos) {
+        dropInventoryContents(level, pos);
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
@@ -503,6 +670,8 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
         }
         tag.put("Tank", tank.save());
         tag.putByte("Mode", (byte) mode.ordinal());
+        tag.putBoolean("Exploded", this.hasExploded);
+        tag.putBoolean("OnFire", this.onFire);
     }
 
     @Override
@@ -513,6 +682,8 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
         }
         tank.load(tag.getCompound("Tank"));
         mode = Mode.byOrdinal(tag.getByte("Mode"));
+        hasExploded = tag.getBoolean("Exploded");
+        onFire = tag.getBoolean("OnFire");
     }
 
     @Override

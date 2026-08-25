@@ -1,6 +1,8 @@
 {
     "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
+                     "layer0":  "reinhardtshbm:item/kit_custom",
+                     "layer1":  "reinhardtshbm:item/kit_1",
+                     "layer2":  "reinhardtshbm:item/kit_2"
                  },
     "parent":  "minecraft:item/generated"
 }

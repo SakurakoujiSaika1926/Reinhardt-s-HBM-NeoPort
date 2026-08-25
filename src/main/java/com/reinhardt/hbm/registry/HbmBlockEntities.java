@@ -47,6 +47,12 @@ import com.reinhardt.hbm.blockentity.ExposureChamberBlockEntity;
 import com.reinhardt.hbm.blockentity.FelBlockEntity;
 import com.reinhardt.hbm.blockentity.DieselGeneratorBlockEntity;
 import com.reinhardt.hbm.blockentity.DrainBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneWaypointBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneRequestWaypointBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneCrateBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneDockBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneProviderBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneRequesterBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidBarrelBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPumpBlockEntity;
@@ -87,11 +93,13 @@ import com.reinhardt.hbm.blockentity.LegacyTurretBlockEntity;
 import com.reinhardt.hbm.blockentity.LeviathanTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.LiquefactorBlockEntity;
 import com.reinhardt.hbm.blockentity.LandmineBlockEntity;
+import com.reinhardt.hbm.blockentity.WallChargeBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyEmitterBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineBlastFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineKeyForgeBlockEntity;
+import com.reinhardt.hbm.blockentity.SatelliteLinkerBlockEntity;
 import com.reinhardt.hbm.blockentity.MiningLaserBlockEntity;
 import com.reinhardt.hbm.blockentity.MixerBlockEntity;
 import com.reinhardt.hbm.blockentity.MicrowaveBlockEntity;
@@ -110,6 +118,7 @@ import com.reinhardt.hbm.blockentity.PwrControllerBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RadarScreenBlockEntity;
 import com.reinhardt.hbm.blockentity.RefineryBlockEntity;
+import com.reinhardt.hbm.blockentity.RebarBlockEntity;
 import com.reinhardt.hbm.blockentity.ReactorControlBlockEntity;
 import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.VacuumDistillBlockEntity;
@@ -138,6 +147,9 @@ import com.reinhardt.hbm.blockentity.SteamEngineBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.SteelFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.StorageCrateBlockEntity;
+import com.reinhardt.hbm.blockentity.TeslaCoilBlockEntity;
+import com.reinhardt.hbm.blockentity.SafeBlockEntity;
+import com.reinhardt.hbm.blockentity.MassStorageBlockEntity;
 import com.reinhardt.hbm.blockentity.StrandCasterBlockEntity;
 import com.reinhardt.hbm.blockentity.StirlingGeneratorBlockEntity;
 import com.reinhardt.hbm.blockentity.TurretChekhovBlockEntity;
@@ -193,6 +205,18 @@ public final class HbmBlockEntities {
                     ).build(null)
             );
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WallChargeBlockEntity>> WALL_CHARGE =
+            BLOCK_ENTITIES.register(
+                    "wall_charge",
+                    () -> BlockEntityType.Builder.of(
+                            WallChargeBlockEntity::new,
+                            HbmBlocks.CHARGE_DYNAMITE.get(),
+                            HbmBlocks.CHARGE_MINER.get(),
+                            HbmBlocks.CHARGE_C4.get(),
+                            HbmBlocks.CHARGE_SEMTEX.get()
+                    ).build(null)
+            );
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricFurnaceBlockEntity>> ELECTRIC_FURNACE =
             BLOCK_ENTITIES.register(
                     "machine_electric_furnace",
@@ -227,6 +251,15 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             MachineKeyForgeBlockEntity::new,
                             HbmBlocks.MACHINE_KEYFORGE.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SatelliteLinkerBlockEntity>> SATELLITE_LINKER =
+            BLOCK_ENTITIES.register(
+                    "machine_satlinker",
+                    () -> BlockEntityType.Builder.of(
+                            SatelliteLinkerBlockEntity::new,
+                            HbmBlocks.MACHINE_SATLINKER.get()
                     ).build(null)
             );
 
@@ -446,6 +479,15 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             MiningLaserBlockEntity::new,
                             HbmBlocks.MACHINE_MINING_LASER.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TeslaCoilBlockEntity>> TESLA_COIL =
+            BLOCK_ENTITIES.register(
+                    "tesla",
+                    () -> BlockEntityType.Builder.of(
+                            TeslaCoilBlockEntity::new,
+                            HbmBlocks.TESLA.get()
                     ).build(null)
             );
 
@@ -1589,6 +1631,27 @@ public final class HbmBlockEntities {
                     ).build(null)
             );
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SafeBlockEntity>> SAFE =
+            BLOCK_ENTITIES.register(
+                    "safe",
+                    () -> BlockEntityType.Builder.of(
+                            SafeBlockEntity::new,
+                            HbmBlocks.SAFE.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MassStorageBlockEntity>> MASS_STORAGE =
+            BLOCK_ENTITIES.register(
+                    "mass_storage",
+                    () -> BlockEntityType.Builder.of(
+                            MassStorageBlockEntity::new,
+                            HbmBlocks.MASS_STORAGE.get(),
+                            HbmBlocks.MASS_STORAGE_IRON.get(),
+                            HbmBlocks.MASS_STORAGE_DESH.get(),
+                            HbmBlocks.MASS_STORAGE_WOOD.get()
+                    ).build(null)
+            );
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LegacyEmitterBlockEntity>> LEGACY_EMITTER =
             BLOCK_ENTITIES.register(
                     "legacy_emitter",
@@ -1648,6 +1711,12 @@ public final class HbmBlockEntities {
                     ).build(null)
             );
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RebarBlockEntity>> REBAR =
+            BLOCK_ENTITIES.register(
+                    "rebar",
+                    () -> BlockEntityType.Builder.of(RebarBlockEntity::new, HbmBlocks.REBAR.get()).build(null)
+            );
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineDummyBlockEntity>> MACHINE_DUMMY =
             BLOCK_ENTITIES.register(
                     "machine_dummy",
@@ -1660,6 +1729,42 @@ public final class HbmBlockEntities {
                             HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get(),
                             HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get()
                     ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DroneWaypointBlockEntity>> DRONE_WAYPOINT =
+            BLOCK_ENTITIES.register(
+                    "drone_waypoint",
+                    () -> BlockEntityType.Builder.of(DroneWaypointBlockEntity::new, HbmBlocks.DRONE_WAYPOINT.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DroneRequestWaypointBlockEntity>> DRONE_WAYPOINT_REQUEST =
+            BLOCK_ENTITIES.register(
+                    "drone_waypoint_request",
+                    () -> BlockEntityType.Builder.of(DroneRequestWaypointBlockEntity::new, HbmBlocks.DRONE_WAYPOINT_REQUEST.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DroneCrateBlockEntity>> DRONE_CRATE =
+            BLOCK_ENTITIES.register(
+                    "drone_crate",
+                    () -> BlockEntityType.Builder.of(DroneCrateBlockEntity::new, HbmBlocks.DRONE_CRATE.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DroneDockBlockEntity>> DRONE_DOCK =
+            BLOCK_ENTITIES.register(
+                    "drone_dock",
+                    () -> BlockEntityType.Builder.of(DroneDockBlockEntity::new, HbmBlocks.DRONE_DOCK.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DroneProviderBlockEntity>> DRONE_PROVIDER =
+            BLOCK_ENTITIES.register(
+                    "drone_crate_provider",
+                    () -> BlockEntityType.Builder.of(DroneProviderBlockEntity::new, HbmBlocks.DRONE_CRATE_PROVIDER.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DroneRequesterBlockEntity>> DRONE_REQUESTER =
+            BLOCK_ENTITIES.register(
+                    "drone_crate_requester",
+                    () -> BlockEntityType.Builder.of(DroneRequesterBlockEntity::new, HbmBlocks.DRONE_CRATE_REQUESTER.get()).build(null)
             );
 
     private HbmBlockEntities() {

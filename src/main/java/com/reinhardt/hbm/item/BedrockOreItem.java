@@ -26,8 +26,8 @@ public class BedrockOreItem extends Item {
 
     @Override
     public Component getName(ItemStack stack) {
-        Grade grade = grade(stack);
-        Type type = type(stack);
+        Grade grade = gradeOf(stack);
+        Type type = typeOf(stack);
         return Component.translatable(
                 "item.reinhardtshbm.bedrock_ore_new.grade." + grade.id() + ".name",
                 Component.translatable("item.reinhardtshbm.bedrock_ore_new.type." + type.id() + ".name")
@@ -36,7 +36,7 @@ public class BedrockOreItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        for (Trait trait : grade(stack).traits()) {
+        for (Trait trait : gradeOf(stack).traits()) {
             tooltip.add(Component.translatable("item.reinhardtshbm.bedrock_ore_new.trait." + trait.id())
                     .withStyle(trait.color()));
         }
@@ -64,11 +64,11 @@ public class BedrockOreItem extends Item {
         return stack;
     }
 
-    private Grade grade(ItemStack stack) {
+    public static Grade gradeOf(ItemStack stack) {
         return Grade.byId(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString(GRADE));
     }
 
-    private Type type(ItemStack stack) {
+    public static Type typeOf(ItemStack stack) {
         return Type.byId(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString(TYPE));
     }
 

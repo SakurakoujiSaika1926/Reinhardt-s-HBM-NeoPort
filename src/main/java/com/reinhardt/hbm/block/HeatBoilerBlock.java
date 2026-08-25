@@ -65,7 +65,7 @@ public class HeatBoilerBlock extends LargeMachineBlock implements EntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide || blockEntityType != HbmBlockEntities.HEAT_BOILER.get()) {
+        if (blockEntityType != HbmBlockEntities.HEAT_BOILER.get()) {
             return null;
         }
         return (tickerLevel, pos, tickerState, blockEntity) -> HeatBoilerBlockEntity.tick(

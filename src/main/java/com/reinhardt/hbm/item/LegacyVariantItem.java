@@ -21,16 +21,23 @@ public class LegacyVariantItem extends Item {
 
     private final String baseId;
     private final List<Variant> variants;
+    private final boolean multiName;
 
     public LegacyVariantItem(Properties properties, String baseId, List<Variant> variants) {
+        this(properties, baseId, variants, true);
+    }
+
+    public LegacyVariantItem(Properties properties, String baseId, List<Variant> variants, boolean multiName) {
         super(properties);
         this.baseId = baseId;
         this.variants = List.copyOf(variants);
+        this.multiName = multiName;
     }
 
     @Override
     public Component getName(ItemStack stack) {
-        return Component.translatable("item.reinhardtshbm." + this.baseId + "." + variant(stack).id());
+        String key = "item.reinhardtshbm." + this.baseId;
+        return Component.translatable(this.multiName ? key + "." + variant(stack).id() : key);
     }
 
     @Override

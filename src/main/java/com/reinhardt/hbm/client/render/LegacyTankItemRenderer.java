@@ -53,10 +53,10 @@ public final class LegacyTankItemRenderer extends BlockEntityWithoutLevelRendere
                 poseStack.translate(0.0F, -1.0F, 0.0F);
                 poseStack.scale(2.5F, 2.5F, 2.5F);
             }
-        } else {
-            // The normal large tank's 1.7.10 renderer adds no transform in
-            // renderCommonWithStack. The shared ItemRenderBase pose already
-            // supplies the legacy non-GUI rotation and scale.
+        }
+        if (this.kind == Kind.BIG_ASS_TANK) {
+            // RenderBigAssTank#getRenderer.renderCommonWithStack().
+            poseStack.scale(0.5F, 0.5F, 0.5F);
         }
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack,
                 bufferSource, state, packedLight, packedOverlay);

@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
@@ -24,6 +25,13 @@ import javax.annotation.Nullable;
 public class BreederReactorBlock extends LargeMachineBlock implements EntityBlock {
     public BreederReactorBlock(Properties properties, VoxelShape shape) {
         super(properties, Footprint.centered(0, 3, 0), shape, RotationBasis.MODERN_NORTH);
+    }
+
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        // The exact legacy OBJ is rendered by BreederReactorBlockEntityRenderer.
+        // Rendering this block's baked model too produces a second, mis-scaled shell.
+        return RenderShape.INVISIBLE;
     }
 
     @Nullable

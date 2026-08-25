@@ -1,6 +1,8 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+    "textures": {
+        "top": "reinhardtshbm:block/drone_dock_top",
+        "side": "reinhardtshbm:block/drone_dock_side",
+        "bottom": "reinhardtshbm:block/drone_dock_bottom"
+    },
+    "parent": "minecraft:block/cube_bottom_top"
 }

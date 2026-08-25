@@ -37,6 +37,10 @@ import com.reinhardt.hbm.blockentity.DfcStabilizerBlockEntity;
 import com.reinhardt.hbm.blockentity.DeuteriumExtractorBlockEntity;
 import com.reinhardt.hbm.blockentity.DieselGeneratorBlockEntity;
 import com.reinhardt.hbm.blockentity.DrainBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneCrateBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneDockBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneProviderBlockEntity;
+import com.reinhardt.hbm.blockentity.DroneRequesterBlockEntity;
 import com.reinhardt.hbm.blockentity.ElectricFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.ElectrolyzerBlockEntity;
 import com.reinhardt.hbm.blockentity.EnergyConverterBlockEntity;
@@ -82,6 +86,7 @@ import com.reinhardt.hbm.blockentity.PwrBlockEntity;
 import com.reinhardt.hbm.blockentity.PwrControllerBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RefineryBlockEntity;
+import com.reinhardt.hbm.blockentity.RebarBlockEntity;
 import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.VacuumDistillBlockEntity;
 import com.reinhardt.hbm.blockentity.WasteDrumBlockEntity;
@@ -106,9 +111,12 @@ import com.reinhardt.hbm.blockentity.TurretJeremyBlockEntity;
 import com.reinhardt.hbm.blockentity.WoodBurnerBlockEntity;
 import com.reinhardt.hbm.blockentity.ZirnoxReactorBlockEntity;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
+import com.reinhardt.hbm.item.FueledArmorFSBItem;
 import com.reinhardt.hbm.item.InfiniteFluidContainerItem;
 import com.reinhardt.hbm.item.FixedFluidBarrelBlockItem;
 import com.reinhardt.hbm.item.TankSteelItem;
+import com.reinhardt.hbm.item.LegacyPipetteItem;
+import com.reinhardt.hbm.item.BlowtorchItem;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerGraphNode;
 import com.reinhardt.hbm.util.LegacyMachineGeometry;
@@ -126,6 +134,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
+import net.neoforged.neoforge.registries.DeferredItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -168,6 +177,26 @@ public final class HbmCapabilities {
                 Capabilities.ItemHandler.BLOCK,
                 HbmBlockEntities.CONVEYOR_PRESS.get(),
                 (press, side) -> new SidedInvWrapper(press, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.DRONE_CRATE.get(),
+                (crate, side) -> new SidedInvWrapper(crate, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.DRONE_DOCK.get(),
+                (dock, side) -> new SidedInvWrapper(dock, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.DRONE_PROVIDER.get(),
+                (provider, side) -> new SidedInvWrapper(provider, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.DRONE_REQUESTER.get(),
+                (requester, side) -> new SidedInvWrapper(requester, side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
@@ -591,6 +620,11 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.DRONE_CRATE.get(),
+                DroneCrateBlockEntity::fluidHandler
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.LEGACY_TURRET.get(),
                 (turret, side) -> turret.fluidHandler(turret.getBlockPos(), side)
         );
@@ -613,6 +647,11 @@ public final class HbmCapabilities {
                 Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.CYCLOTRON.get(),
                 (cyclotron, side) -> cyclotron.fluidHandler(cyclotron.getBlockPos(), side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.REBAR.get(),
+                (rebar, side) -> rebar.fluidHandler()
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
@@ -965,6 +1004,9 @@ public final class HbmCapabilities {
                     if (stack.getItem() instanceof HbmFluidContainerItem container) {
                         return container.createFluidHandler(stack);
                     }
+                    if (stack.getItem() instanceof FueledArmorFSBItem armor) {
+                        return armor.createFluidHandler(stack);
+                    }
                     if (stack.getItem() instanceof InfiniteFluidContainerItem infinite) {
                         return infinite.createFluidHandler(stack);
                     }
@@ -973,6 +1015,15 @@ public final class HbmCapabilities {
                     }
                     if (stack.getItem() instanceof FixedFluidBarrelBlockItem barrel) {
                         return barrel.createFluidHandler(stack);
+                    }
+                    if (stack.getItem() instanceof com.reinhardt.hbm.item.LegacyChainsawItem chainsaw) {
+                        return chainsaw.createFluidHandler(stack);
+                    }
+                    if (stack.getItem() instanceof BlowtorchItem blowtorch) {
+                        return blowtorch.createFluidHandler(stack);
+                    }
+                    if (stack.getItem() instanceof LegacyPipetteItem pipette) {
+                        return pipette.createFluidHandler(stack);
                     }
                     return null;
                 },
@@ -1001,7 +1052,16 @@ public final class HbmCapabilities {
                 HbmItems.TANK_STEEL.get(),
                 HbmItems.RED_BARREL_ITEM.get(),
                 HbmItems.PINK_BARREL_ITEM.get(),
-                HbmItems.LOX_BARREL_ITEM.get()
+                HbmItems.LOX_BARREL_ITEM.get(),
+                HbmItems.CHAINSAW.get(),
+                HbmItems.BLOWTORCH.get(),
+                HbmItems.ACETYLENE_TORCH.get()
+        );
+        event.registerItem(
+                Capabilities.FluidHandler.ITEM,
+                (stack, context) -> stack.getItem() instanceof LegacyPipetteItem pipette
+                        ? pipette.createFluidHandler(stack) : null,
+                LegacyHbmContent.LEGACY_ITEMS.stream().map(DeferredItem::get).toArray(net.minecraft.world.level.ItemLike[]::new)
         );
     }
 
@@ -1114,6 +1174,9 @@ public final class HbmCapabilities {
         }
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return accelerator.getSlotsForAccessor(dummy.getBlockPos(), side).length == 0 ? null : new SidedInvWrapper(dummy, side);
+        }
+        if (core instanceof RotaryFurnaceBlockEntity furnace) {
+            return furnace.getSlotsForAccessor(dummy.getBlockPos(), side).length == 0 ? null : new SidedInvWrapper(dummy, side);
         }
         if (core instanceof LargeFluidTankBlockEntity) {
             return null;

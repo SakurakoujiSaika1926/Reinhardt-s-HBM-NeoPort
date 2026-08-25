@@ -3,10 +3,17 @@ package com.reinhardt.hbm.radiation;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.command.RhbmCommand;
 import com.reinhardt.hbm.item.ArmorFSBItem;
+import com.reinhardt.hbm.item.ArmorModItem;
+import com.reinhardt.hbm.item.ArmorInsertItem;
+import com.reinhardt.hbm.item.LegacyReviveArmorModItem;
+import com.reinhardt.hbm.item.LegacyInjectorKnifeArmorModItem;
 import com.reinhardt.hbm.item.BlockBlastResistanceTooltip;
+import com.reinhardt.hbm.item.HbmPlayerShield;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
+import com.reinhardt.hbm.registry.HbmMobEffects;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -14,7 +21,13 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -23,12 +36,18 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID)
 public final class RadiationEvents {
+    private static final net.minecraft.resources.ResourceLocation ARMOR_HEALTH_MODIFIER = ReinhardtsHBM.id("armor_mod_health");
+    private static final net.minecraft.resources.ResourceLocation ARMOR_INSERT_SPEED_MODIFIER = ReinhardtsHBM.id("armor_insert_speed");
+    private static final net.minecraft.resources.ResourceLocation ARMOR_MOD_SPEED_MODIFIER = ReinhardtsHBM.id("armor_mod_speed");
     private RadiationEvents() {
     }
 
@@ -95,6 +114,42 @@ public final class RadiationEvents {
         HbmHazardSystem.appendTooltip(event.getItemStack(), event.getToolTip());
     }
 
+    /**
+     * 1.7.10 rewarded a lodestone on one out of every 64 iron-smelting
+     * operations. It is the only source for the magnet armor-mod chain.
+     */
+    @SubscribeEvent
+    public static void onItemSmelted(PlayerEvent.ItemSmeltedEvent event) {
+        Player player = event.getEntity();
+        if (player.level().isClientSide || !event.getSmelting().is(net.minecraft.world.item.Items.IRON_INGOT)
+                || player.getRandom().nextInt(64) != 0) {
+            return;
+        }
+
+        ItemStack lodestone = new ItemStack(com.reinhardt.hbm.registry.HbmItems.LODESTONE.get());
+        if (!player.getInventory().add(lodestone)) {
+            player.drop(lodestone, false);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
+        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Player player) {
+            HbmPlayerShield.absorb(player, event);
+            applyArmorModDamage(player, event);
+            applyArmorInsertDamage(player, event);
+        }
+    }
+
+    /** Preserves ItemModRevive's pre-death armor-slot rescue behavior. */
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
+    public static void onLivingDeathFirst(LivingDeathEvent event) {
+        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Player player
+                && LegacyReviveArmorModItem.tryRevive(player)) {
+            event.setCanceled(true);
+        }
+    }
+
     private static void tickLiving(LivingEntity living) {
         if (!(living.level() instanceof ServerLevel level)) {
             return;
@@ -119,12 +174,124 @@ public final class RadiationEvents {
         }
         if (living instanceof Player player) {
             ArmorFSBItem.tickFullSet(player);
+            applyArmorHealthModifier(player);
+            tickArmorInsert(player, data);
+            tickArmorMods(player);
+            HbmPlayerShield.tick(player);
         }
 
         applyRadiationVomiting(living, data.getRadiation());
         applyRadiationEffects(living, data);
         applyDigammaEffects(living, data);
         HbmLivingRadiation.set(living, data);
+    }
+
+    private static void applyArmorHealthModifier(Player player) {
+        AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHealth == null) {
+            return;
+        }
+        maxHealth.removeModifier(ARMOR_HEALTH_MODIFIER);
+        double bonus = ArmorModHandler.healthBonus(player.getArmorSlots(), player.registryAccess());
+        if (bonus > 0.0D) {
+            maxHealth.addOrUpdateTransientModifier(new AttributeModifier(
+                    ARMOR_HEALTH_MODIFIER,
+                    bonus,
+                    AttributeModifier.Operation.ADD_VALUE
+            ));
+        }
+        if (player.getHealth() > player.getMaxHealth()) {
+            player.setHealth(player.getMaxHealth());
+        }
+    }
+
+    private static void applyArmorInsertDamage(Player player, LivingIncomingDamageEvent event) {
+        ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack insert = ArmorModHandler.pryMods(chestplate, player.registryAccess())[ArmorModHandler.KEVLAR];
+        if (!(insert.getItem() instanceof ArmorInsertItem armorInsert)) {
+            return;
+        }
+
+        boolean projectile = event.getSource().is(DamageTypeTags.IS_PROJECTILE);
+        boolean explosion = event.getSource().is(DamageTypeTags.IS_EXPLOSION);
+        event.setAmount(armorInsert.modifyDamage(event.getAmount(), projectile, explosion));
+
+        insert.setDamageValue(insert.getDamageValue() + 1);
+        if (armorInsert.reactive()) {
+            player.level().explode(player, player.getX(), player.getY() + player.getBbHeight() * 0.5D, player.getZ(),
+                    0.05F, Level.ExplosionInteraction.NONE);
+        }
+        if (insert.getDamageValue() >= insert.getMaxDamage()) {
+            ArmorModHandler.removeMod(chestplate, ArmorModHandler.KEVLAR);
+        } else {
+            ArmorModHandler.applyMod(chestplate, insert, player.registryAccess());
+        }
+    }
+
+    private static void applyArmorModDamage(Player player, LivingIncomingDamageEvent event) {
+        float amount = event.getAmount();
+        for (ItemStack armor : player.getArmorSlots()) {
+            for (ItemStack mod : ArmorModHandler.pryMods(armor, player.registryAccess())) {
+                if (mod.getItem() instanceof ArmorModItem armorMod) {
+                    amount = armorMod.modifyArmorDamage(player, armor, event.getSource(), amount);
+                }
+            }
+        }
+        event.setAmount(amount);
+    }
+
+    private static void tickArmorMods(Player player) {
+        AttributeInstance movement = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (movement != null) {
+            movement.removeModifier(ARMOR_MOD_SPEED_MODIFIER);
+        }
+        AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
+
+        double movementMultiplier = 1.0D;
+        boolean injectorKnifeInstalled = false;
+        for (ItemStack armor : player.getArmorSlots()) {
+            for (ItemStack mod : ArmorModHandler.pryMods(armor, player.registryAccess())) {
+                if (mod.getItem() instanceof ArmorModItem armorMod) {
+                    injectorKnifeInstalled |= armorMod instanceof LegacyInjectorKnifeArmorModItem;
+                    armorMod.tickArmor(player, armor);
+                    movementMultiplier *= armorMod.movementMultiplier();
+                }
+            }
+        }
+        if (!injectorKnifeInstalled && maxHealth != null) {
+            maxHealth.removeModifier(LegacyInjectorKnifeArmorModItem.HEALTH_MODIFIER);
+        }
+        if (movement != null && movementMultiplier != 1.0D) {
+            movement.addOrUpdateTransientModifier(new AttributeModifier(
+                    ARMOR_MOD_SPEED_MODIFIER,
+                    movementMultiplier - 1.0D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            ));
+        }
+    }
+
+    private static void tickArmorInsert(Player player, HbmLivingRadiation data) {
+        net.minecraft.world.entity.ai.attributes.AttributeInstance movement = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (movement != null) {
+            movement.removeModifier(ARMOR_INSERT_SPEED_MODIFIER);
+        }
+
+        ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack insert = ArmorModHandler.pryMods(chestplate, player.registryAccess())[ArmorModHandler.KEVLAR];
+        if (!(insert.getItem() instanceof ArmorInsertItem armorInsert)) {
+            return;
+        }
+
+        if (armorInsert.radioactive()) {
+            data.addRadiation(100.0F);
+        }
+        if (movement != null && armorInsert.speedMultiplier() != 1.0F) {
+            movement.addOrUpdateTransientModifier(new AttributeModifier(
+                    ARMOR_INSERT_SPEED_MODIFIER,
+                    armorInsert.speedMultiplier() - 1.0F,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            ));
+        }
     }
 
     private static void tickLegacyBurning(ServerLevel level, LivingEntity living) {
@@ -200,7 +367,7 @@ public final class RadiationEvents {
         if (hazards.radiation() > 0.0D) {
             contaminateRadiation(player, data, hazards.radiation() / 20.0D * HbmRadiationConstants.HAZARD_RATE_TICKS);
         }
-        if (hazards.digamma() > 0.0D && canReceiveDose(player)) {
+        if (hazards.digamma() > 0.0D && canReceiveDose(player) && !player.hasEffect(HbmMobEffects.STABILITY)) {
             data.addDigamma((float) (hazards.digamma() / 20.0D * HbmRadiationConstants.HAZARD_RATE_TICKS));
         }
         if (hazards.hot() > 0.0D && canReceiveDose(player) && !player.isInWaterOrRain()) {
@@ -235,6 +402,10 @@ public final class RadiationEvents {
     }
 
     private static void contaminateRadiation(LivingEntity living, HbmLivingRadiation data, double amount) {
+        if (living.hasEffect(HbmMobEffects.RADX)) {
+            // 1.7.10 Rad-X added 0.2 radiation resistance in HazmatRegistry.
+            amount *= 0.8D;
+        }
         data.addEnvironmentRadiation((float) amount);
         if (canReceiveDose(living)) {
             data.addRadiation((float) amount);

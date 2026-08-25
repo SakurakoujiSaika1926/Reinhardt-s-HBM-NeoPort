@@ -1,6 +1,6 @@
 package com.reinhardt.hbm.menu;
 
-import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
+import com.reinhardt.hbm.blockentity.SatelliteLinkerBlockEntity;
 import com.reinhardt.hbm.registry.HbmMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,14 +22,14 @@ public final class SatelliteLinkerMenu extends AbstractContainerMenu {
     private final BlockPos blockPos;
 
     public SatelliteLinkerMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf buffer) {
-        this(containerId, inventory, findMachine(inventory, buffer.readBlockPos()));
+        this(containerId, inventory, findLinker(inventory, buffer.readBlockPos()));
     }
 
-    public SatelliteLinkerMenu(int containerId, Inventory inventory, LegacyMachineBlockEntity machine) {
+    public SatelliteLinkerMenu(int containerId, Inventory inventory, SatelliteLinkerBlockEntity linker) {
         super(HbmMenus.SATELLITE_LINKER.get(), containerId);
-        this.container = machine == null ? new SimpleContainer(SLOT_COUNT) : machine;
+        this.container = linker == null ? new SimpleContainer(SLOT_COUNT) : linker;
         checkContainerSize(this.container, SLOT_COUNT);
-        this.blockPos = machine == null ? BlockPos.ZERO : machine.getBlockPos().immutable();
+        this.blockPos = linker == null ? BlockPos.ZERO : linker.getBlockPos().immutable();
         this.addSlot(new ManualSlot(this.container, 0, 44, 35));
         this.addSlot(new ManualSlot(this.container, 1, 80, 35));
         this.addSlot(new ManualSlot(this.container, 2, 116, 35));
@@ -61,9 +61,9 @@ public final class SatelliteLinkerMenu extends AbstractContainerMenu {
 
     public BlockPos blockPos() { return this.blockPos; }
 
-    private static LegacyMachineBlockEntity findMachine(Inventory inventory, BlockPos pos) {
+    private static SatelliteLinkerBlockEntity findLinker(Inventory inventory, BlockPos pos) {
         BlockEntity entity = inventory.player.level().getBlockEntity(pos);
-        return entity instanceof LegacyMachineBlockEntity machine ? machine : null;
+        return entity instanceof SatelliteLinkerBlockEntity linker ? linker : null;
     }
 
     private void addPlayerInventory(Inventory inventory, int left, int top) {

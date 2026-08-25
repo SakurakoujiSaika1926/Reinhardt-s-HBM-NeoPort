@@ -16,7 +16,7 @@ import java.util.Map;
 public final class ThresherClientSounds {
     private static final double START_DISTANCE = 15.0D;
     private static final double AUDIBLE_DISTANCE = 10.0D;
-    private static final int KEEP_ALIVE_TICKS = 20;
+    private static final int KEEP_ALIVE_TICKS = 10;
     private static final Map<BlockPos, WorkingSound> WORKING_SOUNDS = new HashMap<>();
 
     private ThresherClientSounds() {
@@ -29,7 +29,8 @@ public final class ThresherClientSounds {
             return;
         }
         BlockPos pos = thresher.getBlockPos().immutable();
-        if (minecraft.player.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) >= START_DISTANCE * START_DISTANCE) {
+        if (minecraft.player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D)
+                >= START_DISTANCE * START_DISTANCE) {
             stop(pos);
             return;
         }
@@ -60,9 +61,11 @@ public final class ThresherClientSounds {
         private WorkingSound(BlockPos pos) {
             super(HbmSoundEvents.ENGINE_LOOP.get(), SoundSource.BLOCKS, SoundInstance.createUnseededRandom());
             this.pos = pos.immutable();
-            this.x = pos.getX() + 0.5D;
-            this.y = pos.getY() + 0.5D;
-            this.z = pos.getZ() + 0.5D;
+            // TileEntityMachineThresher#createAudioLoop uses the block origin,
+            // while its start-distance check uses the block centre.
+            this.x = pos.getX();
+            this.y = pos.getY();
+            this.z = pos.getZ();
             this.looping = true;
             this.delay = 0;
             this.volume = 0.0F;
@@ -89,7 +92,7 @@ public final class ThresherClientSounds {
                 return;
             }
             double distance = Math.sqrt(minecraft.player.distanceToSqr(this.x, this.y, this.z));
-            this.volume = distance >= AUDIBLE_DISTANCE ? 0.0F : (float) (1.0D - distance / AUDIBLE_DISTANCE);
+            this.volume = (float) (1.0D - distance / AUDIBLE_DISTANCE);
         }
 
         @Override

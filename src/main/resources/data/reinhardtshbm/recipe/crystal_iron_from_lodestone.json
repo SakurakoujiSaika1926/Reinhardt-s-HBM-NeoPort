@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:lodestone" },
+  "result": { "id": "reinhardtshbm:crystal_iron" },
+  "experience": 5.0,
+  "cookingtime": 200
+}

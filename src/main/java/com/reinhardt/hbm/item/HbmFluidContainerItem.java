@@ -42,6 +42,16 @@ public class HbmFluidContainerItem extends Item {
     }
 
     @Override
+    public boolean hasCraftingRemainingItem(ItemStack stack) {
+        return filled;
+    }
+
+    @Override
+    public ItemStack getCraftingRemainingItem(ItemStack stack) {
+        return filled ? kind.emptyStack() : ItemStack.EMPTY;
+    }
+
+    @Override
     public Component getName(ItemStack stack) {
         if (!filled) {
             return super.getName(stack);

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PSP",
+    "SCS",
+    "PSP"
+  ],
+  "key": {
+    "P": { "tag": "c:plates/steel" },
+    "S": { "tag": "c:ingots/starmetal" },
+    "C": { "item": "reinhardtshbm:sat_chip" }
+  },
+  "result": { "id": "reinhardtshbm:machine_satlinker" }
+}

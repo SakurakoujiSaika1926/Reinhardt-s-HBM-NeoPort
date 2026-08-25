@@ -63,6 +63,17 @@ public final class PowerNetworkManager {
         return powerCoreForConnector(level, cablePos, cablePos.relative(direction), direction.getOpposite()) != null;
     }
 
+    /** Snapshot used by the direct port of 1.7.10's power-network analyzer. */
+    public static NetworkDiagnostics diagnostics(Level level, BlockPos clickedPos) {
+        if (level.isClientSide) {
+            return null;
+        }
+        return network(level).diagnostics(level, clickedPos);
+    }
+
+    public record NetworkDiagnostics(String id, int links, int providers, int receivers, List<BlockPos> linkPositions) {
+    }
+
     private static LevelNetwork network(Level level) {
         return NETWORKS.computeIfAbsent(level.dimension(), key -> new LevelNetwork());
     }
@@ -121,6 +132,58 @@ public final class PowerNetworkManager {
                 SolveSnapshot snapshot = snapshot();
                 this.inFlight = CompletableFuture.supplyAsync(() -> solve(snapshot), SOLVER);
             }
+        }
+
+        NetworkDiagnostics diagnostics(Level level, BlockPos clickedPos) {
+            BlockPos start = resolvePowerCorePos(level, clickedPos);
+            if (start == null && isPowerNode(level, clickedPos)) {
+                start = clickedPos;
+            }
+            if (start == null) {
+                return null;
+            }
+
+            Set<BlockPos> visited = new HashSet<>();
+            ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+            queue.add(start.immutable());
+            visited.add(start.immutable());
+            List<BlockPos> links = new ArrayList<>();
+            int providers = 0;
+            int receivers = 0;
+
+            while (!queue.isEmpty() && visited.size() < MAX_COMPONENT_NODES) {
+                BlockPos current = queue.removeFirst();
+                BlockEntity blockEntity = level.getBlockEntity(current);
+                if (blockEntity instanceof PowerEndpoint endpoint) {
+                    if (endpoint.getAvailableOutput() > 0L) {
+                        providers++;
+                    }
+                    if (endpoint.getRequestedInput() > 0L) {
+                        receivers++;
+                    }
+                } else if (isPowerNode(level, current)) {
+                    links.add(current.immutable());
+                }
+
+                for (BlockPos next : adjacentGraphNodes(level, current)) {
+                    if (visited.size() >= MAX_COMPONENT_NODES || visited.contains(next) || !isPowerNode(level, next)) {
+                        continue;
+                    }
+                    BlockPos immutable = next.immutable();
+                    visited.add(immutable);
+                    queue.add(immutable);
+                }
+            }
+
+            if (visited.isEmpty()) {
+                return null;
+            }
+            links.sort(Comparator
+                    .comparingInt((BlockPos pos) -> pos.getX())
+                    .thenComparingInt(pos -> pos.getY())
+                    .thenComparingInt(pos -> pos.getZ()));
+            String id = Integer.toHexString(visited.hashCode());
+            return new NetworkDiagnostics(id, links.size(), providers, receivers, List.copyOf(links));
         }
 
         private void pruneInvalidEndpoints(Level level) {

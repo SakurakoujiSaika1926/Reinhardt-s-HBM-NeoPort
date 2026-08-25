@@ -215,6 +215,9 @@ final class FoundryMaterialLookup {
     private static String canonicalMaterialName(String materialName) {
         return switch (materialName) {
             case "aluminum" -> "aluminium";
+            // HBM 1.7.10 keeps graphite as a carbon conversion material. Its
+            // ICF pellet press accepts a graphite ingot as the carbon fuel.
+            case "graphite" -> "carbon";
             default -> materialName;
         };
     }

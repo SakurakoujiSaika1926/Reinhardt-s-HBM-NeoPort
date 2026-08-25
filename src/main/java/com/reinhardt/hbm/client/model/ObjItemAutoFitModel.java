@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.model;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.render.ObjMachineItemRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -38,6 +39,12 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "heater_electric", "heater_firebox", "heater_heatex", "heater_oilburner",
             "heater_oven", "machine_ammo_press", "machine_ashpit", "machine_assembly_machine",
             "machine_battery_redd", "machine_centrifuge", "machine_chemical_plant",
+            "battery_pack_battery_lead", "battery_pack_battery_lithium",
+            "battery_pack_battery_quantum", "battery_pack_battery_redstone",
+            "battery_pack_battery_schrabidium", "battery_pack_battery_sodium",
+            "battery_pack_capacitor_bismuth", "battery_pack_capacitor_copper",
+            "battery_pack_capacitor_gold", "battery_pack_capacitor_niobium",
+            "battery_pack_capacitor_spark", "battery_pack_capacitor_tantalum",
             "machine_chungus", "machine_combustion_engine", "machine_condenser_powered",
             "machine_crucible", "machine_diesel", "machine_epress", "machine_fracking_tower",
             "machine_funnel", "machine_gascent", "machine_industrial_boiler",
@@ -54,7 +61,11 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "machine_annihilator", "machine_autosaw", "machine_forcefield", "machine_microwave",
             "machine_missile_assembly", "machine_orbus", "machine_precass", "machine_pyrooven",
             "machine_radar", "machine_radar_large", "machine_radgen", "machine_radiolysis",
-            "machine_rtg_grey", "machine_sawmill", "machine_turbofan", "machine_thresher", "machine_lpw2"
+            "machine_rtg_grey", "machine_sawmill", "machine_turbofan", "machine_thresher", "machine_lpw2",
+            "pump_steam", "pump_electric", "machine_bat9000", "machine_bigasstank", "deco_toaster",
+            "red_connector", "connector_red_super", "red_pylon_medium_wood",
+            "red_pylon_medium_transformer", "red_pylon_steel", "red_pylon_steel_transformer",
+            "red_pylon_large", "substation"
     );
 
     private final BakedModel delegate;
@@ -173,6 +184,12 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
         if (EXPLICIT_ITEM_TRANSFORMS.contains(path) || CUSTOM_RENDERED_ITEMS.contains(path)) {
             return false;
         }
+        // OBJ machine items have a BEWLR that renders their complete legacy
+        // assembly. Wrapping their inventory model here would make the later
+        // OBJ route skip them and leave the flat fallback icon active.
+        if (ObjMachineItemRenderer.itemIds().contains(path)) {
+            return false;
+        }
         return path.equals("machine_rtg_grey")
                 || path.startsWith("heater_")
                 || path.equals("gear_large")
@@ -284,7 +301,6 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("chimney_industrial")
                 || path.equals("red_connector")
                 || path.equals("connector_red_super")
-                || path.equals("red_pylon")
                 || path.equals("red_pylon_medium_wood")
                 || path.equals("red_pylon_medium_transformer")
                 || path.equals("red_pylon_steel")
@@ -356,6 +372,9 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
     private static float targetSize(ModelResourceLocation location) {
         if (location == null) {
             return DEFAULT_TARGET_SIZE;
+        }
+        if (location.id().getPath().startsWith("battery_pack_")) {
+            return 0.85F;
         }
         return switch (location.id().getPath()) {
             case "machine_wood_burner" -> 1.12F;

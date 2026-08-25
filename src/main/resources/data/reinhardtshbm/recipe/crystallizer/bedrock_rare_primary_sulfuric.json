@@ -1,0 +1,32 @@
+{
+    "type":  "reinhardtshbm:crystallizer",
+    "group":  "crystallizer.bedrock_ore",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bedrock_ore_new"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "grade":  "primary",
+                                                                        "type":  "rare"
+                                                                    }
+                                      }
+                   },
+    "input_count":  1,
+    "acid":  {
+                 "fluid":  "sulfuric_acid",
+                 "amount":  250
+             },
+    "duration":  200,
+    "result":  {
+                   "id":  "reinhardtshbm:bedrock_ore_new",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "grade":  "primary_sulfuric",
+                                                                    "type":  "rare"
+                                                                },
+                                      "minecraft:custom_model_data":  32
+                                  }
+               }
+}

@@ -3,6 +3,7 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.block.SawmillBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -62,11 +63,12 @@ public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRend
             }
             // RenderSawmill#getRenderer applies +90 degrees around Y.
             poseStack.mulPose(yaw(90.0F));
-            LegacyMachineBlockEntityRenderer.renderItemSawmill(HbmBlocks.MACHINE_SAWMILL.get().defaultBlockState(), poseStack,
+            LegacyMachineBlockEntityRenderer.renderItemSawmill(HbmBlocks.MACHINE_SAWMILL.get().defaultBlockState(), SawmillBlock.hasBlade(stack), poseStack,
                     bufferSource, packedLight, packedOverlay);
         } else if (stack.is(HbmBlocks.MACHINE_RTG_GREY.get().asItem())) {
-            // The 1.7.10 grey RTG has no dedicated item renderer. Render the
-            // same Gen group in ItemRenderBase's unmodified local space.
+            // RenderRTGBlock#renderInventoryBlock offsets its Gen group by
+            // -0.5 on Y. It has no RTG-specific scale transform.
+            poseStack.translate(0.0F, -0.5F, 0.0F);
             LegacyMachineBlockEntityRenderer.renderItemRtg(HbmBlocks.MACHINE_RTG_GREY.get().defaultBlockState(), poseStack,
                     bufferSource, packedLight, packedOverlay);
         }
@@ -85,7 +87,7 @@ public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRend
         if (context == ItemDisplayContext.GUI) {
             poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
             poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
-            poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
             poseStack.translate(0.0F, 11.3F, -11.3F);
             return;
         }
@@ -107,6 +109,7 @@ public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRend
         if (stack.is(HbmBlocks.MACHINE_RADAR_LARGE.get().asItem())) return "machine_radar_large";
         if (stack.is(HbmBlocks.MACHINE_RADGEN.get().asItem())) return "machine_radgen";
         if (stack.is(HbmBlocks.MACHINE_RADIOLYSIS.get().asItem())) return "machine_radiolysis";
+        if (stack.is(HbmBlocks.MACHINE_REACTOR_BREEDING.get().asItem())) return "machine_reactor_breeding";
         if (stack.is(HbmBlocks.MACHINE_TURBOFAN.get().asItem())) return "machine_turbofan";
         if (stack.is(HbmBlocks.MACHINE_THRESHER.get().asItem())) return "machine_thresher";
         if (stack.is(HbmBlocks.MACHINE_LPW2.get().asItem())) return "machine_lpw2";

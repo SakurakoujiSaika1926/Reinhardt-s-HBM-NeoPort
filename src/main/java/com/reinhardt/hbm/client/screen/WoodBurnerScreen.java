@@ -7,6 +7,7 @@ import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.menu.WoodBurnerMenu;
 import com.reinhardt.hbm.network.WoodBurnerControlPayload;
 import com.reinhardt.hbm.util.HbmFluidTooltip;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -66,6 +67,16 @@ public class WoodBurnerScreen extends AbstractContainerScreen<WoodBurnerMenu> {
                     "tooltip.reinhardtshbm.burn_time",
                     this.menu.burnTime() / 20
             )), mouseX, mouseY);
+        }
+
+        if (this.menu.getCarried().isEmpty()
+                && isHovering(26, 18, 16, 16, mouseX, mouseY)
+                && !this.menu.getSlot(WoodBurnerBlockEntity.FUEL_SLOT).hasItem()) {
+            guiGraphics.renderComponentTooltip(this.font, List.of(
+                    Component.translatable("tooltip.reinhardtshbm.wood_burner.bonuses").withStyle(ChatFormatting.GOLD),
+                    Component.translatable("tooltip.reinhardtshbm.wood_burner.log_bonus").withStyle(ChatFormatting.GREEN),
+                    Component.translatable("tooltip.reinhardtshbm.wood_burner.wood_bonus").withStyle(ChatFormatting.GREEN)
+            ), mouseX, mouseY);
         }
 
         if (isHovering(TOGGLE_X, TOGGLE_Y, TOGGLE_WIDTH, TOGGLE_HEIGHT, mouseX, mouseY)) {

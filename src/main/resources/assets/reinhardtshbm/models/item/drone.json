@@ -1,6 +1,10 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "reinhardtshbm:item/drone.patrol" },
+  "overrides": [
+    { "predicate": { "reinhardtshbm:drone_type": 1 }, "model": "reinhardtshbm:item/drone.patrol_chunkloading" },
+    { "predicate": { "reinhardtshbm:drone_type": 2 }, "model": "reinhardtshbm:item/drone.patrol_express" },
+    { "predicate": { "reinhardtshbm:drone_type": 3 }, "model": "reinhardtshbm:item/drone.patrol_express_chunkloading" },
+    { "predicate": { "reinhardtshbm:drone_type": 4 }, "model": "reinhardtshbm:item/drone.request" }
+  ]
 }

@@ -47,6 +47,7 @@ import com.reinhardt.hbm.menu.GasFlareMenu;
 import com.reinhardt.hbm.menu.GasTurbineMenu;
 import com.reinhardt.hbm.menu.HbmAnvilMenu;
 import com.reinhardt.hbm.menu.HeaterMenu;
+import com.reinhardt.hbm.menu.LegacyHeldInventoryMenu;
 import com.reinhardt.hbm.menu.IronFurnaceMenu;
 import com.reinhardt.hbm.menu.LargeTurbineMenu;
 import com.reinhardt.hbm.menu.LegacyTurretMenu;
@@ -85,9 +86,13 @@ import com.reinhardt.hbm.menu.SoyuzLauncherMenu;
 import com.reinhardt.hbm.menu.SteamTurbineMenu;
 import com.reinhardt.hbm.menu.SteelFurnaceMenu;
 import com.reinhardt.hbm.menu.StorageCrateMenu;
+import com.reinhardt.hbm.menu.SafeMenu;
+import com.reinhardt.hbm.menu.MassStorageMenu;
 import com.reinhardt.hbm.menu.StrandCasterMenu;
 import com.reinhardt.hbm.menu.TurretChekhovMenu;
 import com.reinhardt.hbm.menu.TurretJeremyMenu;
+import com.reinhardt.hbm.menu.ToolboxMenu;
+import com.reinhardt.hbm.menu.LegacyCraftBookMenu;
 import com.reinhardt.hbm.menu.WoodBurnerMenu;
 import com.reinhardt.hbm.menu.ZirnoxReactorMenu;
 import com.reinhardt.hbm.menu.RadGenMenu;
@@ -104,6 +109,10 @@ import com.reinhardt.hbm.menu.OrbusMenu;
 import com.reinhardt.hbm.menu.SatelliteLinkerMenu;
 import com.reinhardt.hbm.menu.TurbofanMenu;
 import com.reinhardt.hbm.menu.MissileAssemblyMenu;
+import com.reinhardt.hbm.menu.DroneCrateMenu;
+import com.reinhardt.hbm.menu.DroneGridMenu;
+import com.reinhardt.hbm.menu.DroneRequesterMenu;
+import com.reinhardt.hbm.menu.RebarPlacerMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -144,6 +153,18 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MachineKeyForgeMenu>> MACHINE_KEYFORGE =
             MENUS.register("machine_keyforge", () -> IMenuTypeExtension.create(MachineKeyForgeMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<DroneCrateMenu>> DRONE_CRATE =
+            MENUS.register("drone_crate", () -> IMenuTypeExtension.create(DroneCrateMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<DroneGridMenu>> DRONE_DOCK =
+            MENUS.register("drone_dock", () -> IMenuTypeExtension.create((id, inventory, buffer) -> new DroneGridMenu(id, inventory, buffer, true)));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<DroneGridMenu>> DRONE_PROVIDER =
+            MENUS.register("drone_crate_provider", () -> IMenuTypeExtension.create((id, inventory, buffer) -> new DroneGridMenu(id, inventory, buffer, false)));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<DroneRequesterMenu>> DRONE_REQUESTER =
+            MENUS.register("drone_crate_requester", () -> IMenuTypeExtension.create(DroneRequesterMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<AssemblyMachineMenu>> ASSEMBLY_MACHINE =
             MENUS.register("assembly_machine", () -> IMenuTypeExtension.create(AssemblyMachineMenu::new));
@@ -237,6 +258,18 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<SoyuzCapsuleMenu>> SOYUZ_CAPSULE =
             MENUS.register("soyuz_capsule", () -> IMenuTypeExtension.create(SoyuzCapsuleMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ToolboxMenu>> TOOLBOX =
+            MENUS.register("toolbox", () -> IMenuTypeExtension.create(ToolboxMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<LegacyCraftBookMenu>> CRAFT_BOOK =
+            MENUS.register("craft_book", () -> IMenuTypeExtension.create(LegacyCraftBookMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<LegacyHeldInventoryMenu>> HELD_INVENTORY =
+            MENUS.register("legacy_held_inventory", () -> IMenuTypeExtension.create(LegacyHeldInventoryMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<RebarPlacerMenu>> REBAR_PLACER =
+            MENUS.register("rebar_placer", () -> IMenuTypeExtension.create(RebarPlacerMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<WasteDrumMenu>> WASTE_DRUM =
             MENUS.register("machine_waste_drum", () -> IMenuTypeExtension.create(WasteDrumMenu::new));
@@ -366,6 +399,12 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<StorageCrateMenu>> STORAGE_CRATE =
             MENUS.register("storage_crate", () -> IMenuTypeExtension.create(StorageCrateMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<SafeMenu>> SAFE =
+            MENUS.register("safe", () -> IMenuTypeExtension.create(SafeMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MassStorageMenu>> MASS_STORAGE =
+            MENUS.register("mass_storage", () -> IMenuTypeExtension.create(MassStorageMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<AshpitMenu>> ASHPIT =
             MENUS.register("machine_ashpit", () -> IMenuTypeExtension.create(AshpitMenu::new));

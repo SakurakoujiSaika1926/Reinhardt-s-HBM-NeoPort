@@ -1,6 +1,8 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "reinhardtshbm:block/tele_anchor_top",
+    "bottom": "reinhardtshbm:block/tele_anchor_side",
+    "side": "reinhardtshbm:block/tele_anchor_side"
+  }
 }

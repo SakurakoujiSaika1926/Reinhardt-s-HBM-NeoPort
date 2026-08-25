@@ -10,12 +10,31 @@ import com.reinhardt.hbm.block.ReinforcedLampBlock;
 import com.reinhardt.hbm.block.SteelScaffoldBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
 import com.reinhardt.hbm.item.LegacyDetonatorItem;
-import com.reinhardt.hbm.item.LegacyPlaceholderItem;
+import com.reinhardt.hbm.item.LegacyCigaretteItem;
+import com.reinhardt.hbm.item.LegacyEnergyDrinkItem;
+import com.reinhardt.hbm.item.LegacyMissileItem;
+import com.reinhardt.hbm.item.LegacyPillItem;
+import com.reinhardt.hbm.item.LegacyRangeDesignatorItem;
+import com.reinhardt.hbm.item.LegacySyringeItem;
+import com.reinhardt.hbm.item.LegacyHotItem;
+import com.reinhardt.hbm.item.LegacyPipetteItem;
+import com.reinhardt.hbm.item.LegacyStarterKitItem;
+import com.reinhardt.hbm.item.HealthArmorModItem;
+import com.reinhardt.hbm.item.LegacyCanteenItem;
+import com.reinhardt.hbm.item.LegacyLemonItem;
+import com.reinhardt.hbm.item.LegacyLoreItem;
+import com.reinhardt.hbm.item.LegacyConserveItem;
+import com.reinhardt.hbm.item.LegacyCrayonItem;
+import com.reinhardt.hbm.item.LegacyFlaskItem;
+import com.reinhardt.hbm.item.LegacySpecialFoodItem;
+import com.reinhardt.hbm.item.ColtanCompassItem;
+import com.reinhardt.hbm.item.FixedBatteryItem;
 import com.reinhardt.hbm.item.CustomMissileItem;
 import com.reinhardt.hbm.item.MissilePartItem;
 import com.reinhardt.hbm.radiation.HbmHazardSystem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.IronBarsBlock;
@@ -255,6 +274,58 @@ public final class LegacyHbmContent {
             "concrete_brick_double_slab"
     );
 
+    /*
+     * These are not 1.7.10 gameplay items. They are superseded 1.12 aliases or
+     * components belonging solely to the deliberately removed basic firearm
+     * system. Development saves are intentionally not supported, so retaining
+     * them as fake steel-ingot items would only hide missing content.
+     */
+    private static final Set<String> RETIRED_LEGACY_ITEM_IDS = Set.of(
+            "ammo_container",
+            "battery_advanced",
+            "book_guide_book",
+            "boltgun",
+            "cell",
+            "coin_siege",
+            "fluid_barrel_v2",
+            "fluid_tank_lead_v2",
+            "fluid_tank_v2",
+            "gun_egon",
+            "gun_vortex",
+            "jetpack_glider",
+            "mechanism_launcher_1",
+            "mechanism_launcher_2",
+            "mechanism_revolver_1",
+            "mechanism_revolver_2",
+            "mechanism_rifle_1",
+            "mechanism_rifle_2",
+            "mechanism_special",
+            "multitool_beam",
+            "multitool_decon",
+            "multitool_dig",
+            "multitool_ext",
+            "multitool_hit",
+            "multitool_joule",
+            "multitool_mega",
+            "multitool_miner",
+            "multitool_silk",
+            "multitool_sky",
+            "pellet_canister",
+            "pellet_chlorophyte",
+            "pellet_claws",
+            "pellet_flechette",
+            "pellet_meteorite",
+            "sliding_blast_door_skin0",
+            "sliding_blast_door_skin1",
+            "sliding_blast_door_skin2",
+            "weaponized_starblaster_cell",
+            "weapon_bat",
+            "weapon_bat_nail",
+            "weapon_golf_club",
+            "weapon_pipe_rusty",
+            "weapon_saw"
+    );
+
     public static final List<DeferredItem<Item>> LEGACY_ITEMS = new ArrayList<>();
     public static final List<DeferredBlock<Block>> LEGACY_BLOCKS = new ArrayList<>();
     public static final List<DeferredBlock<Block>> BUILDING_BLOCKS = new ArrayList<>();
@@ -293,7 +364,7 @@ public final class LegacyHbmContent {
         }
 
         for (String id : loadIds("legacy/reinhardtshbm/items.txt")) {
-            if (HbmItems.isCoreItem(id) || blockItemIds.contains(id)) {
+            if (HbmItems.isCoreItem(id) || HbmBlocks.isCoreBlock(id) || blockItemIds.contains(id) || isRetiredLegacyItem(id)) {
                 continue;
             }
 
@@ -595,6 +666,9 @@ public final class LegacyHbmContent {
     }
 
     private static Item createLegacyItem(String id) {
+        if (LegacyLoreItem.isLegacyLoreItem(id)) {
+            return LegacyLoreItem.fromLegacyId(id);
+        }
         if (id.equals("missile_custom")) {
             return new CustomMissileItem(new Item.Properties());
         }
@@ -604,7 +678,92 @@ public final class LegacyHbmContent {
         if (isDetonator(id)) {
             return new LegacyDetonatorItem(new Item.Properties(), id);
         }
-        return new LegacyPlaceholderItem(new Item.Properties(), id);
+        return switch (id) {
+            case "ingot_meteorite", "ingot_meteorite_forged", "blade_meteorite" ->
+                    new LegacyHotItem(new Item.Properties(), 200, false);
+            case "ingot_chainsteel" -> new LegacyHotItem(new Item.Properties(), 100, false);
+            case "ingot_steel_dusted" -> new LegacyHotItem(new Item.Properties(), 200, true);
+            case "heart_piece" -> new HealthArmorModItem(new Item.Properties(), 5.0D, false);
+            case "heart_container" -> new HealthArmorModItem(new Item.Properties(), 20.0D, false);
+            case "heart_booster" -> new HealthArmorModItem(new Item.Properties(), 40.0D, false);
+            case "heart_fab" -> new HealthArmorModItem(new Item.Properties(), 60.0D, false);
+            case "black_diamond" -> new HealthArmorModItem(new Item.Properties(), 40.0D, true);
+            case "pipette" -> new LegacyPipetteItem(new Item.Properties(), LegacyPipetteItem.Kind.NORMAL);
+            case "pipette_boron" -> new LegacyPipetteItem(new Item.Properties(), LegacyPipetteItem.Kind.BORON);
+            case "pipette_laboratory" -> new LegacyPipetteItem(new Item.Properties(), LegacyPipetteItem.Kind.LABORATORY);
+            case "glowing_stew", "balefire_scrambled", "balefire_and_ham" -> new Item(new Item.Properties()
+                    .food(new FoodProperties.Builder().nutrition(6).saturationModifier(0.6F).build())
+                    .craftRemainder(net.minecraft.world.item.Items.BOWL));
+            case "canteen_vodka" -> new LegacyCanteenItem(new Item.Properties());
+            case "canned_conserve" -> new LegacyConserveItem(new Item.Properties());
+            case "flask_infusion" -> new LegacyFlaskItem(new Item.Properties().stacksTo(1));
+            case "crayon" -> new LegacyCrayonItem(new Item.Properties());
+            case "bomb_waffle", "schnitzel_vegan", "cotton_candy", "apple_lead", "apple_schrabidium",
+                    "tem_flakes", "pancake", "mucho_mango", "apple_euphemium" -> LegacySpecialFoodItem.fromLegacyId(id);
+            case "lemon", "definitelyfood", "med_ipecac", "med_ptsd", "med_schizophrenia", "loops", "loop_stew",
+                    "spongebob_macaroni", "fooditem", "twinkie", "static_sandwich", "pudding", "nugget", "cheese",
+                    "cheese_quesadilla", "glyphid_meat", "glyphid_meat_grilled" -> LegacyLemonItem.fromLegacyId(id);
+            case "stealth_boy", "nuke_starter_kit", "nuke_advanced_kit", "nuke_commercially_kit", "nuke_electric_kit",
+                    "gadget_kit", "boy_kit", "man_kit", "mike_kit", "tsar_kit", "multi_kit", "custom_kit", "fleija_kit",
+                    "solinium_kit", "prototype_kit", "missile_kit", "euphemium_kit", "hazmat_kit", "hazmat_red_kit",
+                    "hazmat_grey_kit" -> new LegacyStarterKitItem(new Item.Properties(), id);
+            case "chainsaw" -> HbmItems.CHAINSAW.get();
+            case "wand_k" -> HbmItems.WAND_K.get();
+            case "missile_soyuz" -> HbmItems.MISSILE_SOYUZ.get();
+            case "missile_soyuz_lander" -> HbmItems.MISSILE_SOYUZ_LANDER.get();
+            case "missile_generic" -> missile(id, LegacyMissileItem.FormFactor.V2, LegacyMissileItem.Tier.TIER1);
+            case "missile_anti_ballistic" -> missile(id, LegacyMissileItem.FormFactor.ABM, LegacyMissileItem.Tier.TIER1);
+            case "missile_incendiary", "missile_cluster", "missile_buster", "missile_decoy" -> missile(id, LegacyMissileItem.FormFactor.V2, LegacyMissileItem.Tier.TIER1);
+            case "missile_strong", "missile_incendiary_strong", "missile_cluster_strong", "missile_buster_strong", "missile_emp_strong", "missile_stealth" -> missile(id, LegacyMissileItem.FormFactor.STRONG, LegacyMissileItem.Tier.TIER2);
+            case "missile_burst", "missile_inferno", "missile_rain", "missile_drill" -> missile(id, LegacyMissileItem.FormFactor.HUGE, LegacyMissileItem.Tier.TIER3);
+            case "missile_nuclear", "missile_nuclear_cluster", "missile_volcano", "missile_doomsday" -> missile(id, LegacyMissileItem.FormFactor.ATLAS, LegacyMissileItem.Tier.TIER4);
+            case "missile_doomsday_rusted" -> new LegacyMissileItem(new Item.Properties(), LegacyMissileItem.FormFactor.ATLAS, LegacyMissileItem.Tier.TIER4, LegacyMissileItem.Fuel.JETFUEL_LOXY, 16_000, false);
+            case "missile_taint", "missile_micro", "missile_bhole", "missile_schrabidium", "missile_emp", "missile_test" -> missile(id, LegacyMissileItem.FormFactor.MICRO, LegacyMissileItem.Tier.TIER0);
+            case "missile_shuttle" -> missile(id, LegacyMissileItem.FormFactor.OTHER, LegacyMissileItem.Tier.TIER3);
+            case "toolbox" -> HbmItems.TOOLBOX.get();
+            case "can_smart", "can_creature", "can_redbomb", "can_mrsugar", "can_overcharge", "can_luna",
+                    "can_bepis", "can_breen", "can_mug", "bottle_nuka", "bottle_cherry", "bottle_quantum",
+                    "bottle_sparkle", "bottle_rad", "bottle2_korl", "bottle2_fritz", "chocolate_milk", "coffee",
+                    "coffee_radium" -> new LegacyEnergyDrinkItem(new Item.Properties(), id);
+            case "syringe_metal_stimpak", "syringe_metal_medx", "syringe_metal_psycho", "syringe_metal_super",
+                    "syringe_taint", "syringe_mkunicorn", "med_bag", "syringe_antidote", "syringe_poison",
+                    "syringe_awesome", "radaway", "radaway_strong", "radaway_flush", "iv_empty", "iv_blood",
+                    "iv_xp_empty", "iv_xp" -> new LegacySyringeItem(new Item.Properties(), id);
+            case "radx" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.RADX);
+            case "siox" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.SIOX);
+            case "pill_herbal" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.HERBAL);
+            case "xanax" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.XANAX);
+            case "fmn" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.FMN);
+            case "five_htp" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.FIVE_HTP);
+            case "pill_iodine" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.IODINE);
+            case "plan_c" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.PLAN_C);
+            case "pill_red" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.RED);
+            case "chocolate" -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.CHOCOLATE);
+            case "cigarette" -> new LegacyCigaretteItem(new Item.Properties().stacksTo(16), false);
+            case "crackpipe" -> new LegacyCigaretteItem(new Item.Properties().stacksTo(1), true);
+            case "designator_range" -> new LegacyRangeDesignatorItem(new Item.Properties());
+            case "coltan_tool" -> new ColtanCompassItem(new Item.Properties());
+            case "memory" -> new FixedBatteryItem(
+                    new Item.Properties(), Long.MAX_VALUE / 100L, 100_000_000_000_000L, 100_000_000_000_000L
+            );
+            default -> createSimpleLegacyItem();
+        };
+    }
+
+    private static Item createSimpleLegacyItem() {
+        // Resource and behaviour-specific registrations are moved into HbmItems
+        // as they are ported. Remaining simple legacy entries are real Items,
+        // never a steel-ingot placeholder masquerading as gameplay content.
+        return new Item(new Item.Properties());
+    }
+
+    /** Base firearms are intentionally omitted in favour of the dedicated modern firearms mod. */
+    private static boolean isRetiredLegacyItem(String id) {
+        return RETIRED_LEGACY_ITEM_IDS.contains(id) || id.startsWith("gun_");
+    }
+
+    private static Item missile(String id, LegacyMissileItem.FormFactor formFactor, LegacyMissileItem.Tier tier) {
+        return new LegacyMissileItem(new Item.Properties(), formFactor, tier);
     }
 
     private static List<String> loadIds(String path) {
