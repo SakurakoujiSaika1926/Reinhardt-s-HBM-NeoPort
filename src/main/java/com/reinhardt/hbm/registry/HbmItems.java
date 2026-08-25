@@ -341,6 +341,11 @@ public final class HbmItems {
             "weapon_pipe_rusty", "weapon_saw"
     );
 
+    /** Fluid buckets are registered together with their NeoForge fluid entries. */
+    private static final Set<String> FLUID_BUCKET_ITEM_IDS = Set.of(
+            "bucket_acid", "bucket_mud", "bucket_schrabidic_acid", "bucket_sulfuric_acid", "bucket_toxic"
+    );
+
     /**
      * 1.7.10 classes which already have exact 1.21 implementations. These
      * stay separate from ordinary Item registrations so their use effects and
@@ -3075,6 +3080,7 @@ public final class HbmItems {
             if (CORE_ITEM_IDS.contains(id)
                     || blockIds.contains(id)
                     || RETIRED_LEGACY_CATALOG_ITEM_IDS.contains(id)
+                    || FLUID_BUCKET_ITEM_IDS.contains(id)
                     || id.startsWith("gun_")) {
                 continue;
             }
