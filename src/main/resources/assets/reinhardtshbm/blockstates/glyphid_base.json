@@ -1,7 +1,7 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/glyphid_base"
-                          }
-                 }
+    "variants": {
+        "variant=0": { "model": "reinhardtshbm:block/glyphid_base" },
+        "variant=1": { "model": "reinhardtshbm:block/glyphid_base_infested" },
+        "variant=2": { "model": "reinhardtshbm:block/glyphid_base_rad" }
+    }
 }

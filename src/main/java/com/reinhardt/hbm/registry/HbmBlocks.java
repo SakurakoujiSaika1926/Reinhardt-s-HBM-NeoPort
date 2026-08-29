@@ -135,6 +135,7 @@ import com.reinhardt.hbm.block.GasTurbineBlock;
 import com.reinhardt.hbm.block.GroundwaterPumpBlock;
 import com.reinhardt.hbm.block.GeothermalHeatExchangerBlock;
 import com.reinhardt.hbm.block.GlyphBlock;
+import com.reinhardt.hbm.block.GlyphidBaseBlock;
 import com.reinhardt.hbm.block.GuideTerminalBlock;
 import com.reinhardt.hbm.block.HbmFallingBlock;
 import com.reinhardt.hbm.block.HangingPhosphorVineBlock;
@@ -624,6 +625,14 @@ public final class HbmBlocks {
     public static final DeferredItem<Item> BRICK_JUNGLE_TRAP_ITEM = HbmItems.ITEMS.register("brick_jungle_trap",
             () -> new TrapBlockItem(BRICK_JUNGLE_TRAP.get(), new Item.Properties()));
     public static final DeferredBlock<Block> BRICK_JUNGLE_GLYPH = glyphBlock("brick_jungle_glyph");
+    public static final DeferredBlock<Block> GLYPHID_BASE = registerVariantBlock("glyphid_base",
+            () -> new GlyphidBaseBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_BROWN)
+                    .strength(0.5F, 5.0F)
+                    .sound(SoundType.WOOL)
+                    .noLootTable()),
+            LegacyVariantBlock.VARIANT,
+            "block.reinhardtshbm.glyphid_base", "standard", "infested", "radioactive");
     public static final DeferredBlock<Block> BRICK_JUNGLE_CIRCLE = registerBlock("brick_jungle_circle",
             () -> new MechanistCircleBlock(rock().strength(15.0F, 360.0F)));
     public static final DeferredBlock<Block> CRYSTAL_VIRUS = registerBlock("crystal_virus",
@@ -2810,6 +2819,7 @@ public final class HbmBlocks {
             SNOWGLOBE,
             PLUSHIE,
             LANTERN,
+            GLYPHID_BASE,
             DECO_COMPUTER,
             DECO_CRT,
             FILING_CABINET,

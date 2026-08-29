@@ -1,3 +1,7 @@
 {
-    "parent":  "reinhardtshbm:block/glyphid_base"
+    "parent": "reinhardtshbm:block/glyphid_base",
+    "overrides": [
+        { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/glyphid_base_infested_item" },
+        { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/glyphid_base_rad_item" }
+    ]
 }

@@ -11,6 +11,7 @@ import com.reinhardt.hbm.client.model.FluidDuctNeoBakedModel;
 import com.reinhardt.hbm.client.model.FluidTankItemModel;
 import com.reinhardt.hbm.client.model.HexafluorideTankItemModel;
 import com.reinhardt.hbm.client.model.GeothermalHeatExchangerItemModel;
+import com.reinhardt.hbm.client.model.GlyphidBaseBakedModel;
 import com.reinhardt.hbm.client.model.IndustrialTurbineItemModel;
 import com.reinhardt.hbm.client.model.LargeFactoryItemModel;
 import com.reinhardt.hbm.client.model.LandmineItemModel;
@@ -526,6 +527,7 @@ public final class HbmClientRenderers {
         PowerGaugeBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         PaintableCableBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         ReedsBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
+        GlyphidBaseBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         SteelScaffoldBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         DiFurnaceExtensionModel.replaceModels(event.getModels());
         StirlingGeneratorItemModel.replaceModels(event.getModels());
