@@ -83,6 +83,7 @@ import com.reinhardt.hbm.blockentity.FoundryFlowBlockEntity;
 import com.reinhardt.hbm.blockentity.FoundrySlagBlockEntity;
 import com.reinhardt.hbm.blockentity.FoundryTankBlockEntity;
 import com.reinhardt.hbm.blockentity.FurnaceCombinationBlockEntity;
+import com.reinhardt.hbm.blockentity.FireworksBlockEntity;
 import com.reinhardt.hbm.blockentity.FrackingTowerBlockEntity;
 import com.reinhardt.hbm.blockentity.FissureBlockEntity;
 import com.reinhardt.hbm.blockentity.FusionMachineBlockEntity;
@@ -749,6 +750,15 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             NukeBoyBlockEntity::new,
                             HbmBlocks.NUKE_BOY.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FireworksBlockEntity>> FIREWORKS =
+            BLOCK_ENTITIES.register(
+                    "fireworks",
+                    () -> BlockEntityType.Builder.of(
+                            FireworksBlockEntity::new,
+                            HbmBlocks.FIREWORKS.get()
                     ).build(null)
             );
 

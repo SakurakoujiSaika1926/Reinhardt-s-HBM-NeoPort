@@ -308,6 +308,7 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_SHRAPNEL.get(), LegacyShrapnelEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_VORTEX.get(), LegacyVortexEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.METEOR.get(), MeteorEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.FIREWORKS.get(), FireworksEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.TIMED_EXPLOSIVE.get(), TimedExplosiveEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_GRENADE.get(), LegacyGrenadeEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.UNIVERSAL_GRENADE.get(), UniversalGrenadeEntityRenderer::new);

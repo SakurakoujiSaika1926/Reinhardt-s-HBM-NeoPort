@@ -126,6 +126,7 @@ import com.reinhardt.hbm.block.FurnaceCombinationBlock;
 import com.reinhardt.hbm.block.FrackingTowerBlock;
 import com.reinhardt.hbm.block.FissureBlock;
 import com.reinhardt.hbm.block.FissureBombBlock;
+import com.reinhardt.hbm.block.FireworksBlock;
 import com.reinhardt.hbm.block.FusionHatchBlock;
 import com.reinhardt.hbm.block.FusionMachineBlock;
 import com.reinhardt.hbm.block.FusionTorusStructBlock;
@@ -1524,6 +1525,9 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> FISSURE_BOMB = registerBlock("fissure_bomb", () -> new FissureBombBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(0.0F, 0.0F).sound(SoundType.GRASS)
     ));
+    public static final DeferredBlock<Block> FIREWORKS = registerBlock("fireworks", () -> new FireworksBlock(
+            metal().strength(5.0F, 5.0F)
+    ));
     public static final DeferredBlock<Block> MINE_AP = landmine("mine_ap", LandmineBlock.LandmineType.AP);
     public static final DeferredBlock<Block> MINE_HE = landmine("mine_he", LandmineBlock.LandmineType.HE);
     public static final DeferredBlock<Block> MINE_SHRAP = landmine("mine_shrap", LandmineBlock.LandmineType.SHRAPNEL);
@@ -2178,6 +2182,7 @@ public final class HbmBlocks {
             CHARGE_C4,
             CHARGE_SEMTEX,
             FISSURE_BOMB,
+            FIREWORKS,
             MINE_AP,
             MINE_HE,
             MINE_SHRAP,

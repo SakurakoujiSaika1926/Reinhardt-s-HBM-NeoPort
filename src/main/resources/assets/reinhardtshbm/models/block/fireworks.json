@@ -1,6 +1,12 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+    "parent": "minecraft:block/cube",
+    "textures": {
+        "particle": "reinhardtshbm:block/fireworks_side",
+        "down": "reinhardtshbm:block/fireworks_bottom",
+        "up": "reinhardtshbm:block/fireworks_top",
+        "north": "reinhardtshbm:block/fireworks_side",
+        "south": "reinhardtshbm:block/fireworks_side",
+        "west": "reinhardtshbm:block/fireworks_side",
+        "east": "reinhardtshbm:block/fireworks_side"
+    }
 }

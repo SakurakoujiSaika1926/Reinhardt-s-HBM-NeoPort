@@ -41,6 +41,7 @@ import com.reinhardt.hbm.entity.UniversalGrenadeEntity;
 import com.reinhardt.hbm.entity.SoyuzCapsuleEntity;
 import com.reinhardt.hbm.entity.SoyuzEntity;
 import com.reinhardt.hbm.entity.MinerRocketEntity;
+import com.reinhardt.hbm.entity.FireworksEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -397,6 +398,15 @@ public final class HbmEntityTypes {
                     .clientTrackingRange(1_000)
                     .updateInterval(1)
                     .build("entity_miner_lander"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<FireworksEntity>> FIREWORKS =
+            ENTITY_TYPES.register("entity_fireworks", () -> EntityType.Builder
+                    .<FireworksEntity>of(FireworksEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .fireImmune()
+                    .clientTrackingRange(300)
+                    .updateInterval(1)
+                    .build("entity_fireworks"));
 
     private HbmEntityTypes() {
     }
