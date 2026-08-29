@@ -49,7 +49,22 @@ foreach ($match in [regex]::Matches(
     }
 }
 
-$ids = @($registered | Sort-Object)
+# The Java field is not always the registry id.  Several old blocks use an
+# explicit setBlockName(), for example `chain` -> `dungeon_chain` and
+# `reactor_research` -> `machine_reactor_small`.  The migration manifest must
+# contain the actual registered id or it creates a false placeholder.
+$fieldToRegistryId = @{}
+foreach ($statement in ($source -split ';')) {
+    $fieldMatch = [regex]::Match($statement, '(?s)\b([A-Za-z_][A-Za-z0-9_]*)\s*=')
+    $nameMatch = [regex]::Match($statement, '\.setBlockName\(\s*"([a-z0-9_]+)"\s*\)')
+    if ($fieldMatch.Success -and $nameMatch.Success) {
+        $fieldToRegistryId[$fieldMatch.Groups[1].Value] = $nameMatch.Groups[1].Value
+    }
+}
+
+$ids = @($registered | ForEach-Object {
+    if ($fieldToRegistryId.ContainsKey($_)) { $fieldToRegistryId[$_] } else { $_ }
+} | Sort-Object -Unique)
 if ($ids.Count -lt 900) {
     throw "Parsed only $($ids.Count) 1.7.10 block registrations; refusing to replace the catalog."
 }

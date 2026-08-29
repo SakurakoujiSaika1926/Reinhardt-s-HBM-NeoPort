@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/trinkets/hundun.obj",
+  "mtl_override": "reinhardtshbm:models/obj/trinkets/hundun.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "default": "reinhardtshbm:models/trinkets/hundun", "particle": "reinhardtshbm:models/trinkets/hundun" },
+  "visibility": { "goober_posed": true, "goober": false }
+}

@@ -43,6 +43,17 @@ public final class SatelliteSavedData extends SavedData {
         return Optional.ofNullable(this.satellites.get(frequency));
     }
 
+    /** TileEntityMachineSatDock stores the last miner-cargo dispatch on the satellite itself. */
+    public boolean markMinerDelivery(int frequency, long timestamp) {
+        SatelliteRecord record = this.satellites.get(frequency);
+        if (record == null || (record.kind != SatelliteKind.MINER && record.kind != SatelliteKind.LUNAR_MINER)) {
+            return false;
+        }
+        record.lastOperation = timestamp;
+        setDirty();
+        return true;
+    }
+
     /** Execute the coordinate action exposed by ItemSatDesignator. */
     public boolean performCoordinateAction(ServerLevel level, ServerPlayer player, SatelliteRecord record, BlockPos target) {
         if (record.kind == SatelliteKind.RESONATOR) {

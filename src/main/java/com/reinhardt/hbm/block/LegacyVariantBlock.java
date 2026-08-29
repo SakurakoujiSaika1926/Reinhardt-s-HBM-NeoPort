@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.storage.loot.LootParams;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,6 +83,9 @@ public class LegacyVariantBlock extends Block {
 
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        if (this.asItem() instanceof com.reinhardt.hbm.item.LegacyVariantBlockItem item) {
+            return List.of(com.reinhardt.hbm.item.LegacyVariantBlockItem.stackFor(item, state.getValue(VARIANT)));
+        }
         if (this.asItem() instanceof com.reinhardt.hbm.item.FusionComponentBlockItem item) {
             com.reinhardt.hbm.item.FusionComponentBlockItem.Type[] values =
                     com.reinhardt.hbm.item.FusionComponentBlockItem.Type.values();
@@ -89,6 +93,14 @@ public class LegacyVariantBlock extends Block {
             return List.of(com.reinhardt.hbm.item.FusionComponentBlockItem.stackFor(item, values[variant]));
         }
         return super.getDrops(state, params);
+    }
+
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+        if (this.asItem() instanceof com.reinhardt.hbm.item.LegacyVariantBlockItem item) {
+            return com.reinhardt.hbm.item.LegacyVariantBlockItem.stackFor(item, state.getValue(VARIANT));
+        }
+        return super.getCloneItemStack(level, pos, state);
     }
 
     private BlockState clampVariant(BlockState state) {

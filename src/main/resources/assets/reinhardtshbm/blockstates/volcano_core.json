@@ -1,7 +1,9 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/volcano_core"
-                          }
-                 }
+  "variants": {
+    "mode=0": { "model": "reinhardtshbm:block/volcano_core" },
+    "mode=1": { "model": "reinhardtshbm:block/volcano_core" },
+    "mode=2": { "model": "reinhardtshbm:block/volcano_core" },
+    "mode=3": { "model": "reinhardtshbm:block/volcano_core" },
+    "mode=4": { "model": "reinhardtshbm:block/volcano_core" }
+  }
 }

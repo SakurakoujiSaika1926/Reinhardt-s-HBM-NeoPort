@@ -1,0 +1,21 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/trinkets/bobble_accessory_hev.obj",
+    "mtl_override":  "reinhardtshbm:models/obj/trinkets/bobble_accessory.mtl",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  false,
+    "visibility":  {
+                       "LeftFoot":  false,
+                       "RightFoot":  false,
+                       "Head":  true,
+                       "RightArm":  false,
+                       "Body":  false,
+                       "LeftArm":  false,
+                       "RightLeg":  false,
+                       "LeftLeg":  false
+                   },
+    "textures":  {
+                     "particle":  "reinhardtshbm:models/thegadget3_"
+                 }
+}

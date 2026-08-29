@@ -11,10 +11,12 @@ import java.util.stream.Collectors;
 
 public enum HbmDoorDecl {
     FIRE_DOOR("fire_door", 160, dims(2, 0, 0, 0, 2, 1), new int[][]{{-1, 0, 0, 3, 4, 1}}, 5, "block/doors/fire_door", "block/doors/fire_door", Animation.VERTICAL),
+    TRANSITION_SEAL("transition_seal", 480, dims(23, 0, 0, 0, 13, 12), new int[][]{{-9, 2, 0, 20, 20, 1}}, 0, "block/doors/transition_seal", "block/doors/transition_seal", Animation.VERTICAL),
     SLIDING_BLAST_DOOR("sliding_blast_door", 24, dims(3, 0, 0, 0, 3, 3), new int[][]{{-2, 0, 0, 4, 5, 1}}, 3, "block/doors/sliding_blast_door", "block/doors/sliding_blast_door", Animation.VERTICAL),
     SLIDING_BLAST_DOOR_2("sliding_blast_door_2", 24, dims(3, 0, 0, 0, 3, 3), new int[][]{{-2, 0, 0, 4, 5, 1}}, 3, "block/doors/sliding_blast_door", "block/doors/sliding_blast_door", Animation.VERTICAL),
     SLIDING_GATE_DOOR("sliding_gate_door", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
     QE_SLIDING("qe_sliding", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
+    QE_SLIDING_DOOR("qe_sliding_door", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
     QE_CONTAINMENT("qe_containment", 160, dims(2, 0, 0, 0, 1, 1), new int[][]{{-1, 0, 0, 3, 3, 1}}, 3, "block/doors/qe_containment_door", "block/doors/qe_containment_door", Animation.VERTICAL),
     SLIDING_SEAL_DOOR("sliding_seal_door", 20, dims(1, 0, 0, 0, 0, 0), new int[][]{{0, 0, 0, 1, 2, 2}}, 0, "block/doors/sliding_seal_door", "block/doors/sliding_seal_door", Animation.VERTICAL),
     SECURE_ACCESS_DOOR("secure_access_door", 120, dims(4, 0, 0, 0, 2, 2), new int[][]{{-2, 1, 0, 4, 5, 1}}, 4, "block/doors/secure_access_door", "block/doors/secure_access_door", Animation.VERTICAL),
@@ -28,6 +30,7 @@ public enum HbmDoorDecl {
     private static final Map<String, HbmDoorDecl> BY_ID = Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(HbmDoorDecl::id, door -> door));
     public static final List<HbmDoorDecl> CREATIVE_ORDER = List.of(
             FIRE_DOOR,
+            TRANSITION_SEAL,
             SLIDING_BLAST_DOOR,
             SLIDING_BLAST_DOOR_2,
             SLIDING_GATE_DOOR,

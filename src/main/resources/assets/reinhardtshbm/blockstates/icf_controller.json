@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=south": { "model": "reinhardtshbm:block/icf_controller" },
+    "facing=west": { "model": "reinhardtshbm:block/icf_controller", "y": 90 },
+    "facing=north": { "model": "reinhardtshbm:block/icf_controller", "y": 180 },
+    "facing=east": { "model": "reinhardtshbm:block/icf_controller", "y": 270 }
+  }
+}

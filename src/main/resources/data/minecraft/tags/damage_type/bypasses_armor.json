@@ -10,6 +10,7 @@
     "reinhardtshbm:electricity",
     "reinhardtshbm:microwave",
     "reinhardtshbm:death",
-    "reinhardtshbm:cloud"
+    "reinhardtshbm:cloud",
+    "reinhardtshbm:broadcast"
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " P ",
+    "PGP",
+    " P "
+  ],
+  "key": {
+    "P": { "item": "minecraft:paper" },
+    "G": { "item": "minecraft:gunpowder" }
+  },
+  "result": { "id": "reinhardtshbm:det_cord", "count": 4 }
+}

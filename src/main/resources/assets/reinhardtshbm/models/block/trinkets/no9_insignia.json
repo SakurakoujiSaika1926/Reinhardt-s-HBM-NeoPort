@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/armor/no9.obj",
+  "mtl_override": "reinhardtshbm:models/obj/armor/no9.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "default": "reinhardtshbm:armor/no9_insignia", "particle": "reinhardtshbm:armor/no9_insignia" },
+  "visibility": { "Helmet": false, "Insignia": true, "Flame": false }
+}

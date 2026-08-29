@@ -1,7 +1,5 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/pneumatic_tube"
-                          }
-                 }
+    "multipart": [
+        { "apply": { "model": "reinhardtshbm:block/pneumatic_tube" } }
+    ]
 }

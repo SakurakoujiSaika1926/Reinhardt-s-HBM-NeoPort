@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/mobs/horse.obj",
+  "mtl_override": "reinhardtshbm:models/obj/mobs/horse.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "default": "reinhardtshbm:models/horse/numbernine", "particle": "reinhardtshbm:models/horse/numbernine" },
+  "visibility": { "LeftWing": false, "Body": false, "RightBackLeg": true, "LeftBackLeg": false, "RightFrontLeg": false, "LeftFrontLeg": false, "Head": false, "Tail": false, "RightWing": false, "HornPointy": false, "Horn": false, "NoseMale": false, "NoseFemale": false, "Mane": false }
+}

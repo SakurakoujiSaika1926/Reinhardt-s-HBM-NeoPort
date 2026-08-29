@@ -10,6 +10,8 @@ public final class HbmConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_EXPENSIVE_MODE;
     public static final ModConfigSpec.BooleanValue ENABLE_INFINITE_WATER_TANK_RECIPES;
     public static final ModConfigSpec.BooleanValue ENABLE_BOMBER_SHORT_MODE;
+    public static final ModConfigSpec.BooleanValue ENABLE_VIRUS;
+    public static final ModConfigSpec.BooleanValue DROPPED_XEN_CRYSTAL_EFFECT;
     public static final ModConfigSpec.BooleanValue SCALE_RTG_POWER;
     public static final ModConfigSpec.BooleanValue ENABLE_RTG_DECAY;
     public static final ModConfigSpec.IntValue INDUSTRIAL_TURBINE_INPUT_CAPACITY;
@@ -196,6 +198,15 @@ public final class HbmConfig {
         ENABLE_BOMBER_SHORT_MODE = builder
                 .comment("Spawn bombers closer to the target. HBM 1.7.10 default: false.")
                 .define("enableBomberShortMode", false);
+        builder.pop();
+
+        builder.push("dangerousItems");
+        DROPPED_XEN_CRYSTAL_EFFECT = builder
+                .comment("Whether dropped Xen crystals move terrain. HBM 1.7.10 default: true.")
+                .define("droppedXenCrystalEffect", true);
+        ENABLE_VIRUS = builder
+                .comment("Allow crystal virus blocks to spread. HBM 1.7.10 default: false.")
+                .define("enableVirus", false);
         builder.pop();
 
         builder.push("machines");

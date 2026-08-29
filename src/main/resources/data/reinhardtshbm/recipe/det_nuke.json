@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PFP",
+    "DCD",
+    "PFP"
+  ],
+  "key": {
+    "P": { "item": "reinhardtshbm:neutron_reflector" },
+    "D": { "item": "reinhardtshbm:det_charge" },
+    "C": { "item": "reinhardtshbm:man_core" },
+    "F": { "item": "reinhardtshbm:circuit_controller" }
+  },
+  "result": { "id": "reinhardtshbm:det_nuke" }
+}

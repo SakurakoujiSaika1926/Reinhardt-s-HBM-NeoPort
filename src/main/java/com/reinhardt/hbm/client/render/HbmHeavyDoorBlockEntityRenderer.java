@@ -22,6 +22,8 @@ import java.util.List;
 public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmHeavyDoorBlockEntity> {
     private static final ModelResourceLocation FIRE_FRAME = model("fire_door_frame");
     private static final ModelResourceLocation FIRE_DOOR = model("fire_door_door");
+    // Transition Seal has one complete OBJ model rather than the part models used by most doors.
+    private static final ModelResourceLocation TRANSITION_SEAL = MachineModelRenderer.standalone("block/transition_seal");
     private static final ModelResourceLocation SLIDE_FRAME = model("sliding_blast_door_frame");
     private static final ModelResourceLocation SLIDE_LEFT = model("sliding_blast_door_left_door");
     private static final ModelResourceLocation SLIDE_RIGHT = model("sliding_blast_door_right_door");
@@ -60,7 +62,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         for (ModelResourceLocation model : List.of(
-                FIRE_FRAME, FIRE_DOOR,
+                FIRE_FRAME, FIRE_DOOR, TRANSITION_SEAL,
                 SLIDE_FRAME, SLIDE_LEFT, SLIDE_RIGHT, SLIDE_LEFT_LOCK, SLIDE_RIGHT_LOCK,
                 QE_SLIDING_FRAME, QE_SLIDING_LEFT, QE_SLIDING_RIGHT,
                 QE_CONTAINMENT_FRAME, QE_CONTAINMENT_DOOR,
@@ -108,8 +110,12 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
     private static void renderDoor(HbmDoorDecl decl, HbmHeavyDoorBlockEntity door, float ticks, float progress, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         switch (decl) {
             case FIRE_DOOR -> renderFireDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            case TRANSITION_SEAL -> {
+                poseStack.translate(0.0F, Mth.clamp(progress * 3.5F, 0.0F, 3.5F), 0.0F);
+                render(TRANSITION_SEAL, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
             case SLIDING_BLAST_DOOR, SLIDING_BLAST_DOOR_2 -> renderSlidingBlastDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SLIDING_GATE_DOOR, QE_SLIDING -> renderQeSlidingDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case SLIDING_GATE_DOOR, QE_SLIDING, QE_SLIDING_DOOR -> renderQeSlidingDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
             case QE_CONTAINMENT -> renderQeContainmentDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             case SLIDING_SEAL_DOOR -> renderSealDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
             case SECURE_ACCESS_DOOR -> renderSecureDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);

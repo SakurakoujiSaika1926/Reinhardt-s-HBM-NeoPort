@@ -1,6 +1,58 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/broadcaster_pc"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "ambientocclusion": false,
+  "texture_size": [64, 32],
+  "textures": {
+    "particle": "reinhardtshbm:block/broadcaster_pc",
+    "texture": "reinhardtshbm:block/broadcaster_pc"
+  },
+  "elements": [
+    {
+      "from": [1, 0, 4],
+      "to": [15, 10, 12],
+      "faces": {
+        "down":  { "uv": [0, 8, 8, 18], "texture": "#texture" },
+        "up":    { "uv": [8, 8, 22, 18], "texture": "#texture" },
+        "north": { "uv": [8, 8, 22, 18], "texture": "#texture" },
+        "south": { "uv": [30, 8, 44, 18], "texture": "#texture" },
+        "west":  { "uv": [22, 8, 30, 18], "texture": "#texture" },
+        "east":  { "uv": [0, 8, 8, 18], "texture": "#texture" }
+      }
+    },
+    {
+      "from": [11, 10, 7],
+      "to": [13, 13, 9],
+      "faces": {
+        "down":  { "uv": [4, 23, 6, 26], "texture": "#texture" },
+        "up":    { "uv": [6, 23, 8, 26], "texture": "#texture" },
+        "north": { "uv": [6, 23, 8, 26], "texture": "#texture" },
+        "south": { "uv": [10, 23, 12, 26], "texture": "#texture" },
+        "west":  { "uv": [8, 23, 10, 26], "texture": "#texture" },
+        "east":  { "uv": [4, 23, 6, 26], "texture": "#texture" }
+      }
+    },
+    {
+      "from": [11.5, 13, 7.5],
+      "to": [12.5, 24, 8.5],
+      "faces": {
+        "down":  { "uv": [0, 19, 1, 30], "texture": "#texture" },
+        "up":    { "uv": [1, 19, 2, 30], "texture": "#texture" },
+        "north": { "uv": [1, 19, 2, 30], "texture": "#texture" },
+        "south": { "uv": [3, 19, 4, 30], "texture": "#texture" },
+        "west":  { "uv": [2, 19, 3, 30], "texture": "#texture" },
+        "east":  { "uv": [0, 19, 1, 30], "texture": "#texture" }
+      }
+    },
+    {
+      "from": [3, 10, 7.5],
+      "to": [6, 12, 8.5],
+      "faces": {
+        "down":  { "uv": [4, 19, 5, 21], "texture": "#texture" },
+        "up":    { "uv": [5, 19, 8, 21], "texture": "#texture" },
+        "north": { "uv": [5, 19, 8, 21], "texture": "#texture" },
+        "south": { "uv": [9, 19, 12, 21], "texture": "#texture" },
+        "west":  { "uv": [8, 19, 9, 21], "texture": "#texture" },
+        "east":  { "uv": [4, 19, 5, 21], "texture": "#texture" }
+      }
+    }
+  ]
 }

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["GGG", "SPS"],
+  "key": {
+    "G": { "item": "reinhardtshbm:steel_grate" },
+    "S": { "tag": "c:ingots/steel" },
+    "P": { "item": "reinhardtshbm:part_piston_hydraulic" }
+  },
+  "result": { "id": "reinhardtshbm:cargo_elevator", "count": 3 }
+}

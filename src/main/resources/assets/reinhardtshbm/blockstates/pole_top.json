@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/pole_top"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

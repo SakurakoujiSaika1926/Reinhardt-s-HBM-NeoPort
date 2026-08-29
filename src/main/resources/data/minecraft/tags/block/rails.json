@@ -3,6 +3,16 @@
   "values": [
     "reinhardtshbm:rail_wood",
     "reinhardtshbm:rail_narrow",
+    "reinhardtshbm:rail_narrow_curve",
+    "reinhardtshbm:rail_large_straight",
+    "reinhardtshbm:rail_large_straight_short",
+    "reinhardtshbm:rail_large_curve",
+    "reinhardtshbm:rail_large_curve_7",
+    "reinhardtshbm:rail_large_curve_9",
+    "reinhardtshbm:rail_large_ramp",
+    "reinhardtshbm:rail_large_buffer",
+    "reinhardtshbm:rail_large_switch",
+    "reinhardtshbm:rail_large_switch_flipped",
     "reinhardtshbm:rail_highspeed",
     "reinhardtshbm:rail_booster"
   ]

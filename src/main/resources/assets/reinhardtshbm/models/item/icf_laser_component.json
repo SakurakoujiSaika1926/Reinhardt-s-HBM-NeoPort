@@ -1,0 +1,10 @@
+{
+  "parent": "reinhardtshbm:block/icf_laser_casing",
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:block/icf_laser_port" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:block/icf_laser_cell" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:block/icf_laser_emitter" },
+    { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:block/icf_laser_capacitor" },
+    { "predicate": { "custom_model_data": 5 }, "model": "reinhardtshbm:block/icf_laser_turbo" }
+  ]
+}

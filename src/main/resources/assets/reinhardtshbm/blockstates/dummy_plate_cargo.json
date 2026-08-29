@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/dummy_plate_cargo"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

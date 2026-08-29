@@ -1,6 +1,3 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/legacy_placeholder"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "reinhardtshbm:block/boltgun"
 }

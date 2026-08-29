@@ -3,6 +3,7 @@ package com.reinhardt.hbm.explosion;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyArtilleryShellEntity;
 import com.reinhardt.hbm.entity.LegacyBulletEntity;
+import com.reinhardt.hbm.entity.LegacyBossProjectileEntity;
 import com.reinhardt.hbm.entity.LegacyHimarsRocketEntity;
 import com.reinhardt.hbm.entity.LegacyProjectileUtil;
 import com.reinhardt.hbm.entity.LegacyShrapnelEntity;
@@ -80,6 +81,11 @@ public final class LegacyMukeExplosion {
         LegacyProjectileUtil.spawnShrapnel(level, center, MINI_SHRAPNEL_COUNT);
         incrementRadiation(level, center, 1.0F);
         spawnMuke(level, center);
+    }
+
+    /** Exact non-block-damaging UFO rocket impact from ExplosionNukeGeneric.dealDamage. */
+    public static void detonateUfoRocket(ServerLevel level, Entity source, Vec3 center) {
+        applyNuclearDamage(level, source, center, 10.0D, 50.0F);
     }
 
     public static void detonateLandmine(ServerLevel level, Vec3 center, float damage) {
@@ -188,6 +194,7 @@ public final class LegacyMukeExplosion {
     private static boolean isProjectile(Entity entity) {
         return entity instanceof JeremyShellEntity
                 || entity instanceof LegacyBulletEntity
+                || entity instanceof LegacyBossProjectileEntity
                 || entity instanceof LegacyArtilleryShellEntity
                 || entity instanceof LegacyHimarsRocketEntity
                 || entity instanceof LegacyShrapnelEntity;

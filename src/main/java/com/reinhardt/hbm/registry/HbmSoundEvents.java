@@ -20,6 +20,12 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> CHEMICAL_PLANT_OPERATE = sound("block.chemical_plant");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOILER = sound("block.boiler");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOILER_GROAN = sound("block.boiler_groan");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BROADCAST_1 = sound("block.broadcast1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BROADCAST_2 = sound("block.broadcast2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BROADCAST_3 = sound("block.broadcast3");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BOBBLE = sound("block.bobble");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLUSHIE_SQUEAK = sound("block.squeaky_toy");
+    public static final DeferredHolder<SoundEvent, SoundEvent> HUNDUN_HOWL = sound("block.hunduns_magnificent_howl");
     public static final DeferredHolder<SoundEvent, SoundEvent> PRESS_OPERATE = sound("block.pressoperate");
     public static final DeferredHolder<SoundEvent, SoundEvent> PYRO_OVEN_OPERATE = sound("block.pyro_operate");
     public static final DeferredHolder<SoundEvent, SoundEvent> CENTRIFUGE_OPERATE = sound("block.centrifugeoperate");
@@ -36,6 +42,8 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> LEVER_LARGE = sound("block.leverlarge");
     public static final DeferredHolder<SoundEvent, SoundEvent> LOCK_OPEN = sound("block.lockopen");
     public static final DeferredHolder<SoundEvent, SoundEvent> LOCK_HANG = sound("block.lockhang");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CRATE_OPEN = sound("block.crate_open");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CRATE_CLOSE = sound("block.crate_close");
     public static final DeferredHolder<SoundEvent, SoundEvent> OPEN_C = sound("block.openc");
     public static final DeferredHolder<SoundEvent, SoundEvent> CLOSE_C = sound("block.closec");
     public static final DeferredHolder<SoundEvent, SoundEvent> OPEN_DOOR = sound("block.opendoor");

@@ -85,6 +85,18 @@
       "prefix": "models/legacy/"
     },
     {
+      "type": "single",
+      "resource": "reinhardtshbm:models/bomb_multi"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/file_cabinet"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/file_cabinet_steel"
+    },
+    {
       "type": "neoforge:namespaced_directory",
       "namespace": "reinhardtshbm",
       "source": "models/tank",

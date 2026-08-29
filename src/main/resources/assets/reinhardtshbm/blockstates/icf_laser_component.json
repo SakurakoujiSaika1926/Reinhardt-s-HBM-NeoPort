@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/icf_laser_casing" },
+    "variant=1": { "model": "reinhardtshbm:block/icf_laser_port" },
+    "variant=2": { "model": "reinhardtshbm:block/icf_laser_cell" },
+    "variant=3": { "model": "reinhardtshbm:block/icf_laser_emitter" },
+    "variant=4": { "model": "reinhardtshbm:block/icf_laser_capacitor" },
+    "variant=5": { "model": "reinhardtshbm:block/icf_laser_turbo" },
+    "variant=6": { "model": "reinhardtshbm:block/icf_laser_turbo" },
+    "variant=7": { "model": "reinhardtshbm:block/icf_laser_turbo" }
+  }
+}

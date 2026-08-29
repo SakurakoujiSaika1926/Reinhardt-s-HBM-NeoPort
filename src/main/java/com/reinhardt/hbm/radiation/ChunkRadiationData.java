@@ -99,6 +99,14 @@ public class ChunkRadiationData extends SavedData {
         setRadiation(sectionKey, Math.min(max, current + amount));
     }
 
+    public void decrementRadiation(BlockPos pos, double amount) {
+        if (amount <= 0.0D) {
+            return;
+        }
+        long sectionKey = SectionPos.asLong(pos);
+        setRadiation(sectionKey, Math.max(0.0D, getRadiation(sectionKey) - amount));
+    }
+
     public void clearRadiation(BlockPos pos) {
         setRadiation(pos, 0.0D);
     }

@@ -2,6 +2,7 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import net.minecraft.core.BlockPos;
@@ -266,21 +267,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
     }
 
     private static boolean canConnect(LevelAccessor level, BlockPos pos, Direction direction, HbmFluidDefinition type) {
-        if (type == null) {
-            return false;
-        }
-        BlockPos target = pos.relative(direction);
-        BlockEntity neighbor = level.getBlockEntity(target);
-        if (neighbor instanceof FluidPipeBlockEntity pipe) {
-            return pipe.canConnect(type);
-        }
-        if (type.isNone()) {
-            return false;
-        }
-        if (level instanceof Level realLevel) {
-            return realLevel.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite()) != null;
-        }
-        return false;
+        return HbmFluidNetworks.canPipeConnect(level, pos, direction, type);
     }
 
     private static HbmFluidDefinition connectionType(LevelAccessor level, BlockPos pos, Kind kind) {
@@ -320,6 +307,11 @@ public class FluidDuctBlock extends Block implements EntityBlock {
                         && level.getBlockEntity(neighbor) instanceof FluidPipeBlockEntity neighborPipe
                         && !neighborPipe.isExhaustPipe()) {
                     queue.addLast(neighbor);
+                }
+            }
+            for (BlockPos link : pipe.networkLinks()) {
+                if (!visited.contains(link)) {
+                    queue.addLast(link.immutable());
                 }
             }
         }

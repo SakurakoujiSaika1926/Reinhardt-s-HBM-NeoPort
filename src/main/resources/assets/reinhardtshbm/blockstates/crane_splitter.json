@@ -1,7 +1,1 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/crane_splitter"
-                          }
-                 }
-}
+{"variants":{"facing=north,active=true":{"model":"reinhardtshbm:block/crane_splitter"},"facing=south,active=true":{"model":"reinhardtshbm:block/crane_splitter","y":180},"facing=west,active=true":{"model":"reinhardtshbm:block/crane_splitter","y":270},"facing=east,active=true":{"model":"reinhardtshbm:block/crane_splitter","y":90},"facing=north,active=false":{"model":"reinhardtshbm:block/crane_splitter"},"facing=south,active=false":{"model":"reinhardtshbm:block/crane_splitter","y":180},"facing=west,active=false":{"model":"reinhardtshbm:block/crane_splitter","y":270},"facing=east,active=false":{"model":"reinhardtshbm:block/crane_splitter","y":90}}}

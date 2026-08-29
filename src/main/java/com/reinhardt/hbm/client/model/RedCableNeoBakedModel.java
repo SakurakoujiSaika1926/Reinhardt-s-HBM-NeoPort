@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.client.model;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.block.CableDiodeBlock;
+import com.reinhardt.hbm.block.DetonatableBlock;
 import com.reinhardt.hbm.block.EnergyCableBlock;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -38,8 +40,11 @@ import java.util.function.Function;
 
 public final class RedCableNeoBakedModel implements IDynamicBakedModel {
     private static final ResourceLocation BLOCK_ID = ReinhardtsHBM.id("red_cable");
+    private static final ResourceLocation DIODE_ID = ReinhardtsHBM.id("cable_diode");
+    private static final ResourceLocation DET_CORD_ID = ReinhardtsHBM.id("det_cord");
     private static final ResourceLocation OBJ_LOCATION = ReinhardtsHBM.id("models/obj/red_cable/cable_neo.obj");
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("block/cable_neo");
+    private static final ResourceLocation DET_CORD_TEXTURE = ReinhardtsHBM.id("block/det_cord");
     private static final Transform WORLD_TRANSFORM = new Transform(1.0F, 0.0F, 0.0F, 0.0F, 0.0F, true);
     private static final Transform ITEM_TRANSFORM = new Transform(1.0F, 0.5F, 1.0F / 16.0F, 0.5F, (float) Math.PI, false);
     private static final ChunkRenderTypeSet CUTOUT_RENDER_TYPES = ChunkRenderTypeSet.of(RenderType.cutout());
@@ -54,21 +59,34 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
     private final ObjMesh mesh;
     private final TextureAtlasSprite sprite;
     private final boolean forBlock;
+    private final boolean diode;
+    private final boolean detCord;
     private final List<BakedQuad>[] blockQuads;
     private final List<BakedQuad> itemQuads;
 
     @SuppressWarnings("unchecked")
-    private RedCableNeoBakedModel(BakedModel fallbackModel, ObjMesh mesh, TextureAtlasSprite sprite, boolean forBlock) {
+    private RedCableNeoBakedModel(BakedModel fallbackModel, ObjMesh mesh, TextureAtlasSprite sprite,
+                                  boolean forBlock, boolean diode, boolean detCord) {
         this.fallbackModel = fallbackModel;
         this.mesh = mesh;
         this.sprite = sprite;
         this.forBlock = forBlock;
+        this.diode = diode;
+        this.detCord = detCord;
         if (forBlock) {
             this.blockQuads = precomputeBlockQuads();
             this.itemQuads = List.of();
         } else {
             this.blockQuads = new List[0];
-            this.itemQuads = bakeParts(Set.of("Core", "posX", "negX", "posZ", "negZ"), ITEM_TRANSFORM);
+            List<BakedQuad> quads = new ArrayList<>();
+            if (diode) {
+                quads.addAll(fallbackModel.getQuads(null, null, RandomSource.create(), ModelData.EMPTY, null));
+            }
+            Set<String> itemParts = detCord
+                    ? Set.of("CZ")
+                    : Set.of("Core", "posX", "negX", "negY", "posZ", "negZ");
+            quads.addAll(bakeParts(itemParts, ITEM_TRANSFORM));
+            this.itemQuads = List.copyOf(quads);
         }
     }
 
@@ -94,29 +112,82 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
         }
 
         TextureAtlasSprite sprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, TEXTURE));
-        RedCableNeoBakedModel blockModel = new RedCableNeoBakedModel(blockFallback, mesh, sprite, true);
+        RedCableNeoBakedModel blockModel = new RedCableNeoBakedModel(blockFallback, mesh, sprite, true, false, false);
         for (ModelResourceLocation location : blockLocations) {
             models.put(location, blockModel);
         }
 
         BakedModel itemFallback = models.getOrDefault(itemLocation, blockFallback);
         if (models.containsKey(itemLocation)) {
-            models.put(itemLocation, new RedCableNeoBakedModel(itemFallback, mesh, sprite, false));
+            models.put(itemLocation, new RedCableNeoBakedModel(itemFallback, mesh, sprite, false, false, false));
         }
         ReinhardtsHBM.LOGGER.info("Installed red copper cable OBJ model for {} baked block variants", blockLocations.size());
+
+        installDiodeModels(models, mesh, textureGetter);
+        installDetCordModels(models, mesh, textureGetter);
+    }
+
+    private static void installDetCordModels(Map<ModelResourceLocation, BakedModel> models, ObjMesh mesh,
+                                             Function<Material, TextureAtlasSprite> textureGetter) {
+        List<ModelResourceLocation> blockLocations = models.keySet().stream()
+                .filter(RedCableNeoBakedModel::isDetCordBlockModel)
+                .toList();
+        ModelResourceLocation itemLocation = new ModelResourceLocation(DET_CORD_ID, ModelResourceLocation.INVENTORY_VARIANT);
+        BakedModel blockFallback = blockLocations.stream().map(models::get).filter(Objects::nonNull).findFirst()
+                .orElse(models.get(itemLocation));
+        if (blockFallback == null) {
+            ReinhardtsHBM.LOGGER.warn("Unable to install det cord OBJ model: no baked model was found");
+            return;
+        }
+        TextureAtlasSprite sprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, DET_CORD_TEXTURE));
+        RedCableNeoBakedModel blockModel = new RedCableNeoBakedModel(blockFallback, mesh, sprite, true, false, true);
+        for (ModelResourceLocation location : blockLocations) {
+            models.put(location, blockModel);
+        }
+        if (models.containsKey(itemLocation)) {
+            models.put(itemLocation, new RedCableNeoBakedModel(models.get(itemLocation), mesh, sprite, false, false, true));
+        }
+    }
+
+    private static void installDiodeModels(Map<ModelResourceLocation, BakedModel> models, ObjMesh mesh,
+                                           Function<Material, TextureAtlasSprite> textureGetter) {
+        List<ModelResourceLocation> blockLocations = models.keySet().stream()
+                .filter(RedCableNeoBakedModel::isDiodeBlockModel)
+                .toList();
+        ModelResourceLocation itemLocation = new ModelResourceLocation(DIODE_ID, ModelResourceLocation.INVENTORY_VARIANT);
+        BakedModel fallback = blockLocations.stream().map(models::get).filter(Objects::nonNull).findFirst()
+                .orElse(models.get(itemLocation));
+        if (fallback == null) {
+            ReinhardtsHBM.LOGGER.warn("Unable to install cable diode OBJ model: no baked model was found");
+            return;
+        }
+        TextureAtlasSprite sprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, TEXTURE));
+        for (ModelResourceLocation location : blockLocations) {
+            models.put(location, new RedCableNeoBakedModel(fallback, mesh, sprite, true, true, false));
+        }
+        if (models.containsKey(itemLocation)) {
+            models.put(itemLocation, new RedCableNeoBakedModel(models.get(itemLocation), mesh, sprite, false, true, false));
+        }
     }
 
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand, ModelData extraData, @Nullable RenderType renderType) {
-        if (side != null) {
-            return Collections.emptyList();
-        }
         if (!this.forBlock) {
             return this.itemQuads;
         }
 
+        if (side != null) {
+            return this.diode ? this.fallbackModel.getQuads(state, side, rand, extraData, renderType)
+                    : Collections.emptyList();
+        }
+
         int mask = connectionMask(state);
-        return this.blockQuads[mask];
+        if (!this.diode) {
+            return this.blockQuads[mask];
+        }
+        List<BakedQuad> quads = new ArrayList<>(this.fallbackModel.getQuads(state, null, rand, extraData, renderType));
+        quads.addAll(this.blockQuads[mask]);
+        return List.copyOf(quads);
     }
 
     @Override
@@ -217,15 +288,39 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
     }
 
     private static int connectionMask(@Nullable BlockState state) {
-        if (state == null || !(state.getBlock() instanceof EnergyCableBlock)) {
+        if (state == null) {
             return 0;
         }
-        boolean pX = state.getValue(EnergyCableBlock.EAST);
-        boolean nX = state.getValue(EnergyCableBlock.WEST);
-        boolean pY = state.getValue(EnergyCableBlock.UP);
-        boolean nY = state.getValue(EnergyCableBlock.DOWN);
-        boolean pZ = state.getValue(EnergyCableBlock.SOUTH);
-        boolean nZ = state.getValue(EnergyCableBlock.NORTH);
+        boolean pX;
+        boolean nX;
+        boolean pY;
+        boolean nY;
+        boolean pZ;
+        boolean nZ;
+        if (state.getBlock() instanceof CableDiodeBlock) {
+            pX = state.getValue(CableDiodeBlock.EAST);
+            nX = state.getValue(CableDiodeBlock.WEST);
+            pY = state.getValue(CableDiodeBlock.UP);
+            nY = state.getValue(CableDiodeBlock.DOWN);
+            pZ = state.getValue(CableDiodeBlock.SOUTH);
+            nZ = state.getValue(CableDiodeBlock.NORTH);
+        } else if (state.getBlock() instanceof EnergyCableBlock) {
+            pX = state.getValue(EnergyCableBlock.EAST);
+            nX = state.getValue(EnergyCableBlock.WEST);
+            pY = state.getValue(EnergyCableBlock.UP);
+            nY = state.getValue(EnergyCableBlock.DOWN);
+            pZ = state.getValue(EnergyCableBlock.SOUTH);
+            nZ = state.getValue(EnergyCableBlock.NORTH);
+        } else if (state.getBlock() instanceof DetonatableBlock) {
+            pX = state.getValue(DetonatableBlock.EAST);
+            nX = state.getValue(DetonatableBlock.WEST);
+            pY = state.getValue(DetonatableBlock.UP);
+            nY = state.getValue(DetonatableBlock.DOWN);
+            pZ = state.getValue(DetonatableBlock.SOUTH);
+            nZ = state.getValue(DetonatableBlock.NORTH);
+        } else {
+            return 0;
+        }
         return (pX ? 1 : 0) | (nX ? 2 : 0) | (pY ? 4 : 0) | (nY ? 8 : 0) | (pZ ? 16 : 0) | (nZ ? 32 : 0);
     }
 
@@ -270,6 +365,14 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
 
     private static boolean isBlockModel(ModelResourceLocation location) {
         return BLOCK_ID.equals(location.id()) && !ModelResourceLocation.INVENTORY_VARIANT.equals(location.variant());
+    }
+
+    private static boolean isDiodeBlockModel(ModelResourceLocation location) {
+        return DIODE_ID.equals(location.id()) && !ModelResourceLocation.INVENTORY_VARIANT.equals(location.variant());
+    }
+
+    private static boolean isDetCordBlockModel(ModelResourceLocation location) {
+        return DET_CORD_ID.equals(location.id()) && !ModelResourceLocation.INVENTORY_VARIANT.equals(location.variant());
     }
 
     private static final class ObjMesh {

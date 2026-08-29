@@ -1,0 +1,36 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/trinkets/bobble.obj",
+    "mtl_override":  "reinhardtshbm:models/obj/trinkets/bobble.mtl",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  false,
+    "visibility":  {
+                       "Body":  false,
+                       "Body17":  false,
+                       "Drillgon":  false,
+                       "Fumo":  false,
+                       "FumoHead":  false,
+                       "Head":  false,
+                       "Head17":  false,
+                       "Horn":  false,
+                       "LA":  false,
+                       "LA17":  false,
+                       "LL":  false,
+                       "LL17":  false,
+                       "PeepHat":  false,
+                       "PeepTail":  false,
+                       "Pellet":  false,
+                       "PelletShine":  false,
+                       "RA":  true,
+                       "RA17":  false,
+                       "RL":  false,
+                       "RL17":  false,
+                       "Socket":  false,
+                       "Fluoro":  false,
+                       "Glow":  false
+                   },
+    "textures":  {
+                     "particle":  "reinhardtshbm:models/thegadget3_"
+                 }
+}

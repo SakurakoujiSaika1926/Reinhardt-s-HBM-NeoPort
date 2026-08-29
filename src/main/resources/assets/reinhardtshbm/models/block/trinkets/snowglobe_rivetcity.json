@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/trinkets/snowglobe.obj",
+  "mtl_override": "reinhardtshbm:models/obj/trinkets/snowglobe.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "default": "reinhardtshbm:models/trinkets/snowglobe_features", "particle": "reinhardtshbm:models/trinkets/snowglobe_features" },
+  "visibility": { "Socket": false, "Glass": false, "RivetCity": true, "TenpennyTower": false, "Lucky38": false, "SierraMadre": false, "Prydwen": false }
+}

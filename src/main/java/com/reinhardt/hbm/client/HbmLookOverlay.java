@@ -5,6 +5,7 @@ import com.reinhardt.hbm.block.WandStructureBlock;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.block.GasTurbineBlock;
 import com.reinhardt.hbm.blockentity.AirCompressorBlockEntity;
+import com.reinhardt.hbm.blockentity.CapacitorBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticCrackerBlockEntity;
 import com.reinhardt.hbm.blockentity.ChimneyBlockEntity;
 import com.reinhardt.hbm.blockentity.CoolingTowerBlockEntity;
@@ -23,6 +24,7 @@ import com.reinhardt.hbm.blockentity.LeviathanTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.PoweredSteamCondenserBlockEntity;
+import com.reinhardt.hbm.blockentity.PowerGaugeBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.SolarBoilerBlockEntity;
@@ -140,7 +142,9 @@ public final class HbmLookOverlay {
                 || entity instanceof DrainBlockEntity
                 || entity instanceof DeuteriumExtractorBlockEntity
                 || entity instanceof AirCompressorBlockEntity
+                || entity instanceof CapacitorBlockEntity
                 || entity instanceof GroundwaterPumpBlockEntity
+                || entity instanceof PowerGaugeBlockEntity
                 || entity instanceof EnergyConverterBlockEntity
                 || entity instanceof GeothermalHeatExchangerBlockEntity
                 || entity instanceof StrandCasterBlockEntity
@@ -208,8 +212,14 @@ public final class HbmLookOverlay {
         if (entity instanceof AirCompressorBlockEntity compressor) {
             return airCompressorOverlay(state, compressor);
         }
+        if (entity instanceof CapacitorBlockEntity capacitor) {
+            return capacitorOverlay(state, capacitor);
+        }
         if (entity instanceof GroundwaterPumpBlockEntity pump) {
             return groundwaterPumpOverlay(state, pump);
+        }
+        if (entity instanceof PowerGaugeBlockEntity gauge) {
+            return powerGaugeOverlay(state, gauge);
         }
         if (entity instanceof EnergyConverterBlockEntity converter) {
             return energyConverterOverlay(state, converter);
@@ -399,6 +409,27 @@ public final class HbmLookOverlay {
         int powerColor = compressor.power() < AirCompressorBlockEntity.POWER_PER_TICK ? 0xFF0000 : 0x00FF00;
         lines.add(new OverlayLine("Power: " + String.format("%,d", compressor.power()) + "HE", powerColor));
         lines.add(fluidLine("<- ", compressor.airTank()));
+        return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+    }
+
+    private static OverlayData capacitorOverlay(BlockState state, CapacitorBlockEntity capacitor) {
+        long power = capacitor.power();
+        long capacity = capacitor.capacity();
+        double percent = capacity <= 0L ? 0.0D : (double) power * 100.0D / (double) capacity;
+        int color = ((int) (0xFF - 0xFF * percent / 100.0D)) << 16
+                | ((int) (0xFF * percent / 100.0D) << 8);
+        List<OverlayLine> lines = new ArrayList<>();
+        lines.add(OverlayLine.white(String.format("%,d / %,d HE", power, capacity)));
+        lines.add(new OverlayLine(String.format("%.2f%%", percent), color));
+        lines.add(new OverlayLine("-> +" + String.format("%,d HE/t", capacitor.lastReceived()), 0x00FF00));
+        lines.add(new OverlayLine("<- -" + String.format("%,d HE/t", capacitor.lastSent()), 0xFF5555));
+        return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+    }
+
+    private static OverlayData powerGaugeOverlay(BlockState state, PowerGaugeBlockEntity gauge) {
+        List<OverlayLine> lines = new ArrayList<>();
+        lines.add(OverlayLine.white(String.format("%,d HE/t", gauge.deltaTick())));
+        lines.add(OverlayLine.white(String.format("%,d HE/s", gauge.deltaLastSecond())));
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
 

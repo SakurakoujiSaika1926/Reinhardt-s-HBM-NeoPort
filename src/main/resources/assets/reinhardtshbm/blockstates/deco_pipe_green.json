@@ -1,7 +1,7 @@
 ﻿{
   "variants": {
-    "": {
-      "model": "reinhardtshbm:block/deco_pipe_green"
-    }
+    "axis=y": { "model": "reinhardtshbm:block/deco_pipe_green" },
+    "axis=z": { "model": "reinhardtshbm:block/deco_pipe_green", "x": 90 },
+    "axis=x": { "model": "reinhardtshbm:block/deco_pipe_green", "x": 90, "y": 90 }
   }
 }

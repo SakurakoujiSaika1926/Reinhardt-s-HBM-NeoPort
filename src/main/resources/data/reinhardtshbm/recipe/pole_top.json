@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "T T",
+    "TRT",
+    "BBB"
+  ],
+  "key": {
+    "T": {
+      "tag": "c:ingots/tungsten"
+    },
+    "R": {
+      "tag": "c:ingots/red_copper"
+    },
+    "B": {
+      "tag": "c:ingots/beryllium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:pole_top"
+  }
+}

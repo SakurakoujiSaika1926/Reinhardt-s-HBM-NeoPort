@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "type=bottom,variant=0": { "model": "reinhardtshbm:block/stones_slab_tile" },
+    "type=top,variant=0": { "model": "reinhardtshbm:block/stones_slab_tile_top" },
+    "type=double,variant=0": { "model": "reinhardtshbm:block/stones_slab_tile_double" },
+    "type=bottom,variant=1": { "model": "reinhardtshbm:block/stones_slab_bricks" },
+    "type=top,variant=1": { "model": "reinhardtshbm:block/stones_slab_bricks_top" },
+    "type=double,variant=1": { "model": "reinhardtshbm:block/stones_slab_bricks_double" }
+  }
+}

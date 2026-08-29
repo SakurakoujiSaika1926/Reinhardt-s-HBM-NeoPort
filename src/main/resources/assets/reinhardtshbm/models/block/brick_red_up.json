@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "reinhardtshbm:block/brick_base",
+    "up": "reinhardtshbm:block/brick_red_top",
+    "north": "reinhardtshbm:block/brick_base",
+    "south": "reinhardtshbm:block/brick_base",
+    "west": "reinhardtshbm:block/brick_base",
+    "east": "reinhardtshbm:block/brick_base",
+    "particle": "reinhardtshbm:block/brick_base"
+  }
+}

@@ -25,7 +25,8 @@ public final class LegacyLoreItem extends Item {
             "coin_maskman", "coin_radiation", "coin_ufo", "coin_worm", "crystal_charred",
             "crystal_horn", "crystal_schrabidium", "crystal_schraranium", "custom_amat",
             "custom_dirty", "custom_fall", "custom_hydro", "custom_nuke", "custom_schrab",
-            "custom_tnt", "dust", "entanglement_kit", "flame_conspiracy", "flame_opinion",
+            "custom_tnt", "dust", "early_explosive_lenses", "entanglement_kit", "explosive_lenses",
+            "flame_conspiracy", "flame_opinion",
             "flame_politics", "flame_pony", "fuse", "gadget_core", "gem_rad", "gem_sodalite",
             "gem_tantalium", "gem_volcanic", "igniter", "ingot_actinium", "ingot_arsenic",
             "ingot_asbestos", "ingot_australium", "ingot_bakelite", "ingot_biorubber",
@@ -46,7 +47,7 @@ public final class LegacyLoreItem extends Item {
             "powder_niobium", "powder_poison", "powder_polymer", "powder_power", "powder_schrabidate",
             "powder_schrabidium", "powder_strontium", "powder_tantalium", "powder_tennessine",
             "powder_thermite", "powder_thorium", "rune_blank", "rune_dagaz", "rune_hagalaz", "rune_isa",
-            "rune_jera", "rune_thurisaz", "undefined", "upgrade_template", "watch"
+            "rune_jera", "rune_thurisaz", "undefined", "upgrade_template", "watch", "cell_sas3"
     );
 
     private static final Set<String> EPIC = Set.of(

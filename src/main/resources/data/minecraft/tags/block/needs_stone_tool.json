@@ -16,7 +16,6 @@
                    "reinhardtshbm:ore_asbestos",
                    "reinhardtshbm:ore_deepslate_asbestos",
                    "reinhardtshbm:ore_cinnabar",
-                   "reinhardtshbm:ore_deepslate_cinnabar",
-                   "reinhardtshbm:stone_resource_bauxite"
+                   "reinhardtshbm:ore_deepslate_cinnabar"
                ]
 }

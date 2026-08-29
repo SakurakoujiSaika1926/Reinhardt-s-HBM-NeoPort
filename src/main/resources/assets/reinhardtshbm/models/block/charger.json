@@ -1,6 +1,12 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/charger.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/charger.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/charger"
+  }
 }

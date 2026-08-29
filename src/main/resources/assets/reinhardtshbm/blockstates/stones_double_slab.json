@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/stones_slab_tile_double" },
+    "variant=1": { "model": "reinhardtshbm:block/stones_slab_bricks_double" }
+  }
+}

@@ -10,6 +10,7 @@ import com.reinhardt.hbm.item.DrillbitItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.item.LegacyVariantBlockItem;
 import com.reinhardt.hbm.item.LegacyBedrockOreStageItem;
 import com.reinhardt.hbm.item.LegacyByproductItem;
 import com.reinhardt.hbm.item.MetalFenceBlockItem;
@@ -229,7 +230,17 @@ public final class HbmCreativeTabs {
                     .icon(() -> new ItemStack(HbmBlocks.RED_CABLE.get()))
                     .displayItems((parameters, output) -> {
                         output.accept(HbmBlocks.RED_CABLE);
+                        output.accept(HbmBlocks.RED_CABLE_CLASSIC);
+                        if (HbmBlocks.RED_CABLE_BOX.get().asItem() instanceof com.reinhardt.hbm.item.PowerCableBoxBlockItem boxCable) {
+                            boxCable.addCreativeVariants(output);
+                        }
+                        output.accept(HbmBlocks.RED_CABLE_PAINTABLE);
+                        output.accept(HbmBlocks.RED_CABLE_GAUGE);
                         output.accept(HbmBlocks.RED_WIRE_COATED);
+                        output.accept(HbmBlocks.CABLE_DIODE);
+                        output.accept(HbmBlocks.CABLE_SWITCH);
+                        output.accept(HbmBlocks.CABLE_DETECTOR);
+                        output.accept(HbmBlocks.CHARGER);
                         output.accept(HbmBlocks.RED_CONNECTOR);
                         output.accept(HbmBlocks.CONNECTOR_RED_SUPER);
                         output.accept(HbmBlocks.RED_PYLON);
@@ -264,6 +275,7 @@ public final class HbmCreativeTabs {
                         output.accept(HbmBlocks.MACHINE_INDUSTRIAL_TURBINE);
                         output.accept(HbmBlocks.MACHINE_CHUNGUS);
                         output.accept(HbmBlocks.MACHINE_TURBINE_GAS);
+                        output.accept(HbmBlocks.MACHINE_TURBINEGAS);
                     })
                     .build()
     );
@@ -293,6 +305,7 @@ public final class HbmCreativeTabs {
                         output.accept(HbmItems.CUBE_POWER);
                         output.accept(HbmBlocks.MACHINE_BATTERY_REDD);
                         output.accept(HbmBlocks.MACHINE_BATTERY_SOCKET);
+                        output.accept(HbmBlocks.CAPACITOR_COPPER);
                     })
                     .build()
     );
@@ -393,7 +406,20 @@ public final class HbmCreativeTabs {
                     .icon(() -> new ItemStack(HbmBlocks.NUKE_BOY.get()))
                     .displayItems((parameters, output) -> {
                         for (var block : HbmBlocks.NUCLEAR_WEAPON_BLOCKS) {
+                            if (block == HbmBlocks.VOLCANO_CORE || block == HbmBlocks.VOLCANO_RAD_CORE
+                                    || block == HbmBlocks.CRASHED_BOMB) {
+                                continue;
+                            }
                             output.accept(block);
+                        }
+                        if (HbmBlocks.CRASHED_BOMB.get().asItem() instanceof com.reinhardt.hbm.item.CrashedBombBlockItem dud) {
+                            dud.addCreativeVariants(output);
+                        }
+                        if (HbmBlocks.VOLCANO_CORE.get().asItem() instanceof com.reinhardt.hbm.item.VolcanoCoreBlockItem volcano) {
+                            volcano.addCreativeVariants(output);
+                        }
+                        if (HbmBlocks.VOLCANO_RAD_CORE.get().asItem() instanceof com.reinhardt.hbm.item.VolcanoCoreBlockItem volcano) {
+                            volcano.addCreativeVariants(output);
                         }
                         for (var item : HbmItems.NUCLEAR_WEAPON_ITEMS) {
                             if (!HbmItems.isHiddenMissilePart(item) && !HbmItems.isHiddenLegacyMissile(item)) {
@@ -522,6 +548,8 @@ public final class HbmCreativeTabs {
                         for (var block : HbmBlocks.THERMAL_BLOCKS) {
                             output.accept(block);
                         }
+                        output.accept(HbmBlocks.LAMP_TRITIUM_GREEN_OFF);
+                        output.accept(HbmBlocks.LAMP_TRITIUM_BLUE_OFF);
                     })
                     .build()
     );
@@ -569,7 +597,12 @@ public final class HbmCreativeTabs {
                             // A number of 1.7.10 machines own specialised BlockItems, so
                             // DeferredBlock#asItem points at AIR rather than the actual item.
                             // Resolve the registered item by its shared registry id instead.
-                            output.accept(BuiltInRegistries.ITEM.get(block.getId()));
+                            Item item = BuiltInRegistries.ITEM.get(block.getId());
+                            if (item instanceof LegacyVariantBlockItem variants) {
+                                variants.addCreativeVariants(output);
+                            } else {
+                                output.accept(item);
+                            }
                         }
                     })
                     .build()
@@ -585,6 +618,18 @@ public final class HbmCreativeTabs {
                             if (block == HbmBlocks.DECO_TOASTER
                                     && block.get().asItem() instanceof ToasterBlockItem toaster) {
                                 toaster.addCreativeVariants(output);
+                            } else if (block == HbmBlocks.BOBBLEHEAD
+                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.BobbleheadBlockItem bobblehead) {
+                                bobblehead.addCreativeVariants(output);
+                            } else if (block == HbmBlocks.SNOWGLOBE
+                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.SnowglobeBlockItem snowglobe) {
+                                snowglobe.addCreativeVariants(output);
+                            } else if (block == HbmBlocks.PLUSHIE
+                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.PlushieBlockItem plushie) {
+                                plushie.addCreativeVariants(output);
+                            } else if (block == HbmBlocks.DECO_CRT
+                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.DecoCrtBlockItem crt) {
+                                crt.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof ConcreteColoredBlockItem concrete) {
                                 concrete.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof MetalFenceBlockItem metalFence) {
@@ -593,8 +638,13 @@ public final class HbmCreativeTabs {
                                 sellafield.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof com.reinhardt.hbm.item.GlyphBlockItem glyph) {
                                 glyph.addCreativeVariants(output);
+                            } else if (block == HbmBlocks.BRICK_JUNGLE_TRAP
+                                    && BuiltInRegistries.ITEM.get(block.getId()) instanceof com.reinhardt.hbm.item.TrapBlockItem trap) {
+                                trap.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof com.reinhardt.hbm.item.CaveSpikeBlockItem spike) {
                                 spike.addCreativeVariants(output);
+                            } else if (block.get().asItem() instanceof LegacyVariantBlockItem variants) {
+                                variants.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof com.reinhardt.hbm.item.CapBlockItem caps) {
                                 caps.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof ConcreteColoredBlockItem variants) {
@@ -690,19 +740,14 @@ public final class HbmCreativeTabs {
                     .build()
     );
 
-    public static final Supplier<CreativeModeTab> LEGACY_ITEMS = TABS.register(
-            "legacy_items",
+    public static final Supplier<CreativeModeTab> MISCELLANEOUS = TABS.register(
+            "miscellaneous",
             () -> CreativeModeTab.builder()
-                    .title(Component.translatable("creative_tab.reinhardtshbm.legacy_items"))
+                    .title(Component.translatable("creative_tab.reinhardtshbm.miscellaneous"))
                     .icon(() -> new ItemStack(HbmItems.INGOT_ADVANCED_ALLOY.get()))
                     .displayItems((parameters, output) -> {
                         for (var item : HbmItems.PORTED_PLAIN_ITEMS) {
                             if (!HbmItems.isHiddenPortedPlainItem(item) && !isPetroleumLegacyItem(item)) {
-                                outputLegacyItem(output, item);
-                            }
-                        }
-                        for (var item : LegacyHbmContent.LEGACY_ITEMS) {
-                            if (!isPetroleumLegacyItem(item)) {
                                 outputLegacyItem(output, item);
                             }
                         }

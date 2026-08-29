@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/icf_block" },
+    "variant=1": { "model": "reinhardtshbm:block/icf_block_port" }
+  }
+}

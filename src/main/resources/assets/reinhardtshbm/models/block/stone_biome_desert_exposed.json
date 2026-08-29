@@ -1,0 +1,11 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "reinhardtshbm:block/stone_biome_top.desert",
+    "up": "reinhardtshbm:block/stone_biome_top.desert",
+    "north": "reinhardtshbm:block/stone_biome_layer.desert",
+    "south": "reinhardtshbm:block/stone_biome_layer.desert",
+    "east": "reinhardtshbm:block/stone_biome_layer.desert",
+    "west": "reinhardtshbm:block/stone_biome_layer.desert"
+  }
+}

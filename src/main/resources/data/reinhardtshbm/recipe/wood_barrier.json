@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": ["SFS", "SFS"],
+  "key": {
+    "S": { "tag": "minecraft:wooden_slabs" },
+    "F": { "item": "minecraft:oak_fence" }
+  },
+  "result": { "id": "reinhardtshbm:wood_barrier", "count": 8 }
+}

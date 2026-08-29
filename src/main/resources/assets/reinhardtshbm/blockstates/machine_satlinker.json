@@ -1,8 +1,5 @@
 {
   "variants": {
-    "facing=north": { "model": "reinhardtshbm:block/machine_satlinker" },
-    "facing=south": { "model": "reinhardtshbm:block/machine_satlinker" },
-    "facing=west": { "model": "reinhardtshbm:block/machine_satlinker" },
-    "facing=east": { "model": "reinhardtshbm:block/machine_satlinker" }
+    "": { "model": "reinhardtshbm:block/machine_satlinker" }
   }
 }

@@ -73,17 +73,19 @@ public final class LegacyExplosionClientEffects {
             minecraft.getSoundManager().playDelayed(instance, (int) (distance / SPEED_OF_SOUND));
         }
 
-        Particle wave = minecraft.particleEngine.createParticle(
-                HbmParticleTypes.MUKE_WAVE.get(),
-                payload.x(),
-                payload.y() + 2.0D,
-                payload.z(),
-                0.0D,
-                0.0D,
-                0.0D
-        );
-        if (wave instanceof MukeWaveParticle mukeWave) {
-            mukeWave.configure(payload.waveScale(), (int) (25.0F * payload.waveScale() / 45.0F));
+        if (payload.waveScale() > 0.0F) {
+            Particle wave = minecraft.particleEngine.createParticle(
+                    HbmParticleTypes.MUKE_WAVE.get(),
+                    payload.x(),
+                    payload.y() + 2.0D,
+                    payload.z(),
+                    0.0D,
+                    0.0D,
+                    0.0D
+            );
+            if (wave instanceof MukeWaveParticle mukeWave) {
+                mukeWave.configure(payload.waveScale(), (int) (25.0F * payload.waveScale() / 45.0F));
+            }
         }
 
         for (int i = 0; i < payload.cloudCount(); i++) {

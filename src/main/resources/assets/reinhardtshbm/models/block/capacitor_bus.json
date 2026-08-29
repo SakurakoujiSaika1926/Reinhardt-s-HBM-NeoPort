@@ -1,6 +1,22 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/block",
+  "textures": {
+    "side": "reinhardtshbm:block/capacitor_bus_side",
+    "out": "reinhardtshbm:block/capacitor_bus_out",
+    "particle": "reinhardtshbm:block/capacitor_bus_side"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": {"texture": "#side"},
+        "up": {"texture": "#out"},
+        "north": {"texture": "#side"},
+        "south": {"texture": "#side"},
+        "west": {"texture": "#side"},
+        "east": {"texture": "#side"}
+      }
+    }
+  ]
 }

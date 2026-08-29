@@ -17,6 +17,7 @@ import com.reinhardt.hbm.entity.LegacyUfoEntity;
 import com.reinhardt.hbm.entity.LegacyWormBodyEntity;
 import com.reinhardt.hbm.entity.LegacyWormHeadEntity;
 import com.reinhardt.hbm.entity.LegacyBombletEntity;
+import com.reinhardt.hbm.entity.ClusterSubmunitionEntity;
 import com.reinhardt.hbm.entity.LegacyBoxcarEntity;
 import com.reinhardt.hbm.entity.LegacyBobmazonEntity;
 import com.reinhardt.hbm.entity.LegacyMinecartEntity;
@@ -39,6 +40,7 @@ import com.reinhardt.hbm.entity.LegacyGrenadeEntity;
 import com.reinhardt.hbm.entity.UniversalGrenadeEntity;
 import com.reinhardt.hbm.entity.SoyuzCapsuleEntity;
 import com.reinhardt.hbm.entity.SoyuzEntity;
+import com.reinhardt.hbm.entity.MinerRocketEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -196,6 +198,15 @@ public final class HbmEntityTypes {
                     .clientTrackingRange(256)
                     .updateInterval(1)
                     .build("entity_bomblet"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ClusterSubmunitionEntity>> CLUSTER_SUBMUNITION =
+            ENTITY_TYPES.register("entity_cluster_submunition", () -> EntityType.Builder
+                    .<ClusterSubmunitionEntity>of(ClusterSubmunitionEntity::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .fireImmune()
+                    .clientTrackingRange(256)
+                    .updateInterval(1)
+                    .build("entity_cluster_submunition"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<LegacyBoxcarEntity>> LEGACY_BOXCAR =
             ENTITY_TYPES.register("entity_boxcar", () -> EntityType.Builder
@@ -377,6 +388,15 @@ public final class HbmEntityTypes {
                     .clientTrackingRange(1000)
                     .updateInterval(2)
                     .build("entity_soyuz_capsule"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MinerRocketEntity>> MINER_ROCKET =
+            ENTITY_TYPES.register("entity_miner_lander", () -> EntityType.Builder
+                    .<MinerRocketEntity>of(MinerRocketEntity::new, MobCategory.MISC)
+                    .sized(1.0F, 3.0F)
+                    .fireImmune()
+                    .clientTrackingRange(1_000)
+                    .updateInterval(1)
+                    .build("entity_miner_lander"));
 
     private HbmEntityTypes() {
     }

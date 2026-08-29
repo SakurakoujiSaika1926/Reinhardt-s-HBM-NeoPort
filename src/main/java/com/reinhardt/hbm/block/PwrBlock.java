@@ -193,6 +193,7 @@ public class PwrBlock extends Block implements EntityBlock {
                 || block == HbmBlocks.PWR_CONTROL.get()
                 || block == HbmBlocks.PWR_CONTROLLER.get()
                 || block == HbmBlocks.PWR_FUELROD.get()
+                || block == HbmBlocks.PWR_FUEL.get()
                 || block == HbmBlocks.PWR_HEATEX.get()
                 || block == HbmBlocks.PWR_HEATSINK.get()
                 || block == HbmBlocks.PWR_NEUTRON_SOURCE.get()

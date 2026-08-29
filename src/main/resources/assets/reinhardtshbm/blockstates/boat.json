@@ -1,7 +1,8 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/boat"
-                          }
-                 }
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/boat" },
+    "facing=east": { "model": "reinhardtshbm:block/boat" },
+    "facing=south": { "model": "reinhardtshbm:block/boat" },
+    "facing=west": { "model": "reinhardtshbm:block/boat" }
+  }
 }

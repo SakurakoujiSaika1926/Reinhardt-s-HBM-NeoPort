@@ -1,6 +1,0 @@
-{
-    "parent":  "minecraft:block/cube_all",
-    "textures":  {
-                     "all":  "reinhardtshbm:block/stone_resource_bauxite"
-                 }
-}

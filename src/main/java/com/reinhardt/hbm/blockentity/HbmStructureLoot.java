@@ -1,5 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.item.BlueprintFolderItem;
+import com.reinhardt.hbm.item.LegacyVariantItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
@@ -13,7 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-final class HbmStructureLoot {
+public final class HbmStructureLoot {
     private static final Map<String, List<Entry>> POOLS = new LinkedHashMap<>();
     private static final List<Entry> BACKUP_POOL = List.of(
             new Entry("minecraft:bread", 1, 3, 10),
@@ -155,7 +157,7 @@ final class HbmStructureLoot {
         loot.addItem(stack, x + random.nextGaussian() * 0.02D, y, z + random.nextGaussian() * 0.02D);
     }
 
-    private static ItemStack randomStack(String pool, RandomSource random) {
+    public static ItemStack randomStack(String pool, RandomSource random) {
         List<Entry> entries = availablePool(pool);
         int total = entries.stream().mapToInt(Entry::weight).sum();
         int roll = random.nextInt(Math.max(1, total));
@@ -240,6 +242,42 @@ final class HbmStructureLoot {
     }
 
     private static void registerPilePools() {
+        pool("POOL_RED_PEDESTAL",
+                e("reinhardtshbm:ballistic_gauntlet", 1, 1, 10),
+                e("reinhardtshbm:armor_polish", 1, 1, 10),
+                e("reinhardtshbm:bandaid", 1, 1, 10),
+                e("reinhardtshbm:serum", 1, 1, 10),
+                e("reinhardtshbm:quartz_plutonium", 1, 1, 10),
+                e("reinhardtshbm:morning_glory", 1, 1, 10),
+                e("reinhardtshbm:spider_milk", 1, 1, 10),
+                e("reinhardtshbm:ink", 1, 1, 10),
+                e("reinhardtshbm:heart_container", 1, 1, 10),
+                e("reinhardtshbm:black_diamond", 1, 1, 10),
+                e("reinhardtshbm:scrumpy", 1, 1, 10),
+                e("reinhardtshbm:wild_p", 1, 1, 5),
+                e("reinhardtshbm:card_aos", 1, 1, 5),
+                e("reinhardtshbm:card_qos", 1, 1, 5),
+                e("reinhardtshbm:starmetal_sword", 1, 1, 5),
+                e("reinhardtshbm:gem_alexandrite", 1, 1, 5),
+                e("reinhardtshbm:crackpipe", 1, 1, 5),
+                e("reinhardtshbm:flask_infusion", 1, 1, 5),
+                e("reinhardtshbm:boxcar", 1, 1, 5),
+                e("reinhardtshbm:book_of_", 1, 1, 5),
+                e("reinhardtshbm:gun_hangman", 1, 1, 1),
+                e("reinhardtshbm:gun_mas36", 1, 1, 1),
+                e("reinhardtshbm:item_secret", 1, 1, 1, "folly"),
+                e("reinhardtshbm:weapon_mod_special", 1, 1, 1, "nickel"),
+                e("reinhardtshbm:weapon_mod_special", 1, 1, 1, "doubloons")
+        );
+        pool("POOL_BLACK_SLAB",
+                e("reinhardtshbm:clay_tablet", 1, 1, 10)
+        );
+        pool("POOL_BLACK_PART",
+                e("reinhardtshbm:item_secret", 4, 4, 10, "selenium_steel"),
+                e("reinhardtshbm:item_secret", 1, 1, 10, "controller"),
+                e("reinhardtshbm:item_secret", 1, 1, 10, "canister"),
+                e("reinhardtshbm:blueprint_folder", 1, 1, 1, "secret")
+        );
         pool("POOL_PILE_HIVE",
                 e("minecraft:iron_ingot", 1, 3, 10),
                 e("reinhardtshbm:ingot_steel", 1, 2, 10),
@@ -400,14 +438,22 @@ final class HbmStructureLoot {
     }
 
     private static Entry e(String id, int min, int max, int weight) {
-        return new Entry(id, min, max, weight);
+        return new Entry(id, min, max, weight, null);
+    }
+
+    private static Entry e(String id, int min, int max, int weight, String variant) {
+        return new Entry(id, min, max, weight, variant);
     }
 
     private static void pool(String name, Entry... entries) {
         POOLS.put(name, List.of(entries));
     }
 
-    private record Entry(String id, int min, int max, int weight) {
+    private record Entry(String id, int min, int max, int weight, String variant) {
+        private Entry(String id, int min, int max, int weight) {
+            this(id, min, max, weight, null);
+        }
+
         private boolean exists() {
             ResourceLocation location = ResourceLocation.tryParse(id);
             return location != null && BuiltInRegistries.ITEM.containsKey(location);
@@ -425,7 +471,16 @@ final class HbmStructureLoot {
             if (count <= 0) {
                 return ItemStack.EMPTY;
             }
-            return new ItemStack(item, count);
+            ItemStack stack;
+            if ("reinhardtshbm:blueprint_folder".equals(id) && "secret".equals(variant)) {
+                stack = BlueprintFolderItem.stackFor(BlueprintFolderItem.Variant.SECRET);
+            } else if (variant != null && item instanceof LegacyVariantItem) {
+                stack = LegacyVariantItem.stackFor(item, variant);
+            } else {
+                stack = new ItemStack(item, count);
+            }
+            stack.setCount(count);
+            return stack;
         }
     }
 }

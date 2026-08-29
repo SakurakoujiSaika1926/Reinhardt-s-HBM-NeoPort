@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.block.DetonatableBlock;
 import com.reinhardt.hbm.blockentity.WallChargeExplosions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -81,7 +82,11 @@ public final class TimedExplosiveEntity extends Entity {
         if (fuse <= 0) {
             discard();
             if (!level().isClientSide) {
-                if (kind() == Kind.FISSURE && level() instanceof net.minecraft.server.level.ServerLevel server) {
+                if (level() instanceof net.minecraft.server.level.ServerLevel server
+                        && isDetonatableKind(kind())) {
+                    DetonatableBlock.detonatePrimed(server,
+                            net.minecraft.core.BlockPos.containing(getX(), getY(), getZ()), kind(), owner);
+                } else if (kind() == Kind.FISSURE && level() instanceof net.minecraft.server.level.ServerLevel server) {
                     com.reinhardt.hbm.block.FissureBombBehavior.detonate(server, this, new Vec3(getX(), getY(), getZ()));
                 } else {
                     level().explode(this, getX(), getY(), getZ(), kind().explosionRadius(), true, Level.ExplosionInteraction.TNT);
@@ -93,6 +98,13 @@ public final class TimedExplosiveEntity extends Entity {
         if (level().isClientSide) {
             level().addParticle(ParticleTypes.SMOKE, getX(), getY() + 0.5D, getZ(), 0.0D, 0.0D, 0.0D);
         }
+    }
+
+    private static boolean isDetonatableKind(Kind kind) {
+        return switch (kind) {
+            case DET_CORD, DET_CHARGE, DET_NUKE, DET_MINER -> true;
+            default -> false;
+        };
     }
 
     @Override
@@ -122,7 +134,11 @@ public final class TimedExplosiveEntity extends Entity {
         TNT("tnt_ntm", 10.0F),
         SEMTEX("semtex", 12.0F),
         C4("c4", 15.0F),
-        FISSURE("fissure_bomb", 5.0F);
+        FISSURE("fissure_bomb", 5.0F),
+        DET_CORD("det_cord", 0.0F),
+        DET_CHARGE("det_charge", 0.0F),
+        DET_NUKE("det_nuke", 0.0F),
+        DET_MINER("det_miner", 0.0F);
 
         private final String id;
         private final float explosionRadius;

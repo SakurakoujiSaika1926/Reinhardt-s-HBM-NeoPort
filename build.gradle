@@ -188,6 +188,12 @@ tasks.register('validateObjModels') {
         (objMachineSource =~ /add\(profiles,\s*"([a-z0-9_]+)"/).each { match ->
             objMachineItemIds << match[1]
         }
+        // These profiles are CustomModelData variants rendered by one registered
+        // item and do not have independent inventory model resources.
+        objMachineItemIds.removeAll { itemId ->
+            itemId.startsWith('battery_pack_') || itemId.startsWith('deco_crt_')
+                    || itemId.startsWith('filing_cabinet_') || itemId.startsWith('crashed_bomb_')
+        }
         objMachineItemIds.each { itemId ->
             def modelFile = new File(modelRoot, "item/${itemId}.json")
             def visited = [] as Set
@@ -848,6 +854,39 @@ tasks.register('validateLangFiles') {
     }
 }
 
+tasks.register('validateDamageTypes') {
+    group = 'verification'
+    description = 'Checks custom damage type JSONs contain the fields required by Minecraft 1.21.1.'
+
+    inputs.dir file("src/main/resources/data/${project.mod_id}/damage_type")
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def root = file("src/main/resources/data/${project.mod_id}/damage_type")
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+        fileTree(root) {
+            include '*.json'
+        }.each { damageTypeFile ->
+            def definition
+            try {
+                definition = parser.parseText(damageTypeFile.getText('UTF-8'))
+            } catch (Exception ex) {
+                problems << "${project.relativePath(damageTypeFile)} is not valid JSON: ${ex.message}"
+                return
+            }
+            ['message_id', 'scaling', 'exhaustion'].each { required ->
+                if (!definition.containsKey(required)) {
+                    problems << "${project.relativePath(damageTypeFile)} is missing required Minecraft 1.21.1 damage type field '${required}'"
+                }
+            }
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("Damage type validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
 tasks.register('validateLegacyRecipes') {
     group = 'verification'
     description = 'Checks migrated data-driven machine recipes against legacy 1.7.10 defaults where the migration is complete.'
@@ -1256,8 +1295,8 @@ tasks.register('validatePortRegressionFixes') {
 
         def dedicatedBewlrItems = [
                 'pump_steam', 'pump_electric', 'machine_bat9000', 'machine_bigasstank', 'deco_toaster',
-                'red_connector', 'connector_red_super', 'red_pylon_medium_wood',
-                'red_pylon_medium_transformer', 'red_pylon_steel', 'red_pylon_steel_transformer',
+                'red_connector', 'red_connector_super', 'red_pylon_medium_wood',
+                'red_pylon_medium_wood_transformer', 'red_pylon_medium_steel', 'red_pylon_medium_steel_transformer',
                 'red_pylon_large', 'substation'
         ]
         dedicatedBewlrItems.each { id ->
@@ -1619,6 +1658,34 @@ tasks.register('validatePowerParity') {
     }
 }
 
+tasks.register('validateLegacyItemPorts') {
+    group = 'verification'
+    description = 'Fails when a 1.7.10 standalone item is left in a generic legacy catalog fallback.'
+
+    def unresolvedManifest = file('src/main/resources/legacy/reinhardtshbm/items.txt')
+    def itemRegistry = file('src/main/java/com/reinhardt/hbm/registry/HbmItems.java')
+    inputs.file unresolvedManifest
+    inputs.file itemRegistry
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def unresolved = unresolvedManifest.readLines('UTF-8')
+                .collect { it.trim() }
+                .findAll { !it.isEmpty() && !it.startsWith('#') }
+        def registrySource = itemRegistry.getText('UTF-8')
+        def problems = []
+        if (!unresolved.isEmpty()) {
+            problems << "Unported standalone 1.7.10 item ids: ${unresolved.join(', ')}"
+        }
+        if (registrySource.contains('LegacyCatalogItem') || registrySource.contains('registerRemainingLegacyCatalogItems')) {
+            problems << 'Generic LegacyCatalogItem fallback must not be reintroduced.'
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("Legacy item-port validation failed:\n - " + problems.join('\n - '))
+        }
+    }
+}
+
 tasks.register('deployClientMod', Copy) {
     group = 'distribution'
     description = 'Copies the built mod jar into the configured local NeoForge mods folder.'
@@ -1631,9 +1698,11 @@ tasks.register('deployClientMod', Copy) {
 }
 
 tasks.named('build') {
+    dependsOn tasks.named('validateLegacyItemPorts')
     dependsOn tasks.named('runData')
     dependsOn tasks.named('validateObjModels')
     dependsOn tasks.named('validateLangFiles')
+    dependsOn tasks.named('validateDamageTypes')
     dependsOn tasks.named('validateLegacyRecipes')
     dependsOn tasks.named('validatePortRegressionFixes')
     dependsOn tasks.named('validateThermalParity')

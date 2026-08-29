@@ -33,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.EnumSet;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID)
 public final class HbmFluidNetworks {
@@ -57,7 +58,9 @@ public final class HbmFluidNetworks {
 
     public static void registerPipe(Level level, BlockPos pos, HbmFluidDefinition type, boolean open) {
         if (!level.isClientSide) {
-            network(level).upsert(pos, type == null || type.isNone() ? Set.of() : Set.of(type.name()), open);
+            Set<String> names = type == null || type.isNone() ? Set.of() : Set.of(type.name());
+            network(level).upsert(pos, names, open, networkLinks(level, pos),
+                    allowedDirections(level, pos, type == null ? List.of() : List.of(type)));
         }
     }
 
@@ -71,8 +74,31 @@ public final class HbmFluidNetworks {
                     }
                 }
             }
-            network(level).upsert(pos, typeNames, open);
+            network(level).upsert(pos, typeNames, open, networkLinks(level, pos),
+                    allowedDirections(level, pos, types == null ? List.of() : types));
         }
+    }
+
+    private static List<BlockPos> networkLinks(Level level, BlockPos pos) {
+        BlockEntity entity = level.getBlockEntity(pos);
+        return entity instanceof FluidPipeBlockEntity pipe ? pipe.networkLinks() : List.of();
+    }
+
+    private static Set<Direction> allowedDirections(Level level, BlockPos pos, List<HbmFluidDefinition> types) {
+        BlockEntity entity = level.getBlockEntity(pos);
+        if (!(entity instanceof FluidPipeBlockEntity pipe)) {
+            return Set.of();
+        }
+        EnumSet<Direction> directions = EnumSet.noneOf(Direction.class);
+        for (Direction direction : Direction.values()) {
+            for (HbmFluidDefinition type : types) {
+                if (type != null && pipe.canConnectFrom(direction, type)) {
+                    directions.add(direction);
+                    break;
+                }
+            }
+        }
+        return Set.copyOf(directions);
     }
 
     public static void unregisterPipe(Level level, BlockPos pos) {
@@ -82,10 +108,14 @@ public final class HbmFluidNetworks {
     }
 
     public static boolean canPipeConnect(LevelAccessor level, BlockPos pipePos, Direction direction, HbmFluidDefinition type) {
+        BlockEntity current = level.getBlockEntity(pipePos);
+        if (!(current instanceof FluidPipeBlockEntity pipe) || !pipe.canConnectFrom(direction, type)) {
+            return false;
+        }
         BlockPos target = pipePos.relative(direction);
         BlockEntity neighbor = level.getBlockEntity(target);
-        if (neighbor instanceof FluidPipeBlockEntity pipe) {
-            return pipe.canConnect(type);
+        if (neighbor instanceof FluidPipeBlockEntity neighborPipe) {
+            return neighborPipe.canConnectFrom(direction.getOpposite(), type);
         }
         if (type == null || type.isNone()) {
             return false;
@@ -255,7 +285,8 @@ public final class HbmFluidNetworks {
         for (BlockPos pipePos : pipes) {
             for (Direction direction : Direction.values()) {
                 BlockPos target = pipePos.relative(direction);
-                if (target.equals(excluded) || pipes.contains(target)) {
+                if (target.equals(excluded) || pipes.contains(target)
+                        || !canPipeConnect(level, pipePos, direction, type)) {
                     continue;
                 }
                 IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite());
@@ -525,8 +556,17 @@ public final class HbmFluidNetworks {
                     continue;
                 }
                 BlockEntity neighbor = level.getBlockEntity(next);
-                if (neighbor instanceof FluidPipeBlockEntity nextPipe && nextPipe.canConnect(type)) {
+                if (neighbor instanceof FluidPipeBlockEntity nextPipe
+                        && canPipeConnect(level, pos, direction, type)) {
                     queue.addLast(next);
+                }
+            }
+            for (BlockPos link : pipe.networkLinks()) {
+                BlockEntity remote = level.getBlockEntity(link);
+                if (remote instanceof FluidPipeBlockEntity remotePipe
+                        && remotePipe.networkLinks().contains(pos)
+                        && remotePipe.canConnect(type)) {
+                    queue.addLast(link.immutable());
                 }
             }
         }
@@ -614,8 +654,18 @@ public final class HbmFluidNetworks {
         private long transferTick = Long.MIN_VALUE;
         private boolean dirty = true;
 
-        synchronized void upsert(BlockPos pos, Set<String> typeNames, boolean open) {
-            PipeNode next = new PipeNode(pos.immutable(), Set.copyOf(typeNames), open);
+        synchronized void upsert(BlockPos pos, Set<String> typeNames, boolean open, List<BlockPos> links,
+                                  Set<Direction> directions) {
+            Set<BlockPos> linkSet = new HashSet<>();
+            if (links != null) {
+                for (BlockPos link : links) {
+                    if (link != null && !link.equals(pos)) {
+                        linkSet.add(link.immutable());
+                    }
+                }
+            }
+            PipeNode next = new PipeNode(pos.immutable(), Set.copyOf(typeNames), open,
+                    Set.copyOf(linkSet), Set.copyOf(directions));
             PipeNode old = this.pipes.put(next.pos(), next);
             if (!next.equals(old)) {
                 markDirty();
@@ -624,7 +674,19 @@ public final class HbmFluidNetworks {
         }
 
         synchronized void remove(BlockPos pos) {
-            if (this.pipes.remove(pos.immutable()) != null) {
+            BlockPos removed = pos.immutable();
+            boolean changed = this.pipes.remove(removed) != null;
+            for (Map.Entry<BlockPos, PipeNode> entry : new ArrayList<>(this.pipes.entrySet())) {
+                PipeNode node = entry.getValue();
+                if (node.links().contains(removed)) {
+                    Set<BlockPos> links = new HashSet<>(node.links());
+                    links.remove(removed);
+                    this.pipes.put(entry.getKey(), new PipeNode(node.pos(), node.typeNames(), node.open(),
+                            Set.copyOf(links), node.directions()));
+                    changed = true;
+                }
+            }
+            if (changed) {
                 markDirty();
             }
             tick();
@@ -773,9 +835,22 @@ public final class HbmFluidNetworks {
                         PipeComponentKey nextKey = new PipeComponentKey(next, typeName);
                         if (!visited.contains(nextKey)) {
                             PipeNode nextNode = snapshot.pipes().get(next);
-                            if (nextNode != null && nextNode.active() && nextNode.typeNames().contains(typeName)) {
+                            if (nextNode != null && nextNode.active() && nextNode.typeNames().contains(typeName)
+                                    && currentNode.directions().contains(direction)
+                                    && nextNode.directions().contains(direction.getOpposite())) {
                                 queue.addLast(next);
                             }
+                        }
+                    }
+                    for (BlockPos link : currentNode.links()) {
+                        PipeNode nextNode = snapshot.pipes().get(link);
+                        PipeComponentKey nextKey = new PipeComponentKey(link, typeName);
+                        if (!visited.contains(nextKey)
+                                && nextNode != null
+                                && nextNode.active()
+                                && nextNode.typeNames().contains(typeName)
+                                && nextNode.links().contains(current)) {
+                            queue.addLast(link);
                         }
                     }
                 }
@@ -793,7 +868,8 @@ public final class HbmFluidNetworks {
         return new SolveResult(snapshot.graphVersion(), Map.copyOf(componentsByPipe));
     }
 
-    private record PipeNode(BlockPos pos, Set<String> typeNames, boolean open) {
+    private record PipeNode(BlockPos pos, Set<String> typeNames, boolean open, Set<BlockPos> links,
+                            Set<Direction> directions) {
         private boolean active() {
             return open && !typeNames.isEmpty();
         }

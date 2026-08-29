@@ -4,6 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.item.BatteryPackItem;
+import com.reinhardt.hbm.item.DecoCrtBlockItem;
+import com.reinhardt.hbm.item.FilingCabinetBlockItem;
+import com.reinhardt.hbm.item.CrashedBombBlockItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -51,9 +54,15 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     public static Set<String> inventoryModelIds() {
         java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
         PROFILES.keySet().stream()
-                .filter(id -> !id.startsWith("battery_pack_"))
+                .filter(id -> !id.startsWith("battery_pack_")
+                        && !id.startsWith("deco_crt_")
+                        && !id.startsWith("filing_cabinet_")
+                        && !id.startsWith("crashed_bomb_"))
                 .forEach(ids::add);
         ids.add("battery_pack");
+        ids.add("deco_crt");
+        ids.add("filing_cabinet");
+        ids.add("crashed_bomb");
         return Set.copyOf(ids);
     }
 
@@ -75,8 +84,14 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-        String profileId = stack.getItem() instanceof BatteryPackItem
+        String profileId = stack.getItem() instanceof FilingCabinetBlockItem cabinet
+                ? "filing_cabinet_" + (cabinet.variant(stack) == 1 ? "steel" : "green")
+                : stack.getItem() instanceof CrashedBombBlockItem dud
+                ? "crashed_bomb_" + dud.variant(stack)
+                : stack.getItem() instanceof BatteryPackItem
                 ? "battery_pack_" + BatteryPackItem.variantId(stack)
+                : stack.getItem() instanceof DecoCrtBlockItem crt
+                ? "deco_crt_" + crt.variantId(stack)
                 : id;
         Profile profile = PROFILES.get(profileId);
         if (profile == null) {
@@ -90,6 +105,27 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 .map(MachineModelRenderer::model)
                 .toList();
         logGeometryOnce(id, profileId, profile, models, state);
+
+        if (profileId.equals("fan")) {
+            renderFanItem(models, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("floodlight")) {
+            renderFloodlightItem(models, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("cargo_elevator")) {
+            renderCargoElevatorItem(models, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("bomb_multi")) {
+            renderBombMultiItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.startsWith("crashed_bomb_")) {
+            renderCrashedBombItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay, profileId);
+            return;
+        }
 
         LegacyPose legacyPose = LEGACY_POSES.get(profileId);
         if (legacyPose != null) {
@@ -114,6 +150,110 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
+        poseStack.popPose();
+    }
+
+    private static void renderFanItem(List<BakedModel> models, ItemDisplayContext context, PoseStack poseStack,
+                                      MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
+        poseStack.scale(2.0F, 2.0F, 2.0F);
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource,
+                    Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    private static void renderFloodlightItem(List<BakedModel> models, ItemDisplayContext context, PoseStack poseStack,
+                                             MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.5F, 0.0F);
+            poseStack.scale(6.5F, 6.5F, 6.5F);
+        }
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        poseStack.translate(0.0F, 0.5F, 0.0F);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-30.0F));
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(models.get(2), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderCargoElevatorItem(List<BakedModel> models, ItemDisplayContext context, PoseStack poseStack,
+                                                MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.75F, 0.0F);
+            poseStack.scale(3.25F, 3.25F, 3.25F);
+        }
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(models.get(2), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.0F, 0.0F);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(models.get(2), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.0F, 0.0F);
+        MachineModelRenderer.renderUnculled(models.get(2), poseStack, bufferSource,
+                Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Direct ItemRenderLibrary transform for BombMulti; it is not a generic bounds-fitted machine. */
+    private static void renderBombMultiItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                            PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                            int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(4.0F, 4.0F, 4.0F);
+        }
+        poseStack.translate(0.75F, 0.0F, 0.0F);
+        poseStack.scale(3.0F, 3.0F, 3.0F);
+        poseStack.translate(0.0F, 0.5F, 0.0F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Direct ItemRenderBase transform from RenderCrashedBomb, including each dud's authored offset. */
+    private static void renderCrashedBombItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                              int packedOverlay, String profileId) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, 3.0F, 0.0F);
+            poseStack.scale(2.125F, 2.125F, 2.125F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        float offset = switch (profileId) {
+            case "crashed_bomb_conventional" -> -0.5F;
+            case "crashed_bomb_nuke" -> 1.25F;
+            case "crashed_bomb_salted" -> 0.5F;
+            default -> 0.0F;
+        };
+        poseStack.translate(0.0F, 0.0F, offset);
+        MachineModelRenderer.renderUnculled(models.getFirst(), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -183,6 +323,14 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_arc_furnace_electrode2", "block/machine_arc_furnace_electrode3",
                 "block/machine_arc_furnace_cable1", "block/machine_arc_furnace_cable2",
                 "block/machine_arc_furnace_cable3");
+        add(profiles, "boltgun", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/boltgun");
+        add(profiles, "icf", 0.0F, 0.90F, "block/icf");
+        add(profiles, "bomb_multi", 0.0F, 0.90F, "block/bomb_multi_world");
+        add(profiles, "crashed_bomb_balefire", 0.0F, 0.90F, "block/crashed_bomb_balefire");
+        add(profiles, "crashed_bomb_conventional", 0.0F, 0.90F, "block/crashed_bomb_conventional");
+        add(profiles, "crashed_bomb_nuke", 0.0F, 0.90F, "block/crashed_bomb_nuke");
+        add(profiles, "crashed_bomb_salted", 0.0F, 0.90F, "block/crashed_bomb_salted");
         // These inventory entries are builtin/entity markers.  The actual
         // OBJ geometry must therefore come from the independent block model.
         add(profiles, "machine_ammo_press", 90.0F, 0.92F, "block/machine_ammo_press");
@@ -226,6 +374,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "machine_combustion_engine", 90.0F, 0.54F, "block/machine_combustion_engine");
         add(profiles, "machine_battery_socket", 0.0F, 0.86F,
                 "block/machine_battery_socket_socket");
+        add(profiles, "capacitor_copper", 225.0F, 30.0F, 0.86F, 0.90F,
+                0.0F, 0.0F, 0.0F, "block/capacitor_copper");
+        add(profiles, "charger", 0.0F, 0.86F,
+                "block/charger_base", "block/charger_slide");
         add(profiles, "machine_battery_redd", -90.0F, 0.90F,
                 "block/machine_battery_redd_base", "block/machine_battery_redd_wheel",
                 "block/machine_battery_redd_lights");
@@ -245,6 +397,51 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "machine_fel", 90.0F, 0.90F, "block/machine_fel");
         add(profiles, "machine_rotary_furnace", 90.0F, 0.90F, "block/machine_rotary_furnace");
         add(profiles, "tesla", 180.0F, 0.90F, "block/tesla");
+        add(profiles, "fan", 0.0F, 0.90F, "block/fan_frame", "block/fan_blades");
+        add(profiles, "floodlight", 0.0F, 0.90F,
+                "block/floodlight_base", "block/floodlight_lights", "block/floodlight_lamps");
+        addThermalObj(profiles, "spotlight_incandescent", "block/spotlight_incandescent_world");
+        addThermalObj(profiles, "spotlight_incandescent_off", "block/spotlight_incandescent_off_world");
+        addThermalObj(profiles, "spotlight_fluoro", "block/spotlight_fluoro_single_world");
+        addThermalObj(profiles, "spotlight_fluoro_off", "block/spotlight_fluoro_single_off_world");
+        addThermalObj(profiles, "spotlight_halogen", "block/spotlight_halogen_world");
+        addThermalObj(profiles, "spotlight_halogen_off", "block/spotlight_halogen_off_world");
+        add(profiles, "cargo_elevator", 0.0F, 0.82F,
+                "block/cargo_elevator_base", "block/cargo_elevator_piston",
+                "block/cargo_elevator_guides", "block/cargo_elevator_platform");
+        add(profiles, "sat_dock", 0.0F, 0.90F, "block/sat_dock");
+        addThermalObj(profiles, "tape_recorder", "block/tape_recorder");
+        add(profiles, "skeleton_holder", 90.0F, 0.88F, "block/skeleton_holder_world");
+        add(profiles, "filing_cabinet_green", 180.0F, 30.0F, 0.88F, 0.92F,
+                0.0F, -0.08F, 0.0F, "block/filing_cabinet_green_item");
+        add(profiles, "filing_cabinet_steel", 180.0F, 30.0F, 0.88F, 0.92F,
+                0.0F, -0.08F, 0.0F, "block/filing_cabinet_steel_item");
+
+        // Thermal equipment uses world-scale OBJ files. Inventory rendering
+        // must fit the baked geometry, rather than inherit world transforms.
+        addThermalObj(profiles, "chimney_brick", "block/chimney_brick");
+        addThermalObj(profiles, "chimney_industrial", "block/chimney_industrial");
+        addThermalObj(profiles, "heater_firebox", "block/heater_firebox");
+        addThermalObj(profiles, "heater_oven", "block/heater_oven");
+        addThermalObj(profiles, "heater_oilburner", "block/heater_oilburner");
+        addThermalObj(profiles, "heater_electric", "block/heater_electric");
+        addThermalObj(profiles, "heater_heatex", "block/heater_heatex");
+        addThermalObj(profiles, "heat_boiler", "block/heat_boiler_world");
+        add(profiles, "machine_industrial_boiler", 315.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/machine_industrial_boiler_world");
+        addThermalObj(profiles, "machine_solar_boiler", "block/machine_solar_boiler_world");
+        add(profiles, "pipe_anchor", 0.0F, 0.90F, "block/pipe_anchor");
+        add(profiles, "piston_inserter", 0.0F, 0.90F, "block/piston_inserter");
+        addThermalObj(profiles, "solar_mirror", "block/solar_mirror_item");
+        addThermalObj(profiles, "machine_condenser", "block/machine_condenser");
+        addThermalObj(profiles, "machine_condenser_powered", "block/machine_condenser_powered");
+        addThermalObj(profiles, "machine_tower_small", "block/machine_tower_small_world");
+        addThermalObj(profiles, "machine_tower_large", "block/machine_tower_large_world");
+        addThermalObj(profiles, "machine_difurnace_ext", "block/machine_difurnace_ext");
+        addThermalObj(profiles, "machine_blast_furnace", "block/machine_blast_furnace");
+        addThermalObj(profiles, "furnace_combination", "block/furnace_combination");
+        addThermalObj(profiles, "furnace_iron", "block/furnace_iron");
+        addThermalObj(profiles, "furnace_steel", "block/furnace_steel");
         // RenderBarrel is a real inventory block renderer in 1.7.10, rather
         // than a flat item sprite. Keep its five barrel variants on the same
         // isometric inventory pose while retaining their original OBJ assets.
@@ -255,7 +452,9 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         addInventoryBarrel(profiles, "barrel_antimatter", "block/barrel_antimatter");
 
         // ItemRenderBatteryPack in 1.7.10 renders these exact BatterySocket
-        // OBJ groups rather than a generated item icon.
+        // OBJ groups rather than a generated item icon.  Unlike the original
+        // screen-space renderer, their modern pose is centered from measured
+        // geometry so every variant remains inside its inventory slot.
         for (String variant : BATTERY_PACK_VARIANTS) {
             addBatteryVariant(profiles, variant);
         }
@@ -275,24 +474,25 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "machine_catalytic_reformer", "block/machine_catalytic_reformer", 0.0F, 0.90F);
         add(profiles, "machine_hydrotreater", "block/machine_hydrotreater", 0.0F, 0.90F);
 
+        add(profiles, "deco_computer", 0.0F, 0.90F, "block/deco_computer");
+        add(profiles, "boat", 0.0F, 0.92F, "block/boat");
+        add(profiles, "deco_crt_clean", 0.0F, 0.90F, "block/deco_crt_clean");
+        add(profiles, "deco_crt_broken", 0.0F, 0.90F, "block/deco_crt_broken");
+        add(profiles, "deco_crt_blinking", 0.0F, 0.90F, "block/deco_crt_blinking");
+        add(profiles, "deco_crt_bsod", 0.0F, 0.90F, "block/deco_crt_bsod");
+
         return Map.copyOf(profiles);
     }
 
     private static Map<String, LegacyPose> createLegacyPoses() {
         Map<String, LegacyPose> poses = new LinkedHashMap<>();
 
-        // ItemRenderBatteryPack#renderInventory: after the common
-        // ItemRenderBase transform it applies translate(0,-3,0), scale(5).
-        // Keeping this per-variant avoids the generic bounds fit that shifted
-        // batteries and capacitors outside GUI slots.
-        for (String variant : BATTERY_PACK_VARIANTS) {
-            legacy(poses, "battery_pack_" + variant, 0.0F, -3.0F, 0.0F, 5.0F,
-                    0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        }
-
         // RenderArcFurnace#getRenderer
         legacy(poses, "machine_arc_furnace", 0.0F, -3.0F, 0.0F, 3.5F,
                 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+        // RenderICF#getRenderer
+        legacy(poses, "icf", 0.0F, -1.5F, 0.0F, 2.125F,
+                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
         // RenderCompressor#getRenderer and RenderCompressorCompact#getRenderer
         legacy(poses, "machine_compressor", 0.0F, -4.0F, 0.0F, 3.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
@@ -338,9 +538,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
         legacy(poses, "machine_ore_slopper", 0.0F, -3.0F, 0.0F, 3.75F,
                 0.0F, 0.0F, 0.0F, -90.0F, 0.5F);
-        // RenderBlastFurnace#getRenderer
-        legacy(poses, "machine_blast_furnace", 0.0F, -4.5F, 0.0F, 4.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
         // ItemRenderLibrary#machine_silex and #machine_fel
         legacy(poses, "machine_silex", 0.0F, -2.5F, 0.0F, 3.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
@@ -354,6 +551,14 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderRotaryFurnace#getRenderer
         legacy(poses, "machine_rotary_furnace", 0.0F, -2.0F, 0.0F, 3.5F,
                 0.0F, 0.0F, 0.0F, 90.0F, 0.625F);
+        // ItemRenderLibrary#charger: translate(0,-7,0), scale(10), then the
+        // common renderer scales the OBJ assembly by 2 and shifts it by .5 X.
+        legacy(poses, "charger", 0.0F, -7.0F, 0.0F, 10.0F,
+                0.5F, 0.0F, 0.0F, 0.0F, 2.0F);
+        legacy(poses, "pipe_anchor", 0.0F, -3.5F, 0.0F, 10.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "piston_inserter", 0.0F, -2.5F, 0.0F, 5.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 2.0F);
 
         return Map.copyOf(poses);
     }
@@ -383,6 +588,11 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 0.0F, 0.0F, 0.0F, modelPath);
     }
 
+    private static void addThermalObj(Map<String, Profile> profiles, String id, String modelPath) {
+        add(profiles, id, 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, modelPath);
+    }
+
     private static void add(Map<String, Profile> profiles, String id, float yaw, float pitch,
                             float guiTarget, float otherTarget, float offsetX, float offsetY,
                             float offsetZ, String... modelPaths) {
@@ -405,8 +615,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 List.of(ModelResourceLocation.standalone(
                         ReinhardtsHBM.id("block/machine_battery_socket_" + variant)
                 )),
-                0.0F,
-                0.0F,
+                225.0F,
+                30.0F,
                 0.58F,
                 0.85F,
                 0.0F,

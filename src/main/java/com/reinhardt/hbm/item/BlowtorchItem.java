@@ -6,10 +6,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.context.UseOnContext;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
@@ -69,6 +71,24 @@ public final class BlowtorchItem extends Item {
         if (kind.hasSecondary()) {
             setAmount(stack, 1, amount(stack, 1) - kind.secondaryCost);
         }
+    }
+
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        if (!ToolConversion.isConvertible(context.getLevel(), context.getClickedPos(), ToolConversion.Tool.TORCH)) {
+            return InteractionResult.PASS;
+        }
+        if (context.getLevel().isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!canTorch(context.getItemInHand())) {
+            return InteractionResult.PASS;
+        }
+        if (!ToolConversion.convert(context.getLevel(), context.getClickedPos(), context.getPlayer(), ToolConversion.Tool.TORCH)) {
+            return InteractionResult.PASS;
+        }
+        consumeTorchFuel(context.getItemInHand());
+        return InteractionResult.CONSUME;
     }
 
     @Override

@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/cable_switch"
-                          }
-                 }
+    "variants": {
+        "powered=false": {
+            "model": "reinhardtshbm:block/cable_switch_off"
+        },
+        "powered=true": {
+            "model": "reinhardtshbm:block/cable_switch_on"
+        }
+    }
 }

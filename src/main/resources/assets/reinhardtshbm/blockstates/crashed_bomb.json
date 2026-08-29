@@ -1,7 +1,8 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/crashed_bomb"
-                          }
-                 }
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/crashed_bomb_balefire" },
+    "variant=1": { "model": "reinhardtshbm:block/crashed_bomb_conventional" },
+    "variant=2": { "model": "reinhardtshbm:block/crashed_bomb_nuke" },
+    "variant=3": { "model": "reinhardtshbm:block/crashed_bomb_salted" }
+  }
 }

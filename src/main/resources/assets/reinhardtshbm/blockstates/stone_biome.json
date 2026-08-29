@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "variant=0,exposed=true": { "model": "reinhardtshbm:block/stone_biome_desert_exposed" },
+    "variant=0,exposed=false": { "model": "reinhardtshbm:block/stone_biome_desert_covered" },
+    "variant=1,exposed=true": { "model": "reinhardtshbm:block/stone_biome_woodland_exposed" },
+    "variant=1,exposed=false": { "model": "reinhardtshbm:block/stone_biome_woodland_covered" }
+  }
+}

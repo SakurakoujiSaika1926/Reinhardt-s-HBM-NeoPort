@@ -140,9 +140,11 @@ public final class LegacyWormBodyEntity extends Monster {
         for (Entity entity : level().getEntities(this, getBoundingBox().inflate(0.5D), Entity::isAlive)) {
             if (entity instanceof LivingEntity living && !(entity instanceof LegacyWormBodyEntity body && belongsTo(body.headUuid))
                     && !(entity instanceof LegacyWormHeadEntity head && belongsTo(head.getUUID()))) {
-                living.hurt(damageSources().mobAttack(this), living.getHealth() * 0.75F);
+                if (!living.hurt(damageSources().mobAttack(this), living.getHealth() * 0.75F)) {
+                    continue;
+                }
                 Vec3 push = living.position().subtract(position());
-                double amount = Math.max(0.1D, push.lengthSqr());
+                double amount = push.lengthSqr() + 0.1D;
                 living.push(push.x / amount, push.y / amount, push.z / amount);
             }
         }

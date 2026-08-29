@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/tape_recorder"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

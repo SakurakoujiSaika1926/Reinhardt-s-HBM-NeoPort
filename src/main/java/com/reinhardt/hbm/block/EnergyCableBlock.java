@@ -124,6 +124,7 @@ public class EnergyCableBlock extends Block {
     private static boolean canConnectTo(LevelAccessor level, BlockPos pos, Direction direction) {
         BlockState state = level.getBlockState(pos.relative(direction));
         return state.getBlock() instanceof EnergyCableBlock
+                || state.getBlock() instanceof CableDiodeBlock
                 || PowerNetworkManager.canCableConnectTo(level, pos, direction);
     }
 

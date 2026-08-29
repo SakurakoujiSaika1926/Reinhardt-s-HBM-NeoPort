@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["ICI", "CPC", "ICI"],
+  "key": {
+    "I": { "tag": "c:ingots/plastic" },
+    "C": { "tag": "c:dusts/desh_mix" },
+    "P": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:rad_absorber"],
+      "components": {
+        "minecraft:custom_data": { "variant": "red" },
+        "minecraft:custom_model_data": 1
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rad_absorber",
+    "components": {
+      "minecraft:custom_data": { "variant": "green" },
+      "minecraft:custom_model_data": 2
+    }
+  }
+}

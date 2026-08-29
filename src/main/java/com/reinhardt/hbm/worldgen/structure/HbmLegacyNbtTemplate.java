@@ -4,6 +4,8 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.MetalFenceBlock;
 import com.reinhardt.hbm.block.SteelWallBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
+import com.reinhardt.hbm.block.DecoModelBlock;
+import com.reinhardt.hbm.block.DecoCrtBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -433,6 +435,28 @@ public final class HbmLegacyNbtTemplate {
         BlockState state = block.defaultBlockState();
         if (block == Blocks.AIR) {
             return state;
+        }
+
+        if (block instanceof DecoModelBlock && state.hasProperty(DecoModelBlock.FACING)) {
+            return state.setValue(DecoModelBlock.FACING, DecoModelBlock.fromLegacyRotation(meta >> 2));
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.FilingCabinetBlock && state.hasProperty(com.reinhardt.hbm.block.FilingCabinetBlock.FACING)) {
+            return state.setValue(com.reinhardt.hbm.block.FilingCabinetBlock.FACING,
+                            com.reinhardt.hbm.block.FilingCabinetBlock.fromLegacyRotation(meta >> 2))
+                    .setValue(com.reinhardt.hbm.block.FilingCabinetBlock.MATERIAL, meta & 3);
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.TapeRecorderBlock && state.hasProperty(com.reinhardt.hbm.block.TapeRecorderBlock.FACING)) {
+            return state.setValue(com.reinhardt.hbm.block.TapeRecorderBlock.FACING,
+                    com.reinhardt.hbm.block.TapeRecorderBlock.fromLegacyMeta(meta));
+        }
+
+        if (block instanceof DecoCrtBlock) {
+            int normalized = Math.abs(meta) % 16;
+            return state.setValue(DecoCrtBlock.FACING, DecoCrtBlock.fromLegacyFacing(normalized & 3))
+                    .setValue(DecoCrtBlock.VARIANT, normalized / 4)
+                    .setValue(DecoCrtBlock.LIT, meta >= 8);
         }
 
         if (name.startsWith("reinhardtshbm:barbed_wire") && state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {

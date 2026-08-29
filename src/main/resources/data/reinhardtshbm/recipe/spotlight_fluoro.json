@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "decorations",
+  "pattern": ["G", "M", "A"],
+  "key": {
+    "G": { "tag": "c:glass_panes" },
+    "M": { "item": "reinhardtshbm:nugget_mercury" },
+    "A": { "tag": "c:plates/aluminium" }
+  },
+  "result": { "id": "reinhardtshbm:spotlight_fluoro", "count": 8 }
+}

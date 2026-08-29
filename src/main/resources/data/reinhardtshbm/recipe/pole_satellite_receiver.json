@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SS ",
+    "SCR",
+    "SS "
+  ],
+  "key": {
+    "S": {
+      "tag": "c:ingots/steel"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_vacuum_tube"
+    },
+    "R": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 31,
+          "material": "red_copper"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:pole_satellite_receiver"
+  }
+}

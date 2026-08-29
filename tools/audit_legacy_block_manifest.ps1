@@ -33,11 +33,13 @@ $hbmBlocks = Get-Content -LiteralPath $hbmBlocksPath -Raw
 $legacyContent = Get-Content -LiteralPath $legacyContentPath -Raw
 
 $core = [System.Collections.Generic.HashSet[string]]::new()
+# Count every explicit HbmBlocks field regardless of the specialized factory
+# used to preserve its behavior (OBJ, material, rail, door, TE, etc.).
 foreach ($match in [regex]::Matches(
         $hbmBlocks,
-        'public\s+static\s+final\s+DeferredBlock<[^;]+?\s+[A-Z0-9_]+\s*=\s*(?:register|registerBlock)\s*\(\s*"([a-z0-9_.-]+)"',
+        'public\s+static\s+final\s+DeferredBlock<[^;]+?\s+[A-Z0-9_]+\s*=\s*([a-zA-Z0-9_]+)\s*\(\s*"([a-z0-9_.-]+)"',
         [Text.RegularExpressions.RegexOptions]::Singleline)) {
-    [void]$core.Add($match.Groups[1].Value)
+    [void]$core.Add($match.Groups[2].Value)
 }
 
 $coreText = [regex]::Match(
@@ -48,11 +50,56 @@ foreach ($match in [regex]::Matches($coreText, '"([a-z0-9_.-]+)"')) {
     [void]$core.Add($match.Groups[1].Value)
 }
 
+# Some real blocks are registered through an enum-backed factory rather than
+# a string literal at the field declaration. Keep the audit aligned with the
+# registry by reading those ids from the same source of truth.
+$doorDeclPath = Join-Path $ProjectRoot 'src\main\java\com\reinhardt\hbm\door\HbmDoorDecl.java'
+if (Test-Path -LiteralPath $doorDeclPath) {
+    $doorDeclText = Get-Content -LiteralPath $doorDeclPath -Raw
+    foreach ($match in [regex]::Matches($doorDeclText, '^\s*[A-Z0-9_]+\("([a-z0-9_.-]+)"', [Text.RegularExpressions.RegexOptions]::Multiline)) {
+        [void]$core.Add($match.Groups[1].Value)
+    }
+}
+
 $catalogSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$catalog)
 $placeholderSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$placeholders)
+$retired = [System.Collections.Generic.HashSet[string]]::new([string[]]@(
+    'capacitor_gold',
+    'capacitor_niobium',
+    'capacitor_schrabidate',
+    'capacitor_tantalium',
+    'machine_battery',
+    'machine_battery_potato',
+    'machine_difurnace_extension',
+    'machine_difurnace_rtg_off',
+    'machine_difurnace_rtg_on',
+    'machine_dineutronium_battery',
+    'machine_fensu',
+    'machine_lithium_battery',
+    'machine_minirtg',
+    'machine_powerrtg',
+    'machine_rtg_furnace_off',
+    'machine_rtg_furnace_on',
+    'machine_schrabidium_battery',
+    # 1.7.10 developer/test registrations with no production name or gameplay role.
+    'event_tester',
+    'obj_tester',
+    'statue_elb_f'
+))
+$legacyAliases = @{
+    # The modern registry keeps these legacy spellings as separate real
+    # blocks, except hev_battery: NeoForge cannot share one item id between
+    # the old block item and the already registered HEV suit battery item.
+    "hev_battery" = "hev_battery_block"
+}
 $currentNotLegacy = @($placeholders | Where-Object { -not $catalogSet.Contains($_) })
-$resolved = @($catalog | Where-Object { $core.Contains($_) })
-$unresolved = @($catalog | Where-Object { -not $core.Contains($_) })
+$resolved = @($catalog | Where-Object {
+    $core.Contains($_) -or ($legacyAliases.ContainsKey($_) -and $core.Contains($legacyAliases[$_]))
+})
+$unresolved = @($catalog | Where-Object {
+    -not $core.Contains($_) -and -not $retired.Contains($_) -and
+        -not ($legacyAliases.ContainsKey($_) -and $core.Contains($legacyAliases[$_]))
+})
 $missingFromPlaceholderManifest = @($unresolved | Where-Object { -not $placeholderSet.Contains($_) })
 
 $lines = @(

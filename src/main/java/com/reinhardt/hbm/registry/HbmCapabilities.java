@@ -65,6 +65,7 @@ import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
 import com.reinhardt.hbm.blockentity.IndustrialBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.IndustrialTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.IcfPressBlockEntity;
+import com.reinhardt.hbm.blockentity.IcfCoreBlockEntity;
 import com.reinhardt.hbm.blockentity.IronFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.LargeTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.LargeFluidTankBlockEntity;
@@ -620,6 +621,16 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.PIPE_ANCHOR.get(),
+                (anchor, side) -> anchor.fluidHandler(side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.PISTON_INSERTER.get(),
+                (piston, side) -> new SidedInvWrapper(piston, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.DRONE_CRATE.get(),
                 DroneCrateBlockEntity::fluidHandler
         );
@@ -960,6 +971,11 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.ICF_CORE.get(),
+                (core, side) -> core.fluidHandler(core.getBlockPos(), side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.PWR_CONTROLLER.get(),
                 (controller, side) -> controller.fluidHandler(controller.getBlockPos(), side)
         );
@@ -1057,12 +1073,17 @@ public final class HbmCapabilities {
                 HbmItems.BLOWTORCH.get(),
                 HbmItems.ACETYLENE_TORCH.get()
         );
-        event.registerItem(
-                Capabilities.FluidHandler.ITEM,
-                (stack, context) -> stack.getItem() instanceof LegacyPipetteItem pipette
-                        ? pipette.createFluidHandler(stack) : null,
-                LegacyHbmContent.LEGACY_ITEMS.stream().map(DeferredItem::get).toArray(net.minecraft.world.level.ItemLike[]::new)
-        );
+        net.minecraft.world.level.ItemLike[] legacyPipettes = LegacyHbmContent.LEGACY_ITEMS.stream()
+                .map(DeferredItem::get)
+                .toArray(net.minecraft.world.level.ItemLike[]::new);
+        if (legacyPipettes.length > 0) {
+            event.registerItem(
+                    Capabilities.FluidHandler.ITEM,
+                    (stack, context) -> stack.getItem() instanceof LegacyPipetteItem pipette
+                            ? pipette.createFluidHandler(stack) : null,
+                    legacyPipettes
+            );
+        }
     }
 
     private static IItemHandler ashpitItemHandler(AshpitBlockEntity ashpit, @Nullable Direction side) {
@@ -1582,6 +1603,9 @@ public final class HbmCapabilities {
         }
         if (core instanceof FusionMachineBlockEntity fusion) {
             return fusion.fluidHandler(dummy.getBlockPos(), side);
+        }
+        if (core instanceof IcfCoreBlockEntity icf) {
+            return icf.fluidHandler(dummy.getBlockPos(), side);
         }
         if (core instanceof WatzBlockEntity watz) {
             return watz.fluidHandler(dummy.getBlockPos(), side);

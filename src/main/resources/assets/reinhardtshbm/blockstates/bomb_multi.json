@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/bomb_multi"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

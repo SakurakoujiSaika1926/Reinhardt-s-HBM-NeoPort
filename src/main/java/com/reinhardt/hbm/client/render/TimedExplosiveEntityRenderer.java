@@ -25,6 +25,10 @@ public final class TimedExplosiveEntityRenderer extends EntityRenderer<TimedExpl
             case C4 -> HbmBlocks.C4.get().defaultBlockState();
             case SEMTEX -> HbmBlocks.SEMTEX.get().defaultBlockState();
             case FISSURE -> HbmBlocks.FISSURE_BOMB.get().defaultBlockState();
+            case DET_CORD -> HbmBlocks.DET_CORD.get().defaultBlockState();
+            case DET_CHARGE -> HbmBlocks.DET_CHARGE.get().defaultBlockState();
+            case DET_NUKE -> HbmBlocks.DET_NUKE.get().defaultBlockState();
+            case DET_MINER -> HbmBlocks.DET_MINER.get().defaultBlockState();
         };
         poseStack.pushPose();
         poseStack.translate(-0.5D, -0.5D, -0.5D);

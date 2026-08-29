@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/wood_structure_roof",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/wood_structure_scaffold" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/wood_structure_ceiling" }
+  ]
+}

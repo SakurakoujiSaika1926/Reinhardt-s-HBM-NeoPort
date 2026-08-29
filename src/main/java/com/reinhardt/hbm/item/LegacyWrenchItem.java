@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.item;
 
-import com.reinhardt.hbm.block.FluidDuctBlock;
-import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
+import com.reinhardt.hbm.blockentity.PipeAnchorBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.ChatFormatting;
@@ -21,9 +20,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 
 /**
- * 1.7.10 pipe-wrench selection behavior. Modern ducts connect by adjacent
- * topology, so the second click refreshes both endpoint components instead of
- * creating the removed long-distance TileEntityPipelineBase link.
+ * 1.7.10 pipe-wrench selection behavior for the long-distance pipe anchors.
  */
 public final class LegacyWrenchItem extends Item {
     private static final String ANCHOR = "pipe_anchor";
@@ -37,7 +34,7 @@ public final class LegacyWrenchItem extends Item {
         Level level = context.getLevel();
         ItemStack stack = context.getItemInHand();
         BlockPos clicked = context.getClickedPos();
-        if (!(level.getBlockEntity(clicked) instanceof FluidPipeBlockEntity)) {
+        if (!(level.getBlockEntity(clicked) instanceof PipeAnchorBlockEntity)) {
             return InteractionResult.PASS;
         }
 
@@ -54,29 +51,46 @@ public final class LegacyWrenchItem extends Item {
         BlockPos firstPos = BlockPos.of(tag.getLong(ANCHOR));
         tag.remove(ANCHOR);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        if (!(level.getBlockEntity(firstPos) instanceof FluidPipeBlockEntity first)
-                || !(level.getBlockEntity(clicked) instanceof FluidPipeBlockEntity second)) {
+        if (!(level.getBlockEntity(firstPos) instanceof PipeAnchorBlockEntity first)
+                || !(level.getBlockEntity(clicked) instanceof PipeAnchorBlockEntity second)) {
             return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+
+        if (first == second) {
+            return pipeError(level, context, "message.reinhardtshbm.wrench.same");
         }
 
         HbmFluidDefinition firstType = first.type();
         HbmFluidDefinition secondType = second.type();
-        boolean compatible = firstType.isNone() || secondType.isNone() || firstType == secondType
-                || first.isExhaustPipe() && second.isExhaustPipe();
-        if (!compatible) {
-            if (!level.isClientSide && context.getPlayer() != null) {
-                context.getPlayer().displayClientMessage(Component.translatable("message.reinhardtshbm.wrench.type_error"), true);
-            }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+        if (firstType.isNone() && !secondType.isNone()) {
+            first.setType(secondType);
+            firstType = secondType;
+        } else if (secondType.isNone() && !firstType.isNone()) {
+            second.setType(firstType);
+            secondType = firstType;
+        }
+        if (firstType != secondType) {
+            return pipeError(level, context, "message.reinhardtshbm.wrench.type_error");
+        }
+
+        if (firstPos.distSqr(clicked) > 100.0D) {
+            return pipeError(level, context, "message.reinhardtshbm.wrench.distance");
         }
 
         if (!level.isClientSide) {
-            refresh(level, firstPos);
-            refresh(level, clicked);
+            first.addLink(clicked);
+            second.addLink(firstPos);
             if (context.getPlayer() != null) {
                 context.getPlayer().displayClientMessage(Component.translatable("message.reinhardtshbm.wrench.end"), true);
             }
             level.playSound(null, clicked, HbmSoundEvents.TECH_BLEEP.get(), SoundSource.PLAYERS, 0.7F, 1.0F);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private static InteractionResult pipeError(Level level, UseOnContext context, String key) {
+        if (!level.isClientSide && context.getPlayer() != null) {
+            context.getPlayer().displayClientMessage(Component.translatable(key), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
@@ -92,12 +106,4 @@ public final class LegacyWrenchItem extends Item {
         }
     }
 
-    private static void refresh(Level level, BlockPos pos) {
-        if (level.getBlockState(pos).getBlock() instanceof FluidDuctBlock duct) {
-            duct.refreshConnections(level, pos);
-        }
-        if (level.getBlockEntity(pos) instanceof FluidPipeBlockEntity pipe) {
-            pipe.markNetworkChanged();
-        }
-    }
 }

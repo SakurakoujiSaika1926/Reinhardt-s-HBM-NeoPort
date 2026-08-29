@@ -425,6 +425,18 @@ public final class HbmStructureIO {
     }
 
     private static int legacyMeta(BlockState state) {
+        if (state.getBlock() instanceof com.reinhardt.hbm.block.FilingCabinetBlock && state.hasProperty(com.reinhardt.hbm.block.FilingCabinetBlock.FACING)) {
+            return (com.reinhardt.hbm.block.FilingCabinetBlock.legacyRotation(state.getValue(com.reinhardt.hbm.block.FilingCabinetBlock.FACING)) << 2)
+                    | state.getValue(com.reinhardt.hbm.block.FilingCabinetBlock.MATERIAL);
+        }
+        if (state.getBlock() instanceof com.reinhardt.hbm.block.TapeRecorderBlock && state.hasProperty(com.reinhardt.hbm.block.TapeRecorderBlock.FACING)) {
+            return switch (state.getValue(com.reinhardt.hbm.block.TapeRecorderBlock.FACING)) {
+                case NORTH -> 3;
+                case EAST -> 4;
+                case WEST -> 5;
+                default -> 2;
+            };
+        }
         if (state.getBlock() instanceof SteelWallBlock && state.hasProperty(SteelWallBlock.FACING)) {
             return SteelWallBlock.toLegacyMeta(state.getValue(SteelWallBlock.FACING));
         }

@@ -135,7 +135,7 @@
     "category": "block",
     "sounds": [
       {
-        "name": "reinhardtshbm:block/pyroOperate",
+        "name": "reinhardtshbm:block/pyrooperate",
         "stream": false
       }
     ]
@@ -250,6 +250,24 @@
     "sounds": [
       {
         "name": "reinhardtshbm:block/lockhang",
+        "stream": false
+      }
+    ]
+  },
+  "block.crate_open": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/crate_open",
+        "stream": false
+      }
+    ]
+  },
+  "block.crate_close": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/crate_close",
         "stream": false
       }
     ]
@@ -464,14 +482,14 @@
   "potatos.random": {
     "category": "player",
     "sounds": [
-      "reinhardtshbm:potatos/randResponse0",
-      "reinhardtshbm:potatos/randResponse1",
-      "reinhardtshbm:potatos/randResponse2",
-      "reinhardtshbm:potatos/randResponse3",
-      "reinhardtshbm:potatos/randResponse4",
-      "reinhardtshbm:potatos/randResponse5",
-      "reinhardtshbm:potatos/randResponse6",
-      "reinhardtshbm:potatos/randResponse7"
+      "reinhardtshbm:potatos/randresponse0",
+      "reinhardtshbm:potatos/randresponse1",
+      "reinhardtshbm:potatos/randresponse2",
+      "reinhardtshbm:potatos/randresponse3",
+      "reinhardtshbm:potatos/randresponse4",
+      "reinhardtshbm:potatos/randresponse5",
+      "reinhardtshbm:potatos/randresponse6",
+      "reinhardtshbm:potatos/randresponse7"
     ]
   },
   "entity.vomit": {
@@ -914,15 +932,15 @@
   },
   "entity.bomb_whistle": {
     "category": "hostile",
-    "sounds": [{"name": "reinhardtshbm:entity/bombWhistle", "stream": false}]
+    "sounds": [{"name": "reinhardtshbm:entity/bombwhistle", "stream": false}]
   },
   "weapon.missile_takeoff": {
     "category": "hostile",
-    "sounds": [{"name": "reinhardtshbm:weapon/missileTakeOff", "stream": false}]
+    "sounds": [{"name": "reinhardtshbm:weapon/missiletakeoff", "stream": false}]
   },
   "weapon.train_impact": {
     "category": "hostile",
-    "sounds": [{"name": "reinhardtshbm:weapon/trainImpact", "stream": false}]
+    "sounds": [{"name": "reinhardtshbm:weapon/trainimpact", "stream": false}]
   },
   "weapon.explosionlargenear": {
     "category": "block",
@@ -1064,5 +1082,29 @@
   ,"entity.chopper_crashing_loop": {
     "category": "hostile",
     "sounds": [{"name": "reinhardtshbm:entity/chopper_crashing_loop", "stream": true}]
+  }
+  ,"block.broadcast1": {
+    "category": "block",
+    "sounds": [{"name": "reinhardtshbm:block/broadcast1", "stream": true}]
+  }
+  ,"block.broadcast2": {
+    "category": "block",
+    "sounds": [{"name": "reinhardtshbm:block/broadcast2", "stream": true}]
+  }
+  ,"block.broadcast3": {
+    "category": "block",
+    "sounds": [{"name": "reinhardtshbm:block/broadcast3", "stream": true}]
+  }
+  ,"block.bobble": {
+    "category": "block",
+    "sounds": [{"name": "reinhardtshbm:block/bobble", "stream": false}]
+  }
+  ,"block.squeaky_toy": {
+    "category": "block",
+    "sounds": [{"name": "reinhardtshbm:block/squeakyToy", "stream": false}]
+  }
+  ,"block.hunduns_magnificent_howl": {
+    "category": "block",
+    "sounds": [{"name": "reinhardtshbm:block/hunduns_magnificent_howl", "stream": false}]
   }
 }

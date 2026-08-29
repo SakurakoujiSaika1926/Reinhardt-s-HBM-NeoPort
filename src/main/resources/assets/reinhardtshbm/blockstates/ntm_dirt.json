@@ -1,7 +1,5 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/ntm_dirt"
-                          }
-                 }
+{
+  "variants": {
+    "": {"model": "minecraft:block/dirt"}
+  }
 }

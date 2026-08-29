@@ -1,13 +1,22 @@
-﻿{
+{
   "variants": {
-    "type=bottom": {
-      "model": "reinhardtshbm:block/concrete_slab"
-    },
-    "type=top": {
-      "model": "reinhardtshbm:block/concrete_slab_top"
-    },
-    "type=double": {
-      "model": "reinhardtshbm:block/concrete_slab_double"
-    }
+    "type=bottom,variant=0": { "model": "reinhardtshbm:block/concrete_smooth_slab" },
+    "type=top,variant=0": { "model": "reinhardtshbm:block/concrete_smooth_slab_top" },
+    "type=double,variant=0": { "model": "reinhardtshbm:block/concrete_smooth_slab_double" },
+    "type=bottom,variant=1": { "model": "reinhardtshbm:block/concrete_slab" },
+    "type=top,variant=1": { "model": "reinhardtshbm:block/concrete_slab_top" },
+    "type=double,variant=1": { "model": "reinhardtshbm:block/concrete_double_slab" },
+    "type=bottom,variant=2": { "model": "reinhardtshbm:block/concrete_asbestos_slab" },
+    "type=top,variant=2": { "model": "reinhardtshbm:block/concrete_asbestos_slab_top" },
+    "type=double,variant=2": { "model": "reinhardtshbm:block/concrete_asbestos_slab_double" },
+    "type=bottom,variant=3": { "model": "reinhardtshbm:block/ducrete_smooth_slab" },
+    "type=top,variant=3": { "model": "reinhardtshbm:block/ducrete_smooth_slab_top" },
+    "type=double,variant=3": { "model": "reinhardtshbm:block/ducrete_smooth_slab_double" },
+    "type=bottom,variant=4": { "model": "reinhardtshbm:block/ducrete_slab" },
+    "type=top,variant=4": { "model": "reinhardtshbm:block/ducrete_slab_top" },
+    "type=double,variant=4": { "model": "reinhardtshbm:block/ducrete_slab_double" },
+    "type=bottom,variant=5": { "model": "reinhardtshbm:block/asphalt_slab" },
+    "type=top,variant=5": { "model": "reinhardtshbm:block/asphalt_slab_top" },
+    "type=double,variant=5": { "model": "reinhardtshbm:block/asphalt_slab_double" }
   }
 }

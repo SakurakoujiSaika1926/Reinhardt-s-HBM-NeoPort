@@ -5,6 +5,7 @@
   "shade_quads": true,
   "flip_v": true,
   "emissive_ambient": false,
+  "mtl_override": "reinhardtshbm:models/obj/projectiles/legacy_rocket.mtl",
   "visibility": {
     "Flechette": false,
     "Balefire": false,

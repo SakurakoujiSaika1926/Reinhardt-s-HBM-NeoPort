@@ -19,7 +19,7 @@ import org.joml.Vector3f;
 
 /** Renderer equivalent to the old black-hole sphere plus its blue vortex disc. */
 public final class LegacyVortexEntityRenderer extends EntityRenderer<LegacyVortexEntity> {
-    private static final ResourceLocation CORE = ReinhardtsHBM.id("textures/models/BlackHole.png");
+    private static final ResourceLocation CORE = ReinhardtsHBM.id("textures/models/blackhole.png");
     private static final ResourceLocation SWIRL = ReinhardtsHBM.id("textures/entity/bhole.png");
     private static final RenderType CORE_TYPE = RenderType.entityTranslucentEmissive(CORE);
     private static final RenderType SWIRL_TYPE = RenderType.entityTranslucentEmissive(SWIRL);

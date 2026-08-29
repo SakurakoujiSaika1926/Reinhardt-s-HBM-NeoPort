@@ -1,6 +1,27 @@
 {
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/circuit"
-                 },
-    "parent":  "minecraft:item/generated"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/circuit.vacuum_tube"
+  },
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:item/circuit_capacitor" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:item/circuit_capacitor_tantalium" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:item/circuit_pcb" },
+    { "predicate": { "minecraft:custom_model_data": 4 }, "model": "reinhardtshbm:item/circuit_silicon" },
+    { "predicate": { "minecraft:custom_model_data": 5 }, "model": "reinhardtshbm:item/circuit_chip" },
+    { "predicate": { "minecraft:custom_model_data": 6 }, "model": "reinhardtshbm:item/circuit_chip_bismoid" },
+    { "predicate": { "minecraft:custom_model_data": 7 }, "model": "reinhardtshbm:item/circuit_analog" },
+    { "predicate": { "minecraft:custom_model_data": 8 }, "model": "reinhardtshbm:item/circuit_basic" },
+    { "predicate": { "minecraft:custom_model_data": 9 }, "model": "reinhardtshbm:item/circuit_advanced" },
+    { "predicate": { "minecraft:custom_model_data": 10 }, "model": "reinhardtshbm:item/circuit_capacitor_board" },
+    { "predicate": { "minecraft:custom_model_data": 11 }, "model": "reinhardtshbm:item/circuit_bismoid" },
+    { "predicate": { "minecraft:custom_model_data": 12 }, "model": "reinhardtshbm:item/circuit_controller_chassis" },
+    { "predicate": { "minecraft:custom_model_data": 13 }, "model": "reinhardtshbm:item/circuit_controller" },
+    { "predicate": { "minecraft:custom_model_data": 14 }, "model": "reinhardtshbm:item/circuit_controller_advanced" },
+    { "predicate": { "minecraft:custom_model_data": 15 }, "model": "reinhardtshbm:item/circuit_quantum" },
+    { "predicate": { "minecraft:custom_model_data": 16 }, "model": "reinhardtshbm:item/circuit_chip_quantum" },
+    { "predicate": { "minecraft:custom_model_data": 17 }, "model": "reinhardtshbm:item/circuit_controller_quantum" },
+    { "predicate": { "minecraft:custom_model_data": 18 }, "model": "reinhardtshbm:item/circuit_atomic_clock" },
+    { "predicate": { "minecraft:custom_model_data": 19 }, "model": "reinhardtshbm:item/circuit_numitron" }
+  ]
 }

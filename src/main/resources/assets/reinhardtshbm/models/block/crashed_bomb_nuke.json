@@ -1,0 +1,9 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/bombs/dud_nuke.obj",
+  "mtl_override": "reinhardtshbm:models/obj/bombs/dud_nuke.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/bombs/dud_nuke" }
+}

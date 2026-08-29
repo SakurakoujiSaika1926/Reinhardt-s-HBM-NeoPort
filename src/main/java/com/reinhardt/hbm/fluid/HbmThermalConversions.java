@@ -33,6 +33,17 @@ public final class HbmThermalConversions {
         };
     }
 
+    /** TileEntityICF uses the same 1:1, 400 TU sodium heating step as the old heat exchanger. */
+    public static Optional<HeatingStep> firstIcfStep(HbmFluidDefinition input) {
+        if (input == null || input.isNone()) {
+            return Optional.empty();
+        }
+        return switch (input.name()) {
+            case "sodium" -> heating(input, "sodium_hot", 400, 1, 1, 1.0D);
+            default -> Optional.empty();
+        };
+    }
+
     public static Optional<HeatingStep> firstGeothermalStep(HbmFluidDefinition input) {
         if (input == null || input.isNone()) {
             return Optional.empty();

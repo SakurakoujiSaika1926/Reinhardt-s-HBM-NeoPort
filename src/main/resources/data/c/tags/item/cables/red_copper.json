@@ -2,6 +2,10 @@
     "replace": false,
     "values": [
         "reinhardtshbm:red_cable",
+        "reinhardtshbm:red_cable_classic",
+        "reinhardtshbm:red_cable_box",
+        "reinhardtshbm:red_cable_paintable",
+        "reinhardtshbm:red_cable_gauge",
         "reinhardtshbm:red_wire_coated"
     ]
 }

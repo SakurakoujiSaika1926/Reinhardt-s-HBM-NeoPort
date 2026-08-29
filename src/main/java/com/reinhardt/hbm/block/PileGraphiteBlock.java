@@ -68,6 +68,13 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
         return this.kind;
     }
 
+    /** Exact 1.7.10 fan callback for a fuel pile. */
+    public static void applyFan(Level level, BlockPos pos, Direction direction, int distance) {
+        if (level.getBlockEntity(pos) instanceof PileGraphiteBlockEntity pile) {
+            pile.coolByFan();
+        }
+    }
+
     @Override
     public int getFlammability(BlockState state, BlockGetter level, BlockPos pos, Direction face) {
         return 5;

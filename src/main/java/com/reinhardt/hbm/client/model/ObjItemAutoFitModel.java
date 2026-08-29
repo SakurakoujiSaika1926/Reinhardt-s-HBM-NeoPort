@@ -63,8 +63,8 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "machine_radar", "machine_radar_large", "machine_radgen", "machine_radiolysis",
             "machine_rtg_grey", "machine_sawmill", "machine_turbofan", "machine_thresher", "machine_lpw2",
             "pump_steam", "pump_electric", "machine_bat9000", "machine_bigasstank", "deco_toaster",
-            "red_connector", "connector_red_super", "red_pylon_medium_wood",
-            "red_pylon_medium_transformer", "red_pylon_steel", "red_pylon_steel_transformer",
+            "red_connector", "red_connector_super", "red_pylon_medium_wood",
+            "red_pylon_medium_wood_transformer", "red_pylon_medium_steel", "red_pylon_medium_steel_transformer",
             "red_pylon_large", "substation"
     );
 
@@ -300,11 +300,11 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("chimney_brick")
                 || path.equals("chimney_industrial")
                 || path.equals("red_connector")
-                || path.equals("connector_red_super")
+                || path.equals("red_connector_super")
                 || path.equals("red_pylon_medium_wood")
-                || path.equals("red_pylon_medium_transformer")
-                || path.equals("red_pylon_steel")
-                || path.equals("red_pylon_steel_transformer")
+                || path.equals("red_pylon_medium_wood_transformer")
+                || path.equals("red_pylon_medium_steel")
+                || path.equals("red_pylon_medium_steel_transformer")
                 || path.equals("red_pylon_large")
                 || path.equals("substation")
                 || path.equals("fire_door")

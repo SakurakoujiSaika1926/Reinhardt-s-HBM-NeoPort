@@ -50,15 +50,15 @@ public class WatzStructBlockEntityRenderer implements BlockEntityRenderer<WatzSt
             draw(HbmBlocks.WATZ_COOLER.get(), -1, y, -2, poseStack, bufferSource, packedOverlay);
 
             for (int j = -1; j < 2; j++) {
-                draw(HbmBlocks.WATZ_CASING.get(), 3, y, j, poseStack, bufferSource, packedOverlay);
-                draw(HbmBlocks.WATZ_CASING.get(), j, y, 3, poseStack, bufferSource, packedOverlay);
-                draw(HbmBlocks.WATZ_CASING.get(), -3, y, j, poseStack, bufferSource, packedOverlay);
-                draw(HbmBlocks.WATZ_CASING.get(), j, y, -3, poseStack, bufferSource, packedOverlay);
+                draw(HbmBlocks.WATZ_END.get(), 3, y, j, poseStack, bufferSource, packedOverlay);
+                draw(HbmBlocks.WATZ_END.get(), j, y, 3, poseStack, bufferSource, packedOverlay);
+                draw(HbmBlocks.WATZ_END.get(), -3, y, j, poseStack, bufferSource, packedOverlay);
+                draw(HbmBlocks.WATZ_END.get(), j, y, -3, poseStack, bufferSource, packedOverlay);
             }
-            draw(HbmBlocks.WATZ_CASING.get(), 2, y, 2, poseStack, bufferSource, packedOverlay);
-            draw(HbmBlocks.WATZ_CASING.get(), 2, y, -2, poseStack, bufferSource, packedOverlay);
-            draw(HbmBlocks.WATZ_CASING.get(), -2, y, 2, poseStack, bufferSource, packedOverlay);
-            draw(HbmBlocks.WATZ_CASING.get(), -2, y, -2, poseStack, bufferSource, packedOverlay);
+            draw(HbmBlocks.WATZ_END.get(), 2, y, 2, poseStack, bufferSource, packedOverlay);
+            draw(HbmBlocks.WATZ_END.get(), 2, y, -2, poseStack, bufferSource, packedOverlay);
+            draw(HbmBlocks.WATZ_END.get(), -2, y, 2, poseStack, bufferSource, packedOverlay);
+            draw(HbmBlocks.WATZ_END.get(), -2, y, -2, poseStack, bufferSource, packedOverlay);
         }
     }
 

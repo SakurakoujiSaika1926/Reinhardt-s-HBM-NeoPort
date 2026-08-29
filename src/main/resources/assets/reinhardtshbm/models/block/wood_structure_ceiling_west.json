@@ -1,0 +1,4 @@
+{ "parent": "minecraft:block/block", "textures": { "wood": "reinhardtshbm:block/wood_barrier" }, "elements": [
+  { "from": [0, 15, 1], "to": [1, 16, 7], "faces": { "down": { "texture": "#wood" }, "up": { "texture": "#wood" }, "north": { "texture": "#wood" }, "south": { "texture": "#wood" }, "west": { "texture": "#wood" }, "east": { "texture": "#wood" } } },
+  { "from": [0, 15, 9], "to": [1, 16, 15], "faces": { "down": { "texture": "#wood" }, "up": { "texture": "#wood" }, "north": { "texture": "#wood" }, "south": { "texture": "#wood" }, "west": { "texture": "#wood" }, "east": { "texture": "#wood" } } }
+] }

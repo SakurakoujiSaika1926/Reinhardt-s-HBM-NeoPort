@@ -1,0 +1,24 @@
+{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bobblehead"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "type":  "agility"
+                                                                    },
+                                          "minecraft:custom_model_data":  6
+                                      }
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:scrap_plastic",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "bridge_chipset"
+                                                                },
+                                      "minecraft:custom_model_data":  7
+                                  }
+               }
+}

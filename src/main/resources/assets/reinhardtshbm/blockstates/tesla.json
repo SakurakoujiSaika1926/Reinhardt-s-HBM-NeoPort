@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/tesla"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

@@ -66,6 +66,7 @@ public final class LegacyUfoEntity extends Monster {
         super(type, level);
         setNoGravity(true);
         noCulling = true;
+        deathTime = -30;
         xpReward = 500;
     }
 

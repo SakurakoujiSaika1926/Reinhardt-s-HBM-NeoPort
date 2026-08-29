@@ -3,6 +3,7 @@ package com.reinhardt.hbm.blockentity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.block.ConcreteColoredBlock;
+import com.reinhardt.hbm.block.VinylTileBlock;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -54,6 +55,8 @@ public final class RebarBlockEntity extends BlockEntity {
             this.targetState = blockItem.getBlock().defaultBlockState();
             if (this.targetState.hasProperty(ConcreteColoredBlock.META)) {
                 this.targetState = this.targetState.setValue(ConcreteColoredBlock.META, this.targetMeta);
+            } else if (this.targetState.hasProperty(VinylTileBlock.META)) {
+                this.targetState = this.targetState.setValue(VinylTileBlock.META, Math.min(1, Math.max(0, this.targetMeta)));
             }
             sync();
         }
@@ -89,6 +92,8 @@ public final class RebarBlockEntity extends BlockEntity {
         targetState = block == HbmBlocks.REBAR.get() ? HbmBlocks.CONCRETE_REBAR.get().defaultBlockState() : block.defaultBlockState();
         if (targetState.hasProperty(ConcreteColoredBlock.META)) {
             targetState = targetState.setValue(ConcreteColoredBlock.META, targetMeta);
+        } else if (targetState.hasProperty(VinylTileBlock.META)) {
+            targetState = targetState.setValue(VinylTileBlock.META, Math.min(1, Math.max(0, targetMeta)));
         }
     }
 

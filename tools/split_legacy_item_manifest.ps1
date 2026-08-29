@@ -41,6 +41,15 @@ $retired = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($match in [regex]::Matches($retiredText, '"([a-z0-9_.-]+)"')) {
     [void]$retired.Add($match.Groups[1].Value)
 }
+foreach ($match in [regex]::Matches(
+        $hbmItems,
+        'RETIRED_LEGACY_CATALOG_ITEM_IDS\s*=\s*Set\.of\((.*?)\);',
+        [Text.RegularExpressions.RegexOptions]::Singleline
+)) {
+    foreach ($idMatch in [regex]::Matches($match.Groups[1].Value, '"([a-z0-9_.-]+)"')) {
+        [void]$retired.Add($idMatch.Groups[1].Value)
+    }
+}
 
 # Static DeferredItem declarations are the authoritative migrated item list.
 $core = [System.Collections.Generic.HashSet[string]]::new()
@@ -55,7 +64,7 @@ foreach ($match in [regex]::Matches(
 # A compact set is used for ordinary 1.7.10 Item registrations. Unlike the
 # static DeferredItem declarations above, these are registered in a loop.
 foreach ($setName in @('PORTED_PLAIN_ITEM_IDS', 'PORTED_LEGACY_GAMEPLAY_ITEM_IDS', 'PORTED_LEGACY_LORE_ITEM_IDS',
-        'PORTED_LEGACY_RBMK_FUEL_IDS', 'PORTED_LEGACY_RBMK_PELLET_IDS')) {
+        'PORTED_LEGACY_RBMK_FUEL_IDS', 'PORTED_LEGACY_RBMK_PELLET_IDS', 'FLUID_BUCKET_ITEM_IDS')) {
     $setText = [regex]::Match(
         $hbmItems,
         ($setName + '\s*=\s*Set\.of\((.*?)\);'),
@@ -64,6 +73,23 @@ foreach ($setName in @('PORTED_PLAIN_ITEM_IDS', 'PORTED_LEGACY_GAMEPLAY_ITEM_IDS
     foreach ($match in [regex]::Matches($setText, '"([a-z0-9_.-]+)"')) {
         [void]$core.Add($match.Groups[1].Value)
     }
+}
+
+# Some old item families are registered by helper calls inside the bootstrap
+# methods rather than a one-field-per-item declaration. These calls are real
+# registrations and must be recognized explicitly; never infer completion
+# from a generic catalog fallback.
+$registrationHelpers = @(
+    'coreItem', 'legacyItem', 'legacyPowerItem', 'legacyLemon', 'legacyMedical',
+    'legacySoup', 'legacyVariantItem', 'record', 'toolItem', 'armorItem',
+    'registerLegacyArmorMod', 'rbmkFuelRodItem', 'machineComponent', 'oreDrop',
+    'rawOre', 'ingot', 'material', 'mineralCrystal'
+) -join '|'
+foreach ($match in [regex]::Matches(
+        $hbmItems,
+        ('\b(?:' + $registrationHelpers + ')\s*\(\s*"([a-z0-9_.-]+)"')
+)) {
+    [void]$core.Add($match.Groups[1].Value)
 }
 
 # LegacyHbmContent is the authoritative registry for items which are already
@@ -79,15 +105,6 @@ if ($factoryStart -ge 0 -and $factoryEnd -gt $factoryStart) {
     $legacyFactory = $legacyContent.Substring($factoryStart, $factoryEnd - $factoryStart)
     foreach ($idMatch in [regex]::Matches($legacyFactory, '"([a-z0-9_.-]+)"')) {
         [void]$core.Add($idMatch.Groups[1].Value)
-    }
-}
-
-# HbmItems registers every remaining catalog item as a formal item. Keep the
-# unresolved manifest empty for those IDs; it is consumed only by the legacy
-# bootstrap and must not duplicate the formal registry.
-if ($hbmItems -match 'registerRemainingLegacyCatalogItems') {
-    foreach ($id in $catalog) {
-        [void]$core.Add($id)
     }
 }
 

@@ -1,6 +1,8 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/det_nuke"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "reinhardtshbm:block/det_nuke_top",
+    "side": "reinhardtshbm:block/det_nuke",
+    "top": "reinhardtshbm:block/det_nuke_top"
+  }
 }

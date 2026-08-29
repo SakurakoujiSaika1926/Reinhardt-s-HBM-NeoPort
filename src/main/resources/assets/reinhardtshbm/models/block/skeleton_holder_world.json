@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/blocks/skeleton_holder.obj",
+  "mtl_override": "reinhardtshbm:models/obj/blocks/skeleton_holder.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:block/skeleton_holder"
+  }
+}

@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/spotlight_incandescent_off"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

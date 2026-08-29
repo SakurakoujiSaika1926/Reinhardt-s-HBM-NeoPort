@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["STS", "THT", "STS"],
+  "key": {
+    "S": { "item": "reinhardtshbm:cell_uf6" },
+    "T": { "item": "reinhardtshbm:powder_aluminium" },
+    "H": { "item": "reinhardtshbm:crystal_charred" }
+  },
+  "result": { "id": "reinhardtshbm:crystal_pulsar", "count": 32 }
+}

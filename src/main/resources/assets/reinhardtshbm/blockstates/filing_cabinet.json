@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/filing_cabinet"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

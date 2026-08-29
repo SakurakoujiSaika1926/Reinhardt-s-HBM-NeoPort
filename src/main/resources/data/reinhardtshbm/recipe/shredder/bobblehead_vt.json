@@ -1,0 +1,24 @@
+{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bobblehead"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "type":  "vt"
+                                                                    },
+                                          "minecraft:custom_model_data":  11
+                                      }
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:scrap_plastic",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "cpu_ext"
+                                                                },
+                                      "minecraft:custom_model_data":  14
+                                  }
+               }
+}

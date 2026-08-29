@@ -6,6 +6,7 @@ import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.item.FoundryMoldItem;
 import com.reinhardt.hbm.item.FoundryShapeItem;
+import com.reinhardt.hbm.item.PowerCableBoxBlockItem;
 import com.reinhardt.hbm.item.SirenTrackItem;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -114,6 +115,7 @@ public final class HbmAnvilRecipes {
     private static void registerConstruction() {
         Set<String> plateMaterials = new LinkedHashSet<>();
         addLegacyBat9000RecyclingRecipe();
+        addRedCopperCableBoxRecipes();
         addPlateRecipe(plateMaterials, "iron", 3, mc("iron_ingot"));
         addPlateRecipe(plateMaterials, "gold", 3, mc("gold_ingot"));
         addPlateRecipe(plateMaterials, "copper", 3, mc("copper_ingot"), hbm("ingot_copper"));
@@ -412,7 +414,7 @@ public final class HbmAnvilRecipes {
                         ingredient("plate_polymer", 8),
                         ingredient("coil_copper", 4)
                 ),
-                blockItem("connector_red_super", 1),
+                blockItem("red_connector_super", 1),
                 2
         );
         addConstruction(
@@ -746,6 +748,42 @@ public final class HbmAnvilRecipes {
                 -1,
                 AnvilConstructionRecipe.OverlayType.RECYCLING
         ));
+    }
+
+    /** Direct 1.7.10 PowerCableBox construction and recycling recipes. */
+    private static void addRedCopperCableBoxRecipes() {
+        if (!(HbmBlocks.RED_CABLE_BOX.get().asItem() instanceof PowerCableBoxBlockItem boxCable)) {
+            return;
+        }
+        Optional<AnvilIngredient> redCopper = ingredient("ingot_red_copper", 1);
+        Optional<AnvilIngredient> polymerPlate = ingredient("plate_polymer", 1);
+        Optional<ItemStack> redCopperOutput = stack(hbm("ingot_red_copper"), 1);
+        Optional<ItemStack> polymerPlateOutput = stack(hbm("plate_polymer"), 1);
+        if (redCopper.isEmpty() || polymerPlate.isEmpty()
+                || redCopperOutput.isEmpty() || polymerPlateOutput.isEmpty()) {
+            return;
+        }
+
+        for (int size = 0; size < 5; size++) {
+            ItemStack cableStack = PowerCableBoxBlockItem.stackFor(boxCable, size);
+            ItemStack output = cableStack.copyWithCount(16);
+            CONSTRUCTION.add(AnvilConstructionRecipe.construction(
+                    List.of(redCopper.get(), polymerPlate.get()), output, 2));
+
+            Optional<AnvilIngredient> cableInput = AnvilIngredient.ofStacks(16, cableStack);
+            if (cableInput.isPresent()) {
+                CONSTRUCTION.add(new AnvilConstructionRecipe(
+                        List.of(cableInput.get()),
+                        List.of(
+                                new AnvilOutput(redCopperOutput.get()),
+                                new AnvilOutput(polymerPlateOutput.get())
+                        ),
+                        2,
+                        -1,
+                        AnvilConstructionRecipe.OverlayType.RECYCLING
+                ));
+            }
+        }
     }
 
     private static Optional<AnvilIngredient> ingredientOptional(String path, int count) {

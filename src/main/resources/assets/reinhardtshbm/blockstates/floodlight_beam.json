@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/floodlight_beam"
+                              "model":  "minecraft:block/air"
                           }
                  }
 }

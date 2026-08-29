@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/sat_dock"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

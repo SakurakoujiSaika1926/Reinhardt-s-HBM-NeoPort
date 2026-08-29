@@ -1,5 +1,9 @@
 package com.reinhardt.hbm.worldgen.structure;
 
+import com.reinhardt.hbm.block.BobbleheadBlock;
+import com.reinhardt.hbm.block.BobbleheadType;
+import com.reinhardt.hbm.blockentity.BobbleheadBlockEntity;
+import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmWorldgenStructures;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -2989,7 +2993,16 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
         }
 
         void placeRandomBobble(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int x, int y, int z) {
-            setDirect(level, chunkBox, x, y, z, "reinhardtshbm:bobblehead", random.nextInt(16));
+            BlockPos pos = pos(x, y, z);
+            if (!chunkBox.isInside(pos) || pos.getY() < level.getMinBuildHeight() || pos.getY() >= level.getMaxBuildHeight()) {
+                return;
+            }
+            BlockState state = HbmBlocks.BOBBLEHEAD.get().defaultBlockState()
+                    .setValue(BobbleheadBlock.ROTATION, random.nextInt(16));
+            level.setBlock(pos, state, 2);
+            if (level.getBlockEntity(pos) instanceof BobbleheadBlockEntity bobble) {
+                bobble.setType(BobbleheadType.byOrdinal(random.nextInt(24) + 1));
+            }
         }
 
         int getPillarMeta(int meta) {

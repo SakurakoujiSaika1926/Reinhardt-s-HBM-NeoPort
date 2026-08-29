@@ -190,7 +190,6 @@ capacitor_niobium
 capacitor_schrabidate
 capacitor_tantalium
 cargo_elevator
-chain
 charge_c4
 charge_dynamite
 charge_miner
@@ -206,7 +205,6 @@ cluster_depth_titanium
 cluster_depth_tungsten
 cluster_iron
 cluster_titanium
-cm_anchor
 cm_block
 cm_circuit
 cm_engine
@@ -249,7 +247,7 @@ crane_partitioner
 crane_router
 crane_splitter
 crane_unboxer
-crashed_balefire
+crashed_bomb
 crate
 crate_ammo
 crate_can
@@ -267,6 +265,7 @@ crystal_hardened
 crystal_pulsar
 crystal_virus
 custom_machine
+custom_machine_anchor
 deco_aluminium
 deco_asbestos
 deco_beryllium
@@ -345,6 +344,7 @@ dummy_plate_compact_launcher
 dummy_plate_launch_table
 dummy_port_compact_launcher
 dummy_port_launch_table
+dungeon_chain
 dungeon_spawner
 dynamite
 emp_bomb
@@ -567,7 +567,8 @@ machine_radar
 machine_radar_large
 machine_radgen
 machine_radiolysis
-machine_reactor_breeding
+machine_reactor
+machine_reactor_small
 machine_refinery
 machine_rotary_furnace
 machine_rtg_furnace_off
@@ -602,6 +603,7 @@ machine_waste_drum
 machine_weapon_table
 machine_well
 machine_wood_burner
+machine_zirnox
 mass_storage
 meteor_battery
 meteor_brick
@@ -715,6 +717,7 @@ pipe_anchor
 piston_inserter
 plant_dead
 plant_flower
+plant_reeds
 plant_tall
 plushie
 pneumatic_storage_access
@@ -805,8 +808,6 @@ rbmk_steam_inlet
 rbmk_steam_outlet
 rbmk_storage
 rbmk_terminal
-reactor_research
-reactor_zirnox
 rebar
 red_barrel
 red_cable
@@ -823,7 +824,6 @@ red_pylon_medium_steel_transformer
 red_pylon_medium_wood
 red_pylon_medium_wood_transformer
 red_wire_coated
-reeds
 refueler
 reinforced_brick
 reinforced_brick_stairs
@@ -917,7 +917,7 @@ therm_exo
 tile_lab
 tile_lab_broken
 tile_lab_cracked
-tnt
+tnt_ntm
 toxic_block
 transition_seal
 trapdoor_steel

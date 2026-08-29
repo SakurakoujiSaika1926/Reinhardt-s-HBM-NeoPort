@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "all":  "reinhardtshbm:block/deco_red_copper"
                  },
     "parent":  "minecraft:block/cube_all"
 }

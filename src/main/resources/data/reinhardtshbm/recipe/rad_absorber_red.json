@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["ICI", "CPC", "ICI"],
+  "key": {
+    "I": { "tag": "c:ingots/titanium" },
+    "C": { "tag": "c:dusts/coal" },
+    "P": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:rad_absorber"],
+      "components": {
+        "minecraft:custom_data": { "variant": "base" },
+        "minecraft:custom_model_data": 0
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rad_absorber",
+    "components": {
+      "minecraft:custom_data": { "variant": "red" },
+      "minecraft:custom_model_data": 1
+    }
+  }
+}

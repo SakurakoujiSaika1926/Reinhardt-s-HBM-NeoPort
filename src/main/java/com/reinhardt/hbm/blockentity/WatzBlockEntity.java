@@ -419,7 +419,7 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
             setBrokenColumn(level, 0, HbmBlocks.WATZ_COOLER.get().defaultBlockState(), offset[0], offset[1]);
         }
         for (int[] offset : CASING_OFFSETS) {
-            setBrokenColumn(level, 1, HbmBlocks.WATZ_CASING.get().defaultBlockState(), offset[0], offset[1]);
+            setBrokenColumn(level, 1, HbmBlocks.WATZ_END.get().defaultBlockState(), offset[0], offset[1]);
         }
     }
 

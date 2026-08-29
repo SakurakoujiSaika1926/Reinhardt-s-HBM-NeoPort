@@ -1,0 +1,1 @@
+{"variants":{"facing=north":{"model":"reinhardtshbm:block/pneumatic_storage_clutter"},"facing=east":{"model":"reinhardtshbm:block/pneumatic_storage_clutter","y":90},"facing=south":{"model":"reinhardtshbm:block/pneumatic_storage_clutter","y":180},"facing=west":{"model":"reinhardtshbm:block/pneumatic_storage_clutter","y":270}}}

@@ -46,6 +46,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.ANVIL.get(), HbmAnvilScreen::new);
         event.register(HbmMenus.FLUID_PUMP.get(), FluidPumpScreen::new);
         event.register(HbmMenus.FLUID_TANK.get(), FluidTankScreen::new);
+        event.register(HbmMenus.FILING_CABINET.get(), FilingCabinetScreen::new);
         event.register(HbmMenus.CENTRIFUGE.get(), CentrifugeScreen::new);
         event.register(HbmMenus.GAS_CENTRIFUGE.get(), GasCentrifugeScreen::new);
         event.register(HbmMenus.CRYSTALLIZER.get(), CrystallizerScreen::new);
@@ -62,6 +63,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.TURRET_CHEKHOV.get(), TurretChekhovScreen::new);
         event.register(HbmMenus.LEGACY_TURRET.get(), LegacyTurretScreen::new);
         event.register(HbmMenus.NUKE_BOY.get(), NukeBoyScreen::new);
+        event.register(HbmMenus.BOMB_MULTI.get(), BombMultiScreen::new);
         event.register(HbmMenus.SOYUZ_LAUNCHER.get(), SoyuzLauncherScreen::new);
         event.register(HbmMenus.SOYUZ_CAPSULE.get(), SoyuzCapsuleScreen::new);
         event.register(HbmMenus.TOOLBOX.get(), ToolboxScreen::new);
@@ -71,6 +73,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.WASTE_DRUM.get(), WasteDrumScreen::new);
         event.register(HbmMenus.PUREX.get(), PurexScreen::new);
         event.register(HbmMenus.ICF_PRESS.get(), IcfPressScreen::new);
+        event.register(HbmMenus.ICF.get(), IcfCoreScreen::new);
         event.register(HbmMenus.RESEARCH_REACTOR.get(), ResearchReactorScreen::new);
         event.register(HbmMenus.REACTOR_CONTROL.get(), ReactorControlScreen::new);
         event.register(HbmMenus.ZIRNOX_REACTOR.get(), ZirnoxReactorScreen::new);
@@ -120,6 +123,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.PRECISION_ASSEMBLER.get(), PrecisionAssemblerScreen::new);
         event.register(HbmMenus.FORCEFIELD.get(), ForcefieldScreen::new);
         event.register(HbmMenus.SATELLITE_LINKER.get(), SatelliteLinkerScreen::new);
+        event.register(HbmMenus.SAT_DOCK.get(), SatelliteDockScreen::new);
         event.register(HbmMenus.AUTOCRAFTER.get(), AutocrafterScreen::new);
         event.register(HbmMenus.PYRO_OVEN.get(), PyroOvenScreen::new);
         event.register(HbmMenus.RADIOLYSIS.get(), RadiolysisScreen::new);

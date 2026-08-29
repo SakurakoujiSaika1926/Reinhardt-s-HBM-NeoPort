@@ -1,0 +1,17 @@
+{
+  "multipart": [
+    { "when": { "type": "roof" }, "apply": { "model": "reinhardtshbm:block/wood_structure_roof" } },
+    { "when": { "type": "roof", "west": "true" }, "apply": { "model": "reinhardtshbm:block/wood_structure_roof_west" } },
+    { "when": { "type": "roof", "east": "true" }, "apply": { "model": "reinhardtshbm:block/wood_structure_roof_east" } },
+    { "when": { "type": "ceiling" }, "apply": { "model": "reinhardtshbm:block/wood_structure_ceiling" } },
+    { "when": { "type": "ceiling", "west": "true" }, "apply": { "model": "reinhardtshbm:block/wood_structure_ceiling_west" } },
+    { "when": { "type": "ceiling", "east": "true" }, "apply": { "model": "reinhardtshbm:block/wood_structure_ceiling_east" } },
+    { "when": { "type": "scaffold" }, "apply": { "model": "reinhardtshbm:block/wood_structure_scaffold" } },
+    { "when": { "type": "scaffold", "north": "false" }, "apply": { "model": "reinhardtshbm:block/wood_structure_scaffold_north" } },
+    { "when": { "type": "scaffold", "east": "false" }, "apply": { "model": "reinhardtshbm:block/wood_structure_scaffold_east" } },
+    { "when": { "type": "scaffold", "south": "false" }, "apply": { "model": "reinhardtshbm:block/wood_structure_scaffold_south" } },
+    { "when": { "type": "scaffold", "west": "false" }, "apply": { "model": "reinhardtshbm:block/wood_structure_scaffold_west" } },
+    { "when": { "type": "scaffold", "above": "false" }, "apply": { "model": "reinhardtshbm:block/wood_structure_scaffold_top" } },
+    { "when": { "type": "scaffold", "above": "true" }, "apply": { "model": "reinhardtshbm:block/wood_structure_scaffold_above" } }
+  ]
+}

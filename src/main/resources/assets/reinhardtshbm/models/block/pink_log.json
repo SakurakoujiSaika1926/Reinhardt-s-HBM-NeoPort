@@ -1,6 +1,7 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/pink_log"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "minecraft:block/oak_log_top",
+    "side": "reinhardtshbm:block/pink_log"
+  }
 }

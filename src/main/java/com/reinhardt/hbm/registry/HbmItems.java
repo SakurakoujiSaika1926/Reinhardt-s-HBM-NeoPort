@@ -78,6 +78,7 @@ import com.reinhardt.hbm.item.FixedBatteryItem;
 import com.reinhardt.hbm.item.GasMaskFilterItem;
 import com.reinhardt.hbm.item.GasMaskItem;
 import com.reinhardt.hbm.item.BlowtorchItem;
+import com.reinhardt.hbm.item.BoltgunItem;
 import com.reinhardt.hbm.item.GuideBookItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
@@ -92,7 +93,6 @@ import com.reinhardt.hbm.item.UniversalGrenadeItem;
 import com.reinhardt.hbm.item.LegacyFluidSiphonItem;
 import com.reinhardt.hbm.item.LegacyPowerNetToolItem;
 import com.reinhardt.hbm.item.LegacyCigaretteItem;
-import com.reinhardt.hbm.item.LegacyCatalogItem;
 import com.reinhardt.hbm.item.LegacyBookLoreItem;
 import com.reinhardt.hbm.item.LegacyCraftBookItem;
 import com.reinhardt.hbm.item.LegacyCustomKitItem;
@@ -328,7 +328,7 @@ public final class HbmItems {
 
     private static final Set<String> RETIRED_LEGACY_CATALOG_ITEM_IDS = Set.of(
             "ammo_bag", "ammo_bag_infinite", "ammo_container", "ammo_debug", "ammo_fireext", "ammo_secret",
-            "battery_advanced", "boltgun", "cell", "coin_siege",
+            "battery_advanced", "cell", "coin_siege",
             "fluid_barrel_v2", "fluid_tank_lead_v2", "fluid_tank_v2", "gun_egon", "gun_vortex",
             "jetpack_glider", "mechanism_launcher_1", "mechanism_launcher_2", "mechanism_revolver_1",
             "mechanism_revolver_2", "mechanism_rifle_1", "mechanism_rifle_2", "mechanism_special",
@@ -527,6 +527,15 @@ public final class HbmItems {
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER = material(MISC_MATERIALS, "circuit_controller");
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER_ADVANCED = material(MISC_MATERIALS, "circuit_controller_advanced");
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER_QUANTUM = material(MISC_MATERIALS, "circuit_controller_quantum");
+    public static final DeferredItem<Item> CIRCUIT = machineComponent(
+            "circuit",
+            () -> new LegacyVariantItem(new Item.Properties(), "circuit", LegacyVariantItem.variants(
+                    "vacuum_tube", "capacitor", "capacitor_tantalium", "pcb", "silicon",
+                    "chip", "chip_bismoid", "analog", "basic", "advanced", "capacitor_board",
+                    "bismoid", "controller_chassis", "controller", "controller_advanced", "quantum",
+                    "chip_quantum", "controller_quantum", "atomic_clock", "numitron"
+            ))
+    );
     public static final DeferredItem<Item> CRT_DISPLAY = material(MISC_MATERIALS, "crt_display");
     public static final DeferredItem<Item> MOTOR = material(MISC_MATERIALS, "motor");
     public static final DeferredItem<Item> MOTOR_BISMUTH = material(MISC_MATERIALS, "motor_bismuth");
@@ -1358,6 +1367,10 @@ public final class HbmItems {
             "acetylene_torch",
             () -> new BlowtorchItem(new Item.Properties(), BlowtorchItem.Kind.ACETYLENE)
     );
+    public static final DeferredItem<Item> BOLTGUN = toolItem(
+            "boltgun",
+            () -> new BoltgunItem(new Item.Properties())
+    );
     // 1.7.10 used the same textual id for a block and this hand-held book.
     // Modern registries share one namespace, so the formal book keeps the established compatibility id.
     public static final DeferredItem<Item> BOOK_GUIDE = toolItem(
@@ -1728,6 +1741,7 @@ public final class HbmItems {
             "grenade_universal", () -> new UniversalGrenadeItem(new Item.Properties())
     );
     public static final DeferredItem<Item> PELLET_ANTIMATTER = legacyItem("pellet_antimatter", () -> new LegacyDropItem(LegacyDropItem.Kind.PELLET_ANTIMATTER));
+    public static final DeferredItem<Item> CRYSTAL_XEN = legacyItem("crystal_xen", () -> new LegacyDropItem(LegacyDropItem.Kind.CRYSTAL_XEN));
     public static final DeferredItem<Item> SINGULARITY = legacyItem("singularity", () -> new LegacyDropItem(LegacyDropItem.Kind.SINGULARITY));
     public static final DeferredItem<Item> SINGULARITY_COUNTER_RESONANT = legacyItem("singularity_counter_resonant", () -> new LegacyDropItem(LegacyDropItem.Kind.SINGULARITY_COUNTER_RESONANT));
     public static final DeferredItem<Item> SINGULARITY_SUPER_HEATED = legacyItem("singularity_super_heated", () -> new LegacyDropItem(LegacyDropItem.Kind.SINGULARITY_SUPER_HEATED));
@@ -2320,7 +2334,7 @@ public final class HbmItems {
         registerPortedLegacyRbmkItems();
         registerRawOres();
         registerPortedRemainingItems();
-        registerRemainingLegacyCatalogItems();
+        verifyLegacyItemCoverage();
     }
 
     private HbmItems() {
@@ -3073,9 +3087,14 @@ public final class HbmItems {
         rawOre("raw_schrabidium");
     }
 
-    /** Register the actual remaining 1.7.10 item catalog entries. */
-    private static void registerRemainingLegacyCatalogItems() {
+    /**
+     * Every obtainable 1.7.10 item must have an explicit modern registration.
+     * Do not turn a missed port into a generic Item: that masks missing behavior,
+     * recipes and data behind a valid-looking registry id.
+     */
+    private static void verifyLegacyItemCoverage() {
         Set<String> blockIds = loadLegacyBlockIds();
+        List<String> unported = new ArrayList<>();
         for (String id : loadLegacyItemIds()) {
             if (CORE_ITEM_IDS.contains(id)
                     || blockIds.contains(id)
@@ -3084,7 +3103,12 @@ public final class HbmItems {
                     || id.startsWith("gun_")) {
                 continue;
             }
-            coreItem(id, () -> LegacyCatalogItem.fromLegacyId(id));
+            unported.add(id);
+        }
+        if (!unported.isEmpty()) {
+            throw new IllegalStateException(
+                    "Missing recursive 1.7.10 item port(s): " + String.join(", ", unported)
+            );
         }
     }
 

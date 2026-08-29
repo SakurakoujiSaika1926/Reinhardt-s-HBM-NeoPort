@@ -62,6 +62,12 @@ public final class PileGraphiteBlockEntity extends BlockEntity {
         setChanged();
     }
 
+    /** 1.7.10 BlockGraphiteFuel#applyFan: cool by exactly 2.5 percent. */
+    public void coolByFan() {
+        this.heat = (int) (this.heat * 0.975D);
+        setChanged();
+    }
+
     /** State carried with a rod when legacy-style axial insertion pushes it onward. */
     public PileState snapshot() {
         return new PileState(this.heat, this.neutrons, this.lastNeutrons, this.progress, this.maxNeutrons);

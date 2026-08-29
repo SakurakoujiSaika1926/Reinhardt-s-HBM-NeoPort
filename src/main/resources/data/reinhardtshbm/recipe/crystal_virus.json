@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["STS", "THT", "STS"],
+  "key": {
+    "S": { "item": "reinhardtshbm:particle_strange" },
+    "T": { "item": "reinhardtshbm:powder_tungsten" },
+    "H": { "item": "reinhardtshbm:crystal_horn" }
+  },
+  "result": { "id": "reinhardtshbm:crystal_virus" }
+}

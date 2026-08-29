@@ -1,0 +1,24 @@
+newmtl inner_side
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:block/capacitor_copper_inner_side
+
+newmtl inner_top
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:block/capacitor_copper_inner_top
+
+newmtl side
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:block/capacitor_copper_side
+
+newmtl top
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:block/capacitor_copper_top
+
+newmtl bottom
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:block/capacitor_copper_bottom

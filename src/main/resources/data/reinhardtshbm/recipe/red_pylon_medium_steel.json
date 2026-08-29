@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCW",
+    "IIW",
+    "  S"
+  ],
+  "key": {
+    "C": { "item": "reinhardtshbm:coil_copper" },
+    "I": { "tag": "c:plates/polymer" },
+    "W": { "item": "reinhardtshbm:pipe_steel" },
+    "S": { "tag": "c:cobblestones" }
+  },
+  "result": {
+    "id": "reinhardtshbm:red_pylon_medium_steel",
+    "count": 2
+  }
+}

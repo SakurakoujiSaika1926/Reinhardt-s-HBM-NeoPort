@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "reinhardtshbm:block/icf_casing", "up": "reinhardtshbm:block/icf_casing",
+    "north": "reinhardtshbm:block/icf_casing", "south": "reinhardtshbm:block/icf_controller",
+    "west": "reinhardtshbm:block/icf_casing", "east": "reinhardtshbm:block/icf_casing"
+  }
+}

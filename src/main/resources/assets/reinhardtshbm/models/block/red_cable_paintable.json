@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "all":  "reinhardtshbm:block/red_cable_base"
                  },
     "parent":  "minecraft:block/cube_all"
 }

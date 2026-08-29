@@ -1,0 +1,19 @@
+{
+    "loader":  "neoforge:obj",
+    "model":  "reinhardtshbm:models/obj/trinkets/bobble_accessory_sacred_dragon.obj",
+    "mtl_override":  "reinhardtshbm:models/obj/trinkets/bobble_accessory.mtl",
+    "automatic_culling":  false,
+    "shade_quads":  true,
+    "flip_v":  false,
+    "visibility":  {
+                       "Shells":  false,
+                       "Stock":  true,
+                       "Lever":  true,
+                       "Buckle":  true,
+                       "Barrel":  false,
+                       "BarrelShort":  true
+                   },
+    "textures":  {
+                     "particle":  "reinhardtshbm:models/thegadget3_"
+                 }
+}

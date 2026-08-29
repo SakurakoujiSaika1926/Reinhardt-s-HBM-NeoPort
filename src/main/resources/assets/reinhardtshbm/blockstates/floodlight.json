@@ -1,7 +1,1 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/floodlight"
-                          }
-                 }
-}
+{"variants":{"":{"model":"reinhardtshbm:block/empty"}}}

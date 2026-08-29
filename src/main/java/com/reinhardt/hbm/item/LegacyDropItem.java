@@ -1,11 +1,14 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.explosion.LegacyChaosEffects;
 import com.reinhardt.hbm.entity.LegacyVortexEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -25,7 +28,7 @@ public final class LegacyDropItem extends Item {
 
     public enum Kind {
         BETA, BLACK_HOLE, DETONATOR_DE, DETONATOR_DEADMAN, PELLET_ANTIMATTER,
-        SINGULARITY, SINGULARITY_COUNTER_RESONANT, SINGULARITY_SUPER_HEATED
+        CRYSTAL_XEN, SINGULARITY, SINGULARITY_COUNTER_RESONANT, SINGULARITY_SUPER_HEATED
     }
 
     private final Kind kind;
@@ -61,6 +64,11 @@ public final class LegacyDropItem extends Item {
 
         switch (this.kind) {
             case PELLET_ANTIMATTER -> level.explode(entity, entity.getX(), entity.getY(), entity.getZ(), 20.0F, true, Level.ExplosionInteraction.BLOCK);
+            case CRYSTAL_XEN -> {
+                if (level instanceof ServerLevel serverLevel && HbmConfig.DROPPED_XEN_CRYSTAL_EFFECT.get()) {
+                    LegacyChaosEffects.floatAndLift(serverLevel, entity.blockPosition());
+                }
+            }
             case SINGULARITY -> LegacyVortexEntity.spawn(level, entity.position(), 1.5F, 0.0025F, false);
             case SINGULARITY_COUNTER_RESONANT, SINGULARITY_SUPER_HEATED ->
                     LegacyVortexEntity.spawn(level, entity.position(), 2.5F, 0.0025F, false);

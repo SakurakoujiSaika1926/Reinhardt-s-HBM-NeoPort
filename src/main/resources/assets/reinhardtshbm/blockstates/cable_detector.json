@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/cable_detector"
-                          }
-                 }
+    "variants": {
+        "lit=false": {
+            "model": "reinhardtshbm:block/cable_detector_off"
+        },
+        "lit=true": {
+            "model": "reinhardtshbm:block/cable_detector_on"
+        }
+    }
 }

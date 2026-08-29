@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" P ", "PIP", " P "],
+  "key": {
+    "P": { "tag": "c:plates/steel" },
+    "I": { "item": "reinhardtshbm:plate_polymer" }
+  },
+  "result": {
+    "id": "reinhardtshbm:filing_cabinet",
+    "components": { "minecraft:custom_data": { "variant": 1 } }
+  }
+}

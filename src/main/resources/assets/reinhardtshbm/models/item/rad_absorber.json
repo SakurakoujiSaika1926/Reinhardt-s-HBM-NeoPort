@@ -1,3 +1,8 @@
 {
-    "parent":  "reinhardtshbm:block/rad_absorber"
+  "parent":  "reinhardtshbm:block/rad_absorber_base",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/rad_absorber_red" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/rad_absorber_green" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:block/rad_absorber_pink" }
+  ]
 }

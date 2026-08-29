@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/icf_component_scaffold",
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:block/icf_component_vessel" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:block/icf_component_vessel_welded" },
+    { "predicate": { "custom_model_data": 3 }, "model": "reinhardtshbm:block/icf_component_structure" },
+    { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:block/icf_component_structure_bolted" }
+  ]
+}

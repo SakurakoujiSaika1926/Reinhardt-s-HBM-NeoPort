@@ -11,6 +11,10 @@ import java.util.List;
 public interface PowerGraphNode {
     BlockPos getGraphPos();
 
+    default boolean isPowerGraphEnabled(LevelAccessor level) {
+        return true;
+    }
+
     default List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
         List<BlockPos> connectors = new ArrayList<>(Direction.values().length);
         BlockPos pos = getGraphPos();
@@ -18,6 +22,21 @@ public interface PowerGraphNode {
             connectors.add(pos.relative(direction).immutable());
         }
         return List.copyOf(connectors);
+    }
+
+    /** Directed graph edges used by one-way power devices. */
+    default List<BlockPos> getPowerFlowPositions(LevelAccessor level) {
+        return getPowerConnectorPositions(level);
+    }
+
+    /** Maximum amount of power this graph node may pass in one tick. */
+    default long getPowerFlowLimit(LevelAccessor level) {
+        return Long.MAX_VALUE;
+    }
+
+    /** Whether a directed path may enter this node from a connector. */
+    default boolean canAcceptPowerFrom(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
+        return canConnectPower(level, connectorPos, machineSide);
     }
 
     default boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {

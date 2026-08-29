@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "PCP"
+  ],
+  "key": {
+    "S": { "tag": "c:ingots/steel" },
+    "P": { "tag": "c:ingots/plastic" },
+    "C": { "item": "reinhardtshbm:crate_iron" }
+  },
+  "result": {
+    "id": "reinhardtshbm:sat_dock"
+  }
+}

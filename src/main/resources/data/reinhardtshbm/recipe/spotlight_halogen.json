@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "decorations",
+  "pattern": ["G", "B", "S"],
+  "key": {
+    "G": { "tag": "c:glass_panes" },
+    "B": { "tag": "c:dusts/bromine" },
+    "S": { "tag": "c:plates/steel" }
+  },
+  "result": { "id": "reinhardtshbm:spotlight_halogen", "count": 8 }
+}

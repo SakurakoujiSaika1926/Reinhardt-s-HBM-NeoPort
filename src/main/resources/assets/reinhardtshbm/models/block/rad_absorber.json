@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "all":  "reinhardtshbm:block/absorber"
                  },
     "parent":  "minecraft:block/cube_all"
 }

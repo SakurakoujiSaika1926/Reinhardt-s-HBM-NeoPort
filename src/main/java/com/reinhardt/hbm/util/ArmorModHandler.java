@@ -9,6 +9,8 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
+import java.util.Arrays;
+
 public final class ArmorModHandler {
     public static final int HELMET_ONLY = 0;
     public static final int PLATE_ONLY = 1;
@@ -75,6 +77,7 @@ public final class ArmorModHandler {
 
     public static ItemStack[] pryMods(ItemStack armor, HolderLookup.Provider registries) {
         ItemStack[] slots = new ItemStack[MOD_SLOTS];
+        Arrays.fill(slots, ItemStack.EMPTY);
         if (armor.isEmpty()) {
             return slots;
         }

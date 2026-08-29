@@ -124,7 +124,8 @@ public class RadiationSurveyItem extends Item {
         );
     }
 
-    private static void printGeigerData(Level level, Player player) {
+    /** Shared report used by the placed GeigerCounter block, matching the old right-click action. */
+    public static void printGeigerData(Level level, Player player) {
         HbmLivingRadiation data = HbmLivingRadiation.get(player);
         double body = data.getRadiation();
         double chunkRadiation = level instanceof ServerLevel serverLevel

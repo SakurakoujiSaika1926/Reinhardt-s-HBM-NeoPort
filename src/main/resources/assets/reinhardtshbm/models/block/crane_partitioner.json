@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "all":  "reinhardtshbm:block/crane_partitioner_side"
                  },
     "parent":  "minecraft:block/cube_all"
 }

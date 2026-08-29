@@ -1,0 +1,24 @@
+{
+    "type":  "reinhardtshbm:shredder",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:bobblehead"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_data":  {
+                                                                        "type":  "mellow"
+                                                                    },
+                                          "minecraft:custom_model_data":  23
+                                      }
+                   },
+    "result":  {
+                   "id":  "reinhardtshbm:scrap_plastic",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                    "variant":  "card_processor"
+                                                                },
+                                      "minecraft:custom_model_data":  22
+                                  }
+               }
+}

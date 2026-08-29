@@ -1,0 +1,9 @@
+{
+  "parent": "reinhardtshbm:block/charger",
+  "visibility": {
+    "Base": false,
+    "Light": false,
+    "Left": false,
+    "Slide": false
+  }
+}

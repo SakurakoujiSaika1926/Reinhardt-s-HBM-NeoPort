@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["CSC", "TST", "G G"],
+  "key": {
+    "C": { "item": "reinhardtshbm:circuit_capacitor" },
+    "S": { "tag": "c:plates/steel" },
+    "T": { "item": "reinhardtshbm:coil_tungsten" },
+    "G": { "tag": "c:glass_panes" }
+  },
+  "result": { "id": "reinhardtshbm:floodlight", "count": 2 }
+}

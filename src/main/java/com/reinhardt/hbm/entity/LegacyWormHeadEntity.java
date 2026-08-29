@@ -120,6 +120,9 @@ public final class LegacyWormHeadEntity extends Monster {
         } else {
             attackCounter = 0;
         }
+        if (tickCount % 5 == 0) {
+            damageNearby();
+        }
         if (getHealth() < getMaxHealth() && tickCount % 6 == 0) {
             heal(target == null && healLockTicks == 0 ? 4.0F : 1.0F);
         }
@@ -180,6 +183,22 @@ public final class LegacyWormHeadEntity extends Monster {
         HitResult result = level().clip(new ClipContext(getEyePosition(), entity.getEyePosition(),
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
         return result.getType() == HitResult.Type.MISS;
+    }
+
+    private void damageNearby() {
+        for (Entity entity : level().getEntities(this, getBoundingBox().inflate(0.5D), Entity::isAlive)) {
+            if (!(entity instanceof LivingEntity living)
+                    || entity instanceof LegacyWormBodyEntity body && body.belongsTo(getUUID())
+                    || entity instanceof LegacyWormHeadEntity head && head.getUUID().equals(getUUID())) {
+                continue;
+            }
+            if (!living.hurt(damageSources().mobAttack(this), 1000.0F)) {
+                continue;
+            }
+            Vec3 delta = living.position().subtract(position());
+            double knockback = delta.lengthSqr() + 0.1D;
+            living.push(delta.x / knockback, delta.y / knockback, delta.z / knockback);
+        }
     }
 
     private void fireLasers(LivingEntity target) {

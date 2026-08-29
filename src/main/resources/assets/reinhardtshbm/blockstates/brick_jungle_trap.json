@@ -1,7 +1,19 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/brick_jungle_trap"
-                          }
-                 }
+{
+  "variants": {
+    "trap=0": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=1": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=2": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=3": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=4": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=5": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=6": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=7": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=8": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=9": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=10": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=11": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=12": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=13": { "model": "reinhardtshbm:block/brick_jungle_trap" },
+    "trap=14": { "model": "reinhardtshbm:block/brick_jungle_trap" }
+  }
 }

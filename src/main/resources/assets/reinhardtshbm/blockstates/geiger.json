@@ -1,7 +1,8 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/geiger"
-                          }
-                 }
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/geiger" },
+    "facing=west": { "model": "reinhardtshbm:block/geiger", "y": 90 },
+    "facing=south": { "model": "reinhardtshbm:block/geiger", "y": 180 },
+    "facing=east": { "model": "reinhardtshbm:block/geiger", "y": 270 }
+  }
 }

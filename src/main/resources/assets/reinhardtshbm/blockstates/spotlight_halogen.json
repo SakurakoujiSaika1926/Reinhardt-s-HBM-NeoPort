@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/spotlight_halogen"
+                     "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

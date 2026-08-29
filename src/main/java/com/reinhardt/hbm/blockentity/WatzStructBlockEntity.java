@@ -43,7 +43,7 @@ public class WatzStructBlockEntity extends BlockEntity {
                 }
             }
             for (int[] offset : WatzBlockEntity.CASING_OFFSETS) {
-                if (!has(level, core, HbmBlocks.WATZ_CASING.get(), offset[0], y, offset[1])) {
+                if (!has(level, core, HbmBlocks.WATZ_END.get(), offset[0], y, offset[1])) {
                     return false;
                 }
             }

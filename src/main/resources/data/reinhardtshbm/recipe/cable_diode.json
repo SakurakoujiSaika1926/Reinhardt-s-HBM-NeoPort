@@ -1,0 +1,11 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "redstone",
+    "pattern": ["Q", "CAC", "Q"],
+    "key": {
+        "Q": { "item": "reinhardtshbm:nugget_schrabidium" },
+        "C": { "item": "reinhardtshbm:red_cable" },
+        "A": { "item": "reinhardtshbm:ingot_aluminium" }
+    },
+    "result": { "id": "reinhardtshbm:cable_diode" }
+}

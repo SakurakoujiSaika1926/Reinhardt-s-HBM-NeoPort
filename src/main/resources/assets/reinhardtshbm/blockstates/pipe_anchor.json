@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/pipe_anchor"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

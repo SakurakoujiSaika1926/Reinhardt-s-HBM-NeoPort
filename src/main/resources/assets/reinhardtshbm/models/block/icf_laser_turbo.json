@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "reinhardtshbm:block/icf_capacitor_top", "up": "reinhardtshbm:block/icf_capacitor_top",
+    "north": "reinhardtshbm:block/icf_turbocharger", "south": "reinhardtshbm:block/icf_turbocharger",
+    "west": "reinhardtshbm:block/icf_turbocharger", "east": "reinhardtshbm:block/icf_turbocharger"
+  }
+}

@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "all":  "reinhardtshbm:block/boxduct_cable_junction"
                  },
     "parent":  "minecraft:block/cube_all"
 }

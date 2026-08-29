@@ -96,10 +96,8 @@ if ($factoryStart -ge 0 -and $factoryEnd -gt $factoryStart) {
     }
 }
 
-# `registerRemainingLegacyCatalogItems` is intentionally a real registration
-# path, but it only creates a generic LegacyCatalogItem. It must remain visible
-# as unfinished work in this audit rather than being counted as a port merely
-# because the id exists in the modern registry.
+# Every catalog id must resolve to an explicit modern registration or a
+# deliberately retired legacy id. There is no generic catalog-item fallback.
 $explicitModernItemIds = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($match in [regex]::Matches($hbmItemsText, '"([a-z][a-z0-9_.-]+)"')) {
     [void]$explicitModernItemIds.Add($match.Groups[1].Value)
@@ -165,7 +163,7 @@ foreach ($id in @('bucket_mud', 'bucket_acid', 'bucket_toxic', 'bucket_schrabidi
 # These are registered by HbmItems.registerLegacyMaterialItems() at bootstrap.
 # They intentionally do not have one field per id, so a source-only audit must
 # mirror that dispatch instead of reporting hundreds of formal resources as
-# LegacyCatalogItem fallbacks.
+# missing just because they have no individual field declaration.
 function Test-DynamicFormalItem([string]$Id, [string]$LegacyClass) {
     if ($dynamicFluidBucketIds.Contains($Id)) {
         return $true
@@ -230,11 +228,11 @@ foreach ($id in $items) {
         $portStatus = 'legacy_fallback'
         $implementation = 'LegacyHbmContent.createLegacyItem'
     } else {
-        $portStatus = 'catalog_fallback'
-        $implementation = 'HbmItems.registerRemainingLegacyCatalogItems -> LegacyCatalogItem'
+        $portStatus = 'unported'
+        $implementation = 'missing explicit modern item registration'
     }
     $lines += "$id`t$portStatus`t$implementation`t$field`t$class`t$oldTexture`t$newTexture`t$oldLang`t$newLang`t$legacyBlock`t$safeExpression"
-    if ($portStatus -in @('catalog_fallback', 'legacy_fallback', 'blockitem_pending')) {
+    if ($portStatus -in @('unported', 'legacy_fallback', 'blockitem_pending')) {
         $remainingPorts.Add([PSCustomObject]@{
             id = $id
             port_status = $portStatus
@@ -257,7 +255,11 @@ $remainingPorts | Export-Csv -LiteralPath $remainingPortsPath -NoTypeInformation
 Write-Host "Wrote item audit: $reportPath"
 Write-Host "Wrote remaining item ports: $remainingPortsPath"
 Write-Host "Audited 1.7.10 standalone items: $($items.Count)"
-foreach ($status in 'formal', 'catalog_fallback', 'legacy_fallback', 'retired', 'blockitem_pending') {
+foreach ($status in 'formal', 'unported', 'legacy_fallback', 'retired', 'blockitem_pending') {
     $count = @($lines | Select-Object -Skip 1 | Where-Object { ($_ -split "`t")[1] -eq $status }).Count
     Write-Host "$status=$count"
+}
+
+if ($remainingPorts.Count -gt 0) {
+    throw "Legacy item audit found $($remainingPorts.Count) incomplete port(s). See $remainingPortsPath."
 }

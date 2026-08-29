@@ -116,6 +116,7 @@ public final class DecorativeCtmBlockModel implements IDynamicBakedModel {
             same("hadron_coil_schrabidate"),
             same("hadron_coil_schrabidium"),
             same("hadron_coil_starmetal"),
+            ctmVariants("icf_block", "icf_block_ct", "icf_block_port", "icf_block_port_ct", "icf_block", "icf_controller"),
             same("red_wire_sealed"),
             same("reinforced_brick"),
             cutout("reinforced_glass"),
@@ -141,21 +142,18 @@ public final class DecorativeCtmBlockModel implements IDynamicBakedModel {
             List<ModelResourceLocation> locations = models.keySet().stream()
                     .filter(location -> entry.id().equals(location.id()) && !ModelResourceLocation.INVENTORY_VARIANT.equals(location.variant()))
                     .toList();
-            BakedModel fallback = locations.stream()
-                    .map(models::get)
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
-            if (fallback == null) {
+            if (locations.isEmpty()) {
                 ReinhardtsHBM.LOGGER.warn("Unable to install decorative CTM model for {}: no baked block model was found", entry.id());
                 continue;
             }
-
-            TextureAtlasSprite baseSprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, entry.baseTexture()));
-            TextureAtlasSprite ctmSprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, entry.ctmTexture()));
-            DecorativeCtmBlockModel model = new DecorativeCtmBlockModel(fallback, entry, baseSprite, ctmSprite);
             for (ModelResourceLocation location : locations) {
-                models.put(location, model);
+                BakedModel fallback = models.get(location);
+                if (fallback == null) {
+                    continue;
+                }
+                TextureAtlasSprite baseSprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, entry.baseTexture(location)));
+                TextureAtlasSprite ctmSprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, entry.ctmTexture(location)));
+                models.put(location, new DecorativeCtmBlockModel(fallback, entry, baseSprite, ctmSprite));
             }
         }
     }
@@ -336,19 +334,43 @@ public final class DecorativeCtmBlockModel implements IDynamicBakedModel {
         return entry(path, path + "_ctm", RenderLayer.TRANSLUCENT, path);
     }
 
+    private static Entry ctmVariants(String path, String ctmTexture, String alternatePath,
+                                     String alternateCtmTexture, String... connectsTo) {
+        ResourceLocation id = ReinhardtsHBM.id(path);
+        return new Entry(id, ReinhardtsHBM.id("block/" + path), ReinhardtsHBM.id("block/" + ctmTexture),
+                connectedIds(connectsTo), RenderLayer.DEFAULT,
+                ReinhardtsHBM.id("block/" + alternatePath), ReinhardtsHBM.id("block/" + alternateCtmTexture));
+    }
+
     private static Entry entry(String path, String ctmTexture, String... connectsTo) {
         return entry(path, ctmTexture, RenderLayer.DEFAULT, connectsTo);
     }
 
     private static Entry entry(String path, String ctmTexture, RenderLayer renderLayer, String... connectsTo) {
         ResourceLocation id = ReinhardtsHBM.id(path);
-        Set<ResourceLocation> connected = java.util.Arrays.stream(connectsTo)
-                .map(ReinhardtsHBM::id)
-                .collect(java.util.stream.Collectors.toUnmodifiableSet());
-        return new Entry(id, ReinhardtsHBM.id("block/" + path), ReinhardtsHBM.id("block/" + ctmTexture), connected, renderLayer);
+        return new Entry(id, ReinhardtsHBM.id("block/" + path), ReinhardtsHBM.id("block/" + ctmTexture),
+                connectedIds(connectsTo), renderLayer, null, null);
     }
 
-    private record Entry(ResourceLocation id, ResourceLocation baseTexture, ResourceLocation ctmTexture, Set<ResourceLocation> connectsTo, RenderLayer renderLayer) {
+    private static Set<ResourceLocation> connectedIds(String... connectsTo) {
+        return java.util.Arrays.stream(connectsTo)
+                .map(ReinhardtsHBM::id)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
+    private record Entry(ResourceLocation id, ResourceLocation baseTexture, ResourceLocation ctmTexture,
+                         Set<ResourceLocation> connectsTo, RenderLayer renderLayer,
+                         @Nullable ResourceLocation alternateBaseTexture, @Nullable ResourceLocation alternateCtmTexture) {
+        private ResourceLocation baseTexture(ModelResourceLocation location) {
+            return alternateBaseTexture != null && location.variant().contains("variant=1")
+                    ? alternateBaseTexture : baseTexture;
+        }
+
+        private ResourceLocation ctmTexture(ModelResourceLocation location) {
+            return alternateCtmTexture != null && location.variant().contains("variant=1")
+                    ? alternateCtmTexture : ctmTexture;
+        }
+
         private boolean connects(BlockState state) {
             return this.connectsTo.contains(BuiltInRegistries.BLOCK.getKey(state.getBlock()));
         }

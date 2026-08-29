@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "reinhardtshbm:block/cmt_terminal_front",
+    "side": "reinhardtshbm:block/cmt_terminal_side",
+    "top": "reinhardtshbm:block/cmt_terminal_side"
+  }
+}

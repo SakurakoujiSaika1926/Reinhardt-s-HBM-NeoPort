@@ -25,6 +25,15 @@ public final class LegacyVariantStrengths {
             new Strength(15.0F, 750.0F)
     };
 
+    public static final Strength[] CONCRETE_SLAB = {
+            new Strength(15.0F, 140.0F),
+            new Strength(15.0F, 140.0F),
+            new Strength(15.0F, 150.0F),
+            new Strength(20.0F, 500.0F),
+            new Strength(20.0F, 500.0F),
+            new Strength(15.0F, 120.0F)
+    };
+
     private LegacyVariantStrengths() {
     }
 

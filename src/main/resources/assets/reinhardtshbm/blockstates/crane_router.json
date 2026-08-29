@@ -1,7 +1,1 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/crane_router"
-                          }
-                 }
-}
+{"variants":{"facing=north,active=true":{"model":"reinhardtshbm:block/crane_router"},"facing=south,active=true":{"model":"reinhardtshbm:block/crane_router","y":180},"facing=west,active=true":{"model":"reinhardtshbm:block/crane_router","y":270},"facing=east,active=true":{"model":"reinhardtshbm:block/crane_router","y":90},"facing=north,active=false":{"model":"reinhardtshbm:block/crane_router"},"facing=south,active=false":{"model":"reinhardtshbm:block/crane_router","y":180},"facing=west,active=false":{"model":"reinhardtshbm:block/crane_router","y":270},"facing=east,active=false":{"model":"reinhardtshbm:block/crane_router","y":90}}}

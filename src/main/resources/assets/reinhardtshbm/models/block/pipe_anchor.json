@@ -1,6 +1,16 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/network/pipe_anchor.obj",
+  "mtl_override": "reinhardtshbm:models/obj/network/pipe_anchor.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "Anchor": true,
+    "Ring": false,
+    "Pipe": false
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/network/pipe_anchor"
+  }
 }

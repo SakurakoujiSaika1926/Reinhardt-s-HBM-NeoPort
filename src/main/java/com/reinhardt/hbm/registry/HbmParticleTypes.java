@@ -36,6 +36,8 @@ public final class HbmParticleTypes {
             PARTICLES.register("nuke_torex", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RBMK_FIRE =
             PARTICLES.register("rbmk_fire", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> VOLCANO_SMOKE =
+            PARTICLES.register("volcano_smoke", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> FALLOUT_RAIN =
             PARTICLES.register("fallout_rain", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RADIATION_FOG =

@@ -1,7 +1,9 @@
 package com.reinhardt.hbm.worldgen.structure;
 
 import com.reinhardt.hbm.block.ConcreteColoredBlock;
+import com.reinhardt.hbm.block.FilingCabinetBlock;
 import com.reinhardt.hbm.block.LegacyVariantBlock;
+import com.reinhardt.hbm.block.VinylTileBlock;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -18,7 +20,7 @@ public final class StructureWandBlockTarget {
 
     public static int legacyMeta(Block block, ItemStack stack) {
         CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        if (block instanceof ConcreteColoredBlock) {
+        if (block instanceof ConcreteColoredBlock || block instanceof VinylTileBlock) {
             return data.copyTag().getInt(ConcreteColoredBlock.META_TAG);
         }
 
@@ -28,6 +30,10 @@ public final class StructureWandBlockTarget {
             }
             CustomModelData modelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
             return modelData == null ? 0 : modelData.value();
+        }
+
+        if (block instanceof FilingCabinetBlock) {
+            return data.copyTag().getInt("variant");
         }
 
         CompoundMeta meta = fromCustomData(data);

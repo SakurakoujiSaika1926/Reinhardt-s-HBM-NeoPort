@@ -9,6 +9,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootParams;
+
+import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 public class LegacyVariantSlabBlock extends SlabBlock {
@@ -75,5 +80,21 @@ public class LegacyVariantSlabBlock extends SlabBlock {
 
     public int maxVariant() {
         return this.maxVariant;
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        if (this.asItem() instanceof com.reinhardt.hbm.item.LegacyVariantBlockItem item) {
+            return List.of(com.reinhardt.hbm.item.LegacyVariantBlockItem.stackFor(item, state.getValue(VARIANT)));
+        }
+        return super.getDrops(state, params);
+    }
+
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+        if (this.asItem() instanceof com.reinhardt.hbm.item.LegacyVariantBlockItem item) {
+            return com.reinhardt.hbm.item.LegacyVariantBlockItem.stackFor(item, state.getValue(VARIANT));
+        }
+        return super.getCloneItemStack(level, pos, state);
     }
 }

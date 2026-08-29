@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["BGB", "SAS", "BSB"],
+  "key": {
+    "B": { "tag": "c:ingots/beryllium" },
+    "G": { "item": "minecraft:iron_bars" },
+    "S": { "tag": "c:ingots/steel" },
+    "A": {
+      "type": "neoforge:components",
+      "items": ["reinhardtshbm:rad_absorber"],
+      "components": {
+        "minecraft:custom_data": { "variant": "base" },
+        "minecraft:custom_model_data": 0
+      }
+    }
+  },
+  "result": { "id": "reinhardtshbm:decon" }
+}

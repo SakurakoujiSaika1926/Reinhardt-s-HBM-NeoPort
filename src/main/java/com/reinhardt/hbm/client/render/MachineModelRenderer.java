@@ -132,6 +132,16 @@ final class MachineModelRenderer {
         }
     }
 
+    /** Renders a full-bright standalone texture with the old additive glow pass semantics. */
+    static void renderUnculledUvEyes(BakedModel model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state,
+                                     int packedOverlay, ResourceLocation texture, float red, float green, float blue, float alpha) {
+        VertexConsumer consumer = bufferSource.getBuffer(RenderType.eyes(texture));
+        for (RenderType renderType : model.getRenderTypes(state, RANDOM, ModelData.EMPTY)) {
+            renderQuadsStandaloneTexture(model, poseStack, consumer, state, LightTexture.FULL_BRIGHT, packedOverlay,
+                    renderType, 0.0F, 0.0F, red, green, blue, alpha);
+        }
+    }
+
     static void renderExceptDirections(BakedModel model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay, EnumSet<Direction> excludedDirections) {
         for (RenderType renderType : model.getRenderTypes(state, RANDOM, ModelData.EMPTY)) {
             RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(renderType, false);
@@ -162,6 +172,20 @@ final class MachineModelRenderer {
     static void renderUnculledTintedTranslucent(BakedModel model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay, int argb) {
         renderUnculledTintedUv(model, poseStack, bufferSource, state, packedLight, packedOverlay, argb,
                 0.0F, 0.0F, 1.0F, 1.0F, RenderType.entityTranslucent(TextureAtlas.LOCATION_BLOCKS));
+    }
+
+    /** Untextured full-bright colour pass for legacy GL geometry rendered with texture disabled. */
+    static void renderUnculledTintedLightning(BakedModel model, PoseStack poseStack, MultiBufferSource bufferSource,
+                                              BlockState state, int packedOverlay, int argb) {
+        float alpha = ((argb >>> 24) & 0xFF) / 255.0F;
+        float red = ((argb >>> 16) & 0xFF) / 255.0F;
+        float green = ((argb >>> 8) & 0xFF) / 255.0F;
+        float blue = (argb & 0xFF) / 255.0F;
+        VertexConsumer consumer = bufferSource.getBuffer(RenderType.lightning());
+        for (RenderType renderType : model.getRenderTypes(state, RANDOM, ModelData.EMPTY)) {
+            renderQuads(model, poseStack, consumer, state, LightTexture.FULL_BRIGHT, packedOverlay, renderType,
+                    red, green, blue, alpha);
+        }
     }
 
     static void renderUnculledTintedUv(BakedModel model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay, int argb, float uOffset, float vOffset) {
@@ -226,14 +250,22 @@ final class MachineModelRenderer {
     private static void renderQuadsStandaloneTexture(BakedModel model, PoseStack poseStack, VertexConsumer consumer,
                                                      BlockState state, int packedLight, int packedOverlay,
                                                      RenderType renderType, float uOffset, float vOffset) {
+        renderQuadsStandaloneTexture(model, poseStack, consumer, state, packedLight, packedOverlay, renderType,
+                uOffset, vOffset, 1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static void renderQuadsStandaloneTexture(BakedModel model, PoseStack poseStack, VertexConsumer consumer,
+                                                     BlockState state, int packedLight, int packedOverlay,
+                                                     RenderType renderType, float uOffset, float vOffset,
+                                                     float red, float green, float blue, float alpha) {
         PoseStack.Pose pose = poseStack.last();
         RANDOM.setSeed(42L);
         renderStandaloneTextureQuadList(model.getQuads(state, null, RANDOM, ModelData.EMPTY, renderType),
-                pose, consumer, packedLight, packedOverlay, uOffset, vOffset);
+                pose, consumer, packedLight, packedOverlay, uOffset, vOffset, red, green, blue, alpha);
         for (Direction side : Direction.values()) {
             RANDOM.setSeed(42L);
             renderStandaloneTextureQuadList(model.getQuads(state, side, RANDOM, ModelData.EMPTY, renderType),
-                    pose, consumer, packedLight, packedOverlay, uOffset, vOffset);
+                    pose, consumer, packedLight, packedOverlay, uOffset, vOffset, red, green, blue, alpha);
         }
     }
 
@@ -282,6 +314,13 @@ final class MachineModelRenderer {
     private static void renderStandaloneTextureQuadList(List<BakedQuad> quads, PoseStack.Pose pose,
                                                         VertexConsumer consumer, int packedLight, int packedOverlay,
                                                         float uOffset, float vOffset) {
+        renderStandaloneTextureQuadList(quads, pose, consumer, packedLight, packedOverlay, uOffset, vOffset,
+                1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static void renderStandaloneTextureQuadList(List<BakedQuad> quads, PoseStack.Pose pose,
+                                                        VertexConsumer consumer, int packedLight, int packedOverlay,
+                                                        float uOffset, float vOffset, float red, float green, float blue, float alpha) {
         for (BakedQuad quad : quads) {
             int[] vertices = quad.getVertices();
             int stride = vertices.length / 4;
@@ -295,7 +334,7 @@ final class MachineModelRenderer {
                 float v = normalizeSpriteCoordinate(Float.intBitsToFloat(vertices[base + 5]), sprite.getV0(), sprite.getV1()) + vOffset;
                 float[] normal = unpackNormal(vertices, base, stride, quad.getDirection());
                 consumer.addVertex(pose, x, y, z)
-                        .setColor(255, 255, 255, 255)
+                        .setColor(Math.round(red * 255.0F), Math.round(green * 255.0F), Math.round(blue * 255.0F), Math.round(alpha * 255.0F))
                         .setUv(u, v)
                         .setOverlay(packedOverlay)
                         .setLight(packedLight)

@@ -28,6 +28,7 @@ public final class HbmDamageTypes {
     public static final ResourceKey<DamageType> TAINT = key("taint");
     public static final ResourceKey<DamageType> TURBOFAN = key("turbofan");
     public static final ResourceKey<DamageType> BLACK_HOLE = key("blackhole");
+    public static final ResourceKey<DamageType> BROADCAST = key("broadcast");
 
     private HbmDamageTypes() {
     }

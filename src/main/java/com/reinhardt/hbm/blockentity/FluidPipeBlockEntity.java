@@ -33,7 +33,12 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
     private boolean open = true;
 
     public FluidPipeBlockEntity(BlockPos pos, BlockState blockState) {
-        super(HbmBlockEntities.FLUID_PIPE.get(), pos, blockState);
+        this(HbmBlockEntities.FLUID_PIPE.get(), pos, blockState);
+    }
+
+    protected FluidPipeBlockEntity(net.minecraft.world.level.block.entity.BlockEntityType<?> type,
+                                   BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
     }
 
     public HbmFluidDefinition type() {
@@ -52,6 +57,16 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
             return isLegacyExhaustFluid(fluid);
         }
         return this.type == fluid;
+    }
+
+    /** Direction-aware counterpart used by both adjacent pipes and anchors. */
+    public boolean canConnectFrom(@Nullable Direction direction, HbmFluidDefinition fluid) {
+        return direction == null || canConnect(fluid);
+    }
+
+    /** Long-distance links are empty for ordinary ducts. */
+    public List<BlockPos> networkLinks() {
+        return List.of();
     }
 
     public boolean isExhaustPipe() {
@@ -238,7 +253,7 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
                 return false;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(stack.getFluid()).orElse(HbmFluids.none());
-            return canConnect(fluid);
+            return canConnectFrom(side, fluid);
         }
 
         @Override
@@ -248,7 +263,7 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
                 return 0;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(resource.getFluid()).orElse(HbmFluids.none());
-            if (!canConnect(fluid)) {
+            if (!canConnectFrom(side, fluid)) {
                 return 0;
             }
             BlockPos excluded = side == null ? null : worldPosition.relative(side);
@@ -261,7 +276,7 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
                 return FluidStack.EMPTY;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(resource.getFluid()).orElse(HbmFluids.none());
-            if (!canConnect(fluid)) {
+            if (!canConnectFrom(side, fluid)) {
                 return FluidStack.EMPTY;
             }
             return drainFromNetwork(fluid, resource.getAmount(), action);
@@ -283,7 +298,7 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
 
         private FluidStack drainFromNetwork(HbmFluidDefinition fluid, int maxDrain, FluidAction action) {
             Level level = FluidPipeBlockEntity.this.level;
-            if (level == null || maxDrain <= 0 || !canConnect(fluid)) {
+            if (level == null || maxDrain <= 0 || !canConnectFrom(side, fluid)) {
                 return FluidStack.EMPTY;
             }
             BlockPos excluded = side == null ? null : worldPosition.relative(side);

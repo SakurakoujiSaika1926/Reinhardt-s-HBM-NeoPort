@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["BPB", "PRP", "BPB"],
+  "key": {
+    "B": { "tag": "c:bolts/steel" },
+    "P": { "tag": "c:plates/iron" },
+    "R": { "item": "minecraft:redstone" }
+  },
+  "result": { "id": "reinhardtshbm:fan" }
+}

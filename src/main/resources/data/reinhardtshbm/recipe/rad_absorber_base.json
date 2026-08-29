@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["ICI", "CPC", "ICI"],
+  "key": {
+    "I": { "tag": "c:ingots/copper" },
+    "C": { "tag": "c:dusts/coal" },
+    "P": { "tag": "c:dusts/lead" }
+  },
+  "result": {
+    "id": "reinhardtshbm:rad_absorber",
+    "components": {
+      "minecraft:custom_data": { "variant": "base" },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

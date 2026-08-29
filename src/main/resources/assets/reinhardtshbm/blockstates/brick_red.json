@@ -1,7 +1,16 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/brick_red"
-                          }
-                 }
+{
+  "variants": {
+    "neutral=true,facing=down": { "model": "reinhardtshbm:block/brick_red_neutral" },
+    "neutral=true,facing=up": { "model": "reinhardtshbm:block/brick_red_neutral" },
+    "neutral=true,facing=north": { "model": "reinhardtshbm:block/brick_red_neutral" },
+    "neutral=true,facing=south": { "model": "reinhardtshbm:block/brick_red_neutral" },
+    "neutral=true,facing=west": { "model": "reinhardtshbm:block/brick_red_neutral" },
+    "neutral=true,facing=east": { "model": "reinhardtshbm:block/brick_red_neutral" },
+    "neutral=false,facing=down": { "model": "reinhardtshbm:block/brick_red_down" },
+    "neutral=false,facing=up": { "model": "reinhardtshbm:block/brick_red_up" },
+    "neutral=false,facing=north": { "model": "reinhardtshbm:block/brick_red_north" },
+    "neutral=false,facing=south": { "model": "reinhardtshbm:block/brick_red_south" },
+    "neutral=false,facing=west": { "model": "reinhardtshbm:block/brick_red_west" },
+    "neutral=false,facing=east": { "model": "reinhardtshbm:block/brick_red_east" }
+  }
 }

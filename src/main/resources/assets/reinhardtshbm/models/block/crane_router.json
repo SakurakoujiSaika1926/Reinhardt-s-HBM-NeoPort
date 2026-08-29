@@ -1,6 +1,6 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "all":  "reinhardtshbm:block/crane_router_blue"
                  },
     "parent":  "minecraft:block/cube_all"
 }

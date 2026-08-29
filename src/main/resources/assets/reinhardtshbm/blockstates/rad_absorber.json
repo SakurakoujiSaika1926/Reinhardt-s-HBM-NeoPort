@@ -1,7 +1,16 @@
 ﻿{
     "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/rad_absorber"
+                     "variant=0":  {
+                              "model":  "reinhardtshbm:block/rad_absorber_base"
+                          },
+                     "variant=1":  {
+                              "model":  "reinhardtshbm:block/rad_absorber_red"
+                          },
+                     "variant=2":  {
+                              "model":  "reinhardtshbm:block/rad_absorber_green"
+                          },
+                     "variant=3":  {
+                              "model":  "reinhardtshbm:block/rad_absorber_pink"
                           }
                  }
 }

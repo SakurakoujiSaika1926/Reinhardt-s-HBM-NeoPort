@@ -251,6 +251,9 @@ public final class RadiationEvents {
         boolean injectorKnifeInstalled = false;
         for (ItemStack armor : player.getArmorSlots()) {
             for (ItemStack mod : ArmorModHandler.pryMods(armor, player.registryAccess())) {
+                if (mod == null || mod.isEmpty()) {
+                    continue;
+                }
                 if (mod.getItem() instanceof ArmorModItem armorMod) {
                     injectorKnifeInstalled |= armorMod instanceof LegacyInjectorKnifeArmorModItem;
                     armorMod.tickArmor(player, armor);
@@ -278,6 +281,9 @@ public final class RadiationEvents {
 
         ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
         ItemStack insert = ArmorModHandler.pryMods(chestplate, player.registryAccess())[ArmorModHandler.KEVLAR];
+        if (insert == null || insert.isEmpty()) {
+            return;
+        }
         if (!(insert.getItem() instanceof ArmorInsertItem armorInsert)) {
             return;
         }

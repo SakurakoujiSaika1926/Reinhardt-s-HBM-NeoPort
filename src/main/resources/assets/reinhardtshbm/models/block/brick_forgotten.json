@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "reinhardtshbm:block/brick_forgotten",
+    "top": "reinhardtshbm:block/brick_forgotten_top",
+    "bottom": "reinhardtshbm:block/brick_forgotten_top"
+  }
+}

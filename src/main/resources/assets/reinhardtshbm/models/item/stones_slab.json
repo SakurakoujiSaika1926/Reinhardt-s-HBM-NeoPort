@@ -1,0 +1,6 @@
+{
+  "parent": "reinhardtshbm:block/stones_slab_tile",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/stones_slab_bricks" }
+  ]
+}

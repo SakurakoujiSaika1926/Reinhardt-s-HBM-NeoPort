@@ -1,6 +1,3 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/bomb_multi"
-                 },
-    "parent":  "minecraft:block/cube_all"
+    "parent":  "reinhardtshbm:block/bomb_multi_world"
 }

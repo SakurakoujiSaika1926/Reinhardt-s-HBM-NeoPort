@@ -1,6 +1,11 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/sat_dock"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/sat_dock.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/sat_dock.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/sat_dock"
+  }
 }

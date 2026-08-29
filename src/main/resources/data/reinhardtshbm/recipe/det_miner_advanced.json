@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FFF",
+    "ITI",
+    "ITI"
+  ],
+  "key": {
+    "F": { "item": "minecraft:flint" },
+    "I": { "tag": "c:plates/steel" },
+    "T": { "tag": "c:ingots/plastic_explosive" }
+  },
+  "result": { "id": "reinhardtshbm:det_miner", "count": 12 }
+}

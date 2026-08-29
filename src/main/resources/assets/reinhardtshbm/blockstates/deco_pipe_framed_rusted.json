@@ -1,7 +1,7 @@
 ﻿{
   "variants": {
-    "": {
-      "model": "reinhardtshbm:block/deco_pipe_framed_rusted"
-    }
+    "axis=y": { "model": "reinhardtshbm:block/deco_pipe_framed_rusted" },
+    "axis=z": { "model": "reinhardtshbm:block/deco_pipe_framed_rusted", "x": 90 },
+    "axis=x": { "model": "reinhardtshbm:block/deco_pipe_framed_rusted", "x": 90, "y": 90 }
   }
 }

@@ -35,6 +35,7 @@ import com.reinhardt.hbm.menu.ElectrolyzerMenu;
 import com.reinhardt.hbm.menu.ExcavatorMenu;
 import com.reinhardt.hbm.menu.ExposureChamberMenu;
 import com.reinhardt.hbm.menu.FelMenu;
+import com.reinhardt.hbm.menu.FilingCabinetMenu;
 import com.reinhardt.hbm.menu.ElectricFurnaceMenu;
 import com.reinhardt.hbm.menu.FluidPumpMenu;
 import com.reinhardt.hbm.menu.FluidTankMenu;
@@ -60,11 +61,13 @@ import com.reinhardt.hbm.menu.MiningLaserMenu;
 import com.reinhardt.hbm.menu.MixerMenu;
 import com.reinhardt.hbm.menu.MicrowaveMenu;
 import com.reinhardt.hbm.menu.NukeBoyMenu;
+import com.reinhardt.hbm.menu.BombMultiMenu;
 import com.reinhardt.hbm.menu.OilDerrickMenu;
 import com.reinhardt.hbm.menu.OreSlopperMenu;
 import com.reinhardt.hbm.menu.ParticleAcceleratorMenu;
 import com.reinhardt.hbm.menu.PurexMenu;
 import com.reinhardt.hbm.menu.IcfPressMenu;
+import com.reinhardt.hbm.menu.IcfCoreMenu;
 import com.reinhardt.hbm.menu.PwrMenu;
 import com.reinhardt.hbm.menu.RefineryMenu;
 import com.reinhardt.hbm.menu.ResearchReactorMenu;
@@ -107,6 +110,7 @@ import com.reinhardt.hbm.menu.AutocrafterMenu;
 import com.reinhardt.hbm.menu.ForcefieldMenu;
 import com.reinhardt.hbm.menu.OrbusMenu;
 import com.reinhardt.hbm.menu.SatelliteLinkerMenu;
+import com.reinhardt.hbm.menu.SatelliteDockMenu;
 import com.reinhardt.hbm.menu.TurbofanMenu;
 import com.reinhardt.hbm.menu.MissileAssemblyMenu;
 import com.reinhardt.hbm.menu.DroneCrateMenu;
@@ -253,6 +257,9 @@ public final class HbmMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<NukeBoyMenu>> NUKE_BOY =
             MENUS.register("nuke_boy", () -> IMenuTypeExtension.create(NukeBoyMenu::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<BombMultiMenu>> BOMB_MULTI =
+            MENUS.register("bomb_multi", () -> IMenuTypeExtension.create(BombMultiMenu::new));
+
     public static final DeferredHolder<MenuType<?>, MenuType<SoyuzLauncherMenu>> SOYUZ_LAUNCHER =
             MENUS.register("soyuz_launcher", () -> IMenuTypeExtension.create(SoyuzLauncherMenu::new));
 
@@ -282,6 +289,9 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<IcfPressMenu>> ICF_PRESS =
             MENUS.register("machine_icf_press", () -> IMenuTypeExtension.create(IcfPressMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<IcfCoreMenu>> ICF =
+            MENUS.register("icf", () -> IMenuTypeExtension.create(IcfCoreMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ResearchReactorMenu>> RESEARCH_REACTOR =
             MENUS.register("machine_reactor_small_new", () -> IMenuTypeExtension.create(ResearchReactorMenu::new));
@@ -327,6 +337,9 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<FluidTankMenu>> FLUID_TANK =
             MENUS.register("fluid_tank", () -> IMenuTypeExtension.create(FluidTankMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<FilingCabinetMenu>> FILING_CABINET =
+            MENUS.register("filing_cabinet", () -> IMenuTypeExtension.create(FilingCabinetMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SteamTurbineMenu>> STEAM_TURBINE =
             MENUS.register("machine_turbine", () -> IMenuTypeExtension.create(SteamTurbineMenu::new));
@@ -453,6 +466,9 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<SatelliteLinkerMenu>> SATELLITE_LINKER =
             MENUS.register("machine_satlinker", () -> IMenuTypeExtension.create(SatelliteLinkerMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<SatelliteDockMenu>> SAT_DOCK =
+            MENUS.register("sat_dock", () -> IMenuTypeExtension.create(SatelliteDockMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<AutocrafterMenu>> AUTOCRAFTER =
             MENUS.register("machine_autocrafter", () -> IMenuTypeExtension.create(AutocrafterMenu::new));

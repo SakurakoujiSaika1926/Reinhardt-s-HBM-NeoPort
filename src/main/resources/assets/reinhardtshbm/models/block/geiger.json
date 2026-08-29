@@ -1,6 +1,9 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/geiger"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/blocks/geiger_counter.obj",
+  "mtl_override": "reinhardtshbm:models/obj/blocks/geiger_counter.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:block/geiger" }
 }

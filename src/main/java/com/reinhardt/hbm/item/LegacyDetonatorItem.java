@@ -2,6 +2,7 @@ package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.block.LandmineBlock;
 import com.reinhardt.hbm.block.TimedExplosiveBlock;
+import com.reinhardt.hbm.block.ThermalBombBlock;
 import com.reinhardt.hbm.block.WallChargeBlock;
 import com.reinhardt.hbm.blockentity.NukeBoyBlockEntity;
 import com.reinhardt.hbm.blockentity.WallChargeExplosions;
@@ -195,6 +196,10 @@ public class LegacyDetonatorItem extends Item {
             return true;
         }
         if (level.getBlockState(pos).getBlock() instanceof TimedExplosiveBlock explosive) {
+            explosive.detonate(server, pos, player);
+            return true;
+        }
+        if (level.getBlockState(pos).getBlock() instanceof ThermalBombBlock explosive) {
             explosive.detonate(server, pos, player);
             return true;
         }

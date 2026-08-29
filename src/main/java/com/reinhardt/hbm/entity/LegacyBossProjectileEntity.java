@@ -2,6 +2,7 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.explosion.LegacyMukeExplosion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -114,7 +115,7 @@ public final class LegacyBossProjectileEntity extends Entity {
                     SoundSource.HOSTILE, 5.0F, 0.9F + level().random.nextFloat() * 0.2F);
             level().playSound(null, hit.x, hit.y, hit.z, SoundEvents.FIREWORK_ROCKET_BLAST,
                     SoundSource.HOSTILE, 5.0F, 0.5F);
-            LegacyProjectileUtil.fixedDamageExplosion(this, hit, 10.0F, 50.0F, false);
+            LegacyMukeExplosion.detonateUfoRocket((ServerLevel) level(), this, hit);
             if (level() instanceof ServerLevel serverLevel) {
                 for (int index = 0; index < 3; index++) {
                     serverLevel.sendParticles(com.reinhardt.hbm.registry.HbmParticleTypes.LEGACY_PLASMA_BLAST.get(),

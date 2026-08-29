@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ITI",
+    "TPT",
+    "ITI"
+  ],
+  "key": {
+    "I": { "tag": "c:plates/iron" },
+    "T": { "tag": "c:bolts/steel" },
+    "P": {
+      "type": "neoforge:components",
+      "items": [ "reinhardtshbm:part_generic" ],
+      "components": {
+        "minecraft:custom_data": { "variant": "piston_pneumatic" },
+        "minecraft:custom_model_data": 0
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:piston_inserter",
+    "count": 1
+  }
+}

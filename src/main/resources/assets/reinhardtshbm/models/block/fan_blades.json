@@ -1,0 +1,1 @@
+{"loader":"neoforge:obj","model":"reinhardtshbm:models/obj/machines/fan.obj","mtl_override":"reinhardtshbm:models/obj/machines/fan.mtl","visibility":{"Blades":true,"Frame":false},"automatic_culling":false,"shade_quads":true,"flip_v":true,"textures":{"particle":"reinhardtshbm:models/machines/fan"}}

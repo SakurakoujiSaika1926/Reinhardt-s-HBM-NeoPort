@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PDP",
+    "DTD",
+    "PDP"
+  ],
+  "key": {
+    "P": { "tag": "c:plates/steel" },
+    "D": { "item": "reinhardtshbm:det_cord" },
+    "T": { "tag": "c:ingots/plastic_explosive" }
+  },
+  "result": { "id": "reinhardtshbm:det_charge" }
+}

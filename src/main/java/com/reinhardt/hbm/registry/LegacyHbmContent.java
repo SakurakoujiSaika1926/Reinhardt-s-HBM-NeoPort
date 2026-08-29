@@ -256,7 +256,7 @@ public final class LegacyHbmContent {
             "pump_electric",
             "pump_steam",
             "rbmk_heater",
-            "connector_red_super",
+            "red_connector_super",
             "red_cable",
             "red_connector",
             "red_pylon",
@@ -272,6 +272,27 @@ public final class LegacyHbmContent {
             "brick_double_slab",
             "concrete_brick_slab",
             "concrete_brick_double_slab"
+    );
+
+    /* These registrations are explicitly deprecated in the 1.7.10 source. */
+    private static final Set<String> RETIRED_LEGACY_BLOCK_IDS = Set.of(
+            "capacitor_gold",
+            "capacitor_niobium",
+            "capacitor_schrabidate",
+            "capacitor_tantalium",
+            "machine_battery",
+            "machine_battery_potato",
+            "machine_difurnace_extension",
+            "machine_difurnace_rtg_off",
+            "machine_difurnace_rtg_on",
+            "machine_dineutronium_battery",
+            "machine_fensu",
+            "machine_lithium_battery",
+            "machine_minirtg",
+            "machine_powerrtg",
+            "machine_rtg_furnace_off",
+            "machine_rtg_furnace_on",
+            "machine_schrabidium_battery"
     );
 
     /*
@@ -349,7 +370,9 @@ public final class LegacyHbmContent {
         Set<String> blockItemIds = new HashSet<>(legacyBlockIds);
 
         for (String id : legacyBlockIds) {
-            if (CORE_BLOCKS.contains(id) || HbmBlocks.isCoreBlock(id)) {
+            if (RETIRED_LEGACY_BLOCK_IDS.contains(id)
+                    || CORE_BLOCKS.contains(id)
+                    || HbmBlocks.isCoreBlock(id)) {
                 continue;
             }
 
@@ -415,15 +438,6 @@ public final class LegacyHbmContent {
                     .mapColor(MapColor.METAL)
                     .requiresCorrectToolForDrops()
                     .strength(strength.hardness(), strength.resistance())
-                    .sound(SoundType.METAL)
-                    .noOcclusion());
-        }
-
-        if (id.startsWith("deco_pipe")) {
-            return hazardAwareBlock(id, properties
-                    .mapColor(MapColor.METAL)
-                    .requiresCorrectToolForDrops()
-                    .strength(5.0F, 15.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
         }

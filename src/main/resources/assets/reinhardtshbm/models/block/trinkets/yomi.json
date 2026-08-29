@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/trinkets/yomi.obj",
+  "mtl_override": "reinhardtshbm:models/obj/trinkets/yomi.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "default": "reinhardtshbm:models/trinkets/yomi", "particle": "reinhardtshbm:models/trinkets/yomi" },
+  "visibility": { "Plane": true }
+}

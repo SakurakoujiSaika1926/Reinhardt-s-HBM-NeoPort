@@ -1,0 +1,4 @@
+newmtl sat_dock
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/machines/sat_dock
