@@ -20,6 +20,8 @@ import com.reinhardt.hbm.block.BoatBlock;
 import com.reinhardt.hbm.block.BobbleheadBlock;
 import com.reinhardt.hbm.block.SnowglobeBlock;
 import com.reinhardt.hbm.block.PlushieBlock;
+import com.reinhardt.hbm.block.LanternBlock;
+import com.reinhardt.hbm.block.LanternBehemothBlock;
 import com.reinhardt.hbm.block.BrickFurnaceBlock;
 import com.reinhardt.hbm.block.BedrockOreBlock;
 import com.reinhardt.hbm.block.BigAssTankBlock;
@@ -63,6 +65,7 @@ import com.reinhardt.hbm.item.CapBlockItem;
 import com.reinhardt.hbm.item.BobbleheadBlockItem;
 import com.reinhardt.hbm.item.SnowglobeBlockItem;
 import com.reinhardt.hbm.item.PlushieBlockItem;
+import com.reinhardt.hbm.item.LanternBlockItem;
 import com.reinhardt.hbm.block.CoolingTowerBlock;
 import com.reinhardt.hbm.block.CapacitorBlock;
 import com.reinhardt.hbm.block.CapacitorBusBlock;
@@ -1312,6 +1315,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> BOBBLEHEAD = bobblehead("bobblehead");
     public static final DeferredBlock<Block> SNOWGLOBE = snowglobe("snowglobe");
     public static final DeferredBlock<Block> PLUSHIE = plushie("plushie");
+    public static final DeferredBlock<Block> LANTERN = lantern("lantern", false);
+    public static final DeferredBlock<Block> LANTERN_BEHEMOTH = lantern("lantern_behemoth", true);
     public static final DeferredBlock<Block> CRATE = lootCrate("crate", SoundType.WOOD, 5.0F, 10.0F);
     public static final DeferredBlock<Block> CRATE_WEAPON = lootCrate("crate_weapon", SoundType.WOOD, 5.0F, 10.0F);
     public static final DeferredBlock<Block> CRATE_LEAD = lootCrate("crate_lead", SoundType.METAL, 5.0F, 10.0F);
@@ -2799,6 +2804,7 @@ public final class HbmBlocks {
             BOBBLEHEAD,
             SNOWGLOBE,
             PLUSHIE,
+            LANTERN,
             DECO_COMPUTER,
             DECO_CRT,
             FILING_CABINET,
@@ -4616,6 +4622,19 @@ public final class HbmBlocks {
                 () -> new PlushieBlock(BlockBehaviour.Properties.of().strength(0.0F, 0.0F)
                         .sound(SoundType.WOOL).noOcclusion()));
         HbmItems.ITEMS.register(name, () -> new PlushieBlockItem(block.get(), new Item.Properties()));
+        return block;
+    }
+
+    private static DeferredBlock<Block> lantern(String name, boolean behemoth) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name,
+                () -> behemoth
+                        ? new LanternBehemothBlock(metal().strength(3.0F, 10.0F)
+                                .sound(SoundType.METAL).noOcclusion())
+                        : new LanternBlock(metal().strength(3.0F, 10.0F)
+                                .sound(SoundType.METAL).noOcclusion().lightLevel(state -> 15)));
+        if (!behemoth) {
+            HbmItems.ITEMS.register(name, () -> new LanternBlockItem(block.get(), new Item.Properties()));
+        }
         return block;
     }
 

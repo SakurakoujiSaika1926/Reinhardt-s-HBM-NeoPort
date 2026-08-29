@@ -38,6 +38,7 @@ import com.reinhardt.hbm.item.FoundryMoldItem;
 import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.item.WiringRedCopperItem;
 import com.reinhardt.hbm.blockentity.StirlingGeneratorBlockEntity;
+import com.reinhardt.hbm.blockentity.LanternBehemothBlockEntity;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -233,6 +234,11 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                 }
                 return ItemInteractionResult.sidedSuccess(level.isClientSide);
             }
+        }
+        if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof LanternBehemothBlockEntity
+                && LanternBehemothBlockEntity.tryRepair(stack, level, dummy.getCorePos(), player)) {
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof ConveyorPressBlockEntity press

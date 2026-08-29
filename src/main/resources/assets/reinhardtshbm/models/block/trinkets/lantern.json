@@ -1,0 +1,16 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/trinkets/lantern.obj",
+  "mtl_override": "reinhardtshbm:models/obj/trinkets/lantern.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": {
+    "default": "reinhardtshbm:models/trinkets/lantern",
+    "particle": "reinhardtshbm:models/trinkets/lantern"
+  },
+  "visibility": {
+    "Lantern": true,
+    "Light": false
+  }
+}

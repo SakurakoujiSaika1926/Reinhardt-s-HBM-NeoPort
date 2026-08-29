@@ -1101,10 +1101,26 @@
   }
   ,"block.squeaky_toy": {
     "category": "block",
-    "sounds": [{"name": "reinhardtshbm:block/squeakyToy", "stream": false}]
+     "sounds": [{"name": "reinhardtshbm:block/squeaky_toy", "stream": false}]
   }
   ,"block.hunduns_magnificent_howl": {
     "category": "block",
     "sounds": [{"name": "reinhardtshbm:block/hunduns_magnificent_howl", "stream": false}]
+  }
+  ,"block.horn_near_single": {
+    "category": "block",
+     "sounds": [{"name": "reinhardtshbm:block/horn_near_single", "stream": false}]
+  }
+  ,"block.horn_far_single": {
+    "category": "block",
+     "sounds": [{"name": "reinhardtshbm:block/horn_far_single", "stream": false}]
+  }
+  ,"block.horn_near_dual": {
+    "category": "block",
+     "sounds": [{"name": "reinhardtshbm:block/horn_near_dual", "stream": false}]
+  }
+  ,"block.horn_far_dual": {
+    "category": "block",
+     "sounds": [{"name": "reinhardtshbm:block/horn_far_dual", "stream": false}]
   }
 }

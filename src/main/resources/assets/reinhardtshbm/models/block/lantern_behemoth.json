@@ -1,6 +1,5 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "textures": {
+    "particle": "reinhardtshbm:models/trinkets/lantern_rusty"
+  }
 }

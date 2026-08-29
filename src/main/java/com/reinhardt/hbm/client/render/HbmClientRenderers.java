@@ -148,6 +148,8 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.BOBBLEHEAD.get(), BobbleheadBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SNOWGLOBE.get(), SnowglobeBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.PLUSHIE.get(), PlushieBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.LANTERN.get(), LanternBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.LANTERN_BEHEMOTH.get(), LanternBehemothBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.DECO_DISPLAY.get(), DecoDisplayBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.LEGACY_DISPLAY_STAND.get(), LegacyDisplayStandBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.FILING_CABINET.get(), FilingCabinetBlockEntityRenderer::new);
@@ -374,6 +376,7 @@ public final class HbmClientRenderers {
         BobbleheadBlockEntityRenderer.registerAdditionalModels(event);
         SnowglobeBlockEntityRenderer.registerAdditionalModels(event);
         PlushieBlockEntityRenderer.registerAdditionalModels(event);
+        LanternBlockEntityRenderer.registerAdditionalModels(event);
         FilingCabinetBlockEntityRenderer.registerAdditionalModels(event);
         TapeRecorderBlockEntityRenderer.registerAdditionalModels(event);
         DecoDisplayBlockEntityRenderer.registerAdditionalModels(event);

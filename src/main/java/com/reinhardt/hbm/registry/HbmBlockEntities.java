@@ -26,6 +26,8 @@ import com.reinhardt.hbm.blockentity.GeigerBlockEntity;
 import com.reinhardt.hbm.blockentity.BobbleheadBlockEntity;
 import com.reinhardt.hbm.blockentity.SnowglobeBlockEntity;
 import com.reinhardt.hbm.blockentity.PlushieBlockEntity;
+import com.reinhardt.hbm.blockentity.LanternBlockEntity;
+import com.reinhardt.hbm.blockentity.LanternBehemothBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticCrackerBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticReformerBlockEntity;
 import com.reinhardt.hbm.blockentity.HydrotreaterBlockEntity;
@@ -394,6 +396,19 @@ public final class HbmBlockEntities {
             BLOCK_ENTITIES.register(
                     "plushie",
                     () -> BlockEntityType.Builder.of(PlushieBlockEntity::new, HbmBlocks.PLUSHIE.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LanternBlockEntity>> LANTERN =
+            BLOCK_ENTITIES.register(
+                    "lantern",
+                    () -> BlockEntityType.Builder.of(LanternBlockEntity::new, HbmBlocks.LANTERN.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LanternBehemothBlockEntity>> LANTERN_BEHEMOTH =
+            BLOCK_ENTITIES.register(
+                    "lantern_behemoth",
+                    () -> BlockEntityType.Builder.of(LanternBehemothBlockEntity::new,
+                            HbmBlocks.LANTERN_BEHEMOTH.get()).build(null)
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineKeyForgeBlockEntity>> MACHINE_KEYFORGE =

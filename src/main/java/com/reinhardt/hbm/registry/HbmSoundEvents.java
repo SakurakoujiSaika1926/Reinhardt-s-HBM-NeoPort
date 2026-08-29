@@ -26,6 +26,10 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> BOBBLE = sound("block.bobble");
     public static final DeferredHolder<SoundEvent, SoundEvent> PLUSHIE_SQUEAK = sound("block.squeaky_toy");
     public static final DeferredHolder<SoundEvent, SoundEvent> HUNDUN_HOWL = sound("block.hunduns_magnificent_howl");
+    public static final DeferredHolder<SoundEvent, SoundEvent> HORN_NEAR_SINGLE = sound("block.horn_near_single");
+    public static final DeferredHolder<SoundEvent, SoundEvent> HORN_FAR_SINGLE = sound("block.horn_far_single");
+    public static final DeferredHolder<SoundEvent, SoundEvent> HORN_NEAR_DUAL = sound("block.horn_near_dual");
+    public static final DeferredHolder<SoundEvent, SoundEvent> HORN_FAR_DUAL = sound("block.horn_far_dual");
     public static final DeferredHolder<SoundEvent, SoundEvent> PRESS_OPERATE = sound("block.pressoperate");
     public static final DeferredHolder<SoundEvent, SoundEvent> PYRO_OVEN_OPERATE = sound("block.pyro_operate");
     public static final DeferredHolder<SoundEvent, SoundEvent> CENTRIFUGE_OPERATE = sound("block.centrifugeoperate");

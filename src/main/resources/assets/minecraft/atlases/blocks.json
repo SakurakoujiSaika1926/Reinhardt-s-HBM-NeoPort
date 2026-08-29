@@ -150,6 +150,14 @@
     },
     {
       "type": "single",
+      "resource": "reinhardtshbm:models/trinkets/lantern"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/trinkets/lantern_rusty"
+    },
+    {
+      "type": "single",
       "resource": "reinhardtshbm:block/boxduct_exhaust_straight"
     },
     {
