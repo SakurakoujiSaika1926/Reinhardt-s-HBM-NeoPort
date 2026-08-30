@@ -607,7 +607,7 @@
                    "reinhardtshbm:machine_radgen",
                    "reinhardtshbm:machine_radiolysis",
                    "reinhardtshbm:machine_reactor_breeding",
-                   "reinhardtshbm:machine_reactor_small_new",
+                   "reinhardtshbm:machine_reactor_small",
                    "reinhardtshbm:machine_refinery",
                    "reinhardtshbm:machine_rotary_furnace",
                    "reinhardtshbm:machine_rtg_furnace_off",

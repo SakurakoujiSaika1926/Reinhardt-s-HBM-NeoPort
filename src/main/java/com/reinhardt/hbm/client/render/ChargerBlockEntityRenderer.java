@@ -69,8 +69,9 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
         poseStack.popPose();
         poseStack.popPose();
 
-        MachineModelRenderer.renderUnculledFullBright(MachineModelRenderer.model(LIGHT), poseStack, bufferSource,
-                state, packedOverlay);
+        // RenderCharger disables texturing and lighting for this orange lamp.
+        MachineModelRenderer.renderUnculledTintedLightning(MachineModelRenderer.model(LIGHT), poseStack,
+                bufferSource, state, packedOverlay, 0xFFFFBF00);
 
         poseStack.pushPose();
         poseStack.translate(-0.34375D, 0.25D, 0.0D);

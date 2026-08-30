@@ -1071,11 +1071,10 @@ public final class HbmBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ResearchReactorBlockEntity>> RESEARCH_REACTOR =
             BLOCK_ENTITIES.register(
-                    "machine_reactor_small_new",
+                    "machine_reactor_small",
                     () -> BlockEntityType.Builder.of(
                             ResearchReactorBlockEntity::new,
-                            HbmBlocks.MACHINE_REACTOR_SMALL.get(),
-                            HbmBlocks.MACHINE_REACTOR_SMALL_LEGACY.get()
+                            HbmBlocks.MACHINE_REACTOR_SMALL.get()
                     ).build(null)
             );
 

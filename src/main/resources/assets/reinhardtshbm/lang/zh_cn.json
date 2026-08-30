@@ -3102,7 +3102,6 @@
     "gui.reinhardtshbm.radgen.remaining":  "剩余 %s tick (%s%%)",
     "block.reinhardtshbm.machine_radiolysis":  "放射性同位素热电机和辐射裂解室",
     "block.reinhardtshbm.machine_reactor_breeding":  "增殖反应堆",
-    "block.reinhardtshbm.machine_reactor_small_new":  "研究型反应堆",
     "block.reinhardtshbm.machine_refinery":  "炼油厂",
     "block.reinhardtshbm.machine_rotary_furnace":  "回转炉",
     "block.reinhardtshbm.machine_rtg_furnace_off":  "放射性同位素热力炉[RTG]",

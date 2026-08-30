@@ -47,7 +47,10 @@ public final class ClassicCableBakedModel implements IDynamicBakedModel {
         this.sprite = sprite;
         this.item = item;
         this.worldQuads = item ? new List[0] : bakeWorld(sprite);
-        this.itemQuads = item ? bake(sprite, Set.of(Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST)) : List.of();
+        // RenderCableClassic#renderInventoryBlock renders all six arms, not
+        // merely the horizontal four used by the first 1.21 port.
+        this.itemQuads = item ? bake(sprite, Set.of(Direction.NORTH, Direction.SOUTH,
+                Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN)) : List.of();
     }
 
     public static void replaceModels(Map<ModelResourceLocation, BakedModel> models, Function<Material, TextureAtlasSprite> textures) {

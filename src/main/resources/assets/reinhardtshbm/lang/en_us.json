@@ -3108,7 +3108,6 @@
     "gui.reinhardtshbm.radgen.remaining":  "%s ticks (%s%%)",
     "block.reinhardtshbm.machine_radiolysis":  "Radioisotope Thermoelectric Generator and Radiolysis Chamber",
     "block.reinhardtshbm.machine_reactor_breeding":  "Breeding Reactor",
-    "block.reinhardtshbm.machine_reactor_small_new":  "Research Reactor",
     "block.reinhardtshbm.machine_refinery":  "Oil Refinery",
     "block.reinhardtshbm.machine_rotary_furnace":  "Rotary Furnace",
     "block.reinhardtshbm.machine_rtg_furnace_off":  "RTG Furnace",

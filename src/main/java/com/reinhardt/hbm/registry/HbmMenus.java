@@ -305,7 +305,7 @@ public final class HbmMenus {
             MENUS.register("icf", () -> IMenuTypeExtension.create(IcfCoreMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ResearchReactorMenu>> RESEARCH_REACTOR =
-            MENUS.register("machine_reactor_small_new", () -> IMenuTypeExtension.create(ResearchReactorMenu::new));
+            MENUS.register("machine_reactor_small", () -> IMenuTypeExtension.create(ResearchReactorMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ReactorControlMenu>> REACTOR_CONTROL =
             MENUS.register("machine_controller", () -> IMenuTypeExtension.create(ReactorControlMenu::new));

@@ -45,11 +45,7 @@ public final class GeigerBlockEntityRenderer implements BlockEntityRenderer<Geig
                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = HbmBlocks.GEIGER.get().defaultBlockState().setValue(GeigerBlock.FACING, Direction.NORTH);
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
-        if (context == ItemDisplayContext.GUI) {
-            // RenderGeiger's inventory renderer scales the OBJ by ten.
-            poseStack.scale(10.0F, 10.0F, 10.0F);
-        }
+        applyLegacyItemPose(context, poseStack);
         poseStack.translate(0.2F, 0.0F, 0.0F);
         poseStack.mulPose(MachineModelRenderer.yawQuaternion(90.0F));
         // RenderGeiger's item path renders the OBJ directly. The placed block
@@ -67,5 +63,21 @@ public final class GeigerBlockEntityRenderer implements BlockEntityRenderer<Geig
             case EAST -> 270.0F;
             default -> 0.0F;
         };
+    }
+
+    /**
+     * RenderGeiger uses ItemRenderBase, but its inventory origin is the old
+     * eight-by-ten GUI origin rather than the centred machine-item origin.
+     * Keeping this local avoids moving every other legacy OBJ item.
+     */
+    private static void applyLegacyItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(MachineModelRenderer.xQuaternion(30.0F));
+            poseStack.mulPose(MachineModelRenderer.yawQuaternion(225.0F));
+            poseStack.scale(10.0F / 16.0F, 10.0F / 16.0F, 10.0F / 16.0F);
+            poseStack.translate(-0.8F, 1.0F, 0.0F);
+            return;
+        }
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
     }
 }

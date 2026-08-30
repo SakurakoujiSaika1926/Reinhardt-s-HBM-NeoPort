@@ -222,7 +222,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("dfc_injector")
                 || path.equals("dfc_stabilizer")
                 || path.equals("machine_drain")
-                || path.equals("machine_reactor_small_new")
+                || path.equals("machine_reactor_small")
                 || path.equals("machine_reactor_breeding")
                 || path.equals("nuke_boy")
                 || path.equals("compact_launcher")

@@ -1502,9 +1502,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> HADRON_COIL_STARMETAL = hadronCoil("hadron_coil_starmetal", 1000);
     public static final DeferredBlock<Block> HADRON_COIL_CHLOROPHYTE = hadronCoil("hadron_coil_chlorophyte", 2500);
     public static final DeferredBlock<Block> HADRON_COIL_MESE = hadronCoil("hadron_coil_mese", 10000);
-    public static final DeferredBlock<Block> MACHINE_REACTOR_SMALL = researchReactor("machine_reactor_small_new");
     /** 1.7.10 ReactorResearch registry id. */
-    public static final DeferredBlock<Block> MACHINE_REACTOR_SMALL_LEGACY = researchReactor("machine_reactor_small");
+    public static final DeferredBlock<Block> MACHINE_REACTOR_SMALL = researchReactor("machine_reactor_small");
     public static final DeferredBlock<Block> MACHINE_CONTROLLER = reactorControl("machine_controller");
     public static final DeferredBlock<Block> MACHINE_REACTOR_BREEDING = breederReactor("machine_reactor_breeding");
     public static final DeferredBlock<Block> TURRET_JEREMY = turretJeremy("turret_jeremy");
@@ -2170,7 +2169,6 @@ public final class HbmBlocks {
 
     public static final List<DeferredBlock<Block>> REACTOR_BLOCKS = List.of(
             MACHINE_REACTOR_SMALL,
-            MACHINE_REACTOR_SMALL_LEGACY,
             MACHINE_CONTROLLER,
             MACHINE_REACTOR_BREEDING,
             STRUCT_WATZ_CORE,
