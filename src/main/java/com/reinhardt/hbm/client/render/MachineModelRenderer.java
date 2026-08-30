@@ -387,7 +387,7 @@ final class MachineModelRenderer {
         return min + normalized * width;
     }
 
-    private static Quaternionf yawQuaternion(float degrees) {
+    static Quaternionf yawQuaternion(float degrees) {
         return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
     }
 

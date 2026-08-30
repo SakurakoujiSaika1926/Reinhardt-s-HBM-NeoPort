@@ -49,12 +49,13 @@ public final class GeigerBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        // RenderGeiger stores the player's four yaw sectors directly.
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
     }
 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+        return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
     @Override

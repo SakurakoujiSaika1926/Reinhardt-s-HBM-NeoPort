@@ -143,6 +143,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.FAN.get(), FanBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SPOTLIGHT.get(), SpotlightBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.FLOODLIGHT.get(), FloodlightBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.GEIGER.get(), GeigerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.CARGO_ELEVATOR.get(), CargoElevatorBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SAT_DOCK.get(), SatelliteDockBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.BROADCASTER.get(), BroadcasterBlockEntityRenderer::new);
@@ -511,6 +512,7 @@ public final class HbmClientRenderers {
         ZirnoxDestroyedBlockEntityRenderer.registerAdditionalModels(event);
         ConveyorPressBlockEntityRenderer.registerAdditionalModels(event);
         LegacyMachineBlockEntityRenderer.registerAdditionalModels(event);
+        GeigerBlockEntityRenderer.registerAdditionalModels(event);
         HexafluorideTankBlockEntityRenderer.registerAdditionalModels(event);
         RadarScreenBlockEntityRenderer.registerAdditionalModels(event);
         PipeAnchorBlockEntityRenderer.registerAdditionalModels(event);

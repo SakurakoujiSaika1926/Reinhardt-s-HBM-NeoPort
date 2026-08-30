@@ -368,6 +368,7 @@ import com.reinhardt.hbm.item.GasTurbineBlockItem;
 import com.reinhardt.hbm.item.GlyphBlockItem;
 import com.reinhardt.hbm.item.TrapBlockItem;
 import com.reinhardt.hbm.item.GeothermalHeatExchangerBlockItem;
+import com.reinhardt.hbm.item.GeigerBlockItem;
 import com.reinhardt.hbm.item.GroundwaterPumpBlockItem;
 import com.reinhardt.hbm.item.HbmHeavyDoorBlockItem;
 import com.reinhardt.hbm.item.HbmRailBlockItem;
@@ -988,8 +989,10 @@ public final class HbmBlocks {
             LegacyVariantBlock.VARIANT,
             "block.reinhardtshbm.rad_absorber",
             "base", "red", "green", "pink");
-    public static final DeferredBlock<Block> GEIGER = registerBlock("geiger",
+    public static final DeferredBlock<Block> GEIGER = registerBlockWithoutItem("geiger",
             () -> new GeigerBlock(metal().strength(15.0F, 0.25F).noOcclusion()));
+    public static final DeferredItem<Item> GEIGER_ITEM = HbmItems.ITEMS.register("geiger",
+            () -> new GeigerBlockItem(GEIGER.get(), new Item.Properties()));
     public static final DeferredBlock<Block> MACHINE_ASHPIT = registerObjBlock("machine_ashpit",
             () -> new AshpitBlock(metal()
                     .mapColor(MapColor.METAL)
