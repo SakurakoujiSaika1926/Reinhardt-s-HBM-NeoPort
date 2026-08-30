@@ -56,7 +56,9 @@ public class MachineBlastFurnaceScreen extends AbstractContainerScreen<MachineBl
             ), mouseX, mouseY);
             return;
         }
-        if (isHovering(62, 80, 56, 26, mouseX, mouseY)) {
+        // Do not layer the fuel meter tooltip over the actual fuel stack's vanilla tooltip.
+        if (isHovering(62, 80, 56, 26, mouseX, mouseY)
+                && !isHovering(80, 81, 16, 16, mouseX, mouseY)) {
             guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
                     "tooltip.reinhardtshbm.blast_furnace.fuel",
                     this.menu.fuel(),
