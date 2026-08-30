@@ -1831,6 +1831,12 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             // only AERO-grade combustible fluid creates output or a jet.
             this.turbofanWasOn = true;
             fuel.drain(burnedFuel, amountToBurn, false);
+            // HBM 1.7.10 FluidTank#setFill(0) retained its configured type.
+            // The modern shared tank clears its type when drained, which would
+            // otherwise make the turbofan stop subscribing to its fuel pipe.
+            if (fuel.amount() == 0 && !burnedFuel.isNone()) {
+                fuel.setType(burnedFuel);
+            }
             this.turbofanOutput = (int) Math.min(Integer.MAX_VALUE,
                     burnValue * amountToBurn * (1.0D + Math.min(this.turbofanAfterburner / 3.0D, 4.0D)));
             this.energy = Math.min(profile().energyCapacity(), this.energy + this.turbofanOutput);
@@ -1850,7 +1856,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
         changed |= sendTurbofanOutputs(level);
 
-        if (burnValue > 0L && amountToBurn > 0) {
+        // The legacy burn value is assigned inside the non-redstone branch, so
+        // an externally powered shutdown never emits a jet or damages entities.
+        if (this.turbofanWasOn && burnValue > 0L && amountToBurn > 0) {
             turbofanJetEffects(level);
         }
         if (previousWasOn != this.turbofanWasOn) {
@@ -1862,12 +1870,19 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     }
 
     private boolean configureTurbofanFuel() {
+        HbmFluidTank fuel = tank(0);
         ItemStack identifier = this.items.get(4);
         if (!(identifier.getItem() instanceof FluidIdentifierItem)) {
+            // The 1.7.10 constructor and NBT tank state leave an unconfigured
+            // turbofan set to kerosene even while empty. HbmFluidTank clears to
+            // NONE at zero volume, including after an empty tank is reloaded.
+            if (fuel != null && fuel.amount() == 0 && fuel.type().isNone()) {
+                fuel.setType(HbmFluids.byName("kerosene").orElse(HbmFluids.none()));
+                return true;
+            }
             return false;
         }
         HbmFluidDefinition selected = FluidIdentifierItem.primary(identifier);
-        HbmFluidTank fuel = tank(0);
         if (selected.isNone() || fuel == null || fuel.type() == selected) {
             return false;
         }
