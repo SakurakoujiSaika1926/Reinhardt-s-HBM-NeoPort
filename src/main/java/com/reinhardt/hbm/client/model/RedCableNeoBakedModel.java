@@ -117,10 +117,8 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
             models.put(location, blockModel);
         }
 
-        BakedModel itemFallback = models.getOrDefault(itemLocation, blockFallback);
-        if (models.containsKey(itemLocation)) {
-            models.put(itemLocation, new RedCableNeoBakedModel(itemFallback, mesh, sprite, false, false, false));
-        }
+        // Keep the inventory model from models/item/red_cable.json.  The legacy
+        // inventory OBJ has a different origin from the centered world mesh.
         ReinhardtsHBM.LOGGER.info("Installed red copper cable OBJ model for {} baked block variants", blockLocations.size());
 
         installDiodeModels(models, mesh, textureGetter);
@@ -144,9 +142,7 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
         for (ModelResourceLocation location : blockLocations) {
             models.put(location, blockModel);
         }
-        if (models.containsKey(itemLocation)) {
-            models.put(itemLocation, new RedCableNeoBakedModel(models.get(itemLocation), mesh, sprite, false, false, true));
-        }
+        // Keep the item's authored OBJ transform and geometry.
     }
 
     private static void installDiodeModels(Map<ModelResourceLocation, BakedModel> models, ObjMesh mesh,
@@ -165,9 +161,7 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
         for (ModelResourceLocation location : blockLocations) {
             models.put(location, new RedCableNeoBakedModel(fallback, mesh, sprite, true, true, false));
         }
-        if (models.containsKey(itemLocation)) {
-            models.put(itemLocation, new RedCableNeoBakedModel(models.get(itemLocation), mesh, sprite, false, true, false));
-        }
+        // Keep the item's authored model; only the world cable geometry is dynamic.
     }
 
     @Override

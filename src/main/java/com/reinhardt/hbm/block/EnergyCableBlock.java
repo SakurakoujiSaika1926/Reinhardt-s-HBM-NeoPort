@@ -64,7 +64,11 @@ public class EnergyCableBlock extends Block {
             BlockPos pos,
             BlockPos neighborPos
     ) {
-        return state.setValue(propertyFor(direction), canConnectTo(level, pos, direction));
+        boolean connected = canConnectTo(level, pos, direction);
+        if (state.getValue(propertyFor(direction)) != connected && level instanceof Level actual) {
+            PowerNetworkManager.markDirty(actual);
+        }
+        return state.setValue(propertyFor(direction), connected);
     }
 
     @Override
@@ -97,6 +101,11 @@ public class EnergyCableBlock extends Block {
             }
         }
         return shape;
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return getShape(state, level, pos, context);
     }
 
     private BlockState withNeighborConnections(BlockState state, LevelAccessor level, BlockPos pos) {
