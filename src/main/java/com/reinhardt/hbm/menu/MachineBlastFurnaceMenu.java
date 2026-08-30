@@ -20,7 +20,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class MachineBlastFurnaceMenu extends AbstractContainerMenu {
-    private static final int MACHINE_SLOT_COUNT = MachineBlastFurnaceBlockEntity.SLOT_COUNT;
+    // The 1.7.10 GUI exposes only the five furnace slots. Container transfer remains automation-only.
+    private static final int MACHINE_SLOT_COUNT = 5;
     private static final int PLAYER_INVENTORY_START = MACHINE_SLOT_COUNT;
     private static final int PLAYER_INVENTORY_END = PLAYER_INVENTORY_START + 27;
     private static final int HOTBAR_START = PLAYER_INVENTORY_END;
@@ -47,10 +48,6 @@ public class MachineBlastFurnaceMenu extends AbstractContainerMenu {
         this.addSlot(new ValidatedSlot(container, MachineBlastFurnaceBlockEntity.LOWER_INPUT_SLOT, 80, 45));
         this.addSlot(new OutputSlot(container, MachineBlastFurnaceBlockEntity.OUTPUT_SLOT, 134, 72));
         this.addSlot(new OutputSlot(container, MachineBlastFurnaceBlockEntity.BYPRODUCT_SLOT, 134, 90));
-        this.addSlot(new ValidatedSlot(container, MachineBlastFurnaceBlockEntity.INPUT_CONTAINER_SLOT, 8, 17));
-        this.addSlot(new OutputSlot(container, MachineBlastFurnaceBlockEntity.INPUT_CONTAINER_RESULT_SLOT, 8, 35));
-        this.addSlot(new ValidatedSlot(container, MachineBlastFurnaceBlockEntity.OUTPUT_CONTAINER_SLOT, 8, 71));
-        this.addSlot(new OutputSlot(container, MachineBlastFurnaceBlockEntity.OUTPUT_CONTAINER_RESULT_SLOT, 8, 89));
         addPlayerInventory(playerInventory, 8, 140);
         addDataSlots(data);
     }
@@ -67,9 +64,7 @@ public class MachineBlastFurnaceMenu extends AbstractContainerMenu {
         moved = stack.copy();
 
         if (index == MachineBlastFurnaceBlockEntity.OUTPUT_SLOT
-                || index == MachineBlastFurnaceBlockEntity.BYPRODUCT_SLOT
-                || index == MachineBlastFurnaceBlockEntity.INPUT_CONTAINER_RESULT_SLOT
-                || index == MachineBlastFurnaceBlockEntity.OUTPUT_CONTAINER_RESULT_SLOT) {
+                || index == MachineBlastFurnaceBlockEntity.BYPRODUCT_SLOT) {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
                 return ItemStack.EMPTY;
             }
@@ -84,14 +79,6 @@ public class MachineBlastFurnaceMenu extends AbstractContainerMenu {
             }
         } else if (isRecipeInput(stack)) {
             if (!moveItemStackTo(stack, MachineBlastFurnaceBlockEntity.UPPER_INPUT_SLOT, MachineBlastFurnaceBlockEntity.LOWER_INPUT_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (this.container.canPlaceItem(MachineBlastFurnaceBlockEntity.INPUT_CONTAINER_SLOT, stack)) {
-            if (!moveItemStackTo(stack, MachineBlastFurnaceBlockEntity.INPUT_CONTAINER_SLOT, MachineBlastFurnaceBlockEntity.INPUT_CONTAINER_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (this.container.canPlaceItem(MachineBlastFurnaceBlockEntity.OUTPUT_CONTAINER_SLOT, stack)) {
-            if (!moveItemStackTo(stack, MachineBlastFurnaceBlockEntity.OUTPUT_CONTAINER_SLOT, MachineBlastFurnaceBlockEntity.OUTPUT_CONTAINER_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else if (index < PLAYER_INVENTORY_END) {
