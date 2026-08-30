@@ -3039,7 +3039,7 @@
     "container.reinhardtshbm.machine_hydrotreater":  "加氢装置",
     "block.reinhardtshbm.machine_industrial_boiler":  "工业锅炉",
     "block.reinhardtshbm.machine_industrial_turbine":  "工业汽轮机",
-    "block.reinhardtshbm.machine_intake":  "进气口",
+    "block.reinhardtshbm.machine_intake":  "空气压缩机",
     "block.reinhardtshbm.machine_keyforge":  "锁匠桌",
     "block.reinhardtshbm.machine_large_turbine":  "工业汽轮机（遗留）",
     "block.reinhardtshbm.machine_liquefactor":  "工业液化机",

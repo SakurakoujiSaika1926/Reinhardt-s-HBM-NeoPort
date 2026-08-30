@@ -24,15 +24,31 @@ final class CableModelGeometry {
 
     static void addBox(List<BakedQuad> quads, float minX, float minY, float minZ, float maxX, float maxY, float maxZ,
                        EnumMap<Direction, TextureAtlasSprite> sprites, Set<Direction> hiddenFaces) {
+        addBox(quads, minX, minY, minZ, maxX, maxY, maxZ, sprites, hiddenFaces, 0.0F, 16.0F, 0.0F, 16.0F);
+    }
+
+    /**
+     * Adds an atlas-space UV window. Legacy cable icons intentionally pack
+     * separate cap and segment tiles into one 16x16 texture.
+     */
+    static void addBox(List<BakedQuad> quads, float minX, float minY, float minZ, float maxX, float maxY, float maxZ,
+                       EnumMap<Direction, TextureAtlasSprite> sprites, Set<Direction> hiddenFaces,
+                       float minU, float maxU, float minV, float maxV) {
         for (Direction direction : Direction.values()) {
             if (!hiddenFaces.contains(direction)) {
-                quads.add(face(direction, minX, minY, minZ, maxX, maxY, maxZ, sprites.get(direction)));
+                quads.add(face(direction, minX, minY, minZ, maxX, maxY, maxZ, sprites.get(direction),
+                        minU, maxU, minV, maxV));
             }
         }
     }
 
     static BakedQuad face(Direction face, float minX, float minY, float minZ, float maxX, float maxY, float maxZ,
                           TextureAtlasSprite sprite) {
+        return face(face, minX, minY, minZ, maxX, maxY, maxZ, sprite, 0.0F, 16.0F, 0.0F, 16.0F);
+    }
+
+    private static BakedQuad face(Direction face, float minX, float minY, float minZ, float maxX, float maxY, float maxZ,
+                                  TextureAtlasSprite sprite, float minU, float maxU, float minV, float maxV) {
         Vertex[] vertices = vertices(face, minX, minY, minZ, maxX, maxY, maxZ);
         QuadBakingVertexConsumer baker = new QuadBakingVertexConsumer();
         baker.setSprite(sprite);
@@ -43,7 +59,8 @@ final class CableModelGeometry {
         for (Vertex vertex : vertices) {
             baker.addVertex(vertex.x, vertex.y, vertex.z);
             baker.setColor(255, 255, 255, 255);
-            baker.setUv(sprite.getU(vertex.u), sprite.getV(vertex.v));
+            baker.setUv(sprite.getU(minU + (maxU - minU) * vertex.u),
+                    sprite.getV(minV + (maxV - minV) * vertex.v));
             baker.setLight(0);
             baker.setNormal(face.getStepX(), face.getStepY(), face.getStepZ());
         }

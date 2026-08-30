@@ -112,7 +112,10 @@ public final class ClassicCableBakedModel implements IDynamicBakedModel {
         float upper = 10.5F / 16.0F;
         EnumMap<Direction, TextureAtlasSprite> sprites = CableModelGeometry.all(sprite);
         List<BakedQuad> quads = new ArrayList<>();
-        CableModelGeometry.addBox(quads, lower, lower, lower, upper, upper, upper, sprites, connected);
+        // RenderCableClassic uses its first 5x5 texture tile for unplugged
+        // caps and its adjacent 5x5 tile for every connected segment.
+        CableModelGeometry.addBox(quads, lower, lower, lower, upper, upper, upper, sprites, connected,
+                0.0F, 5.0F, 0.0F, 5.0F);
         for (Direction direction : connected) {
             float minX = direction == Direction.WEST ? 0.0F : lower;
             float maxX = direction == Direction.EAST ? 1.0F : upper;
@@ -120,7 +123,8 @@ public final class ClassicCableBakedModel implements IDynamicBakedModel {
             float maxY = direction == Direction.UP ? 1.0F : upper;
             float minZ = direction == Direction.NORTH ? 0.0F : lower;
             float maxZ = direction == Direction.SOUTH ? 1.0F : upper;
-            CableModelGeometry.addBox(quads, minX, minY, minZ, maxX, maxY, maxZ, sprites, Set.of(direction.getOpposite()));
+            CableModelGeometry.addBox(quads, minX, minY, minZ, maxX, maxY, maxZ, sprites,
+                    Set.of(direction.getOpposite()), 5.0F, 10.0F, 0.0F, 5.0F);
         }
         return List.copyOf(quads);
     }
