@@ -681,6 +681,7 @@ public final class HbmCreativeTabs {
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.tools"))
                     .icon(() -> new ItemStack(HbmItems.SCREWDRIVER.get()))
+                    .withSearchBar()
                     .displayItems((parameters, output) -> {
                         for (var anvil : HbmBlocks.ANVIL_BLOCKS) {
                             acceptBlock(output, anvil);
