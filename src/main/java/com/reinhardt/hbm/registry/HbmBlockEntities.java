@@ -1851,7 +1851,8 @@ public final class HbmBlockEntities {
                             HbmBlocks.VAULT_DOOR.get(),
                             HbmBlocks.WATER_DOOR.get(),
                             HbmBlocks.SILO_HATCH.get(),
-                            HbmBlocks.SILO_HATCH_LARGE.get()
+                            HbmBlocks.SILO_HATCH_LARGE.get(),
+                            HbmBlocks.TRANSITION_SEAL.get()
                     ).build(null)
             );
 
