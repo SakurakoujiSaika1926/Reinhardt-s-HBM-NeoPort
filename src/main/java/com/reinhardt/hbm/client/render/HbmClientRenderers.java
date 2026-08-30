@@ -15,6 +15,7 @@ import com.reinhardt.hbm.client.model.IndustrialTurbineItemModel;
 import com.reinhardt.hbm.client.model.LargeFactoryItemModel;
 import com.reinhardt.hbm.client.model.LandmineItemModel;
 import com.reinhardt.hbm.client.model.ObjItemAutoFitModel;
+import com.reinhardt.hbm.client.model.DedicatedItemRendererModel;
 import com.reinhardt.hbm.client.model.ObjMachineItemModel;
 import com.reinhardt.hbm.client.model.PurexItemModel;
 import com.reinhardt.hbm.client.model.LegacyMachineItemModel;
@@ -569,6 +570,7 @@ public final class HbmClientRenderers {
         ObjItemAutoFitModel.replaceModels(event.getModels());
         ObjMachineItemModel.replaceModels(event.getModels());
         LegacyMachineItemModel.replaceModels(event.getModels());
+        DedicatedItemRendererModel.replaceModels(event.getModels());
     }
 
     @SubscribeEvent

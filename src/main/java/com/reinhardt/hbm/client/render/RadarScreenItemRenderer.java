@@ -29,9 +29,8 @@ public final class RadarScreenItemRenderer extends BlockEntityWithoutLevelRender
     private static void applyLegacyTransform(ItemDisplayContext context, PoseStack poseStack) {
         if (context == ItemDisplayContext.GUI) {
             LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
-            // RenderRadarScreen#getRenderer and renderCommonWithStack, in the
-            // same normalized order as the 1.7.10 item renderer.
-            poseStack.translate(0.0D, -3.0D / 16.0D, -0.5D / 16.0D);
+            // Literal RenderRadarScreen inventory and common transforms.
+            poseStack.translate(0.0D, -3.0D, -0.5D);
             poseStack.scale(5.5F, 5.5F, 5.5F);
             return;
         }

@@ -415,15 +415,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_soldering_station_world");
         add(profiles, "machine_assembly_machine", 90.0F, 0.61F,
                 "block/machine_assembly_machine");
-        add(profiles, "machine_funnel", 0.0F, 1.12F, "block/machine_funnel");
         add(profiles, "machine_cyclotron", 0.0F, 0.90F,
                 "block/machine_cyclotron_body", "block/machine_cyclotron_b1",
                 "block/machine_cyclotron_b2", "block/machine_cyclotron_b3", "block/machine_cyclotron_b4");
         add(profiles, "machine_exposure_chamber", 90.0F, 0.88F,
                 "block/machine_exposure_chamber_chamber", "block/machine_exposure_chamber_magnets",
                 "block/machine_exposure_chamber_core");
-        add(profiles, "machine_deuterium_tower", 180.0F, 0.90F, "block/machine_deuterium_tower_world");
-        add(profiles, "radar_screen", 0.0F, 0.90F, "block/radar_screen_world");
         add(profiles, "machine_radar", 0.0F, 0.90F,
                 "block/machine_radar_base", "block/machine_radar_dish");
         add(profiles, "machine_radar_large", 180.0F, 0.90F,
@@ -482,7 +479,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/cargo_elevator_base", "block/cargo_elevator_piston",
                 "block/cargo_elevator_guides", "block/cargo_elevator_platform");
         add(profiles, "sat_dock", 0.0F, 0.90F, "block/sat_dock");
-        add(profiles, "lamp_demon", 0.0F, 0.90F, "block/lamp_demon");
         add(profiles, "refueler", 0.0F, 0.90F, "block/refueler_body");
         add(profiles, "radio_autocal", 0.0F, 0.90F, "block/radio_autocal");
         add(profiles, "radio_torch_sender", 225.0F, 30.0F, 0.82F, 0.85F,

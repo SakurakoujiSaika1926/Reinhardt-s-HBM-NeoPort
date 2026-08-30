@@ -370,6 +370,8 @@ import com.reinhardt.hbm.item.GlyphBlockItem;
 import com.reinhardt.hbm.item.TrapBlockItem;
 import com.reinhardt.hbm.item.GeothermalHeatExchangerBlockItem;
 import com.reinhardt.hbm.item.GeigerBlockItem;
+import com.reinhardt.hbm.item.DemonLampBlockItem;
+import com.reinhardt.hbm.item.DeuteriumTowerBlockItem;
 import com.reinhardt.hbm.item.GroundwaterPumpBlockItem;
 import com.reinhardt.hbm.item.HbmHeavyDoorBlockItem;
 import com.reinhardt.hbm.item.HbmRailBlockItem;
@@ -1336,8 +1338,7 @@ public final class HbmBlocks {
             () -> new CargoElevatorBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> BROADCASTER_PC = registerBlock("broadcaster_pc",
             () -> new BroadcasterBlock(metal().strength(5.0F, 15.0F).noOcclusion()));
-    public static final DeferredBlock<Block> LAMP_DEMON = registerObjBlock("lamp_demon",
-            () -> new DemonLampBlock(metal().strength(3.0F, 10.0F).noOcclusion().lightLevel(state -> 15)));
+    public static final DeferredBlock<Block> LAMP_DEMON = demonLamp("lamp_demon");
     public static final DeferredBlock<Block> RADIOBOX = registerBlock("radiobox",
             () -> new RadioboxBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> RADIOREC = registerBlock("radiorec",
@@ -4305,9 +4306,20 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> deuteriumTower(String name) {
-        return registerObjBlock(name, () -> new DeuteriumTowerBlock(metal()
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new DeuteriumTowerBlock(metal()
                 .strength(10.0F, 20.0F)
                 .noOcclusion(), Shapes.block()));
+        HbmItems.ITEMS.register(name, () -> new DeuteriumTowerBlockItem(block.get(), new Item.Properties()));
+        return block;
+    }
+
+    private static DeferredBlock<Block> demonLamp(String name) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new DemonLampBlock(metal()
+                .strength(3.0F, 10.0F)
+                .noOcclusion()
+                .lightLevel(state -> 15)));
+        HbmItems.ITEMS.register(name, () -> new DemonLampBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> geothermalHeatExchanger(String name) {

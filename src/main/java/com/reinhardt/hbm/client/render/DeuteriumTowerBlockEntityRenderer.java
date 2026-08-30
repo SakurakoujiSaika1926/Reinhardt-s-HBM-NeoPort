@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -37,6 +38,23 @@ public class DeuteriumTowerBlockEntityRenderer implements BlockEntityRenderer<De
         poseStack.mulPose(yawQuaternion(180.0F));
         applyLegacyTransform(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TOWER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Literal ItemRenderLibrary transform for machine_deuterium_tower. */
+    public static void renderItem(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource,
+                                  int packedLight, int packedOverlay) {
+        BlockState state = HbmBlocks.MACHINE_DEUTERIUM_TOWER.get().defaultBlockState();
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -5.0F, 0.0F);
+            poseStack.scale(3.0F, 3.0F, 3.0F);
+        }
+        poseStack.mulPose(yawQuaternion(180.0F));
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TOWER), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

@@ -3,6 +3,7 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.DemonLampBlock;
 import com.reinhardt.hbm.blockentity.DemonLampBlockEntity;
 import net.minecraft.client.renderer.LightTexture;
@@ -13,6 +14,8 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -20,6 +23,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** RenderDemonLamp's six-face transform and pair of additive blue radiation cones. */
 public final class DemonLampBlockEntityRenderer implements BlockEntityRenderer<DemonLampBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/lamp_demon");
+    private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/models/machines/demon_lamp.png");
 
     public DemonLampBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -36,9 +40,22 @@ public final class DemonLampBlockEntityRenderer implements BlockEntityRenderer<D
         poseStack.translate(0.5D, 0.5D, 0.5D);
         orient(poseStack, state.getValue(DemonLampBlock.FACING));
         poseStack.translate(0.0D, -0.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        renderModel(state, poseStack, bufferSource, packedLight, packedOverlay);
         renderCones(poseStack, bufferSource.getBuffer(RenderType.lightning()));
+        poseStack.popPose();
+    }
+
+    /** Literal ItemRenderLibrary transform for lamp_demon. */
+    public static void renderItem(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource,
+                                  int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(8.0F, 8.0F, 8.0F);
+        }
+        renderModel(com.reinhardt.hbm.registry.HbmBlocks.LAMP_DEMON.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -67,6 +84,14 @@ public final class DemonLampBlockEntityRenderer implements BlockEntityRenderer<D
                 poseStack.mulPose(Axis.ZP.rotationDegrees(270.0F));
             }
         }
+    }
+
+    private static void renderModel(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
+                                    int packedLight, int packedOverlay) {
+        // RenderDemonLamp binds its texture directly. Doing the same avoids
+        // the OBJ material atlas route that made this model disappear.
+        MachineModelRenderer.renderUnculledUv(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
+                state, packedLight, packedOverlay, TEXTURE, 0.0F, 0.0F);
     }
 
     private static void renderCones(PoseStack poseStack, VertexConsumer consumer) {

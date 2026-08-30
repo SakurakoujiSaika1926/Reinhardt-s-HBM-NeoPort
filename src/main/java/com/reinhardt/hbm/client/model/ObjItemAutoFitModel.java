@@ -182,7 +182,9 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             return false;
         }
         String path = location.id().getPath();
-        if (EXPLICIT_ITEM_TRANSFORMS.contains(path) || CUSTOM_RENDERED_ITEMS.contains(path)) {
+        if (EXPLICIT_ITEM_TRANSFORMS.contains(path)
+                || CUSTOM_RENDERED_ITEMS.contains(path)
+                || DedicatedItemRendererModel.owns(path)) {
             return false;
         }
         // OBJ machine items have a BEWLR that renders their complete legacy
