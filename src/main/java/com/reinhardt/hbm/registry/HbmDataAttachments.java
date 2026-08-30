@@ -21,7 +21,6 @@ public final class HbmDataAttachments {
             () -> AttachmentType.builder(HbmLivingRadiation::new)
                     .serialize(HbmLivingRadiation.CODEC)
                     .sync(HbmLivingRadiation.STREAM_CODEC)
-                    .copyOnDeath()
                     .build()
     );
     public static final Supplier<AttachmentType<HbmLivingHazards>> LIVING_HAZARDS = ATTACHMENTS.register(
@@ -29,7 +28,6 @@ public final class HbmDataAttachments {
             () -> AttachmentType.builder(HbmLivingHazards::new)
                     .serialize(HbmLivingHazards.CODEC)
                     .sync(HbmLivingHazards.STREAM_CODEC)
-                    .copyOnDeath()
                     .build()
     );
     public static final Supplier<AttachmentType<HbmPlayerShield>> PLAYER_SHIELD = ATTACHMENTS.register(

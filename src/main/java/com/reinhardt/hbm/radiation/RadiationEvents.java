@@ -146,8 +146,21 @@ public final class RadiationEvents {
     public static void onLivingDeathFirst(LivingDeathEvent event) {
         if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Player player
                 && LegacyReviveArmorModItem.tryRevive(player)) {
+            clearReviveHazards(player);
             event.setCanceled(true);
         }
+    }
+
+    private static void clearReviveHazards(Player player) {
+        player.removeEffect(MobEffects.BLINDNESS);
+
+        HbmLivingRadiation data = HbmLivingRadiation.get(player);
+        data.setRadiation(0.0F);
+        data.setEnvironmentRadiation(0.0F);
+        data.setRadiationBuffer(0.0F);
+        data.setNeutron(0.0F);
+        data.setDigamma(0.0F);
+        HbmLivingRadiation.set(player, data);
     }
 
     private static void tickLiving(LivingEntity living) {
