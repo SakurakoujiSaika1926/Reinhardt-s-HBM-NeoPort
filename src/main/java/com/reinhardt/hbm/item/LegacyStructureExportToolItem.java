@@ -151,6 +151,10 @@ public final class LegacyStructureExportToolItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         BlockPos anchor = pos(data(stack), ANCHOR);
         tooltip.add(Component.translatable("tooltip.reinhardtshbm.structure_tool." + this.mode.name().toLowerCase()).withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable(anchor == null ? "chat.reinhardtshbm.structure_tool.no_anchor" : "chat.reinhardtshbm.structure_tool.anchor", anchor.getX(), anchor.getY(), anchor.getZ()).withStyle(anchor == null ? ChatFormatting.RED : ChatFormatting.GREEN));
+        if (anchor == null) {
+            tooltip.add(Component.translatable("chat.reinhardtshbm.structure_tool.no_anchor").withStyle(ChatFormatting.RED));
+        } else {
+            tooltip.add(Component.translatable("chat.reinhardtshbm.structure_tool.anchor", anchor.getX(), anchor.getY(), anchor.getZ()).withStyle(ChatFormatting.GREEN));
+        }
     }
 }

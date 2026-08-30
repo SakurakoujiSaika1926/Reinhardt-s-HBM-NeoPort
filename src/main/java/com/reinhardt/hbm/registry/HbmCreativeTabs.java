@@ -27,7 +27,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -46,7 +45,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> ORES = TABS.register(
             "ores",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.ores"))
                     .icon(() -> new ItemStack(HbmBlocks.ORE_URANIUM.get()))
                     .displayItems((parameters, output) -> {
@@ -104,7 +103,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MATERIALS = TABS.register(
             "materials",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.materials"))
                     .icon(() -> new ItemStack(HbmItems.INGOT_STEEL.get()))
                     .displayItems((parameters, output) -> {
@@ -154,7 +153,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MATERIAL_NUGGETS = TABS.register(
             "material_nuggets",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.material_nuggets"))
                     .icon(() -> HbmItems.NUGGET_MATERIALS.isEmpty()
                             ? new ItemStack(HbmItems.INGOT_STEEL.get())
@@ -169,7 +168,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MATERIAL_INGOTS = TABS.register(
             "material_ingots",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.material_ingots"))
                     .icon(() -> new ItemStack(HbmItems.INGOT_STEEL.get()))
                     .displayItems((parameters, output) -> {
@@ -186,7 +185,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MATERIAL_BLOCKS = TABS.register(
             "material_blocks",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.material_blocks"))
                     .icon(() -> new ItemStack(HbmBlocks.BLOCK_STEEL.get()))
                     .displayItems((parameters, output) -> {
@@ -204,7 +203,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MACHINE_COMPONENTS = TABS.register(
             "machine_components",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.machine_components"))
                     .icon(() -> new ItemStack(HbmItems.UPGRADE_TEMPLATE.get()))
                     .displayItems((parameters, output) -> {
@@ -227,7 +226,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> POWER_GRID = TABS.register(
             "power_grid",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.power_grid"))
                     .icon(() -> new ItemStack(HbmBlocks.RED_CABLE.get()))
                     .displayItems((parameters, output) -> {
@@ -262,7 +261,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> GENERATORS = TABS.register(
             "generators",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.generators"))
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_STIRLING.get()))
                     .displayItems((parameters, output) -> {
@@ -283,7 +282,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> POWER_STORAGE = TABS.register(
             "power_storage",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.power_storage"))
                     .icon(() -> LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "battery_lead"))
                     .displayItems((parameters, output) -> {
@@ -313,7 +312,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> REACTORS = TABS.register(
             "reactors",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.reactors"))
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_REACTOR_BREEDING.get()))
                     .displayItems((parameters, output) -> {
@@ -334,7 +333,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> FUEL_RODS = TABS.register(
             "fuel_rods",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.fuel_rods"))
                     .icon(() -> LegacyVariantItem.stackFor(HbmItems.ROD, "u235"))
                     .displayItems((parameters, output) -> {
@@ -355,7 +354,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> RBMK_REACTOR = TABS.register(
             "rbmk_reactor",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.rbmk_reactor"))
                     .icon(() -> new ItemStack(HbmBlocks.RBMK_ROD.get()))
                     .displayItems((parameters, output) -> {
@@ -387,7 +386,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> NUCLEAR_BILLETS = TABS.register(
             "nuclear_billets",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.nuclear_billets"))
                     .icon(() -> HbmItems.NUCLEAR_BILLETS.isEmpty()
                             ? new ItemStack(HbmItems.INGOT_URANIUM.get())
@@ -402,7 +401,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> NUCLEAR_WEAPONS = TABS.register(
             "nuclear_weapons",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.nuclear_weapons"))
                     .icon(() -> new ItemStack(HbmBlocks.NUKE_BOY.get()))
                     .displayItems((parameters, output) -> {
@@ -436,7 +435,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> TURRETS = TABS.register(
             "turrets",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.turrets"))
                     .icon(() -> new ItemStack(HbmBlocks.TURRET_JEREMY.get()))
                     .displayItems((parameters, output) -> {
@@ -456,7 +455,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> FLUIDS = TABS.register(
             "fluids",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.fluids"))
                     .icon(() -> com.reinhardt.hbm.item.FluidIconItem.forFluid(
                             HbmFluids.byName("water").orElse(HbmFluids.none())
@@ -489,7 +488,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> PETROLEUM = TABS.register(
             "petroleum",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.petroleum"))
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_REFINERY.get()))
                     .displayItems((parameters, output) -> {
@@ -529,7 +528,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> CONTAINERS = TABS.register(
             "containers",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.containers"))
                     .icon(() -> new ItemStack(HbmBlocks.CRATE_STEEL.get()))
                     .displayItems((parameters, output) -> {
@@ -542,7 +541,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> THERMAL = TABS.register(
             "thermal",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.thermal"))
                     .icon(() -> new ItemStack(HbmBlocks.HEATER_FIREBOX.get()))
                     .displayItems((parameters, output) -> {
@@ -557,7 +556,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> FOUNDRY = TABS.register(
             "foundry",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.foundry"))
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_CRUCIBLE.get()))
                     .displayItems((parameters, output) -> {
@@ -577,7 +576,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MINING_PROCESSING = TABS.register(
             "mining_processing",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.mining_processing"))
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_EXCAVATOR.get()))
                     .displayItems((parameters, output) -> {
@@ -590,7 +589,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MACHINES = TABS.register(
             "machines",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.machines"))
                     .icon(() -> new ItemStack(HbmBlocks.MACHINE_ELECTRIC_FURNACE_OFF.get()))
                     .displayItems((parameters, output) -> {
@@ -614,7 +613,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> BUILDING = TABS.register(
             "building",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.building"))
                     .icon(() -> new ItemStack(HbmBlocks.BRICK_CONCRETE.get()))
                     .displayItems((parameters, output) -> {
@@ -669,7 +668,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> DOORS = TABS.register(
             "doors",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.doors"))
                     .icon(() -> new ItemStack(HbmBlocks.DOOR_METAL.get()))
                     .displayItems((parameters, output) -> {
@@ -682,7 +681,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> TOOLS = TABS.register(
             "tools",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.tools"))
                     .icon(() -> new ItemStack(HbmItems.SCREWDRIVER.get()))
                     .displayItems((parameters, output) -> {
@@ -733,7 +732,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> ARMOR = TABS.register(
             "armor",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.armor"))
                     .icon(() -> new ItemStack(HbmItems.GAS_MASK_M65.get()))
                     .displayItems((parameters, output) -> {
@@ -746,7 +745,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> MISCELLANEOUS = TABS.register(
             "miscellaneous",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.miscellaneous"))
                     .icon(() -> new ItemStack(HbmItems.INGOT_ADVANCED_ALLOY.get()))
                     .displayItems((parameters, output) -> {
@@ -764,7 +763,7 @@ public final class HbmCreativeTabs {
 
     public static final Supplier<CreativeModeTab> LEGACY_BLOCKS = TABS.register(
             "legacy_blocks",
-            () -> tabBuilder()
+            () -> CreativeModeTab.builder()
                     .title(Component.translatable("creative_tab.reinhardtshbm.legacy_blocks"))
                     .icon(() -> new ItemStack(HbmBlocks.REINFORCED_STONE.get()))
                     .displayItems((parameters, output) -> {
@@ -778,14 +777,6 @@ public final class HbmCreativeTabs {
     );
 
     private HbmCreativeTabs() {
-    }
-
-    /**
-     * Every custom tab must be connected to the vanilla tab ordering graph.
-     * Unanchored tabs are omitted by consumers such as the global search index.
-     */
-    private static CreativeModeTab.Builder tabBuilder() {
-        return CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.SPAWN_EGGS);
     }
 
     /** Hidden structure-only blocks have no item and must not abort tab/search rebuilding. */
