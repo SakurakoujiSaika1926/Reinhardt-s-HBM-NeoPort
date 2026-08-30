@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.block.FluidDuctBlock;
+import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
+import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.client.screen.FluidIdentifierScreen;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
@@ -24,6 +26,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.loading.FMLEnvironment;
 
@@ -81,6 +84,9 @@ public class FluidIdentifierItem extends Item {
 
     @Override
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        if (useOnTurbofan(stack, context)) {
+            return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
+        }
         return useOnPipe(stack, context);
     }
 
@@ -182,5 +188,26 @@ public class FluidIdentifierItem extends Item {
         return applyToPipe(stack, context.getLevel(), context.getClickedPos(), player)
                 ? InteractionResult.sidedSuccess(context.getLevel().isClientSide)
                 : InteractionResult.PASS;
+    }
+
+    private static boolean useOnTurbofan(ItemStack stack, UseOnContext context) {
+        Level level = context.getLevel();
+        BlockEntity target = level.getBlockEntity(context.getClickedPos());
+        if (target instanceof MachineDummyBlockEntity dummy) {
+            target = level.getBlockEntity(dummy.getCorePos());
+        }
+        if (!(target instanceof LegacyMachineBlockEntity machine)
+                || !machine.machineId().equals("machine_turbofan")) {
+            return false;
+        }
+
+        if (!level.isClientSide) {
+            HbmFluidDefinition fluid = primary(stack);
+            if (machine.applyTurbofanFluidSetting(fluid)) {
+                level.playSound(null, machine.getBlockPos(), SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.BLOCKS, 0.25F, 1.2F);
+            }
+        }
+        return true;
     }
 }

@@ -3543,14 +3543,23 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (!machineId().equals("machine_turbofan") || fluid == null || fluid.isNone()) {
             return;
         }
+        applyTurbofanFluidSetting(fluid);
+    }
+
+    /** Applies a fluid identifier before the block's normal interaction path. */
+    public boolean applyTurbofanFluidSetting(HbmFluidDefinition fluid) {
+        if (!machineId().equals("machine_turbofan") || fluid == null || fluid.isNone()) {
+            return false;
+        }
         HbmFluidTank fuel = tank(0);
         if (fuel == null || fuel.type() == fluid) {
-            return;
+            return fuel != null;
         }
         // FluidTank#setType is the old setTankType behavior: changing the
         // identifier also discards the incompatible fuel already stored.
         fuel.setType(fluid);
         setChangedAndSync();
+        return true;
     }
 
     public int radiolysisHeat() {
