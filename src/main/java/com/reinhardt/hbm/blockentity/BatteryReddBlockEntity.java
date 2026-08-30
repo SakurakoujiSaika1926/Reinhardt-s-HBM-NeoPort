@@ -6,6 +6,7 @@ import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.menu.BatteryReddMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
+import com.reinhardt.hbm.power.PowerGraphNode;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.util.LegacyMachineGeometry;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigInteger;
 import java.util.List;
 
-public class BatteryReddBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
+public class BatteryReddBlockEntity extends BlockEntity implements PowerEndpoint, PowerGraphNode, MachineInventory, WorldlyContainer, MenuProvider {
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
     public static final int SLOT_COUNT = 2;
@@ -105,6 +106,16 @@ public class BatteryReddBlockEntity extends BlockEntity implements PowerEndpoint
         return this.worldPosition;
     }
 
+    /**
+     * TileEntityBatteryBase is an IEnergyConductorMK2 in 1.7.10. Its six
+     * proxy ports belong to one PowerNode even while the battery is input-only
+     * or disabled, so a FEnSU never breaks a cable network placed through it.
+     */
+    @Override
+    public BlockPos getGraphPos() {
+        return this.worldPosition;
+    }
+
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
         return ports(level).stream().map(Port::connectorPos).toList();
@@ -113,6 +124,21 @@ public class BatteryReddBlockEntity extends BlockEntity implements PowerEndpoint
     @Override
     public boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
         return ports(level).stream().anyMatch(port -> port.connectorPos().equals(connectorPos) && port.face() == machineSide);
+    }
+
+    @Override
+    public List<BlockPos> getPowerFlowPositions(LevelAccessor level) {
+        return getPowerConnectorPositions(level);
+    }
+
+    @Override
+    public boolean canAcceptPowerFrom(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
+        return canConnectPower(level, connectorPos, machineSide);
+    }
+
+    @Override
+    public List<BlockPos> getRemotePowerLinks(Level level) {
+        return List.of();
     }
 
     @Override
@@ -132,7 +158,11 @@ public class BatteryReddBlockEntity extends BlockEntity implements PowerEndpoint
         if (mode != MODE_INPUT && mode != MODE_BUFFER) {
             return 0L;
         }
-        return TRANSFER_LIMIT;
+        // PowerNetMK2 uses min(getMaxPower() - getPower(),
+        // getReceiverSpeed()). The FEnSU exposes no more than half of its
+        // connection speed through getPower(), even though its backing store
+        // is a BigInteger.
+        return BIG_TRANSFER_LIMIT.subtract(this.power.min(BIG_TRANSFER_LIMIT.divide(BigInteger.TWO))).longValue();
     }
 
     @Override
