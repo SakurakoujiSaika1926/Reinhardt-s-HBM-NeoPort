@@ -50,6 +50,7 @@ public final class TurbofanMenu extends AbstractContainerMenu {
         addSlot(new ValidatedSlot(container, 3, 143, 71));
         addSlot(new ValidatedSlot(container, 4, 44, 71));
         addPlayerInventory(inventory);
+        addDataSlots(data);
     }
 
     @Override

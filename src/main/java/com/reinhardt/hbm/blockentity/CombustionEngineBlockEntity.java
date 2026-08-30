@@ -16,6 +16,7 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
+import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -190,7 +191,7 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
             return side == null;
         }
         for (Port port : ports(this.level)) {
-            if (port.pos().equals(queriedPos) && (side == null || side == port.face())) {
+            if (port.hostPos().equals(queriedPos) && (side == null || side == port.face())) {
                 return true;
             }
         }
@@ -498,15 +499,23 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
 
     private List<Port> ports(LevelAccessor level) {
         Direction facing = facing(level);
-        Direction right = facing.getClockWise();
+        Direction rotation = LegacyMachineGeometry.forgeRotateUp(facing);
         return List.of(
-                // These are the four positions from TileEntityMachineCombustionEngine#getConPos:
-                // two ports one block forward and two ports two blocks backward.
-                new Port(this.worldPosition.relative(facing).relative(right).immutable(), facing),
-                new Port(this.worldPosition.relative(facing).relative(right.getOpposite()).immutable(), facing),
-                new Port(this.worldPosition.relative(facing.getOpposite(), 2).relative(right).immutable(), facing.getOpposite()),
-                new Port(this.worldPosition.relative(facing.getOpposite(), 2).relative(right.getOpposite()).immutable(), facing.getOpposite())
+                port(this.worldPosition.relative(facing).relative(rotation), facing),
+                port(this.worldPosition.relative(facing).relative(rotation.getOpposite()), facing),
+                port(this.worldPosition.relative(facing.getOpposite(), 2).relative(rotation), facing.getOpposite()),
+                port(this.worldPosition.relative(facing.getOpposite(), 2).relative(rotation.getOpposite()), facing.getOpposite())
         );
+    }
+
+    /**
+     * The positions in TileEntityMachineCombustionEngine#getConPos are already
+     * the exposed cable/pipe positions. The adjacent block toward the machine
+     * is the dummy that forwards NeoForge capabilities to this core.
+     */
+    private static Port port(BlockPos connectorPos, Direction face) {
+        BlockPos connector = connectorPos.immutable();
+        return new Port(connector, connector.relative(face.getOpposite()).immutable(), face);
     }
 
     private Direction facing(LevelAccessor level) {
@@ -620,10 +629,7 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
         return HbmFluids.byName("diesel").orElse(HbmFluids.none());
     }
 
-    private record Port(BlockPos pos, Direction face) {
-        private BlockPos connectorPos() {
-            return this.pos.relative(this.face).immutable();
-        }
+    private record Port(BlockPos connectorPos, BlockPos hostPos, Direction face) {
     }
 
     private final class FuelFluidHandler implements IFluidHandler {
