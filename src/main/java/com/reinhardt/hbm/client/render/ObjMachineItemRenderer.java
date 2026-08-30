@@ -456,7 +456,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         addThermalObj(profiles, "machine_condenser_powered", "block/machine_condenser_powered");
         addThermalObj(profiles, "machine_tower_small", "block/machine_tower_small_world");
         addThermalObj(profiles, "machine_tower_large", "block/machine_tower_large_world");
-        addThermalObj(profiles, "machine_difurnace_ext", "block/machine_difurnace_ext");
         addThermalObj(profiles, "machine_blast_furnace", "block/machine_blast_furnace");
         addThermalObj(profiles, "furnace_combination", "block/furnace_combination");
         addThermalObj(profiles, "furnace_iron", "block/furnace_iron");

@@ -5,7 +5,6 @@ import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.client.model.CoatedCableCtmModel;
 import com.reinhardt.hbm.client.model.BlastDoorItemModel;
 import com.reinhardt.hbm.client.model.DecorativeCtmBlockModel;
-import com.reinhardt.hbm.client.model.DiFurnaceExtensionModel;
 import com.reinhardt.hbm.client.model.ExhaustDuctBakedModel;
 import com.reinhardt.hbm.client.model.FluidDuctNeoBakedModel;
 import com.reinhardt.hbm.client.model.FluidTankItemModel;
@@ -552,7 +551,6 @@ public final class HbmClientRenderers {
         ReedsBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         GlyphidBaseBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         SteelScaffoldBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
-        DiFurnaceExtensionModel.replaceModels(event.getModels());
         StirlingGeneratorItemModel.replaceModels(event.getModels());
         SteamEngineItemModel.replaceModels(event.getModels());
         IndustrialTurbineItemModel.replaceModels(event.getModels());

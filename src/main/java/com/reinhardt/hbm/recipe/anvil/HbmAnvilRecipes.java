@@ -302,11 +302,6 @@ public final class HbmAnvilRecipes {
         );
         registerStampConstructionRecipes();
         addConstruction(
-                List.of(ingredient(mc("stone_bricks"), 4), ingredient("ingot_firebrick", 4), ingredient("plate_copper", 4)),
-                blockItem("machine_difurnace_off", 1),
-                1
-        );
-        addConstruction(
                 List.of(ingredient(mc("stone_bricks"), 4), ingredient("ingot_firebrick", 32), ingredient("plate_copper", 8)),
                 blockItem("machine_blast_furnace", 1),
                 1

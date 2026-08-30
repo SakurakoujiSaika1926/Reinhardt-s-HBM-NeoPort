@@ -103,7 +103,6 @@ public final class HbmClientScreens {
         event.register(HbmMenus.LIQUEFACTOR.get(), LiquefactorScreen::new);
         event.register(HbmMenus.CATALYTIC_REFORMER.get(), CatalyticReformerScreen::new);
         event.register(HbmMenus.HYDROTREATER.get(), HydrotreaterScreen::new);
-        event.register(HbmMenus.BLAST_FURNACE.get(), BlastFurnaceScreen::new);
         event.register(HbmMenus.MACHINE_BLAST_FURNACE.get(), MachineBlastFurnaceScreen::new);
         event.register(HbmMenus.BRICK_FURNACE.get(), BrickFurnaceScreen::new);
         event.register(HbmMenus.IRON_FURNACE.get(), IronFurnaceScreen::new);

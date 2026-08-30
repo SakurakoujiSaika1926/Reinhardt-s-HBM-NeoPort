@@ -598,6 +598,9 @@ public final class HbmCreativeTabs {
                             // DeferredBlock#asItem points at AIR rather than the actual item.
                             // Resolve the registered item by its shared registry id instead.
                             Item item = BuiltInRegistries.ITEM.get(block.getId());
+                            if (item == Items.AIR) {
+                                continue;
+                            }
                             if (item instanceof LegacyVariantBlockItem variants) {
                                 variants.addCreativeVariants(output);
                             } else {

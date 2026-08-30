@@ -475,8 +475,6 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_CATALYTIC_CRACKER.get(), CRACKING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_CATALYTIC_REFORMER.get(), REFORMING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_HYDROTREATER.get(), HYDROTREATING);
-        registration.addRecipeCatalyst(HbmBlocks.MACHINE_DIFURNACE_OFF.get(), BLAST_FURNACE);
-        registration.addRecipeCatalyst(HbmBlocks.MACHINE_DIFURNACE_OFF.get(), BLAST_FURNACE_FUEL);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_BLAST_FURNACE.get(), BLAST_FURNACE);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_BLAST_FURNACE.get(), BLAST_FURNACE_FUEL);
         registration.addRecipeCatalyst(HbmBlocks.FURNACE_IRON.get(), RecipeTypes.SMELTING);

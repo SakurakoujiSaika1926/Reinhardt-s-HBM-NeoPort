@@ -21,7 +21,6 @@ import com.reinhardt.hbm.blockentity.BedrockOreBlockEntity;
 import com.reinhardt.hbm.blockentity.BigAssTankBlockEntity;
 import com.reinhardt.hbm.blockentity.BlastDoorBlockEntity;
 import com.reinhardt.hbm.blockentity.BlastDoorDummyBlockEntity;
-import com.reinhardt.hbm.blockentity.BlastFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.BreederReactorBlockEntity;
 import com.reinhardt.hbm.blockentity.BroadcasterBlockEntity;
 import com.reinhardt.hbm.blockentity.GeigerBlockEntity;
@@ -1740,16 +1739,6 @@ public final class HbmBlockEntities {
                     ).build(null)
             );
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlastFurnaceBlockEntity>> BLAST_FURNACE =
-            BLOCK_ENTITIES.register(
-                    "machine_difurnace",
-                    () -> BlockEntityType.Builder.of(
-                            BlastFurnaceBlockEntity::new,
-                            HbmBlocks.MACHINE_DIFURNACE_OFF.get(),
-                            HbmBlocks.MACHINE_DIFURNACE_ON.get()
-                    ).build(null)
-            );
-
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineBlastFurnaceBlockEntity>> MACHINE_BLAST_FURNACE =
             BLOCK_ENTITIES.register(
                     "machine_blast_furnace",
@@ -2157,7 +2146,6 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             MachineDummyBlockEntity::new,
                             HbmBlocks.MACHINE_DUMMY.get(),
-                            HbmBlocks.MACHINE_DIFURNACE_EXT.get(),
                             HbmBlocks.DUMMY_PLATE_COMPACT_LAUNCHER.get(),
                             HbmBlocks.DUMMY_PORT_COMPACT_LAUNCHER.get(),
                             HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get(),

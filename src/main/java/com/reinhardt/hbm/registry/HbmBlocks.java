@@ -28,8 +28,6 @@ import com.reinhardt.hbm.block.BedrockOreBlock;
 import com.reinhardt.hbm.block.BigAssTankBlock;
 import com.reinhardt.hbm.block.BlastDoorBlock;
 import com.reinhardt.hbm.block.BlastDoorDummyBlock;
-import com.reinhardt.hbm.block.BlastFurnaceBlock;
-import com.reinhardt.hbm.block.BlastFurnaceExtensionBlock;
 import com.reinhardt.hbm.block.BalefireBlock;
 import com.reinhardt.hbm.block.BreederReactorBlock;
 import com.reinhardt.hbm.block.BroadcasterBlock;
@@ -1679,9 +1677,6 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> ICF_LASER_COMPONENT = icfLaserComponent("icf_laser_component");
     public static final DeferredBlock<Block> ICF_BLOCK = icfAssembledLaser("icf_block");
     public static final DeferredBlock<Block> ZIRNOX_DESTROYED = zirnoxDestroyed("zirnox_destroyed");
-    public static final DeferredBlock<Block> MACHINE_DIFURNACE_EXT = blastFurnaceExtension("machine_difurnace_ext");
-    public static final DeferredBlock<Block> MACHINE_DIFURNACE_OFF = blastFurnace("machine_difurnace_off", false);
-    public static final DeferredBlock<Block> MACHINE_DIFURNACE_ON = blastFurnace("machine_difurnace_on", true);
     public static final DeferredBlock<Block> MACHINE_BLAST_FURNACE = machineBlastFurnace("machine_blast_furnace");
     public static final DeferredBlock<Block> MACHINE_CRUCIBLE = crucible("machine_crucible");
     public static final DeferredBlock<Block> FOUNDRY_MOLD = foundryCasting("foundry_mold", FoundryCastingBlock.Kind.MOLD);
@@ -1968,8 +1963,6 @@ public final class HbmBlocks {
             MACHINE_CONDENSER_POWERED,
             MACHINE_TOWER_SMALL,
             MACHINE_TOWER_LARGE,
-            MACHINE_DIFURNACE_OFF,
-            MACHINE_DIFURNACE_EXT,
             MACHINE_BLAST_FURNACE,
             FURNACE_COMBINATION,
             MACHINE_FURNACE_BRICK_OFF,
@@ -4099,25 +4092,12 @@ public final class HbmBlocks {
                 .noOcclusion(), Shapes.block()));
     }
 
-    private static DeferredBlock<Block> blastFurnace(String name, boolean defaultLit) {
-        return registerObjBlock(name, () -> new BlastFurnaceBlock(metal()
-                .strength(5.0F, 100.0F)
-                .lightLevel(state -> state.hasProperty(BlastFurnaceBlock.LIT) && state.getValue(BlastFurnaceBlock.LIT) ? 15 : 0)
-                .noOcclusion(), defaultLit));
-    }
-
     private static DeferredBlock<Block> machineBlastFurnace(String name) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new MachineBlastFurnaceBlock(metal()
                 .strength(5.0F, 100.0F)
                 .noOcclusion()));
         HbmItems.ITEMS.register(name, () -> new ObjMachineBlockItem(block.get(), new Item.Properties()));
         return block;
-    }
-
-    private static DeferredBlock<Block> blastFurnaceExtension(String name) {
-        return registerBlock(name, () -> new BlastFurnaceExtensionBlock(metal()
-                .strength(5.0F, 100.0F)
-                .noOcclusion()));
     }
 
     private static DeferredBlock<Block> crucible(String name) {

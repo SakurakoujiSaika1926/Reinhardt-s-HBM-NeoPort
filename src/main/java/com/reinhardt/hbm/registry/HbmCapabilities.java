@@ -13,7 +13,6 @@ import com.reinhardt.hbm.blockentity.BatteryReddBlockEntity;
 import com.reinhardt.hbm.blockentity.BatterySocketBlockEntity;
 import com.reinhardt.hbm.blockentity.BrickFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.BigAssTankBlockEntity;
-import com.reinhardt.hbm.blockentity.BlastFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticCrackerBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticReformerBlockEntity;
 import com.reinhardt.hbm.blockentity.HydrotreaterBlockEntity;
@@ -264,11 +263,6 @@ public final class HbmCapabilities {
                 Capabilities.ItemHandler.BLOCK,
                 HbmBlockEntities.ELECTRIC_FURNACE.get(),
                 HbmCapabilities::electricFurnaceItemHandler
-        );
-        event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                HbmBlockEntities.BLAST_FURNACE.get(),
-                HbmCapabilities::blastFurnaceItemHandler
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
@@ -1250,9 +1244,6 @@ public final class HbmCapabilities {
         if (core instanceof CrucibleBlockEntity) {
             return new SidedInvWrapper(dummy, side);
         }
-        if (core instanceof BlastFurnaceBlockEntity) {
-            return new SidedInvWrapper(dummy, side);
-        }
         if (core instanceof IronFurnaceBlockEntity) {
             return new SidedInvWrapper(dummy, side);
         }
@@ -1314,10 +1305,6 @@ public final class HbmCapabilities {
     }
 
     private static IItemHandler electricFurnaceItemHandler(ElectricFurnaceBlockEntity furnace, @Nullable Direction side) {
-        return new SidedInvWrapper(furnace, side);
-    }
-
-    private static IItemHandler blastFurnaceItemHandler(BlastFurnaceBlockEntity furnace, @Nullable Direction side) {
         return new SidedInvWrapper(furnace, side);
     }
 

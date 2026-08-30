@@ -11,7 +11,6 @@ import com.reinhardt.hbm.menu.ArmorTableMenu;
 import com.reinhardt.hbm.menu.AshpitMenu;
 import com.reinhardt.hbm.menu.BatteryReddMenu;
 import com.reinhardt.hbm.menu.BatterySocketMenu;
-import com.reinhardt.hbm.menu.BlastFurnaceMenu;
 import com.reinhardt.hbm.menu.BrickFurnaceMenu;
 import com.reinhardt.hbm.menu.BreederReactorMenu;
 import com.reinhardt.hbm.menu.CatalyticReformerMenu;
@@ -400,9 +399,6 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<HydrotreaterMenu>> HYDROTREATER =
             MENUS.register("machine_hydrotreater", () -> IMenuTypeExtension.create(HydrotreaterMenu::new));
-
-    public static final DeferredHolder<MenuType<?>, MenuType<BlastFurnaceMenu>> BLAST_FURNACE =
-            MENUS.register("machine_difurnace", () -> IMenuTypeExtension.create(BlastFurnaceMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<MachineBlastFurnaceMenu>> MACHINE_BLAST_FURNACE =
             MENUS.register("machine_blast_furnace", () -> IMenuTypeExtension.create(MachineBlastFurnaceMenu::new));

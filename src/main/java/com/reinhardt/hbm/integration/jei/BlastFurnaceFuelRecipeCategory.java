@@ -24,7 +24,7 @@ public class BlastFurnaceFuelRecipeCategory implements IRecipeCategory<RecipeHol
 
     public BlastFurnaceFuelRecipeCategory(IGuiHelper helper) {
         this.background = helper.createDrawable(TEXTURE, 0, 17, 70, 54);
-        this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.MACHINE_DIFURNACE_OFF.get()));
+        this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.MACHINE_BLAST_FURNACE.get()));
     }
 
     @Override

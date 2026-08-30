@@ -26,7 +26,7 @@ public class BlastFurnaceRecipeCategory implements IRecipeCategory<RecipeHolder<
 
     public BlastFurnaceRecipeCategory(IGuiHelper helper) {
         this.background = helper.createDrawable(TEXTURE, 0, 0, 176, 83);
-        this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.MACHINE_DIFURNACE_OFF.get()));
+        this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.MACHINE_BLAST_FURNACE.get()));
     }
 
     @Override
@@ -36,7 +36,7 @@ public class BlastFurnaceRecipeCategory implements IRecipeCategory<RecipeHolder<
 
     @Override
     public Component getTitle() {
-        return Component.translatable("container.reinhardtshbm.di_furnace");
+        return Component.translatable("container.reinhardtshbm.machine_blast_furnace");
     }
 
     @Override
