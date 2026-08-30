@@ -168,6 +168,29 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+
+        HbmFluidNetworks.registerPipe(level, this.worldPosition, connectableFluidTypes(), this.open);
+        BlockState state = level.getBlockState(this.worldPosition);
+        if (!(state.getBlock() instanceof FluidDuctBlock duct)) {
+            return;
+        }
+        duct.refreshConnections(level, this.worldPosition);
+        for (Direction direction : Direction.values()) {
+            BlockPos neighbor = this.worldPosition.relative(direction);
+            BlockState neighborState = level.getBlockState(neighbor);
+            if (neighborState.getBlock() instanceof FluidDuctBlock neighborDuct) {
+                neighborDuct.refreshConnections(level, neighbor);
+            }
+        }
+    }
+
+    @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putString("Fluid", this.type.name());
@@ -179,28 +202,6 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
         super.loadAdditional(tag, registries);
         this.type = HbmFluids.byName(tag.getString("Fluid")).orElse(HbmFluids.none());
         this.open = !tag.contains("Open") || tag.getBoolean("Open");
-        if (this.level != null) {
-            HbmFluidNetworks.registerPipe(this.level, this.worldPosition, connectableFluidTypes(), this.open);
-            BlockState state = this.level.getBlockState(this.worldPosition);
-            if (state.getBlock() instanceof FluidDuctBlock duct) {
-                duct.refreshConnections(this.level, this.worldPosition);
-                for (Direction direction : Direction.values()) {
-                    BlockPos neighbor = this.worldPosition.relative(direction);
-                    BlockState neighborState = this.level.getBlockState(neighbor);
-                    if (neighborState.getBlock() instanceof FluidDuctBlock neighborDuct) {
-                        neighborDuct.refreshConnections(this.level, neighbor);
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    public void clearRemoved() {
-        super.clearRemoved();
-        if (this.level != null) {
-            HbmFluidNetworks.registerPipe(this.level, this.worldPosition, connectableFluidTypes(), this.open);
-        }
     }
 
     @Override
