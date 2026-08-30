@@ -1,8 +1,8 @@
 newmtl default
 Ka 0.0 0.0 0.0
 Kd 1.0 1.0 1.0
-map_Kd reinhardtshbm:models/FatMan
+map_Kd reinhardtshbm:models/fatman
 newmtl None
 Ka 0.0 0.0 0.0
 Kd 1.0 1.0 1.0
-map_Kd reinhardtshbm:models/FatMan
+map_Kd reinhardtshbm:models/fatman

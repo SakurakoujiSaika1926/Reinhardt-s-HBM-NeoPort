@@ -1,6 +1,6 @@
 # Blender v2.79 (sub 0) OBJ File: 'fatman.blend'
 # www.blender.org
-mtllib fatman.mtl
+mtllib fat_man.mtl
 o fatman_Cylinder
 v -0.154001 0.747592 -0.782877
 v 0.228740 0.747591 -0.782877

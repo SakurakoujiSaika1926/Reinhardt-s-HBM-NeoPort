@@ -5,5 +5,5 @@
   "automatic_culling": false,
   "shade_quads": true,
   "flip_v": true,
-  "textures": { "particle": "reinhardtshbm:models/CustomNuke" }
+  "textures": { "particle": "reinhardtshbm:models/customnuke" }
 }
