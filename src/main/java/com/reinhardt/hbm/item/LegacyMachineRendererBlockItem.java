@@ -16,7 +16,12 @@ import java.util.function.Consumer;
 
 public final class LegacyMachineRendererBlockItem extends LegacyOffsetBlockItem {
     public LegacyMachineRendererBlockItem(Block block, Item.Properties properties, int legacyOffset) {
-        super(block, properties, legacyOffset, true);
+        this(block, properties, legacyOffset, true);
+    }
+
+    public LegacyMachineRendererBlockItem(Block block, Item.Properties properties, int legacyOffset,
+                                          boolean legacyOppositeFacing) {
+        super(block, properties, legacyOffset, legacyOppositeFacing);
     }
 
     @Override

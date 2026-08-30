@@ -276,6 +276,7 @@ public final class HbmCreativeTabs {
                         output.accept(HbmBlocks.MACHINE_INDUSTRIAL_TURBINE);
                         output.accept(HbmBlocks.MACHINE_CHUNGUS);
                         output.accept(HbmBlocks.MACHINE_TURBINEGAS);
+                        output.accept(HbmBlocks.MACHINE_TURBOFAN);
                     })
                     .build()
     );

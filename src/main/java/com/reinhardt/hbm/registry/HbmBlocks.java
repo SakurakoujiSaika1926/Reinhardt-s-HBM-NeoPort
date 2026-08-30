@@ -4437,8 +4437,10 @@ public final class HbmBlocks {
         HbmItems.ITEMS.register(name, () -> switch (name) {
             case "machine_annihilator", "machine_autosaw", "machine_thresher", "machine_lpw2", "machine_forcefield", "machine_missile_assembly",
                  "machine_orbus", "machine_precass", "machine_pyrooven",
-                 "machine_radiolysis", "machine_sawmill", "machine_turbofan" ->
+                 "machine_radiolysis", "machine_sawmill" ->
                     new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset);
+            case "machine_turbofan" ->
+                    new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset, false);
             case "machine_rtg_grey" -> new ObjMachineLegacyOffsetBlockItem(block.get(), new Item.Properties(), offset, true);
             case "machine_radar", "machine_radar_large", "machine_radgen" ->
                     new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset);
