@@ -897,7 +897,11 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private boolean isCoolantAccessor(BlockPos accessorPos, @Nullable Direction side) {
         for (Port port : coolantAccessorPorts()) {
-            if (port.pos().equals(accessorPos) && (side == null || port.face() == side)) {
+            // The 1.7.10 DelegateChemicalFactoy is exposed by proxy position
+            // and does not implement a sided fluid connector. The proxy
+            // therefore accepts the capability query from any face; the four
+            // proxy coordinates are the only port restriction.
+            if (port.pos().equals(accessorPos)) {
                 return true;
             }
         }
