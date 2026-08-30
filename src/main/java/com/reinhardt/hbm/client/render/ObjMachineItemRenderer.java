@@ -130,6 +130,14 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderCrashedBombItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay, profileId);
             return;
         }
+        if (profileId.equals("machine_chungus")) {
+            renderLeviathanItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("machine_combustion_engine")) {
+            renderCombustionEngineItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
 
         LegacyPose legacyPose = LEGACY_POSES.get(profileId);
         if (legacyPose != null) {
@@ -289,6 +297,46 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
+    /** Exact ItemRenderLibrary transform for the Leviathan's three static OBJ groups. */
+    private static void renderLeviathanItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                            PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                            int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.0F);
+            poseStack.scale(2.5F, 2.5F, 2.5F);
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /**
+     * RenderCombustionEngine rotates before its positive Z translation. Keeping
+     * that order is essential: translating first shifts the icon on the wrong
+     * screen axis after the inventory yaw is applied.
+     */
+    private static void renderCombustionEngineItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                                   PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                                   int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(2.75F, 2.75F, 2.75F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.translate(0.0F, 0.0F, 2.75F);
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
     private static void logGeometryOnce(String itemId, String profileId, Profile profile,
                                         List<BakedModel> models, BlockState state) {
         if (!DIAGNOSTICS.add(profileId)) {
@@ -389,6 +437,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "pa_quadrupole", 90.0F, 0.90F, "block/pa_quadrupole");
         add(profiles, "pa_dipole", 0.0F, 0.90F, "block/pa_dipole");
         add(profiles, "pa_detector", 90.0F, 0.90F, "block/pa_detector");
+        add(profiles, "machine_chungus", 0.0F, 0.90F,
+                "block/machine_chungus_body", "block/machine_chungus_lever", "block/machine_chungus_blades");
         add(profiles, "machine_combustion_engine", 90.0F, 0.54F, "block/machine_combustion_engine");
         add(profiles, "machine_battery_socket", 0.0F, 0.86F,
                 "block/machine_battery_socket_socket");
@@ -580,8 +630,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderCrystallizer#getRenderer
         legacy(poses, "machine_crystallizer", 0.0F, -4.0F, 0.0F, 2.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "machine_combustion_engine", 0.0F, -1.0F, 0.0F, 2.75F,
-                0.0F, 0.0F, 2.75F, 90.0F, 1.0F);
         // RenderRotaryFurnace#getRenderer
         legacy(poses, "machine_rotary_furnace", 0.0F, -2.0F, 0.0F, 3.5F,
                 0.0F, 0.0F, 0.0F, 90.0F, 0.625F);

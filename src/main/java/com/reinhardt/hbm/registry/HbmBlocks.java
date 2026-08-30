@@ -3681,7 +3681,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> leviathanTurbine(String name) {
-        return registerBlock(name, () -> new LeviathanTurbineBlock(metal()
+        return registerObjBlock(name, () -> new LeviathanTurbineBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion(), Shapes.block()));
     }
