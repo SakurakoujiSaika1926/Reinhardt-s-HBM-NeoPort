@@ -327,6 +327,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_arc_furnace_electrode2", "block/machine_arc_furnace_electrode3",
                 "block/machine_arc_furnace_cable1", "block/machine_arc_furnace_cable2",
                 "block/machine_arc_furnace_cable3");
+        // This animated 23x13 door has no compact block mesh.  Render the real
+        // closed OBJ assembly in item space and fit it from its measured bounds.
+        add(profiles, "transition_seal", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/transition_seal");
         add(profiles, "boltgun", 225.0F, 30.0F, 0.82F, 0.85F,
                 0.0F, 0.0F, 0.0F, "block/boltgun");
         add(profiles, "icf", 0.0F, 0.90F, "block/icf");
