@@ -47,10 +47,13 @@ public final class FunnelBlockEntityRenderer implements BlockEntityRenderer<Funn
     public static void renderItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        // MachineFunnel is an IRenderBlock in 1.7.10, not an ItemRenderBase
+        // renderer. Its mesh is centered on X/Z around its own origin, so map
+        // that origin to the modern block-item model space before applying the
+        // only inventory transform used by the legacy renderer.
+        poseStack.translate(0.5F, 0.0F, 0.5F);
         if (context == ItemDisplayContext.GUI) {
-            // MachineFunnel#renderInventory only applies the legacy inventory
-            // translation; the OBJ itself is already authored at block scale.
+            // MachineFunnel#renderInventory
             poseStack.translate(0.0F, -0.5F, 0.0F);
         }
         BlockState state = com.reinhardt.hbm.registry.HbmBlocks.MACHINE_FUNNEL.get().defaultBlockState();

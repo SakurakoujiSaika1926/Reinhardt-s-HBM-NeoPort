@@ -1,4 +1,4 @@
 newmtl Texture
 Ka 0.0 0.0 0.0
 Kd 1.0 1.0 1.0
-map_Kd reinhardtshbm:models/model_geiger
+map_Kd reinhardtshbm:block/geiger

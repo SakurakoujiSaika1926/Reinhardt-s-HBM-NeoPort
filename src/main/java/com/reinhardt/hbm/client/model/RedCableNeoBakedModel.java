@@ -46,7 +46,12 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("block/cable_neo");
     private static final ResourceLocation DET_CORD_TEXTURE = ReinhardtsHBM.id("block/det_cord");
     private static final Transform WORLD_TRANSFORM = new Transform(1.0F, 0.0F, 0.0F, 0.0F, 0.0F, true);
-    private static final Transform ITEM_TRANSFORM = new Transform(1.0F, 0.5F, 1.0F / 16.0F, 0.5F, (float) Math.PI, false);
+    /**
+     * RenderCable#renderInventoryBlock in 1.7.10 rotates the source mesh 180
+     * degrees around Y and scales it by 1.25. The old OBJ is authored around
+     * the origin, while a modern item baked model is authored in [0, 1].
+     */
+    private static final Transform ITEM_TRANSFORM = new Transform(1.25F, 0.5F, 0.5F, 0.5F, (float) Math.PI, false);
     private static final ChunkRenderTypeSet CUTOUT_RENDER_TYPES = ChunkRenderTypeSet.of(RenderType.cutout());
     private static final Uv[] DEFAULT_UVS = {
             new Uv(0.0F, 0.0F),
@@ -117,8 +122,13 @@ public final class RedCableNeoBakedModel implements IDynamicBakedModel {
             models.put(location, blockModel);
         }
 
-        // Keep the inventory model from models/item/red_cable.json.  The legacy
-        // inventory OBJ has a different origin from the centered world mesh.
+        BakedModel itemFallback = models.get(itemLocation);
+        if (itemFallback != null) {
+            // RenderCable's inventory icon is built from the original 1.7.10
+            // cable_neo OBJ parts, not from the later converted item mesh.
+            models.put(itemLocation, new RedCableNeoBakedModel(itemFallback, mesh, sprite,
+                    false, false, false));
+        }
         ReinhardtsHBM.LOGGER.info("Installed red copper cable OBJ model for {} baked block variants", blockLocations.size());
 
         installDiodeModels(models, mesh, textureGetter);
