@@ -52,7 +52,10 @@ public final class GeigerBlockEntityRenderer implements BlockEntityRenderer<Geig
         }
         poseStack.translate(0.2F, 0.0F, 0.0F);
         poseStack.mulPose(MachineModelRenderer.yawQuaternion(90.0F));
-        renderAssembly(state, poseStack, bufferSource, packedLight, packedOverlay);
+        // RenderGeiger's item path renders the OBJ directly. The placed block
+        // path owns the +0.5 model-origin translation used by renderAssembly.
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

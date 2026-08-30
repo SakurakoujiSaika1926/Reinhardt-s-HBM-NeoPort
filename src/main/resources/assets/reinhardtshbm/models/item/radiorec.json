@@ -1,3 +1,7 @@
 {
-    "parent":  "reinhardtshbm:block/radiorec"
+  "parent": "reinhardtshbm:item/broadcaster_pc",
+  "textures": {
+    "particle": "reinhardtshbm:models/model_radio_receiver",
+    "texture": "reinhardtshbm:models/model_radio_receiver"
+  }
 }
