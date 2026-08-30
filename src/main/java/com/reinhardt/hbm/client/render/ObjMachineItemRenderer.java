@@ -431,6 +431,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "lamp_demon", 0.0F, 0.90F, "block/lamp_demon");
         add(profiles, "refueler", 0.0F, 0.90F, "block/refueler_body");
         add(profiles, "radio_autocal", 0.0F, 0.90F, "block/radio_autocal");
+        add(profiles, "radio_torch_sender", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/radio_torch_sender");
+        add(profiles, "radio_torch_receiver", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/radio_torch_receiver");
+        add(profiles, "radio_torch_counter", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/radio_torch_counter");
+        add(profiles, "radio_torch_logic", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/radio_torch_logic");
+        add(profiles, "radio_torch_reader", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/radio_torch_reader");
+        add(profiles, "radio_torch_controller", 225.0F, 30.0F, 0.82F, 0.85F,
+                0.0F, 0.0F, 0.0F, "block/radio_torch_controller");
         add(profiles, "vending_machine_soda", 0.0F, 0.90F, "block/vending_machine_soda");
         add(profiles, "vending_machine_snacks", 0.0F, 0.90F, "block/vending_machine_snacks");
         addThermalObj(profiles, "tape_recorder", "block/tape_recorder");

@@ -1,1 +1,9 @@
-{"parent":"minecraft:block/cube_all","textures":{"all":"reinhardtshbm:block/rtty_logic_off"}}
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/blocks/rtty.obj",
+  "mtl_override": "reinhardtshbm:models/obj/blocks/rtty_logic.mtl",
+  "automatic_culling": false,
+  "shade_quads": false,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:block/rtty_logic_off" }
+}
