@@ -6,6 +6,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -40,6 +42,22 @@ public final class FunnelBlockEntityRenderer implements BlockEntityRenderer<Funn
     @Override
     public AABB getRenderBoundingBox(FunnelBlockEntity funnel) {
         return new AABB(funnel.getBlockPos());
+    }
+
+    public static void renderItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                  MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            // MachineFunnel#renderInventory only applies the legacy inventory
+            // translation; the OBJ itself is already authored at block scale.
+            poseStack.translate(0.0F, -0.5F, 0.0F);
+        }
+        BlockState state = com.reinhardt.hbm.registry.HbmBlocks.MACHINE_FUNNEL.get().defaultBlockState();
+        renderPart(TOP, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SIDE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
     }
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,

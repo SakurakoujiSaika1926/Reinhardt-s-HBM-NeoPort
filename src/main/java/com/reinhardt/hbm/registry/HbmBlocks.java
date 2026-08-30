@@ -121,6 +121,7 @@ import com.reinhardt.hbm.block.FlammableGasBlock;
 import com.reinhardt.hbm.block.FractionSpacerBlock;
 import com.reinhardt.hbm.block.FractionTowerBlock;
 import com.reinhardt.hbm.block.FunnelBlock;
+import com.reinhardt.hbm.item.FunnelBlockItem;
 import com.reinhardt.hbm.block.FoundryCastingBlock;
 import com.reinhardt.hbm.block.FoundryChannelBlock;
 import com.reinhardt.hbm.block.FoundryOutletBlock;
@@ -1422,8 +1423,10 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> MACHINE_COMPRESSOR = compressor("machine_compressor", CompressorBlockEntity.Kind.NORMAL);
     public static final DeferredBlock<Block> MACHINE_COMPRESSOR_COMPACT = compressor("machine_compressor_compact", CompressorBlockEntity.Kind.COMPACT);
     public static final DeferredBlock<Block> MACHINE_MIXER = mixer("machine_mixer");
-    public static final DeferredBlock<Block> MACHINE_FUNNEL = registerObjBlock("machine_funnel",
+    public static final DeferredBlock<Block> MACHINE_FUNNEL = registerBlockWithoutItem("machine_funnel",
             () -> new FunnelBlock(metal().strength(10.0F, 20.0F).noOcclusion()));
+    public static final DeferredItem<Item> MACHINE_FUNNEL_ITEM = HbmItems.ITEMS.register("machine_funnel",
+            () -> new FunnelBlockItem(MACHINE_FUNNEL.get(), new Item.Properties()));
     public static final DeferredBlock<Block> MACHINE_SIREN = registerBlock("machine_siren",
             () -> new SirenBlock(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> MACHINE_AMMO_PRESS = ammoPress("machine_ammo_press");
