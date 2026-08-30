@@ -3941,6 +3941,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     /** Exact 1.7.10 fluid service locations, including dedicated smoke outlets. */
     public boolean allowsFluidAutomationPort(BlockPos position) {
+        if (machineId().equals("machine_turbofan")) {
+            return turbofanPortDummies().contains(position);
+        }
         return fluidPorts().contains(position);
     }
 
@@ -4000,6 +4003,22 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             case "machine_orbus" -> orbusPorts(dir);
             default -> List.of();
         };
+    }
+
+    /**
+     * The turbofan's getConPos() coordinates are the pipe positions one block
+     * outside its body. Fluid capabilities belong on the four extra dummies
+     * created by MachineTurbofan#fillSpace, which those pipe positions touch.
+     */
+    private List<BlockPos> turbofanPortDummies() {
+        Direction forward = facing();
+        Direction lateral = LegacyMachineGeometry.forgeRotateUp(forward);
+        return List.of(
+                this.worldPosition.relative(forward).immutable(),
+                this.worldPosition.relative(forward).relative(lateral.getOpposite()).immutable(),
+                this.worldPosition.relative(forward.getOpposite()).immutable(),
+                this.worldPosition.relative(forward.getOpposite()).relative(lateral.getOpposite()).immutable()
+        );
     }
 
     private List<BlockPos> fluidPorts() {
