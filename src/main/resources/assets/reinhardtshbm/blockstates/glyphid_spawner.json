@@ -1,7 +1,7 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/glyphid_spawner"
-                          }
-                 }
+    "variants": {
+        "variant=0": { "model": "reinhardtshbm:block/glyphid_spawner" },
+        "variant=1": { "model": "reinhardtshbm:block/glyphid_spawner_infested" },
+        "variant=2": { "model": "reinhardtshbm:block/glyphid_spawner_rad" }
+    }
 }

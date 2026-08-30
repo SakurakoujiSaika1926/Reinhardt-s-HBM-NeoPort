@@ -1,3 +1,1 @@
-{
-    "parent":  "reinhardtshbm:block/nuke_gadget"
-}
+{ "parent": "reinhardtshbm:block/nuke_gadget_world" }

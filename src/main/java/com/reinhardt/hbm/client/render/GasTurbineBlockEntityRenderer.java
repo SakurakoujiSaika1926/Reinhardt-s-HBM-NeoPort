@@ -13,7 +13,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class GasTurbineBlockEntityRenderer implements BlockEntityRenderer<GasTurbineBlockEntity> {
-    static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_turbine_gas_world");
+    static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_turbinegas_world");
 
     public GasTurbineBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }

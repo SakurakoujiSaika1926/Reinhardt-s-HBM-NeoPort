@@ -32,7 +32,7 @@ public final class HbmStructureLoot {
     private HbmStructureLoot() {
     }
 
-    static void applyPileLoot(DecoLootBlockEntity loot, String pool, RandomSource random) {
+    public static void applyPileLoot(DecoLootBlockEntity loot, String pool, RandomSource random) {
         if (!loot.items().isEmpty()) {
             return;
         }

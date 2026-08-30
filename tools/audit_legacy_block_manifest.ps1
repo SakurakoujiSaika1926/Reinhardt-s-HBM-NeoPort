@@ -85,6 +85,9 @@ $retired = [System.Collections.Generic.HashSet[string]]::new([string[]]@(
     'event_tester',
     'obj_tester',
     'statue_elb_f'
+    # Optional OpenComputers integration. The block was only registered when
+    # OpenComputers was present in 1.7.10 and has no standalone HBM behavior.
+    'oc_cable_paintable'
 ))
 $legacyAliases = @{
     # The modern registry keeps these legacy spellings as separate real

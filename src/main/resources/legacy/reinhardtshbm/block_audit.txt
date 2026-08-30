@@ -1,49 +1,12 @@
 # Generated block migration audit. Do not use this report as a registry manifest.
 # Legacy registered block ids: 965
-# Formally registered 1.21.1 blocks: 915
-# Legacy block ids still unresolved: 30
+# Formally registered 1.21.1 blocks: 944
+# Legacy block ids still unresolved: 0
 # Existing blocks.txt ids absent from 1.7.10 registry: 0
-# Unresolved 1.7.10 ids missing from blocks.txt: 7
+# Unresolved 1.7.10 ids missing from blocks.txt: 0
 
 [UNRESOLVED_1_7_10_BLOCKS]
-deco_emitter
-dungeon_spawner
-emp_bomb
-field_disturber
-fireworks
-flame_war
-float_bomb
-glyphid_base
-glyphid_spawner
-lamp_demon
-lantern
-lantern_behemoth
-nuke_custom
-nuke_fleija
-nuke_fstbmb
-nuke_gadget
-nuke_man
-nuke_mike
-nuke_n2
-nuke_prototype
-nuke_solinium
-nuke_tsar
-oc_cable_paintable
-part_emitter
-radio_autocal
-radiobox
-radiorec
-rail_narrow_straight
-refueler
-vending_machine
 
 [UNRESOLVED_MISSING_FROM_BLOCKS_TXT]
-deco_emitter
-dungeon_spawner
-oc_cable_paintable
-part_emitter
-radio_autocal
-rail_narrow_straight
-vending_machine
 
 [BLOCKS_TXT_NOT_IN_1_7_10_CATALOG]

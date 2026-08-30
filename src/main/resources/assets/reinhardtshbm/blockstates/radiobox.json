@@ -1,7 +1,12 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/radiobox"
-                          }
-                 }
+  "variants": {
+    "facing=south,powered=false": { "model": "reinhardtshbm:block/radiobox" },
+    "facing=west,powered=false": { "model": "reinhardtshbm:block/radiobox", "y": 90 },
+    "facing=north,powered=false": { "model": "reinhardtshbm:block/radiobox", "y": 180 },
+    "facing=east,powered=false": { "model": "reinhardtshbm:block/radiobox", "y": 270 },
+    "facing=south,powered=true": { "model": "reinhardtshbm:block/radiobox_active" },
+    "facing=west,powered=true": { "model": "reinhardtshbm:block/radiobox_active", "y": 90 },
+    "facing=north,powered=true": { "model": "reinhardtshbm:block/radiobox_active", "y": 180 },
+    "facing=east,powered=true": { "model": "reinhardtshbm:block/radiobox_active", "y": 270 }
+  }
 }

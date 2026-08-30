@@ -1,6 +1,1 @@
-{
-    "textures":  {
-                     "all":  "reinhardtshbm:block/nuke_solinium"
-                 },
-    "parent":  "minecraft:block/cube_all"
-}
+{ "parent": "reinhardtshbm:block/nuke_solinium_world" }

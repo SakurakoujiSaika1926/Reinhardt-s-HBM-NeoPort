@@ -6,6 +6,7 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.DecoCrtBlockItem;
 import com.reinhardt.hbm.item.FilingCabinetBlockItem;
+import com.reinhardt.hbm.item.VendingMachineBlockItem;
 import com.reinhardt.hbm.item.CrashedBombBlockItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -57,6 +58,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 .filter(id -> !id.startsWith("battery_pack_")
                         && !id.startsWith("deco_crt_")
                         && !id.startsWith("filing_cabinet_")
+                        && !id.startsWith("vending_machine_")
                         && !id.startsWith("crashed_bomb_"))
                 .forEach(ids::add);
         ids.add("battery_pack");
@@ -92,6 +94,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 ? "battery_pack_" + BatteryPackItem.variantId(stack)
                 : stack.getItem() instanceof DecoCrtBlockItem crt
                 ? "deco_crt_" + crt.variantId(stack)
+                : stack.getItem() instanceof VendingMachineBlockItem vending
+                ? "vending_machine_" + (vending.variantIndex(stack) == 1 ? "snacks" : "soda")
                 : id;
         Profile profile = PROFILES.get(profileId);
         if (profile == null) {
@@ -327,6 +331,16 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 0.0F, 0.0F, 0.0F, "block/boltgun");
         add(profiles, "icf", 0.0F, 0.90F, "block/icf");
         add(profiles, "bomb_multi", 0.0F, 0.90F, "block/bomb_multi_world");
+        add(profiles, "nuke_gadget", 0.0F, 0.90F, "block/nuke_gadget_world");
+        add(profiles, "nuke_man", 180.0F, 0.90F, "block/nuke_man_world");
+        add(profiles, "nuke_mike", 0.0F, 0.90F, "block/nuke_mike_world");
+        add(profiles, "nuke_tsar", 0.0F, 0.90F, "block/nuke_tsar_world");
+        add(profiles, "nuke_fleija", 90.0F, 0.90F, "block/nuke_fleija_world");
+        add(profiles, "nuke_prototype", 90.0F, 0.90F, "block/nuke_prototype_world");
+        add(profiles, "nuke_solinium", 90.0F, 0.90F, "block/nuke_solinium_world");
+        add(profiles, "nuke_n2", 0.0F, 0.90F, "block/nuke_n2_world");
+        add(profiles, "nuke_custom", 0.0F, 0.90F, "block/nuke_custom_world");
+        add(profiles, "nuke_fstbmb", 0.0F, 0.90F, "block/nuke_fstbmb_world");
         add(profiles, "crashed_bomb_balefire", 0.0F, 0.90F, "block/crashed_bomb_balefire");
         add(profiles, "crashed_bomb_conventional", 0.0F, 0.90F, "block/crashed_bomb_conventional");
         add(profiles, "crashed_bomb_nuke", 0.0F, 0.90F, "block/crashed_bomb_nuke");
@@ -410,6 +424,11 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/cargo_elevator_base", "block/cargo_elevator_piston",
                 "block/cargo_elevator_guides", "block/cargo_elevator_platform");
         add(profiles, "sat_dock", 0.0F, 0.90F, "block/sat_dock");
+        add(profiles, "lamp_demon", 0.0F, 0.90F, "block/lamp_demon");
+        add(profiles, "refueler", 0.0F, 0.90F, "block/refueler_body");
+        add(profiles, "radio_autocal", 0.0F, 0.90F, "block/radio_autocal");
+        add(profiles, "vending_machine_soda", 0.0F, 0.90F, "block/vending_machine_soda");
+        add(profiles, "vending_machine_snacks", 0.0F, 0.90F, "block/vending_machine_snacks");
         addThermalObj(profiles, "tape_recorder", "block/tape_recorder");
         add(profiles, "skeleton_holder", 90.0F, 0.88F, "block/skeleton_holder_world");
         add(profiles, "filing_cabinet_green", 180.0F, 30.0F, 0.88F, 0.92F,

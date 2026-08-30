@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down": { "model": "reinhardtshbm:block/deco_emitter" },
+    "facing=up": { "model": "reinhardtshbm:block/deco_emitter" },
+    "facing=north": { "model": "reinhardtshbm:block/deco_emitter" },
+    "facing=south": { "model": "reinhardtshbm:block/deco_emitter" },
+    "facing=west": { "model": "reinhardtshbm:block/deco_emitter" },
+    "facing=east": { "model": "reinhardtshbm:block/deco_emitter" }
+  }
+}

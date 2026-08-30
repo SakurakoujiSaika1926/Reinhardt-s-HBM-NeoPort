@@ -7,6 +7,7 @@ import com.reinhardt.hbm.worldgen.ChlorineGeyserFeature;
 import com.reinhardt.hbm.worldgen.DepthClusterDepositFeature;
 import com.reinhardt.hbm.worldgen.MeteoriteFeature;
 import com.reinhardt.hbm.worldgen.LanternBehemothFeature;
+import com.reinhardt.hbm.worldgen.GlyphidHiveFeature;
 import com.reinhardt.hbm.worldgen.NetherDepthNeodymiumFeature;
 import com.reinhardt.hbm.worldgen.NetherOreLegacyFeature;
 import com.reinhardt.hbm.worldgen.OilBubbleFeature;
@@ -40,6 +41,8 @@ public final class HbmWorldgenFeatures {
             FEATURES.register("meteorite", () -> new MeteoriteFeature());
     public static final DeferredHolder<Feature<?>, LanternBehemothFeature> LANTERN_BEHEMOTH =
             FEATURES.register("lantern_behemoth", LanternBehemothFeature::new);
+    public static final DeferredHolder<Feature<?>, GlyphidHiveFeature> GLYPHID_HIVE =
+            FEATURES.register("glyphid_hive", () -> new GlyphidHiveFeature());
     public static final DeferredHolder<Feature<?>, SchistStratumFeature> SCHIST_STRATUM =
             FEATURES.register("schist_stratum", () -> new SchistStratumFeature());
     public static final DeferredHolder<Feature<?>, NetherOreLegacyFeature> NETHER_ORE_LEGACY =

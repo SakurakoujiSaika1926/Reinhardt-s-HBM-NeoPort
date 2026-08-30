@@ -1,6 +1,11 @@
 {
     "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
+                     "down": "reinhardtshbm:block/bomb_float_top",
+                     "up": "reinhardtshbm:block/bomb_float_top",
+                     "north": "reinhardtshbm:block/bomb_float",
+                     "south": "reinhardtshbm:block/bomb_float",
+                     "east": "reinhardtshbm:block/bomb_float",
+                     "west": "reinhardtshbm:block/bomb_float"
                  },
-    "parent":  "minecraft:block/cube_all"
+    "parent":  "minecraft:block/cube"
 }

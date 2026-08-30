@@ -205,6 +205,17 @@ public final class LegacyProjectileUtil {
         }
     }
 
+    /** Direct 1.7.10 EntityGlyphidNuclear death blast: VNT size 25 and no block drops. */
+    public static void detonateGlyphidNuclear(ServerLevel level, Entity source, Vec3 pos,
+                                               boolean destroyBlocks) {
+        if (destroyBlocks) {
+            allocateLegacyExplosionBlocks(source, level, pos, 25.0F, 24, 0.0F,
+                    HbmBlocks.VOLCANIC_LAVA_BLOCK.get().defaultBlockState());
+        }
+        applyLegacyCrossDamage(source, pos, 25.0F, 1.0F);
+        LegacyMukeExplosion.sendMukeEffect(level, pos);
+    }
+
     public static void phosphorus(Entity source, Vec3 pos, int radius) {
         phosphorus(source, pos, pos, radius, radius, Math.max(6.0F, radius * 0.65F));
     }

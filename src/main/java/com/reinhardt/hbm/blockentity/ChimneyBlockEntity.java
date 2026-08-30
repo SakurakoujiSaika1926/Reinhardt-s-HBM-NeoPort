@@ -145,7 +145,7 @@ public class ChimneyBlockEntity extends BlockEntity {
     }
 
     private double pollutionModifier() {
-        return industrial ? 0.1D : 0.25D;
+        return HbmConfig.smokestackPollutionModifier(industrial);
     }
 
     private int acceptSmoke(FluidStack resource) {
@@ -156,11 +156,7 @@ public class ChimneyBlockEntity extends BlockEntity {
         int amount = resource.getAmount();
         onTicks = 20;
         captureAsh(type, amount);
-        double modifier = pollutionModifier();
-        if (type == HbmPollutionType.SOOT) {
-            modifier *= HbmConfig.POLLUTION_SMOKESTACK_SOOT_MULTIPLIER.get();
-        }
-        HbmPollution.emitSmoke(level, worldPosition, type, amount / 100.0D, modifier);
+        HbmPollution.emitSmoke(level, worldPosition, type, amount / 100.0D, pollutionModifier());
         setChanged();
         syncStatus();
         return amount;

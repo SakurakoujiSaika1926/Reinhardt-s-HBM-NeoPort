@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "reinhardtshbm:block/dungeon_spawner",
+    "particle": "reinhardtshbm:block/dungeon_spawner"
+  }
+}

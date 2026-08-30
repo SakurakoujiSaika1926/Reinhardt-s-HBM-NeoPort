@@ -88,6 +88,7 @@ import com.reinhardt.hbm.blockentity.PwrControllerBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RefineryBlockEntity;
 import com.reinhardt.hbm.blockentity.RebarBlockEntity;
+import com.reinhardt.hbm.blockentity.RefuelerBlockEntity;
 import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.VacuumDistillBlockEntity;
 import com.reinhardt.hbm.blockentity.WasteDrumBlockEntity;
@@ -618,6 +619,11 @@ public final class HbmCapabilities {
                 Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.FLUID_PIPE.get(),
                 (pipe, side) -> pipe.fluidHandler(side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.REFUELER.get(),
+                RefuelerBlockEntity::fluidHandler
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,

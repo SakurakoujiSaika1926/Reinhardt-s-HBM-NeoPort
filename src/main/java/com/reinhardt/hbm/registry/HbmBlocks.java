@@ -7,6 +7,7 @@ import com.reinhardt.hbm.block.AirCompressorBlock;
 import com.reinhardt.hbm.block.AmmoPressBlock;
 import com.reinhardt.hbm.block.ArcWelderBlock;
 import com.reinhardt.hbm.block.ArcFurnaceBlock;
+import com.reinhardt.hbm.block.AutocalBlock;
 import com.reinhardt.hbm.block.StorageDrumBlock;
 import com.reinhardt.hbm.block.AncientScrapBlock;
 import com.reinhardt.hbm.block.ArmorTableBlock;
@@ -78,6 +79,8 @@ import com.reinhardt.hbm.block.CrystalVirusBlock;
 import com.reinhardt.hbm.block.CyclotronBlock;
 import com.reinhardt.hbm.block.DfcComponentBlock;
 import com.reinhardt.hbm.block.DfcCoreBlock;
+import com.reinhardt.hbm.block.DemonLampBlock;
+import com.reinhardt.hbm.block.DecorationEmitterBlock;
 import com.reinhardt.hbm.block.DeadPlantBlock;
 import com.reinhardt.hbm.block.DepthOreBlock;
 import com.reinhardt.hbm.block.DepthRockBlock;
@@ -86,6 +89,8 @@ import com.reinhardt.hbm.block.DropOreBlock;
 import com.reinhardt.hbm.block.BiomeStoneBlock;
 import com.reinhardt.hbm.block.ForgottenLockBlock;
 import com.reinhardt.hbm.block.LegacyPillarBlock;
+import com.reinhardt.hbm.block.LegacyNukeBlock;
+import com.reinhardt.hbm.block.LegacyNukeDefinition;
 import com.reinhardt.hbm.block.ResourceStoneBlock;
 import com.reinhardt.hbm.block.WoodStructureBlock;
 import com.reinhardt.hbm.block.DenseRadonGasBlock;
@@ -97,6 +102,7 @@ import com.reinhardt.hbm.block.DrainBlock;
 import com.reinhardt.hbm.block.DroneWaypointBlock;
 import com.reinhardt.hbm.block.DroneNetworkContainerBlock;
 import com.reinhardt.hbm.block.DungeonChainBlock;
+import com.reinhardt.hbm.block.DungeonSpawnerBlock;
 import com.reinhardt.hbm.block.EnargiteBrickBlock;
 import com.reinhardt.hbm.block.ElectrolyzerBlock;
 import com.reinhardt.hbm.block.EnergyConverterBlock;
@@ -136,6 +142,7 @@ import com.reinhardt.hbm.block.GroundwaterPumpBlock;
 import com.reinhardt.hbm.block.GeothermalHeatExchangerBlock;
 import com.reinhardt.hbm.block.GlyphBlock;
 import com.reinhardt.hbm.block.GlyphidBaseBlock;
+import com.reinhardt.hbm.block.GlyphidSpawnerBlock;
 import com.reinhardt.hbm.block.GuideTerminalBlock;
 import com.reinhardt.hbm.block.HbmFallingBlock;
 import com.reinhardt.hbm.block.HangingPhosphorVineBlock;
@@ -144,6 +151,14 @@ import com.reinhardt.hbm.block.HbmHeavyDoorPartBlock;
 import com.reinhardt.hbm.block.HbmLegacyDoorBlock;
 import com.reinhardt.hbm.block.HbmLegacyTrapDoorBlock;
 import com.reinhardt.hbm.block.HbmRailBlock;
+import com.reinhardt.hbm.block.LegacyNarrowStraightRailBlock;
+import com.reinhardt.hbm.block.LegacyRedstoneBombBlock;
+import com.reinhardt.hbm.block.RadioRecBlock;
+import com.reinhardt.hbm.block.PartEmitterBlock;
+import com.reinhardt.hbm.block.RadioboxBlock;
+import com.reinhardt.hbm.block.RefuelerBlock;
+import com.reinhardt.hbm.block.VendingMachineBlock;
+import com.reinhardt.hbm.block.FieldDisturberBlock;
 import com.reinhardt.hbm.block.PneumaticStorageBlock;
 import com.reinhardt.hbm.block.PneumaticTubeBlock;
 import com.reinhardt.hbm.block.HadronCoilBlock;
@@ -170,6 +185,7 @@ import com.reinhardt.hbm.block.PipeAnchorBlock;
 import com.reinhardt.hbm.block.PistonInserterBlock;
 import com.reinhardt.hbm.item.LegacyTankBlockItem;
 import com.reinhardt.hbm.item.VolcanoCoreBlockItem;
+import com.reinhardt.hbm.item.VendingMachineBlockItem;
 import com.reinhardt.hbm.item.PowerPylonBlockItem;
 import com.reinhardt.hbm.item.PowerCableBoxBlockItem;
 import com.reinhardt.hbm.block.CompactLauncherBlock;
@@ -633,6 +649,14 @@ public final class HbmBlocks {
                     .noLootTable()),
             LegacyVariantBlock.VARIANT,
             "block.reinhardtshbm.glyphid_base", "standard", "infested", "radioactive");
+    public static final DeferredBlock<Block> GLYPHID_SPAWNER = registerVariantBlock("glyphid_spawner",
+            () -> new GlyphidSpawnerBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_BROWN)
+                    .strength(0.5F, 5.0F)
+                    .sound(SoundType.WOOL)
+                    .noLootTable()),
+            LegacyVariantBlock.VARIANT,
+            "block.reinhardtshbm.glyphid_spawner", "standard", "infested", "radioactive");
     public static final DeferredBlock<Block> BRICK_JUNGLE_CIRCLE = registerBlock("brick_jungle_circle",
             () -> new MechanistCircleBlock(rock().strength(15.0F, 360.0F)));
     public static final DeferredBlock<Block> CRYSTAL_VIRUS = registerBlock("crystal_virus",
@@ -1310,6 +1334,22 @@ public final class HbmBlocks {
             () -> new CargoElevatorBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> BROADCASTER_PC = registerBlock("broadcaster_pc",
             () -> new BroadcasterBlock(metal().strength(5.0F, 15.0F).noOcclusion()));
+    public static final DeferredBlock<Block> LAMP_DEMON = registerObjBlock("lamp_demon",
+            () -> new DemonLampBlock(metal().strength(3.0F, 10.0F).noOcclusion().lightLevel(state -> 15)));
+    public static final DeferredBlock<Block> RADIOBOX = registerBlock("radiobox",
+            () -> new RadioboxBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
+    public static final DeferredBlock<Block> RADIOREC = registerBlock("radiorec",
+            () -> new RadioRecBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
+    public static final DeferredBlock<Block> RADIO_AUTOCAL = registerObjBlock("radio_autocal",
+            () -> new AutocalBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
+    public static final DeferredBlock<Block> REFUELER = registerObjBlock("refueler",
+            () -> new RefuelerBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
+    public static final DeferredBlock<Block> DECO_EMITTER = registerBlock("deco_emitter",
+            () -> new DecorationEmitterBlock(metal().strength(5.0F, 20.0F).noOcclusion()));
+    public static final DeferredBlock<Block> PART_EMITTER = registerBlock("part_emitter",
+            () -> new PartEmitterBlock(metal().strength(5.0F, 20.0F)));
+    public static final DeferredBlock<Block> DUNGEON_SPAWNER = registerBlock("dungeon_spawner",
+            () -> new DungeonSpawnerBlock(rock().strength(-1.0F, 500_000.0F)));
     // Redstone-over-radio endpoint family. These replace the generic legacy
     // registrations so each block now has directional support and live state.
     public static final DeferredBlock<Block> RADIO_TORCH_SENDER = radioTorch("radio_torch_sender", RadioTorchBlock.Kind.SENDER);
@@ -1427,8 +1467,6 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> MACHINE_INDUSTRIAL_TURBINE = industrialTurbine("machine_industrial_turbine");
     public static final DeferredBlock<Block> MACHINE_LARGE_TURBINE = largeTurbine("machine_large_turbine");
     public static final DeferredBlock<Block> MACHINE_CHUNGUS = leviathanTurbine("machine_chungus");
-    public static final DeferredBlock<Block> MACHINE_TURBINE_GAS = gasTurbine("machine_turbine_gas");
-    /** 1.7.10 registry spelling retained as a real gas-turbine implementation. */
     public static final DeferredBlock<Block> MACHINE_TURBINEGAS = gasTurbine("machine_turbinegas");
     public static final DeferredBlock<Block> MACHINE_CONDENSER = steamCondenser("machine_condenser");
     public static final DeferredBlock<Block> MACHINE_CONDENSER_POWERED = poweredSteamCondenser("machine_condenser_powered");
@@ -1479,7 +1517,26 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> TURRET_SENTRY = legacyTurret("turret_sentry", LegacyTurretType.SENTRY);
     public static final DeferredBlock<Block> TURRET_SENTRY_DAMAGED = legacyTurret("turret_sentry_damaged", LegacyTurretType.SENTRY_DAMAGED);
     public static final DeferredBlock<Block> NUKE_BOY = nukeBoy("nuke_boy");
+    public static final DeferredBlock<Block> NUKE_CUSTOM = legacyNuke("nuke_custom", LegacyNukeDefinition.CUSTOM);
+    public static final DeferredBlock<Block> NUKE_FLEIJA = legacyNuke("nuke_fleija", LegacyNukeDefinition.FLEIJA);
+    public static final DeferredBlock<Block> NUKE_FSTBMB = legacyNuke("nuke_fstbmb", LegacyNukeDefinition.BALEFIRE);
+    public static final DeferredBlock<Block> NUKE_GADGET = legacyNuke("nuke_gadget", LegacyNukeDefinition.GADGET);
+    public static final DeferredBlock<Block> NUKE_MAN = legacyNuke("nuke_man", LegacyNukeDefinition.MAN);
+    public static final DeferredBlock<Block> NUKE_MIKE = legacyNuke("nuke_mike", LegacyNukeDefinition.MIKE);
+    public static final DeferredBlock<Block> NUKE_N2 = legacyNuke("nuke_n2", LegacyNukeDefinition.N2);
+    public static final DeferredBlock<Block> NUKE_PROTOTYPE = legacyNuke("nuke_prototype", LegacyNukeDefinition.PROTOTYPE);
+    public static final DeferredBlock<Block> NUKE_SOLINIUM = legacyNuke("nuke_solinium", LegacyNukeDefinition.SOLINIUM);
+    public static final DeferredBlock<Block> NUKE_TSAR = legacyNuke("nuke_tsar", LegacyNukeDefinition.TSAR);
     public static final DeferredBlock<Block> BOMB_MULTI = bombMulti("bomb_multi");
+    public static final DeferredBlock<Block> VENDING_MACHINE = vendingMachine("vending_machine");
+    public static final DeferredBlock<Block> EMP_BOMB = registerBlock("emp_bomb", () -> new LegacyRedstoneBombBlock(
+            metal().strength(5.0F, 10.0F), LegacyRedstoneBombBlock.Kind.EMP));
+    public static final DeferredBlock<Block> FLOAT_BOMB = registerBlock("float_bomb", () -> new LegacyRedstoneBombBlock(
+            metal().strength(5.0F, 10.0F), LegacyRedstoneBombBlock.Kind.FLOAT));
+    public static final DeferredBlock<Block> FLAME_WAR = registerBlock("flame_war", () -> new LegacyRedstoneBombBlock(
+            metal().strength(5.0F, 10.0F), LegacyRedstoneBombBlock.Kind.FLAME_WAR));
+    public static final DeferredBlock<Block> FIELD_DISTURBER = registerBlock("field_disturber", () -> new FieldDisturberBlock(
+            metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> CRASHED_BOMB = crashedBomb("crashed_bomb");
     public static final DeferredBlock<Block> SEMTEX = registerBlock("semtex", () -> new TimedExplosiveBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN).strength(0.0F, 0.0F).sound(SoundType.GRASS),
@@ -1813,8 +1870,7 @@ public final class HbmBlocks {
             MACHINE_TURBINE,
             MACHINE_INDUSTRIAL_TURBINE,
             MACHINE_CHUNGUS,
-            MACHINE_TURBINE_GAS
-            ,MACHINE_TURBINEGAS
+            MACHINE_TURBINEGAS
     );
 
     public static final List<DeferredBlock<Block>> FLUID_BLOCKS = List.of(
@@ -1831,7 +1887,8 @@ public final class HbmBlocks {
             FLUID_SWITCH,
             FLUID_COUNTER_VALVE,
             FLUID_PUMP,
-            MACHINE_DRAIN
+            MACHINE_DRAIN,
+            REFUELER
     );
 
     public static final List<DeferredBlock<Block>> CONTAINER_BLOCKS = List.of(
@@ -2055,6 +2112,10 @@ public final class HbmBlocks {
             , FLOODLIGHT
             , CARGO_ELEVATOR
             , BROADCASTER_PC
+            , LAMP_DEMON
+            , RADIOBOX
+            , RADIOREC
+            , RADIO_AUTOCAL
             , RADIO_TORCH_SENDER
             , RADIO_TORCH_RECEIVER
             , RADIO_TORCH_COUNTER
@@ -2121,12 +2182,12 @@ public final class HbmBlocks {
             WATZ_ELEMENT,
             WATZ_PUMP,
             MACHINE_ZIRNOX,
+            PWR_BLOCK,
             PWR_CASING,
             PWR_CHANNEL,
             PWR_CONTROL,
             PWR_CONTROLLER,
             PWR_FUELROD,
-            PWR_FUEL,
             PWR_HEATEX,
             PWR_HEATSINK,
             PWR_NEUTRON_SOURCE,
@@ -2137,6 +2198,7 @@ public final class HbmBlocks {
             ICF_COMPONENT,
             ICF_CONTROLLER,
             ICF_LASER_COMPONENT,
+            ICF_BLOCK,
             STRUCT_TORUS_CORE,
             FUSION_HATCH,
             FUSION_COMPONENT,
@@ -2174,6 +2236,16 @@ public final class HbmBlocks {
 
     public static final List<DeferredBlock<Block>> NUCLEAR_WEAPON_BLOCKS = List.of(
             NUKE_BOY,
+            NUKE_CUSTOM,
+            NUKE_FLEIJA,
+            NUKE_FSTBMB,
+            NUKE_GADGET,
+            NUKE_MAN,
+            NUKE_MIKE,
+            NUKE_N2,
+            NUKE_PROTOTYPE,
+            NUKE_SOLINIUM,
+            NUKE_TSAR,
             BOMB_MULTI,
             CRASHED_BOMB,
             VOLCANO_CORE,
@@ -2744,6 +2816,8 @@ public final class HbmBlocks {
                     .sound(SoundType.METAL)
                     .noOcclusion(),
             0.4F, true, true, false);
+    public static final DeferredBlock<Block> RAIL_NARROW_STRAIGHT = registerBlockWithoutItem("rail_narrow_straight",
+            () -> new LegacyNarrowStraightRailBlock(metal().strength(5.0F, 10.0F).sound(SoundType.METAL)));
     public static final DeferredBlock<Block> RAIL_NARROW_CURVE = railBlock("rail_narrow_curve",
             metal().strength(5.0F, 10.0F).sound(SoundType.METAL).noOcclusion(),
             0.4F, true, false, false);
@@ -2814,6 +2888,8 @@ public final class HbmBlocks {
 
     public static final List<DeferredBlock<Block>> BUILDING_BLOCKS = List.of(
             DECO_TOASTER,
+            DECO_EMITTER,
+            PART_EMITTER,
             BOAT,
             BOBBLEHEAD,
             SNOWGLOBE,
@@ -3841,7 +3917,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> icfAssembledLaser(String name) {
-        return registerBlockWithoutItem(name, () -> new IcfAssembledLaserBlock(metal().strength(5.0F, 10.0F)));
+        return registerBlock(name, () -> new IcfAssembledLaserBlock(metal().strength(5.0F, 10.0F)));
     }
 
     private static DeferredBlock<Block> researchReactor(String name) {
@@ -3874,10 +3950,26 @@ public final class HbmBlocks {
                 .noOcclusion()));
     }
 
+    private static DeferredBlock<Block> legacyNuke(String name, LegacyNukeDefinition definition) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new LegacyNukeBlock(metal()
+                .strength(5.0F, 200.0F)
+                .noOcclusion(), definition));
+        HbmItems.ITEMS.register(name, () -> new ObjMachineBlockItem(block.get(), new Item.Properties()));
+        return block;
+    }
+
     private static DeferredBlock<Block> bombMulti(String name) {
         return registerObjBlock(name, () -> new BombMultiBlock(metal()
                 .strength(5.0F, 200.0F)
                 .noOcclusion()));
+    }
+
+    private static DeferredBlock<Block> vendingMachine(String name) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new VendingMachineBlock(metal()
+                .strength(5.0F, 10.0F)
+                .noOcclusion()));
+        HbmItems.ITEMS.register(name, () -> new VendingMachineBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> crashedBomb(String name) {
@@ -3998,9 +4090,6 @@ public final class HbmBlocks {
         Supplier<Block> supplier = () -> new PwrBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion(), kind);
-        if (kind == PwrBlock.Kind.BLOCK) {
-            return registerBlockWithoutItem(name, supplier);
-        }
         return registerBlock(name, supplier);
     }
 

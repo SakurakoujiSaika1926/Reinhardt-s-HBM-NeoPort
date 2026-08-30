@@ -42,6 +42,12 @@ import com.reinhardt.hbm.entity.SoyuzCapsuleEntity;
 import com.reinhardt.hbm.entity.SoyuzEntity;
 import com.reinhardt.hbm.entity.MinerRocketEntity;
 import com.reinhardt.hbm.entity.FireworksEntity;
+import com.reinhardt.hbm.entity.GlyphidEntity;
+import com.reinhardt.hbm.entity.GlyphidAcidBombEntity;
+import com.reinhardt.hbm.entity.GlyphidAcidSprayEntity;
+import com.reinhardt.hbm.entity.ParasiteMaggotEntity;
+import com.reinhardt.hbm.entity.LegacyUndeadSoldierEntity;
+import com.reinhardt.hbm.entity.logic.EntityWaypoint;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -127,6 +133,54 @@ public final class HbmEntityTypes {
                     .sized(0.4F, 0.7F)
                     .clientTrackingRange(80)
                     .build("entity_duck"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<GlyphidEntity>> GLYPHID =
+            ENTITY_TYPES.register("glyphid", () -> EntityType.Builder
+                    .<GlyphidEntity>of(GlyphidEntity::new, MobCategory.MONSTER)
+                    .sized(1.75F, 1.0F)
+                    .clientTrackingRange(64)
+                    .updateInterval(3)
+                    .build("glyphid"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyUndeadSoldierEntity>> UNDEAD_SOLDIER =
+            ENTITY_TYPES.register("entity_ntm_undead_soldier", () -> EntityType.Builder
+                    .<LegacyUndeadSoldierEntity>of(LegacyUndeadSoldierEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.95F)
+                    .clientTrackingRange(64)
+                    .updateInterval(3)
+                    .build("entity_ntm_undead_soldier"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<GlyphidAcidBombEntity>> GLYPHID_ACID_BOMB =
+            ENTITY_TYPES.register("glyphid_acid_bomb", () -> EntityType.Builder
+                    .<GlyphidAcidBombEntity>of(GlyphidAcidBombEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(64)
+                    .updateInterval(1)
+                    .build("glyphid_acid_bomb"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<GlyphidAcidSprayEntity>> GLYPHID_ACID_SPRAY =
+            ENTITY_TYPES.register("glyphid_acid_spray", () -> EntityType.Builder
+                    .<GlyphidAcidSprayEntity>of(GlyphidAcidSprayEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(64)
+                    .updateInterval(1)
+                    .build("glyphid_acid_spray"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ParasiteMaggotEntity>> PARASITE_MAGGOT =
+            ENTITY_TYPES.register("entity_parasite_maggot", () -> EntityType.Builder
+                    .<ParasiteMaggotEntity>of(ParasiteMaggotEntity::new, MobCategory.MONSTER)
+                    .sized(0.3F, 0.7F)
+                    .clientTrackingRange(32)
+                    .updateInterval(3)
+                    .build("entity_parasite_maggot"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityWaypoint>> GLYPHID_WAYPOINT =
+            ENTITY_TYPES.register("glyphid_waypoint", () -> EntityType.Builder
+                    .<EntityWaypoint>of(EntityWaypoint::new, MobCategory.MISC)
+                    .sized(0.1F, 0.1F)
+                    .clientTrackingRange(64)
+                    .updateInterval(1)
+                    .build("glyphid_waypoint"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<LegacyBomberEntity>> LEGACY_BOMBER =
             ENTITY_TYPES.register("entity_bomber", () -> EntityType.Builder
@@ -414,6 +468,9 @@ public final class HbmEntityTypes {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(DUCK.get(), net.minecraft.world.entity.animal.Chicken.createAttributes().build());
+        event.put(GLYPHID.get(), GlyphidEntity.createAttributes().build());
+        event.put(UNDEAD_SOLDIER.get(), LegacyUndeadSoldierEntity.createAttributes().build());
+        event.put(PARASITE_MAGGOT.get(), ParasiteMaggotEntity.createAttributes().build());
         event.put(LEGACY_UFO.get(), LegacyUfoEntity.createAttributes().build());
         event.put(LEGACY_CHOPPER.get(), LegacyChopperEntity.createAttributes().build());
         event.put(LEGACY_WORM_HEAD.get(), LegacyWormHeadEntity.createAttributes().build());

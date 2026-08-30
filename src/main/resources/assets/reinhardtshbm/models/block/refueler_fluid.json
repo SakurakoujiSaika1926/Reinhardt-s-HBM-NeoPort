@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/refueler.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/refueler.mtl",
+  "visibility": { "Fueler": false, "Fluid": true },
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/machines/refueler" }
+}

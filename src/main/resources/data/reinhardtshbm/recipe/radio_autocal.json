@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["TAR", "PAP", "PAP"],
+  "key": {
+    "T": { "item": "reinhardtshbm:radio_torch_sender" },
+    "A": { "item": "reinhardtshbm:circuit_analog" },
+    "R": { "item": "reinhardtshbm:radio_torch_receiver" },
+    "P": { "tag": "c:plates/copper" }
+  },
+  "result": { "id": "reinhardtshbm:radio_autocal" }
+}

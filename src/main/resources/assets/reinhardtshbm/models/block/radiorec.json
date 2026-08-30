@@ -1,6 +1,7 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/radiorec"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "reinhardtshbm:block/broadcaster_pc",
+  "textures": {
+    "particle": "reinhardtshbm:block/radiorec",
+    "texture": "reinhardtshbm:block/radiorec"
+  }
 }

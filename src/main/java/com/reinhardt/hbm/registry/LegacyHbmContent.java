@@ -236,7 +236,7 @@ public final class LegacyHbmContent {
             "machine_tower_small",
             "machine_teleporter",
             "machine_turbine",
-            "machine_turbine_gas",
+            "machine_turbinegas",
             "machine_turbofan",
             "machine_uf6_tank",
             "machine_puf6_tank",

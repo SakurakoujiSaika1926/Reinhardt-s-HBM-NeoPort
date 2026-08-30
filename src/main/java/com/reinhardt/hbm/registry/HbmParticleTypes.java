@@ -90,6 +90,10 @@ public final class HbmParticleTypes {
             PARTICLES.register("legacy_orange_cloud", () -> new SimpleParticleType(true));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> GEYSER_FIRE =
             PARTICLES.register("geyser_fire", () -> new SimpleParticleType(true));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> PART_EMITTER_TOWER_SMALL =
+            PARTICLES.register("part_emitter_tower_small", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> PART_EMITTER_TOWER_LARGE =
+            PARTICLES.register("part_emitter_tower_large", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> LANDMINE_SMOKE =
             PARTICLES.register("landmine_smoke", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> LANDMINE_FOAM =

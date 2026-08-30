@@ -23,6 +23,12 @@ public final class LegacyChaosEffects {
         liftEntities(level, center, RADIUS, LIFT_HEIGHT);
     }
 
+    /** Direct parameterized form used by the legacy float bomb (radius 15, height 50). */
+    public static void floatAndLift(ServerLevel level, BlockPos center, int radius, int height) {
+        floatBlocks(level, center, radius, height);
+        liftEntities(level, center, radius, height);
+    }
+
     private static void floatBlocks(ServerLevel level, BlockPos center, int radius, int height) {
         int radiusSquaredHalf = radius * radius / 2;
         for (int x = -radius; x < radius; x++) {

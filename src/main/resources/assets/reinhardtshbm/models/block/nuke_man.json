@@ -1,6 +1,1 @@
-{
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
-}
+{ "parent": "reinhardtshbm:block/nuke_man_world" }

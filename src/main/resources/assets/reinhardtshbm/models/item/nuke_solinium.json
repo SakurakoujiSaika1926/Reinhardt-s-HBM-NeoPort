@@ -1,3 +1,1 @@
-{
-    "parent":  "reinhardtshbm:block/nuke_solinium"
-}
+{ "parent": "reinhardtshbm:block/nuke_solinium_world" }

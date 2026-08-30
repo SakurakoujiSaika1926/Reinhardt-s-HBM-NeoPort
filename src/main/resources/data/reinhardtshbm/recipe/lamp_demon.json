@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" D ", "S S"],
+  "key": {
+    "D": { "item": "reinhardtshbm:demon_core_closed" },
+    "S": { "tag": "c:ingots/steel" }
+  },
+  "result": { "id": "reinhardtshbm:lamp_demon" }
+}

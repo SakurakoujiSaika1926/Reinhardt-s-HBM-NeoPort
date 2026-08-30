@@ -1,7 +1,10 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/lamp_demon"
-                          }
-                 }
+  "variants": {
+    "facing=up": { "model": "reinhardtshbm:block/lamp_demon" },
+    "facing=down": { "model": "reinhardtshbm:block/lamp_demon", "x": 180 },
+    "facing=north": { "model": "reinhardtshbm:block/lamp_demon", "x": 90, "z": 180 },
+    "facing=south": { "model": "reinhardtshbm:block/lamp_demon", "x": 90 },
+    "facing=west": { "model": "reinhardtshbm:block/lamp_demon", "x": 90, "z": 90 },
+    "facing=east": { "model": "reinhardtshbm:block/lamp_demon", "x": 90, "z": 270 }
+  }
 }

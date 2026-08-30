@@ -1,7 +1,8 @@
 ﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/radiorec"
-                          }
-                 }
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/radiorec" },
+    "facing=east": { "model": "reinhardtshbm:block/radiorec", "y": 90 },
+    "facing=south": { "model": "reinhardtshbm:block/radiorec", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/radiorec", "y": 270 }
+  }
 }

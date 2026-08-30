@@ -14,6 +14,7 @@ public final class HbmConfig {
     public static final ModConfigSpec.BooleanValue DROPPED_XEN_CRYSTAL_EFFECT;
     public static final ModConfigSpec.BooleanValue SCALE_RTG_POWER;
     public static final ModConfigSpec.BooleanValue ENABLE_RTG_DECAY;
+    public static final ModConfigSpec.IntValue AUTOCAL_MAX_CLOCK;
     public static final ModConfigSpec.IntValue INDUSTRIAL_TURBINE_INPUT_CAPACITY;
     public static final ModConfigSpec.IntValue INDUSTRIAL_TURBINE_OUTPUT_CAPACITY;
     public static final ModConfigSpec.DoubleValue INDUSTRIAL_TURBINE_EFFICIENCY;
@@ -68,7 +69,22 @@ public final class HbmConfig {
     public static final ModConfigSpec.DoubleValue POLLUTION_MOB_BUFF_THRESHOLD;
     public static final ModConfigSpec.DoubleValue POLLUTION_SOOT_FOG_THRESHOLD;
     public static final ModConfigSpec.DoubleValue POLLUTION_SOOT_FOG_DIVISOR;
-    public static final ModConfigSpec.DoubleValue POLLUTION_SMOKESTACK_SOOT_MULTIPLIER;
+    public static final ModConfigSpec.DoubleValue GLYPHID_RAMPANT_SMOKESTACK_OVERRIDE;
+    public static final ModConfigSpec.BooleanValue GLYPHID_ENABLE_HIVES;
+    public static final ModConfigSpec.IntValue GLYPHID_HIVE_SPAWN;
+    public static final ModConfigSpec.DoubleValue GLYPHID_SCOUT_SOOT_THRESHOLD;
+    public static final ModConfigSpec.IntValue GLYPHID_SCOUT_SWARM_CHANCE;
+    public static final ModConfigSpec.IntValue GLYPHID_LARGE_HIVE_CHANCE;
+    public static final ModConfigSpec.DoubleValue GLYPHID_TARGETING_THRESHOLD;
+    public static final ModConfigSpec.BooleanValue GLYPHID_NATURAL_SCOUT_SPAWN;
+    public static final ModConfigSpec.DoubleValue GLYPHID_NATURAL_SCOUT_THRESHOLD;
+    public static final ModConfigSpec.IntValue GLYPHID_NATURAL_SCOUT_CHANCE;
+    public static final ModConfigSpec.BooleanValue GLYPHID_RAMPANT_MODE;
+    public static final ModConfigSpec.BooleanValue GLYPHID_RAMPANT_EXTENDED_TARGETING;
+    public static final ModConfigSpec.BooleanValue GLYPHID_RAMPANT_DIG;
+    public static final ModConfigSpec.BooleanValue GLYPHID_RAMPANT_GUIDANCE;
+    public static final ModConfigSpec.BooleanValue GLYPHID_SCOUT_INITIAL_SPAWN;
+    public static final ModConfigSpec.BooleanValue GLYPHID_WAYPOINT_DEBUG;
     public static final ModConfigSpec.IntValue RBMK_COLUMN_HEIGHT;
     public static final ModConfigSpec.DoubleValue RBMK_PASSIVE_COOLING;
     public static final ModConfigSpec.DoubleValue RBMK_PASSIVE_COOLING_INNER;
@@ -216,6 +232,9 @@ public final class HbmConfig {
         ENABLE_RTG_DECAY = builder
                 .comment("RTG 燃料是否衰变为枯竭靶丸。HBM 1.7.10 默认值：true；528 模式强制启用。")
                 .define("enableRtgDecay", true);
+        AUTOCAL_MAX_CLOCK = builder
+                .comment("AUTOCAL MS-ES1 maximum instructions per tick. HBM 1.7.10 default: 20.")
+                .defineInRange("autocalMaxClock", 20, 1, 100);
         builder.pop();
 
         builder.push("industrialTurbine");
@@ -409,9 +428,57 @@ public final class HbmConfig {
         POLLUTION_SOOT_FOG_DIVISOR = builder
                 .comment("烟尘雾效强度除数，数值越大雾越弱。默认与 HBM 1.7.10 一致：120。")
                 .defineInRange("pollutionSootFogDivisor", 120.0D, 1.0D, 10_000.0D);
-        POLLUTION_SMOKESTACK_SOOT_MULTIPLIER = builder
-                .comment("HBM smokestack soot multiplier. Matches 1.7.10 / 1.12.2 default: 0.8.")
-                .defineInRange("pollutionSmokestackSootMultiplier", 0.8D, 0.0D, 10_000.0D);
+        builder.pop();
+
+        builder.push("glyphids");
+        GLYPHID_ENABLE_HIVES = builder
+                .comment("Allow small Glyphid hives to generate in the Overworld. HBM 1.7.10 default: true.")
+                .define("enableHives", true);
+        GLYPHID_HIVE_SPAWN = builder
+                .comment("Average number of Overworld chunks per naturally generated Glyphid hive. HBM 1.7.10 default: 256.")
+                .defineInRange("hiveSpawn", 256, 1, Integer.MAX_VALUE);
+        GLYPHID_SCOUT_SOOT_THRESHOLD = builder
+                .comment("Minimum soot for Scout behavior to use polluted-world expansion. HBM 1.7.10 default: 1.")
+                .defineInRange("scoutSootThreshold", 1.0D, 0.0D, 10_000.0D);
+        GLYPHID_SCOUT_SWARM_CHANCE = builder
+                .comment("Scout swarm chance denominator. HBM 1.7.10 default: 3.")
+                .defineInRange("scoutSwarmChance", 3, 1, Integer.MAX_VALUE);
+        GLYPHID_LARGE_HIVE_CHANCE = builder
+                .comment("Large hive chance denominator. HBM 1.7.10 default: 5.")
+                .defineInRange("largeHiveChance", 5, 1, Integer.MAX_VALUE);
+        GLYPHID_TARGETING_THRESHOLD = builder
+                .comment("Soot threshold for extended Glyphid targeting. HBM 1.7.10 default: 1.")
+                .defineInRange("targetingThreshold", 1.0D, 0.0D, 10_000.0D);
+        GLYPHID_NATURAL_SCOUT_SPAWN = builder
+                .comment("Allow Scouts to spawn alongside natural mobs in polluted areas. HBM 1.7.10 default: false.")
+                .define("rampantNaturalScoutSpawn", false);
+        GLYPHID_NATURAL_SCOUT_THRESHOLD = builder
+                .comment("Soot threshold for natural Scout spawning. HBM 1.7.10 default: 13.")
+                .defineInRange("rampantScoutSpawnThreshold", 13.0D, 0.0D, 10_000.0D);
+        GLYPHID_NATURAL_SCOUT_CHANCE = builder
+                .comment("Natural Scout spawn chance denominator. HBM 1.7.10 default: 1400.")
+                .defineInRange("rampantScoutSpawnChance", 1400, 1, Integer.MAX_VALUE);
+        GLYPHID_RAMPANT_MODE = builder
+                .comment("Enable the complete Rampant Glyphid behavior set. HBM 1.7.10 default: false.")
+                .define("rampantMode", false);
+        GLYPHID_RAMPANT_SMOKESTACK_OVERRIDE = builder
+                .comment("Rampant-mode smokestack pollution multiplier. HBM 1.7.10 default: 0.4.")
+                .defineInRange("rampantSmokeStackOverride", 0.4D, 0.0D, 10_000.0D);
+        GLYPHID_RAMPANT_EXTENDED_TARGETING = builder
+                .comment("Always give Glyphids extended targeting. HBM 1.7.10 default: false.")
+                .define("rampantExtendedTargeting", false);
+        GLYPHID_RAMPANT_DIG = builder
+                .comment("Allow Glyphids to dig to waypoints. HBM 1.7.10 default: false.")
+                .define("rampantDig", false);
+        GLYPHID_RAMPANT_GUIDANCE = builder
+                .comment("Make Scouts expand toward the player's respawn point. HBM 1.7.10 default: false.")
+                .define("rampantGlyphidGuidance", false);
+        GLYPHID_SCOUT_INITIAL_SPAWN = builder
+                .comment("Allow a Scout to spawn in a hive's first swarm. HBM 1.7.10 default: false.")
+                .define("scoutInitialSpawn", false);
+        GLYPHID_WAYPOINT_DEBUG = builder
+                .comment("Show Glyphid task waypoints for debugging. HBM 1.7.10 default: false.")
+                .define("waypointDebug", false);
         builder.pop();
 
         builder.push("rbmk");
@@ -690,5 +757,43 @@ public final class HbmConfig {
     /** Mirrors VersatileConfig's 1.7.10 RTG rule: 528 mode forces output scaling. */
     public static boolean scaleRtgPower() {
         return ENABLE_528_MODE.get() || SCALE_RTG_POWER.get();
+    }
+
+    public static boolean glyphidNaturalScoutSpawn() {
+        return GLYPHID_RAMPANT_MODE.get() || GLYPHID_NATURAL_SCOUT_SPAWN.get();
+    }
+
+    public static boolean glyphidExtendedTargeting() {
+        return GLYPHID_RAMPANT_MODE.get() || GLYPHID_RAMPANT_EXTENDED_TARGETING.get();
+    }
+
+    public static boolean glyphidDig() {
+        return GLYPHID_RAMPANT_MODE.get() || GLYPHID_RAMPANT_DIG.get();
+    }
+
+    public static boolean glyphidGuidance() {
+        return GLYPHID_RAMPANT_MODE.get() || GLYPHID_RAMPANT_GUIDANCE.get();
+    }
+
+    public static int glyphidScoutSwarmChance() {
+        return GLYPHID_RAMPANT_MODE.get() ? 1 : GLYPHID_SCOUT_SWARM_CHANCE.get();
+    }
+
+    public static double glyphidScoutSootThreshold() {
+        return GLYPHID_RAMPANT_MODE.get() ? 0.1D : GLYPHID_SCOUT_SOOT_THRESHOLD.get();
+    }
+
+    /** Rampant mode raises pollution output exactly as MobConfig did in 1.7.10. */
+    public static double pollutionMultiplier() {
+        double configured = POLLUTION_MULTIPLIER.get();
+        return GLYPHID_RAMPANT_MODE.get() && configured == 1.0D ? 3.0D : configured;
+    }
+
+    public static double smokestackPollutionModifier(boolean industrial) {
+        if (GLYPHID_RAMPANT_MODE.get()) {
+            double override = GLYPHID_RAMPANT_SMOKESTACK_OVERRIDE.get();
+            return industrial ? override / 2.0D : override;
+        }
+        return industrial ? 0.1D : 0.25D;
     }
 }

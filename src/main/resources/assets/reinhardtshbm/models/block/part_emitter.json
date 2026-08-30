@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "reinhardtshbm:block/part_top",
+    "particle": "reinhardtshbm:block/part_top"
+  }
+}

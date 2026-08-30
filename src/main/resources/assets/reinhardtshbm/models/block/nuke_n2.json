@@ -1,6 +1,1 @@
-{
-    "textures":  {
-                     "all":  "reinhardtshbm:block/nuke_n2"
-                 },
-    "parent":  "minecraft:block/cube_all"
-}
+{ "parent": "reinhardtshbm:block/nuke_n2_world" }

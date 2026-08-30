@@ -71,7 +71,7 @@ public final class LegacyMukeExplosion {
     public static void detonateW9(ServerLevel level, Entity source, Vec3 center, float fixedDamage) {
         applyW9CrossDamage(level, source, center, fixedDamage);
         incrementRadiation(level, center, 1.0F);
-        spawnMuke(level, center);
+        sendMukeEffect(level, center);
     }
 
     public static void detonateMediumMiniNuke(ServerLevel level, Entity source, Vec3 center) {
@@ -80,7 +80,7 @@ public final class LegacyMukeExplosion {
         applyNuclearDamage(level, source, center, MINI_KILL_RADIUS, 250.0F);
         LegacyProjectileUtil.spawnShrapnel(level, center, MINI_SHRAPNEL_COUNT);
         incrementRadiation(level, center, 1.0F);
-        spawnMuke(level, center);
+        sendMukeEffect(level, center);
     }
 
     /** Exact non-block-damaging UFO rocket impact from ExplosionNukeGeneric.dealDamage. */
@@ -93,7 +93,7 @@ public final class LegacyMukeExplosion {
                 .add(new MiniNukeTask(center, 10, 1.0F / 10.0F, false));
         LegacyProjectileUtil.landmineDamage(level, center, 10.0F, damage, 2.0D, 0.0F, 0.0F, 1.5F);
         incrementRadiation(level, center, 1.5F);
-        spawnMuke(level, center);
+        sendMukeEffect(level, center);
     }
 
     @SubscribeEvent
@@ -229,7 +229,7 @@ public final class LegacyMukeExplosion {
         }
     }
 
-    private static void spawnMuke(ServerLevel level, Vec3 center) {
+    public static void sendMukeEffect(ServerLevel level, Vec3 center) {
         level.playSound(null, center.x, center.y, center.z,
                 HbmSoundEvents.WEAPON_MUKE_EXPLOSION.get(), SoundSource.BLOCKS, 15.0F, 1.0F);
         boolean balefire = level.random.nextInt(100) == 0;

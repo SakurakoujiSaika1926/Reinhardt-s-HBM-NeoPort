@@ -444,7 +444,7 @@ public class GasTurbineBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.reinhardtshbm.machine_turbine_gas");
+        return Component.translatable("container.reinhardtshbm.machine_turbinegas");
     }
 
     @Override

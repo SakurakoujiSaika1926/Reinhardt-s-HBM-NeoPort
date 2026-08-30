@@ -52,7 +52,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "machine_press", "machine_reactor_breeding", "machine_solar_boiler",
             "machine_soldering_station", "machine_steam_engine", "machine_stirling",
             "machine_stirling_creative", "machine_stirling_steel", "machine_tower_large",
-            "machine_tower_small", "machine_turbine_gas", "machine_well", "machine_wood_burner",
+            "machine_tower_small", "machine_turbinegas", "machine_well", "machine_wood_burner",
             "machine_zirnox", "solar_mirror", "zirnox_destroyed"
     );
 
@@ -272,7 +272,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("pump_electric")
                 || path.equals("machine_large_turbine")
                 || path.equals("machine_chungus")
-                || path.equals("machine_turbine_gas")
+                || path.equals("machine_turbinegas")
                 || path.equals("machine_condenser_powered")
                 || path.equals("machine_well")
                 || path.equals("machine_pumpjack")
@@ -385,7 +385,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             case "machine_blast_furnace" -> 1.22F;
             case "machine_large_turbine" -> 1.25F;
             case "machine_chungus" -> 1.28F;
-            case "machine_turbine_gas" -> 1.35F;
+            case "machine_turbinegas" -> 1.35F;
             case "machine_condenser_powered" -> 1.18F;
             case "machine_vacuum_distill" -> 1.18F;
             case "machine_industrial_boiler" -> 1.18F;

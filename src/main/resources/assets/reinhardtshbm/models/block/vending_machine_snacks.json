@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/vending_machine.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/vending_machine.mtl",
+  "visibility": { "Obamna": true, "Soda": false },
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "textures": { "particle": "reinhardtshbm:models/machines/vending_machine" }
+}

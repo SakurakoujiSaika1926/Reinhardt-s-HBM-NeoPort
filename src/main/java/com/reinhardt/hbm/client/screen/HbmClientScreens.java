@@ -63,6 +63,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.TURRET_CHEKHOV.get(), TurretChekhovScreen::new);
         event.register(HbmMenus.LEGACY_TURRET.get(), LegacyTurretScreen::new);
         event.register(HbmMenus.NUKE_BOY.get(), NukeBoyScreen::new);
+        event.register(HbmMenus.LEGACY_NUKE.get(), LegacyNukeScreen::new);
         event.register(HbmMenus.BOMB_MULTI.get(), BombMultiScreen::new);
         event.register(HbmMenus.SOYUZ_LAUNCHER.get(), SoyuzLauncherScreen::new);
         event.register(HbmMenus.SOYUZ_CAPSULE.get(), SoyuzCapsuleScreen::new);
@@ -129,6 +130,8 @@ public final class HbmClientScreens {
         event.register(HbmMenus.RADIOLYSIS.get(), RadiolysisScreen::new);
         event.register(HbmMenus.RADAR.get(), RadarScreen::new);
         event.register(HbmMenus.RADAR_SLOTS.get(), RadarSlotsScreen::new);
+        event.register(HbmMenus.RADIOREC.get(), RadioRecScreen::new);
+        event.register(HbmMenus.AUTOCAL.get(), AutocalScreen::new);
         event.register(HbmMenus.DRONE_CRATE.get(), DroneCrateScreen::new);
         event.register(HbmMenus.DRONE_DOCK.get(), DroneGridScreen::new);
         event.register(HbmMenus.DRONE_PROVIDER.get(), DroneGridScreen::new);

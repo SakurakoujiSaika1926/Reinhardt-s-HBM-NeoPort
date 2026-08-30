@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=east": { "model": "reinhardtshbm:block/radio_autocal" },
+    "facing=south": { "model": "reinhardtshbm:block/radio_autocal", "y": 270 },
+    "facing=west": { "model": "reinhardtshbm:block/radio_autocal", "y": 180 },
+    "facing=north": { "model": "reinhardtshbm:block/radio_autocal", "y": 90 }
+  }
+}

@@ -1,8 +1,6 @@
 # Blender v2.76 (sub 0) OBJ File: 'LilBoy1.blend'
 # www.blender.org
-mtllib lil_boy.mtl
 o Cylinder_Cylinder.002
-usemtl lil_boy
 v 1.061563 0.002500 0.108750
 v 1.061563 0.002500 -0.108750
 v 2.638438 0.002500 -0.108750

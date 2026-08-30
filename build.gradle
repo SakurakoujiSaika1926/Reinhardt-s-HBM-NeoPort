@@ -465,6 +465,9 @@ tasks.register('validateObjModels') {
             def lines = objFile.readLines('UTF-8')
             def hasFaces = lines.any { it.startsWith('f ') }
             def hasMaterialBinding = lines.any { it.startsWith('usemtl ') }
+            def externalTextures = json.textures instanceof Map
+                    ? json.textures.values().findAll { it instanceof String && !it.startsWith('#') }
+                    : []
             def usedMaterials = lines
                     .findAll { it.startsWith('usemtl ') }
                     .collect { it.substring('usemtl '.length()).trim() }
@@ -492,7 +495,7 @@ tasks.register('validateObjModels') {
             usedMaterials.findAll { !declaredMaterials.contains(it) }.each { material ->
                 problems << "${project.relativePath(jsonFile)} uses material '${material}', but no referenced MTL declares it"
             }
-            if (hasFaces && !hasMaterialBinding) {
+            if (hasFaces && !hasMaterialBinding && externalTextures.isEmpty()) {
                 problems << "${project.relativePath(jsonFile)} references ${project.relativePath(objFile)} with faces but no usemtl binding"
             }
             if (hasMaterialBinding && !json.mtl_override) {

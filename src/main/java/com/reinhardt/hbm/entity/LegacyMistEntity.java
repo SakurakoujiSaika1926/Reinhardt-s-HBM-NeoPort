@@ -24,7 +24,8 @@ public final class LegacyMistEntity extends Entity {
             SynchedEntityData.defineId(LegacyMistEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> AREA_HEIGHT =
             SynchedEntityData.defineId(LegacyMistEntity.class, EntityDataSerializers.FLOAT);
-    private static final int MAX_AGE = 150;
+    private static final EntityDataAccessor<Integer> MAX_AGE =
+            SynchedEntityData.defineId(LegacyMistEntity.class, EntityDataSerializers.INT);
 
     public LegacyMistEntity(EntityType<? extends LegacyMistEntity> type, Level level) {
         super(type, level);
@@ -33,11 +34,17 @@ public final class LegacyMistEntity extends Entity {
     }
 
     public LegacyMistEntity(Level level, double x, double y, double z, MistType type, float width, float height) {
+        this(level, x, y, z, type, width, height, 150);
+    }
+
+    public LegacyMistEntity(Level level, double x, double y, double z, MistType type,
+                            float width, float height, int duration) {
         this(HbmEntityTypes.LEGACY_MIST.get(), level);
         setPos(x, y, z);
         this.entityData.set(MIST_TYPE, type.ordinal());
         this.entityData.set(AREA_WIDTH, width);
         this.entityData.set(AREA_HEIGHT, height);
+        this.entityData.set(MAX_AGE, duration);
     }
 
     @Override
@@ -45,6 +52,7 @@ public final class LegacyMistEntity extends Entity {
         builder.define(MIST_TYPE, MistType.CHLORINE.ordinal());
         builder.define(AREA_WIDTH, 0.0F);
         builder.define(AREA_HEIGHT, 0.0F);
+        builder.define(MAX_AGE, 150);
     }
 
     @Override
@@ -54,7 +62,8 @@ public final class LegacyMistEntity extends Entity {
             spawnLegacyParticles();
             return;
         }
-        double intensity = 1.0D - (double) this.tickCount / (double) MAX_AGE;
+        int maxAge = Math.max(1, this.entityData.get(MAX_AGE));
+        double intensity = 1.0D - (double) this.tickCount / (double) maxAge;
         MistType type = mistType();
         for (Entity entity : level().getEntities(this, effectBounds(), Entity::isAlive)) {
             entity.clearFire();
@@ -62,12 +71,39 @@ public final class LegacyMistEntity extends Entity {
                 affectLiving(type, living, intensity);
             }
         }
-        if (this.tickCount >= MAX_AGE) {
+        if (this.tickCount >= maxAge) {
             discard();
         }
     }
 
     private void affectLiving(MistType type, LivingEntity living, double intensity) {
+        if (type == MistType.SULFURIC_ACID) {
+            LegacyProjectileUtil.hurtNoIFrame(living,
+                    damageSources().source(HbmDamageTypes.ACID, this, null), 50.0F / 60.0F);
+            for (net.minecraft.world.entity.EquipmentSlot slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                    net.minecraft.world.entity.EquipmentSlot.HEAD,
+                    net.minecraft.world.entity.EquipmentSlot.CHEST,
+                    net.minecraft.world.entity.EquipmentSlot.LEGS,
+                    net.minecraft.world.entity.EquipmentSlot.FEET}) {
+                living.getItemBySlot(slot).hurtAndBreak(1, living, slot);
+            }
+            return;
+        }
+        if (type == MistType.PHEROMONE || type == MistType.PHEROMONE_M) {
+            int multiplier = type == MistType.PHEROMONE ? 1 : 2;
+            boolean matchingTarget = type == MistType.PHEROMONE
+                    ? living instanceof GlyphidEntity
+                    : living instanceof net.minecraft.world.entity.player.Player;
+            if (matchingTarget) {
+                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, multiplier * 60 * 20, 1));
+                living.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, multiplier * 60 * 20, 1));
+                living.addEffect(new MobEffectInstance(MobEffects.REGENERATION, multiplier * 2 * 20, 0));
+                living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, multiplier * 60 * 20, 0));
+                living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, multiplier * 60 * 20, 1));
+                living.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, multiplier * 60 * 20, 0));
+            }
+            return;
+        }
         if (type == MistType.CHLORINE) {
             LegacyProjectileUtil.hurtNoIFrame(
                     living,
@@ -122,13 +158,14 @@ public final class LegacyMistEntity extends Entity {
     private AABB effectBounds() {
         double width = this.entityData.get(AREA_WIDTH);
         double height = this.entityData.get(AREA_HEIGHT);
+        double halfWidth = width * 0.5D;
         return new AABB(
-                getX() - width,
+                getX() - halfWidth,
                 getY(),
-                getZ() - width,
-                getX(),
+                getZ() - halfWidth,
+                getX() + halfWidth,
                 getY() + height,
-                getZ()
+                getZ() + halfWidth
         );
     }
 
@@ -142,6 +179,7 @@ public final class LegacyMistEntity extends Entity {
         tag.putInt("type", this.entityData.get(MIST_TYPE));
         tag.putFloat("width", this.entityData.get(AREA_WIDTH));
         tag.putFloat("height", this.entityData.get(AREA_HEIGHT));
+        tag.putInt("max_age", this.entityData.get(MAX_AGE));
     }
 
     @Override
@@ -149,6 +187,7 @@ public final class LegacyMistEntity extends Entity {
         this.entityData.set(MIST_TYPE, tag.getInt("type"));
         this.entityData.set(AREA_WIDTH, tag.getFloat("width"));
         this.entityData.set(AREA_HEIGHT, tag.getFloat("height"));
+        this.entityData.set(MAX_AGE, Math.max(1, tag.getInt("max_age")));
     }
 
     @Override
@@ -164,7 +203,10 @@ public final class LegacyMistEntity extends Entity {
     public enum MistType {
         CHLORINE(0xBAB572),
         PHOSGENE(0xCFC4A4),
-        MUSTARD(0xBAB572);
+        MUSTARD(0xBAB572),
+        SULFURIC_ACID(0xB0AA64),
+        PHEROMONE(0x5FA6E8),
+        PHEROMONE_M(0x48C9B0);
 
         private final int color;
 

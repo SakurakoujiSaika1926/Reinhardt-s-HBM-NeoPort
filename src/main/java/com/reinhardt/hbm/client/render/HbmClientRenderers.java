@@ -36,6 +36,7 @@ import com.reinhardt.hbm.client.particle.CoolingTowerParticle;
 import com.reinhardt.hbm.client.particle.DrainSplashParticle;
 import com.reinhardt.hbm.client.particle.DrainTowerParticle;
 import com.reinhardt.hbm.client.particle.PyroOvenTowerParticle;
+import com.reinhardt.hbm.client.particle.PartEmitterTowerParticle;
 import com.reinhardt.hbm.client.particle.RotaryFurnaceTowerParticle;
 import com.reinhardt.hbm.client.particle.FalloutRainParticle;
 import com.reinhardt.hbm.client.particle.FlamethrowerParticle;
@@ -146,6 +147,11 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.CARGO_ELEVATOR.get(), CargoElevatorBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SAT_DOCK.get(), SatelliteDockBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.BROADCASTER.get(), BroadcasterBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.DEMON_LAMP.get(), DemonLampBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.AUTOCAL.get(), AutocalBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.REFUELER.get(), RefuelerBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.VENDING_MACHINE.get(), VendingMachineBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.DECO_EMITTER.get(), DecorationEmitterBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.BOBBLEHEAD.get(), BobbleheadBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SNOWGLOBE.get(), SnowglobeBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.PLUSHIE.get(), PlushieBlockEntityRenderer::new);
@@ -249,6 +255,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.WATZ_STRUCT.get(), WatzStructBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.WATZ_PUMP.get(), WatzPumpBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.NUKE_BOY.get(), NukeBoyBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.LEGACY_NUKE.get(), LegacyNukeBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.BOMB_MULTI.get(), BombMultiBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.CRASHED_BOMB.get(), CrashedBombBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.LANDMINE.get(), LandmineBlockEntityRenderer::new);
@@ -291,6 +298,11 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_CHOPPER_MINE.get(), LegacyChopperMineEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_WORM_HEAD.get(), LegacyWormEntityRenderer.Head::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_WORM_BODY.get(), LegacyWormEntityRenderer.Body::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_ACID_BOMB.get(), GlyphidAcidBombEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_ACID_SPRAY.get(), GlyphidAcidSprayEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_WAYPOINT.get(), NoopRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.PARASITE_MAGGOT.get(), ParasiteMaggotEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOSS_PROJECTILE.get(), LegacyBossProjectileEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOMBLET.get(), NoopRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.CLUSTER_SUBMUNITION.get(), NoopRenderer::new);
@@ -312,6 +324,7 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.FIREWORKS.get(), FireworksEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.TIMED_EXPLOSIVE.get(), TimedExplosiveEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_GRENADE.get(), LegacyGrenadeEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.UNDEAD_SOLDIER.get(), LegacyUndeadSoldierEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.UNIVERSAL_GRENADE.get(), UniversalGrenadeEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.NUKE_TOREX.get(), NukeTorexEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.SOYUZ.get(), SoyuzEntityRenderer::new);
@@ -359,6 +372,10 @@ public final class HbmClientRenderers {
         event.registerSpriteSet(HbmParticleTypes.LEGACY_PINK_CLOUD.get(), sprites -> new LegacyChemicalCloudParticle.Provider(sprites, LegacyChemicalCloudParticle.Kind.CLOUD));
         event.registerSpriteSet(HbmParticleTypes.LEGACY_ORANGE_CLOUD.get(), sprites -> new LegacyChemicalCloudParticle.Provider(sprites, LegacyChemicalCloudParticle.Kind.ORANGE));
         event.registerSpriteSet(HbmParticleTypes.GEYSER_FIRE.get(), GasFlameParticle.Provider::new);
+        event.registerSpriteSet(HbmParticleTypes.PART_EMITTER_TOWER_SMALL.get(),
+                sprites -> new PartEmitterTowerParticle.Provider(sprites, false));
+        event.registerSpriteSet(HbmParticleTypes.PART_EMITTER_TOWER_LARGE.get(),
+                sprites -> new PartEmitterTowerParticle.Provider(sprites, true));
         event.registerSpriteSet(HbmParticleTypes.LANDMINE_SMOKE.get(), LandmineSmokeParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.LANDMINE_FOAM.get(), LandmineFoamParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.DRAIN_TOWER.get(), DrainTowerParticle.Provider::new);
@@ -374,6 +391,10 @@ public final class HbmClientRenderers {
         FanBlockEntityRenderer.registerAdditionalModels(event);
         FloodlightBlockEntityRenderer.registerAdditionalModels(event);
         CargoElevatorBlockEntityRenderer.registerAdditionalModels(event);
+        DemonLampBlockEntityRenderer.registerAdditionalModels(event);
+        AutocalBlockEntityRenderer.registerAdditionalModels(event);
+        RefuelerBlockEntityRenderer.registerAdditionalModels(event);
+        VendingMachineBlockEntityRenderer.registerAdditionalModels(event);
         SatelliteDockBlockEntityRenderer.registerAdditionalModels(event);
         BobbleheadBlockEntityRenderer.registerAdditionalModels(event);
         SnowglobeBlockEntityRenderer.registerAdditionalModels(event);
@@ -472,6 +493,7 @@ public final class HbmClientRenderers {
         PurexBlockEntityRenderer.registerAdditionalModels(event);
         WatzPumpBlockEntityRenderer.registerAdditionalModels(event);
         NukeBoyBlockEntityRenderer.registerAdditionalModels(event);
+        LegacyNukeBlockEntityRenderer.registerAdditionalModels(event);
         BombMultiBlockEntityRenderer.registerAdditionalModels(event);
         CrashedBombBlockEntityRenderer.registerAdditionalModels(event);
         LandmineBlockEntityRenderer.registerAdditionalModels(event);
@@ -508,6 +530,7 @@ public final class HbmClientRenderers {
         LegacyBomberEntityRenderer.registerAdditionalModels(event);
         LegacyUfoEntityRenderer.registerAdditionalModels(event);
         LegacyWormEntityRenderer.registerAdditionalModels(event);
+        GlyphidEntityRenderer.registerAdditionalModels(event);
         LegacyBossProjectileEntityRenderer.registerAdditionalModels(event);
         LegacyDroneEntityRenderer.registerAdditionalModels(event);
         LegacyBobmazonEntityRenderer.registerAdditionalModels(event);

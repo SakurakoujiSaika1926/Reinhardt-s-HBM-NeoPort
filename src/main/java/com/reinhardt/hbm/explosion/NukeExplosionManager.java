@@ -56,6 +56,7 @@ public final class NukeExplosionManager {
     private static final long SAMPLE_AIR = 1L << 32;
     private static final long SAMPLE_FLUID_EMPTY = 1L << 33;
     private static final Map<net.minecraft.resources.ResourceLocation, Queue<NukeTask>> TASKS = new HashMap<>();
+    private static final Map<net.minecraft.resources.ResourceLocation, Map<Long, Long>> FIELD_DISTURBERS = new HashMap<>();
     private static final ExecutorService PLANNER = Executors.newFixedThreadPool(
             Math.max(1, Math.min(2, Runtime.getRuntime().availableProcessors() / 2)),
             task -> {
@@ -83,6 +84,72 @@ public final class NukeExplosionManager {
         spawnTorex(level, x, y + 0.5D, z, radius);
         sendInitialParticles(level, x, y, z);
         NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), (int) (radius * 2.5D), 20 * 20);
+    }
+
+    /**
+     * Applies the old custom-nuke stage priority before entering the bounded
+     * destruction queue. The world mutation remains on the server thread, so
+     * this method is safe to call from a block entity update.
+     */
+    public static void scheduleCustomNuke(ServerLevel level, double x, double y, double z,
+                                          float tnt, float nuke, float hydro, float amat,
+                                          float dirty, float schrab, float euph) {
+        dirty = Math.min(dirty, 100.0F);
+        if (euph > 0.0F) {
+            BalefireExplosionManager.schedule(level, BlockPos.containing(x, y, z), 150);
+            return;
+        }
+        if (schrab > 0.0F) {
+            int strength = Math.min(250, Math.round(schrab + amat / 2.0F + hydro / 4.0F + nuke / 8.0F + tnt / 16.0F));
+            scheduleLegacyNuke(level, x, y, z, Math.max(1, strength));
+            return;
+        }
+        if (amat > 0.0F) {
+            int strength = Math.min(350, Math.round(amat + hydro / 2.0F + nuke / 4.0F + tnt / 8.0F));
+            scheduleLegacyNuke(level, x, y, z, Math.max(1, strength));
+            return;
+        }
+        if (hydro > 0.0F) {
+            int strength = Math.min(350, Math.round(hydro + nuke / 2.0F + tnt / 4.0F));
+            scheduleLegacyNuke(level, x, y, z, Math.max(1, strength));
+            return;
+        }
+        if (nuke > 0.0F) {
+            int strength = Math.min(200, Math.round(nuke + tnt / 2.0F));
+            scheduleLegacyNuke(level, x, y, z, Math.max(1, strength));
+            return;
+        }
+        if (tnt >= 75.0F) {
+            scheduleLegacyNuke(level, x, y, z, Math.max(1, Math.min(150, Math.round(tnt))));
+        } else if (tnt > 0.0F) {
+            level.explode(null, x, y, z, tnt, true, net.minecraft.world.level.Level.ExplosionInteraction.TNT);
+        }
+    }
+
+    /** Registers the 1.7.10 MachineFieldDisturber exclusion point for FLEIJA detonations. */
+    public static void registerFieldDisturber(ServerLevel level, BlockPos pos, int lifetimeTicks) {
+        FIELD_DISTURBERS.computeIfAbsent(level.dimension().location(), ignored -> new HashMap<>())
+                .put(pos.asLong(), level.getGameTime() + lifetimeTicks);
+    }
+
+    /** Matches EntityNukeExplosionMK3.statFacFleija's 300-block exclusion check. */
+    public static boolean isFleijaSuppressed(ServerLevel level, BlockPos explosionCenter) {
+        Map<Long, Long> fields = FIELD_DISTURBERS.get(level.dimension().location());
+        if (fields == null || fields.isEmpty()) {
+            return false;
+        }
+        long now = level.getGameTime();
+        fields.entrySet().removeIf(entry -> entry.getValue() < now);
+        if (fields.isEmpty()) {
+            FIELD_DISTURBERS.remove(level.dimension().location());
+            return false;
+        }
+        for (long serializedPos : fields.keySet()) {
+            if (BlockPos.of(serializedPos).distSqr(explosionCenter) < 90_000.0D) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @SubscribeEvent

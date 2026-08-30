@@ -61,7 +61,7 @@ public final class HbmPollution {
         if (!(level instanceof ServerLevel serverLevel) || !HbmConfig.ENABLE_POLLUTION.get()) {
             return;
         }
-        HbmPollutionData.get(serverLevel).increment(pos, type, amount, HbmConfig.POLLUTION_MULTIPLIER.get());
+        HbmPollutionData.get(serverLevel).increment(pos, type, amount, HbmConfig.pollutionMultiplier());
     }
 
     public static void emitSmoke(Level level, BlockPos pos, HbmPollutionType type, double amount, double pollutionModifier) {

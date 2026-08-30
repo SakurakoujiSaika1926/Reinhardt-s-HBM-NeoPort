@@ -61,6 +61,7 @@ import com.reinhardt.hbm.menu.MiningLaserMenu;
 import com.reinhardt.hbm.menu.MixerMenu;
 import com.reinhardt.hbm.menu.MicrowaveMenu;
 import com.reinhardt.hbm.menu.NukeBoyMenu;
+import com.reinhardt.hbm.menu.LegacyNukeMenu;
 import com.reinhardt.hbm.menu.BombMultiMenu;
 import com.reinhardt.hbm.menu.OilDerrickMenu;
 import com.reinhardt.hbm.menu.OreSlopperMenu;
@@ -117,6 +118,8 @@ import com.reinhardt.hbm.menu.DroneCrateMenu;
 import com.reinhardt.hbm.menu.DroneGridMenu;
 import com.reinhardt.hbm.menu.DroneRequesterMenu;
 import com.reinhardt.hbm.menu.RebarPlacerMenu;
+import com.reinhardt.hbm.menu.RadioRecMenu;
+import com.reinhardt.hbm.menu.AutocalMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -130,6 +133,12 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<WoodBurnerMenu>> WOOD_BURNER =
             MENUS.register("wood_burner", () -> IMenuTypeExtension.create(WoodBurnerMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<RadioRecMenu>> RADIOREC =
+            MENUS.register("radiorec", () -> IMenuTypeExtension.create(RadioRecMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<AutocalMenu>> AUTOCAL =
+            MENUS.register("radio_autocal", () -> IMenuTypeExtension.create(AutocalMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<DieselGeneratorMenu>> DIESEL_GENERATOR =
             MENUS.register("machine_diesel", () -> IMenuTypeExtension.create(DieselGeneratorMenu::new));
@@ -257,6 +266,9 @@ public final class HbmMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<NukeBoyMenu>> NUKE_BOY =
             MENUS.register("nuke_boy", () -> IMenuTypeExtension.create(NukeBoyMenu::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<LegacyNukeMenu>> LEGACY_NUKE =
+            MENUS.register("legacy_nuke", () -> IMenuTypeExtension.create(LegacyNukeMenu::new));
+
     public static final DeferredHolder<MenuType<?>, MenuType<BombMultiMenu>> BOMB_MULTI =
             MENUS.register("bomb_multi", () -> IMenuTypeExtension.create(BombMultiMenu::new));
 
@@ -348,7 +360,7 @@ public final class HbmMenus {
             MENUS.register("machine_large_turbine", () -> IMenuTypeExtension.create(LargeTurbineMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<GasTurbineMenu>> GAS_TURBINE =
-            MENUS.register("machine_turbine_gas", () -> IMenuTypeExtension.create(GasTurbineMenu::new));
+            MENUS.register("machine_turbinegas", () -> IMenuTypeExtension.create(GasTurbineMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SmallBoilerMenu>> SMALL_BOILER =
             MENUS.register("small_boiler", () -> IMenuTypeExtension.create(SmallBoilerMenu::new));

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["PLP", "PSP", "PLP"],
+  "key": {
+    "P": { "tag": "c:plates/steel" },
+    "L": { "item": "reinhardtshbm:plate_dura_steel" },
+    "S": { "item": "reinhardtshbm:ring_starmetal" },
+    "C": { "item": "reinhardtshbm:fusion_core" }
+  },
+  "result": { "id": "reinhardtshbm:radiobox" }
+}

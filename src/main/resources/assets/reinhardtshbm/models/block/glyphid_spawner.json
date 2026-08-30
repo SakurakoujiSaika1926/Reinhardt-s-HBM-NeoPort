@@ -1,6 +1,6 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/legacy_placeholder"
-                 },
-    "parent":  "minecraft:block/cube_all"
+    "parent": "minecraft:block/cube_all",
+    "textures": {
+        "all": "reinhardtshbm:block/glyphid_eggs_alt"
+    }
 }

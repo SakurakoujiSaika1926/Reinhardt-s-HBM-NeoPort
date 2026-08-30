@@ -430,6 +430,7 @@ nuke_n2
 nuke_prototype
 nuke_solinium
 nuke_tsar
+vending_machine
 oil_pipe
 ore_alexandrite
 ore_aluminium
