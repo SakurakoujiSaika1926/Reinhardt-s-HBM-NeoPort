@@ -114,6 +114,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderBatteryPackItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
+        if (profileId.equals("machine_battery_redd")) {
+            renderBatteryReddItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (profileId.equals("fan")) {
             renderFanItem(models, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -185,6 +189,33 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         }
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact 1.7.10 RenderBatteryREDD item renderer transform and assembly. */
+    private static void renderBatteryReddItem(List<BakedModel> models, BlockState state,
+                                              ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(2.5F, 2.5F, 2.5F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        if (!models.isEmpty()) {
+            MachineModelRenderer.renderUnculledCutoutNoCull(models.get(0), poseStack, bufferSource,
+                    state, packedLight, packedOverlay);
+        }
+        if (models.size() > 1) {
+            MachineModelRenderer.renderUnculledCutoutNoCull(models.get(1), poseStack, bufferSource,
+                    state, packedLight, packedOverlay);
+        }
+        if (models.size() > 2) {
+            MachineModelRenderer.renderUnculledCutoutNoCullFullBright(models.get(2), poseStack, bufferSource,
+                    state, packedOverlay);
         }
         poseStack.popPose();
     }
