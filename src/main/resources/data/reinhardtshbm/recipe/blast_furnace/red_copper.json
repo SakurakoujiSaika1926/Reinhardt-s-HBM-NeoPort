@@ -2,5 +2,6 @@
   "type": "reinhardtshbm:blast_furnace",
   "input_a": { "tag": "reinhardtshbm:blast_furnace/copper_equivalent" },
   "input_b": { "item": "minecraft:redstone" },
+  "duration": 400,
   "result": { "id": "reinhardtshbm:ingot_red_copper", "count": 2 }
 }

@@ -2,5 +2,6 @@
   "type": "reinhardtshbm:blast_furnace",
   "input_a": { "tag": "c:ores/iron" },
   "input_b": { "tag": "reinhardtshbm:blast_furnace/coke_equivalent" },
+  "duration": 400,
   "result": { "id": "reinhardtshbm:ingot_steel", "count": 3 }
 }

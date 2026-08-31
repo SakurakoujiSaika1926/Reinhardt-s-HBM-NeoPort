@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "tag": "c:dusts/aluminium" },
+  "input_b": { "item": "minecraft:clay_ball" },
+  "input_b_count": 7,
+  "duration": 800,
+  "result": { "id": "reinhardtshbm:ingot_firebrick", "count": 8 }
+}

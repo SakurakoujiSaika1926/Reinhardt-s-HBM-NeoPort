@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": {
+    "type": "neoforge:components",
+    "items": ["reinhardtshbm:stone_resource"],
+    "components": {
+      "minecraft:custom_data": { "variant": "limestone" },
+      "minecraft:custom_model_data": 4
+    }
+  },
+  "input_b": { "item": "minecraft:clay_ball" },
+  "input_b_count": 6,
+  "duration": 800,
+  "result": { "id": "reinhardtshbm:ingot_firebrick", "count": 8 }
+}

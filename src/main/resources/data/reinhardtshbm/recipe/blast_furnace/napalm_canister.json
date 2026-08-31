@@ -12,5 +12,6 @@
     }
   },
   "input_b": { "item": "minecraft:slime_ball" },
+  "duration": 400,
   "result": { "id": "reinhardtshbm:canister_napalm" }
 }

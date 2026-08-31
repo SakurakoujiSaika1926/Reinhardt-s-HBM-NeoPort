@@ -9,16 +9,16 @@
                             "item":  "minecraft:clay_ball"
                         },
                         {
-                            "tag":  "c:dusts/limestone"
-                        },
-                        {
-                            "tag":  "c:dusts/limestone"
-                        },
-                        {
-                            "tag":  "c:dusts/limestone"
-                        },
-                        {
-                            "tag":  "c:dusts/limestone"
+                            "type":  "neoforge:components",
+                            "items":  [
+                                          "reinhardtshbm:stone_resource"
+                                      ],
+                            "components":  {
+                                               "minecraft:custom_data":  {
+                                                                              "variant":  "limestone"
+                                                                          },
+                                               "minecraft:custom_model_data":  4
+                                           }
                         },
                         {
                             "tag":  "c:sands"

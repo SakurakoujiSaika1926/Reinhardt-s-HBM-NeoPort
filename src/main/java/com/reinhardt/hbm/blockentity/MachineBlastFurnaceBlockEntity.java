@@ -762,8 +762,7 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
     }
 
     private float progressDivisor(BlastFurnaceRecipe.Match match) {
-        int totalInputs = Math.max(1, match.upperCount() + match.lowerCount());
-        return 200.0F * totalInputs;
+        return match.duration();
     }
 
     private void setSlot(int slot, ItemStack stack) {
