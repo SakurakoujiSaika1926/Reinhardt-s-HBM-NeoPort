@@ -110,6 +110,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 .toList();
         logGeometryOnce(id, profileId, profile, models, state);
 
+        if (profileId.startsWith("battery_pack_")) {
+            renderBatteryPackItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (profileId.equals("fan")) {
             renderFanItem(models, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -163,6 +167,22 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.scale(scale, scale, scale);
         poseStack.translate(-fit.centerX(), -fit.centerY(), -fit.centerZ());
         poseStack.translate(profile.offsetX(), profile.offsetY(), profile.offsetZ());
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact 1.7.10 ItemRenderBatteryPack inventory transform. */
+    private static void renderBatteryPackItem(List<BakedModel> models, BlockState state,
+                                               ItemDisplayContext context, PoseStack poseStack,
+                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
