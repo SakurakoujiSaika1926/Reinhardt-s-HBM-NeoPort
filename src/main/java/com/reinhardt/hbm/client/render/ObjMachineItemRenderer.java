@@ -549,7 +549,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             poseStack.translate(0.0F, -4.0F, 0.0F);
             poseStack.scale(6.25F, 6.25F, 6.25F);
         }
-        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        AutocalBlockEntityRenderer.renderModel(state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

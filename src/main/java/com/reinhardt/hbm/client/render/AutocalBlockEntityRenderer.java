@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -16,6 +17,9 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** Direct RenderAUTOCAL orientation table, deliberately independent of generic rotation helpers. */
 public final class AutocalBlockEntityRenderer implements BlockEntityRenderer<AutocalBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/radio_autocal");
+    private static final ResourceLocation TEXTURE = com.reinhardt.hbm.ReinhardtsHBM.id(
+            "textures/models/machines/autocal.png"
+    );
 
     public AutocalBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -39,9 +43,15 @@ public final class AutocalBlockEntityRenderer implements BlockEntityRenderer<Aut
             default -> {
             }
         }
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        renderModel(state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    static void renderModel(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
+                            int packedLight, int packedOverlay) {
+        // RenderAUTOCAL binds autocal_tex directly before drawing this OBJ.
+        MachineModelRenderer.renderUnculledUv(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
+                state, packedLight, packedOverlay, TEXTURE, 0.0F, 0.0F);
     }
 
     @Override
