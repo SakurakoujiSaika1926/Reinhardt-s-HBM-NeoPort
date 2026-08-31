@@ -150,6 +150,10 @@
     },
     {
       "type": "single",
+      "resource": "reinhardtshbm:models/model_radio_receiver"
+    },
+    {
+      "type": "single",
       "resource": "reinhardtshbm:models/trinkets/lantern"
     },
     {

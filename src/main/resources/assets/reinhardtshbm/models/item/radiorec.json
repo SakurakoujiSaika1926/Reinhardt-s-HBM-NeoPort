@@ -1,7 +1,6 @@
 {
-  "parent": "reinhardtshbm:item/broadcaster_pc",
+  "parent": "minecraft:item/generated",
   "textures": {
-    "particle": "reinhardtshbm:models/model_radio_receiver",
-    "texture": "reinhardtshbm:models/model_radio_receiver"
+    "layer0": "reinhardtshbm:block/radiorec"
   }
 }
