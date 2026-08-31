@@ -30,10 +30,16 @@ public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
 
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
+            super.renderTooltip(guiGraphics, mouseX, mouseY);
+            return;
+        }
         for (int index = 0; index < 3; index++) {
             if (isHovering(53, 17 + 18 * index, 70, 7, mouseX, mouseY)) {
                 guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
@@ -41,12 +47,14 @@ public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu
                         format(this.menu.progress(index)),
                         format(SteelFurnaceBlockEntity.PROCESS_TIME)
                 )), mouseX, mouseY);
+                return;
             }
             if (isHovering(53, 26 + 18 * index, 70, 7, mouseX, mouseY)) {
                 guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
                         "tooltip.reinhardtshbm.steel_furnace.bonus",
                         this.menu.bonus(index)
                 )), mouseX, mouseY);
+                return;
             }
         }
 
@@ -56,6 +64,7 @@ public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu
                     format(this.menu.heat()),
                     format(SteelFurnaceBlockEntity.MAX_HEAT)
             )), mouseX, mouseY);
+            return;
         }
     }
 

@@ -28,10 +28,16 @@ public class IronFurnaceScreen extends AbstractContainerScreen<IronFurnaceMenu> 
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
 
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
+            super.renderTooltip(guiGraphics, mouseX, mouseY);
+            return;
+        }
         if (isHovering(52, 35, 71, 7, mouseX, mouseY)) {
             guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
                     "tooltip.reinhardtshbm.iron_furnace.progress",
@@ -43,6 +49,7 @@ public class IronFurnaceScreen extends AbstractContainerScreen<IronFurnaceMenu> 
                     "tooltip.reinhardtshbm.iron_furnace.burn",
                     this.menu.burnTime() / 20
             )), mouseX, mouseY);
+            return;
         }
     }
 

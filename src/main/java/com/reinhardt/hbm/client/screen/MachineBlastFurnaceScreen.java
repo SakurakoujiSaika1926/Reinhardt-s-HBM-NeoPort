@@ -36,10 +36,17 @@ public class MachineBlastFurnaceScreen extends AbstractContainerScreen<MachineBl
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
 
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        // Keep the vanilla slot tooltip from being drawn together with a legacy machine tooltip.
+        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
+            super.renderTooltip(guiGraphics, mouseX, mouseY);
+            return;
+        }
         if (isHovering(25, 17, 18, 18, mouseX, mouseY)) {
             guiGraphics.renderComponentTooltip(this.font, HbmFluidTooltip.forTank(
                     this.menu.flueFluid(),
@@ -56,21 +63,11 @@ public class MachineBlastFurnaceScreen extends AbstractContainerScreen<MachineBl
             ), mouseX, mouseY);
             return;
         }
-        // Do not layer the fuel meter tooltip over the actual fuel stack's vanilla tooltip.
-        if (isHovering(62, 80, 56, 26, mouseX, mouseY)
-                && !isHovering(80, 81, 16, 16, mouseX, mouseY)) {
+        if (isHovering(79, 62, 18, 18, mouseX, mouseY)) {
             guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
-                    "tooltip.reinhardtshbm.blast_furnace.fuel",
-                    this.menu.fuel(),
-                    com.reinhardt.hbm.blockentity.MachineBlastFurnaceBlockEntity.MAX_FUEL
+                    "tooltip.reinhardtshbm.blast_furnace.speed",
+                    this.menu.speedPercent()
             )), mouseX, mouseY);
-            return;
-        }
-        if (isHovering(62, 18, 56, 88, mouseX, mouseY)) {
-            guiGraphics.renderComponentTooltip(this.font, List.of(
-                    Component.translatable("tooltip.reinhardtshbm.progress_percent", Math.round(this.menu.progressFraction() * 100.0F)),
-                    Component.translatable("tooltip.reinhardtshbm.blast_furnace.speed", this.menu.speedPercent())
-            ), mouseX, mouseY);
         }
     }
 
