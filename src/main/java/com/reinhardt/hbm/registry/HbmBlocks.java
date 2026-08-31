@@ -3854,13 +3854,13 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> watz(String name) {
-        return registerBlock(name, () -> new WatzBlock(metal()
+        return registerObjBlock(name, () -> new WatzBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
     }
 
     private static DeferredBlock<Block> watzPump(String name) {
-        return registerBlock(name, () -> new WatzPumpBlock(metal()
+        return registerObjBlock(name, () -> new WatzPumpBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
     }

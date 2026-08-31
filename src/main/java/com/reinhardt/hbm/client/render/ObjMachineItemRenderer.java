@@ -122,6 +122,14 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderResearchReactorItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
+        if (profileId.equals("watz")) {
+            renderWatzItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("watz_pump")) {
+            renderWatzPumpItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (profileId.equals("fan")) {
             renderFanItem(models, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -233,6 +241,38 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -4.0F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
+        }
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact 1.7.10 RenderWatz item transform. */
+    private static void renderWatzItem(List<BakedModel> models, BlockState state,
+                                       ItemDisplayContext context, PoseStack poseStack,
+                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(2.0F, 2.0F, 2.0F);
+        }
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact 1.7.10 RenderWatzPump item transform. */
+    private static void renderWatzPumpItem(List<BakedModel> models, BlockState state,
+                                           ItemDisplayContext context, PoseStack poseStack,
+                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.5F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
         }
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
@@ -554,6 +594,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_battery_redd_lights");
         add(profiles, "machine_reactor_small", 0.0F, 0.90F,
                 "block/machine_reactor_small_base", "block/machine_reactor_small_rods");
+        add(profiles, "watz", 0.0F, 0.90F, "block/watz_world");
+        add(profiles, "watz_pump", 0.0F, 0.90F, "block/watz_pump_world");
         add(profiles, "machine_excavator", 90.0F, 0.90F,
                 "block/machine_excavator_main", "block/machine_excavator_crusher1",
                 "block/machine_excavator_crusher2", "block/machine_excavator_drillbit", "block/machine_excavator_shaft");
