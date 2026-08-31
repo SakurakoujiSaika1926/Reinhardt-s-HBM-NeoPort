@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.blockentity.FunnelBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -47,20 +48,45 @@ public final class FunnelBlockEntityRenderer implements BlockEntityRenderer<Funn
     public static void renderItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        // MachineFunnel is an IRenderBlock in 1.7.10, not an ItemRenderBase
-        // renderer. Its mesh is centered on X/Z around its own origin, so map
-        // that origin to the modern block-item model space before applying the
-        // only inventory transform used by the legacy renderer.
+        applyLegacyItemTransform(context, poseStack);
+        // BlockFunnelBakedModel.forItem: scale 0.9, translate (0.5, 0, 0.5),
+        // then rotate the authored mesh by PI around Y. This is item-specific.
         poseStack.translate(0.5F, 0.0F, 0.5F);
-        if (context == ItemDisplayContext.GUI) {
-            // MachineFunnel#renderInventory
-            poseStack.translate(0.0F, -0.5F, 0.0F);
-        }
+        poseStack.scale(0.9F, 0.9F, 0.9F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         BlockState state = com.reinhardt.hbm.registry.HbmBlocks.MACHINE_FUNNEL.get().defaultBlockState();
         renderPart(TOP, poseStack, bufferSource, state, packedLight, packedOverlay);
         renderPart(BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
         renderPart(SIDE, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    /** Exact BakedModelTransforms.standardBlock() entries used by the old funnel item. */
+    private static void applyLegacyItemTransform(ItemDisplayContext context, PoseStack poseStack) {
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            default -> {
+            }
+        }
     }
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
