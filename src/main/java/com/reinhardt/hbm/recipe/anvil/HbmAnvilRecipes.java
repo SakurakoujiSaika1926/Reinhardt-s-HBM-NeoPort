@@ -116,6 +116,7 @@ public final class HbmAnvilRecipes {
         Set<String> plateMaterials = new LinkedHashSet<>();
         addLegacyBat9000RecyclingRecipe();
         addRedCopperCableBoxRecipes();
+        addExhaustDuctRecipes();
         addPlateRecipe(plateMaterials, "iron", 3, mc("iron_ingot"));
         addPlateRecipe(plateMaterials, "gold", 3, mc("gold_ingot"));
         addPlateRecipe(plateMaterials, "copper", 3, mc("copper_ingot"), hbm("ingot_copper"));
@@ -779,6 +780,35 @@ public final class HbmAnvilRecipes {
                 ));
             }
         }
+    }
+
+    /** Direct 1.7.10 FluidDuctBoxExhaust construction and recycling recipes. */
+    private static void addExhaustDuctRecipes() {
+        Optional<AnvilIngredient> ironPlate = ingredient("plate_iron", 1);
+        Optional<AnvilIngredient> polymerPlate = ingredient("plate_polymer", 1);
+        Optional<ItemStack> ironPlateOutput = stack(hbm("plate_iron"), 1);
+        Optional<ItemStack> polymerPlateOutput = stack(hbm("plate_polymer"), 1);
+        if (ironPlate.isEmpty() || polymerPlate.isEmpty()
+                || ironPlateOutput.isEmpty() || polymerPlateOutput.isEmpty()) {
+            return;
+        }
+
+        ItemStack exhaustDuct = new ItemStack(HbmBlocks.FLUID_DUCT_EXHAUST.get());
+        CONSTRUCTION.add(AnvilConstructionRecipe.construction(
+                List.of(ironPlate.get(), polymerPlate.get()),
+                exhaustDuct.copyWithCount(8),
+                2
+        ));
+
+        AnvilIngredient.ofStacks(8, exhaustDuct).ifPresent(input -> CONSTRUCTION.add(
+                new AnvilConstructionRecipe(
+                        List.of(input),
+                        List.of(new AnvilOutput(ironPlateOutput.get()), new AnvilOutput(polymerPlateOutput.get())),
+                        2,
+                        -1,
+                        AnvilConstructionRecipe.OverlayType.RECYCLING
+                )
+        ));
     }
 
     private static Optional<AnvilIngredient> ingredientOptional(String path, int count) {

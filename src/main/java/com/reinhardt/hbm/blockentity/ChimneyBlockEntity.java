@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 public class ChimneyBlockEntity extends BlockEntity {
     private static final int SUBSCRIBE_AMOUNT = 1_000_000;
     private static final String[] ACCEPTED_FLUIDS = {
-            "flue",
             "smoke",
             "smoke_leaded",
             "smoke_poison"
@@ -235,7 +234,6 @@ public class ChimneyBlockEntity extends BlockEntity {
         }
         return switch (fluid.name()) {
             case "smoke" -> HbmPollutionType.SOOT;
-            case "flue" -> HbmPollutionType.SOOT;
             case "smoke_leaded" -> HbmPollutionType.HEAVYMETAL;
             case "smoke_poison" -> HbmPollutionType.POISON;
             default -> null;
