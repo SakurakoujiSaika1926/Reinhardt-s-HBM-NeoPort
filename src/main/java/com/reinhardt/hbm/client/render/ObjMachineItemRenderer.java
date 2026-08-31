@@ -196,6 +196,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             return;
         }
 
+        if (profileId.equals("dfc_emitter") || profileId.equals("dfc_receiver")
+                || profileId.equals("dfc_injector") || profileId.equals("dfc_stabilizer")) {
+            renderDfcComponentItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+
         LegacyPose legacyPose = LEGACY_POSES.get(profileId);
         if (legacyPose != null) {
             renderLegacyPose(models, state, context, poseStack, bufferSource, packedLight, packedOverlay, legacyPose);
@@ -664,6 +670,22 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
+    /** Exact RenderCoreComponent#getRenderer item transform for all four DFC components. */
+    private static void renderDfcComponentItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                               int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
+        poseStack.scale(2.0F, 2.0F, 2.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
     private static void logGeometryOnce(String itemId, String profileId, Profile profile,
                                         List<BakedModel> models, BlockState state) {
         if (!DIAGNOSTICS.add(profileId)) {
@@ -802,6 +824,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/fusion_plasma_forge_piston_right", "block/fusion_plasma_forge_slider_jet",
                 "block/fusion_plasma_forge_arm_lower_jet", "block/fusion_plasma_forge_arm_upper_jet",
                 "block/fusion_plasma_forge_jet", "block/fusion_plasma_forge_plasma");
+        add(profiles, "dfc_emitter", 0.0F, 0.90F, "block/dfc_emitter");
+        add(profiles, "dfc_receiver", 0.0F, 0.90F, "block/dfc_receiver");
+        add(profiles, "dfc_injector", 0.0F, 0.90F, "block/dfc_injector");
+        add(profiles, "dfc_stabilizer", 0.0F, 0.90F, "block/dfc_stabilizer");
         add(profiles, "machine_excavator", 90.0F, 0.90F,
                 "block/machine_excavator_main", "block/machine_excavator_crusher1",
                 "block/machine_excavator_crusher2", "block/machine_excavator_drillbit", "block/machine_excavator_shaft");

@@ -4434,7 +4434,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> dfcComponent(String name, DfcComponentBlock.Kind kind) {
-        return registerBlock(name, () -> new DfcComponentBlock(metal()
+        return registerObjBlock(name, () -> new DfcComponentBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion(), kind));
     }
