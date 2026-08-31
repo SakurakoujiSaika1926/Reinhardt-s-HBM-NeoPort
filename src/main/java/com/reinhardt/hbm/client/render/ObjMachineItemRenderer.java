@@ -892,6 +892,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_excavator_main", "block/machine_excavator_crusher1",
                 "block/machine_excavator_crusher2", "block/machine_excavator_drillbit", "block/machine_excavator_shaft");
         add(profiles, "machine_blast_furnace", 0.0F, 0.90F, "block/machine_blast_furnace");
+        // These entries use the literal 1.7.10 inventory render paths below;
+        // they must not go through the measured bounds fit.
+        add(profiles, "machine_crucible", 0.0F, 0.90F, "block/machine_crucible_world");
+        add(profiles, "machine_strand_caster", 0.0F, 0.90F, "block/machine_strand_caster_item");
         add(profiles, "machine_rtg_grey", 0.0F, 0.90F, "block/machine_rtg_grey_world");
         add(profiles, "machine_crystallizer", 0.0F, 0.90F,
                 "block/machine_crystallizer_body", "block/machine_crystallizer_spinner");
@@ -1105,6 +1109,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderHydrotreater#getRenderer
         legacy(poses, "machine_hydrotreater", 0.0F, -4.0F, 0.0F, 4.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+        // RenderCrucible#getRenderer: translate(0,-1.5,0), scale(3.25).
+        legacy(poses, "machine_crucible", 0.0F, -1.5F, 0.0F, 3.25F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        // RenderStrandCaster#getRenderer: translate(2,0,2), scale(2).
+        legacy(poses, "machine_strand_caster", 2.0F, 0.0F, 2.0F, 2.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
         // ItemRenderLibrary#charger: translate(0,-7,0), scale(10), then the
         // common renderer scales the OBJ assembly by 2 and shifts it by .5 X.
         legacy(poses, "charger", 0.0F, -7.0F, 0.0F, 10.0F,

@@ -4109,7 +4109,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> crucible(String name) {
-        return registerBlock(name, () -> new CrucibleBlock(metal()
+        return registerObjBlock(name, () -> new CrucibleBlock(metal()
                 .strength(5.0F, 100.0F)
                 .noOcclusion()));
     }
@@ -4145,7 +4145,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> strandCaster(String name) {
-        return registerBlock(name, () -> new StrandCasterBlock(metal()
+        return registerObjBlock(name, () -> new StrandCasterBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
     }

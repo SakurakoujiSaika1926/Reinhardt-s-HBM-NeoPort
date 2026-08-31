@@ -1,11 +1,11 @@
 {
 	"parent": "block/block",
 	"textures": {
-		"0": "reinhardtshbm:block/foundry_basin_bottom",
+		"0": "reinhardtshbm:block/foundry_mold_bottom",
 		"1": "reinhardtshbm:block/foundry_mold_inner",
 		"2": "reinhardtshbm:block/foundry_mold_side",
 		"3": "reinhardtshbm:block/foundry_mold_top",
-		"particle": "reinhardtshbm:block/foundry_basin_bottom"
+		"particle": "reinhardtshbm:block/foundry_mold_bottom"
 	},
 	"elements": [
 		{
