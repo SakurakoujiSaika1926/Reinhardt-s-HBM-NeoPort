@@ -110,11 +110,14 @@ public class ChimneyBlockEntity extends BlockEntity {
             return false;
         }
         BlockPos diff = queriedPos.subtract(this.worldPosition);
+        // A pipe asks for the capability from the face of this outer dummy
+        // that faces back toward the pipe.  The legacy chimney accepts smoke
+        // through its four horizontal base dummies only.
         return diff.getY() == 0
-                && ((diff.getX() == 1 && diff.getZ() == 0 && side == Direction.EAST)
-                || (diff.getX() == -1 && diff.getZ() == 0 && side == Direction.WEST)
-                || (diff.getX() == 0 && diff.getZ() == 1 && side == Direction.SOUTH)
-                || (diff.getX() == 0 && diff.getZ() == -1 && side == Direction.NORTH));
+                && ((diff.getX() == 1 && diff.getZ() == 0 && side == Direction.WEST)
+                || (diff.getX() == -1 && diff.getZ() == 0 && side == Direction.EAST)
+                || (diff.getX() == 0 && diff.getZ() == 1 && side == Direction.NORTH)
+                || (diff.getX() == 0 && diff.getZ() == -1 && side == Direction.SOUTH));
     }
 
     @Override
