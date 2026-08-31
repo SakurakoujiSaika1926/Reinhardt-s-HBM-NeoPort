@@ -171,6 +171,11 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             return;
         }
 
+        if (profileId.equals("machine_drain")) {
+            renderDrainItem(models.get(0), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+
         if (profileId.equals("fusion_torus")) {
             renderFusionTorusItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -456,6 +461,22 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
+        poseStack.popPose();
+    }
+
+    /** Exact 1.7.10 RenderDrain item renderer transform. */
+    private static void renderDrainItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                        int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(-1.0F, -1.0F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        poseStack.translate(0.75F, 0.0F, 0.0F);
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -791,6 +812,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "machine_electrolyser", 0.0F, 0.92F, "block/machine_electrolyser_world");
         add(profiles, "machine_arc_welder", 0.0F, 0.90F, "block/machine_arc_welder_world");
         add(profiles, "machine_zirnox", 0.0F, 0.90F, "block/machine_zirnox_world");
+        add(profiles, "machine_drain", 0.0F, 0.90F, "block/machine_drain");
         add(profiles, "machine_soldering_station", 0.0F, 0.80F,
                 "block/machine_soldering_station_world");
         add(profiles, "machine_assembly_machine", 90.0F, 0.61F,
