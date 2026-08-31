@@ -48,12 +48,10 @@ public final class FunnelBlockEntityRenderer implements BlockEntityRenderer<Funn
     public static void renderItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        applyLegacyItemTransform(context, poseStack);
-        // BlockFunnelBakedModel.forItem: scale 0.9, translate (0.5, 0, 0.5),
-        // then rotate the authored mesh by PI around Y. This is item-specific.
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        poseStack.scale(0.9F, 0.9F, 0.9F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        applyLegacyBlockItemTransform(context, poseStack);
+        // MachineFunnel#renderInventory has no model-specific scale or
+        // rotation; it only lowers the centered OBJ by half a block.
+        poseStack.translate(0.0F, -0.5F, 0.0F);
         BlockState state = com.reinhardt.hbm.registry.HbmBlocks.MACHINE_FUNNEL.get().defaultBlockState();
         renderPart(TOP, poseStack, bufferSource, state, packedLight, packedOverlay);
         renderPart(BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
@@ -61,8 +59,8 @@ public final class FunnelBlockEntityRenderer implements BlockEntityRenderer<Funn
         poseStack.popPose();
     }
 
-    /** Exact BakedModelTransforms.standardBlock() entries used by the old funnel item. */
-    private static void applyLegacyItemTransform(ItemDisplayContext context, PoseStack poseStack) {
+    /** The standard block-item transform used around the 1.7.10 custom block renderer. */
+    private static void applyLegacyBlockItemTransform(ItemDisplayContext context, PoseStack poseStack) {
         switch (context) {
             case GUI -> {
                 poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
