@@ -97,6 +97,7 @@ import com.reinhardt.hbm.block.DeuteriumTowerBlock;
 import com.reinhardt.hbm.block.DieselGeneratorBlock;
 import com.reinhardt.hbm.block.DeconBlock;
 import com.reinhardt.hbm.block.DrainBlock;
+import com.reinhardt.hbm.item.DrainBlockItem;
 import com.reinhardt.hbm.block.DroneWaypointBlock;
 import com.reinhardt.hbm.block.DroneNetworkContainerBlock;
 import com.reinhardt.hbm.block.DungeonChainBlock;
@@ -3469,9 +3470,11 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> drain(String name) {
-        return registerBlock(name, () -> new DrainBlock(metal()
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new DrainBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion(), MACHINE_CORE_SHAPE));
+        HbmItems.ITEMS.register(name, () -> new DrainBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> oilPipe(String name) {
