@@ -162,10 +162,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderCombustionEngineItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
-        if (profileId.equals("machine_zirnox")) {
-            renderZirnoxItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
-            return;
-        }
         if (profileId.equals("radio_autocal")) {
             renderRadioAutocalItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -516,32 +512,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         }
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         poseStack.translate(0.0F, 0.0F, 2.75F);
-        for (BakedModel model : models) {
-            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
-        }
-        poseStack.popPose();
-    }
-
-    /** Exact 1.7.10 ItemRenderBase inventory transform for the ZIRNOX reactor. */
-    private static void renderZirnoxItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
-                                         PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
-                                         int packedOverlay) {
-        poseStack.pushPose();
-        if (context == ItemDisplayContext.GUI) {
-            // ItemRenderBase applies these operations in this order: translate
-            // to the 16px inventory canvas, rotate, mirror, then renderInventory.
-            // Keeping the mirror and the 1/16 conversion explicit avoids the
-            // approximate shared GUI basis that displaced this tall OBJ.
-            poseStack.translate(0.5F, 0.625F, 0.0F);
-            poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
-            poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
-            poseStack.translate(0.0F, -2.0F, 0.0F);
-            poseStack.scale(2.8F, 2.8F, 2.8F);
-        } else {
-            LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
-        }
-        poseStack.scale(0.75F, 0.75F, 0.75F);
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
