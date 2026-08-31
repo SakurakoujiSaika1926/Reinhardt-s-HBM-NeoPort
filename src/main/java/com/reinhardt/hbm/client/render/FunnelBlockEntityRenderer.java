@@ -48,6 +48,10 @@ public final class FunnelBlockEntityRenderer implements BlockEntityRenderer<Funn
     public static void renderItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
+        // ItemRenderer shifts BEWLR coordinates by -0.5 on every axis. The
+        // legacy funnel OBJ is centered around its own origin, so restore that
+        // origin before applying MachineFunnel's inventory transform.
+        poseStack.translate(0.5F, 0.5F, 0.5F);
         applyLegacyBlockItemTransform(context, poseStack);
         // MachineFunnel#renderInventory has no model-specific scale or
         // rotation; it only lowers the centered OBJ by half a block.
