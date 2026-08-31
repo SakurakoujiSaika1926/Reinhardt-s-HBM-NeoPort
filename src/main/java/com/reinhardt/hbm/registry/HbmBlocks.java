@@ -3922,7 +3922,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> researchReactor(String name) {
-        return registerBlock(name, () -> new ResearchReactorBlock(metal()
+        return registerObjBlock(name, () -> new ResearchReactorBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion(), Shapes.block()));
     }

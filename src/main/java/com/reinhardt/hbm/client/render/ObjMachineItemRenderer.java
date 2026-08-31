@@ -118,6 +118,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderBatteryReddItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
+        if (profileId.equals("machine_reactor_small")) {
+            renderResearchReactorItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (profileId.equals("fan")) {
             renderFanItem(models, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -216,6 +220,22 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         if (models.size() > 2) {
             MachineModelRenderer.renderUnculledCutoutNoCullFullBright(models.get(2), poseStack, bufferSource,
                     state, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact 1.7.10 ItemRenderLibrary research-reactor item assembly. */
+    private static void renderResearchReactorItem(List<BakedModel> models, BlockState state,
+                                                  ItemDisplayContext context, PoseStack poseStack,
+                                                  MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -4.0F, 0.0F);
+            poseStack.scale(4.0F, 4.0F, 4.0F);
+        }
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
     }
@@ -532,6 +552,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "machine_battery_redd", -90.0F, 0.90F,
                 "block/machine_battery_redd_base", "block/machine_battery_redd_wheel",
                 "block/machine_battery_redd_lights");
+        add(profiles, "machine_reactor_small", 0.0F, 0.90F,
+                "block/machine_reactor_small_base", "block/machine_reactor_small_rods");
         add(profiles, "machine_excavator", 90.0F, 0.90F,
                 "block/machine_excavator_main", "block/machine_excavator_crusher1",
                 "block/machine_excavator_crusher2", "block/machine_excavator_drillbit", "block/machine_excavator_shaft");
