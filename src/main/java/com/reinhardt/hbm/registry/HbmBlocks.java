@@ -4423,7 +4423,7 @@ public final class HbmBlocks {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new FusionMachineBlock(metal()
                 .strength(5.0F, 60.0F)
                 .noOcclusion(), MACHINE_CORE_SHAPE, kind));
-        HbmItems.ITEMS.register(name, () -> new LegacyOffsetBlockItem(block.get(), new Item.Properties(), kind.legacyOffset(), true));
+        HbmItems.ITEMS.register(name, () -> new ObjMachineLegacyOffsetBlockItem(block.get(), new Item.Properties(), kind.legacyOffset(), true));
         return block;
     }
 

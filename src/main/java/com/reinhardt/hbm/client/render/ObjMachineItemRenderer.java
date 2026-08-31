@@ -163,6 +163,39 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             return;
         }
 
+        if (profileId.equals("fusion_torus")) {
+            renderFusionTorusItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_klystron") || profileId.equals("fusion_klystron_creative")) {
+            renderFusionKlystronItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_breeder")) {
+            renderFusionBreederItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_collector")) {
+            renderFusionCollectorItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_boiler")) {
+            renderFusionBoilerItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_mhdt")) {
+            renderFusionMhdtItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_coupler")) {
+            renderFusionCouplerItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_plasma_forge")) {
+            renderFusionPlasmaForgeItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+
         LegacyPose legacyPose = LEGACY_POSES.get(profileId);
         if (legacyPose != null) {
             renderLegacyPose(models, state, context, poseStack, bufferSource, packedLight, packedOverlay, legacyPose);
@@ -478,6 +511,159 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
+    /** Exact RenderFusionTorus#getRenderer item assembly and inventory pose. */
+    private static void renderFusionTorusItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                              int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.scale(2.0F, 2.0F, 2.0F);
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.pushPose();
+        poseStack.mulPose(Axis.YP.rotationDegrees((System.currentTimeMillis() / 5L) % 360L));
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFusionKlystron#getRenderer item assembly and inventory pose. */
+    private static void renderFusionKlystronItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                                 PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                                 int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 1.0F);
+            poseStack.scale(3.5F, 3.5F, 3.5F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 2.5F, 0.0F);
+        poseStack.mulPose(Axis.XP.rotationDegrees((System.currentTimeMillis() / 10L) % 360L));
+        poseStack.translate(0.0F, -2.5F, 0.0F);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFusionBreeder#getRenderer item assembly and inventory pose. */
+    private static void renderFusionBreederItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                                PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                                int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFusionCollector#getRenderer item assembly and inventory pose. */
+    private static void renderFusionCollectorItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                                  PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                                  int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.0F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFusionBoiler#getRenderer item assembly and inventory pose. */
+    private static void renderFusionBoilerItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                               int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(3.5F, 3.5F, 3.5F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFusionMHDT#getRenderer item assembly and inventory pose. */
+    private static void renderFusionMhdtItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                             PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                             int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.scale(2.5F, 2.5F, 2.5F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 1.5F, 0.0F);
+        poseStack.mulPose(Axis.XP.rotationDegrees((System.currentTimeMillis() / 5L) % 30L - 15.0F));
+        poseStack.translate(0.0F, -1.5F, 0.0F);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFusionCoupler#getRenderer item assembly and inventory pose. */
+    private static void renderFusionCouplerItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                                PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                                int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFusionPlasmaForge#getRenderer static item assembly and inventory pose. */
+    private static void renderFusionPlasmaForgeItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                                    PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                                    int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(2.75F, 2.75F, 2.75F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        for (int index = 0; index < models.size() - 1; index++) {
+            MachineModelRenderer.renderUnculled(models.get(index), poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        MachineModelRenderer.renderUnculledTintedLightning(models.get(models.size() - 1), poseStack, bufferSource,
+                state, packedOverlay, 0xFF000000);
+        poseStack.popPose();
+    }
+
     private static void logGeometryOnce(String itemId, String profileId, Profile profile,
                                         List<BakedModel> models, BlockState state) {
         if (!DIAGNOSTICS.add(profileId)) {
@@ -596,6 +782,26 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_reactor_small_base", "block/machine_reactor_small_rods");
         add(profiles, "watz", 0.0F, 0.90F, "block/watz_world");
         add(profiles, "watz_pump", 0.0F, 0.90F, "block/watz_pump_world");
+        add(profiles, "fusion_torus", 0.0F, 0.90F,
+                "block/fusion_torus_torus", "block/fusion_torus_magnet");
+        add(profiles, "fusion_klystron", 0.0F, 0.90F,
+                "block/fusion_klystron_body", "block/fusion_klystron_rotor");
+        add(profiles, "fusion_klystron_creative", 0.0F, 0.90F,
+                "block/fusion_klystron_creative_body", "block/fusion_klystron_creative_rotor");
+        add(profiles, "fusion_breeder", 0.0F, 0.90F, "block/fusion_breeder");
+        add(profiles, "fusion_collector", 0.0F, 0.90F, "block/fusion_collector");
+        add(profiles, "fusion_boiler", 0.0F, 0.90F, "block/fusion_boiler");
+        add(profiles, "fusion_mhdt", 0.0F, 0.90F,
+                "block/fusion_mhdt_turbine", "block/fusion_mhdt_coils");
+        add(profiles, "fusion_coupler", 0.0F, 0.90F, "block/fusion_coupler");
+        add(profiles, "fusion_plasma_forge", 0.0F, 0.90F,
+                "block/fusion_plasma_forge_body", "block/fusion_plasma_forge_slider_striker",
+                "block/fusion_plasma_forge_arm_lower_striker", "block/fusion_plasma_forge_arm_upper_striker",
+                "block/fusion_plasma_forge_striker_mount", "block/fusion_plasma_forge_striker_left",
+                "block/fusion_plasma_forge_striker_right", "block/fusion_plasma_forge_piston_left",
+                "block/fusion_plasma_forge_piston_right", "block/fusion_plasma_forge_slider_jet",
+                "block/fusion_plasma_forge_arm_lower_jet", "block/fusion_plasma_forge_arm_upper_jet",
+                "block/fusion_plasma_forge_jet", "block/fusion_plasma_forge_plasma");
         add(profiles, "machine_excavator", 90.0F, 0.90F,
                 "block/machine_excavator_main", "block/machine_excavator_crusher1",
                 "block/machine_excavator_crusher2", "block/machine_excavator_drillbit", "block/machine_excavator_shaft");
