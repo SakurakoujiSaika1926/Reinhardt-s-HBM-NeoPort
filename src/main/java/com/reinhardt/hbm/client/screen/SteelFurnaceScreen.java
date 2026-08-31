@@ -31,15 +31,14 @@ public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        this.renderTooltip(guiGraphics, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
             super.renderTooltip(guiGraphics, mouseX, mouseY);
             return;
         }
+        this.renderLegacyInfoTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    private void renderLegacyInfoTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         for (int index = 0; index < 3; index++) {
             if (isHovering(53, 17 + 18 * index, 70, 7, mouseX, mouseY)) {
                 guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
