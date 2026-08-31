@@ -564,7 +564,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             poseStack.scale(6.0F, 6.0F, 6.0F);
         }
         poseStack.translate(0.0F, 0.0F, -0.5F);
-        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        RadioTelexBlockEntityRenderer.renderModel(state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

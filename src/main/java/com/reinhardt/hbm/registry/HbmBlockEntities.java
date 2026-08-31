@@ -197,6 +197,7 @@ import com.reinhardt.hbm.blockentity.WatzPumpBlockEntity;
 import com.reinhardt.hbm.blockentity.WatzStructBlockEntity;
 import com.reinhardt.hbm.blockentity.RadioTorchBlockEntity;
 import com.reinhardt.hbm.blockentity.RadioRecBlockEntity;
+import com.reinhardt.hbm.blockentity.RadioTelexBlockEntity;
 import com.reinhardt.hbm.blockentity.RadioboxBlockEntity;
 import com.reinhardt.hbm.blockentity.RefuelerBlockEntity;
 import com.reinhardt.hbm.blockentity.WoodBurnerBlockEntity;
@@ -400,6 +401,10 @@ public final class HbmBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AutocalBlockEntity>> AUTOCAL =
             BLOCK_ENTITIES.register("radio_autocal",
                     () -> BlockEntityType.Builder.of(AutocalBlockEntity::new, HbmBlocks.RADIO_AUTOCAL.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RadioTelexBlockEntity>> RADIO_TELEX =
+            BLOCK_ENTITIES.register("radio_telex",
+                    () -> BlockEntityType.Builder.of(RadioTelexBlockEntity::new, HbmBlocks.RADIO_TELEX.get()).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RefuelerBlockEntity>> REFUELER =
             BLOCK_ENTITIES.register("refueler",

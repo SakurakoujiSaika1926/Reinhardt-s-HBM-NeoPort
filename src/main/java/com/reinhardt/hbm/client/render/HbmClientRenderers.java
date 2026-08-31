@@ -153,6 +153,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.DEMON_LAMP.get(), DemonLampBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.RADIO_TORCH.get(), RadioTorchBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.AUTOCAL.get(), AutocalBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.RADIO_TELEX.get(), RadioTelexBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.RADIOBOX.get(), RadioboxBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.REFUELER.get(), RefuelerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.VENDING_MACHINE.get(), VendingMachineBlockEntityRenderer::new);
@@ -399,6 +400,7 @@ public final class HbmClientRenderers {
         DemonLampBlockEntityRenderer.registerAdditionalModels(event);
         RadioTorchBlockEntityRenderer.registerAdditionalModels(event);
         AutocalBlockEntityRenderer.registerAdditionalModels(event);
+        RadioTelexBlockEntityRenderer.registerAdditionalModels(event);
         RefuelerBlockEntityRenderer.registerAdditionalModels(event);
         VendingMachineBlockEntityRenderer.registerAdditionalModels(event);
         SatelliteDockBlockEntityRenderer.registerAdditionalModels(event);

@@ -1362,7 +1362,11 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> RADIO_TORCH_READER = radioTorch("radio_torch_reader", RadioTorchBlock.Kind.READER);
     public static final DeferredBlock<Block> RADIO_TORCH_CONTROLLER = radioTorch("radio_torch_controller", RadioTorchBlock.Kind.CONTROLLER);
     public static final DeferredBlock<Block> RADIO_TELEX = registerObjBlock("radio_telex",
-            () -> new Block(metal().strength(3.0F, 10.0F)));
+            () -> new com.reinhardt.hbm.block.RadioTelexBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .sound(SoundType.WOOD)
+                    .strength(3.0F, 10.0F)
+                    .noOcclusion()));
     public static final DeferredBlock<Block> BOAT = registerObjBlock("boat",
             () -> new BoatBlock(metal().strength(10.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> BOBBLEHEAD = bobblehead("bobblehead");
