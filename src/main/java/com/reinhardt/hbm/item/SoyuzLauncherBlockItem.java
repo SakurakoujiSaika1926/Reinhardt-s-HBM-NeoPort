@@ -37,7 +37,7 @@ public class SoyuzLauncherBlockItem extends BlockItem {
         if (!level.getBlockState(corePos).canBeReplaced(placeContext)) {
             return InteractionResult.FAIL;
         }
-        if (!LargeMachineBlock.canPlaceFootprintAt(level, corePos, facing, launcher.machineFootprint(), placeContext, launcher.machineRotationBasis())) {
+        if (!launcher.canPlaceAt(placeContext, corePos)) {
             return InteractionResult.FAIL;
         }
 

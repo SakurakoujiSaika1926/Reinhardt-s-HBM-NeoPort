@@ -4,6 +4,7 @@ import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.Nullable;
@@ -27,15 +29,26 @@ public class SoyuzLauncherBlock extends LargeMachineBlock implements EntityBlock
     public static final Footprint FOOTPRINT = footprint();
 
     public SoyuzLauncherBlock(Properties properties) {
-        super(properties, FOOTPRINT, Shapes.empty(), RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, Shapes.empty());
     }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.LivingEntity placer, net.minecraft.world.item.ItemStack stack) {
         if (!level.isClientSide) {
             placeDummies(level, pos);
-            pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), FOOTPRINT, placer, RotationBasis.HBM_LEGACY_SOUTH);
+            pushEntitiesOutOfPositions(level, pos, Direction.EAST,
+                    FOOTPRINT.offsets().stream().map(pos::offset).toList(), placer);
         }
+    }
+
+    public boolean canPlaceAt(BlockPlaceContext context, BlockPos corePos) {
+        for (BlockPos offset : FOOTPRINT.offsets()) {
+            BlockPos target = corePos.offset(offset);
+            if (!target.equals(corePos) && !context.getLevel().getBlockState(target).canBeReplaced(context)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static void placeDummies(Level level, BlockPos corePos) {
@@ -106,13 +119,13 @@ public class SoyuzLauncherBlock extends LargeMachineBlock implements EntityBlock
 
     private static Footprint footprint() {
         Set<BlockPos> offsets = new LinkedHashSet<>();
-        addOldDimBox(offsets, new int[]{0, 1, 6, 6, 6, 6});
-        addOldDimBox(offsets, new int[]{-2, 4, -3, 6, -3, 6});
-        addOldDimBox(offsets, new int[]{-2, 4, 6, -3, -3, 6});
-        addOldDimBox(offsets, new int[]{-2, 4, 6, -3, 6, -3});
-        addOldDimBox(offsets, new int[]{-2, 4, -3, 6, 6, -3});
-        addOldDimBox(offsets, new int[]{0, 4, 1, 1, -6, 8});
-        addOldDimBox(offsets, new int[]{0, 4, 2, 2, 9, -5});
+        addOldEastDimBox(offsets, new int[]{0, 1, 6, 6, 6, 6});
+        addOldEastDimBox(offsets, new int[]{-2, 4, -3, 6, -3, 6});
+        addOldEastDimBox(offsets, new int[]{-2, 4, 6, -3, -3, 6});
+        addOldEastDimBox(offsets, new int[]{-2, 4, 6, -3, 6, -3});
+        addOldEastDimBox(offsets, new int[]{-2, 4, -3, 6, 6, -3});
+        addOldEastDimBox(offsets, new int[]{0, 4, 1, 1, -6, 8});
+        addOldEastDimBox(offsets, new int[]{0, 4, 2, 2, 9, -5});
         for (int x = -6; x <= 6; x++) {
             for (int z = -6; z <= 6; z++) {
                 if (x == 6 || x == -6 || z == 6 || z == -6) {
@@ -125,13 +138,13 @@ public class SoyuzLauncherBlock extends LargeMachineBlock implements EntityBlock
         return new Footprint(offsets.stream().toList());
     }
 
-    private static void addOldDimBox(Set<BlockPos> offsets, int[] dim) {
-        int minX = -dim[4];
-        int maxX = dim[5];
+    private static void addOldEastDimBox(Set<BlockPos> offsets, int[] dim) {
+        int minX = -dim[2];
+        int maxX = dim[3];
         int minY = -dim[1];
         int maxY = dim[0];
-        int minZ = -dim[2];
-        int maxZ = dim[3];
+        int minZ = -dim[5];
+        int maxZ = dim[4];
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z++) {
