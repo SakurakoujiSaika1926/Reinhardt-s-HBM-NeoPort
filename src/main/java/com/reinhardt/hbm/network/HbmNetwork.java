@@ -45,6 +45,7 @@ public final class HbmNetwork {
         registrar.playToServer(WandConfigPayload.TYPE, WandConfigPayload.STREAM_CODEC, WandConfigPayload::handle);
         registrar.playToServer(SetRttyPagerChannelPayload.TYPE, SetRttyPagerChannelPayload.STREAM_CODEC, SetRttyPagerChannelPayload::handle);
         registrar.playToServer(RadioRecControlPayload.TYPE, RadioRecControlPayload.STREAM_CODEC, RadioRecControlPayload::handle);
+        registrar.playToServer(RadioTelexControlPayload.TYPE, RadioTelexControlPayload.STREAM_CODEC, RadioTelexControlPayload::handle);
         registrar.playToServer(AutocalControlPayload.TYPE, AutocalControlPayload.STREAM_CODEC, AutocalControlPayload::handle);
         registrar.playToServer(BobmazonOrderPayload.TYPE, BobmazonOrderPayload.STREAM_CODEC, BobmazonOrderPayload::handle);
         registrar.playToClient(PlayerInformPayload.TYPE, PlayerInformPayload.STREAM_CODEC, PlayerInformPayload::handle);

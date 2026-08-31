@@ -118,6 +118,7 @@ import com.reinhardt.hbm.menu.DroneGridMenu;
 import com.reinhardt.hbm.menu.DroneRequesterMenu;
 import com.reinhardt.hbm.menu.RebarPlacerMenu;
 import com.reinhardt.hbm.menu.RadioRecMenu;
+import com.reinhardt.hbm.menu.RadioTelexMenu;
 import com.reinhardt.hbm.menu.AutocalMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
@@ -135,6 +136,9 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<RadioRecMenu>> RADIOREC =
             MENUS.register("radiorec", () -> IMenuTypeExtension.create(RadioRecMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<RadioTelexMenu>> RADIO_TELEX =
+            MENUS.register("radio_telex", () -> IMenuTypeExtension.create(RadioTelexMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<AutocalMenu>> AUTOCAL =
             MENUS.register("radio_autocal", () -> IMenuTypeExtension.create(AutocalMenu::new));

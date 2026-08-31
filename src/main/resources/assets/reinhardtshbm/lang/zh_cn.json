@@ -5647,5 +5647,20 @@
     "gui.reinhardtshbm.autocal.open_program": "\u6253\u5f00\u7a0b\u5e8f\u6587\u4ef6",
     "gui.reinhardtshbm.autocal.download": "\u4e0b\u8f7d\u7a0b\u5e8f",
     "gui.reinhardtshbm.autocal.unsupported": "\u6682\u4e0d\u652f\u6301\uff01",
-    "gui.reinhardtshbm.autocal.documentation": "\u6253\u5f00\u6587\u6863"
+    "gui.reinhardtshbm.autocal.documentation": "\u6253\u5f00\u6587\u6863",
+    "gui.reinhardtshbm.telex.bell": "\u94c3\u58f0",
+    "gui.reinhardtshbm.telex.bell.detail": "\u6536\u5230\u6b64\u5b57\u7b26\u65f6\u64ad\u653e\u94c3\u58f0",
+    "gui.reinhardtshbm.telex.print_control": "\u6253\u5370",
+    "gui.reinhardtshbm.telex.print_control.detail": "\u4f20\u8f93\u7ed3\u675f\u540e\u5f3a\u5236\u63a5\u6536\u65b9\u6253\u5370\u6d88\u606f",
+    "gui.reinhardtshbm.telex.clear_control": "\u6e05\u5c4f",
+    "gui.reinhardtshbm.telex.clear_control.detail": "\u6536\u5230\u6b64\u5b57\u7b26\u65f6\u6e05\u7a7a\u6d88\u606f\u7f13\u51b2\u533a",
+    "gui.reinhardtshbm.telex.format": "\u683c\u5f0f",
+    "gui.reinhardtshbm.telex.format.detail": "\u63d2\u5165\u7528\u4e8e\u6d88\u606f\u683c\u5f0f\u5316\u7684\u683c\u5f0f\u5b57\u7b26",
+    "gui.reinhardtshbm.telex.pause": "\u6682\u505c",
+    "gui.reinhardtshbm.telex.pause.detail": "\u6682\u505c\u6d88\u606f\u4f20\u8f93\u4e00\u79d2",
+    "gui.reinhardtshbm.telex.save_id": "\u4fdd\u5b58 ID",
+    "gui.reinhardtshbm.telex.send": "\u53d1\u9001\u6d88\u606f",
+    "gui.reinhardtshbm.telex.delete_transmit": "\u5220\u9664\u53d1\u9001\u7f13\u51b2\u533a",
+    "gui.reinhardtshbm.telex.print_receive": "\u6253\u5370\u6d88\u606f",
+    "gui.reinhardtshbm.telex.clear_receive": "\u6e05\u7a7a\u63a5\u6536\u7f13\u51b2\u533a"
 }

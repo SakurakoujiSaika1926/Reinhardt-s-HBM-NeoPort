@@ -5693,5 +5693,20 @@
     "gui.reinhardtshbm.autocal.open_program": "Open Program File",
     "gui.reinhardtshbm.autocal.download": "Download Program",
     "gui.reinhardtshbm.autocal.unsupported": "Currently unsupported!",
-    "gui.reinhardtshbm.autocal.documentation": "Open Documentation"
+    "gui.reinhardtshbm.autocal.documentation": "Open Documentation",
+    "gui.reinhardtshbm.telex.bell": "BELL",
+    "gui.reinhardtshbm.telex.bell.detail": "Plays a bell when this character is received",
+    "gui.reinhardtshbm.telex.print_control": "PRINT",
+    "gui.reinhardtshbm.telex.print_control.detail": "Forces recipient to print message after transmission ends",
+    "gui.reinhardtshbm.telex.clear_control": "CLEAR SCREEN",
+    "gui.reinhardtshbm.telex.clear_control.detail": "Wipes message buffer when this character is received",
+    "gui.reinhardtshbm.telex.format": "FORMAT",
+    "gui.reinhardtshbm.telex.format.detail": "Inserts format character for message formatting",
+    "gui.reinhardtshbm.telex.pause": "PAUSE",
+    "gui.reinhardtshbm.telex.pause.detail": "Pauses message transmission for one second",
+    "gui.reinhardtshbm.telex.save_id": "SAVE ID",
+    "gui.reinhardtshbm.telex.send": "SEND MESSAGE",
+    "gui.reinhardtshbm.telex.delete_transmit": "DELETE MESSAGE BUFFER",
+    "gui.reinhardtshbm.telex.print_receive": "PRINT MESSAGE",
+    "gui.reinhardtshbm.telex.clear_receive": "CLEAR SCREEN"
 }

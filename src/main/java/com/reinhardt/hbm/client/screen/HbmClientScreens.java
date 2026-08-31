@@ -130,6 +130,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.RADAR.get(), RadarScreen::new);
         event.register(HbmMenus.RADAR_SLOTS.get(), RadarSlotsScreen::new);
         event.register(HbmMenus.RADIOREC.get(), RadioRecScreen::new);
+        event.register(HbmMenus.RADIO_TELEX.get(), RadioTelexScreen::new);
         event.register(HbmMenus.AUTOCAL.get(), AutocalScreen::new);
         event.register(HbmMenus.DRONE_CRATE.get(), DroneCrateScreen::new);
         event.register(HbmMenus.DRONE_DOCK.get(), DroneGridScreen::new);
