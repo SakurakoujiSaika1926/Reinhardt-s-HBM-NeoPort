@@ -114,6 +114,19 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
     }
 
     private static void applyLegacyItemTransform(RbmkComponentBlock.Kind kind, ItemDisplayContext context, PoseStack poseStack) {
+        if (kind == RbmkComponentBlock.Kind.CONSOLE || kind == RbmkComponentBlock.Kind.CRANE_CONSOLE) {
+            LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+            if (context == ItemDisplayContext.GUI) {
+                // ItemRenderLibrary has a separate inventory transform for
+                // each console; these values are deliberately not shared
+                // with the other RBMK component items.
+                poseStack.translate(0.0F, -3.0F, 0.0F);
+                float scale = kind == RbmkComponentBlock.Kind.CONSOLE ? 2.5F : 3.5F;
+                poseStack.scale(scale, scale, scale);
+            }
+            return;
+        }
+
         poseStack.translate(0.5F, 0.5F, 0.5F);
         if (context == ItemDisplayContext.GUI) {
             poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));

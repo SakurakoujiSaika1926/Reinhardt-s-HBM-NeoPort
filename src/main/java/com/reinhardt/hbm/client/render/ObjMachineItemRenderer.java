@@ -166,6 +166,14 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderZirnoxItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
+        if (profileId.equals("radio_autocal")) {
+            renderRadioAutocalItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("radio_telex")) {
+            renderRadioTelexItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
 
         if (profileId.equals("fusion_torus")) {
             renderFusionTorusItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
@@ -540,6 +548,35 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
+    /** Exact RenderAUTOCAL#getRenderer inventory transform. */
+    private static void renderRadioAutocalItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                               int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -4.0F, 0.0F);
+            poseStack.scale(6.25F, 6.25F, 6.25F);
+        }
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact RenderTelex#getRenderer inventory transform and common offset. */
+    private static void renderRadioTelexItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                             PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                             int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+        }
+        poseStack.translate(0.0F, 0.0F, -0.5F);
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
     /** Exact RenderFusionTorus#getRenderer item assembly and inventory pose. */
     private static void renderFusionTorusItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
@@ -882,18 +919,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "sat_dock", 0.0F, 0.90F, "block/sat_dock");
         add(profiles, "refueler", 0.0F, 0.90F, "block/refueler_body");
         add(profiles, "radio_autocal", 0.0F, 0.90F, "block/radio_autocal");
-        add(profiles, "radio_torch_sender", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/radio_torch_sender");
-        add(profiles, "radio_torch_receiver", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/radio_torch_receiver");
-        add(profiles, "radio_torch_counter", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/radio_torch_counter");
-        add(profiles, "radio_torch_logic", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/radio_torch_logic");
-        add(profiles, "radio_torch_reader", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/radio_torch_reader");
-        add(profiles, "radio_torch_controller", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/radio_torch_controller");
+        add(profiles, "radio_telex", 0.0F, 0.90F, "block/radio_telex_item");
         add(profiles, "vending_machine_soda", 0.0F, 0.90F, "block/vending_machine_soda");
         add(profiles, "vending_machine_snacks", 0.0F, 0.90F, "block/vending_machine_snacks");
         addThermalObj(profiles, "tape_recorder", "block/tape_recorder");

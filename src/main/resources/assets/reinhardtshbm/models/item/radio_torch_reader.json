@@ -1,3 +1,6 @@
 {
-    "parent":  "reinhardtshbm:block/radio_torch_reader"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:block/rtty_reader"
+  }
 }
