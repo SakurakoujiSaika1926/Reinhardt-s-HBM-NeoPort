@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -132,66 +131,154 @@ public final class PowerCableBoxBakedModel implements IDynamicBakedModel {
 
     /** Exact RenderBoxDuct inventory geometry: a Z-axis segment with old UV rotations. */
     private static List<BakedQuad> bakeItem(Textures textures, int size) {
-        EnumMap<Direction, TextureAtlasSprite> sprites = textures.sprites(size, Set.of(Direction.NORTH, Direction.SOUTH));
+        EnumMap<Direction, TextureAtlasSprite> sprites = textures.sprites(size, 0b000011);
+        EnumMap<Direction, Integer> rotations = rotations(Direction.WEST, 1, Direction.EAST, 2);
         List<BakedQuad> quads = new ArrayList<>();
         float lower = (2.0F + size) / 16.0F;
         float upper = (14.0F - size) / 16.0F;
-        CableModelGeometry.addLegacyBox(quads, lower, lower, 0.0F, upper, upper, 1.0F, sprites, Set.of(), 1, 2);
+        CableModelGeometry.addLegacyBox(quads, lower, lower, 0.0F, upper, upper, 1.0F,
+                sprites, rotations);
         return List.copyOf(quads);
     }
 
     private static List<BakedQuad> bake(Textures textures, int size, int mask) {
-        boolean east = (mask & 32) != 0;
-        boolean west = (mask & 16) != 0;
-        boolean up = (mask & 8) != 0;
-        boolean down = (mask & 4) != 0;
-        boolean south = (mask & 2) != 0;
-        boolean north = (mask & 1) != 0;
-        Set<Direction> connected = new HashSet<>();
-        if (north) connected.add(Direction.NORTH);
-        if (south) connected.add(Direction.SOUTH);
-        if (west) connected.add(Direction.WEST);
-        if (east) connected.add(Direction.EAST);
-        if (up) connected.add(Direction.UP);
-        if (down) connected.add(Direction.DOWN);
+        boolean east = connected(mask, Direction.EAST);
+        boolean west = connected(mask, Direction.WEST);
+        boolean up = connected(mask, Direction.UP);
+        boolean down = connected(mask, Direction.DOWN);
+        boolean south = connected(mask, Direction.SOUTH);
+        boolean north = connected(mask, Direction.NORTH);
+        int count = Integer.bitCount(mask);
 
-        EnumMap<Direction, TextureAtlasSprite> sprites = textures.sprites(size, connected);
+        EnumMap<Direction, TextureAtlasSprite> sprites = textures.sprites(size, mask);
+        EnumMap<Direction, Integer> rotations = new EnumMap<>(Direction.class);
         List<BakedQuad> quads = new ArrayList<>();
-        // RenderBoxDuct uses exactly the same 2/16..14/16 envelope as the
-        // collision code, narrowing it by one pixel for each metadata value.
         float lower = (2.0F + size) / 16.0F;
         float upper = (14.0F - size) / 16.0F;
-        if (mask == 0) {
-            CableModelGeometry.addBox(quads, lower, lower, lower, upper, upper, upper, sprites, Set.of());
+
+        if ((mask & 0b001111) == 0 && mask > 0) {
+            rotations.put(Direction.UP, 1);
+            rotations.put(Direction.DOWN, 1);
+            rotations.put(Direction.NORTH, 2);
+            rotations.put(Direction.SOUTH, 1);
+            CableModelGeometry.addLegacyBox(quads, 0.0F, lower, lower, 1.0F, upper, upper,
+                    sprites, rotations);
             return List.copyOf(quads);
         }
-        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
-            CableModelGeometry.addBox(quads, 0.0F, lower, lower, 1.0F, upper, upper, sprites, Set.of());
+        if ((mask & 0b111100) == 0 && mask > 0) {
+            rotations.put(Direction.WEST, 1);
+            rotations.put(Direction.EAST, 2);
+            CableModelGeometry.addLegacyBox(quads, lower, lower, 0.0F, upper, upper, 1.0F,
+                    sprites, rotations);
             return List.copyOf(quads);
         }
-        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) {
-            CableModelGeometry.addBox(quads, lower, 0.0F, lower, upper, 1.0F, upper, sprites, Set.of());
-            return List.copyOf(quads);
-        }
-        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) {
-            CableModelGeometry.addBox(quads, lower, lower, 0.0F, upper, upper, 1.0F, sprites, Set.of());
+        if ((mask & 0b110011) == 0 && mask > 0) {
+            CableModelGeometry.addLegacyBox(quads, lower, 0.0F, lower, upper, 1.0F, upper,
+                    sprites, rotations);
             return List.copyOf(quads);
         }
 
-        boolean junction = connected.size() > 2;
-        float coreLower = lower;
-        float coreUpper = upper;
-        CableModelGeometry.addBox(quads, coreLower, coreLower, coreLower, coreUpper, coreUpper, coreUpper, sprites, connected);
-        for (Direction direction : connected) {
-            float minX = direction == Direction.WEST ? 0.0F : lower;
-            float maxX = direction == Direction.EAST ? 1.0F : upper;
-            float minY = direction == Direction.DOWN ? 0.0F : lower;
-            float maxY = direction == Direction.UP ? 1.0F : upper;
-            float minZ = direction == Direction.NORTH ? 0.0F : lower;
-            float maxZ = direction == Direction.SOUTH ? 1.0F : upper;
-            CableModelGeometry.addBox(quads, minX, minY, minZ, maxX, maxY, maxZ, sprites, Set.of(direction.getOpposite()));
+        if (count == 2) {
+            if ((down || up) && (east || west)) {
+                rotations.put(Direction.UP, 1);
+                rotations.put(Direction.DOWN, 1);
+            }
+            if (!down && !up) {
+                rotations.put(Direction.WEST, 1);
+                rotations.put(Direction.EAST, 2);
+                rotations.put(Direction.NORTH, 2);
+                rotations.put(Direction.SOUTH, 1);
+            }
+            addCurve(quads, sprites, rotations, mask, lower, upper);
+            return List.copyOf(quads);
         }
+
+        addJunction(quads, sprites, rotations, mask, lower, upper);
         return List.copyOf(quads);
+    }
+
+    private static void addCurve(List<BakedQuad> quads,
+                                 EnumMap<Direction, TextureAtlasSprite> sprites,
+                                 EnumMap<Direction, Integer> rotations, int mask,
+                                 float lower, float upper) {
+        CableModelGeometry.addLegacyBox(quads, lower, lower, lower, upper, upper, upper,
+                sprites, rotations);
+        if (connected(mask, Direction.DOWN)) {
+            CableModelGeometry.addLegacyBox(quads, lower, 0.0F, lower, upper, lower, upper,
+                    sprites, rotations);
+        }
+        if (connected(mask, Direction.UP)) {
+            CableModelGeometry.addLegacyBox(quads, lower, upper, lower, upper, 1.0F, upper,
+                    sprites, rotations);
+        }
+        if (connected(mask, Direction.WEST)) {
+            CableModelGeometry.addLegacyBox(quads, 0.0F, lower, lower, lower, upper, upper,
+                    sprites, rotations);
+        }
+        if (connected(mask, Direction.EAST)) {
+            CableModelGeometry.addLegacyBox(quads, upper, lower, lower, 1.0F, upper, upper,
+                    sprites, rotations);
+        }
+        if (connected(mask, Direction.NORTH)) {
+            CableModelGeometry.addLegacyBox(quads, lower, lower, 0.0F, upper, upper, lower,
+                    sprites, rotations);
+        }
+        if (connected(mask, Direction.SOUTH)) {
+            CableModelGeometry.addLegacyBox(quads, lower, lower, upper, upper, upper, 1.0F,
+                    sprites, rotations);
+        }
+    }
+
+    private static void addJunction(List<BakedQuad> quads,
+                                    EnumMap<Direction, TextureAtlasSprite> sprites,
+                                    EnumMap<Direction, Integer> rotations, int mask,
+                                    float lower, float upper) {
+        CableModelGeometry.addLegacyBox(quads, lower, lower, lower, upper, upper, upper,
+                sprites, rotations);
+        if (connected(mask, Direction.DOWN)) {
+            CableModelGeometry.addLegacyBox(quads, lower, 0.0F, lower, upper, lower, upper,
+                    sprites, Set.of(Direction.UP), rotations);
+        }
+        if (connected(mask, Direction.UP)) {
+            CableModelGeometry.addLegacyBox(quads, lower, upper, lower, upper, 1.0F, upper,
+                    sprites, Set.of(Direction.DOWN), rotations);
+        }
+        if (connected(mask, Direction.WEST)) {
+            CableModelGeometry.addLegacyBox(quads, 0.0F, lower, lower, lower, upper, upper,
+                    sprites, Set.of(Direction.EAST), rotations);
+        }
+        if (connected(mask, Direction.EAST)) {
+            CableModelGeometry.addLegacyBox(quads, upper, lower, lower, 1.0F, upper, upper,
+                    sprites, Set.of(Direction.WEST), rotations);
+        }
+        if (connected(mask, Direction.NORTH)) {
+            CableModelGeometry.addLegacyBox(quads, lower, lower, 0.0F, upper, upper, lower,
+                    sprites, Set.of(Direction.SOUTH), rotations);
+        }
+        if (connected(mask, Direction.SOUTH)) {
+            CableModelGeometry.addLegacyBox(quads, lower, lower, upper, upper, upper, 1.0F,
+                    sprites, Set.of(Direction.NORTH), rotations);
+        }
+    }
+
+    private static boolean connected(int mask, Direction direction) {
+        int bit = switch (direction) {
+            case EAST -> 32;
+            case WEST -> 16;
+            case UP -> 8;
+            case DOWN -> 4;
+            case SOUTH -> 2;
+            case NORTH -> 1;
+        };
+        return (mask & bit) != 0;
+    }
+
+    private static EnumMap<Direction, Integer> rotations(Direction first, int firstRotation,
+                                                          Direction second, int secondRotation) {
+        EnumMap<Direction, Integer> result = new EnumMap<>(Direction.class);
+        result.put(first, firstRotation);
+        result.put(second, secondRotation);
+        return result;
     }
 
     private static int mask(@Nullable BlockState state) {
@@ -218,35 +305,66 @@ public final class PowerCableBoxBakedModel implements IDynamicBakedModel {
                     sprite(textures, "boxduct_cable_junction"));
         }
 
-        private EnumMap<Direction, TextureAtlasSprite> sprites(int size, Set<Direction> connected) {
+        private EnumMap<Direction, TextureAtlasSprite> sprites(int size, int mask) {
             EnumMap<Direction, TextureAtlasSprite> result = CableModelGeometry.all(junction);
-            if (connected.isEmpty()) return result;
-            if (connected.size() == 2 && connected.stream().anyMatch(direction -> connected.contains(direction.getOpposite()))) {
-                Direction first = connected.iterator().next();
-                for (Direction direction : Direction.values()) {
-                    result.put(direction, direction.getAxis() == first.getAxis() ? ends[size] : straight);
+            int count = Integer.bitCount(mask);
+            if ((mask & 0b001111) == 0 && mask > 0) {
+                for (Direction side : Direction.values()) {
+                    result.put(side, side.getAxis() == Direction.Axis.X ? ends[size] : straight);
                 }
                 return result;
             }
-            for (Direction direction : connected) result.put(direction, ends[size]);
-            if (connected.size() == 2) {
-                TextureAtlasSprite curve = curve(connected);
-                for (Direction direction : Direction.values()) {
-                    if (!connected.contains(direction)) result.put(direction, curve);
+            if ((mask & 0b111100) == 0 && mask > 0) {
+                for (Direction side : Direction.values()) {
+                    result.put(side, side.getAxis() == Direction.Axis.Z ? ends[size] : straight);
                 }
+                return result;
+            }
+            if ((mask & 0b110011) == 0 && mask > 0) {
+                for (Direction side : Direction.values()) {
+                    result.put(side, side.getAxis() == Direction.Axis.Y ? ends[size] : straight);
+                }
+                return result;
+            }
+
+            for (Direction side : Direction.values()) {
+                if (connected(mask, side)) {
+                    result.put(side, ends[size]);
+                    continue;
+                }
+                if (count != 2) {
+                    continue;
+                }
+                if (connected(mask, side.getOpposite())) {
+                    result.put(side, straight);
+                    continue;
+                }
+                result.put(side, curve(mask, side));
             }
             return result;
         }
 
-        private TextureAtlasSprite curve(Set<Direction> connected) {
-            if (connected.contains(Direction.UP)) {
-                return connected.contains(Direction.SOUTH) || connected.contains(Direction.EAST) ? curveTr : curveTl;
-            }
-            if (connected.contains(Direction.DOWN)) {
-                return connected.contains(Direction.SOUTH) || connected.contains(Direction.EAST) ? curveBr : curveBl;
-            }
-            if (connected.contains(Direction.EAST)) return connected.contains(Direction.NORTH) ? curveTr : curveBr;
-            return connected.contains(Direction.NORTH) ? curveTl : curveBl;
+        private TextureAtlasSprite curve(int mask, Direction side) {
+            boolean east = connected(mask, Direction.EAST);
+            boolean west = connected(mask, Direction.WEST);
+            boolean up = connected(mask, Direction.UP);
+            boolean down = connected(mask, Direction.DOWN);
+            boolean south = connected(mask, Direction.SOUTH);
+            boolean north = connected(mask, Direction.NORTH);
+
+            if (down && south) return side == Direction.WEST ? curveBr : curveBl;
+            if (down && north) return side == Direction.EAST ? curveBr : curveBl;
+            if (down && east) return side == Direction.SOUTH ? curveBr : curveBl;
+            if (down && west) return side == Direction.NORTH ? curveBr : curveBl;
+            if (up && south) return side == Direction.WEST ? curveTr : curveTl;
+            if (up && north) return side == Direction.EAST ? curveTr : curveTl;
+            if (up && east) return side == Direction.SOUTH ? curveTr : curveTl;
+            if (up && west) return side == Direction.NORTH ? curveTr : curveTl;
+            if (east && north) return curveTr;
+            if (east && south) return curveBr;
+            if (west && north) return curveTl;
+            if (west && south) return curveBl;
+            return junction;
         }
 
         private static TextureAtlasSprite sprite(Function<Material, TextureAtlasSprite> textures, String path) {

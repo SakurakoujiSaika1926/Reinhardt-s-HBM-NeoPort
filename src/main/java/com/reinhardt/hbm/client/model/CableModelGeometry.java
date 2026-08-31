@@ -44,16 +44,21 @@ final class CableModelGeometry {
 
     static void addLegacyBox(List<BakedQuad> quads, float minX, float minY, float minZ,
                              float maxX, float maxY, float maxZ,
-                             EnumMap<Direction, TextureAtlasSprite> sprites, Set<Direction> hiddenFaces,
-                             int northRotation, int southRotation) {
+                             EnumMap<Direction, TextureAtlasSprite> sprites,
+                             EnumMap<Direction, Integer> rotations) {
+        addLegacyBox(quads, minX, minY, minZ, maxX, maxY, maxZ, sprites, Set.of(), rotations);
+    }
+
+    static void addLegacyBox(List<BakedQuad> quads, float minX, float minY, float minZ,
+                             float maxX, float maxY, float maxZ,
+                             EnumMap<Direction, TextureAtlasSprite> sprites,
+                             Set<Direction> hiddenFaces, EnumMap<Direction, Integer> rotations) {
         for (Direction direction : Direction.values()) {
             if (hiddenFaces.contains(direction)) {
                 continue;
             }
-            int rotation = direction == Direction.NORTH ? northRotation
-                    : direction == Direction.SOUTH ? southRotation : 0;
             quads.add(legacyFace(direction, minX, minY, minZ, maxX, maxY, maxZ,
-                    sprites.get(direction), rotation));
+                    sprites.get(direction), rotations.getOrDefault(direction, 0)));
         }
     }
 
@@ -175,56 +180,87 @@ final class CableModelGeometry {
 
     private static FaceUv legacyUv(Direction face, float minX, float minY, float minZ,
                                    float maxX, float maxY, float maxZ, int oldRotation) {
-        FaceUv uv = switch (face) {
-            case DOWN, UP -> faceUvY(minX, minZ, maxX, maxZ);
-            case NORTH -> faceUvNorth(minX, minY, maxX, maxY);
-            case SOUTH -> faceUvSouth(minX, minY, maxX, maxY);
-            case WEST -> faceUvWest(minZ, minY, maxZ, maxY);
-            case EAST -> faceUvEast(minZ, minY, maxZ, maxY);
+        float x0 = minX * 16.0F;
+        float x1 = maxX * 16.0F;
+        float y0 = minY * 16.0F;
+        float y1 = maxY * 16.0F;
+        float z0 = minZ * 16.0F;
+        float z1 = maxZ * 16.0F;
+        return switch (face) {
+            case DOWN -> switch (oldRotation) {
+                case 0 -> uv(x0, z1, x0, z0, x1, z0, x1, z1);
+                case 1 -> uv(16.0F - z1, x0, 16.0F - z0, x0,
+                        16.0F - z0, x1, 16.0F - z1, x1);
+                case 2 -> uv(z1, 16.0F - x0, z0, 16.0F - x0,
+                        z0, 16.0F - x1, z1, 16.0F - x1);
+                case 3 -> uv(16.0F - x0, 16.0F - z1, 16.0F - x0, 16.0F - z0,
+                        16.0F - x1, 16.0F - z0, 16.0F - x1, 16.0F - z1);
+                default -> throw invalidRotation(oldRotation);
+            };
+            case UP -> switch (oldRotation) {
+                case 0 -> uv(x1, z1, x1, z0, x0, z0, x0, z1);
+                case 1 -> uv(z1, 16.0F - x1, z0, 16.0F - x1,
+                        z0, 16.0F - x0, z1, 16.0F - x0);
+                case 2 -> uv(16.0F - z1, x1, 16.0F - z0, x1,
+                        16.0F - z0, x0, 16.0F - z1, x0);
+                case 3 -> uv(16.0F - x1, 16.0F - z1, 16.0F - x1, 16.0F - z0,
+                        16.0F - x0, 16.0F - z0, 16.0F - x0, 16.0F - z1);
+                default -> throw invalidRotation(oldRotation);
+            };
+            case NORTH -> switch (oldRotation) {
+                case 0 -> uv(x1, 16.0F - y1, x0, 16.0F - y1,
+                        x0, 16.0F - y0, x1, 16.0F - y0);
+                case 1 -> uv(16.0F - y0, x0, 16.0F - y0, x1,
+                        16.0F - y1, x1, 16.0F - y1, x0);
+                case 2 -> uv(y0, 16.0F - x0, y0, 16.0F - x1,
+                        y1, 16.0F - x1, y1, 16.0F - x0);
+                case 3 -> uv(16.0F - x1, y1, 16.0F - x0, y1,
+                        16.0F - x0, y0, 16.0F - x1, y0);
+                default -> throw invalidRotation(oldRotation);
+            };
+            case SOUTH -> switch (oldRotation) {
+                case 0 -> uv(x0, 16.0F - y1, x0, 16.0F - y0,
+                        x1, 16.0F - y0, x1, 16.0F - y1);
+                case 1 -> uv(y0, 16.0F - x0, y1, 16.0F - x0,
+                        y1, 16.0F - x1, y0, 16.0F - x1);
+                case 2 -> uv(16.0F - y0, x0, 16.0F - y1, x0,
+                        16.0F - y1, x1, 16.0F - y0, x1);
+                case 3 -> uv(16.0F - x0, y1, 16.0F - x0, y0,
+                        16.0F - x1, y0, 16.0F - x1, y1);
+                default -> throw invalidRotation(oldRotation);
+            };
+            case WEST -> switch (oldRotation) {
+                case 0 -> uv(z1, 16.0F - y1, z0, 16.0F - y1,
+                        z0, 16.0F - y0, z1, 16.0F - y0);
+                case 1 -> uv(y0, 16.0F - z1, y0, 16.0F - z0,
+                        y1, 16.0F - z0, y1, 16.0F - z1);
+                case 2 -> uv(16.0F - y0, z1, 16.0F - y0, z0,
+                        16.0F - y1, z0, 16.0F - y1, z1);
+                case 3 -> uv(16.0F - z1, y1, 16.0F - z0, y1,
+                        16.0F - z0, y0, 16.0F - z1, y0);
+                default -> throw invalidRotation(oldRotation);
+            };
+            case EAST -> switch (oldRotation) {
+                case 0 -> uv(z0, 16.0F - y0, z1, 16.0F - y0,
+                        z1, 16.0F - y1, z0, 16.0F - y1);
+                case 1 -> uv(16.0F - y1, z1, 16.0F - y1, z0,
+                        16.0F - y0, z0, 16.0F - y0, z1);
+                case 2 -> uv(y1, 16.0F - z1, y1, 16.0F - z0,
+                        y0, 16.0F - z0, y0, 16.0F - z1);
+                case 3 -> uv(16.0F - z0, y0, 16.0F - z1, y0,
+                        16.0F - z1, y1, 16.0F - z0, y1);
+                default -> throw invalidRotation(oldRotation);
+            };
         };
-        return rotateLegacyUv(uv, oldRotation);
     }
 
-    private static FaceUv faceUvY(float minX, float minZ, float maxX, float maxZ) {
-        return new FaceUv(minX * 16.0F, maxZ * 16.0F, minX * 16.0F, minZ * 16.0F,
-                maxX * 16.0F, minZ * 16.0F, maxX * 16.0F, maxZ * 16.0F);
+    private static FaceUv uv(float u0, float v0, float u1, float v1,
+                             float u2, float v2, float u3, float v3) {
+        return new FaceUv(u0, v0, u1, v1, u2, v2, u3, v3);
     }
 
-    private static FaceUv faceUvNorth(float minX, float minY, float maxX, float maxY) {
-        return new FaceUv(16.0F - minX * 16.0F, 16.0F - maxY * 16.0F,
-                16.0F - maxX * 16.0F, 16.0F - maxY * 16.0F,
-                16.0F - maxX * 16.0F, 16.0F - minY * 16.0F,
-                16.0F - minX * 16.0F, 16.0F - minY * 16.0F);
-    }
-
-    private static FaceUv faceUvSouth(float minX, float minY, float maxX, float maxY) {
-        return new FaceUv(minX * 16.0F, 16.0F - maxY * 16.0F,
-                minX * 16.0F, 16.0F - minY * 16.0F,
-                maxX * 16.0F, 16.0F - minY * 16.0F,
-                maxX * 16.0F, 16.0F - maxY * 16.0F);
-    }
-
-    private static FaceUv faceUvWest(float minZ, float minY, float maxZ, float maxY) {
-        return new FaceUv(maxZ * 16.0F, 16.0F - maxY * 16.0F,
-                minZ * 16.0F, 16.0F - maxY * 16.0F,
-                minZ * 16.0F, 16.0F - minY * 16.0F,
-                maxZ * 16.0F, 16.0F - minY * 16.0F);
-    }
-
-    private static FaceUv faceUvEast(float minZ, float minY, float maxZ, float maxY) {
-        return new FaceUv(16.0F - maxZ * 16.0F, 16.0F - minY * 16.0F,
-                16.0F - minZ * 16.0F, 16.0F - minY * 16.0F,
-                16.0F - minZ * 16.0F, 16.0F - maxY * 16.0F,
-                16.0F - maxZ * 16.0F, 16.0F - maxY * 16.0F);
-    }
-
-    private static FaceUv rotateLegacyUv(FaceUv uv, int rotation) {
-        return switch (rotation) {
-            case 1 -> uv.map((u, v) -> new Uv(16.0F - v, 16.0F - u));
-            case 2 -> uv.map((u, v) -> new Uv(v, u));
-            case 3 -> uv.map((u, v) -> new Uv(16.0F - u, 16.0F - v));
-            default -> uv;
-        };
+    private static IllegalArgumentException invalidRotation(int rotation) {
+        return new IllegalArgumentException("Unsupported legacy UV rotation: " + rotation);
     }
 
     private record Vertex(float x, float y, float z, float u, float v) {
@@ -235,13 +271,5 @@ final class CableModelGeometry {
 
     private record FaceUv(float u0, float v0, float u1, float v1,
                           float u2, float v2, float u3, float v3) {
-        private FaceUv map(java.util.function.BiFunction<Float, Float, Uv> transform) {
-            Uv first = transform.apply(this.u0, this.v0);
-            Uv second = transform.apply(this.u1, this.v1);
-            Uv third = transform.apply(this.u2, this.v2);
-            Uv fourth = transform.apply(this.u3, this.v3);
-            return new FaceUv(first.u, first.v, second.u, second.v,
-                    third.u, third.v, fourth.u, fourth.v);
-        }
     }
 }
