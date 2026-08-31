@@ -423,12 +423,28 @@ public final class HbmCreativeTabs {
                             volcano.addCreativeVariants(output);
                         }
                         for (var item : HbmItems.NUCLEAR_WEAPON_ITEMS) {
+                            output.accept(item);
+                        }
+                    })
+                    .build()
+    );
+
+    public static final Supplier<CreativeModeTab> ROCKETS_MISSILES = TABS.register(
+            "rockets_missiles",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("creative_tab.reinhardtshbm.rockets_missiles"))
+                    .icon(() -> new ItemStack(HbmItems.MISSILE_SOYUZ.get()))
+                    .displayItems((parameters, output) -> {
+                        for (var block : HbmBlocks.ROCKET_MISSILE_BLOCKS) {
+                            acceptBlock(output, block);
+                        }
+                        for (var item : HbmItems.ROCKET_MISSILE_ITEMS) {
                             if (!HbmItems.isHiddenMissilePart(item) && !HbmItems.isHiddenLegacyMissile(item)) {
-                                output.accept(item);
+                                outputLegacyItem(output, item);
                             }
                         }
                         for (var item : HbmItems.SATELLITE_ITEMS) {
-                            output.accept(item);
+                            outputLegacyItem(output, item);
                         }
                     })
                     .build()
@@ -513,7 +529,6 @@ public final class HbmCreativeTabs {
                         output.accept(HbmItems.CANISTER_LUBRICANT);
                         output.accept(HbmItems.SOLID_FUEL);
                         output.accept(HbmItems.SOLID_FUEL_BF);
-                        output.accept(HbmItems.ROCKET_FUEL);
                         if (HbmItems.FUEL_ADDITIVE.get() instanceof LegacyVariantItem additive) {
                             additive.addCreativeVariants(output);
                         }

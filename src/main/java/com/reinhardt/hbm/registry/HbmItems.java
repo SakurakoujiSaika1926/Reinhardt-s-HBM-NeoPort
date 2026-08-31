@@ -284,6 +284,7 @@ public final class HbmItems {
     public static final List<DeferredItem<Item>> RBMK_PELLET_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> NUCLEAR_BILLETS = new ArrayList<>();
     public static final List<DeferredItem<Item>> NUCLEAR_WEAPON_ITEMS = new ArrayList<>();
+    public static final List<DeferredItem<Item>> ROCKET_MISSILE_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> TURRET_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> SATELLITE_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> PORTED_PLAIN_ITEMS = new ArrayList<>();
@@ -324,6 +325,25 @@ public final class HbmItems {
     private static final Set<String> HIDDEN_PORTED_PLAIN_ITEM_IDS = Set.of(
             "holotape_damaged", "book_secret", "burnt_bark", "key_red", "key_red_cracked", "mech_key", "watch",
             "bismuth_tool", "item_secret", "scrap_plastic"
+    );
+
+    /**
+     * Components and launch-control items which belong to the 1.7.10
+     * MissileTab rather than the generic legacy-item tab.
+     */
+    private static final Set<String> ROCKET_MISSILE_PLAIN_ITEM_IDS = Set.of(
+            "fins_big_steel", "fins_flat", "fins_quad_titanium", "fins_tri_steel",
+            "fuel_tank_large", "fuel_tank_medium", "fuel_tank_small",
+            "sat_base", "sat_head_laser", "sat_head_mapper", "sat_head_radar",
+            "sat_head_resonator", "sat_head_scanner",
+            "thruster_large", "thruster_medium", "thruster_nuclear", "thruster_small",
+            "warhead_buster_large", "warhead_buster_medium", "warhead_buster_small",
+            "warhead_cluster_large", "warhead_cluster_medium", "warhead_cluster_small",
+            "warhead_generic_large", "warhead_generic_medium", "warhead_generic_small",
+            "warhead_incendiary_large", "warhead_incendiary_medium", "warhead_incendiary_small",
+            "warhead_mirv", "warhead_nuclear", "warhead_volcano",
+            "launch_code", "launch_code_piece", "launch_key", "missile_assembly",
+            "missile_kit", "loot_10", "loot_15", "loot_misc"
     );
 
     private static final Set<String> RETIRED_LEGACY_CATALOG_ITEM_IDS = Set.of(
@@ -612,14 +632,14 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> SOLID_FUEL = material(MISC_MATERIALS, "solid_fuel");
     public static final DeferredItem<Item> SOLID_FUEL_BF = material(MISC_MATERIALS, "solid_fuel_bf");
-    public static final DeferredItem<Item> ROCKET_FUEL = material(MISC_MATERIALS, "rocket_fuel");
+    public static final DeferredItem<Item> ROCKET_FUEL = material(ROCKET_MISSILE_ITEMS, "rocket_fuel");
     public static final DeferredItem<Item> MISSILE_SOYUZ = material(
-            NUCLEAR_WEAPON_ITEMS,
+            ROCKET_MISSILE_ITEMS,
             "missile_soyuz",
             () -> new SoyuzItem()
     );
     public static final DeferredItem<Item> MISSILE_SOYUZ_LANDER = material(
-            NUCLEAR_WEAPON_ITEMS,
+            ROCKET_MISSILE_ITEMS,
             "missile_soyuz_lander",
             () -> new OrbitalModuleItem()
     );
@@ -638,7 +658,7 @@ public final class HbmItems {
             () -> new Item(new Item.Properties().stacksTo(1))
     );
     public static final DeferredItem<Item> NEUTRON_REFLECTOR = material(MACHINE_COMPONENTS, "neutron_reflector");
-    public static final DeferredItem<Item> FINS_SMALL_STEEL = material(MACHINE_COMPONENTS, "fins_small_steel");
+    public static final DeferredItem<Item> FINS_SMALL_STEEL = material(ROCKET_MISSILE_ITEMS, "fins_small_steel");
     public static final DeferredItem<Item> BOY_SHIELDING = material(NUCLEAR_WEAPON_ITEMS, "boy_shielding", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> BOY_TARGET = material(NUCLEAR_WEAPON_ITEMS, "boy_target", () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
     public static final DeferredItem<Item> BOY_BULLET = material(NUCLEAR_WEAPON_ITEMS, "boy_bullet", () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
@@ -1429,11 +1449,11 @@ public final class HbmItems {
             "oil_detector",
             () -> new OilDetectorItem(new Item.Properties())
     );
-    public static final DeferredItem<Item> RANGEFINDER = toolItem(
+    public static final DeferredItem<Item> RANGEFINDER = rocketMissileItem(
             "rangefinder",
             () -> new RangefinderItem(new Item.Properties())
     );
-    public static final DeferredItem<Item> DESIGNATOR_ARTY_RANGE = toolItem(
+    public static final DeferredItem<Item> DESIGNATOR_ARTY_RANGE = rocketMissileItem(
             "designator_arty_range",
             () -> new ArtilleryDesignatorItem(new Item.Properties())
     );
@@ -2508,6 +2528,12 @@ public final class HbmItems {
         return registered;
     }
 
+    private static DeferredItem<Item> rocketMissileItem(String name, Supplier<Item> item) {
+        DeferredItem<Item> registered = coreItem(name, item);
+        ROCKET_MISSILE_ITEMS.add(registered);
+        return registered;
+    }
+
     private static DeferredItem<Item> foundryItem(String name, Supplier<Item> item) {
         DeferredItem<Item> registered = coreItem(name, item);
         FOUNDRY_ITEMS.add(registered);
@@ -2717,7 +2743,7 @@ public final class HbmItems {
                 continue;
             }
             DeferredItem<Item> item = coreItem(id, () -> new MissilePartItem(new Item.Properties(), id));
-            NUCLEAR_WEAPON_ITEMS.add(item);
+            ROCKET_MISSILE_ITEMS.add(item);
         }
     }
 
@@ -2727,7 +2753,7 @@ public final class HbmItems {
                 continue;
             }
             DeferredItem<Item> item = coreItem(id, () -> LegacyMissileItem.fromLegacyId(id));
-            NUCLEAR_WEAPON_ITEMS.add(item);
+            ROCKET_MISSILE_ITEMS.add(item);
         }
     }
 
@@ -2736,6 +2762,8 @@ public final class HbmItems {
             DeferredItem<Item> item = coreItem(id, () -> legacyGameplayItem(id));
             if (isHealthArmorMod(id)) {
                 ARMOR_ITEMS.add(item);
+            } else if (isRocketMissileItemId(id)) {
+                ROCKET_MISSILE_ITEMS.add(item);
             } else {
                 PORTED_PLAIN_ITEMS.add(item);
             }
@@ -2817,7 +2845,7 @@ public final class HbmItems {
         toolItem("digamma_diagnostic", () -> new LegacyDigammaDiagnosticItem(new Item.Properties()));
         toolItem("rod_of_discord", () -> new LegacyDiscordRodItem(new Item.Properties()));
         toolItem("meltdown_tool", () -> new LegacyMeltdownToolItem(new Item.Properties()));
-        toolItem("designator", () -> new LegacyCoordinateDesignatorItem(new Item.Properties()));
+        rocketMissileItem("designator", () -> new LegacyCoordinateDesignatorItem(new Item.Properties()));
         toolItem("ore_density_scanner", () -> new LegacyOreDensityScannerItem(new Item.Properties()));
         toolItem("survey_scanner", () -> new LegacySurveyScannerItem(new Item.Properties()));
     }
@@ -2828,10 +2856,10 @@ public final class HbmItems {
      */
     private static void registerPortedRemainingItems() {
         toolItem("wrench", () -> new LegacyWrenchItem(new Item.Properties()));
-        toolItem("designator_manual", () -> new LegacyManualDesignatorItem(new Item.Properties()));
-        toolItem("sat_coord", () -> new LegacySatelliteToolItem(new Item.Properties(), LegacySatelliteToolItem.Mode.COORDINATE));
-        toolItem("sat_designator", () -> new LegacySatelliteToolItem(new Item.Properties(), LegacySatelliteToolItem.Mode.LASER));
-        toolItem("sat_interface", () -> new LegacySatelliteToolItem(new Item.Properties(), LegacySatelliteToolItem.Mode.INTERFACE));
+        rocketMissileItem("designator_manual", () -> new LegacyManualDesignatorItem(new Item.Properties()));
+        rocketMissileItem("sat_coord", () -> new LegacySatelliteToolItem(new Item.Properties(), LegacySatelliteToolItem.Mode.COORDINATE));
+        rocketMissileItem("sat_designator", () -> new LegacySatelliteToolItem(new Item.Properties(), LegacySatelliteToolItem.Mode.LASER));
+        rocketMissileItem("sat_interface", () -> new LegacySatelliteToolItem(new Item.Properties(), LegacySatelliteToolItem.Mode.INTERFACE));
         toolItem("peas", () -> new LegacyPeasItem(new Item.Properties()));
         toolItem("glitch", () -> new LegacyGlitchItem(new Item.Properties()));
         armorItem("jetpack_fly", () -> new LegacyJetpackItem(new Item.Properties(), "kerosene", 12_000, LegacyJetpackItem.Profile.REGULAR));
@@ -2989,9 +3017,18 @@ public final class HbmItems {
         };
     }
 
-    private static void legacyPlainItem(String name, Item.Properties properties) {
+    private static DeferredItem<Item> legacyPlainItem(String name, Item.Properties properties) {
         DeferredItem<Item> item = coreItem(name, () -> new Item(properties));
-        PORTED_PLAIN_ITEMS.add(item);
+        if (isRocketMissileItemId(name)) {
+            ROCKET_MISSILE_ITEMS.add(item);
+        } else {
+            PORTED_PLAIN_ITEMS.add(item);
+        }
+        return item;
+    }
+
+    private static boolean isRocketMissileItemId(String id) {
+        return ROCKET_MISSILE_PLAIN_ITEM_IDS.contains(id);
     }
 
     private static void legacyContainerItem(String name, Item.Properties properties, Supplier<Item> remainder) {

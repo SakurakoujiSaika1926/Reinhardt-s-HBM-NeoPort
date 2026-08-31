@@ -1914,7 +1914,6 @@ public final class HbmBlocks {
             CRATE_CAN,
             CRATE_JUNGLE,
             CRATE_AMMO,
-            CRATE_SUPPLY,
             CRATE_IRON,
             CRATE_STEEL,
             CRATE_DESH,
@@ -2091,18 +2090,12 @@ public final class HbmBlocks {
             , MACHINE_THRESHER
             , MACHINE_LPW2
             , MACHINE_CONVEYOR_PRESS
-            , MACHINE_FORCEFIELD
-            , MACHINE_MISSILE_ASSEMBLY
             , MACHINE_ORBUS
             , MACHINE_PRECASS
             , MACHINE_PYROOVEN
-            , RADAR_SCREEN
-            , MACHINE_RADAR
-            , MACHINE_RADAR_LARGE
             , MACHINE_RADGEN
             , MACHINE_RADIOLYSIS
             , MACHINE_RTG_GREY
-            , MACHINE_SATLINKER
             , MACHINE_SAWMILL
             , MACHINE_TELEPORTER
             , TELEANCHOR
@@ -2266,7 +2259,10 @@ public final class HbmBlocks {
             MINE_HE,
             MINE_SHRAP,
             MINE_FAT,
-            MINE_NAVAL,
+            MINE_NAVAL
+    );
+
+    public static final List<DeferredBlock<Block>> ROCKET_MISSILE_BLOCKS = List.of(
             STRUCT_LAUNCHER,
             STRUCT_SCAFFOLD,
             STRUCT_LAUNCHER_CORE,
@@ -2279,7 +2275,14 @@ public final class HbmBlocks {
             LAUNCH_PAD_RUSTED,
             SOYUZ_LAUNCHER,
             SOYUZ_CAPSULE,
-            SAT_DOCK
+            SAT_DOCK,
+            CRATE_SUPPLY,
+            MACHINE_FORCEFIELD,
+            MACHINE_MISSILE_ASSEMBLY,
+            RADAR_SCREEN,
+            MACHINE_RADAR,
+            MACHINE_RADAR_LARGE,
+            MACHINE_SATLINKER
     );
 
     public static final List<DeferredBlock<Block>> ANVIL_BLOCKS = List.of(
