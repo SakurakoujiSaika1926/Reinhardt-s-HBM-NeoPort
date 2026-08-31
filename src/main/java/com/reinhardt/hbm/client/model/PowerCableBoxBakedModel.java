@@ -53,7 +53,7 @@ public final class PowerCableBoxBakedModel implements IDynamicBakedModel {
         this.textures = textures;
         this.item = item;
         this.worldQuads = item ? new List[0][0] : bakeWorld(textures);
-        this.itemQuads = item ? bake(textures, itemSize, 0b000011) : List.of();
+        this.itemQuads = item ? bakeItem(textures, itemSize) : List.of();
     }
 
     public static void replaceModels(Map<ModelResourceLocation, BakedModel> models, Function<Material, TextureAtlasSprite> textureGetter) {
@@ -128,6 +128,16 @@ public final class PowerCableBoxBakedModel implements IDynamicBakedModel {
             }
         }
         return baked;
+    }
+
+    /** Exact RenderBoxDuct inventory geometry: a Z-axis segment with old UV rotations. */
+    private static List<BakedQuad> bakeItem(Textures textures, int size) {
+        EnumMap<Direction, TextureAtlasSprite> sprites = textures.sprites(size, Set.of(Direction.NORTH, Direction.SOUTH));
+        List<BakedQuad> quads = new ArrayList<>();
+        float lower = (2.0F + size) / 16.0F;
+        float upper = (14.0F - size) / 16.0F;
+        CableModelGeometry.addLegacyBox(quads, lower, lower, 0.0F, upper, upper, 1.0F, sprites, Set.of(), 1, 2);
+        return List.copyOf(quads);
     }
 
     private static List<BakedQuad> bake(Textures textures, int size, int mask) {
