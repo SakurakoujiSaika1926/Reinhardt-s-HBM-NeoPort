@@ -154,6 +154,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderLeviathanItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
+        if (profileId.equals("machine_pumpjack")) {
+            renderPumpjackItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (profileId.equals("machine_combustion_engine")) {
             renderCombustionEngineItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -445,6 +449,25 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         if (legacyPose.commonScale() != 1.0F) {
             poseStack.scale(legacyPose.commonScale(), legacyPose.commonScale(), legacyPose.commonScale());
         }
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact ItemRenderLibrary transform for RenderPumpjack's inventory renderer. */
+    private static void renderPumpjackItem(List<BakedModel> models, BlockState state,
+                                           ItemDisplayContext context, PoseStack poseStack,
+                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.0F, 0.0F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            poseStack.scale(4.0F, 4.0F, 4.0F);
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.translate(0.0F, 0.0F, 3.0F);
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
@@ -1017,6 +1040,45 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderRotaryFurnace#getRenderer
         legacy(poses, "machine_rotary_furnace", 0.0F, -2.0F, 0.0F, 3.5F,
                 0.0F, 0.0F, 0.0F, 90.0F, 0.625F);
+        // RenderDerrick#getRenderer overrides the older ItemRenderLibrary
+        // entry in 1.7.10: it uses a 3x inventory pose and rotates the OBJ
+        // assembly by +90 degrees in its common renderer.
+        legacy(poses, "machine_well", 0.0F, -4.0F, 0.0F, 3.0F,
+                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
+        // RenderFrackingTower has no item-provider override.
+        legacy(poses, "machine_fracking_tower", 0.0F, -4.5F, 0.0F, 2.5F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.25F);
+        // ItemRenderLibrary#machine_flare
+        legacy(poses, "machine_flare", 0.0F, -4.0F, 0.0F, 2.25F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+        // ItemRenderLibrary#machine_refinery
+        legacy(poses, "machine_refinery", 0.0F, -4.0F, 0.0F, 3.0F,
+                0.0F, 0.0F, 0.0F, 180.0F, 0.5F);
+        // RenderVacuumDistill#getRenderer
+        legacy(poses, "machine_vacuum_distill", 0.0F, -4.0F, 0.0F, 3.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+        // RenderCoker#getRenderer
+        legacy(poses, "machine_coker", 0.0F, -5.0F, 0.0F, 2.75F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.25F);
+        // ItemRenderLibrary#machine_fraction_tower and #fraction_spacer
+        legacy(poses, "machine_fraction_tower", 0.0F, -2.5F, 0.0F, 3.25F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "fraction_spacer", 0.0F, 0.0F, 0.0F, 3.25F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        // ItemRenderLibrary#machine_catalytic_cracker
+        legacy(poses, "machine_catalytic_cracker", 0.0F, -3.5F, 0.0F, 1.8F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+        // RenderCatalyticReformer#getRenderer
+        legacy(poses, "machine_catalytic_reformer", 0.0F, -3.0F, 0.0F, 3.5F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+        // ItemRenderLibrary#machine_liquefactor and #machine_solidifier
+        legacy(poses, "machine_liquefactor", 0.0F, -2.5F, 0.0F, 3.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "machine_solidifier", 0.0F, -2.5F, 0.0F, 3.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        // RenderHydrotreater#getRenderer
+        legacy(poses, "machine_hydrotreater", 0.0F, -4.0F, 0.0F, 4.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
         // ItemRenderLibrary#charger: translate(0,-7,0), scale(10), then the
         // common renderer scales the OBJ assembly by 2 and shifts it by .5 X.
         legacy(poses, "charger", 0.0F, -7.0F, 0.0F, 10.0F,
