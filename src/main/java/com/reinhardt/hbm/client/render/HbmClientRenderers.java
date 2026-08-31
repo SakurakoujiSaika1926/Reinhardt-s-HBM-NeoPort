@@ -127,6 +127,7 @@ public final class HbmClientRenderers {
         PoleBlockEntityRenderer.registerLayerDefinitions(event);
         event.registerLayerDefinition(LegacyChopperModel.LAYER, LegacyChopperModel::createLayer);
         event.registerLayerDefinition(LegacyChopperMineModel.LAYER, LegacyChopperMineModel::createLayer);
+        event.registerLayerDefinition(LegacyRadioboxModel.LAYER, LegacyRadioboxModel::createLayer);
     }
 
     @SubscribeEvent
@@ -151,6 +152,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.DEMON_LAMP.get(), DemonLampBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.RADIO_TORCH.get(), RadioTorchBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.AUTOCAL.get(), AutocalBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.RADIOBOX.get(), RadioboxBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.REFUELER.get(), RefuelerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.VENDING_MACHINE.get(), VendingMachineBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.DECO_EMITTER.get(), DecorationEmitterBlockEntityRenderer::new);
