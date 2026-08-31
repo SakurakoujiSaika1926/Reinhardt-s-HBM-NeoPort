@@ -37,11 +37,13 @@ public final class RadioTorchBlockEntityRenderer implements BlockEntityRenderer<
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.5D, 0.5D);
 
-        // RenderRTTY rotates the model around its translated block centre. The
-        // order and angles below are the old ForgeDirection metadata cases.
+        // RenderRTTY receives the placed side as ForgeDirection metadata.
+        // Its model is upright for metadata 1 (UP), then uses only the
+        // rotations listed below. Do not add a common orientation transform.
         switch (state.getValue(RadioTorchBlock.FACING)) {
             case DOWN -> poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-            case UP -> poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+            case UP -> {
+            }
             case NORTH -> {
                 poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
                 poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));

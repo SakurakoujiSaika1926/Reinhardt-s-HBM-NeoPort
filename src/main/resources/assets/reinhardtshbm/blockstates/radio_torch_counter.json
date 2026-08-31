@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/radio_torch_counter"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }
