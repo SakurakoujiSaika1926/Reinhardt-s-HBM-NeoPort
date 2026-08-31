@@ -128,6 +128,7 @@ public final class HbmClientRenderers {
         event.registerLayerDefinition(LegacyChopperModel.LAYER, LegacyChopperModel::createLayer);
         event.registerLayerDefinition(LegacyChopperMineModel.LAYER, LegacyChopperMineModel::createLayer);
         event.registerLayerDefinition(LegacyRadioboxModel.LAYER, LegacyRadioboxModel::createLayer);
+        event.registerLayerDefinition(LegacyBroadcasterModel.LAYER, LegacyBroadcasterModel::createLayer);
     }
 
     @SubscribeEvent
