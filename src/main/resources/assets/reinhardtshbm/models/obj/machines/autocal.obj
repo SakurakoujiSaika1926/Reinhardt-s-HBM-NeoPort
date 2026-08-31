@@ -1,6 +1,7 @@
 # Blender v2.79 (sub 0) OBJ File: 'autocal.blend'
 # www.blender.org
 o Plane
+usemtl hbm
 v 0.500000 0.125000 0.375000
 v 0.500000 0.125000 -0.375000
 v 0.500000 1.500000 0.375000
