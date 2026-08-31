@@ -138,6 +138,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderCombustionEngineItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
+        if (profileId.equals("machine_zirnox")) {
+            renderZirnoxItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
 
         LegacyPose legacyPose = LEGACY_POSES.get(profileId);
         if (legacyPose != null) {
@@ -337,6 +341,32 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
+    /** Exact 1.7.10 ItemRenderBase inventory transform for the ZIRNOX reactor. */
+    private static void renderZirnoxItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                         PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                         int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            // ItemRenderBase applies these operations in this order: translate
+            // to the 16px inventory canvas, rotate, mirror, then renderInventory.
+            // Keeping the mirror and the 1/16 conversion explicit avoids the
+            // approximate shared GUI basis that displaced this tall OBJ.
+            poseStack.translate(0.5F, 0.625F, 0.0F);
+            poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
+            poseStack.translate(0.0F, -2.0F, 0.0F);
+            poseStack.scale(2.8F, 2.8F, 2.8F);
+        } else {
+            LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        }
+        poseStack.scale(0.75F, 0.75F, 0.75F);
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
     private static void logGeometryOnce(String itemId, String profileId, Profile profile,
                                         List<BakedModel> models, BlockState state) {
         if (!DIAGNOSTICS.add(profileId)) {
@@ -411,6 +441,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_mixer_world", "block/machine_mixer_blade");
         add(profiles, "machine_electrolyser", 0.0F, 0.92F, "block/machine_electrolyser_world");
         add(profiles, "machine_arc_welder", 0.0F, 0.90F, "block/machine_arc_welder_world");
+        add(profiles, "machine_zirnox", 0.0F, 0.90F, "block/machine_zirnox_world");
         add(profiles, "machine_soldering_station", 0.0F, 0.80F,
                 "block/machine_soldering_station_world");
         add(profiles, "machine_assembly_machine", 90.0F, 0.61F,
@@ -588,6 +619,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderElectrolyser#getRenderer
         legacy(poses, "machine_electrolyser", -1.0F, -1.0F, 0.0F, 2.5F,
                 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
+        // RenderArcWelder#getRenderer
+        legacy(poses, "machine_arc_welder", 0.0F, -2.0F, 0.0F, 4.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        // ItemRenderLibrary#machine_zirnox
+        legacy(poses, "machine_zirnox", 0.0F, -2.0F, 0.0F, 2.8F,
+                0.0F, 0.0F, 0.0F, 0.0F, 0.75F);
         // RenderSolderingStation#getRenderer and RenderAssemblyMachine#getRenderer
         legacy(poses, "machine_soldering_station", 0.0F, -1.0F, 0.0F, 5.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
