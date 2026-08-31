@@ -3,7 +3,6 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.DemonLampBlock;
 import com.reinhardt.hbm.blockentity.DemonLampBlockEntity;
 import net.minecraft.client.renderer.LightTexture;
@@ -14,7 +13,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -23,7 +21,6 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** RenderDemonLamp's six-face transform and pair of additive blue radiation cones. */
 public final class DemonLampBlockEntityRenderer implements BlockEntityRenderer<DemonLampBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/lamp_demon");
-    private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/models/machines/demon_lamp.png");
 
     public DemonLampBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -88,10 +85,10 @@ public final class DemonLampBlockEntityRenderer implements BlockEntityRenderer<D
 
     private static void renderModel(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                     int packedLight, int packedOverlay) {
-        // RenderDemonLamp binds its texture directly. Doing the same avoids
-        // the OBJ material atlas route that made this model disappear.
-        MachineModelRenderer.renderUnculledUv(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay, TEXTURE, 0.0F, 0.0F);
+        // The OBJ MTL resolves this texture through the block atlas. Rendering
+        // through the standard unculled path preserves those baked sprite UVs.
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
     }
 
     private static void renderCones(PoseStack poseStack, VertexConsumer consumer) {
