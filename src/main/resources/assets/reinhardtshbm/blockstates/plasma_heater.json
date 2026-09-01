@@ -1,8 +1,0 @@
-{
-  "variants": {
-    "facing=north": { "model": "reinhardtshbm:block/plasma_heater", "y": 0 },
-    "facing=east": { "model": "reinhardtshbm:block/plasma_heater", "y": 270 },
-    "facing=south": { "model": "reinhardtshbm:block/plasma_heater", "y": 180 },
-    "facing=west": { "model": "reinhardtshbm:block/plasma_heater", "y": 90 }
-  }
-}

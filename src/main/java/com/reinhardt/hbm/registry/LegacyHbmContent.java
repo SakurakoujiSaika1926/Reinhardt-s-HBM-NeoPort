@@ -250,7 +250,6 @@ public final class LegacyHbmContent {
             "meteor_polished",
             "meteor_spawner",
             "oil_pipe",
-            "plasma_heater",
             "press_preheater",
             "pump_electric",
             "pump_steam",

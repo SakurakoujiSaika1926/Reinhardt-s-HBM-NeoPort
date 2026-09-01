@@ -1777,7 +1777,6 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> DFC_RECEIVER = dfcComponent("dfc_receiver", DfcComponentBlock.Kind.RECEIVER);
     public static final DeferredBlock<Block> DFC_INJECTOR = dfcComponent("dfc_injector", DfcComponentBlock.Kind.INJECTOR);
     public static final DeferredBlock<Block> DFC_STABILIZER = dfcComponent("dfc_stabilizer", DfcComponentBlock.Kind.STABILIZER);
-    public static final DeferredBlock<Block> PLASMA_HEATER = machineBlock("plasma_heater");
     public static final DeferredBlock<Block> PRESS_PREHEATER = machineBlock("press_preheater");
     public static final DeferredBlock<Block> RBMK_ABSORBER = rbmkComponent("rbmk_absorber", RbmkComponentBlock.Kind.ABSORBER);
     public static final DeferredBlock<Block> RBMK_AUTOLOADER = rbmkComponent("rbmk_autoloader", RbmkComponentBlock.Kind.AUTOLOADER);
@@ -1986,7 +1985,6 @@ public final class HbmBlocks {
             FURNACE_IRON,
             FURNACE_STEEL,
             FUSION_HEATER,
-            PLASMA_HEATER,
             PRESS_PREHEATER,
             RBMK_HEATER
     );
