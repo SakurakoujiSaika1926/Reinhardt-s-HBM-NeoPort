@@ -3711,7 +3711,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> steamCondenser(String name) {
-        return registerObjBlock(name, () -> new SteamCondenserBlock(metal()
+        return registerBlock(name, () -> new SteamCondenserBlock(metal()
                 .strength(5.0F, 10.0F)));
     }
 

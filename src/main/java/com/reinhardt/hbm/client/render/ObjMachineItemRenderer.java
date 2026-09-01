@@ -170,6 +170,22 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderRadioTelexItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
+        if (profileId.equals("machine_solar_boiler")) {
+            renderSolarBoilerItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("solar_mirror")) {
+            renderSolarMirrorItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("furnace_iron")) {
+            renderIronFurnaceItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("furnace_steel")) {
+            renderSteelFurnaceItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
 
         if (profileId.equals("machine_drain")) {
             renderDrainItem(models.get(0), state, context, poseStack, bufferSource, packedLight, packedOverlay);
@@ -568,6 +584,68 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
+    /** Exact ItemRenderLibrary transform for the 1.7.10 solar boiler. */
+    private static void renderSolarBoilerItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                              int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(3.25F, 3.25F, 3.25F);
+        }
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact ItemRenderLibrary transform and mirror pose for the 1.7.10 heliostat. */
+    private static void renderSolarMirrorItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                              int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(8.0F, 8.0F, 8.0F);
+        }
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.0F, 0.0F);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0F));
+        poseStack.translate(0.0F, -1.0F, 0.0F);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact ItemRenderLibrary transform for the 1.7.10 iron furnace. */
+    private static void renderIronFurnaceItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                              int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.0F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact RenderFurnaceSteel item transform from 1.7.10. */
+    private static void renderSteelFurnaceItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                               int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -1.5F, 0.0F);
+            poseStack.scale(3.25F, 3.25F, 3.25F);
+        }
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
     /** Exact RenderFusionTorus#getRenderer item assembly and inventory pose. */
     private static void renderFusionTorusItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
@@ -937,18 +1015,19 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         addThermalObj(profiles, "machine_boiler", "block/heat_boiler_world");
         add(profiles, "machine_industrial_boiler", 315.0F, 30.0F, 0.82F, 0.85F,
                 0.0F, 0.0F, 0.0F, "block/machine_industrial_boiler_world");
-        addThermalObj(profiles, "machine_solar_boiler", "block/machine_solar_boiler_world");
+        add(profiles, "machine_solar_boiler", 0.0F, 0.90F, "block/machine_solar_boiler_world");
         add(profiles, "pipe_anchor", 0.0F, 0.90F, "block/pipe_anchor");
         add(profiles, "piston_inserter", 0.0F, 0.90F, "block/piston_inserter");
-        addThermalObj(profiles, "solar_mirror", "block/solar_mirror_item");
-        addThermalObj(profiles, "machine_condenser", "block/machine_condenser");
+        add(profiles, "solar_mirror", 0.0F, 0.90F,
+                "block/solar_mirror_base", "block/solar_mirror_mirror");
         addThermalObj(profiles, "machine_condenser_powered", "block/machine_condenser_powered");
         addThermalObj(profiles, "machine_tower_small", "block/machine_tower_small_world");
         addThermalObj(profiles, "machine_tower_large", "block/machine_tower_large_world");
         addThermalObj(profiles, "machine_blast_furnace", "block/machine_blast_furnace");
         addThermalObj(profiles, "furnace_combination", "block/furnace_combination");
-        addThermalObj(profiles, "furnace_iron", "block/furnace_iron");
-        addThermalObj(profiles, "furnace_steel", "block/furnace_steel");
+        add(profiles, "furnace_iron", 0.0F, 0.90F,
+                "block/furnace_iron_main", "block/furnace_iron_off");
+        add(profiles, "furnace_steel", 0.0F, 0.90F, "block/furnace_steel");
         // RenderBarrel is a real inventory block renderer in 1.7.10, rather
         // than a flat item sprite. Keep its five barrel variants on the same
         // isometric inventory pose while retaining their original OBJ assets.
