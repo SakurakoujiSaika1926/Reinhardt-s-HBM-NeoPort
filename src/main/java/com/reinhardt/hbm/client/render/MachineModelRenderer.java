@@ -48,7 +48,9 @@ final class MachineModelRenderer {
     }
 
     static void orientLegacyStirlingParts(PoseStack poseStack, Direction facing) {
-        orientYaw(poseStack, legacyStirlingYaw(facing));
+        // RenderStirling translated to the block center, then rotated the
+        // origin-authored 1.7.10 OBJ without translating back.
+        orientLegacyWavefrontOriginYaw(poseStack, legacyStirlingYaw(facing));
     }
 
     static void orientLegacyHeaterParts(PoseStack poseStack, Direction facing) {

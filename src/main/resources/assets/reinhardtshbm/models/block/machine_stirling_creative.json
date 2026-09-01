@@ -1,6 +1,6 @@
 {
   "loader": "neoforge:obj",
-  "model": "reinhardtshbm:models/obj/machines/stirling.obj",
+  "model": "reinhardtshbm:models/obj/machines/stirling_1710_item.obj",
   "mtl_override": "reinhardtshbm:models/obj/machines/machine_stirling_creative.mtl",
   "automatic_culling": false,
   "shade_quads": true,

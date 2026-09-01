@@ -16,9 +16,9 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevelRenderer {
-    private static final float MODEL_CENTER_X = 0.5F;
+    private static final float MODEL_CENTER_X = 0.0F;
     private static final float MODEL_CENTER_Y = 1.28125F;
-    private static final float MODEL_CENTER_Z = 0.5F;
+    private static final float MODEL_CENTER_Z = 0.0F;
     private static final float MODEL_FIT_SCALE = 1.05F / 3.0F;
 
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_stirling_world");
@@ -53,17 +53,17 @@ public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevel
 
         if (hasCog) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, 1.375F, 0.5F);
+            poseStack.translate(0.0F, 1.375F, 0.0F);
             poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rot), 0.0F, 0.0F, 1.0F)));
-            poseStack.translate(-0.5F, -1.375F, -0.5F);
+            poseStack.translate(0.0F, -1.375F, 0.0F);
             MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cog), poseStack, bufferSource, state, packedLight, packedOverlay);
             poseStack.popPose();
         }
 
         poseStack.pushPose();
-        poseStack.translate(0.5F, 1.375F, 0.75F);
+        poseStack.translate(0.0F, 1.375F, 0.25F);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rot * 2.0F + 3.0F), 1.0F, 0.0F, 0.0F)));
-        poseStack.translate(-0.5F, -1.375F, -0.75F);
+        poseStack.translate(0.0F, -1.375F, -0.25F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cogSmall), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
 

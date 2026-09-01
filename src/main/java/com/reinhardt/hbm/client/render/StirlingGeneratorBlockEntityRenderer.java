@@ -60,17 +60,17 @@ public class StirlingGeneratorBlockEntityRenderer implements BlockEntityRenderer
 
         if (stirling.hasCog()) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, 1.375F, 0.5F);
+            poseStack.translate(0.0F, 1.375F, 0.0F);
             poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rot), 0.0F, 0.0F, 1.0F)));
-            poseStack.translate(-0.5F, -1.375F, -0.5F);
+            poseStack.translate(0.0F, -1.375F, 0.0F);
             MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cog), poseStack, bufferSource, state, packedLight, packedOverlay);
             poseStack.popPose();
         }
 
         poseStack.pushPose();
-        poseStack.translate(0.5F, 1.375F, 0.75F);
+        poseStack.translate(0.0F, 1.375F, 0.25F);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rot * 2.0F + 3.0F), 1.0F, 0.0F, 0.0F)));
-        poseStack.translate(-0.5F, -1.375F, -0.75F);
+        poseStack.translate(0.0F, -1.375F, -0.25F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cogSmall), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
 
