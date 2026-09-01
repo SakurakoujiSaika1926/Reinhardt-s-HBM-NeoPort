@@ -49,7 +49,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
     private static final VoxelShape EAST_ARM = Shapes.box(0.6875D, 0.3125D, 0.3125D, 1.0D, 0.6875D, 0.6875D);
     private static final VoxelShape UP_ARM = Shapes.box(0.3125D, 0.6875D, 0.3125D, 0.6875D, 1.0D, 0.6875D);
     private static final VoxelShape DOWN_ARM = Shapes.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.3125D, 0.6875D);
-    private static final VoxelShape ISOLATED = Shapes.or(CENTER, NORTH_ARM, SOUTH_ARM, WEST_ARM, EAST_ARM, UP_ARM, DOWN_ARM);
+    private static final VoxelShape ISOLATED_COLLISION = Shapes.or(NORTH_ARM, SOUTH_ARM, WEST_ARM, EAST_ARM, UP_ARM, DOWN_ARM);
     private static final VoxelShape BOX_CENTER = Shapes.box(0.0625D, 0.0625D, 0.0625D, 0.9375D, 0.9375D, 0.9375D);
     private static final VoxelShape BOX_CORE = Shapes.box(0.125D, 0.125D, 0.125D, 0.875D, 0.875D, 0.875D);
     private static final VoxelShape BOX_NORTH_ARM = Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 0.125D);
@@ -90,8 +90,36 @@ public class FluidDuctBlock extends Block implements EntityBlock {
             return Shapes.block();
         }
         if (this.kind == Kind.EXHAUST) {
-            return getBoxDuctShape(state);
+            return getBoxDuctSelectionShape(state);
         }
+        return getStandardSelectionShape(state);
+    }
+
+    private static VoxelShape getStandardSelectionShape(BlockState state) {
+        int mask = connectionMask(state);
+        if (mask == 0) {
+            return Shapes.block();
+        }
+        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
+            return Shapes.box(0.0D, 0.3125D, 0.3125D, 1.0D, 0.6875D, 0.6875D);
+        }
+        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) {
+            return Shapes.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 1.0D, 0.6875D);
+        }
+        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) {
+            return Shapes.box(0.3125D, 0.3125D, 0.0D, 0.6875D, 0.6875D, 1.0D);
+        }
+        return Shapes.box(
+                state.getValue(WEST) ? 0.0D : 0.3125D,
+                state.getValue(DOWN) ? 0.0D : 0.3125D,
+                state.getValue(NORTH) ? 0.0D : 0.3125D,
+                state.getValue(EAST) ? 1.0D : 0.6875D,
+                state.getValue(UP) ? 1.0D : 0.6875D,
+                state.getValue(SOUTH) ? 1.0D : 0.6875D
+        );
+    }
+
+    private static VoxelShape getStandardCollisionShape(BlockState state) {
         VoxelShape shape = CENTER;
         boolean connected = false;
         if (state.getValue(NORTH)) {
@@ -118,10 +146,10 @@ public class FluidDuctBlock extends Block implements EntityBlock {
             shape = Shapes.or(shape, DOWN_ARM);
             connected = true;
         }
-        return connected ? shape : ISOLATED;
+        return connected ? shape : ISOLATED_COLLISION;
     }
 
-    private static VoxelShape getBoxDuctShape(BlockState state) {
+    private static VoxelShape getBoxDuctCollisionShape(BlockState state) {
         boolean north = state.getValue(NORTH);
         boolean south = state.getValue(SOUTH);
         boolean east = state.getValue(EAST);
@@ -166,9 +194,50 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         return shape;
     }
 
+    private static VoxelShape getBoxDuctSelectionShape(BlockState state) {
+        int mask = connectionMask(state);
+        int count = Integer.bitCount(mask);
+        if (mask == 0) {
+            return BOX_CENTER;
+        }
+        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
+            return Shapes.box(0.0D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
+        }
+        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) {
+            return Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 1.0D, 0.875D);
+        }
+        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) {
+            return Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 1.0D);
+        }
+        double lower = count == 2 ? 0.125D : 0.0625D;
+        double upper = count == 2 ? 0.875D : 0.9375D;
+        return Shapes.box(
+                state.getValue(WEST) ? 0.0D : lower,
+                state.getValue(DOWN) ? 0.0D : lower,
+                state.getValue(NORTH) ? 0.0D : lower,
+                state.getValue(EAST) ? 1.0D : upper,
+                state.getValue(UP) ? 1.0D : upper,
+                state.getValue(SOUTH) ? 1.0D : upper
+        );
+    }
+
+    private static int connectionMask(BlockState state) {
+        return (state.getValue(EAST) ? 32 : 0)
+                | (state.getValue(WEST) ? 16 : 0)
+                | (state.getValue(UP) ? 8 : 0)
+                | (state.getValue(DOWN) ? 4 : 0)
+                | (state.getValue(SOUTH) ? 2 : 0)
+                | (state.getValue(NORTH) ? 1 : 0);
+    }
+
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return getShape(state, level, pos, context);
+        if (this.kind.fullBlockShape()) {
+            return Shapes.block();
+        }
+        return this.kind == Kind.EXHAUST
+                ? getBoxDuctCollisionShape(state)
+                : getStandardCollisionShape(state);
     }
 
     @Override
