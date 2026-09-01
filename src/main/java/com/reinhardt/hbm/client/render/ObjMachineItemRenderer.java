@@ -1057,7 +1057,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/furnace_iron_main", "block/furnace_iron_off");
         add(profiles, "furnace_steel", 0.0F, 0.90F, "block/furnace_steel");
         add(profiles, "gear_large", 0.0F, 0.90F,
-                "block/machine_stirling_cog", "block/machine_stirling_steel_cog");
+                "block/gear_large_1710", "block/gear_large_steel_1710");
         // RenderBarrel is a real inventory block renderer in 1.7.10, rather
         // than a flat item sprite. Keep its five barrel variants on the same
         // isometric inventory pose while retaining their original OBJ assets.
