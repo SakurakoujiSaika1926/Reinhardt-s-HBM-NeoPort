@@ -76,6 +76,11 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
         BlockState state = blockState(kind);
 
         poseStack.pushPose();
+        if (isLegacyWirelessPanel(kind)) {
+            renderLegacyWirelessPanelItem(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
+            poseStack.popPose();
+            return;
+        }
         applyLegacyItemTransform(kind, context, poseStack);
         if (kind == RbmkComponentBlock.Kind.CONSOLE) {
             renderModel(MODELS.get(kind), state, poseStack, bufferSource, packedLight, packedOverlay);
@@ -89,6 +94,39 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
         } else {
             renderModel(MODELS.get(kind), state, poseStack, bufferSource, packedLight, packedOverlay);
         }
+        poseStack.popPose();
+    }
+
+    private static boolean isLegacyWirelessPanel(RbmkComponentBlock.Kind kind) {
+        return switch (kind) {
+            case GAUGE, GRAPH, INDICATOR, KEY_PAD, LEVER, NUMITRON, TERMINAL -> true;
+            default -> false;
+        };
+    }
+
+    private static void renderLegacyWirelessPanelItem(
+            RbmkComponentBlock.Kind kind,
+            BlockState state,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            int packedLight,
+            int packedOverlay
+    ) {
+        // RBMKMiniPanelBase#renderInventoryBlock: the legacy inventory cuboid
+        // spans x=0.25..1 before its +90 degree rotation. The baked base spans
+        // x=0..0.75, hence the exact -0.25 local origin below.
+        poseStack.pushPose();
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.translate(-0.25F, -0.5F, -0.5F);
+        renderModel(MINI_PANEL_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+
+        // Each legacy wireless panel block renders its controls independently
+        // of the base with translate(0,-0.5,0), then rotateY(-90).
+        poseStack.pushPose();
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
+        renderMiniPanelContents(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
