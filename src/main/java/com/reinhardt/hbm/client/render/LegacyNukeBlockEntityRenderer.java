@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.block.LegacyNukeBlock;
 import com.reinhardt.hbm.block.LegacyNukeDefinition;
 import com.reinhardt.hbm.blockentity.LegacyNukeBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -16,6 +17,8 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** Renders the ten legacy bomb assemblies with their individual 1.7.10 poses. */
 public final class LegacyNukeBlockEntityRenderer implements BlockEntityRenderer<LegacyNukeBlockEntity> {
     private static final ModelResourceLocation GADGET = model("block/nuke_gadget_world");
+    private static final ModelResourceLocation GADGET_BODY = model("block/nuke_gadget_body");
+    private static final ModelResourceLocation GADGET_WIRES = model("block/nuke_gadget_wires");
     private static final ModelResourceLocation MAN = model("block/nuke_man_world");
     private static final ModelResourceLocation MIKE = model("block/nuke_mike_world");
     private static final ModelResourceLocation TSAR = model("block/nuke_tsar_world");
@@ -31,6 +34,8 @@ public final class LegacyNukeBlockEntityRenderer implements BlockEntityRenderer<
 
     public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(GADGET);
+        event.register(GADGET_BODY);
+        event.register(GADGET_WIRES);
         event.register(MAN);
         event.register(MIKE);
         event.register(TSAR);
@@ -58,6 +63,11 @@ public final class LegacyNukeBlockEntityRenderer implements BlockEntityRenderer<
         }
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(modelFor(definition)), poseStack,
                 bufferSource, state, packedLight, packedOverlay);
+        if (definition == LegacyNukeDefinition.GADGET
+                && Minecraft.getInstance().options.graphicsMode().get().getId() != 0) {
+            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GADGET_WIRES), poseStack,
+                    bufferSource, state, packedLight, packedOverlay);
+        }
         poseStack.popPose();
     }
 
@@ -72,7 +82,7 @@ public final class LegacyNukeBlockEntityRenderer implements BlockEntityRenderer<
 
     private static ModelResourceLocation modelFor(LegacyNukeDefinition definition) {
         return switch (definition) {
-            case GADGET -> GADGET;
+            case GADGET -> GADGET_BODY;
             case MAN -> MAN;
             case MIKE -> MIKE;
             case TSAR -> TSAR;

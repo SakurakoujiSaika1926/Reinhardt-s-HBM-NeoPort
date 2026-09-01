@@ -3957,9 +3957,11 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> nukeBoy(String name) {
-        return registerBlock(name, () -> new NukeBoyBlock(metal()
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new NukeBoyBlock(metal()
                 .strength(5.0F, 200.0F)
                 .noOcclusion()));
+        HbmItems.ITEMS.register(name, () -> new ObjMachineBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> legacyNuke(String name, LegacyNukeDefinition definition) {

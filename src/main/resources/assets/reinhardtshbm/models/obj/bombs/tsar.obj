@@ -1,6 +1,7 @@
 # Blender v2.79 (sub 0) OBJ File: 'tsar.blend'
 # www.blender.org
 o Cylinder.004_Cylinder.007
+usemtl default
 v -2.620922 1.635705 0.578094
 v -2.855725 1.642531 0.571237
 v -2.857056 1.618167 0.619268

@@ -49,7 +49,7 @@ public final class LegacyNukeBlock extends HorizontalDirectionalBlock implements
     @Override
     @Nullable
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getCounterClockWise());
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override

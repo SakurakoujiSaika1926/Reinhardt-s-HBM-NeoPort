@@ -472,8 +472,11 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             poseStack.translate(legacyPose.inventoryX(), legacyPose.inventoryY(), legacyPose.inventoryZ());
             poseStack.scale(legacyPose.inventoryScale(), legacyPose.inventoryScale(), legacyPose.inventoryScale());
         }
+        if (legacyPose.rotateBeforeCommonTranslation() && legacyPose.commonYaw() != 0.0F) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(legacyPose.commonYaw()));
+        }
         poseStack.translate(legacyPose.commonX(), legacyPose.commonY(), legacyPose.commonZ());
-        if (legacyPose.commonYaw() != 0.0F) {
+        if (!legacyPose.rotateBeforeCommonTranslation() && legacyPose.commonYaw() != 0.0F) {
             poseStack.mulPose(Axis.YP.rotationDegrees(legacyPose.commonYaw()));
         }
         if (legacyPose.commonScale() != 1.0F) {
@@ -484,7 +487,13 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         if ("machine_ashpit".equals(profileId)) {
             poseStack.translate(-0.5F, 0.0F, -0.5F);
         }
-        for (BakedModel model : models) {
+        int modelCount = models.size();
+        if ("nuke_gadget".equals(profileId)
+                && Minecraft.getInstance().options.graphicsMode().get().getId() == 0) {
+            modelCount = 1;
+        }
+        for (int index = 0; index < modelCount; index++) {
+            BakedModel model = models.get(index);
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
@@ -894,7 +903,9 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 0.0F, 0.0F, 0.0F, "block/boltgun");
         add(profiles, "icf", 0.0F, 0.90F, "block/icf");
         add(profiles, "bomb_multi", 0.0F, 0.90F, "block/bomb_multi_world");
-        add(profiles, "nuke_gadget", 0.0F, 0.90F, "block/nuke_gadget_world");
+        add(profiles, "nuke_boy", 0.0F, 0.90F, "block/nuke_boy_world");
+        add(profiles, "nuke_gadget", 0.0F, 0.90F,
+                "block/nuke_gadget_body", "block/nuke_gadget_wires");
         add(profiles, "nuke_man", 180.0F, 0.90F, "block/nuke_man_world");
         add(profiles, "nuke_mike", 0.0F, 0.90F, "block/nuke_mike_world");
         add(profiles, "nuke_tsar", 0.0F, 0.90F, "block/nuke_tsar_world");
@@ -1108,6 +1119,32 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     private static Map<String, LegacyPose> createLegacyPoses() {
         Map<String, LegacyPose> poses = new LinkedHashMap<>();
 
+        // ItemRenderLibrary and each RenderNuke* IItemRendererProvider entry.
+        // These values are the old renderer's inventory transform followed by
+        // its common transform; do not replace them with bounds fitting.
+        legacy(poses, "nuke_boy", 0.0F, 0.0F, 0.0F, 5.0F,
+                -1.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "nuke_gadget", 0.0F, -3.0F, 0.0F, 5.0F,
+                0.0F, 0.0F, 0.0F, -90.0F, 1.0F);
+        legacy(poses, "nuke_man", 0.0F, -2.0F, 0.0F, 5.0F,
+                -0.75F, 0.0F, 0.0F, 180.0F, 1.0F, true);
+        legacy(poses, "nuke_mike", 0.0F, -5.0F, 0.0F, 2.25F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "nuke_tsar", 0.0F, 0.0F, 0.0F, 2.25F,
+                1.5F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "nuke_fleija", 0.0F, 0.0F, 0.0F, 6.8F,
+                0.125F, 0.0F, 0.0F, 90.0F, 1.0F);
+        legacy(poses, "nuke_prototype", 0.0F, 0.125F, 0.0F, 3.0F,
+                0.0F, 0.125F, 0.0F, 90.0F, 1.0F, true);
+        legacy(poses, "nuke_solinium", 0.0F, -0.125F, 0.0F, 5.0F,
+                0.0F, -0.125F, 0.0F, 90.0F, 1.0F, true);
+        legacy(poses, "nuke_n2", 0.0F, -5.0F, 0.0F, 2.25F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "nuke_custom", 0.0F, 0.0F, 0.0F, 5.0F,
+                -1.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        legacy(poses, "nuke_fstbmb", 0.0F, 0.0F, 0.0F, 2.25F,
+                1.0F, 0.0F, 0.0F, 90.0F, 1.0F);
+
         // RenderArcFurnace#getRenderer
         legacy(poses, "machine_arc_furnace", 0.0F, -3.0F, 0.0F, 3.5F,
                 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
@@ -1255,8 +1292,15 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     private static void legacy(Map<String, LegacyPose> poses, String id, float inventoryX, float inventoryY,
                                float inventoryZ, float inventoryScale, float commonX, float commonY,
                                float commonZ, float commonYaw, float commonScale) {
+        legacy(poses, id, inventoryX, inventoryY, inventoryZ, inventoryScale, commonX, commonY,
+                commonZ, commonYaw, commonScale, false);
+    }
+
+    private static void legacy(Map<String, LegacyPose> poses, String id, float inventoryX, float inventoryY,
+                               float inventoryZ, float inventoryScale, float commonX, float commonY,
+                               float commonZ, float commonYaw, float commonScale, boolean rotateBeforeCommonTranslation) {
         poses.put(id, new LegacyPose(inventoryX, inventoryY, inventoryZ, inventoryScale,
-                commonX, commonY, commonZ, commonYaw, commonScale));
+                commonX, commonY, commonZ, commonYaw, commonScale, rotateBeforeCommonTranslation));
     }
 
     private static void add(Map<String, Profile> profiles, String id, String modelPath, float yaw, float guiTarget) {
@@ -1319,7 +1363,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     }
 
     private record LegacyPose(float inventoryX, float inventoryY, float inventoryZ, float inventoryScale,
-                              float commonX, float commonY, float commonZ, float commonYaw, float commonScale) {
+                              float commonX, float commonY, float commonZ, float commonYaw, float commonScale,
+                              boolean rotateBeforeCommonTranslation) {
     }
 
     private record Fit(float centerX, float centerY, float centerZ, float longestSide) {

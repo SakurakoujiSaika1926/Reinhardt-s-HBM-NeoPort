@@ -42,7 +42,7 @@ public class NukeBoyBlockEntityRenderer implements BlockEntityRenderer<NukeBoyBl
     private static float legacyYaw(Direction facing) {
         return switch (facing) {
             case WEST -> 90.0F;
-            case NORTH -> 180.0F;
+            case SOUTH -> 180.0F;
             case EAST -> 270.0F;
             default -> 0.0F;
         };

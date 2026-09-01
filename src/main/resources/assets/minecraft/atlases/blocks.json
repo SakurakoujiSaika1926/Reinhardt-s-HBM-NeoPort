@@ -108,6 +108,14 @@
     },
     {
       "type": "single",
+      "resource": "reinhardtshbm:models/fatman"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:models/customnuke"
+    },
+    {
+      "type": "single",
       "resource": "reinhardtshbm:models/mine_fat"
     },
     {

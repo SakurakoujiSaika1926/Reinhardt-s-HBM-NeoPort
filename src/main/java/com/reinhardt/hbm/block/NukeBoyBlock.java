@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 public class NukeBoyBlock extends HorizontalDirectionalBlock implements EntityBlock {
     private static final MapCodec<NukeBoyBlock> CODEC = simpleCodec(NukeBoyBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
-    private static final VoxelShape SHAPE = Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, 0.875D, 1.0D);
+    private static final VoxelShape SHAPE = Shapes.block();
 
     public NukeBoyBlock(Properties properties) {
         super(properties);
