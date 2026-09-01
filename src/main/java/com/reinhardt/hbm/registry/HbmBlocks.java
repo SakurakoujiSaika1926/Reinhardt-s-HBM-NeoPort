@@ -1759,7 +1759,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> HEATER_OILBURNER = heaterBlock("heater_oilburner", HeaterBlockEntity.Kind.OILBURNER, oilburnerFootprint());
     public static final DeferredBlock<Block> HEATER_ELECTRIC = heaterBlock("heater_electric", HeaterBlockEntity.Kind.ELECTRIC, electricHeaterFootprint(), legacyElectricHeaterFootprint());
     public static final DeferredBlock<Block> HEATER_HEATEX = heaterBlock("heater_heatex", HeaterBlockEntity.Kind.HEATEX, heatexFootprint());
-    public static final DeferredBlock<Block> FUSION_HEATER = machineBlock("fusion_heater");
+    public static final DeferredBlock<Block> FUSION_HEATER = registerBlock("fusion_heater",
+            () -> new Block(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> FUSION_HATCH = fusionHatch("fusion_hatch");
     public static final DeferredBlock<Block> FUSION_COMPONENT = fusionComponent("fusion_component");
     public static final DeferredBlock<Block> STRUCT_TORUS_CORE = fusionTorusStruct("struct_torus_core");
