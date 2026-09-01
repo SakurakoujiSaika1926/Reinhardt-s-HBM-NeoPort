@@ -3952,7 +3952,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> zirnoxReactor(String name) {
-        return registerBlock(name, () -> new ZirnoxReactorBlock(metal()
+        return registerObjBlock(name, () -> new ZirnoxReactorBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion(), Shapes.block()));
     }
