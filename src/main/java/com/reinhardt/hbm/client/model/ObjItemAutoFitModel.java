@@ -195,8 +195,6 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
         }
         return path.equals("machine_rtg_grey")
                 || path.startsWith("heater_")
-                || path.equals("gear_large")
-                || path.equals("gear_large_steel")
                 || path.equals("machine_wood_burner")
                 || path.equals("machine_combustion_engine")
                 || path.equals("machine_flare")

@@ -6,6 +6,7 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.DecoCrtBlockItem;
 import com.reinhardt.hbm.item.FilingCabinetBlockItem;
+import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.VendingMachineBlockItem;
 import com.reinhardt.hbm.item.CrashedBombBlockItem;
 import net.minecraft.client.Minecraft;
@@ -184,6 +185,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         }
         if (profileId.equals("furnace_steel")) {
             renderSteelFurnaceItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("gear_large")) {
+            renderLargeGearItem(stack, models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
 
@@ -646,6 +651,29 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
+    /** Exact ItemRenderLibrary transform and material selection for both 1.7.10 large gears. */
+    private static void renderLargeGearItem(ItemStack stack, List<BakedModel> models, BlockState state,
+                                            ItemDisplayContext context, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -7.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.translate(0.0F, 1.375F, 0.0F);
+            poseStack.mulPose(Axis.ZP.rotationDegrees((System.currentTimeMillis() % 3600L) * 0.1F));
+            poseStack.translate(0.0F, -1.375F, 0.0F);
+        }
+        poseStack.translate(0.0F, 0.0F, -0.875F);
+        int modelIndex = stack.getItem() instanceof LegacyVariantItem item
+                && item.variant(stack).id().equals("steel") ? 1 : 0;
+        MachineModelRenderer.renderUnculled(models.get(modelIndex), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
     /** Exact RenderFusionTorus#getRenderer item assembly and inventory pose. */
     private static void renderFusionTorusItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
@@ -1028,6 +1056,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "furnace_iron", 0.0F, 0.90F,
                 "block/furnace_iron_main", "block/furnace_iron_off");
         add(profiles, "furnace_steel", 0.0F, 0.90F, "block/furnace_steel");
+        add(profiles, "gear_large", 0.0F, 0.90F,
+                "block/machine_stirling_cog", "block/machine_stirling_steel_cog");
         // RenderBarrel is a real inventory block renderer in 1.7.10, rather
         // than a flat item sprite. Keep its five barrel variants on the same
         // isometric inventory pose while retaining their original OBJ assets.

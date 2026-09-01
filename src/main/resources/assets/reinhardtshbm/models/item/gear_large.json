@@ -1,11 +1,3 @@
 {
-  "parent": "reinhardtshbm:block/machine_stirling_cog",
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "reinhardtshbm:item/gear_large_steel"
-    }
-  ]
+  "parent": "reinhardtshbm:block/machine_stirling_cog"
 }

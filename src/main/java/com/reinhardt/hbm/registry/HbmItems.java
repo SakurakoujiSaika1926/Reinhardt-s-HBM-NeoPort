@@ -82,6 +82,7 @@ import com.reinhardt.hbm.item.BoltgunItem;
 import com.reinhardt.hbm.item.GuideBookItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.item.LargeGearItem;
 import com.reinhardt.hbm.item.LegacyToolingItem;
 import com.reinhardt.hbm.item.LiquidatorArmorItem;
 import com.reinhardt.hbm.item.LegacyHotItem;
@@ -1309,10 +1310,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> GEAR_LARGE = machineComponent(
             "gear_large",
-            () -> new LegacyVariantItem(new Item.Properties(), "gear_large", LegacyVariantItem.variants(
-                    "normal",
-                    "steel"
-            ))
+            () -> new LargeGearItem(new Item.Properties())
     );
     public static final DeferredItem<Item> DRILL_TITANIUM = machineComponent(
             "drill_titanium",
