@@ -2200,7 +2200,6 @@ public final class HbmBlocks {
             ICF_COMPONENT,
             ICF_CONTROLLER,
             ICF_LASER_COMPONENT,
-            ICF_BLOCK,
             STRUCT_TORUS_CORE,
             FUSION_HATCH,
             FUSION_COMPONENT,

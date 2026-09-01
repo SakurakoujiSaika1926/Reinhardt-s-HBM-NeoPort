@@ -2934,6 +2934,7 @@
     "block.reinhardtshbm.heater_oilburner":  "Fluid Burner",
     "block.reinhardtshbm.heater_oven":  "Heating Oven",
     "block.reinhardtshbm.icf":  "Inertial Confinement Fusion Reactor (ICF)",
+    "block.reinhardtshbm.icf_block":  "ICF Laser",
     "block.reinhardtshbm.impact_dirt":  "Scorched Dirt",
     "block.reinhardtshbm.keypad_test":  "Keypad Test",
     "block.reinhardtshbm.ladder_copper":  "Copper Ladder",
