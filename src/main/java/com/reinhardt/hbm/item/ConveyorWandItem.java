@@ -2,6 +2,7 @@ package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.ConveyorBlock;
+import com.reinhardt.hbm.block.CraneMachineBlock;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.ChatFormatting;
@@ -13,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +24,6 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -62,7 +63,7 @@ public final class ConveyorWandItem extends LegacyVariantItem {
         BlockPos clicked = context.getClickedPos();
         Direction side = context.getClickedFace();
         CompoundTag tag = data(stack);
-        if (level.getBlockState(clicked).getBlock() instanceof ConveyorBlock conveyor) {
+        if (level.getBlockState(clicked).getBlock() instanceof ConveyorBlock conveyor && conveyor.kind().bendable()) {
             Direction snap = selecting(tag) ? conveyor.inputDirection(level.getBlockState(clicked)) : conveyor.outputDirection(level.getBlockState(clicked));
             if (isReplaceable(level, clicked.relative(snap))) side = snap;
         }
@@ -86,6 +87,7 @@ public final class ConveyorWandItem extends LegacyVariantItem {
             else if (placements.isEmpty()) player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.not_enough"), true);
             else {
                 for (Placement placement : placements) level.setBlock(placement.pos(), placement.state(), Block.UPDATE_ALL);
+                refreshPlacedConveyors(level, placements);
                 if (!player.getAbilities().instabuild) consume(player, type, placements.size());
                 player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.built"), true);
             }
@@ -113,6 +115,8 @@ public final class ConveyorWandItem extends LegacyVariantItem {
         if (!isReplaceable(level, target)) return InteractionResult.FAIL;
         if (!level.isClientSide) {
             level.setBlock(target, placementState(toPlace, context.getHorizontalDirection().getOpposite(), 0), Block.UPDATE_ALL);
+            ConveyorBlock.refreshVisualStateAt(level, clicked);
+            ConveyorBlock.refreshVisualStateAt(level, target);
             if (!context.getPlayer().getAbilities().instabuild) stack.shrink(1);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -166,7 +170,9 @@ public final class ConveyorWandItem extends LegacyVariantItem {
         BlockPos current = first.relative(firstSide);
         Direction direction = firstSide.getAxis().isVertical() ? targetDirection(current, target, target, null, false, vertical) : firstSide;
         BlockState targetState = level.getBlockState(target);
-        boolean turnToTarget = targetSide.getAxis().isHorizontal() || (targetState.getBlock() instanceof ConveyorBlock conveyor
+        boolean turnToTarget = targetSide.getAxis().isHorizontal()
+                || isLegacyCraneBase(targetState)
+                || (targetState.getBlock() instanceof ConveyorBlock conveyor
                 && (conveyor.kind() == ConveyorBlock.Kind.LIFT || conveyor.kind() == ConveyorBlock.Kind.CHUTE));
         Direction horizontal = direction.getAxis().isVertical() ? player.getDirection() : direction;
         if (vertical && current.getY() > finalTarget.getY() && isReplaceable(level, current.below())) direction = Direction.DOWN;
@@ -237,9 +243,24 @@ public final class ConveyorWandItem extends LegacyVariantItem {
     }
 
     private static boolean isReplaceable(Level level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        FluidState fluid = state.getFluidState();
-        return state.canBeReplaced() && fluid.isEmpty();
+        return level.getBlockState(pos).canBeReplaced();
+    }
+
+    private static void refreshPlacedConveyors(Level level, List<Placement> placements) {
+        for (Placement placement : placements) {
+            ConveyorBlock.refreshVisualStateAt(level, placement.pos());
+            for (Direction direction : Direction.values()) {
+                ConveyorBlock.refreshVisualStateAt(level, placement.pos().relative(direction));
+            }
+        }
+    }
+
+    private static boolean isLegacyCraneBase(BlockState state) {
+        if (!(state.getBlock() instanceof CraneMachineBlock crane)) return false;
+        return switch (crane.kind()) {
+            case BOXER, EXTRACTOR, GRABBER, INSERTER, UNBOXER -> true;
+            case PARTITIONER, ROUTER, SPLITTER -> false;
+        };
     }
 
     private static int countAvailable(Player player, ConveyorType type) {
@@ -263,6 +284,16 @@ public final class ConveyorWandItem extends LegacyVariantItem {
     private static CompoundTag data(ItemStack stack) { return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag(); }
     private static void save(ItemStack stack, CompoundTag tag) { stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag)); }
     private static boolean selecting(CompoundTag tag) { return tag.getBoolean(SELECTING); }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+        if (selected || !(entity instanceof Player player) || !selecting(data(stack))) return;
+        ItemStack held = player.getMainHandItem();
+        if (held.getItem() == this && type(held) == type(stack)) return;
+        CompoundTag tag = data(stack);
+        tag.remove(SELECTING);
+        save(stack, tag);
+    }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {

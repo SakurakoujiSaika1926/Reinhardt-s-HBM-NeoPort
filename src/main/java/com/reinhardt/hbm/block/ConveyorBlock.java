@@ -154,7 +154,7 @@ public final class ConveyorBlock extends Block {
     public Direction travelDirection(Level level, BlockPos pos, BlockState state, Vec3 itemPos) {
         if (this.kind == Kind.LIFT) return liftTop(level, pos) ? state.getValue(FACING) : Direction.DOWN;
         if (this.kind == Kind.CHUTE) {
-            if (isConveyorAt(level, pos.below()) || itemPos.y > pos.getY() + 0.25D) return Direction.UP;
+            if (acceptsChuteOutput(level, pos.below()) || itemPos.y > pos.getY() + 0.25D) return Direction.UP;
             return state.getValue(FACING);
         }
         Direction primary = state.getValue(FACING);
@@ -171,7 +171,7 @@ public final class ConveyorBlock extends Block {
 
     public Vec3 closestSnappingPosition(Level level, BlockPos pos, BlockState state, Vec3 itemPos) {
         if (this.kind == Kind.LIFT && !liftTop(level, pos)) return new Vec3(pos.getX() + 0.5D, itemPos.y, pos.getZ() + 0.5D);
-        if (this.kind == Kind.CHUTE && (isConveyorAt(level, pos.below()) || itemPos.y > pos.getY() + 0.25D)) {
+        if (this.kind == Kind.CHUTE && (acceptsChuteOutput(level, pos.below()) || itemPos.y > pos.getY() + 0.25D)) {
             return new Vec3(pos.getX() + 0.5D, itemPos.y, pos.getZ() + 0.5D);
         }
         Direction direction = travelDirection(level, pos, state, itemPos);
@@ -192,7 +192,7 @@ public final class ConveyorBlock extends Block {
     public Vec3 travelLocation(Level level, BlockPos pos, BlockState state, Vec3 itemPos, double speed) {
         if (this.kind == Kind.EXPRESS) speed *= 3.0D;
         if (this.kind == Kind.CHUTE) {
-            if (isConveyorAt(level, pos.below())) speed *= 5.0D;
+            if (acceptsChuteOutput(level, pos.below())) speed *= 5.0D;
             else if (itemPos.y > pos.getY() + 0.25D) speed *= 3.0D;
         }
         Direction direction = travelDirection(level, pos, state, itemPos);
@@ -222,6 +222,7 @@ public final class ConveyorBlock extends Block {
                     level.setBlock(pos, state.setValue(CURVE, (curve + 1) % 3), Block.UPDATE_ALL);
                 }
             }
+            refreshVisualStateAt(level, pos);
             ScrewdriverItem.damageTool(stack, level, player, hand);
         }
         return true;
@@ -234,32 +235,55 @@ public final class ConveyorBlock extends Block {
 
     private static boolean liftTop(BlockGetter level, BlockPos pos) {
         boolean bottom = !isConveyorAt(level, pos.below());
-        return !isConveyorAt(level, pos.above()) && !bottom;
+        return !isConveyorAt(level, pos.above()) && !bottom && !isLegacyEnterableAt(level, pos.above());
     }
 
     public static boolean isConveyor(BlockState state) { return state.getBlock() instanceof ConveyorBlock; }
 
     private static boolean isConveyorAt(BlockGetter level, BlockPos pos) {
         if (isConveyor(level.getBlockState(pos))) return true;
+        if (level.getBlockState(pos).getBlock() instanceof CraneMachineBlock crane
+                && (crane.kind() == CraneMachineBlock.Kind.PARTITIONER
+                || crane.kind() == CraneMachineBlock.Kind.SPLITTER)) return true;
         return level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && dummy.core() instanceof ConveyorPressBlockEntity press
                 && press.isBeltPosition(pos);
     }
 
+    /** Blocks that implemented IEnterableBlock in 1.7.10. */
+    private static boolean isLegacyEnterableAt(BlockGetter level, BlockPos pos) {
+        if (!(level.getBlockState(pos).getBlock() instanceof CraneMachineBlock crane)) return false;
+        return switch (crane.kind()) {
+            case BOXER, INSERTER, PARTITIONER, ROUTER, SPLITTER, UNBOXER -> true;
+            case EXTRACTOR, GRABBER -> false;
+        };
+    }
+
+    private static boolean acceptsChuteOutput(BlockGetter level, BlockPos pos) {
+        return isConveyorAt(level, pos) || isLegacyEnterableAt(level, pos);
+    }
+
     private BlockState refreshVisualState(BlockState state, BlockGetter level, BlockPos pos) {
         if (this.kind == Kind.LIFT) {
             boolean bottom = !isConveyorAt(level, pos.below());
-            boolean top = !bottom && !isConveyorAt(level, pos.above());
+            boolean top = !bottom && !isConveyorAt(level, pos.above()) && !isLegacyEnterableAt(level, pos.above());
             return state.setValue(BOTTOM, bottom).setValue(TOP, top);
         }
         if (this.kind == Kind.CHUTE) {
-            return state.setValue(BOTTOM, !isConveyorAt(level, pos.below()))
+            return state.setValue(BOTTOM, !acceptsChuteOutput(level, pos.below()))
                     .setValue(NORTH, isConveyorAt(level, pos.north()))
                     .setValue(EAST, isConveyorAt(level, pos.east()))
                     .setValue(SOUTH, isConveyorAt(level, pos.south()))
                     .setValue(WEST, isConveyorAt(level, pos.west()));
         }
         return state;
+    }
+
+    public static void refreshVisualStateAt(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof ConveyorBlock conveyor)) return;
+        BlockState refreshed = conveyor.refreshVisualState(state, level, pos);
+        if (!refreshed.equals(state)) level.setBlock(pos, refreshed, Block.UPDATE_CLIENTS);
     }
     private static int curve(BlockState state) { return state.hasProperty(CURVE) ? state.getValue(CURVE) : 0; }
 

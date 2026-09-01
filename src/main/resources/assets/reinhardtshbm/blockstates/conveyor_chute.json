@@ -2,15 +2,15 @@
   "multipart":[
     {"apply":{"model":"reinhardtshbm:block/conveyor_chute_frame"}},
 
-    {"when":{"bottom":"true","facing":"north"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","uvlock":true}},
-    {"when":{"bottom":"true","facing":"east"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","y":90,"uvlock":true}},
-    {"when":{"bottom":"true","facing":"south"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","y":180,"uvlock":true}},
-    {"when":{"bottom":"true","facing":"west"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","y":270,"uvlock":true}},
+    {"when":{"bottom":"true","facing":"north"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","uvlock":false}},
+    {"when":{"bottom":"true","facing":"east"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","y":90,"uvlock":false}},
+    {"when":{"bottom":"true","facing":"south"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","y":180,"uvlock":false}},
+    {"when":{"bottom":"true","facing":"west"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_bottom","y":270,"uvlock":false}},
 
-    {"when":{"bottom":"false","north":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","uvlock":true}},
-    {"when":{"bottom":"false","east":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","y":90,"uvlock":true}},
-    {"when":{"bottom":"false","south":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","y":180,"uvlock":true}},
-    {"when":{"bottom":"false","west":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","y":270,"uvlock":true}},
+    {"when":{"bottom":"false","north":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","uvlock":false}},
+    {"when":{"bottom":"false","east":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","y":90,"uvlock":false}},
+    {"when":{"bottom":"false","south":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","y":180,"uvlock":false}},
+    {"when":{"bottom":"false","west":"true"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_stub","y":270,"uvlock":false}},
 
     {"when":{"bottom":"false","north":"false"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_guard_full"}},
     {"when":{"bottom":"false","east":"false"},"apply":{"model":"reinhardtshbm:block/conveyor_chute_guard_full","y":90}},

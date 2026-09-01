@@ -1,5 +1,5 @@
 {
-  "parent":"minecraft:block/block","ambientocclusion":false,"render_type":"minecraft:cutout",
-  "textures":{"grate":"reinhardtshbm:block/grate_top","particle":"reinhardtshbm:block/grate_top"},
-  "elements":[{"from":[4,4,1.99],"to":[12,16,2.01],"shade":false,"faces":{"north":{"texture":"#grate"},"south":{"texture":"#grate"}}}]
+  "parent":"minecraft:block/block","render_type":"minecraft:cutout",
+  "textures":{"grate":"reinhardtshbm:block/grate_side","particle":"reinhardtshbm:block/grate_side"},
+  "elements":[{"from":[4,4,1.99],"to":[12,16,2.01],"faces":{"north":{"texture":"#grate"},"south":{"texture":"#grate"}}}]
 }
