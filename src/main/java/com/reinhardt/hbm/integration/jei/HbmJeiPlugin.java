@@ -452,7 +452,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_REACTOR_BREEDING.get(), BREEDER_REACTOR);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_WASTE_DRUM.get(), FUEL_POOL);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_STORAGE_DRUM.get(), STORAGE_DRUM);
-        registration.addRecipeCatalyst(HbmBlocks.HEAT_BOILER.get(), BOILING);
+        registration.addRecipeCatalyst(HbmBlocks.MACHINE_BOILER.get(), BOILING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_INDUSTRIAL_BOILER.get(), BOILING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_ORE_SLOPPER.get(), ORE_SLOPPER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_PUREX.get(), PUREX);

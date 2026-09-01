@@ -35,7 +35,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "anvil_ferrouranium", "anvil_iron", "anvil_lead", "anvil_murky",
             "anvil_osmiridium", "anvil_saturnite", "anvil_schrabidate", "anvil_steel",
             "chimney_brick", "chimney_industrial", "dfc_core", "foundry_basin",
-            "foundry_outlet", "foundry_slagtap", "furnace_combination", "heat_boiler",
+            "foundry_outlet", "foundry_slagtap", "furnace_combination", "machine_boiler",
             "heater_electric", "heater_firebox", "heater_heatex", "heater_oilburner",
             "heater_oven", "machine_ammo_press", "machine_ashpit", "machine_assembly_machine",
             "machine_battery_redd", "machine_centrifuge", "machine_chemical_plant",
@@ -201,7 +201,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("machine_combustion_engine")
                 || path.equals("machine_flare")
                 || path.equals("machine_electrolyser")
-                || path.equals("heat_boiler")
+                || path.equals("machine_boiler")
                 || path.equals("machine_centrifuge")
                 || path.equals("machine_gascent")
                 || path.equals("machine_crystallizer")

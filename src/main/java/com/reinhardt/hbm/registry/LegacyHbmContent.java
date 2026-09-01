@@ -190,7 +190,6 @@ public final class LegacyHbmContent {
             "fluid_pump",
             "fluid_switch",
             "fluid_valve",
-            "heat_boiler",
             "machine_solar_boiler",
             "heater_electric",
             "heater_firebox",

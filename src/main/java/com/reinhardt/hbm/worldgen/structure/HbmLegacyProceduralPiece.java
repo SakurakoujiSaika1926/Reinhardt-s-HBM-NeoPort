@@ -279,7 +279,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.set(level, chunkBox, 15, 1, 8, "minecraft:sandstone_slab", 0);
             p.fill(level, chunkBox, 10, 0, 1, 14, 0, 8, "minecraft:sandstone", 0);
 
-            p.set(level, chunkBox, 1, 1, 1, "reinhardtshbm:heat_boiler", 4);
+            p.set(level, chunkBox, 1, 1, 1, "reinhardtshbm:machine_boiler", 4);
             p.fill(level, chunkBox, 1, 2, 1, 1, 3, 1, "reinhardtshbm:deco_pipe_quad_rusted", 0);
             p.set(level, chunkBox, 1, 5, 1, "reinhardtshbm:deco_pipe_rim_rusted", 0);
             p.set(level, chunkBox, 2, 1, 3, "reinhardtshbm:crate", 0);

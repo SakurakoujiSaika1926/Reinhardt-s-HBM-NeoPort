@@ -257,7 +257,7 @@ public final class HbmAnvilRecipes {
                         foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 16, HbmItems.PLATE_CAST.get()),
                         ingredient("plate_polymer", 8)
                 ),
-                blockItem("heat_boiler", 1),
+                blockItem("machine_boiler", 1),
                 2
         );
         addConstruction(

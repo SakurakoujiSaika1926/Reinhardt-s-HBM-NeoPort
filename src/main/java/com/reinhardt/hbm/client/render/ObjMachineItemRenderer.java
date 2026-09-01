@@ -934,7 +934,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         addThermalObj(profiles, "heater_oilburner", "block/heater_oilburner");
         addThermalObj(profiles, "heater_electric", "block/heater_electric");
         addThermalObj(profiles, "heater_heatex", "block/heater_heatex");
-        addThermalObj(profiles, "heat_boiler", "block/heat_boiler_world");
+        addThermalObj(profiles, "machine_boiler", "block/heat_boiler_world");
         add(profiles, "machine_industrial_boiler", 315.0F, 30.0F, 0.82F, 0.85F,
                 0.0F, 0.0F, 0.0F, "block/machine_industrial_boiler_world");
         addThermalObj(profiles, "machine_solar_boiler", "block/machine_solar_boiler_world");

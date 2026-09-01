@@ -1343,7 +1343,6 @@ public final class HbmBlockEntities {
                     "heat_boiler",
                     () -> BlockEntityType.Builder.of(
                             HeatBoilerBlockEntity::new,
-                            HbmBlocks.HEAT_BOILER.get(),
                             HbmBlocks.MACHINE_BOILER.get()
                     ).build(null)
             );

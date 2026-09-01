@@ -486,7 +486,7 @@
                    "reinhardtshbm:hadron_coil_schrabidium",
                    "reinhardtshbm:hadron_coil_starmetal",
                    "reinhardtshbm:hazmat",
-                   "reinhardtshbm:heat_boiler",
+                   "reinhardtshbm:machine_boiler",
                    "reinhardtshbm:machine_boiler_off",
                    "reinhardtshbm:machine_boiler_electric_off",
                    "reinhardtshbm:heater_electric",

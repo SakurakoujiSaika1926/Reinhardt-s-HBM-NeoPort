@@ -1476,7 +1476,6 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> MACHINE_INTAKE = airCompressor("machine_intake");
     public static final DeferredBlock<Block> MACHINE_HEPHAESTUS = geothermalHeatExchanger("machine_hephaestus");
     public static final DeferredBlock<Block> SOLAR_MIRROR = solarMirror("solar_mirror");
-    public static final DeferredBlock<Block> HEAT_BOILER = heatBoiler("heat_boiler");
     /** 1.7.10 MachineHeatBoiler registry id. */
     public static final DeferredBlock<Block> MACHINE_BOILER = heatBoiler("machine_boiler");
     public static final DeferredBlock<Block> MACHINE_INDUSTRIAL_BOILER = industrialBoiler("machine_industrial_boiler");
@@ -1973,7 +1972,6 @@ public final class HbmBlocks {
             SPOTLIGHT_FLUORO,
             SPOTLIGHT_HALOGEN,
             DECON,
-            HEAT_BOILER,
             MACHINE_BOILER,
             MACHINE_INDUSTRIAL_BOILER,
             MACHINE_SOLAR_BOILER,

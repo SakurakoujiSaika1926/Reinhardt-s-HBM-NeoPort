@@ -29,7 +29,7 @@ public final class BoilingRecipeCategory implements IRecipeCategory<BoilingJeiRe
     public BoilingRecipeCategory(IGuiHelper helper) {
         // Matches JEIUniversalHandler from 1.7.10/1.12: the boiler uses the common 166x65 panel.
         this.background = helper.createDrawable(TEXTURE, 5, 11, 166, 65);
-        this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.HEAT_BOILER.get()));
+        this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.MACHINE_BOILER.get()));
     }
 
     @Override
@@ -57,7 +57,7 @@ public final class BoilingRecipeCategory implements IRecipeCategory<BoilingJeiRe
         addFluid(builder.addInputSlot(48, 24), recipe.input(), recipe.inputAmount());
         builder.addSlot(RecipeIngredientRole.CATALYST, 75, 31)
                 .addItemStacks(java.util.List.of(
-                        new ItemStack(HbmBlocks.HEAT_BOILER.get()),
+                        new ItemStack(HbmBlocks.MACHINE_BOILER.get()),
                         new ItemStack(HbmBlocks.MACHINE_INDUSTRIAL_BOILER.get())
                 ));
         addFluid(builder.addOutputSlot(102, 24), recipe.output(), recipe.outputAmount());
