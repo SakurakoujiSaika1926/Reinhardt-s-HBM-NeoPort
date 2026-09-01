@@ -1986,8 +1986,7 @@ public final class HbmBlocks {
             FURNACE_IRON,
             FURNACE_STEEL,
             FUSION_HEATER,
-            PRESS_PREHEATER,
-            RBMK_HEATER
+            PRESS_PREHEATER
     );
 
     public static final List<DeferredBlock<Block>> RBMK_BLOCKS = List.of(
