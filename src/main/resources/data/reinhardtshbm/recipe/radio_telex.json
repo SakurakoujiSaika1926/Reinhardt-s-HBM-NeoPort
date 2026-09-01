@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCR",
+    "W#W",
+    "WWW"
+  ],
+  "key": {
+    "S": {
+      "item": "reinhardtshbm:radio_torch_sender"
+    },
+    "C": {
+      "item": "reinhardtshbm:crt_display"
+    },
+    "R": {
+      "item": "reinhardtshbm:radio_torch_receiver"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    },
+    "#": {
+      "item": "reinhardtshbm:circuit_analog"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:radio_telex",
+    "count": 2
+  }
+}

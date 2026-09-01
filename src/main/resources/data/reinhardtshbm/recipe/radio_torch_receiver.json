@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "G",
+    "R",
+    "I"
+  ],
+  "key": {
+    "G": {
+      "tag": "c:dusts/glowstone"
+    },
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:radio_torch_receiver",
+    "count": 4
+  }
+}
