@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
+import java.util.List;
 import java.util.Locale;
 
 public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu> {
@@ -30,32 +31,38 @@ public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
             super.renderTooltip(guiGraphics, mouseX, mouseY);
             return;
         }
-        Component tooltip = this.legacyInfoTooltip(mouseX, mouseY);
-        if (tooltip != null) {
-            this.setTooltipForNextRenderPass(tooltip);
-        }
-    }
 
-    private Component legacyInfoTooltip(int mouseX, int mouseY) {
         for (int index = 0; index < 3; index++) {
             if (isHovering(53, 17 + 18 * index, 70, 7, mouseX, mouseY)) {
-                return Component.literal(format(this.menu.progress(index)) + " / "
-                        + format(SteelFurnaceBlockEntity.PROCESS_TIME) + "TU");
+                guiGraphics.renderComponentTooltip(this.font, List.of(Component.literal(
+                        format(this.menu.progress(index)) + " / "
+                                + format(SteelFurnaceBlockEntity.PROCESS_TIME) + "TU"
+                )), mouseX, mouseY);
+                return;
             }
             if (isHovering(53, 26 + 18 * index, 70, 7, mouseX, mouseY)) {
-                return Component.literal("Bonus: " + this.menu.bonus(index) + "%");
+                guiGraphics.renderComponentTooltip(this.font, List.of(Component.literal(
+                        "Bonus: " + this.menu.bonus(index) + "%"
+                )), mouseX, mouseY);
+                return;
             }
         }
 
         if (isHovering(151, 18, 9, 50, mouseX, mouseY)) {
-            return Component.literal(format(this.menu.heat()) + " / "
-                    + format(SteelFurnaceBlockEntity.MAX_HEAT) + "TU");
+            guiGraphics.renderComponentTooltip(this.font, List.of(Component.literal(
+                    format(this.menu.heat()) + " / "
+                            + format(SteelFurnaceBlockEntity.MAX_HEAT) + "TU"
+            )), mouseX, mouseY);
         }
-        return null;
     }
 
     @Override
