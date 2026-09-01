@@ -8,8 +8,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-import java.util.List;
-
 public class IronFurnaceScreen extends AbstractContainerScreen<IronFurnaceMenu> {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/processing/gui_furnace_iron.png");
 
@@ -33,22 +31,20 @@ public class IronFurnaceScreen extends AbstractContainerScreen<IronFurnaceMenu> 
             super.renderTooltip(guiGraphics, mouseX, mouseY);
             return;
         }
-        this.renderLegacyInfoTooltip(guiGraphics, mouseX, mouseY);
+        Component tooltip = this.legacyInfoTooltip(mouseX, mouseY);
+        if (tooltip != null) {
+            this.setTooltipForNextRenderPass(tooltip);
+        }
     }
 
-    private void renderLegacyInfoTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private Component legacyInfoTooltip(int mouseX, int mouseY) {
         if (isHovering(52, 35, 71, 7, mouseX, mouseY)) {
-            guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
-                    "tooltip.reinhardtshbm.iron_furnace.progress",
-                    this.menu.progress() * 100 / this.menu.processingTime()
-            )), mouseX, mouseY);
+            return Component.literal(this.menu.progress() * 100 / this.menu.processingTime() + "%");
         }
         if (isHovering(52, 44, 71, 7, mouseX, mouseY)) {
-            guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
-                    "tooltip.reinhardtshbm.iron_furnace.burn",
-                    this.menu.burnTime() / 20
-            )), mouseX, mouseY);
+            return Component.literal(this.menu.burnTime() / 20 + "s");
         }
+        return null;
     }
 
     @Override

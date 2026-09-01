@@ -9,7 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-import java.util.List;
 import java.util.Locale;
 
 public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu> {
@@ -35,36 +34,28 @@ public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu
             super.renderTooltip(guiGraphics, mouseX, mouseY);
             return;
         }
-        this.renderLegacyInfoTooltip(guiGraphics, mouseX, mouseY);
+        Component tooltip = this.legacyInfoTooltip(mouseX, mouseY);
+        if (tooltip != null) {
+            this.setTooltipForNextRenderPass(tooltip);
+        }
     }
 
-    private void renderLegacyInfoTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private Component legacyInfoTooltip(int mouseX, int mouseY) {
         for (int index = 0; index < 3; index++) {
             if (isHovering(53, 17 + 18 * index, 70, 7, mouseX, mouseY)) {
-                guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
-                        "tooltip.reinhardtshbm.steel_furnace.progress",
-                        format(this.menu.progress(index)),
-                        format(SteelFurnaceBlockEntity.PROCESS_TIME)
-                )), mouseX, mouseY);
-                return;
+                return Component.literal(format(this.menu.progress(index)) + " / "
+                        + format(SteelFurnaceBlockEntity.PROCESS_TIME) + "TU");
             }
             if (isHovering(53, 26 + 18 * index, 70, 7, mouseX, mouseY)) {
-                guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
-                        "tooltip.reinhardtshbm.steel_furnace.bonus",
-                        this.menu.bonus(index)
-                )), mouseX, mouseY);
-                return;
+                return Component.literal("Bonus: " + this.menu.bonus(index) + "%");
             }
         }
 
         if (isHovering(151, 18, 9, 50, mouseX, mouseY)) {
-            guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
-                    "tooltip.reinhardtshbm.steel_furnace.heat",
-                    format(this.menu.heat()),
-                    format(SteelFurnaceBlockEntity.MAX_HEAT)
-            )), mouseX, mouseY);
-            return;
+            return Component.literal(format(this.menu.heat()) + " / "
+                    + format(SteelFurnaceBlockEntity.MAX_HEAT) + "TU");
         }
+        return null;
     }
 
     @Override
