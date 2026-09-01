@@ -1,14 +1,19 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.client.render.BarrelItemRenderer;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+
+import java.util.function.Consumer;
 
 /** A 1.7.10-style filled barrel: the block item itself is the fixed 10-bucket container. */
 public class FixedFluidBarrelBlockItem extends BlockItem {
@@ -17,6 +22,18 @@ public class FixedFluidBarrelBlockItem extends BlockItem {
     public FixedFluidBarrelBlockItem(Block block, Properties properties, String fluidName) {
         super(block, properties.stacksTo(1));
         this.fluidName = fluidName;
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private final BlockEntityWithoutLevelRenderer renderer = new BarrelItemRenderer();
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                return this.renderer;
+            }
+        });
     }
 
     public IFluidHandlerItem createFluidHandler(ItemStack stack) {

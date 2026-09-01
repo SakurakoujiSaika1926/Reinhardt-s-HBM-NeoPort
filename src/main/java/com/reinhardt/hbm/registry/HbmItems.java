@@ -68,6 +68,7 @@ import com.reinhardt.hbm.item.InfiniteFluidContainerItem;
 import com.reinhardt.hbm.item.IcfPelletItem;
 import com.reinhardt.hbm.item.InfiniteBatteryItem;
 import com.reinhardt.hbm.item.FixedFluidBarrelBlockItem;
+import com.reinhardt.hbm.item.LegacyBarrelBlockItem;
 import com.reinhardt.hbm.item.TankSteelItem;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.FluidIconItem;
@@ -907,15 +908,15 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> TAINT_BARREL_ITEM = coreItem(
             "taint_barrel",
-            () -> new BlockItem(HbmBlocks.TAINT_BARREL.get(), new Item.Properties())
+            () -> new LegacyBarrelBlockItem(HbmBlocks.TAINT_BARREL.get(), new Item.Properties())
     );
     public static final DeferredItem<Item> YELLOW_BARREL_ITEM = coreItem(
             "yellow_barrel",
-            () -> new BlockItem(HbmBlocks.YELLOW_BARREL.get(), new Item.Properties())
+            () -> new LegacyBarrelBlockItem(HbmBlocks.YELLOW_BARREL.get(), new Item.Properties())
     );
     public static final DeferredItem<Item> VITRIFIED_BARREL_ITEM = coreItem(
             "vitrified_barrel",
-            () -> new BlockItem(HbmBlocks.VITRIFIED_BARREL.get(), new Item.Properties())
+            () -> new LegacyBarrelBlockItem(HbmBlocks.VITRIFIED_BARREL.get(), new Item.Properties())
     );
     public static final DeferredItem<Item> FLUID_PACK_EMPTY = fluidItem(
             "fluid_pack_empty",

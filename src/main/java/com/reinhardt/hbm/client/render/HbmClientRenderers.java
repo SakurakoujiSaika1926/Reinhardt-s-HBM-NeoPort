@@ -394,6 +394,7 @@ public final class HbmClientRenderers {
     @SubscribeEvent
     public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         ObjMachineItemRenderer.registerAdditionalModels(event);
+        BarrelItemRenderer.registerAdditionalModels(event);
         SpotlightBlockEntityRenderer.registerAdditionalModels(event);
         FanBlockEntityRenderer.registerAdditionalModels(event);
         FloodlightBlockEntityRenderer.registerAdditionalModels(event);
