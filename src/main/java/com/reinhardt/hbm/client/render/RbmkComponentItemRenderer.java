@@ -77,12 +77,12 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
 
         poseStack.pushPose();
         if (kind == RbmkComponentBlock.Kind.DISPLAY || kind == RbmkComponentBlock.Kind.DISPLAY_BLANK) {
-            renderLegacyDisplayPanelItem(state, poseStack, bufferSource, packedLight, packedOverlay);
+            renderLegacyMiniPanelItem(kind, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.popPose();
             return;
         }
         if (isLegacyWirelessPanel(kind)) {
-            renderLegacyWirelessPanelItem(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
+            renderLegacyMiniPanelItem(kind, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.popPose();
             return;
         }
@@ -102,18 +102,58 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
         poseStack.popPose();
     }
 
-    private static void renderLegacyDisplayPanelItem(
+    private static void renderLegacyMiniPanelItem(
+            RbmkComponentBlock.Kind kind,
             BlockState state,
+            ItemDisplayContext context,
             PoseStack poseStack,
             MultiBufferSource bufferSource,
             int packedLight,
             int packedOverlay
     ) {
-        // RBMKDisplay inherits RBMKMiniPanelBase's inventory renderer without
-        // adding its world-only display overlay.
+        // The old item renderer first applies Minecraft's block-item camera,
+        // then RBMKMiniPanelBase and finally the subclass controls.
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            default -> {
+            }
+        }
+
+        poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         poseStack.translate(-0.25F, -0.5F, -0.5F);
         renderModel(MINI_PANEL_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+
+        if (kind == RbmkComponentBlock.Kind.DISPLAY || kind == RbmkComponentBlock.Kind.DISPLAY_BLANK) {
+            return;
+        }
+
+        poseStack.pushPose();
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
+        renderMiniPanelContents(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
     }
 
     private static boolean isLegacyWirelessPanel(RbmkComponentBlock.Kind kind) {
@@ -121,32 +161,6 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
             case GAUGE, GRAPH, INDICATOR, KEY_PAD, LEVER, NUMITRON, TERMINAL -> true;
             default -> false;
         };
-    }
-
-    private static void renderLegacyWirelessPanelItem(
-            RbmkComponentBlock.Kind kind,
-            BlockState state,
-            PoseStack poseStack,
-            MultiBufferSource bufferSource,
-            int packedLight,
-            int packedOverlay
-    ) {
-        // RBMKMiniPanelBase#renderInventoryBlock: the legacy inventory cuboid
-        // spans x=0.25..1 before its +90 degree rotation. The baked base spans
-        // x=0..0.75, hence the exact -0.25 local origin below.
-        poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-        poseStack.translate(-0.25F, -0.5F, -0.5F);
-        renderModel(MINI_PANEL_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
-        poseStack.popPose();
-
-        // Each legacy wireless panel block renders its controls independently
-        // of the base with translate(0,-0.5,0), then rotateY(-90).
-        poseStack.pushPose();
-        poseStack.translate(0.0F, -0.5F, 0.0F);
-        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
-        renderMiniPanelContents(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
-        poseStack.popPose();
     }
 
     private static BlockState blockState(RbmkComponentBlock.Kind kind) {
@@ -245,7 +259,7 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
             case INDICATOR -> {
                 for (int slot = 0; slot < 6; slot++) {
                     poseStack.pushPose();
-                    poseStack.translate(0.25D, (slot / 2) * -0.3125D + 0.3125D, (slot % 2) * -0.5D + 0.25D);
+                    poseStack.translate(0.25D, (slot / 2) * -0.3125D + 0.3125D, (slot % 2) * 0.5D - 0.25D);
                     renderModel(INDICATOR_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
                     MachineModelRenderer.renderUnculledTinted(MachineModelRenderer.model(INDICATOR_LIGHT), poseStack, bufferSource, state, LightTexture.FULL_BRIGHT, packedOverlay, (slot & 1) == 0 ? 0xFFFF0000 : 0xFFFFFF00);
                     poseStack.popPose();

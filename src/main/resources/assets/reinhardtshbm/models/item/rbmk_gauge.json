@@ -1,3 +1,3 @@
 {
-  "parent": "reinhardtshbm:block/rbmk_mini_panel_base"
+  "parent": "builtin/entity"
 }
