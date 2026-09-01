@@ -1038,11 +1038,13 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // must fit the baked geometry, rather than inherit world transforms.
         addThermalObj(profiles, "chimney_brick", "block/chimney_brick");
         addThermalObj(profiles, "chimney_industrial", "block/chimney_industrial");
-        addThermalObj(profiles, "heater_firebox", "block/heater_firebox");
-        addThermalObj(profiles, "heater_oven", "block/heater_oven");
-        addThermalObj(profiles, "heater_oilburner", "block/heater_oilburner");
-        addThermalObj(profiles, "heater_electric", "block/heater_electric");
-        addThermalObj(profiles, "heater_heatex", "block/heater_heatex");
+        add(profiles, "heater_firebox", 0.0F, 0.90F,
+                "block/heater_firebox_world", "block/heater_firebox_door");
+        add(profiles, "heater_oven", 0.0F, 0.90F,
+                "block/heater_oven_world", "block/heater_oven_door");
+        add(profiles, "heater_oilburner", 0.0F, 0.90F, "block/heater_oilburner");
+        add(profiles, "heater_electric", 0.0F, 0.90F, "block/heater_electric");
+        add(profiles, "heater_heatex", 0.0F, 0.90F, "block/heater_heatex");
         addThermalObj(profiles, "machine_boiler", "block/heat_boiler_world");
         add(profiles, "machine_industrial_boiler", 315.0F, 30.0F, 0.82F, 0.85F,
                 0.0F, 0.0F, 0.0F, "block/machine_industrial_boiler_world");
@@ -1055,7 +1057,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         addThermalObj(profiles, "machine_tower_small", "block/machine_tower_small_world");
         addThermalObj(profiles, "machine_tower_large", "block/machine_tower_large_world");
         addThermalObj(profiles, "machine_blast_furnace", "block/machine_blast_furnace");
-        addThermalObj(profiles, "furnace_combination", "block/furnace_combination");
+        add(profiles, "furnace_combination", 0.0F, 0.90F, "block/furnace_combination");
         add(profiles, "furnace_iron", 0.0F, 0.90F,
                 "block/furnace_iron_main", "block/furnace_iron_off");
         add(profiles, "furnace_steel", 0.0F, 0.90F, "block/furnace_steel");
@@ -1137,6 +1139,22 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderAshpit#getRenderer
         legacy(poses, "machine_ashpit", 0.0F, -1.0F, 0.0F, 3.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        // RenderFirebox#getRenderer
+        legacy(poses, "heater_firebox", 0.0F, -1.0F, 0.0F, 3.25F,
+                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
+        // RenderHeatingOven#getRenderer
+        legacy(poses, "heater_oven", 0.0F, -1.0F, 0.0F, 3.25F,
+                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
+        // RenderOilburner#getRenderer
+        legacy(poses, "heater_oilburner", 0.0F, -1.5F, 0.0F, 3.25F,
+                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
+        // RenderElectricHeater#getRenderer: the renderer's -0.5 X plus the
+        // converted OBJ's half-block export-origin difference.
+        legacy(poses, "heater_electric", 0.0F, 0.0F, 0.0F, 3.0F,
+                -1.0F, 0.0F, -0.5F, 0.0F, 1.0F);
+        // RenderHeaterHeatex#getRenderer
+        legacy(poses, "heater_heatex", 0.0F, -1.0F, 0.0F, 3.25F,
+                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
         // ItemRenderLibrary#machine_cyclotron
         legacy(poses, "machine_cyclotron", 0.0F, 0.0F, 0.0F, 2.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
@@ -1215,6 +1233,9 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
         // RenderCrucible#getRenderer: translate(0,-1.5,0), scale(3.25).
         legacy(poses, "machine_crucible", 0.0F, -1.5F, 0.0F, 3.25F,
+                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        // RenderFurnaceCombination#getRenderer
+        legacy(poses, "furnace_combination", 0.0F, -1.5F, 0.0F, 3.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
         // RenderStrandCaster#getRenderer: translate(2,0,2), scale(2).
         legacy(poses, "machine_strand_caster", 2.0F, 0.0F, 2.0F, 2.0F,
