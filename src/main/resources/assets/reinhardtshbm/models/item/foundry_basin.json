@@ -1,3 +1,53 @@
 {
-    "parent":  "reinhardtshbm:block/foundry_basin"
+  "parent": "minecraft:block/block",
+  "textures": {
+    "bottom": "reinhardtshbm:block/foundry_basin_bottom",
+    "inner": "reinhardtshbm:block/foundry_basin_inner",
+    "side": "reinhardtshbm:block/foundry_basin_side",
+    "top": "reinhardtshbm:block/foundry_basin_top",
+    "particle": "reinhardtshbm:block/foundry_basin_bottom"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 2, 16],
+      "faces": {
+        "north": {"texture": "#side"}, "east": {"texture": "#side"},
+        "south": {"texture": "#side"}, "west": {"texture": "#side"},
+        "up": {"texture": "#bottom"}, "down": {"texture": "#bottom"}
+      }
+    },
+    {
+      "from": [0, 2, 0],
+      "to": [2, 16, 16],
+      "faces": {
+        "north": {"texture": "#side"}, "east": {"texture": "#inner"},
+        "south": {"texture": "#side"}, "west": {"texture": "#side"}, "up": {"texture": "#top"}
+      }
+    },
+    {
+      "from": [14, 2, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"texture": "#side"}, "east": {"texture": "#side"},
+        "south": {"texture": "#side"}, "west": {"texture": "#inner"}, "up": {"texture": "#top"}
+      }
+    },
+    {
+      "from": [2, 2, 0],
+      "to": [14, 16, 2],
+      "faces": {
+        "north": {"texture": "#side"}, "east": {"texture": "#side"},
+        "south": {"texture": "#inner"}, "west": {"texture": "#side"}, "up": {"texture": "#top"}
+      }
+    },
+    {
+      "from": [2, 2, 14],
+      "to": [14, 16, 16],
+      "faces": {
+        "north": {"texture": "#inner"}, "east": {"texture": "#side"},
+        "south": {"texture": "#side"}, "west": {"texture": "#side"}, "up": {"texture": "#top"}
+      }
+    }
+  ]
 }
