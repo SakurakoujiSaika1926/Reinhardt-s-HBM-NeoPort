@@ -76,6 +76,11 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
         BlockState state = blockState(kind);
 
         poseStack.pushPose();
+        if (kind == RbmkComponentBlock.Kind.DISPLAY || kind == RbmkComponentBlock.Kind.DISPLAY_BLANK) {
+            renderLegacyDisplayPanelItem(state, poseStack, bufferSource, packedLight, packedOverlay);
+            poseStack.popPose();
+            return;
+        }
         if (isLegacyWirelessPanel(kind)) {
             renderLegacyWirelessPanelItem(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.popPose();
@@ -95,6 +100,20 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
             renderModel(MODELS.get(kind), state, poseStack, bufferSource, packedLight, packedOverlay);
         }
         poseStack.popPose();
+    }
+
+    private static void renderLegacyDisplayPanelItem(
+            BlockState state,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            int packedLight,
+            int packedOverlay
+    ) {
+        // RBMKDisplay inherits RBMKMiniPanelBase's inventory renderer without
+        // adding its world-only display overlay.
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.translate(-0.25F, -0.5F, -0.5F);
+        renderModel(MINI_PANEL_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
     private static boolean isLegacyWirelessPanel(RbmkComponentBlock.Kind kind) {
