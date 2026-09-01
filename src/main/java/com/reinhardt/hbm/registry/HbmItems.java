@@ -748,8 +748,7 @@ public final class HbmItems {
             "oil_tar",
             () -> new OilTarItem(new Item.Properties())
     );
-    public static final DeferredItem<Item> BATTERY_PACK = material(
-            MACHINE_COMPONENTS,
+    public static final DeferredItem<Item> BATTERY_PACK = coreItem(
             "battery_pack",
             () -> new BatteryPackItem(new Item.Properties(), LegacyVariantItem.variants(
                     "battery_redstone",
