@@ -1,4 +1,9 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
   "type": "reinhardtshbm:precision_assembler",
   "group": "precass.recycle",
   "duration": 600,
