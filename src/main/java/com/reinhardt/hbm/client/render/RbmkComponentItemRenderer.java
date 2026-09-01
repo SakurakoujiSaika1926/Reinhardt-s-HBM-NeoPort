@@ -82,7 +82,7 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
             return;
         }
         if (isLegacyWirelessPanel(kind)) {
-            renderLegacyMiniPanelItem(kind, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            renderLegacyWirelessPanelItem(kind, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.popPose();
             return;
         }
@@ -113,6 +113,26 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
     ) {
         // The old item renderer first applies Minecraft's block-item camera,
         // then RBMKMiniPanelBase and finally the subclass controls.
+        applyLegacyMiniPanelCameraTransform(context, poseStack);
+
+        poseStack.pushPose();
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.translate(-0.25F, -0.5F, -0.5F);
+        renderModel(MINI_PANEL_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+
+        if (kind == RbmkComponentBlock.Kind.DISPLAY || kind == RbmkComponentBlock.Kind.DISPLAY_BLANK) {
+            return;
+        }
+
+        poseStack.pushPose();
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
+        renderMiniPanelContents(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyLegacyMiniPanelCameraTransform(ItemDisplayContext context, PoseStack poseStack) {
         poseStack.translate(0.5F, 0.5F, 0.5F);
         switch (context) {
             case GUI -> {
@@ -138,20 +158,28 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
             default -> {
             }
         }
+    }
+
+    private static void renderLegacyWirelessPanelItem(
+            RbmkComponentBlock.Kind kind,
+            BlockState state,
+            ItemDisplayContext context,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            int packedLight,
+            int packedOverlay
+    ) {
+        applyLegacyMiniPanelCameraTransform(context, poseStack);
 
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
         poseStack.translate(-0.25F, -0.5F, -0.5F);
         renderModel(MINI_PANEL_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
 
-        if (kind == RbmkComponentBlock.Kind.DISPLAY || kind == RbmkComponentBlock.Kind.DISPLAY_BLANK) {
-            return;
-        }
-
         poseStack.pushPose();
         poseStack.translate(0.0F, -0.5F, 0.0F);
-        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         renderMiniPanelContents(kind, state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
