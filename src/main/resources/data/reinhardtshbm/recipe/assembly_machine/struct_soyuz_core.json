@@ -1,0 +1,39 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.soyuzcore",
+  "blueprint_pools": ["discover.soyuz"],
+  "duration": 1200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:plate_welded"],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 16
+    },
+    { "ingredient": { "item": "reinhardtshbm:upgrade_speed_3" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:upgrade_power_3" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_controller" }, "count": 4 },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:battery_pack"],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "battery_lithium"
+          },
+          "minecraft:custom_model_data": 2
+        }
+      },
+      "count": 1
+    }
+  ],
+  "result": { "id": "reinhardtshbm:struct_soyuz_core" }
+}
