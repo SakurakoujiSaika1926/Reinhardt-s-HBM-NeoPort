@@ -1,4 +1,6 @@
 {
-  "parent": "neoforge:item/bucket",
-  "fluid": "reinhardtshbm:schrabidic"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/bucket_schrabidic_acid"
+  }
 }

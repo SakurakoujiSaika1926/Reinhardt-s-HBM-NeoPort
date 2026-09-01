@@ -1,4 +1,6 @@
 {
-  "parent": "neoforge:item/bucket",
-  "fluid": "reinhardtshbm:mud_fluid"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/bucket_mud"
+  }
 }
