@@ -19,6 +19,16 @@
     "category": "player",
     "sounds": [{"name": "reinhardtshbm:tool/battery", "stream": false}]
   },
+  "block.crate_break": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/crate_break1",
+      "reinhardtshbm:block/crate_break2",
+      "reinhardtshbm:block/crate_break3",
+      "reinhardtshbm:block/crate_break4",
+      "reinhardtshbm:block/crate_break5"
+    ]
+  },
   "block.sonar_ping": {
     "category": "block",
     "sounds": [

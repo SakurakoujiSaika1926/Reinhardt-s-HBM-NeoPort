@@ -5,6 +5,7 @@ import com.reinhardt.hbm.block.AssemblyFactoryBlock;
 import com.reinhardt.hbm.block.AssemblyMachineBlock;
 import com.reinhardt.hbm.block.AirCompressorBlock;
 import com.reinhardt.hbm.block.AmmoPressBlock;
+import com.reinhardt.hbm.block.AmmoCrateBlock;
 import com.reinhardt.hbm.block.ArcWelderBlock;
 import com.reinhardt.hbm.block.ArcFurnaceBlock;
 import com.reinhardt.hbm.block.AutocalBlock;
@@ -19,6 +20,7 @@ import com.reinhardt.hbm.block.BatteryReddBlock;
 import com.reinhardt.hbm.block.BatterySocketBlock;
 import com.reinhardt.hbm.block.BoatBlock;
 import com.reinhardt.hbm.block.BobbleheadBlock;
+import com.reinhardt.hbm.block.CanCrateBlock;
 import com.reinhardt.hbm.block.SnowglobeBlock;
 import com.reinhardt.hbm.block.PlushieBlock;
 import com.reinhardt.hbm.block.LanternBlock;
@@ -72,6 +74,8 @@ import com.reinhardt.hbm.block.CoriumBlock;
 import com.reinhardt.hbm.block.CaveSpikeBlock;
 import com.reinhardt.hbm.block.CargoElevatorBlock;
 import com.reinhardt.hbm.block.CrystallizerBlock;
+import com.reinhardt.hbm.block.JungleCrateBlock;
+import com.reinhardt.hbm.block.LootCrateBlock;
 import com.reinhardt.hbm.block.CrystalPulsarBlock;
 import com.reinhardt.hbm.block.CrystalVirusBlock;
 import com.reinhardt.hbm.block.CyclotronBlock;
@@ -308,6 +312,7 @@ import com.reinhardt.hbm.block.TeslaCoilBlock;
 import com.reinhardt.hbm.block.WallChargeBlock;
 import com.reinhardt.hbm.entity.TimedExplosiveEntity;
 import com.reinhardt.hbm.block.StorageCrateBlock;
+import com.reinhardt.hbm.block.SupplyCrateBlock;
 import com.reinhardt.hbm.block.SafeBlock;
 import com.reinhardt.hbm.block.StrandCasterBlock;
 import com.reinhardt.hbm.block.StirlingGeneratorBlock;
@@ -1375,15 +1380,19 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> PLUSHIE = plushie("plushie");
     public static final DeferredBlock<Block> LANTERN = lantern("lantern", false);
     public static final DeferredBlock<Block> LANTERN_BEHEMOTH = lantern("lantern_behemoth", true);
-    public static final DeferredBlock<Block> CRATE = lootCrate("crate", SoundType.WOOD, 5.0F, 10.0F);
-    public static final DeferredBlock<Block> CRATE_WEAPON = lootCrate("crate_weapon", SoundType.WOOD, 5.0F, 10.0F);
-    public static final DeferredBlock<Block> CRATE_LEAD = lootCrate("crate_lead", SoundType.METAL, 5.0F, 10.0F);
-    public static final DeferredBlock<Block> CRATE_METAL = lootCrate("crate_metal", SoundType.METAL, 5.0F, 10.0F);
-    public static final DeferredBlock<Block> CRATE_RED = lootCrate("crate_red", SoundType.METAL, 5.0F, 10.0F);
-    public static final DeferredBlock<Block> CRATE_CAN = lootCrate("crate_can", SoundType.WOOD, 1.0F, 2.5F);
-    public static final DeferredBlock<Block> CRATE_JUNGLE = lootCrate("crate_jungle", SoundType.STONE, 1.0F, 2.5F);
-    public static final DeferredBlock<Block> CRATE_AMMO = lootCrate("crate_ammo", SoundType.METAL, 1.0F, 2.5F);
-    public static final DeferredBlock<Block> CRATE_SUPPLY = lootCrate("crate_supply", SoundType.WOOD, 1.0F, 2.5F);
+    public static final DeferredBlock<Block> CRATE = lootCrate("crate", SoundType.WOOD, 5.0F, 10.0F, LootCrateBlock.Kind.SUPPLY);
+    public static final DeferredBlock<Block> CRATE_WEAPON = lootCrate("crate_weapon", SoundType.WOOD, 5.0F, 10.0F, LootCrateBlock.Kind.WEAPON);
+    public static final DeferredBlock<Block> CRATE_LEAD = lootCrate("crate_lead", SoundType.METAL, 5.0F, 10.0F, LootCrateBlock.Kind.LEAD);
+    public static final DeferredBlock<Block> CRATE_METAL = lootCrate("crate_metal", SoundType.METAL, 5.0F, 10.0F, LootCrateBlock.Kind.METAL);
+    public static final DeferredBlock<Block> CRATE_RED = lootCrate("crate_red", SoundType.METAL, 5.0F, 10.0F, LootCrateBlock.Kind.RED);
+    public static final DeferredBlock<Block> CRATE_CAN = registerBlock("crate_can", () -> new CanCrateBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.WOOD).strength(1.0F, 2.5F).sound(SoundType.WOOD).noOcclusion()));
+    public static final DeferredBlock<Block> CRATE_JUNGLE = registerBlock("crate_jungle", () -> new JungleCrateBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.STONE).strength(1.0F, 2.5F).sound(SoundType.STONE)));
+    public static final DeferredBlock<Block> CRATE_AMMO = registerBlock("crate_ammo", () -> new AmmoCrateBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.METAL).strength(1.0F, 2.5F).sound(SoundType.METAL)));
+    public static final DeferredBlock<Block> CRATE_SUPPLY = registerBlock("crate_supply", () -> new SupplyCrateBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.WOOD).strength(1.0F, 2.5F).sound(SoundType.WOOD).noOcclusion()));
     public static final DeferredBlock<Block> CRATE_IRON = storageCrate("crate_iron", StorageCrateBlockEntity.Kind.IRON, 5.0F, 10.0F);
     public static final DeferredBlock<Block> CRATE_STEEL = storageCrate("crate_steel", StorageCrateBlockEntity.Kind.STEEL, 5.0F, 20.0F);
     public static final DeferredBlock<Block> CRATE_DESH = storageCrate("crate_desh", StorageCrateBlockEntity.Kind.DESH, 7.5F, 300.0F);
@@ -3581,11 +3590,11 @@ public final class HbmBlocks {
         return registerBlock(name, () -> new MassStorageBlock(metal().strength(5.0F, 10.0F), kind));
     }
 
-    private static DeferredBlock<Block> lootCrate(String name, SoundType sound, float hardness, float resistance) {
-        return registerBlock(name, () -> new Block(BlockBehaviour.Properties.of()
+    private static DeferredBlock<Block> lootCrate(String name, SoundType sound, float hardness, float resistance, LootCrateBlock.Kind kind) {
+        return registerBlock(name, () -> new LootCrateBlock(BlockBehaviour.Properties.of()
                 .mapColor(MapColor.WOOD)
                 .strength(hardness, resistance)
-                .sound(sound)));
+                .sound(sound), kind));
     }
 
     private static DeferredBlock<Block> powerMachine(String name, PowerMachineBlock.MachineType type) {

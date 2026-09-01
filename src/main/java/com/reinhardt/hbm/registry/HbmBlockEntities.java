@@ -9,6 +9,7 @@ import com.reinhardt.hbm.blockentity.ArcWelderBlockEntity;
 import com.reinhardt.hbm.blockentity.ArcFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.AutocalBlockEntity;
 import com.reinhardt.hbm.blockentity.StorageDrumBlockEntity;
+import com.reinhardt.hbm.blockentity.SupplyCrateBlockEntity;
 import com.reinhardt.hbm.blockentity.VendingMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.AshpitBlockEntity;
 import com.reinhardt.hbm.blockentity.BatteryReddBlockEntity;
@@ -2056,6 +2057,15 @@ public final class HbmBlockEntities {
                             HbmBlocks.CRATE_DESH.get(),
                             HbmBlocks.CRATE_TEMPLATE.get(),
                             HbmBlocks.CRATE_TUNGSTEN.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SupplyCrateBlockEntity>> SUPPLY_CRATE =
+            BLOCK_ENTITIES.register(
+                    "crate_supply",
+                    () -> BlockEntityType.Builder.of(
+                            SupplyCrateBlockEntity::new,
+                            HbmBlocks.CRATE_SUPPLY.get()
                     ).build(null)
             );
 

@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "reinhardtshbm:block/crate_can"
-  }
+  "parent": "reinhardtshbm:block/crate_can"
 }

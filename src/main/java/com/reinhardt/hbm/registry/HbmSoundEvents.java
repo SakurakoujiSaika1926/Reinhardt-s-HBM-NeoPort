@@ -20,6 +20,7 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> CHEMICAL_PLANT_OPERATE = sound("block.chemical_plant");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOILER = sound("block.boiler");
     public static final DeferredHolder<SoundEvent, SoundEvent> BOILER_GROAN = sound("block.boiler_groan");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CRATE_BREAK = sound("block.crate_break");
     public static final DeferredHolder<SoundEvent, SoundEvent> BROADCAST_1 = sound("block.broadcast1");
     public static final DeferredHolder<SoundEvent, SoundEvent> BROADCAST_2 = sound("block.broadcast2");
     public static final DeferredHolder<SoundEvent, SoundEvent> BROADCAST_3 = sound("block.broadcast3");
