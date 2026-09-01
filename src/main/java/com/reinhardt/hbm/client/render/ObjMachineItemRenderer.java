@@ -238,7 +238,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
 
         LegacyPose legacyPose = LEGACY_POSES.get(profileId);
         if (legacyPose != null) {
-            renderLegacyPose(models, state, context, poseStack, bufferSource, packedLight, packedOverlay, legacyPose);
+            renderLegacyPose(profileId, models, state, context, poseStack, bufferSource, packedLight, packedOverlay, legacyPose);
             return;
         }
         Fit fit = FIT_CACHE.computeIfAbsent(profileId, ignored -> Fit.measure(models, state));
@@ -463,7 +463,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
      * files use different authoring origins and the legacy item renderers gave
      * each one a distinct inventory pose.
      */
-    private static void renderLegacyPose(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+    private static void renderLegacyPose(String profileId, List<BakedModel> models, BlockState state, ItemDisplayContext context,
                                          PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                          int packedOverlay, LegacyPose legacyPose) {
         poseStack.pushPose();
@@ -478,6 +478,11 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         }
         if (legacyPose.commonScale() != 1.0F) {
             poseStack.scale(legacyPose.commonScale(), legacyPose.commonScale(), legacyPose.commonScale());
+        }
+        // The converted ashpit OBJ retains a half-block export origin shift;
+        // the 1.7.10 item renderer used the original heating_oven origin.
+        if ("machine_ashpit".equals(profileId)) {
+            poseStack.translate(-0.5F, 0.0F, -0.5F);
         }
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
