@@ -4,6 +4,7 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.client.model.CoatedCableCtmModel;
 import com.reinhardt.hbm.client.model.BlastDoorItemModel;
+import com.reinhardt.hbm.client.model.BrokenItemBakedModel;
 import com.reinhardt.hbm.client.model.DecorativeCtmBlockModel;
 import com.reinhardt.hbm.client.model.ExhaustDuctBakedModel;
 import com.reinhardt.hbm.client.model.FluidDuctNeoBakedModel;
@@ -576,6 +577,7 @@ public final class HbmClientRenderers {
         ObjMachineItemModel.replaceModels(event.getModels());
         LegacyMachineItemModel.replaceModels(event.getModels());
         DedicatedItemRendererModel.replaceModels(event.getModels());
+        BrokenItemBakedModel.replaceModel(event.getModels());
     }
 
     @SubscribeEvent
