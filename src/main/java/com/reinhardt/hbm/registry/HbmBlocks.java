@@ -1248,7 +1248,7 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> MACHINE_BIGASSTANK = largeFluidTank("machine_bigasstank");
     public static final DeferredBlock<Block> MACHINE_BATTERY_REDD = batteryRedd("machine_battery_redd");
     public static final DeferredBlock<Block> MACHINE_BATTERY_SOCKET = batterySocket("machine_battery_socket");
-    public static final DeferredBlock<Block> CAPACITOR_COPPER = registerObjBlock("capacitor_copper",
+    public static final DeferredBlock<Block> CAPACITOR_COPPER = registerBlock("capacitor_copper",
             () -> new CapacitorBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> CAPACITOR_BUS = registerBlockWithoutItem("capacitor_bus",
             () -> new CapacitorBusBlock(metal().strength(5.0F, 10.0F)));
