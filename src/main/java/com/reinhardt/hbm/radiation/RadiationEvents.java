@@ -194,7 +194,8 @@ public final class RadiationEvents {
 
         tickLegacyBurning(level, living);
         HbmLivingRadiation data = living.getExistingDataOrNull(HbmDataAttachments.LIVING_RADIATION);
-        double chunkRadiation = HbmRadiationWorlds.getRadiation(level, living.blockPosition());
+        HbmRadiationWorlds.queueExposure(level, living);
+        double chunkRadiation = HbmRadiationWorlds.getExposureRadiation(level, living);
         if (data == null && chunkRadiation <= 0.0D && !(living instanceof Player)) {
             return;
         }

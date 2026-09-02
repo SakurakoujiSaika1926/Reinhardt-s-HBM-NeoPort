@@ -39,10 +39,10 @@ final class RadiationWorldEffects {
     private RadiationWorldEffects() {
     }
 
-    static void tick(ServerLevel level, ChunkRadiationData data) {
+    static void tick(ServerLevel level, Map<Long, Double> radiation) {
         WorldEffects effects = EFFECTS.computeIfAbsent(level.dimension().location(), unused -> new WorldEffects());
         effects.applyReady(level);
-        effects.plan(level, data, level.getGameTime());
+        effects.plan(radiation, level.getGameTime());
     }
 
     static void clear() {
@@ -56,8 +56,6 @@ final class RadiationWorldEffects {
     private static final class WorldEffects {
         private CompletableFuture<EffectPlan> inFlight;
         private int fogTimer;
-        private long loadedSnapshotTick = Long.MIN_VALUE;
-        private Map<Long, Double> loadedSnapshot = Map.of();
 
         void applyReady(ServerLevel level) {
             if (inFlight == null || !inFlight.isDone()) {
@@ -68,25 +66,19 @@ final class RadiationWorldEffects {
             applyPlan(level, plan);
         }
 
-        void plan(ServerLevel level, ChunkRadiationData data, long gameTime) {
+        void plan(Map<Long, Double> radiation, long gameTime) {
             if (inFlight != null) {
                 return;
             }
-            if (loadedSnapshotTick == Long.MIN_VALUE
-                    || gameTime - loadedSnapshotTick >= HbmRadiationConstants.RAD_SOLVE_INTERVAL_TICKS) {
-                loadedSnapshot = data.loadedChunkSnapshot(HbmRadiationWorlds.loadedChunks(level));
-                loadedSnapshotTick = gameTime;
-            }
-            Map<Long, Double> snapshot = loadedSnapshot;
-            if (snapshot.isEmpty()) {
+            if (radiation.isEmpty()) {
                 return;
             }
             boolean fogTick = ++fogTimer >= 20;
             if (fogTick) {
                 fogTimer = 0;
             }
-            long seed = gameTime * 31L + snapshot.size() * 17L;
-            inFlight = CompletableFuture.supplyAsync(() -> createPlan(snapshot, fogTick, seed), PLANNER);
+            long seed = gameTime * 31L + radiation.size() * 17L;
+            inFlight = CompletableFuture.supplyAsync(() -> createPlan(radiation, fogTick, seed), PLANNER);
         }
     }
 

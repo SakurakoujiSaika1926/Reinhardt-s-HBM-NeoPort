@@ -13,15 +13,20 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class HbmRadiationWorlds {
     private static final Direction[] POSITIVE_DIRECTIONS = {Direction.UP, Direction.SOUTH, Direction.EAST};
@@ -32,8 +37,12 @@ public final class HbmRadiationWorlds {
         thread.setDaemon(true);
         return thread;
     });
-    private static final Map<ResourceKey<Level>, WorldSolver> SOLVERS = new ConcurrentHashMap<>();
-    private static final Map<ResourceKey<Level>, Set<Long>> LOADED_CHUNKS = new ConcurrentHashMap<>();
+    private static final ExecutorService EXPOSURE_SOLVER = Executors.newSingleThreadExecutor(task -> {
+        Thread thread = new Thread(task, "RHbm-RadiationExposure");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private static final Map<ResourceKey<Level>, WorldRuntime> RUNTIMES = new ConcurrentHashMap<>();
     private static final Set<ResourceKey<Level>> ACTIVE_WORLDS = ConcurrentHashMap.newKeySet();
 
     private HbmRadiationWorlds() {
@@ -41,13 +50,14 @@ public final class HbmRadiationWorlds {
 
     public static void tick(ServerLevel level) {
         ChunkRadiationData data = ChunkRadiationData.get(level);
+        WorldRuntime runtime = runtime(level);
+        runtime.tick(level, data);
         if (data.isEmpty()) {
             markInactive(level);
-            return;
+        } else {
+            markActive(level);
         }
-        markActive(level);
-        solver(level).tick(level, data);
-        RadiationWorldEffects.tick(level, data);
+        RadiationWorldEffects.tick(level, runtime.chunkRadiation());
     }
 
     public static double getRadiation(ServerLevel level, net.minecraft.core.BlockPos pos) {
@@ -70,94 +80,221 @@ public final class HbmRadiationWorlds {
     }
 
     static void markChunkLoaded(ServerLevel level, net.minecraft.world.level.ChunkPos chunkPos) {
-        LOADED_CHUNKS.computeIfAbsent(level.dimension(), ignored -> ConcurrentHashMap.newKeySet())
-                .add(chunkPos.toLong());
+        long chunkKey = chunkPos.toLong();
+        runtime(level).loadChunk(chunkKey, ChunkRadiationData.get(level).sectionsForChunk(chunkKey));
     }
 
     static void markChunkUnloaded(ServerLevel level, net.minecraft.world.level.ChunkPos chunkPos) {
-        Set<Long> loaded = LOADED_CHUNKS.get(level.dimension());
-        if (loaded == null) {
-            return;
-        }
-        loaded.remove(chunkPos.toLong());
-        if (loaded.isEmpty()) {
-            LOADED_CHUNKS.remove(level.dimension(), loaded);
+        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        if (runtime != null) {
+            runtime.unloadChunk(chunkPos.toLong());
         }
     }
 
     static Set<Long> loadedChunks(ServerLevel level) {
-        return LOADED_CHUNKS.getOrDefault(level.dimension(), Set.of());
+        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        return runtime == null ? Set.of() : runtime.loadedChunks();
+    }
+
+    static void onRadiationChanged(ServerLevel level, long sectionKey, double radiation, long revision) {
+        runtime(level).setRadiation(sectionKey, radiation, revision);
+    }
+
+    static void queueExposure(ServerLevel level, LivingEntity entity) {
+        if (!hasRadiation(level)) {
+            return;
+        }
+        if (entity.tickCount % HbmRadiationConstants.HAZARD_RATE_TICKS != 0) {
+            return;
+        }
+        runtime(level).queueExposure(new ExposureRequest(entity.getUUID(), SectionPos.asLong(entity.blockPosition()),
+                entity.tickCount, level.getGameTime()));
+    }
+
+    static double getExposureRadiation(ServerLevel level, LivingEntity entity) {
+        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        if (runtime != null) {
+            ExposureResult result = runtime.exposure(entity.getUUID());
+            long sectionKey = SectionPos.asLong(entity.blockPosition());
+            if (result != null && result.sectionKey() == sectionKey
+                    && result.sourceRevision() == runtime.sourceRevision()) {
+                return result.radiation();
+            }
+            return getRadiation(level, entity.blockPosition());
+        }
+        // Bootstrap only: the worker has not published its first immutable map yet.
+        return getRadiation(level, entity.blockPosition());
     }
 
     static void unload(ServerLevel level) {
         ResourceKey<Level> dimension = level.dimension();
-        LOADED_CHUNKS.remove(dimension);
         ACTIVE_WORLDS.remove(dimension);
-        SOLVERS.remove(dimension);
+        RUNTIMES.remove(dimension);
         RadiationWorldEffects.unload(dimension.location());
     }
 
     public static void invalidateResistance(ServerLevel level, BlockPos pos) {
-        WorldSolver solver = SOLVERS.get(level.dimension());
-        if (solver != null) {
-            solver.invalidateResistance(pos);
+        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        if (runtime != null) {
+            runtime.invalidateResistance(pos);
         }
     }
 
     public static void invalidateResistanceSection(ServerLevel level, long sectionKey) {
-        WorldSolver solver = SOLVERS.get(level.dimension());
-        if (solver != null) {
-            solver.invalidateResistanceSection(sectionKey);
+        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        if (runtime != null) {
+            runtime.invalidateResistanceSection(sectionKey);
         }
     }
 
     public static void clear() {
-        SOLVERS.clear();
-        LOADED_CHUNKS.clear();
+        RUNTIMES.clear();
         ACTIVE_WORLDS.clear();
         RadiationWorldEffects.clear();
     }
 
-    private static WorldSolver solver(ServerLevel level) {
-        return SOLVERS.computeIfAbsent(level.dimension(), key -> new WorldSolver());
+    private static WorldRuntime runtime(ServerLevel level) {
+        return RUNTIMES.computeIfAbsent(level.dimension(), key -> new WorldRuntime());
     }
 
-    private static final class WorldSolver {
+    private static final class WorldRuntime {
         private static final int RESISTANCE_CACHE_PRUNE_INTERVAL = 20 * 30;
         private static final int RESISTANCE_CACHE_MAX_IDLE_TICKS = 20 * 120;
 
         private CompletableFuture<SolvedSnapshot> inFlight;
+        private CompletableFuture<Map<UUID, ExposureResult>> inFlightExposure;
         private long tickCounter;
+        private boolean initialized;
+        private boolean solveAgain;
+        private final ConcurrentLinkedQueue<RadiationEvent> events = new ConcurrentLinkedQueue<>();
+        private final Object radiationQueueLock = new Object();
+        private final Map<Long, QueuedRadiation> pendingRadiation = new HashMap<>();
+        private final AtomicLong radiationSequence = new AtomicLong();
+        private boolean radiationFlushQueued;
+        private final Set<Long> loadedChunks = ConcurrentHashMap.newKeySet();
+        private final Set<Long> trackedSections = ConcurrentHashMap.newKeySet();
         private final Map<Long, CachedResistance> resistanceCache = new HashMap<>();
         private final Set<Long> dirtyResistance = new HashSet<>();
+        private volatile Map<Long, Double> chunkRadiation = Map.of();
+        private final WorkerState workerState = new WorkerState();
+        private final Map<UUID, ExposureRequest> pendingExposure = new HashMap<>();
+        private final Map<UUID, ExposureResult> readyExposure = new HashMap<>();
+        private volatile Map<Long, Double> publishedRadiation = Map.of();
+        private volatile long sourceRevision;
+        private volatile long publishedRevision;
 
         void tick(ServerLevel level, ChunkRadiationData data) {
             tickCounter++;
+            applyExposureResults();
             if (inFlight != null && inFlight.isDone()) {
                 SolvedSnapshot solved = inFlight.join();
-                Set<Long> currentLoadedChunks = HbmRadiationWorlds.loadedChunks(level);
-                Set<Long> currentSections = loadedSections(solved.updatedSections(), currentLoadedChunks);
-                data.applySolvedSnapshot(solved.sections(), solved.revision(), currentSections);
+                Set<Long> currentSections = loadedSections(solved.updatedSections(), loadedChunks);
+                boolean accepted = data.applySolvedSnapshot(solved.sections(), solved.revision(), currentSections);
+                if (accepted) {
+                    trackedSections.addAll(solved.sections().keySet());
+                    trackedSections.removeIf(sectionKey -> !solved.sections().containsKey(sectionKey)
+                            && isInLoadedChunk(sectionKey));
+                    Map<Long, Double> acceptedSections = filterLoadedSections(solved.sections(), loadedChunks);
+                    chunkRadiation = filterLoadedChunks(solved.chunks(), loadedChunks);
+                    publishedRadiation = acceptedSections;
+                    publishedRevision = sourceRevision = data.revision();
+                    solveAgain = false;
+                } else {
+                    solveAgain = true;
+                }
                 inFlight = null;
             }
-            if (inFlight != null || tickCounter % HbmRadiationConstants.RAD_SOLVE_INTERVAL_TICKS != 0) {
-                return;
+            if (inFlight == null && (!initialized || solveAgain
+                    || tickCounter % HbmRadiationConstants.RAD_SOLVE_INTERVAL_TICKS == 0)) {
+                initialized = true;
+                prepareResistance(level);
+                long revision = data.revision();
+                inFlight = CompletableFuture.supplyAsync(
+                        () -> simulate(revision), SOLVER);
             }
+            scheduleExposure(level.getGameTime());
+        }
 
-            // Publish once per legacy one-second simulation step, after all source
-            // writes from the preceding game ticks have been coalesced.
-            data.refreshSnapshots();
-            Set<Long> loadedChunks = HbmRadiationWorlds.loadedChunks(level);
-            Map<Long, Double> snapshot = data.loadedSectionSnapshot(loadedChunks);
-            if (snapshot.isEmpty()) {
+        Map<Long, Double> chunkRadiation() {
+            return chunkRadiation;
+        }
+
+        long sourceRevision() {
+            return sourceRevision;
+        }
+
+        Set<Long> loadedChunks() {
+            return loadedChunks;
+        }
+
+        void loadChunk(long chunkKey, Map<Long, Double> radiation) {
+            flushRadiationBeforeStructure();
+            loadedChunks.add(chunkKey);
+            trackedSections.addAll(radiation.keySet());
+            events.offer(new LoadChunk(chunkKey, radiation));
+        }
+
+        void unloadChunk(long chunkKey) {
+            flushRadiationBeforeStructure();
+            loadedChunks.remove(chunkKey);
+            trackedSections.removeIf(sectionKey -> chunkOf(sectionKey) == chunkKey);
+            events.offer(new UnloadChunk(chunkKey));
+        }
+
+        void setRadiation(long sectionKey, double radiation, long revision) {
+            sourceRevision = revision;
+            if (radiation > HbmRadiationConstants.RAD_EPSILON) {
+                trackedSections.add(sectionKey);
+            } else {
+                trackedSections.remove(sectionKey);
+            }
+            synchronized (radiationQueueLock) {
+                long sequence = radiationSequence.incrementAndGet();
+                pendingRadiation.put(sectionKey, new QueuedRadiation(sequence, radiation));
+                if (!radiationFlushQueued) {
+                    radiationFlushQueued = true;
+                    events.offer(new RadiationFlush(sequence));
+                }
+            }
+        }
+
+        private void flushRadiationBeforeStructure() {
+            synchronized (radiationQueueLock) {
+                if (!pendingRadiation.isEmpty()) {
+                    events.offer(new RadiationFlush(radiationSequence.get()));
+                }
+            }
+        }
+
+        void queueExposure(ExposureRequest request) {
+            pendingExposure.put(request.entityId(), request);
+        }
+
+        ExposureResult exposure(java.util.UUID entityId) {
+            return readyExposure.get(entityId);
+        }
+
+        private void applyExposureResults() {
+            if (inFlightExposure == null || !inFlightExposure.isDone()) {
                 return;
             }
-            Set<Long> loadedSections = loadedSections(snapshot, loadedChunks);
-            long revision = data.revision();
-            Map<Long, SectionResistance> resistance = resistanceSnapshot(level, snapshot, loadedSections);
-            inFlight = CompletableFuture.supplyAsync(
-                    () -> new SolvedSnapshot(revision, solve(snapshot, resistance, loadedSections),
-                            Set.copyOf(loadedSections)), SOLVER);
+            readyExposure.putAll(inFlightExposure.join());
+            inFlightExposure = null;
+        }
+
+        private void scheduleExposure(long gameTime) {
+            if (inFlightExposure != null || pendingExposure.isEmpty()) {
+                return;
+            }
+            List<ExposureRequest> requests = List.copyOf(pendingExposure.values());
+            pendingExposure.clear();
+            Map<Long, Double> radiation = publishedRadiation;
+            long sourceRevision = publishedRevision;
+            inFlightExposure = CompletableFuture.supplyAsync(
+                    () -> calculateExposure(requests, radiation, sourceRevision), EXPOSURE_SOLVER);
+            if (gameTime % 200L == 0L) {
+                readyExposure.entrySet().removeIf(entry -> entry.getValue().worldTime() + 200L < gameTime);
+            }
         }
 
         void invalidateResistance(BlockPos pos) {
@@ -168,49 +305,60 @@ public final class HbmRadiationWorlds {
             dirtyResistance.add(sectionKey);
         }
 
-        private Map<Long, SectionResistance> resistanceSnapshot(ServerLevel level, Map<Long, Double> radiation,
-                                                                  Set<Long> loadedSections) {
-            Set<Long> neededKeys = resistanceKeys(radiation, loadedSections);
-            Map<Long, SectionResistance> resistance = new HashMap<>(neededKeys.size());
-            for (long key : neededKeys) {
+        private void prepareResistance(ServerLevel level) {
+            Set<Long> needed = new HashSet<>();
+            for (long sectionKey : trackedSections) {
+                if (!isInLoadedChunk(sectionKey)) {
+                    continue;
+                }
+                needed.add(sectionKey);
+                for (Direction direction : Direction.values()) {
+                    long neighbor = SectionPos.offset(sectionKey, direction);
+                    if (isInLoadedChunk(neighbor)) {
+                        needed.add(neighbor);
+                    }
+                }
+            }
+            for (long key : needed) {
                 CachedResistance cached = resistanceCache.get(key);
                 if (cached == null || dirtyResistance.remove(key)) {
                     cached = new CachedResistance(scanResistance(level, key), tickCounter);
                     resistanceCache.put(key, cached);
+                    events.offer(new ResistanceUpdate(key, cached.resistance()));
                 } else {
-                    cached = cached.touch(tickCounter);
-                    resistanceCache.put(key, cached);
+                    resistanceCache.put(key, cached.touch(tickCounter));
                 }
-                resistance.put(key, cached.resistance());
             }
-
             if (tickCounter % RESISTANCE_CACHE_PRUNE_INTERVAL == 0) {
                 pruneResistanceCache();
             }
-            return Map.copyOf(resistance);
         }
 
-        private Set<Long> resistanceKeys(Map<Long, Double> radiation, Set<Long> loadedSections) {
-            Set<Long> keys = new HashSet<>();
-            for (long key : radiation.keySet()) {
-                if (!loadedSections.contains(key)) {
-                    continue;
-                }
-                keys.add(key);
-                for (Direction direction : Direction.values()) {
-                    long neighbor = SectionPos.offset(key, direction);
-                    if (loadedSections.contains(neighbor)) {
-                        keys.add(neighbor);
-                    }
-                }
+        private SolvedSnapshot simulate(long revision) {
+            workerState.apply(events);
+            if (workerState.radiation.isEmpty()) {
+                Set<Long> updated = workerState.publishedKeys;
+                workerState.publishedKeys = Set.of();
+                return new SolvedSnapshot(revision, Map.of(), updated, Map.of());
             }
-            return keys;
+            Set<Long> activeSections = activeSections(workerState.radiation, workerState.loadedChunks);
+            Map<Long, Double> solved = solve(workerState.radiation, workerState.resistance, activeSections);
+            Set<Long> updated = new HashSet<>(workerState.publishedKeys);
+            updated.addAll(workerState.radiation.keySet());
+            updated.addAll(solved.keySet());
+            workerState.radiation = new HashMap<>(solved);
+            workerState.publishedKeys = Set.copyOf(workerState.radiation.keySet());
+            return new SolvedSnapshot(revision, solved, Set.copyOf(updated), aggregateChunks(solved));
         }
 
-        private Set<Long> loadedSections(Map<Long, Double> radiation, Set<Long> loadedChunks) {
+        private boolean isInLoadedChunk(long sectionKey) {
+            return loadedChunks.contains(chunkOf(sectionKey));
+        }
+
+        private static Set<Long> activeSections(Map<Long, Double> radiation, Set<Long> loadedChunks) {
             Set<Long> loaded = new HashSet<>();
             for (long key : radiation.keySet()) {
-                long chunkKey = net.minecraft.world.level.ChunkPos.asLong(SectionPos.x(key), SectionPos.z(key));
+                long chunkKey = chunkOf(key);
                 if (loadedChunks.contains(chunkKey)) {
                     loaded.add(key);
                     for (Direction direction : Direction.values()) {
@@ -226,12 +374,50 @@ public final class HbmRadiationWorlds {
             return loaded;
         }
 
-        private Set<Long> loadedSections(Set<Long> sections, Set<Long> loadedChunks) {
+        private static Map<Long, Double> aggregateChunks(Map<Long, Double> sections) {
+            if (sections.isEmpty()) {
+                return Map.of();
+            }
+            Map<Long, Double> chunks = new HashMap<>();
+            for (Map.Entry<Long, Double> entry : sections.entrySet()) {
+                chunks.merge(chunkOf(entry.getKey()), entry.getValue(), Math::max);
+            }
+            return Map.copyOf(chunks);
+        }
+
+        private static Map<Long, Double> filterLoadedChunks(Map<Long, Double> radiation, Set<Long> loadedChunks) {
+            if (radiation.isEmpty() || loadedChunks.isEmpty()) {
+                return Map.of();
+            }
+            Map<Long, Double> filtered = new HashMap<>();
+            for (Map.Entry<Long, Double> entry : radiation.entrySet()) {
+                if (loadedChunks.contains(entry.getKey())) {
+                    filtered.put(entry.getKey(), entry.getValue());
+                }
+            }
+            return filtered.isEmpty() ? Map.of() : Map.copyOf(filtered);
+        }
+
+        private static Map<Long, Double> filterLoadedSections(Map<Long, Double> radiation, Set<Long> loadedChunks) {
+            if (radiation.isEmpty() || loadedChunks.isEmpty()) {
+                return Map.of();
+            }
+            Map<Long, Double> filtered = new HashMap<>();
+            for (Map.Entry<Long, Double> entry : radiation.entrySet()) {
+                if (loadedChunks.contains(chunkOf(entry.getKey()))) {
+                    filtered.put(entry.getKey(), entry.getValue());
+                }
+            }
+            return filtered.isEmpty() ? Map.of() : Map.copyOf(filtered);
+        }
+
+        private static Set<Long> loadedSections(Set<Long> sections, Set<Long> loadedChunks) {
+            if (sections.isEmpty() || loadedChunks.isEmpty()) {
+                return Set.of();
+            }
             Set<Long> loaded = new HashSet<>();
             for (long sectionKey : sections) {
-                long chunkKey = net.minecraft.world.level.ChunkPos.asLong(
-                        SectionPos.x(sectionKey), SectionPos.z(sectionKey));
-                if (loadedChunks.contains(chunkKey)) {
+                if (loadedChunks.contains(chunkOf(sectionKey))) {
                     loaded.add(sectionKey);
                 }
             }
@@ -243,6 +429,72 @@ public final class HbmRadiationWorlds {
             resistanceCache.entrySet().removeIf(entry -> entry.getValue().lastUsedTick() < cutoff);
             dirtyResistance.removeIf(key -> !resistanceCache.containsKey(key));
         }
+
+        private static long chunkOf(long sectionKey) {
+            return net.minecraft.world.level.ChunkPos.asLong(SectionPos.x(sectionKey), SectionPos.z(sectionKey));
+        }
+
+        private final class WorkerState {
+            private Map<Long, Double> radiation = new HashMap<>();
+            private final Map<Long, SectionResistance> resistance = new HashMap<>();
+            private final Set<Long> loadedChunks = new HashSet<>();
+            private Set<Long> publishedKeys = Set.of();
+
+            void apply(ConcurrentLinkedQueue<RadiationEvent> queue) {
+                RadiationEvent event;
+                while ((event = queue.poll()) != null) {
+                    switch (event) {
+                        case RadiationFlush flush -> applyRadiation(flush.cutoff());
+                        case LoadChunk load -> {
+                            loadedChunks.add(load.chunkKey());
+                            radiation.putAll(load.radiation());
+                        }
+                        case UnloadChunk unload -> {
+                            loadedChunks.remove(unload.chunkKey());
+                            radiation.keySet().removeIf(sectionKey -> chunkOf(sectionKey) == unload.chunkKey());
+                            resistance.keySet().removeIf(sectionKey -> chunkOf(sectionKey) == unload.chunkKey());
+                        }
+                        case ResistanceUpdate update -> {
+                            if (loadedChunks.contains(chunkOf(update.sectionKey()))) {
+                                resistance.put(update.sectionKey(), update.resistance());
+                            }
+                        }
+                        default -> throw new IllegalStateException("Unknown radiation event: " + event);
+                    }
+                }
+            }
+
+            private void applyRadiation(long cutoff) {
+                Map<Long, QueuedRadiation> writes = new HashMap<>();
+                synchronized (radiationQueueLock) {
+                    var iterator = pendingRadiation.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        var entry = iterator.next();
+                        if (entry.getValue().sequence() <= cutoff) {
+                            writes.put(entry.getKey(), entry.getValue());
+                            iterator.remove();
+                        }
+                    }
+                    if (pendingRadiation.isEmpty()) {
+                        radiationFlushQueued = false;
+                    } else {
+                        events.offer(new RadiationFlush(radiationSequence.get()));
+                    }
+                }
+                for (Map.Entry<Long, QueuedRadiation> entry : writes.entrySet()) {
+                    long sectionKey = entry.getKey();
+                    if (!loadedChunks.contains(chunkOf(sectionKey))) {
+                        continue;
+                    }
+                    double value = entry.getValue().radiation();
+                    if (value > HbmRadiationConstants.RAD_EPSILON) {
+                        radiation.put(sectionKey, value);
+                    } else {
+                        radiation.remove(sectionKey);
+                    }
+                }
+            }
+        }
     }
 
     private record CachedResistance(SectionResistance resistance, long lastUsedTick) {
@@ -251,7 +503,45 @@ public final class HbmRadiationWorlds {
         }
     }
 
-    private record SolvedSnapshot(long revision, Map<Long, Double> sections, Set<Long> updatedSections) {
+    private interface RadiationEvent {
+    }
+
+    private record LoadChunk(long chunkKey, Map<Long, Double> radiation) implements RadiationEvent {
+    }
+
+    private record UnloadChunk(long chunkKey) implements RadiationEvent {
+    }
+
+    private record RadiationFlush(long cutoff) implements RadiationEvent {
+    }
+
+    private record QueuedRadiation(long sequence, double radiation) {
+    }
+
+    private record ResistanceUpdate(long sectionKey, SectionResistance resistance) implements RadiationEvent {
+    }
+
+    private record SolvedSnapshot(long revision, Map<Long, Double> sections, Set<Long> updatedSections,
+                                  Map<Long, Double> chunks) {
+    }
+
+    private record ExposureRequest(java.util.UUID entityId, long sectionKey, int entityTick, long worldTime) {
+    }
+
+    private record ExposureResult(java.util.UUID entityId, long sectionKey, int entityTick, long worldTime,
+                                  long sourceRevision, double radiation) {
+    }
+
+    private static Map<java.util.UUID, ExposureResult> calculateExposure(List<ExposureRequest> requests,
+                                                                          Map<Long, Double> radiation,
+                                                                          long sourceRevision) {
+        Map<java.util.UUID, ExposureResult> result = new HashMap<>(requests.size());
+        for (ExposureRequest request : requests) {
+            result.put(request.entityId(), new ExposureResult(request.entityId(), request.sectionKey(),
+                    request.entityTick(), request.worldTime(), sourceRevision,
+                    radiation.getOrDefault(request.sectionKey(), 0.0D)));
+        }
+        return Map.copyOf(result);
     }
 
     private static Map<Long, Double> solve(Map<Long, Double> snapshot, Map<Long, SectionResistance> resistance,
