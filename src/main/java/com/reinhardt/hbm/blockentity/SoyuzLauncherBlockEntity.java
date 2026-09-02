@@ -4,6 +4,7 @@ import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.entity.SoyuzEntity;
 import com.reinhardt.hbm.item.BatteryPackItem;
+import com.reinhardt.hbm.item.SoyuzItem;
 import com.reinhardt.hbm.menu.SoyuzLauncherMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
@@ -241,6 +242,18 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
 
     public ContainerData menuData() {
         return this.menuData;
+    }
+
+    public int renderRocketType() {
+        return this.rocketType;
+    }
+
+    public boolean renderStarting() {
+        return this.starting;
+    }
+
+    public int renderCountdown() {
+        return this.countdown;
     }
 
     @Nullable
@@ -571,7 +584,8 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
         if (!hasRocket()) {
             return -1;
         }
-        return 0;
+        ItemStack rocket = this.items.get(SLOT_ROCKET);
+        return (byte) SoyuzItem.skin(rocket);
     }
 
     private boolean allowsPort(BlockPos queriedPos, @Nullable Direction side) {

@@ -70,17 +70,21 @@ public class WandStructureBlockEntity extends BlockEntity {
             return false;
         }
         boolean debug = !serverLevel.hasNeighborSignal(this.worldPosition);
-        boolean loaded = HbmStructureIO.loadArea(serverLevel, this.name, this.worldPosition.above(), 0, debug);
-        if (loaded) {
+        HbmStructureIO.StructureLoadResult result = HbmStructureIO.loadArea(serverLevel, this.name, this.worldPosition.above(), 0, debug);
+        if (result.loaded()) {
+            this.sizeX = result.sizeX();
+            this.sizeY = result.sizeY();
+            this.sizeZ = result.sizeZ();
             BlockState state = getBlockState();
             if (state.hasProperty(WandStructureBlock.LOAD)) {
                 serverLevel.setBlock(this.worldPosition, state.setValue(WandStructureBlock.LOAD, false), 3);
             }
+            sync();
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable("chat.reinhardtshbm.wand_structure.loaded", this.name), false);
         } else {
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable("chat.reinhardtshbm.wand_structure.load_failed"), false);
         }
-        return loaded;
+        return result.loaded();
     }
 
     public CompoundTag configTag() {

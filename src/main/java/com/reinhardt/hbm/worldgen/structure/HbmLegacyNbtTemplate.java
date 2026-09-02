@@ -6,6 +6,7 @@ import com.reinhardt.hbm.block.SteelWallBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
 import com.reinhardt.hbm.block.DecoModelBlock;
 import com.reinhardt.hbm.block.DecoCrtBlock;
+import com.reinhardt.hbm.block.HbmLegacyDoorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -20,7 +21,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
@@ -29,6 +32,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -143,6 +148,29 @@ public final class HbmLegacyNbtTemplate {
             if (block.nbt != null) {
                 loadBlockEntity(level, pos, state, block.nbt, rotation);
             }
+            refreshPaneConnections(level, pos);
+        }
+    }
+
+    private static void refreshPaneConnections(WorldGenLevel level, BlockPos changedPos) {
+        refreshPane(level, changedPos);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            refreshPane(level, changedPos.relative(direction));
+        }
+    }
+
+    private static void refreshPane(WorldGenLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof IronBarsBlock)) {
+            return;
+        }
+        BlockState connected = state;
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            connected = connected.updateShape(direction, level.getBlockState(neighborPos), level, pos, neighborPos);
+        }
+        if (connected != state) {
+            level.setBlock(pos, connected, 2);
         }
     }
 
@@ -205,6 +233,7 @@ public final class HbmLegacyNbtTemplate {
                 BlockState state = stateFromLegacy(entry.name, entry.meta);
                 placedBlocks.add(new PlacedBlock(pos[0], pos[1], pos[2], entry.name, entry.meta, state, nbt));
             }
+            linkLegacyDoorStates(placedBlocks);
 
             return new HbmLegacyNbtTemplate(
                     name,
@@ -437,6 +466,19 @@ public final class HbmLegacyNbtTemplate {
             return state;
         }
 
+        if (block instanceof DoorBlock) {
+            if ((meta & 8) != 0) {
+                return state
+                        .setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER)
+                        .setValue(DoorBlock.HINGE, (meta & 1) != 0 ? DoorHingeSide.RIGHT : DoorHingeSide.LEFT);
+            }
+            return state
+                    .setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER)
+                    .setValue(DoorBlock.FACING, HbmLegacyDoorBlock.facingFromOldMeta(meta))
+                    .setValue(DoorBlock.OPEN, (meta & 4) != 0)
+                    .setValue(DoorBlock.POWERED, false);
+        }
+
         if (block instanceof DecoModelBlock && state.hasProperty(DecoModelBlock.FACING)) {
             return state.setValue(DecoModelBlock.FACING, DecoModelBlock.fromLegacyRotation(meta >> 2));
         }
@@ -543,6 +585,48 @@ public final class HbmLegacyNbtTemplate {
         }
 
         return applyMatchingNumericProperties(state, meta);
+    }
+
+    static BlockState pairedLegacyDoorState(BlockState state, int lowerMeta, int upperMeta, DoubleBlockHalf half) {
+        return state
+                .setValue(DoorBlock.HALF, half)
+                .setValue(DoorBlock.FACING, HbmLegacyDoorBlock.facingFromOldMeta(lowerMeta))
+                .setValue(DoorBlock.HINGE, (upperMeta & 1) != 0 ? DoorHingeSide.RIGHT : DoorHingeSide.LEFT)
+                .setValue(DoorBlock.OPEN, (lowerMeta & 4) != 0)
+                .setValue(DoorBlock.POWERED, false);
+    }
+
+    private static void linkLegacyDoorStates(List<PlacedBlock> blocks) {
+        Map<BlockPos, Integer> indexes = new HashMap<>();
+        for (int i = 0; i < blocks.size(); i++) {
+            if (blocks.get(i).state().getBlock() instanceof DoorBlock) {
+                PlacedBlock block = blocks.get(i);
+                indexes.put(new BlockPos(block.x(), block.y(), block.z()), i);
+            }
+        }
+
+        for (int lowerIndex = 0; lowerIndex < blocks.size(); lowerIndex++) {
+            PlacedBlock lower = blocks.get(lowerIndex);
+            if (!(lower.state().getBlock() instanceof DoorBlock) || (lower.meta() & 8) != 0) {
+                continue;
+            }
+            Integer upperIndex = indexes.get(new BlockPos(lower.x(), lower.y() + 1, lower.z()));
+            if (upperIndex == null) {
+                continue;
+            }
+            PlacedBlock upper = blocks.get(upperIndex);
+            if (!upper.name().equals(lower.name()) || (upper.meta() & 8) == 0) {
+                continue;
+            }
+            blocks.set(lowerIndex, new PlacedBlock(
+                    lower.x(), lower.y(), lower.z(), lower.name(), lower.meta(),
+                    pairedLegacyDoorState(lower.state(), lower.meta(), upper.meta(), DoubleBlockHalf.LOWER), lower.nbt()
+            ));
+            blocks.set(upperIndex, new PlacedBlock(
+                    upper.x(), upper.y(), upper.z(), upper.name(), upper.meta(),
+                    pairedLegacyDoorState(upper.state(), lower.meta(), upper.meta(), DoubleBlockHalf.UPPER), upper.nbt()
+            ));
+        }
     }
 
     @Nullable

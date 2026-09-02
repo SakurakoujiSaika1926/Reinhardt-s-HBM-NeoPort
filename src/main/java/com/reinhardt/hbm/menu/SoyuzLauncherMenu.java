@@ -26,13 +26,15 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
     private final BlockPos blockPos;
+    private final boolean clientFallback;
 
     public SoyuzLauncherMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         this(containerId, playerInventory, menuContext(playerInventory, buffer));
     }
 
     private SoyuzLauncherMenu(int containerId, Inventory playerInventory, MenuContext context) {
-        this(containerId, playerInventory, context.container(), new SimpleContainerData(SoyuzLauncherBlockEntity.DATA_COUNT), context.blockPos());
+        this(containerId, playerInventory, context.container(), new SimpleContainerData(SoyuzLauncherBlockEntity.DATA_COUNT),
+                context.blockPos(), context.clientFallback());
     }
 
     public SoyuzLauncherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
@@ -40,12 +42,18 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
     }
 
     private SoyuzLauncherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data, BlockPos blockPos) {
+        this(containerId, playerInventory, container, data, blockPos, false);
+    }
+
+    private SoyuzLauncherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data,
+                              BlockPos blockPos, boolean clientFallback) {
         super(HbmMenus.SOYUZ_LAUNCHER.get(), containerId);
         checkContainerSize(container, MACHINE_SLOT_COUNT);
         checkContainerDataCount(data, SoyuzLauncherBlockEntity.DATA_COUNT);
         this.container = container;
         this.data = data;
         this.blockPos = blockPos;
+        this.clientFallback = clientFallback;
 
         addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_ROCKET, 62, 18));
         addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_DESIGNATOR, 62, 36));
@@ -116,6 +124,9 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
+        if (this.clientFallback) {
+            return player.canInteractWithBlock(this.blockPos, 8.0D);
+        }
         return this.container.stillValid(player);
     }
 
@@ -212,15 +223,11 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
 
     private static MenuContext menuContext(Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         BlockPos pos = buffer.readBlockPos();
-        return new MenuContext(getContainer(playerInventory, pos), pos);
-    }
-
-    private static Container getContainer(Inventory playerInventory, BlockPos pos) {
         BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(pos);
         if (blockEntity instanceof SoyuzLauncherBlockEntity soyuz) {
-            return soyuz;
+            return new MenuContext(soyuz, pos, false);
         }
-        return new SimpleContainer(MACHINE_SLOT_COUNT);
+        return new MenuContext(new SimpleContainer(MACHINE_SLOT_COUNT), pos, true);
     }
 
     private static BlockPos blockPosFromContainer(Container container) {
@@ -230,7 +237,7 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
         return BlockPos.ZERO;
     }
 
-    private record MenuContext(Container container, BlockPos blockPos) {
+    private record MenuContext(Container container, BlockPos blockPos, boolean clientFallback) {
     }
 
     private static final class ValidatedSlot extends Slot {

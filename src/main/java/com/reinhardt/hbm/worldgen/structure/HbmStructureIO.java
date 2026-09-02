@@ -5,6 +5,7 @@ import com.reinhardt.hbm.block.SteelWallBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -18,8 +19,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
@@ -27,8 +32,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +47,12 @@ public final class HbmStructureIO {
     public record LegacyBlockKey(String id, int meta) {
         public LegacyBlockKey {
             id = normalizeId(id);
+        }
+    }
+
+    public record StructureLoadResult(boolean loaded, int sizeX, int sizeY, int sizeZ) {
+        private static StructureLoadResult failed() {
+            return new StructureLoadResult(false, 0, 0, 0);
         }
     }
 
@@ -79,15 +92,16 @@ public final class HbmStructureIO {
         }
     }
 
-    public static boolean loadArea(ServerLevel level, String name, BlockPos origin, int rotation, boolean debug) {
+    public static StructureLoadResult loadArea(ServerLevel level, String name, BlockPos origin, int rotation, boolean debug) {
         Path file = structureFile(level, name);
         try (InputStream stream = Files.newInputStream(file)) {
             CompoundTag root = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
+            int[] size = readIntList(root.getList("size", Tag.TAG_INT), 3);
             placeStructure(level, root, origin, rotation, debug, name);
-            return true;
+            return new StructureLoadResult(true, size[0], size[1], size[2]);
         } catch (IOException exception) {
             ReinhardtsHBM.LOGGER.error("Failed to load HBM structure {}", name, exception);
-            return false;
+            return StructureLoadResult.failed();
         }
     }
 
@@ -117,6 +131,7 @@ public final class HbmStructureIO {
         Map<Short, String> itemPalette = readItemPalette(root);
         ListTag blocks = root.getList("blocks", Tag.TAG_COMPOUND);
         HolderLookup.Provider registries = level.registryAccess();
+        List<PreparedPlacement> placements = new ArrayList<>(blocks.size());
 
         for (int i = 0; i < blocks.size(); i++) {
             CompoundTag blockTag = blocks.getCompound(i);
@@ -136,12 +151,60 @@ public final class HbmStructureIO {
                     local[1],
                     HbmLegacyNbtTemplate.rotateZ(local[0], local[2], rotation, size[0], size[2])
             );
-            BlockState state = HbmLegacyNbtTemplate.stateFromLegacyId(placement.entry().id(), placement.entry().meta())
-                    .rotate(toMcRotation(rotation));
-            level.setBlock(pos, state, 3);
-            if (placement.nbt() != null && state.hasBlockEntity()) {
-                loadBlockEntity(level, pos, state, placement.nbt(), registries);
+            placements.add(new PreparedPlacement(pos, placement.entry(), placement.nbt()));
+        }
+
+        Map<BlockPos, PreparedPlacement> placementsByPos = new HashMap<>();
+        for (PreparedPlacement placement : placements) {
+            placementsByPos.put(placement.pos(), placement);
+        }
+
+        for (PreparedPlacement placement : placements) {
+            BlockState state = HbmLegacyNbtTemplate.stateFromLegacyId(placement.entry().id(), placement.entry().meta());
+            if (state.getBlock() instanceof DoorBlock) {
+                PreparedPlacement lower = (placement.entry().meta() & 8) != 0
+                        ? placementsByPos.get(placement.pos().below())
+                        : placement;
+                PreparedPlacement upper = lower == null ? null : placementsByPos.get(lower.pos().above());
+                if (lower != null
+                        && upper != null
+                        && lower.entry().id().equals(upper.entry().id())
+                        && (lower.entry().meta() & 8) == 0
+                        && (upper.entry().meta() & 8) != 0) {
+                    DoubleBlockHalf half = placement == upper ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER;
+                    state = HbmLegacyNbtTemplate.pairedLegacyDoorState(
+                            state, lower.entry().meta(), upper.entry().meta(), half
+                    );
+                }
             }
+            state = state.rotate(toMcRotation(rotation));
+            level.setBlock(placement.pos(), state, state.getBlock() instanceof DoorBlock ? Block.UPDATE_CLIENTS : Block.UPDATE_ALL);
+            if (placement.nbt() != null && state.hasBlockEntity()) {
+                loadBlockEntity(level, placement.pos(), state, placement.nbt(), registries);
+            }
+            refreshPaneConnections(level, placement.pos());
+        }
+    }
+
+    private static void refreshPaneConnections(ServerLevel level, BlockPos changedPos) {
+        refreshPane(level, changedPos);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            refreshPane(level, changedPos.relative(direction));
+        }
+    }
+
+    private static void refreshPane(ServerLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof IronBarsBlock)) {
+            return;
+        }
+        BlockState connected = state;
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            connected = connected.updateShape(direction, level.getBlockState(neighborPos), level, pos, neighborPos);
+        }
+        if (connected != state) {
+            level.setBlock(pos, connected, 2);
         }
     }
 
@@ -425,6 +488,19 @@ public final class HbmStructureIO {
     }
 
     private static int legacyMeta(BlockState state) {
+        if (state.getBlock() instanceof DoorBlock) {
+            if (state.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
+                return 8 | (state.getValue(DoorBlock.HINGE) == DoorHingeSide.RIGHT ? 1 : 0);
+            }
+            int facing = switch (state.getValue(DoorBlock.FACING)) {
+                case EAST -> 0;
+                case SOUTH -> 1;
+                case WEST -> 2;
+                case NORTH -> 3;
+                default -> 0;
+            };
+            return facing | (state.getValue(DoorBlock.OPEN) ? 4 : 0);
+        }
         if (state.getBlock() instanceof com.reinhardt.hbm.block.FilingCabinetBlock && state.hasProperty(com.reinhardt.hbm.block.FilingCabinetBlock.FACING)) {
             return (com.reinhardt.hbm.block.FilingCabinetBlock.legacyRotation(state.getValue(com.reinhardt.hbm.block.FilingCabinetBlock.FACING)) << 2)
                     | state.getValue(com.reinhardt.hbm.block.FilingCabinetBlock.MATERIAL);
@@ -493,5 +569,8 @@ public final class HbmStructureIO {
     }
 
     private record Placement(PaletteEntry entry, CompoundTag nbt) {
+    }
+
+    private record PreparedPlacement(BlockPos pos, PaletteEntry entry, CompoundTag nbt) {
     }
 }

@@ -28,6 +28,7 @@ public final class RhbmCommand {
     }
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        NtmLocateCommand.register(dispatcher);
         dispatcher.register(
                 Commands.literal("rhbm")
                         .then(Commands.literal("radiation")

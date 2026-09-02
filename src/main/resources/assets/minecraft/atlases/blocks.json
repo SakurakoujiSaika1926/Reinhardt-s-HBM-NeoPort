@@ -211,6 +211,10 @@
     {
       "type": "single",
       "resource": "reinhardtshbm:block/boxduct_exhaust_junction_4"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/glyphid"
     }
   ]
 }

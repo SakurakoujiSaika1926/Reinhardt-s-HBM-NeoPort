@@ -63,6 +63,40 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+// A corrupted compressed entry turns every GUI/model texture in the deployed
+// archive into a purple-black placeholder. Store entries and read them back in
+// verification so a broken JAR cannot reach the game directory.
+tasks.withType(org.gradle.jvm.tasks.Jar).configureEach {
+    entryCompression = org.gradle.api.tasks.bundling.ZipEntryCompression.STORED
+}
+
+tasks.register('validateJarIntegrity') {
+    group = 'verification'
+    description = 'Reads every entry in the built mod JAR to detect archive corruption.'
+    dependsOn tasks.named('jar')
+    inputs.file(tasks.named('jar').flatMap { it.archiveFile })
+    outputs.upToDateWhen { false }
+
+    doLast {
+        File archive = tasks.named('jar').get().archiveFile.get().asFile
+        int entries = 0
+        new java.util.zip.ZipFile(archive).withCloseable { zip ->
+            zip.entries().each { entry ->
+                if (!entry.directory) {
+                    zip.getInputStream(entry).withCloseable { input ->
+                        byte[] buffer = new byte[16 * 1024]
+                        while (input.read(buffer) != -1) {
+                            // Consume the complete entry so CRC and size checks run.
+                        }
+                    }
+                    entries++
+                }
+            }
+        }
+        logger.lifecycle("Validated ${entries} readable entries in ${archive.name}")
+    }
+}
+
 def localClientModsDir = file(findProperty('local_client_mods_dir') ?: "${buildDir}/deployed-mods")
 def jeiCompileOnlyFiles = fileTree(localClientModsDir) {
     include '*jei*.jar'
@@ -1704,6 +1738,7 @@ tasks.register('deployClientMod', Copy) {
     group = 'distribution'
     description = 'Copies the built mod jar into the configured local NeoForge mods folder.'
     dependsOn tasks.named('jar')
+    dependsOn tasks.named('validateJarIntegrity')
     dependsOn tasks.named('cleanDeployedClientMod')
     dependsOn tasks.named('validateThermalParity')
     dependsOn tasks.named('validatePowerParity')
@@ -1712,6 +1747,7 @@ tasks.register('deployClientMod', Copy) {
 }
 
 tasks.named('build') {
+    dependsOn tasks.named('validateJarIntegrity')
     dependsOn tasks.named('validateLegacyItemPorts')
     dependsOn tasks.named('runData')
     dependsOn tasks.named('validateObjModels')

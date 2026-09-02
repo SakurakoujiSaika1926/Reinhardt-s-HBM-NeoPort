@@ -18,6 +18,39 @@ final class HbmLegacyStructureSelection {
     }
 
     static SelectedStructure select(Holder<Biome> biome, RandomSource random) {
+        List<Candidate> candidates = candidates();
+
+        int totalWeight = 0;
+        for (Candidate candidate : candidates) {
+            if (candidate.canSpawn.test(biome)) {
+                totalWeight += Math.max(0, candidate.weight.getAsInt());
+            }
+        }
+        if (totalWeight <= 0) {
+            return null;
+        }
+
+        int selected = random.nextInt(totalWeight);
+        for (Candidate candidate : candidates) {
+            if (!candidate.canSpawn.test(biome)) {
+                continue;
+            }
+            selected -= Math.max(0, candidate.weight.getAsInt());
+            if (selected < 0) {
+                return candidate.toSelected();
+            }
+        }
+        return null;
+    }
+
+    static List<String> listStructures() {
+        return candidates().stream()
+                .map(Candidate::spawnName)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+    }
+
+    private static List<Candidate> candidates() {
         List<Candidate> candidates = new ArrayList<>();
         add(candidates, "spire", "spire", -1, 1, 128, false, HbmConfig.HBM_STRUCTURE_SPIRE_WEIGHT, HbmLegacyStructureSelection::isVeryFlatNonInvalid);
         add(candidates, "vertibird", "vertibird", -3, 1, 128, false, HbmConfig.HBM_STRUCTURE_VERTIBIRD_WEIGHT, HbmLegacyStructureSelection::isSandy);
@@ -55,27 +88,7 @@ final class HbmLegacyStructureSelection {
         addNull(candidates, HbmConfig.HBM_STRUCTURE_PLAINS_NULL_WEIGHT, HbmLegacyStructureSelection::isPlains);
         addNull(candidates, HbmConfig.HBM_STRUCTURE_OCEAN_NULL_WEIGHT, HbmLegacyStructureSelection::isOcean);
 
-        int totalWeight = 0;
-        for (Candidate candidate : candidates) {
-            if (candidate.canSpawn.test(biome)) {
-                totalWeight += Math.max(0, candidate.weight.getAsInt());
-            }
-        }
-        if (totalWeight <= 0) {
-            return null;
-        }
-
-        int selected = random.nextInt(totalWeight);
-        for (Candidate candidate : candidates) {
-            if (!candidate.canSpawn.test(biome)) {
-                continue;
-            }
-            selected -= Math.max(0, candidate.weight.getAsInt());
-            if (selected < 0) {
-                return candidate.toSelected();
-            }
-        }
-        return null;
+        return candidates;
     }
 
     private static void add(List<Candidate> candidates, String spawnName, String templateName, int heightOffset, int minHeight, int maxHeight, boolean conformToTerrain, IntSupplier weight, Predicate<Holder<Biome>> canSpawn) {

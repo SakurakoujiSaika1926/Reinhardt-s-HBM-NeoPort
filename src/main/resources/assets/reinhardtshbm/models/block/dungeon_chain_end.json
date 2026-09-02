@@ -2,6 +2,6 @@
   "parent": "minecraft:block/cross",
   "render_type": "minecraft:cutout",
   "textures": {
-    "cross": "reinhardtshbm:block/chain"
+    "cross": "reinhardtshbm:block/chain_end"
   }
 }

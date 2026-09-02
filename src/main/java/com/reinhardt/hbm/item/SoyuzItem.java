@@ -7,6 +7,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 
 import java.util.List;
 
@@ -16,12 +17,16 @@ public final class SoyuzItem extends Item {
         super(new Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
     }
 
+    public static int skin(ItemStack stack) {
+        return Math.clamp(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
+                .copyTag().getInt("skin"), 0, 2);
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        int skin = stack.getOrDefault(DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY)
-                .copyTag().getInt("skin");
+        int skin = skin(stack);
         tooltip.add(Component.translatable("tooltip.reinhardtshbm.soyuz.skin").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.soyuz.skin." + Math.clamp(skin, 0, 2))
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.soyuz.skin." + skin)
                 .withStyle(skin == 0 ? ChatFormatting.GOLD : skin == 1 ? ChatFormatting.BLUE : ChatFormatting.GREEN));
     }
 }

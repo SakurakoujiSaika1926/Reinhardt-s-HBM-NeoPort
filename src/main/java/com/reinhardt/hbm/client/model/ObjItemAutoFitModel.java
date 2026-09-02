@@ -47,13 +47,13 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "battery_pack_capacitor_spark", "battery_pack_capacitor_tantalum",
             "machine_chungus", "machine_combustion_engine", "machine_condenser_powered",
             "machine_crucible", "machine_diesel", "machine_epress", "machine_fracking_tower",
-            "machine_funnel", "machine_gascent", "machine_industrial_boiler",
+            "machine_gascent", "machine_industrial_boiler",
             "machine_industrial_turbine", "machine_intake", "machine_large_turbine",
             "machine_press", "machine_reactor_breeding", "machine_solar_boiler",
             "machine_soldering_station", "machine_steam_engine", "machine_stirling",
             "machine_stirling_creative", "machine_stirling_steel", "machine_tower_large",
             "machine_tower_small", "machine_turbinegas", "machine_well", "machine_wood_burner",
-            "machine_zirnox", "solar_mirror", "zirnox_destroyed"
+            "solar_mirror", "zirnox_destroyed"
     );
 
     /* These items render their complete legacy OBJ assembly through BEWLR. */
@@ -229,11 +229,9 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("launch_pad_large")
                 || path.equals("launch_pad_rusted")
                 || path.equals("launch_table")
-                || path.equals("soyuz_launcher")
                 || path.equals("soyuz_capsule")
                 || path.equals("watz")
                 || path.equals("watz_pump")
-                || path.equals("machine_zirnox")
                 || path.equals("zirnox_destroyed")
                 || path.equals("fusion_torus")
                 || path.equals("fusion_klystron")
@@ -247,13 +245,11 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("machine_assembly_machine")
                 || path.equals("machine_chemical_plant")
                 || path.equals("machine_soldering_station")
-                || path.equals("machine_arc_welder")
                 || path.equals("machine_arc_furnace")
                 || path.equals("machine_storage_drum")
                 || path.equals("machine_compressor")
                 || path.equals("machine_compressor_compact")
                 || path.equals("machine_mixer")
-                || path.equals("machine_funnel")
                 || path.equals("machine_tower_small")
                 || path.equals("machine_tower_large")
                 || path.equals("machine_crucible")
@@ -399,13 +395,11 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             case "soyuz_capsule" -> 0.82F;
             case "machine_strand_caster" -> 1.05F;
             case "machine_battery_redd" -> 1.22F;
-            case "machine_arc_welder" -> 0.82F;
             case "machine_arc_furnace" -> 1.18F;
             case "machine_storage_drum" -> 1.00F;
             case "machine_compressor" -> 1.18F;
             case "machine_compressor_compact" -> 1.12F;
             case "machine_mixer" -> 1.08F;
-            case "machine_funnel" -> 0.95F;
             case "machine_deuterium_tower" -> 0.98F;
             case "machine_annihilator" -> 0.82F;
             case "machine_autosaw" -> 1.00F;

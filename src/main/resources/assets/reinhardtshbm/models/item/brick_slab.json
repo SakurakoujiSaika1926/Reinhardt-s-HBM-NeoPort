@@ -1,3 +1,11 @@
 {
-  "parent": "reinhardtshbm:block/brick_slab_reinforced_stone"
+  "parent": "reinhardtshbm:block/brick_slab_reinforced_stone",
+  "overrides": [
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/brick_slab_reinforced_brick" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/brick_slab_brick_obsidian" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:block/brick_slab_brick_light" },
+    { "predicate": { "minecraft:custom_model_data": 4 }, "model": "reinhardtshbm:block/brick_slab_brick_compound" },
+    { "predicate": { "minecraft:custom_model_data": 5 }, "model": "reinhardtshbm:block/brick_slab_brick_asbestos" },
+    { "predicate": { "minecraft:custom_model_data": 6 }, "model": "reinhardtshbm:block/brick_slab_brick_fire" }
+  ]
 }

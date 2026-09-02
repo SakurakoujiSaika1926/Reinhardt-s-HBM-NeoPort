@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.WandJigsawBlockEntity;
+import com.reinhardt.hbm.client.WandClientHooks;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.worldgen.structure.StructureWandBlockTarget;
 import net.minecraft.core.BlockPos;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 public class WandJigsawBlock extends AbstractFacingWandBlock {
     public WandJigsawBlock(Properties properties) {
@@ -58,10 +60,8 @@ public class WandJigsawBlock extends AbstractFacingWandBlock {
     }
 
     private static void openClientScreen(BlockPos pos) {
-        try {
-            Class<?> hooks = Class.forName("com.reinhardt.hbm.client.WandClientHooks");
-            hooks.getMethod("openJigsaw", BlockPos.class).invoke(null, pos);
-        } catch (ReflectiveOperationException ignored) {
+        if (FMLEnvironment.dist.isClient()) {
+            WandClientHooks.openJigsaw(pos);
         }
     }
 }

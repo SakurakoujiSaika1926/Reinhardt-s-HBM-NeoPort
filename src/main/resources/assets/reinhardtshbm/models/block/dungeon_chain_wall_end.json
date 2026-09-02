@@ -2,8 +2,8 @@
   "ambientocclusion": false,
   "render_type": "minecraft:cutout",
   "textures": {
-    "chain": "reinhardtshbm:block/chain",
-    "particle": "reinhardtshbm:block/chain"
+    "chain": "reinhardtshbm:block/chain_end",
+    "particle": "reinhardtshbm:block/chain_end"
   },
   "elements": [
     {

@@ -8,15 +8,18 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 
 import java.util.Optional;
+import java.util.List;
 
 public final class HbmLegacyNbtStructure extends Structure {
     public static final MapCodec<HbmLegacyNbtStructure> CODEC = Structure.simpleCodec(HbmLegacyNbtStructure::new);
@@ -93,6 +96,10 @@ public final class HbmLegacyNbtStructure extends Structure {
     }
 
     private static boolean isLegacyCandidateChunk(GenerationContext context, ChunkPos chunk) {
+        return isLegacyCandidateChunk(context.random(), context.seed(), chunk);
+    }
+
+    private static boolean isLegacyCandidateChunk(RandomSource random, long worldSeed, ChunkPos chunk) {
         int minChunks = Math.max(0, HbmConfig.HBM_STRUCTURE_MIN_CHUNKS.get());
         int maxChunks = Math.max(1, HbmConfig.HBM_STRUCTURE_MAX_CHUNKS.get());
         if (maxChunks <= minChunks) {
@@ -110,14 +117,37 @@ public final class HbmLegacyNbtStructure extends Structure {
 
         x /= maxChunks;
         z /= maxChunks;
-        WorldgenRandom random = context.random();
-        random.setSeed((long) x * 341873128712L + (long) z * 132897987541L + context.seed() + 996996996L);
+        random.setSeed((long) x * 341873128712L + (long) z * 132897987541L + worldSeed + 996996996L);
         x *= maxChunks;
         z *= maxChunks;
         int spread = Math.max(1, maxChunks - minChunks);
         x += random.nextInt(spread);
         z += random.nextInt(spread);
         return chunk.x == x && chunk.z == z;
+    }
+
+    public static String selectedNameAt(ServerLevel level, ChunkPos chunk) {
+        if (!HbmConfig.GENERATE_HBM_STRUCTURES.get()) {
+            return null;
+        }
+        WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(0L));
+        if (!isLegacyCandidateChunk(random, level.getSeed(), chunk)) {
+            return null;
+        }
+        int centerX = chunk.getMiddleBlockX();
+        int centerZ = chunk.getMiddleBlockZ();
+        Holder<Biome> biome = level.getChunkSource().getGenerator().getBiomeSource().getNoiseBiome(
+                QuartPos.fromBlock(centerX),
+                QuartPos.fromBlock(64),
+                QuartPos.fromBlock(centerZ),
+                level.getChunkSource().randomState().sampler()
+        );
+        HbmLegacyStructureSelection.SelectedStructure selected = HbmLegacyStructureSelection.select(biome, random);
+        return selected == null ? null : selected.spawnName();
+    }
+
+    public static List<String> listStructureNames() {
+        return HbmLegacyStructureSelection.listStructures();
     }
 
     private static int terrainAlignedY(GenerationContext context, int originX, int originZ, int sizeX, int sizeZ, HbmLegacyStructureSelection.SelectedStructure selected) {

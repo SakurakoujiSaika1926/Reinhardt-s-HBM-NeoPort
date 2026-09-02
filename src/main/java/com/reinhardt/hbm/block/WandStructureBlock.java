@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.WandStructureBlockEntity;
+import com.reinhardt.hbm.client.WandClientHooks;
 import com.reinhardt.hbm.item.WandStructureBlockItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.worldgen.structure.HbmStructureIO;
@@ -25,6 +26,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.util.List;
 
@@ -94,10 +96,8 @@ public class WandStructureBlock extends Block implements EntityBlock {
     }
 
     private static void openClientScreen(BlockPos pos, boolean load) {
-        try {
-            Class<?> hooks = Class.forName("com.reinhardt.hbm.client.WandClientHooks");
-            hooks.getMethod("openStructure", BlockPos.class, boolean.class).invoke(null, pos, load);
-        } catch (ReflectiveOperationException ignored) {
+        if (FMLEnvironment.dist.isClient()) {
+            WandClientHooks.openStructure(pos, load);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.WandTandemBlockEntity;
+import com.reinhardt.hbm.client.WandClientHooks;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.worldgen.structure.StructureWandBlockTarget;
 import net.minecraft.core.BlockPos;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 public class WandTandemBlock extends AbstractFacingWandBlock {
     public WandTandemBlock(Properties properties) {
@@ -85,10 +87,8 @@ public class WandTandemBlock extends AbstractFacingWandBlock {
     }
 
     private static void openClientScreen(BlockPos pos) {
-        try {
-            Class<?> hooks = Class.forName("com.reinhardt.hbm.client.WandClientHooks");
-            hooks.getMethod("openTandem", BlockPos.class).invoke(null, pos);
-        } catch (ReflectiveOperationException ignored) {
+        if (FMLEnvironment.dist.isClient()) {
+            WandClientHooks.openTandem(pos);
         }
     }
 }

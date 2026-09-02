@@ -15,6 +15,7 @@ import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.worldgen.GlyphidHiveGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -185,6 +186,26 @@ public class GlyphidEntity extends Monster {
     public Variant getVariant() {
         int id = entityData.get(VARIANT);
         return id < 0 || id >= Variant.values().length ? Variant.NORMAL : Variant.values()[id];
+    }
+
+    @Override
+    public Component getName() {
+        Component customName = getCustomName();
+        if (customName != null) {
+            return customName;
+        }
+        String suffix = switch (getVariant()) {
+            case BEHEMOTH -> "_behemoth";
+            case BLASTER -> "_blaster";
+            case BOMBARDIER -> "_bombardier";
+            case BRAWLER -> "_brawler";
+            case BRENDA -> "_brenda";
+            case DIGGER -> "_digger";
+            case NUCLEAR -> "_nuclear";
+            case SCOUT -> "_scout";
+            default -> "";
+        };
+        return Component.translatable("entity.reinhardtshbm.glyphid" + suffix);
     }
 
     public void setVariant(Variant variant) {
@@ -972,6 +993,8 @@ public class GlyphidEntity extends Monster {
             bit = 1 << random.nextInt(5);
         } while ((mask & bit) == 0);
         entityData.set(ARMOR, (byte) (mask & ~bit));
+        level().playSound(null, blockPosition(), net.minecraft.sounds.SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR,
+                net.minecraft.sounds.SoundSource.HOSTILE, 1.0F, 1.25F);
     }
 
     @Override

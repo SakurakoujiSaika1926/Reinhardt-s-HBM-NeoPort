@@ -1,3 +1,6 @@
 {
-    "parent":  "reinhardtshbm:block/soyuz_launcher"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:block/soyuz_launcher"
+  }
 }

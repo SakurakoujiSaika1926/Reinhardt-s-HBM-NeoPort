@@ -2505,8 +2505,12 @@ public final class HbmBlocks {
             () -> new WoodStructureBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD)
                     .strength(5.0F, 15.0F).sound(SoundType.WOOD).noOcclusion()),
             WoodStructureBlock.TYPE, "block.reinhardtshbm.wood_structure", "roof", "scaffold", "ceiling");
-    public static final DeferredBlock<Block> BRICK_SLAB = legacyVariantSlab("brick_slab", LegacyVariantStrengths.BRICK_SLAB);
-    public static final DeferredBlock<Block> BRICK_DOUBLE_SLAB = legacyVariantBlock("brick_double_slab", LegacyVariantStrengths.BRICK_SLAB);
+    public static final DeferredBlock<Block> BRICK_SLAB = legacyVariantSlab("brick_slab", LegacyVariantStrengths.BRICK_SLAB,
+            "block.reinhardtshbm.brick_slab", "reinforced_stone", "reinforced_brick", "brick_obsidian",
+            "brick_light", "brick_compound", "brick_asbestos", "brick_fire");
+    public static final DeferredBlock<Block> BRICK_DOUBLE_SLAB = legacyVariantBlock("brick_double_slab", LegacyVariantStrengths.BRICK_SLAB,
+            "block.reinhardtshbm.brick_slab", "reinforced_stone", "reinforced_brick", "brick_obsidian",
+            "brick_light", "brick_compound", "brick_asbestos", "brick_fire");
     public static final DeferredBlock<Block> CONCRETE_BRICK_SLAB = legacyVariantSlab("concrete_brick_slab", LegacyVariantStrengths.CONCRETE_BRICK_SLAB);
     public static final DeferredBlock<Block> CONCRETE_BRICK_DOUBLE_SLAB = legacyVariantBlock("concrete_brick_double_slab", LegacyVariantStrengths.CONCRETE_BRICK_SLAB);
     public static final DeferredBlock<Block> CONCRETE_SLAB = legacyVariantSlab("concrete_slab", LegacyVariantStrengths.CONCRETE_SLAB);
@@ -4671,10 +4675,26 @@ public final class HbmBlocks {
                         LegacyVariantStrengths.maxResistance(strengths)), strengths));
     }
 
+    private static DeferredBlock<Block> legacyVariantSlab(String name, LegacyVariantStrengths.Strength[] strengths,
+                                                           String translationBase, String... variants) {
+        return registerVariantBlock(name, () -> new LegacyVariantSlabBlock(rock()
+                        .strength(LegacyVariantStrengths.maxHardness(strengths),
+                                LegacyVariantStrengths.maxResistance(strengths)), strengths),
+                LegacyVariantSlabBlock.VARIANT, translationBase, variants);
+    }
+
     private static DeferredBlock<Block> legacyVariantBlock(String name, LegacyVariantStrengths.Strength[] strengths) {
         return registerBlock(name, () -> new LegacyVariantBlock(rock()
                 .strength(LegacyVariantStrengths.maxHardness(strengths),
                         LegacyVariantStrengths.maxResistance(strengths)), strengths));
+    }
+
+    private static DeferredBlock<Block> legacyVariantBlock(String name, LegacyVariantStrengths.Strength[] strengths,
+                                                            String translationBase, String... variants) {
+        return registerVariantBlock(name, () -> new LegacyVariantBlock(rock()
+                        .strength(LegacyVariantStrengths.maxHardness(strengths),
+                                LegacyVariantStrengths.maxResistance(strengths)), strengths),
+                LegacyVariantBlock.VARIANT, translationBase, variants);
     }
 
     private static DeferredBlock<Block> registerVariantBlock(String name, Supplier<? extends Block> block,
