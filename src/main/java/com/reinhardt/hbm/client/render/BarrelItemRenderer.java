@@ -51,11 +51,9 @@ public final class BarrelItemRenderer extends BlockEntityWithoutLevelRenderer {
 
         poseStack.pushPose();
         applyLegacyBlockItemTransform(context, poseStack);
-        // ItemRenderer has already translated BEWLR models by (-0.5, -0.5,
-        // -0.5). Restore that origin before applying RenderBarrel's own
-        // legacy Y translation.
-        poseStack.translate(0.5F, 0.5F, 0.5F);
-        // RenderBarrel.renderInventoryBlock: GL11.glTranslated(0, -0.5, 0).
+        // ItemRenderer's (-0.5, -0.5, -0.5) maps the modern block-space OBJ
+        // back to RenderBarrel's old origin-centered geometry. The legacy
+        // renderer then applies exactly this Y translation.
         poseStack.translate(0.0F, -0.5F, 0.0F);
         MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();

@@ -116,9 +116,12 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
         applyLegacyMiniPanelCameraTransform(context, poseStack);
 
         poseStack.pushPose();
+        // RBMKDisplay inherits RBMKMiniPanelBase#renderInventoryBlock. Use
+        // the display block's [4,16] X bounds directly so its front face and
+        // the old +90 degree inventory rotation remain unchanged.
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-        poseStack.translate(-0.25F, -0.5F, -0.5F);
-        renderModel(MINI_PANEL_BASE, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        renderModel(MODELS.get(kind), state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
 
         if (kind == RbmkComponentBlock.Kind.DISPLAY || kind == RbmkComponentBlock.Kind.DISPLAY_BLANK) {

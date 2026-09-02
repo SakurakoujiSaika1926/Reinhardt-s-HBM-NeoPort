@@ -159,7 +159,7 @@ public final class ClassicCableBakedModel implements IDynamicBakedModel {
                     max, max, max, min, max, max, min, min, max, max, min, max,
                     5, 0, 0, 0, 0, 5, 5, 5);
             case NORTH -> quad(quads, sprite, direction, inventory,
-                    max, max, min, min, max, min, min, min, min, max, min, min,
+                    min, max, min, max, max, min, max, min, min, min, min, min,
                     5, 0, 0, 0, 0, 5, 5, 5);
         }
     }
@@ -252,7 +252,7 @@ public final class ClassicCableBakedModel implements IDynamicBakedModel {
                         min, max, max, min, min, max, min, min, 1, min, max, 1,
                         5, 0, 5, 5, 10, 5, 10, 0);
                 quad(quads, sprite, Direction.DOWN, inventory,
-                        max, min, max, min, min, max, min, min, 1, max, min, 1,
+                        min, min, max, max, min, max, max, min, 1, min, min, 1,
                         5, 0, 5, 5, 10, 5, 10, 0);
                 quad(quads, sprite, Direction.EAST, inventory,
                         max, min, max, max, max, max, max, max, 1, max, min, 1,

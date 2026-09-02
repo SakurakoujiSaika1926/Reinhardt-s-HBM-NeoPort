@@ -12,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.lwjgl.glfw.GLFW;
@@ -178,14 +177,7 @@ public final class PrecisionAssemblerRecipeSelectorScreen extends Screen {
     }
 
     static ItemStack displayIngredient(PrecisionAssemblerRecipe.CountedIngredient ingredient) {
-        if (ingredient.ingredient().hasNoItems()) {
-            return BuiltInRegistries.ITEM.getOptional(ReinhardtsHBM.id("nothing"))
-                    .map(item -> new ItemStack(item, ingredient.count()))
-                    .map(stack -> {
-                        return stack;
-                    })
-                    .orElseThrow(() -> new IllegalStateException("Missing 1.7.10 precision assembler display item: reinhardtshbm:nothing"));
-        }
+        if (ingredient.ingredient().hasNoItems()) return ItemStack.EMPTY;
         ItemStack display = Arrays.stream(ingredient.ingredient().getItems())
                 .findFirst()
                 .orElse(ItemStack.EMPTY)

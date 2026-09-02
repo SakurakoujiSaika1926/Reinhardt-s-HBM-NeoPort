@@ -18,14 +18,18 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** Renders charge geometry and the old green MM:SS display without a second block model. */
 public final class WallChargeBlockEntityRenderer implements BlockEntityRenderer<WallChargeBlockEntity> {
     private static final ModelResourceLocation DYNAMITE = model("block/charge_dynamite_world");
+    private static final ModelResourceLocation MINER = model("block/charge_miner_world");
     private static final ModelResourceLocation C4 = model("block/charge_c4_world");
+    private static final ModelResourceLocation SEMTEX = model("block/charge_semtex_world");
 
     public WallChargeBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(DYNAMITE);
+        event.register(MINER);
         event.register(C4);
+        event.register(SEMTEX);
     }
 
     @Override
@@ -36,9 +40,12 @@ public final class WallChargeBlockEntityRenderer implements BlockEntityRenderer<
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.5D, 0.5D);
         applyLegacyFacing(poseStack, facing);
-        poseStack.translate(-0.5D, -0.5D, -0.5D);
-        ModelResourceLocation model = charge.kind() == WallChargeBlock.Kind.C4
-                || charge.kind() == WallChargeBlock.Kind.SEMTEX ? C4 : DYNAMITE;
+        ModelResourceLocation model = switch (charge.kind()) {
+            case DYNAMITE -> DYNAMITE;
+            case MINER -> MINER;
+            case C4 -> C4;
+            case SEMTEX -> SEMTEX;
+        };
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack,
                 bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();

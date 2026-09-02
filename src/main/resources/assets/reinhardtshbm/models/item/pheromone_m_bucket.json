@@ -1,4 +1,5 @@
 {
     "parent":  "neoforge:item/bucket",
+    "loader":  "neoforge:fluid_container",
     "fluid":  "reinhardtshbm:pheromone_m"
 }

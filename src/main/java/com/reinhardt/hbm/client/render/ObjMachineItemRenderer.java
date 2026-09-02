@@ -963,12 +963,9 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "machine_combustion_engine", 90.0F, 0.54F, "block/machine_combustion_engine");
         add(profiles, "machine_battery_socket", 0.0F, 0.86F,
                 "block/machine_battery_socket_socket");
-        // RenderCharger renders the complete static assembly in inventory.
-        // Leaving out the arms and indicator light made the item a visibly
-        // incomplete version of the placed charger.
+        // ItemRenderLibrary renders only Base and Slide for the charger item.
         add(profiles, "charger", 0.0F, 0.86F,
-                "block/charger_base", "block/charger_left", "block/charger_right",
-                "block/charger_light", "block/charger_slide");
+                "block/charger_base", "block/charger_slide");
         add(profiles, "machine_battery_redd", -90.0F, 0.90F,
                 "block/machine_battery_redd_base", "block/machine_battery_redd_wheel",
                 "block/machine_battery_redd_lights");
