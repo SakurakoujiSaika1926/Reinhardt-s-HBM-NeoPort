@@ -14,6 +14,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -66,10 +67,17 @@ public final class PrecisionAssemblerRecipeCategory implements IRecipeCategory<R
         PrecisionAssemblerRecipe recipe = holder.value();
         for (int index = 0; index < recipe.ingredients().size(); index++) {
             PrecisionAssemblerRecipe.CountedIngredient ingredient = recipe.ingredients().get(index);
-            List<ItemStack> stacks = Arrays.stream(ingredient.ingredient().getItems())
-                    .map(ItemStack::copy)
-                    .peek(stack -> stack.setCount(ingredient.count()))
-                    .toList();
+            List<ItemStack> stacks;
+            if (ingredient.ingredient().hasNoItems()) {
+                stacks = BuiltInRegistries.ITEM.getOptional(ReinhardtsHBM.id("nothing"))
+                        .map(item -> List.of(new ItemStack(item, ingredient.count())))
+                        .orElseThrow(() -> new IllegalStateException("Missing 1.7.10 precision assembler display item: reinhardtshbm:nothing"));
+            } else {
+                stacks = Arrays.stream(ingredient.ingredient().getItems())
+                        .map(ItemStack::copy)
+                        .peek(stack -> stack.setCount(ingredient.count()))
+                        .toList();
+            }
             builder.addInputSlot(8 + index % 3 * 18, 27 + index / 3 * 18).addItemStacks(stacks);
         }
 
