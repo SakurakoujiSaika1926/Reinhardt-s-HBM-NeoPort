@@ -166,6 +166,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.LANTERN_BEHEMOTH.get(), LanternBehemothBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.DECO_DISPLAY.get(), DecoDisplayBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.LEGACY_DISPLAY_STAND.get(), LegacyDisplayStandBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.DECO_LOOT.get(), DecoLootBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.FILING_CABINET.get(), FilingCabinetBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.TAPE_RECORDER.get(), TapeRecorderBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.WOOD_BURNER.get(), WoodBurnerBlockEntityRenderer::new);
@@ -414,6 +415,7 @@ public final class HbmClientRenderers {
         TapeRecorderBlockEntityRenderer.registerAdditionalModels(event);
         DecoDisplayBlockEntityRenderer.registerAdditionalModels(event);
         LegacyDisplayStandBlockEntityRenderer.registerAdditionalModels(event);
+        DecoLootBlockEntityRenderer.registerAdditionalModels(event);
         WoodBurnerBlockEntityRenderer.registerAdditionalModels(event);
         DieselGeneratorBlockEntityRenderer.registerAdditionalModels(event);
         CombustionEngineBlockEntityRenderer.registerAdditionalModels(event);

@@ -1,0 +1,12 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/loot/ncrpa.obj",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "RightBoot": false, "LeftBoot": false, "Eyes": false, "LeftArm": false,
+    "LeftLeg": true, "RightLeg": false, "RightArm": false, "Helmet": false, "Chest": false
+  },
+  "textures": { "particle": "reinhardtshbm:armor/ncrpa_leg" }
+}

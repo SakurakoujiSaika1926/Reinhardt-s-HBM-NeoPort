@@ -1,0 +1,12 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/loot/trenchmaster.obj",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "LeftBoot": false, "RightBoot": false, "Light": false, "RightLeg": false,
+    "LeftLeg": false, "RightArm": true, "LeftArm": false, "Helmet": false, "Chest": false
+  },
+  "textures": { "particle": "reinhardtshbm:armor/trenchmaster_arm" }
+}

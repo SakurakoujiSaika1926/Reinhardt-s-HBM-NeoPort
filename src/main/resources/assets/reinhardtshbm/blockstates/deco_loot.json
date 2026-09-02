@@ -1,7 +1,7 @@
 ﻿{
   "variants": {
     "": {
-      "model": "reinhardtshbm:block/deco_loot"
+      "model": "reinhardtshbm:block/empty"
     }
   }
 }
