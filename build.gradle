@@ -72,6 +72,16 @@ if (jeiCompileOnlyFiles.isEmpty()) {
         include '*jei*.jar'
     }
 }
+def jadeCompileOnlyFiles = fileTree(localClientModsDir) {
+    include '*Jade*.jar'
+    include '*jade*.jar'
+}
+if (jadeCompileOnlyFiles.isEmpty()) {
+    jadeCompileOnlyFiles = fileTree('local-deps') {
+        include '*Jade*.jar'
+        include '*jade*.jar'
+    }
+}
 
 repositories {
     mavenCentral()
@@ -79,6 +89,7 @@ repositories {
 
 dependencies {
     compileOnly files(jeiCompileOnlyFiles)
+    compileOnly files(jadeCompileOnlyFiles)
 }
 
 tasks.withType(ProcessResources).configureEach {
