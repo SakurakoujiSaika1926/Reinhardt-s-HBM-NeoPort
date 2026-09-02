@@ -300,7 +300,7 @@ public final class ClassicCableBakedModel implements IDynamicBakedModel {
             }
             baker.addVertex(x, y, z);
             baker.setColor(255, 255, 255, 255);
-            baker.setUv(sprite.getU(vertex[3]), sprite.getV(vertex[4]));
+            baker.setUv(sprite.getU(vertex[3] / 16.0F), sprite.getV(vertex[4] / 16.0F));
             baker.setLight(0);
             baker.setNormal(face.getStepX(), face.getStepY(), face.getStepZ());
         }
