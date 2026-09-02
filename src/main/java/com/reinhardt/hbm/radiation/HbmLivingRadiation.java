@@ -41,14 +41,26 @@ public class HbmLivingRadiation {
     private float chunkRadiation;
     private float neutron;
     private float digamma;
+    private boolean dirty;
+    private float appliedDigamma = Float.NaN;
 
     public static HbmLivingRadiation get(LivingEntity entity) {
         return entity.getData(HbmDataAttachments.LIVING_RADIATION);
     }
 
     public static void set(LivingEntity entity, HbmLivingRadiation data) {
-        entity.setData(HbmDataAttachments.LIVING_RADIATION, data);
-        applyDigammaModifier(entity, data.getDigamma());
+        HbmLivingRadiation existing = entity.getExistingDataOrNull(HbmDataAttachments.LIVING_RADIATION);
+        if (existing != data) {
+            entity.setData(HbmDataAttachments.LIVING_RADIATION, data);
+            data.dirty = false;
+        } else if (data.dirty) {
+            entity.syncData(HbmDataAttachments.LIVING_RADIATION);
+            data.dirty = false;
+        }
+        if (Float.compare(data.appliedDigamma, data.getDigamma()) != 0) {
+            applyDigammaModifier(entity, data.getDigamma());
+            data.appliedDigamma = data.getDigamma();
+        }
     }
 
     public float getRadiation() {
@@ -56,7 +68,11 @@ public class HbmLivingRadiation {
     }
 
     public void setRadiation(float radiation) {
-        this.radiation = clamp(radiation, 0.0F, MAX_RADIATION);
+        float clamped = clamp(radiation, 0.0F, MAX_RADIATION);
+        if (Float.compare(this.radiation, clamped) != 0) {
+            this.radiation = clamped;
+            dirty = true;
+        }
     }
 
     public void addRadiation(float amount) {
@@ -68,7 +84,11 @@ public class HbmLivingRadiation {
     }
 
     public void setEnvironmentRadiation(float environmentRadiation) {
-        this.environmentRadiation = Math.max(0.0F, environmentRadiation);
+        float clamped = Math.max(0.0F, environmentRadiation);
+        if (Float.compare(this.environmentRadiation, clamped) != 0) {
+            this.environmentRadiation = clamped;
+            dirty = true;
+        }
     }
 
     public void addEnvironmentRadiation(float amount) {
@@ -80,7 +100,11 @@ public class HbmLivingRadiation {
     }
 
     public void setRadiationBuffer(float radiationBuffer) {
-        this.radiationBuffer = Math.max(0.0F, radiationBuffer);
+        float clamped = Math.max(0.0F, radiationBuffer);
+        if (Float.compare(this.radiationBuffer, clamped) != 0) {
+            this.radiationBuffer = clamped;
+            dirty = true;
+        }
     }
 
     public float getChunkRadiation() {
@@ -88,7 +112,11 @@ public class HbmLivingRadiation {
     }
 
     public void setChunkRadiation(float chunkRadiation) {
-        this.chunkRadiation = Math.max(0.0F, chunkRadiation);
+        float clamped = Math.max(0.0F, chunkRadiation);
+        if (Float.compare(this.chunkRadiation, clamped) != 0) {
+            this.chunkRadiation = clamped;
+            dirty = true;
+        }
     }
 
     public float getNeutron() {
@@ -96,7 +124,11 @@ public class HbmLivingRadiation {
     }
 
     public void setNeutron(float neutron) {
-        this.neutron = Math.max(0.0F, neutron);
+        float clamped = Math.max(0.0F, neutron);
+        if (Float.compare(this.neutron, clamped) != 0) {
+            this.neutron = clamped;
+            dirty = true;
+        }
     }
 
     public float getDigamma() {
@@ -104,7 +136,11 @@ public class HbmLivingRadiation {
     }
 
     public void setDigamma(float digamma) {
-        this.digamma = clamp(digamma, 0.0F, MAX_DIGAMMA);
+        float clamped = clamp(digamma, 0.0F, MAX_DIGAMMA);
+        if (Float.compare(this.digamma, clamped) != 0) {
+            this.digamma = clamped;
+            dirty = true;
+        }
     }
 
     public void addDigamma(float amount) {
@@ -133,6 +169,7 @@ public class HbmLivingRadiation {
         setChunkRadiation(tag.getFloat("chunk_radiation"));
         setNeutron(tag.getFloat("neutron"));
         setDigamma(tag.getFloat("digamma"));
+        dirty = false;
     }
 
     private static float clamp(float value, float min, float max) {
@@ -151,14 +188,20 @@ public class HbmLivingRadiation {
             return;
         }
 
-        maxHealth.removeModifier(DIGAMMA_HEALTH_MODIFIER);
-        if (digamma > 0.0F) {
+        AttributeModifier existing = maxHealth.getModifier(DIGAMMA_HEALTH_MODIFIER);
+        if (digamma <= 0.0F) {
+            if (existing != null) {
+                maxHealth.removeModifier(DIGAMMA_HEALTH_MODIFIER);
+            }
+        } else {
             double healthModifier = Math.pow(0.5D, digamma) - 1.0D;
-            maxHealth.addOrUpdateTransientModifier(new AttributeModifier(
-                    DIGAMMA_HEALTH_MODIFIER,
-                    healthModifier,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-            ));
+            if (existing == null || Double.compare(existing.amount(), healthModifier) != 0) {
+                maxHealth.addOrUpdateTransientModifier(new AttributeModifier(
+                        DIGAMMA_HEALTH_MODIFIER,
+                        healthModifier,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                ));
+            }
         }
         if (entity.getHealth() > entity.getMaxHealth()) {
             entity.setHealth(entity.getMaxHealth());

@@ -8,9 +8,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +22,13 @@ public class ChunkRadiationData extends SavedData {
     );
 
     private final Map<Long, Double> sections = new HashMap<>();
+    /**
+     * The solver and world-effects planner only need a stable read view. Keep
+     * that view immutable so a tick does not copy the complete radiation map
+     * for every consumer.
+     */
+    private volatile Map<Long, Double> immutableSnapshot = Map.of();
+    private volatile Map<Long, Double> chunkSnapshot = Map.of();
     private long revision;
 
     public static ChunkRadiationData get(ServerLevel level) {
@@ -38,6 +45,7 @@ public class ChunkRadiationData extends SavedData {
                 data.sections.put(entry.getLong("section"), radiation);
             }
         }
+        data.refreshSnapshot();
         return data;
     }
 
@@ -74,12 +82,16 @@ public class ChunkRadiationData extends SavedData {
         double sanitized = sanitize(radiation);
         if (sanitized <= 0.0D) {
             if (sections.remove(sectionKey) != null) {
+                refreshSnapshot();
                 revision++;
                 setDirty();
             }
             return;
         }
         Double previous = sections.put(sectionKey, sanitized);
+        if (previous == null || Double.compare(previous, sanitized) != 0) {
+            refreshSnapshot();
+        }
         if (previous == null || Math.abs(previous - sanitized) > HbmRadiationConstants.RAD_EPSILON) {
             revision++;
             setDirty();
@@ -112,7 +124,11 @@ public class ChunkRadiationData extends SavedData {
     }
 
     Map<Long, Double> snapshot() {
-        return Collections.unmodifiableMap(new HashMap<>(sections));
+        return immutableSnapshot;
+    }
+
+    Map<Long, Double> chunkSnapshot() {
+        return chunkSnapshot;
     }
 
     long revision() {
@@ -134,10 +150,26 @@ public class ChunkRadiationData extends SavedData {
         if (!sections.equals(filtered)) {
             sections.clear();
             sections.putAll(filtered);
+            refreshSnapshot();
             revision++;
             setDirty();
         }
         return true;
+    }
+
+    private void refreshSnapshot() {
+        immutableSnapshot = sections.isEmpty() ? Map.of() : Map.copyOf(sections);
+        if (sections.isEmpty()) {
+            chunkSnapshot = Map.of();
+            return;
+        }
+
+        Map<Long, Double> chunks = new HashMap<>();
+        for (Map.Entry<Long, Double> entry : sections.entrySet()) {
+            long chunkKey = ChunkPos.asLong(SectionPos.x(entry.getKey()), SectionPos.z(entry.getKey()));
+            chunks.merge(chunkKey, entry.getValue(), Math::max);
+        }
+        chunkSnapshot = Map.copyOf(chunks);
     }
 
     private static double sanitize(double value) {

@@ -10,6 +10,7 @@ import com.reinhardt.hbm.item.LegacyInjectorKnifeArmorModItem;
 import com.reinhardt.hbm.item.BlockBlastResistanceTooltip;
 import com.reinhardt.hbm.item.HbmPlayerShield;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
+import com.reinhardt.hbm.registry.HbmDataAttachments;
 import com.reinhardt.hbm.registry.HbmMobEffects;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
@@ -168,15 +169,21 @@ public final class RadiationEvents {
             return;
         }
 
-        HbmLivingRadiation data = HbmLivingRadiation.get(living);
         tickLegacyBurning(level, living);
+        HbmLivingRadiation data = living.getExistingDataOrNull(HbmDataAttachments.LIVING_RADIATION);
+        double chunkRadiation = HbmRadiationWorlds.getRadiation(level, living.blockPosition());
+        if (data == null && chunkRadiation <= 0.0D && !(living instanceof Player)) {
+            return;
+        }
+        if (data == null) {
+            data = HbmLivingRadiation.get(living);
+        }
         if (living.tickCount % 20 == 0) {
             data.setRadiationBuffer(data.getEnvironmentRadiation());
             data.setEnvironmentRadiation(0.0F);
             data.setNeutron(0.0F);
         }
 
-        double chunkRadiation = HbmRadiationWorlds.getRadiation(level, living.blockPosition());
         data.setChunkRadiation((float) chunkRadiation);
         if (chunkRadiation > 0.0D) {
             contaminateRadiation(living, data, chunkRadiation / 20.0D);
@@ -318,7 +325,10 @@ public final class RadiationEvents {
             return;
         }
 
-        HbmLivingHazards hazards = HbmLivingHazards.get(living);
+        HbmLivingHazards hazards = living.getExistingDataOrNull(HbmDataAttachments.LIVING_HAZARDS);
+        if (hazards == null) {
+            return;
+        }
         if (living.fireImmune() || living.isInWaterOrRain()) {
             hazards.clearFire();
         }

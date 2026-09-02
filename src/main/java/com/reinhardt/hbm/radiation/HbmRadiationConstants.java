@@ -2,7 +2,9 @@ package com.reinhardt.hbm.radiation;
 
 final class HbmRadiationConstants {
     static final int HAZARD_RATE_TICKS = 5;
-    static final int RAD_TICK_RATE = 1;
+    /** Legacy radiation diffusion runs once per second (20 game ticks). */
+    static final int RAD_SOLVE_INTERVAL_TICKS = 20;
+    static final double RAD_SIMULATION_STEP_SECONDS = 1.0D;
     static final double RAD_HALF_LIFE_SECONDS = 120.0D;
     static final double RAD_DIFFUSIVITY = 10.0D;
     static final double RAD_EPSILON = 1.0E-5D;

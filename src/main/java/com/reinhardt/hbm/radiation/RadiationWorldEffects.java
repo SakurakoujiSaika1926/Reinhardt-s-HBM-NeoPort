@@ -3,7 +3,6 @@ package com.reinhardt.hbm.radiation;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -15,7 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SplittableRandom;
@@ -44,12 +42,7 @@ final class RadiationWorldEffects {
     static void tick(ServerLevel level, ChunkRadiationData data) {
         WorldEffects effects = EFFECTS.computeIfAbsent(level.dimension().location(), unused -> new WorldEffects());
         effects.applyReady(level);
-
-        Map<Long, Double> snapshot = data.snapshot();
-        if (snapshot.isEmpty()) {
-            return;
-        }
-        effects.plan(snapshot, level.getGameTime());
+        effects.plan(data, level.getGameTime());
     }
 
     static void clear() {
@@ -69,8 +62,12 @@ final class RadiationWorldEffects {
             applyPlan(level, plan);
         }
 
-        void plan(Map<Long, Double> snapshot, long gameTime) {
+        void plan(ChunkRadiationData data, long gameTime) {
             if (inFlight != null) {
+                return;
+            }
+            Map<Long, Double> snapshot = data.chunkSnapshot();
+            if (snapshot.isEmpty()) {
                 return;
             }
             boolean fogTick = ++fogTimer >= 20;
@@ -87,7 +84,7 @@ final class RadiationWorldEffects {
             return EffectPlan.EMPTY;
         }
         SplittableRandom random = new SplittableRandom(seed);
-        List<ChunkRad> entries = aggregateByChunk(snapshot);
+        List<ChunkRad> entries = chunkEntries(snapshot);
         if (entries.isEmpty()) {
             return EffectPlan.EMPTY;
         }
@@ -121,25 +118,22 @@ final class RadiationWorldEffects {
         return new EffectPlan(fog, surfacePasses);
     }
 
-    private static List<ChunkRad> aggregateByChunk(Map<Long, Double> snapshot) {
-        Map<Long, Double> chunks = new HashMap<>();
+    private static List<ChunkRad> chunkEntries(Map<Long, Double> snapshot) {
+        List<ChunkRad> result = new ArrayList<>(snapshot.size());
         for (Map.Entry<Long, Double> entry : snapshot.entrySet()) {
-            long chunkKey = ChunkPos.asLong(SectionPos.x(entry.getKey()), SectionPos.z(entry.getKey()));
-            chunks.merge(chunkKey, entry.getValue(), Math::max);
-        }
-        List<ChunkRad> result = new ArrayList<>(chunks.size());
-        for (Map.Entry<Long, Double> entry : chunks.entrySet()) {
             result.add(new ChunkRad(ChunkPos.getX(entry.getKey()), ChunkPos.getZ(entry.getKey()), entry.getValue()));
         }
         return result;
     }
 
     private static void applyPlan(ServerLevel level, EffectPlan plan) {
+        Block wasteEarth = block("waste_earth");
+        Block wasteLeaves = block("waste_leaves");
         for (FogCandidate candidate : plan.fog()) {
             spawnRadiationFog(level, candidate);
         }
         for (SurfacePass pass : plan.surfacePasses()) {
-            contaminateChunkSurface(level, pass);
+            contaminateChunkSurface(level, pass, wasteEarth, wasteLeaves);
         }
     }
 
@@ -155,13 +149,11 @@ final class RadiationWorldEffects {
         level.sendParticles(HbmParticleTypes.RADIATION_FOG.get(), x, y, z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
     }
 
-    private static void contaminateChunkSurface(ServerLevel level, SurfacePass pass) {
+    private static void contaminateChunkSurface(ServerLevel level, SurfacePass pass, Block wasteEarth, Block wasteLeaves) {
         ChunkPos chunkPos = new ChunkPos(pass.chunkX(), pass.chunkZ());
         if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
             return;
         }
-        Block wasteEarth = block("waste_earth");
-        Block wasteLeaves = block("waste_leaves");
         for (int a = 0; a < 16; a++) {
             for (int b = 0; b < 16; b++) {
                 int index = a * 16 + b;

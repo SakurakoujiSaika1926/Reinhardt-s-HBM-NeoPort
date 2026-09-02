@@ -38,24 +38,37 @@ public final class HbmPlayerShield {
     private float shield;
     private float maxShield;
     private int lastDamage;
+    private boolean dirty;
 
     public static HbmPlayerShield get(Player player) {
         return player.getData(HbmDataAttachments.PLAYER_SHIELD);
     }
 
     public static void set(Player player, HbmPlayerShield shield) {
-        player.setData(HbmDataAttachments.PLAYER_SHIELD, shield);
+        HbmPlayerShield existing = player.getExistingDataOrNull(HbmDataAttachments.PLAYER_SHIELD);
+        if (existing != shield) {
+            player.setData(HbmDataAttachments.PLAYER_SHIELD, shield);
+            shield.dirty = false;
+        } else if (shield.dirty) {
+            player.syncData(HbmDataAttachments.PLAYER_SHIELD);
+            shield.dirty = false;
+        }
     }
 
     public static void addInfusion(Player player, float amount) {
         HbmPlayerShield data = get(player);
+        float oldMaxShield = data.maxShield;
+        float oldShield = data.shield;
         data.maxShield = Math.min(CAP, data.maxShield + amount);
         data.shield = Math.min(effectiveMaxShield(player, data), data.shield + amount);
+        data.dirty |= Float.compare(oldMaxShield, data.maxShield) != 0
+                || Float.compare(oldShield, data.shield) != 0;
         set(player, data);
     }
 
     public static void tick(Player player) {
         HbmPlayerShield data = get(player);
+        float oldShield = data.shield;
         float effectiveMaxShield = effectiveMaxShield(player, data);
         if (data.shield < effectiveMaxShield && player.tickCount > data.lastDamage + 60) {
             int elapsed = player.tickCount - (data.lastDamage + 60);
@@ -64,17 +77,22 @@ public final class HbmPlayerShield {
         if (data.shield > effectiveMaxShield) {
             data.shield = effectiveMaxShield;
         }
+        data.dirty |= Float.compare(oldShield, data.shield) != 0;
         set(player, data);
     }
 
     public static void absorb(Player player, LivingIncomingDamageEvent event) {
         HbmPlayerShield data = get(player);
+        float oldShield = data.shield;
         if (data.shield > 0.0F) {
             float reduced = Math.min(data.shield, event.getAmount());
             data.shield -= reduced;
             event.setAmount(event.getAmount() - reduced);
         }
+        data.dirty |= Float.compare(oldShield, data.shield) != 0;
+        int oldLastDamage = data.lastDamage;
         data.lastDamage = player.tickCount;
+        data.dirty |= oldLastDamage != data.lastDamage;
         set(player, data);
     }
 
@@ -101,6 +119,7 @@ public final class HbmPlayerShield {
         shield = Math.max(0.0F, Math.min(MAX_EFFECTIVE_CAP, tag.getFloat("shield")));
         maxShield = Math.max(0.0F, Math.min(CAP, tag.getFloat("max_shield")));
         lastDamage = Math.max(0, tag.getInt("last_damage"));
+        dirty = false;
     }
 
     private static float effectiveMaxShield(Player player, HbmPlayerShield data) {

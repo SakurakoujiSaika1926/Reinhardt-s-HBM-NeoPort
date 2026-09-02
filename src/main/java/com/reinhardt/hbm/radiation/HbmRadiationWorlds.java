@@ -10,6 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.concurrent.Executors;
 public final class HbmRadiationWorlds {
     private static final Direction[] POSITIVE_DIRECTIONS = {Direction.UP, Direction.SOUTH, Direction.EAST};
     private static final double RESISTANCE_SCALE = 10_000.0D;
+    private static final Map<BlockState, Float> BLOCK_RESISTANCE_CACHE = new ConcurrentHashMap<>();
     private static final ExecutorService SOLVER = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "RHbm-RadiationSolver");
         thread.setDaemon(true);
@@ -83,7 +86,7 @@ public final class HbmRadiationWorlds {
                 data.applySolvedSnapshot(solved.sections(), solved.revision());
                 inFlight = null;
             }
-            if (inFlight != null || tickCounter % HbmRadiationConstants.RAD_TICK_RATE != 0) {
+            if (inFlight != null || tickCounter % HbmRadiationConstants.RAD_SOLVE_INTERVAL_TICKS != 0) {
                 return;
             }
 
@@ -153,7 +156,7 @@ public final class HbmRadiationWorlds {
     }
 
     private static Map<Long, Double> solve(Map<Long, Double> snapshot, Map<Long, SectionResistance> resistance) {
-        double dt = HbmRadiationConstants.RAD_TICK_RATE / 20.0D;
+        double dt = HbmRadiationConstants.RAD_SIMULATION_STEP_SECONDS;
         double retention = Math.exp(Math.log(0.5D) * (dt / HbmRadiationConstants.RAD_HALF_LIFE_SECONDS));
         double exchange = 1.0D - Math.exp(-(HbmRadiationConstants.RAD_DIFFUSIVITY * dt / 128.0D));
 
@@ -192,29 +195,33 @@ public final class HbmRadiationWorlds {
     }
 
     private static SectionResistance scanResistance(ServerLevel level, long sectionKey) {
-        int minX = SectionPos.sectionToBlockCoord(SectionPos.x(sectionKey));
         int minY = SectionPos.sectionToBlockCoord(SectionPos.y(sectionKey));
-        int minZ = SectionPos.sectionToBlockCoord(SectionPos.z(sectionKey));
-        if (!level.hasChunk(SectionPos.x(sectionKey), SectionPos.z(sectionKey))) {
+        LevelChunk chunk = level.getChunkSource().getChunkNow(SectionPos.x(sectionKey), SectionPos.z(sectionKey));
+        if (chunk == null) {
+            return SectionResistance.EMPTY;
+        }
+
+        int sectionIndex = level.getSectionIndex(minY);
+        if (sectionIndex < 0 || sectionIndex >= level.getSectionsCount()) {
+            return SectionResistance.EMPTY;
+        }
+        LevelChunkSection section = chunk.getSection(sectionIndex);
+        if (section.hasOnlyAir()) {
             return SectionResistance.EMPTY;
         }
 
         float[] x = new float[16];
         float[] y = new float[16];
         float[] z = new float[16];
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int localX = 0; localX < 16; localX++) {
             for (int localY = 0; localY < 16; localY++) {
                 for (int localZ = 0; localZ < 16; localZ++) {
-                    pos.set(minX + localX, minY + localY, minZ + localZ);
-                    if (!level.isInWorldBounds(pos)) {
-                        continue;
-                    }
-                    BlockState state = level.getBlockState(pos);
+                    BlockState state = section.getBlockState(localX, localY, localZ);
                     if (state.isAir()) {
                         continue;
                     }
-                    float blockResistance = Math.min(radiationResistance(state), 100.0F);
+                    float blockResistance = Math.min(BLOCK_RESISTANCE_CACHE.computeIfAbsent(
+                            state, HbmRadiationWorlds::radiationResistance), 100.0F);
                     if (blockResistance <= 0.0F) {
                         continue;
                     }
@@ -257,17 +264,25 @@ public final class HbmRadiationWorlds {
         return Math.exp(-total / RESISTANCE_SCALE);
     }
 
-    private record SectionResistance(float[] x, float[] y, float[] z) {
+    private record SectionResistance(float[] x, float[] y, float[] z,
+                                     float east, float west, float up, float down, float south, float north) {
         static final SectionResistance EMPTY = new SectionResistance(new float[16], new float[16], new float[16]);
+
+        SectionResistance(float[] x, float[] y, float[] z) {
+            this(x, y, z,
+                    weighted(x, true), weighted(x, false),
+                    weighted(y, true), weighted(y, false),
+                    weighted(z, true), weighted(z, false));
+        }
 
         float value(Direction movement) {
             return switch (movement) {
-                case EAST -> weighted(x, true);
-                case WEST -> weighted(x, false);
-                case UP -> weighted(y, true);
-                case DOWN -> weighted(y, false);
-                case SOUTH -> weighted(z, true);
-                case NORTH -> weighted(z, false);
+                case EAST -> east;
+                case WEST -> west;
+                case UP -> up;
+                case DOWN -> down;
+                case SOUTH -> south;
+                case NORTH -> north;
             };
         }
 
