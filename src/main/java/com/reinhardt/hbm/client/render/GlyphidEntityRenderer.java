@@ -52,6 +52,8 @@ public final class GlyphidEntityRenderer extends EntityRenderer<GlyphidEntity> {
     public void render(GlyphidEntity glyphid, float entityYaw, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
+        // RenderLiving applies this model-space conversion before ModelGlyphid.render().
+        poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
         poseStack.translate(0.0D, -1.5D, 0.0D);
         float scale = (float) glyphid.modelScale();
