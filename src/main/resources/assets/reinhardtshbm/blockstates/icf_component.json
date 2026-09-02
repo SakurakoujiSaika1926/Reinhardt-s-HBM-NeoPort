@@ -4,9 +4,6 @@
     "variant=1": { "model": "reinhardtshbm:block/icf_component_vessel" },
     "variant=2": { "model": "reinhardtshbm:block/icf_component_vessel_welded" },
     "variant=3": { "model": "reinhardtshbm:block/icf_component_structure" },
-    "variant=4": { "model": "reinhardtshbm:block/icf_component_structure_bolted" },
-    "variant=5": { "model": "reinhardtshbm:block/icf_component_structure_bolted" },
-    "variant=6": { "model": "reinhardtshbm:block/icf_component_structure_bolted" },
-    "variant=7": { "model": "reinhardtshbm:block/icf_component_structure_bolted" }
+    "variant=4": { "model": "reinhardtshbm:block/icf_component_structure_bolted" }
   }
 }

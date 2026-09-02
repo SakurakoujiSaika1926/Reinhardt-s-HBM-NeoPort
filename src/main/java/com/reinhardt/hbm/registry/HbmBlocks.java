@@ -3908,7 +3908,7 @@ public final class HbmBlocks {
 
     private static DeferredBlock<Block> icfComponent(String name) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name,
-                () -> new LegacyVariantBlock(metal().strength(5.0F, 30.0F), 4));
+                () -> new LegacyVariantBlock(metal().strength(5.0F, 60.0F), 4));
         HbmItems.ITEMS.register(name, () -> new LegacyVariantBlockItem(block.get(), new Item.Properties(),
                 LegacyVariantBlock.VARIANT, "block.reinhardtshbm.icf_component",
                 "scaffold", "vessel", "vessel_welded", "structure", "structure_bolted"));
