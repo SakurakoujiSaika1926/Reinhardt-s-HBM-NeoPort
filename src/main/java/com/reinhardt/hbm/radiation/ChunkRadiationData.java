@@ -29,6 +29,7 @@ public class ChunkRadiationData extends SavedData {
      */
     private volatile Map<Long, Double> immutableSnapshot = Map.of();
     private volatile Map<Long, Double> chunkSnapshot = Map.of();
+    private boolean snapshotsDirty = true;
     private long revision;
 
     public static ChunkRadiationData get(ServerLevel level) {
@@ -45,7 +46,7 @@ public class ChunkRadiationData extends SavedData {
                 data.sections.put(entry.getLong("section"), radiation);
             }
         }
-        data.refreshSnapshot();
+        data.refreshSnapshots();
         return data;
     }
 
@@ -82,7 +83,7 @@ public class ChunkRadiationData extends SavedData {
         double sanitized = sanitize(radiation);
         if (sanitized <= 0.0D) {
             if (sections.remove(sectionKey) != null) {
-                refreshSnapshot();
+                snapshotsDirty = true;
                 revision++;
                 setDirty();
             }
@@ -90,7 +91,7 @@ public class ChunkRadiationData extends SavedData {
         }
         Double previous = sections.put(sectionKey, sanitized);
         if (previous == null || Double.compare(previous, sanitized) != 0) {
-            refreshSnapshot();
+            snapshotsDirty = true;
         }
         if (previous == null || Math.abs(previous - sanitized) > HbmRadiationConstants.RAD_EPSILON) {
             revision++;
@@ -135,6 +136,29 @@ public class ChunkRadiationData extends SavedData {
         return revision;
     }
 
+    /**
+     * Publishes one immutable read view for the solver and world-effects planner.
+     * Radiation producers can write several times in one tick, so rebuilding the
+     * complete view inside setRadiation would turn each emission into a full-map copy.
+     */
+    void refreshSnapshots() {
+        if (!snapshotsDirty) {
+            return;
+        }
+        immutableSnapshot = sections.isEmpty() ? Map.of() : Map.copyOf(sections);
+        if (sections.isEmpty()) {
+            chunkSnapshot = Map.of();
+        } else {
+            Map<Long, Double> chunks = new HashMap<>();
+            for (Map.Entry<Long, Double> entry : sections.entrySet()) {
+                long chunkKey = ChunkPos.asLong(SectionPos.x(entry.getKey()), SectionPos.z(entry.getKey()));
+                chunks.merge(chunkKey, entry.getValue(), Math::max);
+            }
+            chunkSnapshot = Map.copyOf(chunks);
+        }
+        snapshotsDirty = false;
+    }
+
     boolean applySolvedSnapshot(Map<Long, Double> solved, long expectedRevision) {
         if (revision != expectedRevision) {
             return false;
@@ -150,26 +174,12 @@ public class ChunkRadiationData extends SavedData {
         if (!sections.equals(filtered)) {
             sections.clear();
             sections.putAll(filtered);
-            refreshSnapshot();
+            snapshotsDirty = true;
             revision++;
             setDirty();
+            refreshSnapshots();
         }
         return true;
-    }
-
-    private void refreshSnapshot() {
-        immutableSnapshot = sections.isEmpty() ? Map.of() : Map.copyOf(sections);
-        if (sections.isEmpty()) {
-            chunkSnapshot = Map.of();
-            return;
-        }
-
-        Map<Long, Double> chunks = new HashMap<>();
-        for (Map.Entry<Long, Double> entry : sections.entrySet()) {
-            long chunkKey = ChunkPos.asLong(SectionPos.x(entry.getKey()), SectionPos.z(entry.getKey()));
-            chunks.merge(chunkKey, entry.getValue(), Math::max);
-        }
-        chunkSnapshot = Map.copyOf(chunks);
     }
 
     private static double sanitize(double value) {

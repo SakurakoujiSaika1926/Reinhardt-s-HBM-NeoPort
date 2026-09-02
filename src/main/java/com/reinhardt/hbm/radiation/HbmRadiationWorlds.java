@@ -90,6 +90,9 @@ public final class HbmRadiationWorlds {
                 return;
             }
 
+            // Publish once per legacy one-second simulation step, after all source
+            // writes from the preceding game ticks have been coalesced.
+            data.refreshSnapshots();
             Map<Long, Double> snapshot = data.snapshot();
             if (snapshot.isEmpty()) {
                 return;
