@@ -63,11 +63,10 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-// A corrupted compressed entry turns every GUI/model texture in the deployed
-// archive into a purple-black placeholder. Store entries and read them back in
-// verification so a broken JAR cannot reach the game directory.
+// Keep the archive compressed; validate every entry after packaging so resource
+// corruption is detected before the JAR is deployed to the client.
 tasks.withType(org.gradle.jvm.tasks.Jar).configureEach {
-    entryCompression = org.gradle.api.tasks.bundling.ZipEntryCompression.STORED
+    entryCompression = org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 }
 
 tasks.register('validateJarIntegrity') {
