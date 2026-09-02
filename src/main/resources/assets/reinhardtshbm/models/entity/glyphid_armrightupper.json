@@ -1,6 +1,7 @@
 {
   "loader": "neoforge:obj",
   "model": "reinhardtshbm:models/obj/entity/glyphid.obj",
+  "mtl_override": "reinhardtshbm:models/obj/entity/glyphid.mtl",
   "automatic_culling": false,
   "shade_quads": true,
   "flip_v": true,
@@ -29,4 +30,3 @@
     "particle": "reinhardtshbm:entity/glyphid"
   }
 }
-
