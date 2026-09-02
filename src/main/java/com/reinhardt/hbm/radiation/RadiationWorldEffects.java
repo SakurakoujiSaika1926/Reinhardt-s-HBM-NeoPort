@@ -42,16 +42,22 @@ final class RadiationWorldEffects {
     static void tick(ServerLevel level, ChunkRadiationData data) {
         WorldEffects effects = EFFECTS.computeIfAbsent(level.dimension().location(), unused -> new WorldEffects());
         effects.applyReady(level);
-        effects.plan(data, level.getGameTime());
+        effects.plan(level, data, level.getGameTime());
     }
 
     static void clear() {
         EFFECTS.clear();
     }
 
+    static void unload(net.minecraft.resources.ResourceLocation dimension) {
+        EFFECTS.remove(dimension);
+    }
+
     private static final class WorldEffects {
         private CompletableFuture<EffectPlan> inFlight;
         private int fogTimer;
+        private long loadedSnapshotTick = Long.MIN_VALUE;
+        private Map<Long, Double> loadedSnapshot = Map.of();
 
         void applyReady(ServerLevel level) {
             if (inFlight == null || !inFlight.isDone()) {
@@ -62,11 +68,16 @@ final class RadiationWorldEffects {
             applyPlan(level, plan);
         }
 
-        void plan(ChunkRadiationData data, long gameTime) {
+        void plan(ServerLevel level, ChunkRadiationData data, long gameTime) {
             if (inFlight != null) {
                 return;
             }
-            Map<Long, Double> snapshot = data.chunkSnapshot();
+            if (loadedSnapshotTick == Long.MIN_VALUE
+                    || gameTime - loadedSnapshotTick >= HbmRadiationConstants.RAD_SOLVE_INTERVAL_TICKS) {
+                loadedSnapshot = data.loadedChunkSnapshot(HbmRadiationWorlds.loadedChunks(level));
+                loadedSnapshotTick = gameTime;
+            }
+            Map<Long, Double> snapshot = loadedSnapshot;
             if (snapshot.isEmpty()) {
                 return;
             }

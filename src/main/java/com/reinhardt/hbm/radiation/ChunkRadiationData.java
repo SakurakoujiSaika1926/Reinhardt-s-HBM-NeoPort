@@ -13,6 +13,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ChunkRadiationData extends SavedData {
     private static final String DATA_NAME = ReinhardtsHBM.MOD_ID + "_radiation";
@@ -31,9 +32,15 @@ public class ChunkRadiationData extends SavedData {
     private volatile Map<Long, Double> chunkSnapshot = Map.of();
     private boolean snapshotsDirty = true;
     private long revision;
+    private transient ServerLevel owner;
 
     public static ChunkRadiationData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        ChunkRadiationData data = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        data.owner = level;
+        if (!data.sections.isEmpty()) {
+            HbmRadiationWorlds.markActive(level);
+        }
+        return data;
     }
 
     private static ChunkRadiationData load(CompoundTag tag, HolderLookup.Provider registries) {
@@ -86,10 +93,16 @@ public class ChunkRadiationData extends SavedData {
                 snapshotsDirty = true;
                 revision++;
                 setDirty();
+                if (sections.isEmpty() && owner != null) {
+                    HbmRadiationWorlds.markInactive(owner);
+                }
             }
             return;
         }
         Double previous = sections.put(sectionKey, sanitized);
+        if (owner != null) {
+            HbmRadiationWorlds.markActive(owner);
+        }
         if (previous == null || Double.compare(previous, sanitized) != 0) {
             snapshotsDirty = true;
         }
@@ -132,6 +145,38 @@ public class ChunkRadiationData extends SavedData {
         return chunkSnapshot;
     }
 
+    Map<Long, Double> loadedChunkSnapshot(Set<Long> loadedChunks) {
+        if (chunkSnapshot.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, Double> loaded = new HashMap<>();
+        for (Map.Entry<Long, Double> entry : chunkSnapshot.entrySet()) {
+            if (loadedChunks.contains(entry.getKey())) {
+                loaded.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return loaded.isEmpty() ? Map.of() : Map.copyOf(loaded);
+    }
+
+    Map<Long, Double> loadedSectionSnapshot(Set<Long> loadedChunks) {
+        if (immutableSnapshot.isEmpty() || loadedChunks.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, Double> loaded = new HashMap<>();
+        for (Map.Entry<Long, Double> entry : immutableSnapshot.entrySet()) {
+            long sectionKey = entry.getKey();
+            long chunkKey = ChunkPos.asLong(SectionPos.x(sectionKey), SectionPos.z(sectionKey));
+            if (loadedChunks.contains(chunkKey)) {
+                loaded.put(sectionKey, entry.getValue());
+            }
+        }
+        return loaded.isEmpty() ? Map.of() : Map.copyOf(loaded);
+    }
+
+    boolean isEmpty() {
+        return sections.isEmpty();
+    }
+
     long revision() {
         return revision;
     }
@@ -159,25 +204,30 @@ public class ChunkRadiationData extends SavedData {
         snapshotsDirty = false;
     }
 
-    boolean applySolvedSnapshot(Map<Long, Double> solved, long expectedRevision) {
+    boolean applySolvedSnapshot(Map<Long, Double> solved, long expectedRevision, Set<Long> updatedSections) {
         if (revision != expectedRevision) {
             return false;
         }
 
-        Map<Long, Double> filtered = new HashMap<>();
-        for (Map.Entry<Long, Double> entry : solved.entrySet()) {
-            double radiation = sanitize(entry.getValue());
+        boolean changed = false;
+        for (long sectionKey : updatedSections) {
+            double radiation = sanitize(solved.getOrDefault(sectionKey, 0.0D));
             if (radiation > 0.0D) {
-                filtered.put(entry.getKey(), radiation);
+                Double previous = sections.put(sectionKey, radiation);
+                changed = previous == null || Double.compare(previous, radiation) != 0 || changed;
+            } else {
+                changed = sections.remove(sectionKey) != null || changed;
             }
         }
-        if (!sections.equals(filtered)) {
-            sections.clear();
-            sections.putAll(filtered);
+
+        if (changed) {
             snapshotsDirty = true;
             revision++;
             setDirty();
             refreshSnapshots();
+        }
+        if (sections.isEmpty() && owner != null) {
+            HbmRadiationWorlds.markInactive(owner);
         }
         return true;
     }
