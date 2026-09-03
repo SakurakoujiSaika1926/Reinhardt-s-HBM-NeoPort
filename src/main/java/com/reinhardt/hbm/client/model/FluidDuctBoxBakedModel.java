@@ -271,18 +271,18 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
 
     private static float[][] vertices(Box box, Direction face) {
         return switch (face) {
-            case DOWN -> new float[][]{{box.minX, box.minY, box.maxZ, 0, 0}, {box.maxX, box.minY, box.maxZ, 1, 0},
+            case DOWN -> new float[][]{{box.minX, box.minY, box.maxZ, 0, 0}, {box.minX, box.minY, box.minZ, 0, 1},
+                    {box.maxX, box.minY, box.minZ, 1, 1}, {box.maxX, box.minY, box.maxZ, 1, 0}};
+            case UP -> new float[][]{{box.maxX, box.maxY, box.maxZ, 0, 0}, {box.maxX, box.maxY, box.minZ, 0, 1},
+                    {box.minX, box.maxY, box.minZ, 1, 1}, {box.minX, box.maxY, box.maxZ, 1, 0}};
+            case NORTH -> new float[][]{{box.minX, box.maxY, box.minZ, 0, 0}, {box.maxX, box.maxY, box.minZ, 1, 0},
                     {box.maxX, box.minY, box.minZ, 1, 1}, {box.minX, box.minY, box.minZ, 0, 1}};
-            case UP -> new float[][]{{box.minX, box.maxY, box.minZ, 0, 0}, {box.maxX, box.maxY, box.minZ, 1, 0},
-                    {box.maxX, box.maxY, box.maxZ, 1, 1}, {box.minX, box.maxY, box.maxZ, 0, 1}};
-            case NORTH -> new float[][]{{box.maxX, box.minY, box.minZ, 0, 0}, {box.minX, box.minY, box.minZ, 1, 0},
-                    {box.minX, box.maxY, box.minZ, 1, 1}, {box.maxX, box.maxY, box.minZ, 0, 1}};
-            case SOUTH -> new float[][]{{box.minX, box.minY, box.maxZ, 0, 0}, {box.maxX, box.minY, box.maxZ, 1, 0},
-                    {box.maxX, box.maxY, box.maxZ, 1, 1}, {box.minX, box.maxY, box.maxZ, 0, 1}};
-            case WEST -> new float[][]{{box.minX, box.minY, box.maxZ, 0, 0}, {box.minX, box.minY, box.minZ, 1, 0},
-                    {box.minX, box.maxY, box.minZ, 1, 1}, {box.minX, box.maxY, box.maxZ, 0, 1}};
-            case EAST -> new float[][]{{box.maxX, box.minY, box.minZ, 0, 0}, {box.maxX, box.minY, box.maxZ, 1, 0},
-                    {box.maxX, box.maxY, box.maxZ, 1, 1}, {box.maxX, box.maxY, box.minZ, 0, 1}};
+            case SOUTH -> new float[][]{{box.maxX, box.maxY, box.maxZ, 0, 0}, {box.minX, box.maxY, box.maxZ, 1, 0},
+                    {box.minX, box.minY, box.maxZ, 1, 1}, {box.maxX, box.minY, box.maxZ, 0, 1}};
+            case WEST -> new float[][]{{box.minX, box.maxY, box.maxZ, 0, 0}, {box.minX, box.maxY, box.minZ, 1, 0},
+                    {box.minX, box.minY, box.minZ, 1, 1}, {box.minX, box.minY, box.maxZ, 0, 1}};
+            case EAST -> new float[][]{{box.maxX, box.maxY, box.minZ, 0, 0}, {box.maxX, box.maxY, box.maxZ, 1, 0},
+                    {box.maxX, box.minY, box.maxZ, 1, 1}, {box.maxX, box.minY, box.minZ, 0, 1}};
         };
     }
 
