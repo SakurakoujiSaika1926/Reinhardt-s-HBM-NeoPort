@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.RailBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
@@ -177,7 +178,10 @@ public final class HbmStructureIO {
                     );
                 }
             }
-            state = state.rotate(toMcRotation(rotation));
+            // Legacy NBTStructure transforms rail coordinates but leaves RailGeneric metadata unchanged.
+            if (!(state.getBlock() instanceof RailBlock)) {
+                state = state.rotate(toMcRotation(rotation));
+            }
             level.setBlock(placement.pos(), state, state.getBlock() instanceof DoorBlock ? Block.UPDATE_CLIENTS : Block.UPDATE_ALL);
             if (placement.nbt() != null && state.hasBlockEntity()) {
                 loadBlockEntity(level, placement.pos(), state, placement.nbt(), registries);

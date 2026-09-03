@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.RailBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,6 +36,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -143,7 +145,10 @@ public final class HbmLegacyNbtTemplate {
             if (replacement != null && random != null) {
                 state = replacement.replace(block.name, block.meta, state, random);
             }
-            state = state.rotate(toMcRotation(rotation));
+            // Legacy NBTStructure transforms rail coordinates but leaves RailGeneric metadata unchanged.
+            if (!(state.getBlock() instanceof RailBlock)) {
+                state = state.rotate(toMcRotation(rotation));
+            }
             level.setBlock(pos, state, 2);
             if (block.nbt != null) {
                 loadBlockEntity(level, pos, state, block.nbt, rotation);
@@ -466,6 +471,10 @@ public final class HbmLegacyNbtTemplate {
             return state;
         }
 
+        if (block instanceof RailBlock && state.hasProperty(BlockStateProperties.RAIL_SHAPE)) {
+            return state.setValue(BlockStateProperties.RAIL_SHAPE, legacyRailShape(meta));
+        }
+
         if (block instanceof DoorBlock) {
             if ((meta & 8) != 0) {
                 return state
@@ -585,6 +594,21 @@ public final class HbmLegacyNbtTemplate {
         }
 
         return applyMatchingNumericProperties(state, meta);
+    }
+
+    private static RailShape legacyRailShape(int meta) {
+        return switch (meta & 15) {
+            case 1 -> RailShape.EAST_WEST;
+            case 2 -> RailShape.ASCENDING_EAST;
+            case 3 -> RailShape.ASCENDING_WEST;
+            case 4 -> RailShape.ASCENDING_NORTH;
+            case 5 -> RailShape.ASCENDING_SOUTH;
+            case 6 -> RailShape.SOUTH_EAST;
+            case 7 -> RailShape.SOUTH_WEST;
+            case 8 -> RailShape.NORTH_WEST;
+            case 9 -> RailShape.NORTH_EAST;
+            default -> RailShape.NORTH_SOUTH;
+        };
     }
 
     static BlockState pairedLegacyDoorState(BlockState state, int lowerMeta, int upperMeta, DoubleBlockHalf half) {
