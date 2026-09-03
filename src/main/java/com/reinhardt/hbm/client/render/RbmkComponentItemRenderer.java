@@ -117,9 +117,13 @@ public final class RbmkComponentItemRenderer extends BlockEntityWithoutLevelRend
 
         poseStack.pushPose();
         // RBMKDisplay inherits RBMKMiniPanelBase#renderInventoryBlock. Use
-        // the display block's [4,16] X bounds directly so its front face and
-        // the old +90 degree inventory rotation remain unchanged.
-        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        // the display block's [4,16] X bounds directly. The imported model's
+        // face winding requires the local inverse of the old inventory turn.
+        // The display model uses the opposite local face from the wireless
+        // panel base after the legacy inventory transform. Keep this fix
+        // local to the display item path; the wireless panel renderer has its
+        // own legacy orientation below.
+        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
         poseStack.translate(-0.5F, -0.5F, -0.5F);
         renderModel(MODELS.get(kind), state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
