@@ -80,6 +80,7 @@ import com.reinhardt.hbm.entity.LegacyRequestDroneEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.LegacyHbmContent;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
@@ -96,11 +97,19 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class HbmClientRenderers {
     private HbmClientRenderers() {
+    }
+
+    @SubscribeEvent
+    public static void registerFluidClientExtensions(RegisterClientExtensionsEvent event) {
+        for (HbmFluids.HbmFluidEntry entry : HbmFluids.entries()) {
+            event.registerFluidType(entry.fluidType().value().clientExtensions(), entry.fluidType());
+        }
     }
 
     @SubscribeEvent

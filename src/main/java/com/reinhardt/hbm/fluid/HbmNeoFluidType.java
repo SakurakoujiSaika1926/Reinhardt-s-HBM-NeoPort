@@ -60,7 +60,15 @@ public class HbmNeoFluidType extends FluidType {
     @Override
     @Deprecated(forRemoval = true, since = "1.21")
     public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-        consumer.accept(new IClientFluidTypeExtensions() {
+        consumer.accept(clientExtensions());
+    }
+
+    /**
+     * Shared by the official client extension event and the deprecated
+     * compatibility callback so every client fluid path uses the same mapping.
+     */
+    public IClientFluidTypeExtensions clientExtensions() {
+        return new IClientFluidTypeExtensions() {
             @Override
             public int getTintColor() {
                 return 0xFF000000 | definition.color();
@@ -75,6 +83,6 @@ public class HbmNeoFluidType extends FluidType {
             public ResourceLocation getFlowingTexture() {
                 return definition.forgeFluidFlowingTexture();
             }
-        });
+        };
     }
 }
