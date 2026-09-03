@@ -8,6 +8,7 @@ import com.reinhardt.hbm.client.model.BrokenItemBakedModel;
 import com.reinhardt.hbm.client.model.DecorativeCtmBlockModel;
 import com.reinhardt.hbm.client.model.ExhaustDuctBakedModel;
 import com.reinhardt.hbm.client.model.FluidDuctNeoBakedModel;
+import com.reinhardt.hbm.client.model.FluidDuctBoxBakedModel;
 import com.reinhardt.hbm.client.model.FluidTankItemModel;
 import com.reinhardt.hbm.client.model.HexafluorideTankItemModel;
 import com.reinhardt.hbm.client.model.GeothermalHeatExchangerItemModel;
@@ -556,6 +557,7 @@ public final class HbmClientRenderers {
         CoatedCableCtmModel.replaceModels(event.getModels(), event.getTextureGetter());
         DecorativeCtmBlockModel.replaceModels(event.getModels(), event.getTextureGetter());
         ExhaustDuctBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
+        FluidDuctBoxBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         FluidDuctNeoBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         RedCableNeoBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
         ClassicCableBakedModel.replaceModels(event.getModels(), event.getTextureGetter());
