@@ -113,6 +113,7 @@ public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRend
         if (stack.is(HbmBlocks.MACHINE_TURBOFAN.get().asItem())) return "machine_turbofan";
         if (stack.is(HbmBlocks.MACHINE_THRESHER.get().asItem())) return "machine_thresher";
         if (stack.is(HbmBlocks.MACHINE_LPW2.get().asItem())) return "machine_lpw2";
+        if (stack.is(HbmBlocks.MACHINE_TURBINEGAS.get().asItem())) return "machine_turbinegas";
         return null;
     }
 }

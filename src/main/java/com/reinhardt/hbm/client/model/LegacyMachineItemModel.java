@@ -41,7 +41,7 @@ public final class LegacyMachineItemModel implements IDynamicBakedModel {
                 "machine_annihilator", "machine_autosaw", "machine_forcefield", "machine_missile_assembly",
                 "machine_microwave", "machine_orbus", "machine_precass", "machine_pyrooven", "machine_radar", "machine_radar_large",
                 "machine_radgen", "machine_radiolysis", "machine_reactor_breeding", "machine_rtg_grey", "machine_sawmill", "machine_turbofan",
-                "machine_thresher", "machine_lpw2",
+                "machine_thresher", "machine_lpw2", "machine_turbinegas",
                 "pump_steam", "pump_electric", "machine_bat9000", "machine_bigasstank", "deco_toaster", "bomb_multi", "crashed_bomb",
                 "red_connector", "red_connector_super", "red_pylon_medium_wood",
                 "red_pylon_medium_wood_transformer", "red_pylon_medium_steel", "red_pylon_medium_steel_transformer",

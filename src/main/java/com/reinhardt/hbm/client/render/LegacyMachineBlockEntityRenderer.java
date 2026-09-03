@@ -781,6 +781,22 @@ public final class LegacyMachineBlockEntityRenderer implements BlockEntityRender
             poseStack.popPose();
             return;
         }
+        if (id.equals("machine_turbinegas")) {
+            poseStack.pushPose();
+            if (inventory) {
+                // RenderTurbineGas#getRenderer: the legacy inventory-only pose.
+                poseStack.translate(0.0F, -1.0F, 1.5F);
+                poseStack.scale(2.5F, 2.5F, 2.5F);
+            }
+            // RenderTurbineGas#renderCommon applies this scale and rotation
+            // after the ItemRenderBase pose in every display context.
+            poseStack.scale(0.75F, 0.75F, 0.75F);
+            poseStack.mulPose(yaw(90.0F));
+            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GasTurbineBlockEntityRenderer.MODEL),
+                    poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
+            return;
+        }
         if (id.equals("machine_thresher")) {
             poseStack.pushPose();
             if (inventory) {
