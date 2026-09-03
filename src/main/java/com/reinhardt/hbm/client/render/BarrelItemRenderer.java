@@ -50,9 +50,12 @@ public final class BarrelItemRenderer extends BlockEntityWithoutLevelRenderer {
         BakedModel model = MachineModelRenderer.model(location);
 
         poseStack.pushPose();
+        // ItemRenderer applies its block-space centering before entering a
+        // BEWLR. Undo it so the legacy view transform keeps its original
+        // order, then restore the centering immediately before drawing.
+        poseStack.translate(0.5F, 0.5F, 0.5F);
         applyLegacyBlockItemTransform(context, poseStack);
-        // ItemRenderer has already moved the modern block-space OBJ by
-        // (-0.5, -0.5, -0.5), which centers the legacy barrel geometry.
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
         MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
