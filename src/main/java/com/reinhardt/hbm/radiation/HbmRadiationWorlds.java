@@ -17,6 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -174,6 +175,10 @@ public final class HbmRadiationWorlds {
         private final Set<Long> loadedChunks = ConcurrentHashMap.newKeySet();
         private final Set<Long> trackedSections = ConcurrentHashMap.newKeySet();
         private final Map<Long, CachedResistance> resistanceCache = new HashMap<>();
+        /** Number of active radiation sections that need each loaded section's resistance. */
+        private final Map<Long, Integer> resistanceDemand = new HashMap<>();
+        /** Sections whose cached resistance must be published to the worker. */
+        private final Set<Long> pendingResistance = new HashSet<>();
         private final Set<Long> dirtyResistance = new HashSet<>();
         private volatile Map<Long, Double> chunkRadiation = Map.of();
         private final WorkerState workerState = new WorkerState();
@@ -191,9 +196,7 @@ public final class HbmRadiationWorlds {
                 Set<Long> currentSections = loadedSections(solved.updatedSections(), loadedChunks);
                 boolean accepted = data.applySolvedSnapshot(solved.sections(), solved.revision(), currentSections);
                 if (accepted) {
-                    trackedSections.addAll(solved.sections().keySet());
-                    trackedSections.removeIf(sectionKey -> !solved.sections().containsKey(sectionKey)
-                            && isInLoadedChunk(sectionKey));
+                    updateTrackedSections(solved.sections());
                     Map<Long, Double> acceptedSections = filterLoadedSections(solved.sections(), loadedChunks);
                     chunkRadiation = filterLoadedChunks(solved.chunks(), loadedChunks);
                     publishedRadiation = acceptedSections;
@@ -230,23 +233,34 @@ public final class HbmRadiationWorlds {
         void loadChunk(long chunkKey, Map<Long, Double> radiation) {
             flushRadiationBeforeStructure();
             loadedChunks.add(chunkKey);
-            trackedSections.addAll(radiation.keySet());
+            for (long sectionKey : radiation.keySet()) {
+                addTrackedSection(sectionKey);
+            }
+            rebuildResistanceDemand();
             events.offer(new LoadChunk(chunkKey, radiation));
         }
 
         void unloadChunk(long chunkKey) {
             flushRadiationBeforeStructure();
             loadedChunks.remove(chunkKey);
-            trackedSections.removeIf(sectionKey -> chunkOf(sectionKey) == chunkKey);
+            Iterator<Long> iterator = trackedSections.iterator();
+            while (iterator.hasNext()) {
+                long sectionKey = iterator.next();
+                if (chunkOf(sectionKey) == chunkKey) {
+                    iterator.remove();
+                    removeResistanceDemand(sectionKey);
+                }
+            }
+            rebuildResistanceDemand();
             events.offer(new UnloadChunk(chunkKey));
         }
 
         void setRadiation(long sectionKey, double radiation, long revision) {
             sourceRevision = revision;
             if (radiation > HbmRadiationConstants.RAD_EPSILON) {
-                trackedSections.add(sectionKey);
+                addTrackedSection(sectionKey);
             } else {
-                trackedSections.remove(sectionKey);
+                removeTrackedSection(sectionKey);
             }
             synchronized (radiationQueueLock) {
                 long sequence = radiationSequence.incrementAndGet();
@@ -303,34 +317,121 @@ public final class HbmRadiationWorlds {
 
         void invalidateResistanceSection(long sectionKey) {
             dirtyResistance.add(sectionKey);
+            if (resistanceDemand.containsKey(sectionKey)) {
+                pendingResistance.add(sectionKey);
+            }
         }
 
         private void prepareResistance(ServerLevel level) {
-            Set<Long> needed = new HashSet<>();
-            for (long sectionKey : trackedSections) {
-                if (!isInLoadedChunk(sectionKey)) {
+            if (resistanceDemand.isEmpty() && !trackedSections.isEmpty()) {
+                rebuildResistanceDemand();
+            }
+            Iterator<Long> iterator = pendingResistance.iterator();
+            while (iterator.hasNext()) {
+                long key = iterator.next();
+                iterator.remove();
+                if (!resistanceDemand.containsKey(key) || !isInLoadedChunk(key)) {
                     continue;
                 }
-                needed.add(sectionKey);
-                for (Direction direction : Direction.values()) {
-                    long neighbor = SectionPos.offset(sectionKey, direction);
-                    if (isInLoadedChunk(neighbor)) {
-                        needed.add(neighbor);
-                    }
-                }
-            }
-            for (long key : needed) {
                 CachedResistance cached = resistanceCache.get(key);
                 if (cached == null || dirtyResistance.remove(key)) {
                     cached = new CachedResistance(scanResistance(level, key), tickCounter);
                     resistanceCache.put(key, cached);
-                    events.offer(new ResistanceUpdate(key, cached.resistance()));
                 } else {
                     resistanceCache.put(key, cached.touch(tickCounter));
                 }
+                events.offer(new ResistanceUpdate(key, cached.resistance()));
             }
             if (tickCounter % RESISTANCE_CACHE_PRUNE_INTERVAL == 0) {
                 pruneResistanceCache();
+            }
+        }
+
+        private void updateTrackedSections(Map<Long, Double> solved) {
+            for (long sectionKey : solved.keySet()) {
+                addTrackedSection(sectionKey);
+            }
+
+            Iterator<Long> iterator = trackedSections.iterator();
+            while (iterator.hasNext()) {
+                long sectionKey = iterator.next();
+                if (!solved.containsKey(sectionKey) && isInLoadedChunk(sectionKey)) {
+                    iterator.remove();
+                    removeResistanceDemand(sectionKey);
+                }
+            }
+        }
+
+        private void addTrackedSection(long sectionKey) {
+            if (trackedSections.add(sectionKey)) {
+                addResistanceDemand(sectionKey);
+            }
+        }
+
+        private void removeTrackedSection(long sectionKey) {
+            if (trackedSections.remove(sectionKey)) {
+                removeResistanceDemand(sectionKey);
+            }
+        }
+
+        private void addResistanceDemand(long sourceSection) {
+            changeResistanceDemand(sourceSection, 1);
+            for (Direction direction : Direction.values()) {
+                changeResistanceDemand(SectionPos.offset(sourceSection, direction), 1);
+            }
+        }
+
+        private void removeResistanceDemand(long sourceSection) {
+            changeResistanceDemand(sourceSection, -1);
+            for (Direction direction : Direction.values()) {
+                changeResistanceDemand(SectionPos.offset(sourceSection, direction), -1);
+            }
+        }
+
+        private void changeResistanceDemand(long sectionKey, int delta) {
+            if (!isInLoadedChunk(sectionKey)) {
+                return;
+            }
+            int previous = resistanceDemand.getOrDefault(sectionKey, 0);
+            int next = previous + delta;
+            if (next <= 0) {
+                resistanceDemand.remove(sectionKey);
+                pendingResistance.remove(sectionKey);
+                return;
+            }
+            resistanceDemand.put(sectionKey, next);
+            if (previous == 0 || !resistanceCache.containsKey(sectionKey) || dirtyResistance.contains(sectionKey)) {
+                pendingResistance.add(sectionKey);
+            }
+        }
+
+        private void rebuildResistanceDemand() {
+            Map<Long, Integer> previous = resistanceDemand.isEmpty()
+                    ? Map.of()
+                    : new HashMap<>(resistanceDemand);
+            resistanceDemand.clear();
+            for (long sourceSection : trackedSections) {
+                addDemandWithoutQueue(sourceSection);
+            }
+            pendingResistance.removeIf(sectionKey -> !resistanceDemand.containsKey(sectionKey));
+            for (long sectionKey : resistanceDemand.keySet()) {
+                if (!previous.containsKey(sectionKey) || !resistanceCache.containsKey(sectionKey)
+                        || dirtyResistance.contains(sectionKey)) {
+                    pendingResistance.add(sectionKey);
+                }
+            }
+        }
+
+        private void addDemandWithoutQueue(long sourceSection) {
+            addDemandWithoutQueueFor(sourceSection);
+            for (Direction direction : Direction.values()) {
+                addDemandWithoutQueueFor(SectionPos.offset(sourceSection, direction));
+            }
+        }
+
+        private void addDemandWithoutQueueFor(long sectionKey) {
+            if (isInLoadedChunk(sectionKey)) {
+                resistanceDemand.merge(sectionKey, 1, Integer::sum);
             }
         }
 
@@ -426,7 +527,8 @@ public final class HbmRadiationWorlds {
 
         private void pruneResistanceCache() {
             long cutoff = tickCounter - RESISTANCE_CACHE_MAX_IDLE_TICKS;
-            resistanceCache.entrySet().removeIf(entry -> entry.getValue().lastUsedTick() < cutoff);
+            resistanceCache.entrySet().removeIf(entry -> !resistanceDemand.containsKey(entry.getKey())
+                    && entry.getValue().lastUsedTick() < cutoff);
             dirtyResistance.removeIf(key -> !resistanceCache.containsKey(key));
         }
 
