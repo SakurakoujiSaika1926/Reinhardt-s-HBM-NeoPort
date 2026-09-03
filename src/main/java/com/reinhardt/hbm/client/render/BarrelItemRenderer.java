@@ -51,10 +51,8 @@ public final class BarrelItemRenderer extends BlockEntityWithoutLevelRenderer {
 
         poseStack.pushPose();
         applyLegacyBlockItemTransform(context, poseStack);
-        // ItemRenderer's (-0.5, -0.5, -0.5) maps the modern block-space OBJ
-        // back to RenderBarrel's old origin-centered geometry. The legacy
-        // renderer then applies exactly this Y translation.
-        poseStack.translate(0.0F, -0.5F, 0.0F);
+        // ItemRenderer has already moved the modern block-space OBJ by
+        // (-0.5, -0.5, -0.5), which centers the legacy barrel geometry.
         MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
