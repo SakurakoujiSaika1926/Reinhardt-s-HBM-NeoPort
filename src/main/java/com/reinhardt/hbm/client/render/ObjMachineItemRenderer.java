@@ -895,6 +895,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_arc_furnace_electrode2", "block/machine_arc_furnace_electrode3",
                 "block/machine_arc_furnace_cable1", "block/machine_arc_furnace_cable2",
                 "block/machine_arc_furnace_cable3");
+        add(profiles, "machine_storage_drum", 0.0F, 0.90F,
+                "block/machine_storage_drum");
         // This animated 23x13 door has no compact block mesh.  Render the real
         // closed OBJ assembly in item space and fit it from its measured bounds.
         add(profiles, "transition_seal", 225.0F, 30.0F, 0.82F, 0.85F,
@@ -1268,6 +1270,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderCrucible#getRenderer: translate(0,-1.5,0), scale(3.25).
         legacy(poses, "machine_crucible", 0.0F, -1.5F, 0.0F, 3.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
+        // ItemRenderLibrary#machine_storage_drum: translate(0,-3,0),
+        // scale(5), then RenderStorageDrum's common scale(2).
+        legacy(poses, "machine_storage_drum", 0.0F, -3.0F, 0.0F, 5.0F,
+                0.0F, 0.0F, 0.0F, 0.0F, 2.0F);
         // RenderFurnaceCombination#getRenderer
         legacy(poses, "furnace_combination", 0.0F, -1.5F, 0.0F, 3.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);

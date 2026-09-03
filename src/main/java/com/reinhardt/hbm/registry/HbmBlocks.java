@@ -4255,7 +4255,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> storageDrum(String name) {
-        return registerBlock(name, () -> new StorageDrumBlock(metal()
+        return registerObjBlock(name, () -> new StorageDrumBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
     }
