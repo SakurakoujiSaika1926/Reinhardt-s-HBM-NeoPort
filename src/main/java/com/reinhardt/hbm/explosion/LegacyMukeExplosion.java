@@ -83,6 +83,20 @@ public final class LegacyMukeExplosion {
         sendMukeEffect(level, center);
     }
 
+    /** Exact ExplosionNukeSmall.PARAMS_SAFE branch used by an unpowered nuclear creeper. */
+    public static void detonateSafeMiniNuke(ServerLevel level, Entity source, Vec3 center) {
+        applyNuclearDamage(level, source, center, 45.0D, 250.0F);
+        LegacyProjectileUtil.spawnShrapnel(level, center, MINI_SHRAPNEL_COUNT);
+        incrementRadiation(level, center, 2.0F / 3.0F);
+        sendMukeEffect(level, center);
+    }
+
+    /** Nuclear creeper powered no-grief branch: the old damage-only radius-100 pass. */
+    public static void detonateNuclearDamage(ServerLevel level, Entity source, Vec3 center, double radius) {
+        applyNuclearDamage(level, source, center, radius, 250.0F);
+        sendMukeEffect(level, center);
+    }
+
     /** Exact non-block-damaging UFO rocket impact from ExplosionNukeGeneric.dealDamage. */
     public static void detonateUfoRocket(ServerLevel level, Entity source, Vec3 center) {
         applyNuclearDamage(level, source, center, 10.0D, 50.0F);

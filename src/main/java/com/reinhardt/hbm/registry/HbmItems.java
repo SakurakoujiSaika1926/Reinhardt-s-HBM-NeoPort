@@ -147,6 +147,8 @@ import com.reinhardt.hbm.item.LegacyRttyPagerItem;
 import com.reinhardt.hbm.item.LegacyRubberBoatItem;
 import com.reinhardt.hbm.item.LegacyDuckSpawnItem;
 import com.reinhardt.hbm.item.LegacyBossSpawnItem;
+import com.reinhardt.hbm.item.GlyphidSpawnEggItem;
+import com.reinhardt.hbm.entity.GlyphidEntity;
 import com.reinhardt.hbm.item.LegacyDroneItem;
 import com.reinhardt.hbm.item.LegacyDroneLinkerItem;
 import com.reinhardt.hbm.item.LegacyBombCallerItem;
@@ -235,6 +237,9 @@ import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -290,6 +295,10 @@ public final class HbmItems {
     public static final List<DeferredItem<Item>> TURRET_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> SATELLITE_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> PORTED_PLAIN_ITEMS = new ArrayList<>();
+    /** Concrete Glyphid spawn eggs exposed by the 1.7.10 mob mappings. */
+    public static final List<DeferredItem<Item>> GLYPHID_SPAWN_EGGS = new ArrayList<>();
+    /** Standard eggs for the 1.7.10 mobs that already have a direct port. */
+    public static final List<DeferredItem<Item>> MOB_SPAWN_EGGS = new ArrayList<>();
 
     /**
      * Items constructed with vanilla Item in 1.7.10. Their specialized
@@ -705,6 +714,66 @@ public final class HbmItems {
     public static final DeferredItem<Item> EGG_BALEFIRE_SHARD = material(MISC_MATERIALS, "egg_balefire_shard");
     public static final DeferredItem<Item> GLYPHID_MEAT = material(MISC_MATERIALS, "glyphid_meat");
     public static final DeferredItem<Item> GLYPHID_MEAT_GRILLED = material(MISC_MATERIALS, "glyphid_meat_grilled");
+
+    // 1.7.10 EntityMappings.addMob colors, retained as separate fixed-variant eggs.
+    public static final DeferredItem<Item> SPAWN_GLYPHID = glyphidSpawnEgg(
+            "spawn_glyphid", GlyphidEntity.Variant.NORMAL, 0x724A21, 0xD2BB72);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_BRAWLER = glyphidSpawnEgg(
+            "spawn_glyphid_brawler", GlyphidEntity.Variant.BRAWLER, 0x273038, 0xD2BB72);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_BEHEMOTH = glyphidSpawnEgg(
+            "spawn_glyphid_behemoth", GlyphidEntity.Variant.BEHEMOTH, 0x267F00, 0xD2BB72);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_BRENDA = glyphidSpawnEgg(
+            "spawn_glyphid_brenda", GlyphidEntity.Variant.BRENDA, 0x4FC0C0, 0xA0A0A0);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_BOMBARDIER = glyphidSpawnEgg(
+            "spawn_glyphid_bombardier", GlyphidEntity.Variant.BOMBARDIER, 0xDDD919, 0xDBB79D);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_BLASTER = glyphidSpawnEgg(
+            "spawn_glyphid_blaster", GlyphidEntity.Variant.BLASTER, 0xD83737, 0xDBB79D);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_SCOUT = glyphidSpawnEgg(
+            "spawn_glyphid_scout", GlyphidEntity.Variant.SCOUT, 0x273038, 0xB9E36B);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_NUCLEAR = glyphidSpawnEgg(
+            "spawn_glyphid_nuclear", GlyphidEntity.Variant.NUCLEAR, 0x267F00, 0xA0A0A0);
+    public static final DeferredItem<Item> SPAWN_GLYPHID_DIGGER = glyphidSpawnEgg(
+            "spawn_glyphid_digger", GlyphidEntity.Variant.DIGGER, 0x273038, 0x724A21);
+    public static final DeferredItem<Item> SPAWN_HUNTER_CHOPPER = mobSpawnEgg(
+            "spawn_hunter_chopper", () -> HbmEntityTypes.LEGACY_CHOPPER.get(), 0x000020, 0x2D2D72);
+    public static final DeferredItem<Item> SPAWN_DUCK_EGG = mobSpawnEgg(
+            "spawn_duck_egg", () -> HbmEntityTypes.DUCK.get(), 0xD0D0D0, 0xFFBF00);
+    public static final DeferredItem<Item> SPAWN_NUCLEAR_CREEPER = mobSpawnEgg(
+            "spawn_nuclear_creeper", () -> HbmEntityTypes.NUCLEAR_CREEPER.get(), 0x204131, 0x75CE00);
+    public static final DeferredItem<Item> SPAWN_TAINTED_CREEPER = mobSpawnEgg(
+            "spawn_tainted_creeper", () -> HbmEntityTypes.TAINTED_CREEPER.get(), 0x813B9B, 0xD71FDD);
+    public static final DeferredItem<Item> SPAWN_PHOSGENE_CREEPER = mobSpawnEgg(
+            "spawn_phosgene_creeper", () -> HbmEntityTypes.PHOSGENE_CREEPER.get(), 0xE3D398, 0xB8A06B);
+    public static final DeferredItem<Item> SPAWN_VOLATILE_CREEPER = mobSpawnEgg(
+            "spawn_volatile_creeper", () -> HbmEntityTypes.VOLATILE_CREEPER.get(), 0xC28153, 0x4D382C);
+    public static final DeferredItem<Item> SPAWN_GOLD_CREEPER = mobSpawnEgg(
+            "spawn_gold_creeper", () -> HbmEntityTypes.GOLD_CREEPER.get(), 0xECC136, 0x9E8B3E);
+    public static final DeferredItem<Item> SPAWN_CYBER_CRAB = mobSpawnEgg(
+            "spawn_cyber_crab", () -> HbmEntityTypes.CYBER_CRAB.get(), 0xAAAAAA, 0x444444);
+    public static final DeferredItem<Item> SPAWN_TESLA_CRAB = mobSpawnEgg(
+            "spawn_tesla_crab", () -> HbmEntityTypes.TESLA_CRAB.get(), 0xAAAAAA, 0x440000);
+    public static final DeferredItem<Item> SPAWN_TAINT_CRAB = mobSpawnEgg(
+            "spawn_taint_crab", () -> HbmEntityTypes.TAINT_CRAB.get(), 0xAAAAAA, 0xFF00FF);
+    public static final DeferredItem<Item> SPAWN_MASK_MAN = mobSpawnEgg(
+            "spawn_mask_man", () -> HbmEntityTypes.MASK_MAN.get(), 0x818572, 0xC7C1B7);
+    public static final DeferredItem<Item> SPAWN_QUACKOS = mobSpawnEgg(
+            "spawn_quackos", () -> HbmEntityTypes.QUACKOS.get(), 0xD0D0D0, 0xFFBF00);
+    public static final DeferredItem<Item> SPAWN_PIGEON = mobSpawnEgg(
+            "spawn_pigeon", () -> HbmEntityTypes.PIGEON.get(), 0xC8C9CD, 0x858894);
+    public static final DeferredItem<Item> SPAWN_FBI = mobSpawnEgg(
+            "spawn_fbi", () -> HbmEntityTypes.FBI.get(), 0x008000, 0x404040);
+    public static final DeferredItem<Item> SPAWN_FBI_DRONE = mobSpawnEgg(
+            "spawn_fbi_drone", () -> HbmEntityTypes.FBI_DRONE.get(), 0x008000, 0x404040);
+    public static final DeferredItem<Item> SPAWN_RAD_BEAST = mobSpawnEgg(
+            "spawn_rad_beast", () -> HbmEntityTypes.RAD_BEAST.get(), 0x303030, 0x008000);
+    public static final DeferredItem<Item> SPAWN_PLASTIC_BAG = mobSpawnEgg(
+            "spawn_plastic_bag", () -> HbmEntityTypes.PLASTIC_BAG.get(), 0xD0D0D0, 0x808080);
+    public static final DeferredItem<Item> SPAWN_DUMMY = mobSpawnEgg(
+            "spawn_dummy", () -> HbmEntityTypes.DUMMY.get(), 0xFFFFFF, 0x000000);
+    public static final DeferredItem<Item> SPAWN_PARASITE_MAGGOT_EGG = mobSpawnEgg(
+            "spawn_parasite_maggot_egg", () -> HbmEntityTypes.PARASITE_MAGGOT.get(), 0xD0D0D0, 0x808080);
+    public static final DeferredItem<Item> SPAWN_UNDEAD_SOLDIER_EGG = mobSpawnEgg(
+            "spawn_undead_soldier_egg", () -> HbmEntityTypes.UNDEAD_SOLDIER.get(), 0x749F30, 0x6C5B44);
     public static final DeferredItem<Item> LASER_CRYSTAL_CO2 = machineComponent("laser_crystal_co2", () -> new FelCrystalItem(new Item.Properties(), Wavelength.IR));
     public static final DeferredItem<Item> LASER_CRYSTAL_BISMUTH = machineComponent("laser_crystal_bismuth", () -> new FelCrystalItem(new Item.Properties(), Wavelength.VISIBLE));
     public static final DeferredItem<Item> LASER_CRYSTAL_CMB = machineComponent("laser_crystal_cmb", () -> new FelCrystalItem(new Item.Properties(), Wavelength.UV));
@@ -2314,6 +2383,10 @@ public final class HbmItems {
             "boat_rubber",
             () -> new LegacyRubberBoatItem(new Item.Properties())
     );
+    public static final DeferredItem<Item> PLASTIC_BAG = toolItem(
+            "plastic_bag",
+            () -> new LegacyHeldInventoryItem(new Item.Properties(), LegacyHeldInventoryItem.Kind.PLASTIC_BAG)
+    );
     public static final DeferredItem<Item> CART = toolItem(
             "cart",
             () -> new LegacyMinecartItem(new Item.Properties())
@@ -2523,6 +2596,23 @@ public final class HbmItems {
     private static DeferredItem<Item> toolItem(String name, Supplier<Item> item) {
         DeferredItem<Item> registered = coreItem(name, item);
         TOOL_ITEMS.add(registered);
+        return registered;
+    }
+
+    private static DeferredItem<Item> glyphidSpawnEgg(String name, GlyphidEntity.Variant variant,
+                                                       int backgroundColor, int highlightColor) {
+        DeferredItem<Item> registered = coreItem(name,
+                () -> new GlyphidSpawnEggItem(new Item.Properties(), variant, backgroundColor, highlightColor));
+        GLYPHID_SPAWN_EGGS.add(registered);
+        return registered;
+    }
+
+    private static DeferredItem<Item> mobSpawnEgg(String name,
+                                                   Supplier<? extends EntityType<? extends Mob>> type,
+                                                   int backgroundColor, int highlightColor) {
+        DeferredItem<Item> registered = coreItem(name,
+                () -> new SpawnEggItem(type.get(), backgroundColor, highlightColor, new Item.Properties()));
+        MOB_SPAWN_EGGS.add(registered);
         return registered;
     }
 
@@ -2887,9 +2977,6 @@ public final class HbmItems {
     }
 
     private static void registerPortedLegacyHeldInventories() {
-        toolItem("plastic_bag", () -> new LegacyHeldInventoryItem(
-                new Item.Properties(), LegacyHeldInventoryItem.Kind.PLASTIC_BAG
-        ));
         toolItem("containment_box", () -> new LegacyHeldInventoryItem(
                 new Item.Properties(), LegacyHeldInventoryItem.Kind.CONTAINMENT_BOX
         ));

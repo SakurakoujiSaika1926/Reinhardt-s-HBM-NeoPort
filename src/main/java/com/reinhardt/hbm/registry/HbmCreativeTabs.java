@@ -770,6 +770,12 @@ public final class HbmCreativeTabs {
                                 outputLegacyItem(output, item);
                             }
                         }
+                        for (var egg : HbmItems.GLYPHID_SPAWN_EGGS) {
+                            output.accept(egg);
+                        }
+                        for (var egg : HbmItems.MOB_SPAWN_EGGS) {
+                            output.accept(egg);
+                        }
                         if (HbmBlocks.VENDING_MACHINE.get().asItem() instanceof com.reinhardt.hbm.item.VendingMachineBlockItem vending) {
                             vending.addCreativeVariants(output);
                         }

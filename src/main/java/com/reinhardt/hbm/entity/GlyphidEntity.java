@@ -27,6 +27,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -41,6 +42,7 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -48,6 +50,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import javax.annotation.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -283,7 +286,26 @@ public class GlyphidEntity extends Monster {
                 * (getSubtype() == TYPE_RADIOACTIVE ? 2.0D : 1.0D));
         getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(stats.damage()
                 * (getSubtype() == TYPE_RADIOACTIVE ? 5.0D : 1.0D));
-        setHealth(Math.min(getHealth(), getMaxHealth()));
+        // EntityType construction applies attributes after the entity
+        // constructor.  A fixed-variant glyphid calls setVariant from that
+        // constructor, so its initial health is still zero at this point.
+        // Vanilla Mob initialises newly-created entities to max health; keep
+        // that same initialisation instead of preserving the pre-attribute
+        // zero value.  Existing entities retain their current health when
+        // their variant/subtype changes.
+        setHealth(getHealth() <= 0.0F ? getMaxHealth() : Math.min(getHealth(), getMaxHealth()));
+    }
+
+    @Override
+    public net.minecraft.world.entity.SpawnGroupData finalizeSpawn(
+            ServerLevelAccessor level,
+            net.minecraft.world.DifficultyInstance difficulty,
+            MobSpawnType reason,
+            @Nullable net.minecraft.world.entity.SpawnGroupData spawnData) {
+        net.minecraft.world.entity.SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        refreshAttributes();
+        setHealth(getMaxHealth());
+        return result;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.reinhardt.hbm.pollution;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.item.GasMaskItem;
 import com.reinhardt.hbm.item.FilterableGasMask;
+import com.reinhardt.hbm.item.ArmorModItem;
 import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -12,6 +13,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,6 +57,12 @@ public final class HbmArmorProtection {
             entry("gas_mask_filter_rag", EnumSet.of(HazardClass.PARTICLE_COARSE)),
             entry("gas_mask_filter_piss", EnumSet.of(HazardClass.PARTICLE_COARSE, HazardClass.GAS_LUNG))
     );
+    private static final List<String> FARADAY_MATERIALS = List.of(
+            "chainmail", "iron", "silver", "gold", "platinum", "tin", "lead", "liquidator",
+            "schrabidium", "euphemium", "steel", "cmb", "titanium", "alloy", "copper", "bronze",
+            "electrum", "t45", "t51", "bj", "starmetal", "hazmat", "rubber", "hev", "ajr", "rpa",
+            "spacesuit"
+    );
 
     private HbmArmorProtection() {
     }
@@ -79,6 +87,37 @@ public final class HbmArmorProtection {
         }
         for (ItemStack attachment : ArmorModHandler.pryMods(head, entity.registryAccess())) {
             if (hasFilterProtection(attachment, entity, hazardClass, filterDamage)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Exact 1.7.10 all-four-slots Faraday check used by Tesla damage. */
+    public static boolean hasFaradayProtection(LivingEntity entity) {
+        if (!(entity instanceof net.minecraft.world.entity.player.Player)) {
+            return false;
+        }
+        for (EquipmentSlot slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST,
+                EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
+            ItemStack armor = entity.getItemBySlot(slot);
+            if (armor.isEmpty() || !isFaradayArmor(armor, entity)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isFaradayArmor(ItemStack stack, LivingEntity entity) {
+        String path = itemPath(stack.getItem());
+        for (String material : FARADAY_MATERIALS) {
+            if (path.contains(material)) {
+                return true;
+            }
+        }
+        for (ItemStack attachment : ArmorModHandler.pryMods(stack, entity.registryAccess())) {
+            if (attachment.getItem() instanceof ArmorModItem mod
+                    && mod.slotType() == ArmorModHandler.CLADDING) {
                 return true;
             }
         }

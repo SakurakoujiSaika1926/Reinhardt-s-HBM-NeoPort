@@ -65,6 +65,7 @@ public final class HbmConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_LEAD_POISONING;
     public static final ModConfigSpec.BooleanValue ENABLE_SOOT_FOG;
     public static final ModConfigSpec.BooleanValue ENABLE_POISON_EFFECT;
+    public static final ModConfigSpec.BooleanValue TAINT_TRAILS;
     public static final ModConfigSpec.DoubleValue POLLUTION_MULTIPLIER;
     public static final ModConfigSpec.DoubleValue POLLUTION_MOB_BUFF_THRESHOLD;
     public static final ModConfigSpec.DoubleValue POLLUTION_SOOT_FOG_THRESHOLD;
@@ -416,6 +417,9 @@ public final class HbmConfig {
         ENABLE_POISON_EFFECT = builder
                 .comment("是否启用毒性污染区域对实体施加中毒/凋零效果。默认与旧版一致：true。")
                 .define("enablePoisonEffect", true);
+        TAINT_TRAILS = builder
+                .comment("Enable the low-age taint trails used by the 1.7.10 taint effect. Default: false.")
+                .define("taintTrails", false);
         POLLUTION_MULTIPLIER = builder
                 .comment("污染生成倍率。默认与旧版配置读取值一致：1.0。旧版开启 rampant 模式时会额外改为 3.0。")
                 .defineInRange("pollutionMultiplier", 1.0D, 0.0D, 1_000.0D);

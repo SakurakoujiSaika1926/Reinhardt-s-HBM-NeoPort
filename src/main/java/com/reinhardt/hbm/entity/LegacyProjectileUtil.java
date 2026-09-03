@@ -2,6 +2,7 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.explosion.NukeExplosionManager;
 import com.reinhardt.hbm.explosion.LegacyMukeExplosion;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.item.AmmoArtyItem;
 import com.reinhardt.hbm.item.AmmoHimarsItem;
 import com.reinhardt.hbm.item.ArmorFSBItem;
@@ -16,6 +17,7 @@ import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmMobEffects;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.block.TaintBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -214,6 +216,52 @@ public final class LegacyProjectileUtil {
         }
         applyLegacyCrossDamage(source, pos, 25.0F, 1.0F);
         LegacyMukeExplosion.sendMukeEffect(level, pos);
+    }
+
+    /** Exact 1.7.10 nuclear creeper safe branch: damage and radiation only. */
+    public static void detonateNuclearSafe(ServerLevel level, Entity source, Vec3 pos) {
+        LegacyMukeExplosion.detonateSafeMiniNuke(level, source, pos);
+    }
+
+    /** Exact 1.7.10 EntityCreeperTainted explosion and taint replacement pass. */
+    public static void detonateTaintedCreeper(ServerLevel level, Entity source, Vec3 pos, boolean powered) {
+        level.explode(source, pos.x, pos.y, pos.z, 5.0F, false, Level.ExplosionInteraction.NONE);
+        int amount = powered ? 255 : 85;
+        int radius = powered ? 7 : 3;
+        for (int index = 0; index < amount; index++) {
+            BlockPos blockPos = new BlockPos(
+                    Mth.floor(pos.x) + level.random.nextInt(powered ? 15 : 7) - radius,
+                    Mth.floor(pos.y) + level.random.nextInt(powered ? 15 : 7) - radius,
+                    Mth.floor(pos.z) + level.random.nextInt(powered ? 15 : 7) - radius
+            );
+            BlockState state = level.getBlockState(blockPos);
+            if (!state.isAir() && state.isCollisionShapeFullBlock(level, blockPos)) {
+                int age = HbmConfig.TAINT_TRAILS.get()
+                        ? (powered ? level.random.nextInt(3) : level.random.nextInt(3) + 4)
+                        : (powered ? level.random.nextInt(3) + 5 : level.random.nextInt(6) + 10);
+                level.setBlock(blockPos,
+                        HbmBlocks.TAINT.get().defaultBlockState().setValue(TaintBlock.AGE, age),
+                        Block.UPDATE_CLIENTS);
+            }
+        }
+    }
+
+    /** Exact 1.7.10 EntityCreeperPhosgene detonation and 150-tick gas cloud. */
+    public static void detonatePhosgeneCreeper(ServerLevel level, Entity source, Vec3 pos) {
+        level.explode(source, pos.x, pos.y + source.getBbHeight() * 0.5D, pos.z,
+                2.0F, false, Level.ExplosionInteraction.NONE);
+        level.addFreshEntity(new LegacyMistEntity(level, pos.x, pos.y, pos.z,
+                LegacyMistEntity.MistType.PHOSGENE, 10.0F, 5.0F, 150));
+    }
+
+    /** Exact 1.7.10 Volatile/Gold creeper Bulkie allocator and standard processors. */
+    public static void detonateBulkieCreeper(ServerLevel level, Entity source, Vec3 pos,
+                                               boolean powered, boolean gold) {
+        float radius = powered ? 14.0F : 7.0F;
+        allocateLegacyBulkieBlocks(level, source, pos, radius, powered ? 32 : 16,
+                gold ? Blocks.GOLD_ORE.defaultBlockState() : HbmBlocks.BLOCK_SLAG.get().defaultBlockState());
+        applyLegacyCrossDamage(source, pos, radius, 0.5F);
+        sendSmallExplosionEffect(level, pos, 10, 2.5F, 1.0F);
     }
 
     public static void phosphorus(Entity source, Vec3 pos, int radius) {
@@ -876,6 +924,67 @@ public final class LegacyProjectileUtil {
 
     private static void allocateLegacyExplosionBlocks(Entity source, ServerLevel level, Vec3 pos, float radius, BlockState debris) {
         allocateLegacyExplosionBlocks(source, level, pos, radius, 48, 0.0F, debris);
+    }
+
+    private static void allocateLegacyBulkieBlocks(ServerLevel level, Entity source, Vec3 center,
+                                                     float radius, int resolution, BlockState debris) {
+        Set<BlockPos> affected = new HashSet<>();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int xIndex = 0; xIndex < resolution; xIndex++) {
+            for (int yIndex = 0; yIndex < resolution; yIndex++) {
+                for (int zIndex = 0; zIndex < resolution; zIndex++) {
+                    if (xIndex != 0 && xIndex != resolution - 1
+                            && yIndex != 0 && yIndex != resolution - 1
+                            && zIndex != 0 && zIndex != resolution - 1) {
+                        continue;
+                    }
+                    double xDirection = (double) xIndex / (resolution - 1.0D) * 2.0D - 1.0D;
+                    double yDirection = (double) yIndex / (resolution - 1.0D) * 2.0D - 1.0D;
+                    double zDirection = (double) zIndex / (resolution - 1.0D) * 2.0D - 1.0D;
+                    double length = Math.sqrt(xDirection * xDirection
+                            + yDirection * yDirection + zDirection * zDirection);
+                    xDirection /= length;
+                    yDirection /= length;
+                    zDirection /= length;
+                    double x = center.x;
+                    double y = center.y;
+                    double z = center.z;
+                    for (float distance = 0.0F; distance <= radius; distance += 0.3F) {
+                        cursor.set(Mth.floor(x), Mth.floor(y), Mth.floor(z));
+                        if (!level.isInWorldBounds(cursor)) {
+                            break;
+                        }
+                        BlockState state = level.getBlockState(cursor);
+                        if (!state.isAir() && state.getBlock().getExplosionResistance() > 60.0F) {
+                            break;
+                        }
+                        affected.add(cursor.immutable());
+                        x += xDirection * 0.3D;
+                        y += yDirection * 0.3D;
+                        z += zDirection * 0.3D;
+                    }
+                }
+            }
+        }
+
+        Explosion explosion = new Explosion(level, source, center.x, center.y, center.z,
+                radius, false, Explosion.BlockInteraction.DESTROY);
+        float dropChance = 1.0F / radius;
+        for (BlockPos blockPos : affected) {
+            BlockState state = level.getBlockState(blockPos);
+            if (state.isAir() || state.getDestroySpeed(level, blockPos) < 0.0F) {
+                continue;
+            }
+            state.onExplosionHit(level, blockPos, explosion, (stack, dropPos) -> {
+                if (level.random.nextFloat() < dropChance) {
+                    Block.popResource(level, dropPos, stack);
+                }
+            });
+            if (state.isCollisionShapeFullBlock(level, blockPos)
+                    && Vec3.atCenterOf(blockPos).distanceTo(center) >= radius - 0.5D) {
+                level.setBlock(blockPos, debris, Block.UPDATE_ALL);
+            }
+        }
     }
 
     private static void allocateLegacyWeaponExplosionBlocks(Entity source, ServerLevel level, Vec3 pos, float radius) {

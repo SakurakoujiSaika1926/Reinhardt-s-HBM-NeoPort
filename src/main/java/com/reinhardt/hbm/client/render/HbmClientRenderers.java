@@ -73,6 +73,7 @@ import com.reinhardt.hbm.item.LegacyPipetteItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.IcfPelletItem;
 import com.reinhardt.hbm.item.LegacyCrayonItem;
+import com.reinhardt.hbm.item.GlyphidSpawnEggItem;
 import com.reinhardt.hbm.item.LegacyMinecartItem;
 import com.reinhardt.hbm.item.LegacyTrainItem;
 import com.reinhardt.hbm.item.LegacyDroneItem;
@@ -140,6 +141,8 @@ public final class HbmClientRenderers {
         event.registerLayerDefinition(LegacyChopperMineModel.LAYER, LegacyChopperMineModel::createLayer);
         event.registerLayerDefinition(LegacyRadioboxModel.LAYER, LegacyRadioboxModel::createLayer);
         event.registerLayerDefinition(LegacyBroadcasterModel.LAYER, LegacyBroadcasterModel::createLayer);
+        event.registerLayerDefinition(LegacyCyberCrabModel.LAYER, LegacyCyberCrabModel::createLayer);
+        event.registerLayerDefinition(LegacyPigeonModel.LAYER, LegacyPigeonModel::createLayer);
     }
 
     @SubscribeEvent
@@ -308,6 +311,27 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.RUBBER_BOAT.get(), RubberBoatEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.MINER_ROCKET.get(), MinerRocketEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.DUCK.get(), LegacyDuckEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.NUCLEAR_CREEPER.get(),
+                context -> new LegacyCreeperEntityRenderer<>(context, "creeper", "creeper_armor"));
+        event.registerEntityRenderer(HbmEntityTypes.TAINTED_CREEPER.get(),
+                context -> new LegacyCreeperEntityRenderer<>(context, "creeper_tainted", "creeper_armor_taint"));
+        event.registerEntityRenderer(HbmEntityTypes.PHOSGENE_CREEPER.get(),
+                context -> new LegacyCreeperEntityRenderer<>(context, "creeper_phosgene", "creeper_armor"));
+        event.registerEntityRenderer(HbmEntityTypes.VOLATILE_CREEPER.get(),
+                context -> new LegacyCreeperEntityRenderer<>(context, "creeper_volatile", "creeper_armor"));
+        event.registerEntityRenderer(HbmEntityTypes.GOLD_CREEPER.get(),
+                context -> new LegacyCreeperEntityRenderer<>(context, "creeper_gold", "creeper_armor"));
+        event.registerEntityRenderer(HbmEntityTypes.CYBER_CRAB.get(), LegacyCyberCrabEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.TESLA_CRAB.get(), LegacyTeslaCrabEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.TAINT_CRAB.get(), LegacyTaintCrabEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.MASK_MAN.get(), LegacyMaskManEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.QUACKOS.get(), LegacyQuackosEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.PIGEON.get(), LegacyPigeonEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.FBI.get(), LegacyFbiEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.FBI_DRONE.get(), LegacyFbiDroneEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.RAD_BEAST.get(), LegacyRadBeastEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.PLASTIC_BAG.get(), LegacyPlasticBagEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.DUMMY.get(), LegacyDummyEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.DELIVERY_DRONE.get(), LegacyDroneEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.REQUEST_DRONE.get(), LegacyDroneEntityRenderer<LegacyRequestDroneEntity>::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOMBER.get(), LegacyBomberEntityRenderer::new);
@@ -317,6 +341,14 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_WORM_HEAD.get(), LegacyWormEntityRenderer.Head::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_WORM_BODY.get(), LegacyWormEntityRenderer.Body::new);
         event.registerEntityRenderer(HbmEntityTypes.GLYPHID.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_BRAWLER.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_BEHEMOTH.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_BRENDA.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_BOMBARDIER.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_BLASTER.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_SCOUT.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_NUCLEAR.get(), GlyphidEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.GLYPHID_DIGGER.get(), GlyphidEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.GLYPHID_ACID_BOMB.get(), GlyphidAcidBombEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.GLYPHID_ACID_SPRAY.get(), GlyphidAcidSprayEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.GLYPHID_WAYPOINT.get(), NoopRenderer::new);
@@ -559,6 +591,11 @@ public final class HbmClientRenderers {
         LegacyBobmazonEntityRenderer.registerAdditionalModels(event);
         LegacyMinecartEntityRenderer.registerAdditionalModels(event);
         LegacyTrainEntityRenderer.registerAdditionalModels(event);
+        LegacyTeslaCrabEntityRenderer.registerAdditionalModels(event);
+        LegacyTaintCrabEntityRenderer.registerAdditionalModels(event);
+        LegacyMaskManEntityRenderer.registerAdditionalModels(event);
+        LegacyFbiDroneEntityRenderer.registerAdditionalModels(event);
+        LegacyPlasticBagEntityRenderer.registerAdditionalModels(event);
     }
 
     @SubscribeEvent
@@ -596,6 +633,18 @@ public final class HbmClientRenderers {
 
     @SubscribeEvent
     public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register(
+                GlyphidSpawnEggItem::tint,
+                HbmItems.SPAWN_GLYPHID.get(),
+                HbmItems.SPAWN_GLYPHID_BRAWLER.get(),
+                HbmItems.SPAWN_GLYPHID_BEHEMOTH.get(),
+                HbmItems.SPAWN_GLYPHID_BRENDA.get(),
+                HbmItems.SPAWN_GLYPHID_BOMBARDIER.get(),
+                HbmItems.SPAWN_GLYPHID_BLASTER.get(),
+                HbmItems.SPAWN_GLYPHID_SCOUT.get(),
+                HbmItems.SPAWN_GLYPHID_NUCLEAR.get(),
+                HbmItems.SPAWN_GLYPHID_DIGGER.get()
+        );
         event.register(
                 LegacyCrayonItem::tint,
                 net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("crayon"))

@@ -43,10 +43,27 @@ import com.reinhardt.hbm.entity.SoyuzEntity;
 import com.reinhardt.hbm.entity.MinerRocketEntity;
 import com.reinhardt.hbm.entity.FireworksEntity;
 import com.reinhardt.hbm.entity.GlyphidEntity;
+import com.reinhardt.hbm.entity.LegacyGlyphidVariantEntity;
 import com.reinhardt.hbm.entity.GlyphidAcidBombEntity;
 import com.reinhardt.hbm.entity.GlyphidAcidSprayEntity;
 import com.reinhardt.hbm.entity.ParasiteMaggotEntity;
 import com.reinhardt.hbm.entity.LegacyUndeadSoldierEntity;
+import com.reinhardt.hbm.entity.LegacyNuclearCreeperEntity;
+import com.reinhardt.hbm.entity.LegacyTaintedCreeperEntity;
+import com.reinhardt.hbm.entity.LegacyPhosgeneCreeperEntity;
+import com.reinhardt.hbm.entity.LegacyVolatileCreeperEntity;
+import com.reinhardt.hbm.entity.LegacyGoldCreeperEntity;
+import com.reinhardt.hbm.entity.LegacyCyberCrabEntity;
+import com.reinhardt.hbm.entity.LegacyTeslaCrabEntity;
+import com.reinhardt.hbm.entity.LegacyTaintCrabEntity;
+import com.reinhardt.hbm.entity.LegacyMaskManEntity;
+import com.reinhardt.hbm.entity.LegacyQuackosEntity;
+import com.reinhardt.hbm.entity.LegacyPigeonEntity;
+import com.reinhardt.hbm.entity.LegacyFbiEntity;
+import com.reinhardt.hbm.entity.LegacyFbiDroneEntity;
+import com.reinhardt.hbm.entity.LegacyRadBeastEntity;
+import com.reinhardt.hbm.entity.LegacyPlasticBagEntity;
+import com.reinhardt.hbm.entity.LegacyDummyEntity;
 import com.reinhardt.hbm.entity.logic.EntityWaypoint;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
@@ -128,19 +145,132 @@ public final class HbmEntityTypes {
                     .build("entity_rubber_boat"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<LegacyDuckEntity>> DUCK =
-            ENTITY_TYPES.register("entity_duck", () -> EntityType.Builder
+            ENTITY_TYPES.register("entity_fucc_a_ducc", () -> EntityType.Builder
                     .<LegacyDuckEntity>of(LegacyDuckEntity::new, MobCategory.CREATURE)
                     .sized(0.4F, 0.7F)
                     .clientTrackingRange(80)
-                    .build("entity_duck"));
+                    .build("entity_fucc_a_ducc"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyNuclearCreeperEntity>> NUCLEAR_CREEPER =
+            ENTITY_TYPES.register("entity_mob_nuclear_creeper", () -> EntityType.Builder
+                    .<LegacyNuclearCreeperEntity>of(LegacyNuclearCreeperEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.7F).clientTrackingRange(64).build("entity_mob_nuclear_creeper"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyTaintedCreeperEntity>> TAINTED_CREEPER =
+            ENTITY_TYPES.register("entity_mob_tainted_creeper", () -> EntityType.Builder
+                    .<LegacyTaintedCreeperEntity>of(LegacyTaintedCreeperEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.7F).clientTrackingRange(64).build("entity_mob_tainted_creeper"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyPhosgeneCreeperEntity>> PHOSGENE_CREEPER =
+            ENTITY_TYPES.register("entity_mob_phosgene_creeper", () -> EntityType.Builder
+                    .<LegacyPhosgeneCreeperEntity>of(LegacyPhosgeneCreeperEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.7F).clientTrackingRange(64).build("entity_mob_phosgene_creeper"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyVolatileCreeperEntity>> VOLATILE_CREEPER =
+            ENTITY_TYPES.register("entity_mob_volatile_creeper", () -> EntityType.Builder
+                    .<LegacyVolatileCreeperEntity>of(LegacyVolatileCreeperEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.7F).clientTrackingRange(64).build("entity_mob_volatile_creeper"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGoldCreeperEntity>> GOLD_CREEPER =
+            ENTITY_TYPES.register("entity_mob_gold_creeper", () -> EntityType.Builder
+                    .<LegacyGoldCreeperEntity>of(LegacyGoldCreeperEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.7F).clientTrackingRange(64).build("entity_mob_gold_creeper"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyCyberCrabEntity>> CYBER_CRAB =
+            ENTITY_TYPES.register("entity_cyber_crab", () -> EntityType.Builder
+                    .<LegacyCyberCrabEntity>of((type, level) -> new LegacyCyberCrabEntity(type, level, LegacyCyberCrabEntity.Kind.CYBER), MobCategory.MONSTER)
+                    .sized(0.75F, 0.35F).clientTrackingRange(64).build("entity_cyber_crab"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyTeslaCrabEntity>> TESLA_CRAB =
+            ENTITY_TYPES.register("entity_tesla_crab", () -> EntityType.Builder
+                    .<LegacyTeslaCrabEntity>of(LegacyTeslaCrabEntity::new, MobCategory.MONSTER)
+                    .sized(0.75F, 1.25F).clientTrackingRange(64).build("entity_tesla_crab"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyTaintCrabEntity>> TAINT_CRAB =
+            ENTITY_TYPES.register("entity_taint_crab", () -> EntityType.Builder
+                    .<LegacyTaintCrabEntity>of(LegacyTaintCrabEntity::new, MobCategory.MONSTER)
+                    .sized(1.25F, 1.25F).clientTrackingRange(64).build("entity_taint_crab"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyMaskManEntity>> MASK_MAN =
+            ENTITY_TYPES.register("entity_mob_mask_man", () -> EntityType.Builder
+                    .<LegacyMaskManEntity>of(LegacyMaskManEntity::new, MobCategory.MONSTER)
+                    .sized(2.0F, 5.0F).clientTrackingRange(64).build("entity_mob_mask_man"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyQuackosEntity>> QUACKOS =
+            ENTITY_TYPES.register("entity_elder_one", () -> EntityType.Builder
+                    .<LegacyQuackosEntity>of(LegacyQuackosEntity::new, MobCategory.CREATURE)
+                    .sized(7.5F, 17.5F).clientTrackingRange(64).build("entity_elder_one"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyPigeonEntity>> PIGEON =
+            ENTITY_TYPES.register("entity_pigeon", () -> EntityType.Builder
+                    .<LegacyPigeonEntity>of(LegacyPigeonEntity::new, MobCategory.CREATURE)
+                    .sized(0.5F, 1.0F).clientTrackingRange(64).build("entity_pigeon"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyFbiEntity>> FBI =
+            ENTITY_TYPES.register("entity_ntm_fbi", () -> EntityType.Builder
+                    .<LegacyFbiEntity>of(LegacyFbiEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F).clientTrackingRange(64).build("entity_ntm_fbi"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyFbiDroneEntity>> FBI_DRONE =
+            ENTITY_TYPES.register("entity_ntm_fbi_drone", () -> EntityType.Builder
+                    .<LegacyFbiDroneEntity>of(LegacyFbiDroneEntity::new, MobCategory.MONSTER)
+                    .sized(1.0F, 1.0F).clientTrackingRange(64).build("entity_ntm_fbi_drone"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyRadBeastEntity>> RAD_BEAST =
+            ENTITY_TYPES.register("entity_ntm_radiation_blaze", () -> EntityType.Builder
+                    .<LegacyRadBeastEntity>of(LegacyRadBeastEntity::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F).clientTrackingRange(64).build("entity_ntm_radiation_blaze"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyPlasticBagEntity>> PLASTIC_BAG =
+            ENTITY_TYPES.register("entity_plastic_bag", () -> EntityType.Builder
+                    .<LegacyPlasticBagEntity>of(LegacyPlasticBagEntity::new, MobCategory.WATER_AMBIENT)
+                    .sized(0.45F, 0.45F).clientTrackingRange(64).build("entity_plastic_bag"));
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyDummyEntity>> DUMMY =
+            ENTITY_TYPES.register("entity_ntm_test_dummy", () -> EntityType.Builder
+                    .<LegacyDummyEntity>of(LegacyDummyEntity::new, MobCategory.CREATURE)
+                    .sized(0.6F, 1.8F).clientTrackingRange(64).build("entity_ntm_test_dummy"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<GlyphidEntity>> GLYPHID =
-            ENTITY_TYPES.register("glyphid", () -> EntityType.Builder
+            ENTITY_TYPES.register("entity_glyphid", () -> EntityType.Builder
                     .<GlyphidEntity>of(GlyphidEntity::new, MobCategory.MONSTER)
                     .sized(1.75F, 1.0F)
                     .clientTrackingRange(64)
                     .updateInterval(3)
-                    .build("glyphid"));
+                    .build("entity_glyphid"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_BRAWLER =
+            ENTITY_TYPES.register("entity_glyphid_brawler", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.BRAWLER), MobCategory.MONSTER)
+                    .sized(2.0F, 1.125F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_brawler"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_BEHEMOTH =
+            ENTITY_TYPES.register("entity_glyphid_behemoth", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.BEHEMOTH), MobCategory.MONSTER)
+                    .sized(2.5F, 1.5F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_behemoth"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_BRENDA =
+            ENTITY_TYPES.register("entity_glyphid_brenda", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.BRENDA), MobCategory.MONSTER)
+                    .sized(2.5F, 1.75F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_brenda"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_BOMBARDIER =
+            ENTITY_TYPES.register("entity_glyphid_bombardier", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.BOMBARDIER), MobCategory.MONSTER)
+                    .sized(1.75F, 1.0F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_bombardier"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_BLASTER =
+            ENTITY_TYPES.register("entity_glyphid_blaster", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.BLASTER), MobCategory.MONSTER)
+                    .sized(2.0F, 1.125F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_blaster"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_SCOUT =
+            ENTITY_TYPES.register("entity_glyphid_scout", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.SCOUT), MobCategory.MONSTER)
+                    .sized(1.25F, 0.75F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_scout"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_NUCLEAR =
+            ENTITY_TYPES.register("entity_glyphid_nuclear", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.NUCLEAR), MobCategory.MONSTER)
+                    .sized(2.5F, 1.75F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_nuclear"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyGlyphidVariantEntity>> GLYPHID_DIGGER =
+            ENTITY_TYPES.register("entity_glyphid_digger", () -> EntityType.Builder
+                    .<LegacyGlyphidVariantEntity>of((type, level) -> new LegacyGlyphidVariantEntity(type, level, GlyphidEntity.Variant.DIGGER), MobCategory.MONSTER)
+                    .sized(1.75F, 1.0F).clientTrackingRange(64).updateInterval(3)
+                    .build("entity_glyphid_digger"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<LegacyUndeadSoldierEntity>> UNDEAD_SOLDIER =
             ENTITY_TYPES.register("entity_ntm_undead_soldier", () -> EntityType.Builder
@@ -468,7 +598,31 @@ public final class HbmEntityTypes {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(DUCK.get(), net.minecraft.world.entity.animal.Chicken.createAttributes().build());
+        event.put(NUCLEAR_CREEPER.get(), LegacyNuclearCreeperEntity.createAttributes().build());
+        event.put(TAINTED_CREEPER.get(), LegacyTaintedCreeperEntity.createAttributes().build());
+        event.put(PHOSGENE_CREEPER.get(), LegacyPhosgeneCreeperEntity.createAttributes().build());
+        event.put(VOLATILE_CREEPER.get(), LegacyVolatileCreeperEntity.createAttributes().build());
+        event.put(GOLD_CREEPER.get(), LegacyGoldCreeperEntity.createAttributes().build());
+        event.put(CYBER_CRAB.get(), LegacyCyberCrabEntity.createAttributes(4.0D, 0.75D).build());
+        event.put(TESLA_CRAB.get(), LegacyTeslaCrabEntity.createAttributes().build());
+        event.put(TAINT_CRAB.get(), LegacyTaintCrabEntity.createAttributes().build());
+        event.put(MASK_MAN.get(), LegacyMaskManEntity.createAttributes().build());
+        event.put(QUACKOS.get(), LegacyQuackosEntity.createAttributes().build());
+        event.put(PIGEON.get(), LegacyPigeonEntity.createAttributes().build());
+        event.put(FBI.get(), LegacyFbiEntity.createAttributes().build());
+        event.put(FBI_DRONE.get(), LegacyFbiDroneEntity.createAttributes().build());
+        event.put(RAD_BEAST.get(), LegacyRadBeastEntity.createAttributes().build());
+        event.put(PLASTIC_BAG.get(), LegacyPlasticBagEntity.createAttributes().build());
+        event.put(DUMMY.get(), LegacyDummyEntity.createAttributes().build());
         event.put(GLYPHID.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_BRAWLER.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_BEHEMOTH.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_BRENDA.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_BOMBARDIER.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_BLASTER.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_SCOUT.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_NUCLEAR.get(), GlyphidEntity.createAttributes().build());
+        event.put(GLYPHID_DIGGER.get(), GlyphidEntity.createAttributes().build());
         event.put(UNDEAD_SOLDIER.get(), LegacyUndeadSoldierEntity.createAttributes().build());
         event.put(PARASITE_MAGGOT.get(), ParasiteMaggotEntity.createAttributes().build());
         event.put(LEGACY_UFO.get(), LegacyUfoEntity.createAttributes().build());

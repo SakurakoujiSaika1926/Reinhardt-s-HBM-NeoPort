@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -33,6 +34,18 @@ public final class GlyphidSpawnEvents {
 
     @SubscribeEvent
     public static void onNaturalSpawnPosition(MobSpawnEvent.PositionCheck event) {
+        if (event.getSpawnType() == MobSpawnType.NATURAL
+                && event.getEntity().getType() == HbmEntityTypes.VOLATILE_CREEPER.get()
+                && event.getY() > 40.0D) {
+            event.setResult(MobSpawnEvent.PositionCheck.Result.FAIL);
+            return;
+        }
+        if (event.getSpawnType() == MobSpawnType.NATURAL
+                && event.getEntity().getType() == HbmEntityTypes.GOLD_CREEPER.get()
+                && event.getY() > 40.0D) {
+            event.setResult(MobSpawnEvent.PositionCheck.Result.FAIL);
+            return;
+        }
         if (event.getSpawnType() != MobSpawnType.NATURAL
                 || !(event.getLevel() instanceof ServerLevel level)
                 || level.dimension() != Level.OVERWORLD

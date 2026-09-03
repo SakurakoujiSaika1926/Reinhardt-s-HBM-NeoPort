@@ -19,7 +19,7 @@ import org.joml.Quaternionf;
 import java.util.Map;
 
 /** Direct port of RenderGlyphid's single OBJ assembly and animation transforms. */
-public final class GlyphidEntityRenderer extends EntityRenderer<GlyphidEntity> {
+public final class GlyphidEntityRenderer<T extends GlyphidEntity> extends EntityRenderer<T> {
     private static final BlockState RENDER_STATE = Blocks.IRON_BLOCK.defaultBlockState();
     private static final ResourceLocation INFESTATION = ReinhardtsHBM.id("textures/entity/glyphid_infestation.png");
     private static final Map<String, ModelResourceLocation> PARTS = Map.ofEntries(
@@ -49,7 +49,7 @@ public final class GlyphidEntityRenderer extends EntityRenderer<GlyphidEntity> {
     }
 
     @Override
-    public void render(GlyphidEntity glyphid, float entityYaw, float partialTick, PoseStack poseStack,
+    public void render(T glyphid, float entityYaw, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
         // RenderLiving applies this model-space conversion before ModelGlyphid.render().
