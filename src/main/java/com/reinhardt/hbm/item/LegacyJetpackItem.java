@@ -107,10 +107,19 @@ public final class LegacyJetpackItem extends ArmorModItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.jetpack.fuel", fuel(stack), capacity, fuelName)
+        int descriptionLines = switch (this.profile) {
+            case REGULAR -> 1;
+            case BREAK -> 3;
+            case VECTOR, BOOST -> 2;
+        };
+        String profileKey = "tooltip.reinhardtshbm.jetpack.profile." + this.profile.name().toLowerCase();
+        for (int line = 1; line <= descriptionLines; line++) {
+            tooltip.add(Component.translatable(profileKey + "." + line).withStyle(ChatFormatting.GRAY));
+        }
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.jetpack.fuel",
+                        Component.translatable("hbmfluid." + this.fuelName), fuel(stack), this.capacity)
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.jetpack.profile." + profile.name().toLowerCase())
-                .withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.empty());
         super.appendHoverText(stack, context, tooltip, flag);
     }
 }
