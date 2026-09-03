@@ -7,8 +7,6 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.common.SoundActions;
 import net.neoforged.neoforge.fluids.FluidType;
 
-import java.util.function.Consumer;
-
 public class HbmNeoFluidType extends FluidType {
     private final HbmFluidDefinition definition;
 
@@ -57,15 +55,8 @@ public class HbmNeoFluidType extends FluidType {
                 .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY);
     }
 
-    @Override
-    @Deprecated(forRemoval = true, since = "1.21")
-    public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-        consumer.accept(clientExtensions());
-    }
-
     /**
-     * Shared by the official client extension event and the deprecated
-     * compatibility callback so every client fluid path uses the same mapping.
+     * Client extension mapping registered through RegisterClientExtensionsEvent.
      */
     public IClientFluidTypeExtensions clientExtensions() {
         return new IClientFluidTypeExtensions() {
