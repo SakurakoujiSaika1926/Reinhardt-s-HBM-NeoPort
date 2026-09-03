@@ -12,15 +12,11 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import com.mojang.math.Axis;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevelRenderer {
-    private static final float MODEL_CENTER_X = 0.0F;
-    private static final float MODEL_CENTER_Y = 1.28125F;
-    private static final float MODEL_CENTER_Z = 0.0F;
-    private static final float MODEL_FIT_SCALE = 1.05F / 3.0F;
-
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_stirling_world");
     private static final ModelResourceLocation COG = MachineModelRenderer.standalone("block/machine_stirling_cog");
     private static final ModelResourceLocation COG_SMALL = MachineModelRenderer.standalone("block/machine_stirling_cog_small");
@@ -46,8 +42,15 @@ public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevel
         float rot = hasCog ? (System.currentTimeMillis() % 3600L) * 0.1F : 0.0F;
 
         poseStack.pushPose();
-        fitModelToItemCube(poseStack);
-        MachineModelRenderer.orientYaw(poseStack, 90.0F);
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            // RenderStirling#getRenderer: the legacy inventory-only pose.
+            poseStack.translate(0.0F, -1.5F, 0.0F);
+            poseStack.scale(3.25F, 3.25F, 3.25F);
+        }
+        // RenderStirling#renderCommonWithStack applies this rotation in every
+        // display context after ItemRenderBase has established its pose.
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
 
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.world), poseStack, bufferSource, state, packedLight, packedOverlay);
 
@@ -73,12 +76,6 @@ public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevel
         poseStack.popPose();
 
         poseStack.popPose();
-    }
-
-    private static void fitModelToItemCube(PoseStack poseStack) {
-        poseStack.translate(0.5F, 0.5F, 0.5F);
-        poseStack.scale(MODEL_FIT_SCALE, MODEL_FIT_SCALE, MODEL_FIT_SCALE);
-        poseStack.translate(-MODEL_CENTER_X, -MODEL_CENTER_Y, -MODEL_CENTER_Z);
     }
 
     private record PartSet(Block block, ModelResourceLocation world, ModelResourceLocation cog, ModelResourceLocation cogSmall, ModelResourceLocation piston) {
