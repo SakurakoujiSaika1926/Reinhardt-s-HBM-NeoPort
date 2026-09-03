@@ -312,11 +312,11 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
     }
 
     private static boolean isStraightY(int mask) {
-        return (mask & 60) == 0 && mask != 0;
+        return (mask & 51) == 0 && mask != 0;
     }
 
     private static boolean isStraightZ(int mask) {
-        return (mask & 51) == 0 && mask != 0;
+        return (mask & 60) == 0 && mask != 0;
     }
 
     private static Direction firstConnection(int mask) {

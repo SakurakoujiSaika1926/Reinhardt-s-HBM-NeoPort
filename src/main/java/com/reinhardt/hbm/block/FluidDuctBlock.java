@@ -394,7 +394,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
 
     public enum Kind {
         MK2(false, true),
-        BOX(true, true),
+        BOX(false, true),
         EXHAUST(false, true),
         GAUGE(false, true),
         PAINTABLE(false, true),
