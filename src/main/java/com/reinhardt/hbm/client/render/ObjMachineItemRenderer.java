@@ -1278,6 +1278,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // common renderer scales the OBJ assembly by 2 and shifts it by .5 X.
         legacy(poses, "charger", 0.0F, -7.0F, 0.0F, 10.0F,
                 0.5F, 0.0F, 0.0F, 0.0F, 2.0F);
+        // RenderRefueler#getRenderer: translate(0,-3,0), scale(6), then the
+        // common renderer shifts the OBJ assembly by .5 X and scales by 2.
+        legacy(poses, "refueler", 0.0F, -3.0F, 0.0F, 6.0F,
+                0.5F, 0.0F, 0.0F, 0.0F, 2.0F);
         legacy(poses, "pipe_anchor", 0.0F, -3.5F, 0.0F, 10.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
         legacy(poses, "piston_inserter", 0.0F, -2.5F, 0.0F, 5.0F,
