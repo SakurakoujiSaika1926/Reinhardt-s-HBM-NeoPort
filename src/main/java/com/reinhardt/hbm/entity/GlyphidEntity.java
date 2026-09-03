@@ -1035,6 +1035,12 @@ public class GlyphidEntity extends Monster {
         return getVariant() == Variant.BRENDA || getVariant() == Variant.NUCLEAR || super.fireImmune();
     }
 
+    /** EntityMob in 1.7.10 did not inherit the modern daylight-burning rule. */
+    @Override
+    protected boolean isSunBurnTick() {
+        return false;
+    }
+
     public boolean attackSuperclass(DamageSource source, float amount) {
         return super.hurt(source, amount);
     }
