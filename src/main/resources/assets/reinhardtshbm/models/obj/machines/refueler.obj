@@ -1,5 +1,7 @@
 # Blender 4.0.1
 # www.blender.org
+mtllib refueler.mtl
+usemtl hbm
 o Fluid
 v -0.437500 0.120000 -0.095000
 v -0.437500 0.821132 -0.095000
