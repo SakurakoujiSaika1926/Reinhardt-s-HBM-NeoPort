@@ -1,8 +1,8 @@
 ﻿{
   "variants": {
-    "facing=south": { "model": "reinhardtshbm:block/refueler" },
-    "facing=west": { "model": "reinhardtshbm:block/refueler", "y": 90 },
-    "facing=north": { "model": "reinhardtshbm:block/refueler", "y": 180 },
-    "facing=east": { "model": "reinhardtshbm:block/refueler", "y": 270 }
+    "facing=south": { "model": "reinhardtshbm:block/empty" },
+    "facing=west": { "model": "reinhardtshbm:block/empty" },
+    "facing=north": { "model": "reinhardtshbm:block/empty" },
+    "facing=east": { "model": "reinhardtshbm:block/empty" }
   }
 }
