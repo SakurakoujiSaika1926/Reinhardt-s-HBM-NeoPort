@@ -89,7 +89,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         if (this.kind.fullBlockShape()) {
             return Shapes.block();
         }
-        if (this.kind == Kind.EXHAUST) {
+        if (this.kind == Kind.BOX || this.kind == Kind.EXHAUST) {
             return getBoxDuctSelectionShape(state);
         }
         return getStandardSelectionShape(state);
@@ -235,7 +235,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         if (this.kind.fullBlockShape()) {
             return Shapes.block();
         }
-        return this.kind == Kind.EXHAUST
+        return this.kind == Kind.BOX || this.kind == Kind.EXHAUST
                 ? getBoxDuctCollisionShape(state)
                 : getStandardCollisionShape(state);
     }
