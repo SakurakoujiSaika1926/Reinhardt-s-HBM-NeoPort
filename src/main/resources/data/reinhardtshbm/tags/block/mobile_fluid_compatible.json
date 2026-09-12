@@ -1,0 +1,29 @@
+{
+    "replace": false,
+    "values": [
+        "reinhardtshbm:fluid_duct_mk2",
+        "reinhardtshbm:fluid_duct_neo",
+        "reinhardtshbm:fluid_duct_box",
+        "reinhardtshbm:fluid_duct_exhaust",
+        "reinhardtshbm:fluid_duct_gauge",
+        "reinhardtshbm:fluid_duct_paintable",
+        "reinhardtshbm:fluid_duct_paintable_block_exhaust",
+        "reinhardtshbm:fluid_duct_solid",
+        "reinhardtshbm:fluid_duct_solid_sealed",
+        "reinhardtshbm:fluid_valve",
+        "reinhardtshbm:fluid_switch",
+        "reinhardtshbm:fluid_counter_valve",
+        "reinhardtshbm:fluid_pump",
+        "reinhardtshbm:machine_fluidtank",
+        "reinhardtshbm:machine_bat9000",
+        "reinhardtshbm:machine_bigasstank",
+        "reinhardtshbm:barrel_plastic",
+        "reinhardtshbm:barrel_corroded",
+        "reinhardtshbm:barrel_steel",
+        "reinhardtshbm:barrel_tcalloy",
+        "reinhardtshbm:barrel_antimatter",
+        "reinhardtshbm:machine_diesel",
+        "reinhardtshbm:machine_combustion_engine",
+        "reinhardtshbm:machine_steam_engine"
+    ]
+}

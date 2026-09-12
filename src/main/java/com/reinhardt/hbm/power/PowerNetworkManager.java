@@ -1,13 +1,21 @@
 package com.reinhardt.hbm.power;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.EnergyCableBlock;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
+import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.integration.sable.HbmSablePowerCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import java.math.BigInteger;
 import java.util.ArrayDeque;
@@ -26,12 +34,16 @@ import java.util.concurrent.Executors;
 public final class PowerNetworkManager {
     private static final int MAX_COMPONENT_NODES = 8192;
     private static final long PRUNE_INTERVAL_TICKS = 20L;
+    private static final TagKey<Block> MOBILE_POWER_COMPATIBLE = TagKey.create(
+            Registries.BLOCK,
+            ReinhardtsHBM.id("mobile_power_compatible")
+    );
     private static final ExecutorService SOLVER = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "RHbm-PowerSolver");
         thread.setDaemon(true);
         return thread;
     });
-    private static final Map<ResourceKey<Level>, LevelNetwork> NETWORKS = new ConcurrentHashMap<>();
+    private static final Map<NetworkKey, LevelNetwork> NETWORKS = new ConcurrentHashMap<>();
 
     private PowerNetworkManager() {
     }
@@ -40,8 +52,11 @@ public final class PowerNetworkManager {
         if (level.isClientSide) {
             return;
         }
+        if (!mobilePowerNodeAllowed(level, endpoint.getPowerPos())) {
+            return;
+        }
 
-        LevelNetwork network = network(level);
+        LevelNetwork network = network(level, endpoint.getPowerPos());
         network.register(endpoint);
 
         long gameTime = level.getGameTime();
@@ -55,12 +70,50 @@ public final class PowerNetworkManager {
 
     public static void markDirty(Level level) {
         if (!level.isClientSide) {
-            network(level).markDirty();
+            for (Map.Entry<NetworkKey, LevelNetwork> entry : NETWORKS.entrySet()) {
+                if (entry.getKey().dimension.equals(level.dimension())) {
+                    entry.getValue().markDirty();
+                }
+            }
         }
     }
 
     public static boolean canCableConnectTo(LevelAccessor level, BlockPos cablePos, Direction direction) {
-        return powerCoreForConnector(level, cablePos, cablePos.relative(direction), direction.getOpposite()) != null;
+        BlockPos touchingPos = cablePos.relative(direction);
+        if (!samePowerSpace(level, cablePos, touchingPos)) {
+            return false;
+        }
+        if (powerCoreForConnector(level, cablePos, touchingPos, direction.getOpposite()) != null) {
+            return true;
+        }
+
+        // Match 1.12's BlockCable.computeConnectToNeighbor fallback: an HBM
+        // cable also renders a connector when the adjacent block exposes a
+        // Forge Energy capability on the face toward the cable.  The transfer
+        // bridge already uses this exact side; keeping the test here makes the
+        // persisted connection properties agree with the actual FE transfer.
+        if (!(level instanceof Level realLevel)) {
+            return false;
+        }
+        if (!realLevel.isLoaded(touchingPos)) {
+            return false;
+        }
+        IEnergyStorage storage = realLevel.getCapability(
+                Capabilities.EnergyStorage.BLOCK, touchingPos, direction.getOpposite());
+        return storage != null && (storage.canReceive() || storage.canExtract());
+    }
+
+    /** Resolves a native HBM endpoint at a core or multiblock dummy position. */
+    public static PowerEndpoint endpointAt(LevelAccessor level, BlockPos pos) {
+        BlockPos corePos = resolvePowerCorePos(level, pos);
+        if (corePos == null) {
+            return null;
+        }
+        if (!mobilePowerNodeAllowed(level, corePos)) {
+            return null;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(corePos);
+        return blockEntity instanceof PowerEndpoint endpoint ? endpoint : null;
     }
 
     /** Snapshot used by the direct port of 1.7.10's power-network analyzer. */
@@ -68,7 +121,7 @@ public final class PowerNetworkManager {
         if (level.isClientSide) {
             return null;
         }
-        return network(level).diagnostics(level, clickedPos);
+        return network(level, clickedPos).diagnostics(level, clickedPos);
     }
 
     /**
@@ -80,25 +133,48 @@ public final class PowerNetworkManager {
         if (level.isClientSide) {
             return 0L;
         }
-        return network(level).transferredPowerAt(level, clickedPos);
+        return network(level, clickedPos).transferredPowerAt(level, clickedPos);
     }
 
     public record NetworkDiagnostics(String id, int links, int providers, int receivers, List<BlockPos> linkPositions) {
     }
 
-    private static LevelNetwork network(Level level) {
-        return NETWORKS.computeIfAbsent(level.dimension(), key -> new LevelNetwork());
+    private static LevelNetwork network(Level level, BlockPos pos) {
+        return NETWORKS.computeIfAbsent(networkKey(level, pos), LevelNetwork::new);
+    }
+
+    private static NetworkKey networkKey(Level level, BlockPos pos) {
+        return new NetworkKey(level.dimension(), HbmSablePowerCompat.powerSpaceId(level, pos));
+    }
+
+    private static boolean samePowerSpace(LevelAccessor level, BlockPos first, BlockPos second) {
+        return HbmSablePowerCompat.samePowerSpace(level, first, second);
+    }
+
+    private static boolean mobilePowerNodeAllowed(LevelAccessor level, BlockPos pos) {
+        return !HbmSablePowerCompat.isSubLevelBlock(level, pos)
+                || level.getBlockState(pos).is(MOBILE_POWER_COMPATIBLE);
+    }
+
+    private record NetworkKey(ResourceKey<Level> dimension, String powerSpace) {
     }
 
     private static final class LevelNetwork {
+        private final NetworkKey key;
         private final Map<BlockPos, PowerEndpoint> endpoints = new HashMap<>();
         private List<List<BlockPos>> components = List.of();
         private CompletableFuture<SolveResult> inFlight;
         private Map<BlockPos, Long> transferredPower = Map.of();
+        private Set<BlockPos> foreignCables = Set.of();
         private long graphVersion;
         private long lastTick = Long.MIN_VALUE;
         private long lastPruneTick = Long.MIN_VALUE;
+        private long lastForeignScan = Long.MIN_VALUE;
         private boolean dirty = true;
+
+        private LevelNetwork(NetworkKey key) {
+            this.key = key;
+        }
 
         void register(PowerEndpoint endpoint) {
             BlockPos pos = endpoint.getPowerPos().immutable();
@@ -145,6 +221,200 @@ public final class PowerNetworkManager {
                 SolveSnapshot snapshot = snapshot(level);
                 this.inFlight = CompletableFuture.supplyAsync(() -> solve(snapshot), SOLVER);
             }
+
+            // 1.7.10 refreshes the neighbour cache every 20 ticks but performs
+            // transfers every tick. This transient bridge never creates a
+            // converter block or a second persistent energy network.
+            if (HbmConfig.AUTO_CABLE_CONVERSION.get()) {
+                transferForeignEnergy(level);
+            }
+        }
+
+        private void transferForeignEnergy(Level level) {
+            if (this.lastForeignScan == Long.MIN_VALUE || this.lastTick - this.lastForeignScan >= 20L) {
+                Set<BlockPos> cables = new HashSet<>();
+                for (BlockPos endpoint : this.endpoints.keySet()) {
+                    collectCableNodes(level, endpoint, cables);
+                }
+                this.foreignCables = Set.copyOf(cables);
+                this.lastForeignScan = this.lastTick;
+
+                // Forge Energy providers may be attached after the cable's
+                // placement update (or become available after a capability
+                // invalidation).  Keep the persisted connection mask in lock
+                // step with the same six-side probe used by the transfer
+                // bridge; UPDATE_CLIENTS then selects the arm-bearing model.
+                for (BlockPos cable : this.foreignCables) {
+                    EnergyCableBlock.refreshConnections(level, cable);
+                }
+            }
+            for (BlockPos cable : this.foreignCables) {
+                for (Direction direction : Direction.values()) {
+                    BlockPos neighborPos = cable.relative(direction);
+                    if (!level.isLoaded(neighborPos)) {
+                        continue;
+                    }
+                    if (!samePowerSpace(level, cable, neighborPos)) {
+                        continue;
+                    }
+                    // Native endpoints (including the explicit converter) are
+                    // handled by the HBM network and must not be bridged twice.
+                    if (endpointAt(level, neighborPos) != null || isPowerNode(level, neighborPos)) {
+                        continue;
+                    }
+                    IEnergyStorage storage = level.getCapability(
+                            Capabilities.EnergyStorage.BLOCK, neighborPos, direction.getOpposite());
+                    if (storage == null) {
+                        continue;
+                    }
+                    pullFromForeignStorage(level, cable, storage);
+                    pushToForeignStorage(level, cable, storage);
+                }
+            }
+        }
+
+        private void collectCableNodes(Level level, BlockPos start, Set<BlockPos> cables) {
+            ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+            Set<BlockPos> visited = new HashSet<>();
+            BlockPos origin = start.immutable();
+            queue.add(origin);
+            visited.add(origin);
+            while (!queue.isEmpty() && visited.size() < MAX_COMPONENT_NODES) {
+                BlockPos current = queue.removeFirst();
+                if (level.getBlockState(current).getBlock() instanceof EnergyCableBlock) {
+                    cables.add(current.immutable());
+                }
+                for (BlockPos next : adjacentGraphNodes(level, current)) {
+                    BlockPos immutable = next.immutable();
+                    if (visited.add(immutable) && isPowerNode(level, immutable)) {
+                        queue.addLast(immutable);
+                    }
+                }
+            }
+        }
+
+        private void pullFromForeignStorage(Level level, BlockPos cable, IEnergyStorage storage) {
+            double rate = HbmConfig.HE_TO_FE_CONVERSION_RATE.get();
+            if (rate <= 0D || !storage.canExtract()) {
+                return;
+            }
+            int maxExtractFe = storage.extractEnergy(Integer.MAX_VALUE, true);
+            long heBudget = (long) Math.floor(maxExtractFe / rate);
+            if (heBudget <= 0L) {
+                return;
+            }
+            long acceptedHe = externalTransfer(level, cable, heBudget, true, true);
+            if (acceptedHe <= 0L) {
+                return;
+            }
+            int feToExtract = (int) Math.min(maxExtractFe, Math.min(Integer.MAX_VALUE,
+                    Math.round(acceptedHe * rate)));
+            int extractedFe = storage.extractEnergy(feToExtract, false);
+            if (extractedFe <= 0) {
+                return;
+            }
+            long injectedHe = Math.min(acceptedHe, (long) Math.floor(extractedFe / rate));
+            if (injectedHe > 0L) {
+                externalTransfer(level, cable, injectedHe, true, false);
+            }
+        }
+
+        private void pushToForeignStorage(Level level, BlockPos cable, IEnergyStorage storage) {
+            double rate = HbmConfig.HE_TO_FE_CONVERSION_RATE.get();
+            if (rate <= 0D || !storage.canReceive()) {
+                return;
+            }
+            int freeSpaceFe = storage.receiveEnergy(Integer.MAX_VALUE, true);
+            long heBudget = (long) Math.floor(freeSpaceFe / rate);
+            if (heBudget <= 0L) {
+                return;
+            }
+            long extractedHe = externalTransfer(level, cable, heBudget, false, true);
+            if (extractedHe <= 0L) {
+                return;
+            }
+            int feToSend = (int) Math.min(freeSpaceFe, Math.min(Integer.MAX_VALUE,
+                    Math.round(extractedHe * rate)));
+            int receivedFe = storage.receiveEnergy(feToSend, false);
+            if (receivedFe <= 0) {
+                return;
+            }
+            long usedHe = Math.min(extractedHe, (long) Math.floor(receivedFe / rate));
+            if (usedHe > 0L) {
+                externalTransfer(level, cable, usedHe, false, false);
+            }
+        }
+
+        /** Transfers HE between a cable and reachable native endpoints. */
+        private long externalTransfer(Level level, BlockPos cable, long amount, boolean receive, boolean simulate) {
+            if (amount <= 0L || !isPowerNode(level, cable)) {
+                return 0L;
+            }
+            Map<BlockPos, Long> limits = receive ? directedReachable(level, cable) : null;
+            List<ExternalEndpoint> candidates = new ArrayList<>();
+            if (receive) {
+                for (Map.Entry<BlockPos, Long> entry : limits.entrySet()) {
+                    PowerEndpoint endpoint = endpointAt(level, entry.getKey());
+                    if (endpoint != null && !entry.getKey().equals(cable)
+                            && endpoint.getRequestedInput() > 0L) {
+                        candidates.add(new ExternalEndpoint(endpoint, entry.getValue()));
+                    }
+                }
+            } else {
+                for (BlockPos pos : graphComponent(level, cable)) {
+                    PowerEndpoint endpoint = endpointAt(level, pos);
+                    if (endpoint == null || endpoint.getAvailableOutput() <= 0L) {
+                        continue;
+                    }
+                    long limit = directedReachable(level, pos).getOrDefault(cable, 0L);
+                    if (limit > 0L) {
+                        candidates.add(new ExternalEndpoint(endpoint, limit));
+                    }
+                }
+            }
+            candidates.sort(Comparator
+                    .comparingInt((ExternalEndpoint candidate) -> candidate.endpoint.getPowerPriority().ordinal())
+                    .reversed()
+                    .thenComparing(candidate -> candidate.endpoint.getPowerPos()));
+            long remaining = amount;
+            for (ExternalEndpoint candidate : candidates) {
+                long available = receive
+                        ? candidate.endpoint.getRequestedInput()
+                        : candidate.endpoint.getAvailableOutput();
+                long transfer = Math.min(remaining, Math.min(Math.max(0L, available), candidate.limit));
+                if (transfer <= 0L) {
+                    continue;
+                }
+                if (!simulate) {
+                    candidate.endpoint.applyPower(receive ? 0L : transfer, receive ? transfer : 0L);
+                }
+                remaining -= transfer;
+                if (remaining <= 0L) {
+                    break;
+                }
+            }
+            return amount - remaining;
+        }
+
+        private Set<BlockPos> graphComponent(Level level, BlockPos start) {
+            Set<BlockPos> visited = new HashSet<>();
+            ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+            BlockPos origin = start.immutable();
+            visited.add(origin);
+            queue.add(origin);
+            while (!queue.isEmpty() && visited.size() < MAX_COMPONENT_NODES) {
+                BlockPos current = queue.removeFirst();
+                for (BlockPos next : adjacentGraphNodes(level, current)) {
+                    BlockPos immutable = next.immutable();
+                    if (visited.add(immutable) && isPowerNode(level, immutable)) {
+                        queue.addLast(immutable);
+                    }
+                }
+            }
+            return visited;
+        }
+
+        private record ExternalEndpoint(PowerEndpoint endpoint, long limit) {
         }
 
         NetworkDiagnostics diagnostics(Level level, BlockPos clickedPos) {
@@ -233,6 +503,10 @@ public final class PowerNetworkManager {
         private void pruneInvalidEndpoints(Level level) {
             List<BlockPos> removed = new ArrayList<>();
             for (Map.Entry<BlockPos, PowerEndpoint> entry : this.endpoints.entrySet()) {
+                if (!this.key.equals(networkKey(level, entry.getKey()))) {
+                    removed.add(entry.getKey());
+                    continue;
+                }
                 BlockEntity blockEntity = level.getBlockEntity(entry.getKey());
                 if (!(blockEntity instanceof PowerEndpoint) || blockEntity != entry.getValue()) {
                     removed.add(entry.getKey());
@@ -329,6 +603,9 @@ public final class PowerNetworkManager {
     }
 
     private static boolean isPowerNode(Level level, BlockPos pos) {
+        if (!mobilePowerNodeAllowed(level, pos)) {
+            return false;
+        }
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof PowerEndpoint) {
             return true;
@@ -350,7 +627,8 @@ public final class PowerNetworkManager {
         if (level.getBlockState(current).getBlock() instanceof EnergyCableBlock) {
             for (Direction direction : Direction.values()) {
                 BlockPos neighbor = current.relative(direction);
-                if (!directed || canEnterPowerNode(level, current, neighbor)) {
+                if (samePowerSpace(level, current, neighbor)
+                        && (!directed || canEnterPowerNode(level, current, neighbor))) {
                     nodes.add(neighbor.immutable());
                 }
                 BlockPos core = powerCoreForConnector(level, current, neighbor, direction.getOpposite(), directed);
@@ -367,7 +645,8 @@ public final class PowerNetworkManager {
                     ? graphNode.getPowerFlowPositions(level)
                     : powerConnectorPositions(level, blockEntity);
             for (BlockPos connector : connectors) {
-                if (!directed || canEnterPowerNode(level, current, connector)) {
+                if (samePowerSpace(level, current, connector)
+                        && (!directed || canEnterPowerNode(level, current, connector))) {
                     nodes.add(connector.immutable());
                 }
             }
@@ -375,7 +654,9 @@ public final class PowerNetworkManager {
 
         if (blockEntity instanceof PowerGraphNode graphNode) {
             for (BlockPos remote : graphNode.getRemotePowerLinks(level)) {
-                nodes.add(remote.immutable());
+                if (samePowerSpace(level, current, remote)) {
+                    nodes.add(remote.immutable());
+                }
             }
         }
         return nodes;
@@ -396,9 +677,15 @@ public final class PowerNetworkManager {
     }
 
     private static BlockPos powerCoreForConnector(LevelAccessor level, BlockPos connectorPos, BlockPos touchingPos,
-                                                  Direction machineSide, boolean directed) {
+                                                   Direction machineSide, boolean directed) {
+        if (!samePowerSpace(level, connectorPos, touchingPos)) {
+            return null;
+        }
         BlockPos corePos = resolvePowerCorePos(level, touchingPos);
         if (corePos == null) {
+            return null;
+        }
+        if (!samePowerSpace(level, connectorPos, corePos) || !mobilePowerNodeAllowed(level, corePos)) {
             return null;
         }
 
@@ -467,11 +754,17 @@ public final class PowerNetworkManager {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MachineDummyBlockEntity dummy) {
             BlockPos corePos = dummy.getCorePos();
+            if (!samePowerSpace(level, pos, corePos) || !mobilePowerNodeAllowed(level, corePos)) {
+                return null;
+            }
             BlockEntity core = level.getBlockEntity(corePos);
             if (core instanceof PowerEndpoint
                     || core instanceof PowerGraphNode graphNode && graphNode.isPowerGraphEnabled(level)) {
                 return corePos.immutable();
             }
+            return null;
+        }
+        if (!mobilePowerNodeAllowed(level, pos)) {
             return null;
         }
         if (blockEntity instanceof PowerEndpoint

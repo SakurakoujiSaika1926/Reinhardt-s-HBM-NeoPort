@@ -4,15 +4,21 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
+import com.reinhardt.hbm.integration.sable.HbmSablePowerCompat;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.registry.HbmFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -39,12 +45,17 @@ import java.util.EnumSet;
 public final class HbmFluidNetworks {
     private static final int MAX_PIPE_SEARCH = 1024;
     private static final int MAX_BALANCE_PER_ENDPOINT = 1_000_000_000;
+    private static final long PRUNE_INTERVAL_TICKS = 20L;
+    private static final TagKey<Block> MOBILE_FLUID_COMPATIBLE = TagKey.create(
+            Registries.BLOCK,
+            ReinhardtsHBM.id("mobile_fluid_compatible")
+    );
     private static final ExecutorService SOLVER = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "RHbm-FluidNetSolver");
         thread.setDaemon(true);
         return thread;
     });
-    private static final Map<ResourceKey<Level>, LevelNetwork> NETWORKS = new ConcurrentHashMap<>();
+    private static final Map<NetworkKey, LevelNetwork> NETWORKS = new ConcurrentHashMap<>();
 
     private HbmFluidNetworks() {
     }
@@ -52,20 +63,32 @@ public final class HbmFluidNetworks {
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel level) {
-            network(level).tickBalance(level);
+            for (Map.Entry<NetworkKey, LevelNetwork> entry : NETWORKS.entrySet()) {
+                if (entry.getKey().dimension().equals(level.dimension())) {
+                    entry.getValue().tickBalance(level);
+                }
+            }
         }
     }
 
     public static void registerPipe(Level level, BlockPos pos, HbmFluidDefinition type, boolean open) {
         if (!level.isClientSide) {
+            if (!mobileFluidNodeAllowed(level, pos)) {
+                removePipe(level, pos);
+                return;
+            }
             Set<String> names = type == null || type.isNone() ? Set.of() : Set.of(type.name());
-            network(level).upsert(pos, names, open, networkLinks(level, pos),
+            network(level, pos).upsert(pos, names, open, networkLinks(level, pos),
                     allowedDirections(level, pos, type == null ? List.of() : List.of(type)));
         }
     }
 
     public static void registerPipe(Level level, BlockPos pos, List<HbmFluidDefinition> types, boolean open) {
         if (!level.isClientSide) {
+            if (!mobileFluidNodeAllowed(level, pos)) {
+                removePipe(level, pos);
+                return;
+            }
             Set<String> typeNames = new HashSet<>();
             if (types != null) {
                 for (HbmFluidDefinition type : types) {
@@ -74,14 +97,23 @@ public final class HbmFluidNetworks {
                     }
                 }
             }
-            network(level).upsert(pos, typeNames, open, networkLinks(level, pos),
+            network(level, pos).upsert(pos, typeNames, open, networkLinks(level, pos),
                     allowedDirections(level, pos, types == null ? List.of() : types));
         }
     }
 
     private static List<BlockPos> networkLinks(Level level, BlockPos pos) {
         BlockEntity entity = level.getBlockEntity(pos);
-        return entity instanceof FluidPipeBlockEntity pipe ? pipe.networkLinks() : List.of();
+        if (!(entity instanceof FluidPipeBlockEntity pipe)) {
+            return List.of();
+        }
+        ArrayList<BlockPos> links = new ArrayList<>();
+        for (BlockPos link : pipe.networkLinks()) {
+            if (link != null && sameFluidSpace(level, pos, link) && mobileFluidNodeAllowed(level, link)) {
+                links.add(link.immutable());
+            }
+        }
+        return List.copyOf(links);
     }
 
     private static Set<Direction> allowedDirections(Level level, BlockPos pos, List<HbmFluidDefinition> types) {
@@ -103,24 +135,34 @@ public final class HbmFluidNetworks {
 
     public static void unregisterPipe(Level level, BlockPos pos) {
         if (!level.isClientSide) {
-            network(level).remove(pos);
+            removePipe(level, pos);
         }
     }
 
     public static boolean canPipeConnect(LevelAccessor level, BlockPos pipePos, Direction direction, HbmFluidDefinition type) {
+        if (!mobileFluidNodeAllowed(level, pipePos)) {
+            return false;
+        }
         BlockEntity current = level.getBlockEntity(pipePos);
         if (!(current instanceof FluidPipeBlockEntity pipe) || !pipe.canConnectFrom(direction, type)) {
             return false;
         }
         BlockPos target = pipePos.relative(direction);
+        if (!sameFluidSpace(level, pipePos, target)) {
+            return false;
+        }
         BlockEntity neighbor = level.getBlockEntity(target);
         if (neighbor instanceof FluidPipeBlockEntity neighborPipe) {
-            return neighborPipe.canConnectFrom(direction.getOpposite(), type);
+            return mobileFluidNodeAllowed(level, target)
+                    && neighborPipe.canConnectFrom(direction.getOpposite(), type);
         }
         if (type == null || type.isNone()) {
             return false;
         }
         if (level instanceof Level realLevel) {
+            if (!realLevel.isLoaded(target) || !mobileFluidEndpointAllowed(realLevel, target)) {
+                return false;
+            }
             return realLevel.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite()) != null;
         }
         return false;
@@ -131,7 +173,7 @@ public final class HbmFluidNetworks {
      * reports a live connected component, never a guessed machine endpoint.
      */
     public static List<String> debugInfo(Level level, BlockPos pos) {
-        if (!(level.getBlockEntity(pos) instanceof FluidPipeBlockEntity pipe)) {
+        if (!mobileFluidNodeAllowed(level, pos) || !(level.getBlockEntity(pos) instanceof FluidPipeBlockEntity pipe)) {
             return List.of();
         }
         HbmFluidDefinition type = pipe.type();
@@ -165,7 +207,7 @@ public final class HbmFluidNetworks {
                 "Links: " + links / 2,
                 "Subscribers: " + subscribers,
                 "Providers: " + providers,
-                "Transfer: " + network(level).lastTransfer(cursorKey(type, pipes))
+                "Transfer: " + network(level, pos).lastTransfer(cursorKey(type, pipes))
         );
     }
 
@@ -173,9 +215,18 @@ public final class HbmFluidNetworks {
         if (type == null || type.isNone() || amount <= 0) {
             return FluidStack.EMPTY;
         }
+        if (excluded != null && !sameFluidSpace(level, target, excluded)) {
+            return FluidStack.EMPTY;
+        }
         BlockEntity blockEntity = level.getBlockEntity(target);
         if (blockEntity instanceof FluidPipeBlockEntity pipe && pipe.canConnect(type)) {
+            if (!mobileFluidNodeAllowed(level, target)) {
+                return FluidStack.EMPTY;
+            }
             return drainFromPipeNetwork(level, target, type, amount, excluded, execute);
+        }
+        if (!mobileFluidEndpointAllowed(level, target)) {
+            return FluidStack.EMPTY;
         }
         IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, target, side);
         if (handler == null) {
@@ -188,13 +239,22 @@ public final class HbmFluidNetworks {
         if (stack.isEmpty()) {
             return 0;
         }
+        if (excluded != null && !sameFluidSpace(level, target, excluded)) {
+            return 0;
+        }
         HbmFluidDefinition type = HbmFluids.fromNeoFluid(stack.getFluid()).orElse(HbmFluids.none());
         if (type.isNone()) {
             return 0;
         }
         BlockEntity blockEntity = level.getBlockEntity(target);
         if (blockEntity instanceof FluidPipeBlockEntity pipe && pipe.canConnect(type)) {
+            if (!mobileFluidNodeAllowed(level, target)) {
+                return 0;
+            }
             return fillPipeNetwork(level, target, type, stack, excluded, execute);
+        }
+        if (!mobileFluidEndpointAllowed(level, target)) {
+            return 0;
         }
         IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, target, side);
         return handler == null ? 0 : handler.fill(stack, execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
@@ -204,13 +264,17 @@ public final class HbmFluidNetworks {
         if (type == null || type.isNone() || amount <= 0) {
             return FluidStack.EMPTY;
         }
+        if (!mobileFluidNodeAllowed(level, start)
+                || excluded != null && !sameFluidSpace(level, start, excluded)) {
+            return FluidStack.EMPTY;
+        }
 
         EndpointSelection selection = endpoints(level, start, type, excluded);
         if (selection.endpoints().isEmpty()) {
             return FluidStack.EMPTY;
         }
 
-        LevelNetwork network = network(level);
+        LevelNetwork network = network(level, start);
         int startIndex = network.cursor(CursorKind.DRAIN, selection.cursorKey(), selection.endpoints().size());
         int remaining = amount;
         int drainedTotal = 0;
@@ -240,6 +304,10 @@ public final class HbmFluidNetworks {
     }
 
     public static int fillPipeNetwork(Level level, BlockPos start, HbmFluidDefinition type, FluidStack offered, @Nullable BlockPos excluded, boolean execute) {
+        if (!mobileFluidNodeAllowed(level, start)
+                || excluded != null && !sameFluidSpace(level, start, excluded)) {
+            return 0;
+        }
         int remaining = offered.getAmount();
         int filled = 0;
         EndpointSelection selection = endpoints(level, start, type, excluded);
@@ -247,7 +315,7 @@ public final class HbmFluidNetworks {
             return 0;
         }
 
-        LevelNetwork network = network(level);
+        LevelNetwork network = network(level, start);
         int startIndex = network.cursor(CursorKind.FILL, selection.cursorKey(), selection.endpoints().size());
         int lastSuccessIndex = -1;
 
@@ -479,17 +547,17 @@ public final class HbmFluidNetworks {
         return rotated;
     }
 
-    private static void applyBalance(Level level, BalanceResult result) {
+    private static void applyBalance(Level level, BalanceResult result, LevelNetwork network) {
         for (BalanceComponentResult component : result.components()) {
             HbmFluidDefinition type = HbmFluids.byName(component.typeName()).orElse(HbmFluids.none());
             if (type.isNone()) {
                 continue;
             }
-            int drained = drainBalanceProviders(level, type, component.providerAllocations());
+            int drained = drainBalanceProviders(level, type, component.providerAllocations(), network.key);
             if (drained <= 0) {
                 continue;
             }
-            network(level).recordTransfer(cursorKey(type, component.pipes()), drained);
+            network.recordTransfer(cursorKey(type, component.pipes()), drained);
             Map<EndpointKey, Integer> receiverAllocations = component.receiverAllocations();
             int plannedReceivers = 0;
             for (int amount : receiverAllocations.values()) {
@@ -502,13 +570,17 @@ public final class HbmFluidNetworks {
                 }
                 receiverAllocations = distributeBalanceShares(targets, plannedReceivers, drained);
             }
-            fillBalanceReceivers(level, type, receiverAllocations);
+            fillBalanceReceivers(level, type, receiverAllocations, network.key);
         }
     }
 
-    private static int drainBalanceProviders(Level level, HbmFluidDefinition type, Map<EndpointKey, Integer> allocations) {
+    private static int drainBalanceProviders(Level level, HbmFluidDefinition type, Map<EndpointKey, Integer> allocations,
+                                             NetworkKey networkKey) {
         int drained = 0;
         for (Map.Entry<EndpointKey, Integer> entry : allocations.entrySet()) {
+            if (!fluidEndpointMatchesNetwork(level, entry.getKey().pos(), networkKey)) {
+                continue;
+            }
             IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, entry.getKey().pos(), entry.getKey().side());
             if (handler == null) {
                 continue;
@@ -521,8 +593,12 @@ public final class HbmFluidNetworks {
         return drained;
     }
 
-    private static void fillBalanceReceivers(Level level, HbmFluidDefinition type, Map<EndpointKey, Integer> allocations) {
+    private static void fillBalanceReceivers(Level level, HbmFluidDefinition type, Map<EndpointKey, Integer> allocations,
+                                             NetworkKey networkKey) {
         for (Map.Entry<EndpointKey, Integer> entry : allocations.entrySet()) {
+            if (!fluidEndpointMatchesNetwork(level, entry.getKey().pos(), networkKey)) {
+                continue;
+            }
             IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, entry.getKey().pos(), entry.getKey().side());
             if (handler != null) {
                 handler.fill(HbmFluids.toNeoStack(type, entry.getValue()), IFluidHandler.FluidAction.EXECUTE);
@@ -531,7 +607,7 @@ public final class HbmFluidNetworks {
     }
 
     private static Set<BlockPos> cachedPipes(Level level, BlockPos start, HbmFluidDefinition type) {
-        Set<BlockPos> cached = network(level).componentFor(start, type);
+        Set<BlockPos> cached = network(level, start).componentFor(start, type);
         return cached == null ? collectPipes(level, start, type) : cached;
     }
 
@@ -563,7 +639,9 @@ public final class HbmFluidNetworks {
             }
             for (BlockPos link : pipe.networkLinks()) {
                 BlockEntity remote = level.getBlockEntity(link);
-                if (remote instanceof FluidPipeBlockEntity remotePipe
+                if (sameFluidSpace(level, pos, link)
+                        && mobileFluidNodeAllowed(level, link)
+                        && remote instanceof FluidPipeBlockEntity remotePipe
                         && remotePipe.networkLinks().contains(pos)
                         && remotePipe.canConnect(type)) {
                     queue.addLast(link.immutable());
@@ -571,6 +649,55 @@ public final class HbmFluidNetworks {
             }
         }
         return visited;
+    }
+
+    private static LevelNetwork network(Level level, BlockPos pos) {
+        return NETWORKS.computeIfAbsent(networkKey(level, pos), LevelNetwork::new);
+    }
+
+    private static NetworkKey networkKey(Level level, BlockPos pos) {
+        return new NetworkKey(level.dimension(), HbmSablePowerCompat.powerSpaceId(level, pos));
+    }
+
+    private static void removePipe(Level level, BlockPos pos) {
+        BlockPos removed = pos.immutable();
+        for (Map.Entry<NetworkKey, LevelNetwork> entry : NETWORKS.entrySet()) {
+            if (entry.getKey().dimension().equals(level.dimension())) {
+                entry.getValue().remove(removed);
+            }
+        }
+    }
+
+    private static boolean sameFluidSpace(LevelAccessor level, BlockPos first, BlockPos second) {
+        return HbmSablePowerCompat.samePowerSpace(level, first, second);
+    }
+
+    private static boolean mobileFluidNodeAllowed(LevelAccessor level, BlockPos pos) {
+        return !HbmSablePowerCompat.isSubLevelBlock(level, pos)
+                || level.getBlockState(pos).is(MOBILE_FLUID_COMPATIBLE);
+    }
+
+    private static boolean mobileFluidEndpointAllowed(LevelAccessor level, BlockPos pos) {
+        if (!HbmSablePowerCompat.isSubLevelBlock(level, pos)) {
+            return true;
+        }
+        BlockState state = level.getBlockState(pos);
+        if (state.is(MOBILE_FLUID_COMPATIBLE)) {
+            return true;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof MachineDummyBlockEntity dummy) {
+            BlockPos corePos = dummy.getCorePos();
+            if (sameFluidSpace(level, pos, corePos)
+                    && level.getBlockState(corePos).is(MOBILE_FLUID_COMPATIBLE)) {
+                return true;
+            }
+        }
+        return !ReinhardtsHBM.MOD_ID.equals(BuiltInRegistries.BLOCK.getKey(state.getBlock()).getNamespace());
+    }
+
+    private static boolean fluidEndpointMatchesNetwork(Level level, BlockPos pos, NetworkKey networkKey) {
+        return networkKey.equals(networkKey(level, pos)) && mobileFluidEndpointAllowed(level, pos);
     }
 
     private record Endpoint(BlockPos pos, Direction side, IFluidHandler handler) {
@@ -636,11 +763,11 @@ public final class HbmFluidNetworks {
         }
     }
 
-    private static LevelNetwork network(Level level) {
-        return NETWORKS.computeIfAbsent(level.dimension(), key -> new LevelNetwork());
+    private record NetworkKey(ResourceKey<Level> dimension, String fluidSpace) {
     }
 
     private static final class LevelNetwork {
+        private final NetworkKey key;
         private final Map<BlockPos, PipeNode> pipes = new HashMap<>();
         private final Map<EndpointCursorKey, Integer> fillCursors = new HashMap<>();
         private final Map<EndpointCursorKey, Integer> drainCursors = new HashMap<>();
@@ -651,8 +778,13 @@ public final class HbmFluidNetworks {
         private CompletableFuture<BalanceResult> balanceInFlight;
         private long graphVersion;
         private long lastBalanceTick = Long.MIN_VALUE;
+        private long lastPruneTick = Long.MIN_VALUE;
         private long transferTick = Long.MIN_VALUE;
         private boolean dirty = true;
+
+        private LevelNetwork(NetworkKey key) {
+            this.key = key;
+        }
 
         synchronized void upsert(BlockPos pos, Set<String> typeNames, boolean open, List<BlockPos> links,
                                   Set<Direction> directions) {
@@ -728,7 +860,12 @@ public final class HbmFluidNetworks {
         void tickBalance(Level level) {
             BalanceResult completed = null;
             Set<PipeComponent> components = Set.of();
+            long gameTime = level.getGameTime();
             synchronized (this) {
+                if (this.lastPruneTick == Long.MIN_VALUE || gameTime - this.lastPruneTick >= PRUNE_INTERVAL_TICKS) {
+                    pruneInvalidPipes(level);
+                    this.lastPruneTick = gameTime;
+                }
                 tick();
                 if (this.transferTick != level.getGameTime()) {
                     this.lastTransfers.clear();
@@ -746,10 +883,9 @@ public final class HbmFluidNetworks {
             }
 
             if (completed != null) {
-                applyBalance(level, completed);
+                applyBalance(level, completed, this);
             }
 
-            long gameTime = level.getGameTime();
             if (components.isEmpty()) {
                 return;
             }
@@ -767,8 +903,25 @@ public final class HbmFluidNetworks {
 
             synchronized (this) {
                 if (this.balanceInFlight == null) {
-                    this.balanceInFlight = CompletableFuture.supplyAsync(() -> solveBalance(snapshot), SOLVER);
+                this.balanceInFlight = CompletableFuture.supplyAsync(() -> solveBalance(snapshot), SOLVER);
                 }
+            }
+        }
+
+        private void pruneInvalidPipes(Level level) {
+            List<BlockPos> removed = new ArrayList<>();
+            for (BlockPos pos : this.pipes.keySet()) {
+                if (!this.key.equals(networkKey(level, pos))
+                        || !mobileFluidNodeAllowed(level, pos)
+                        || !(level.getBlockEntity(pos) instanceof FluidPipeBlockEntity)) {
+                    removed.add(pos);
+                }
+            }
+            if (!removed.isEmpty()) {
+                for (BlockPos pos : removed) {
+                    this.pipes.remove(pos);
+                }
+                markDirty();
             }
         }
 

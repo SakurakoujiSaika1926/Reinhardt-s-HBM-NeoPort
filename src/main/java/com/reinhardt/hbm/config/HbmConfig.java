@@ -3,10 +3,15 @@ package com.reinhardt.hbm.config;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.List;
+import java.util.Locale;
+
 public final class HbmConfig {
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.BooleanValue ENABLE_528_MODE;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_COLTAN_DEPOSIT;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_COLTAN_SPAWN;
     public static final ModConfigSpec.BooleanValue ENABLE_EXPENSIVE_MODE;
     public static final ModConfigSpec.BooleanValue ENABLE_INFINITE_WATER_TANK_RECIPES;
     public static final ModConfigSpec.BooleanValue ENABLE_BOMBER_SHORT_MODE;
@@ -49,6 +54,8 @@ public final class HbmConfig {
     public static final ModConfigSpec.IntValue RADAR_CHUNK_LOAD_CAP;
     public static final ModConfigSpec.BooleanValue RADAR_GENERATE_CHUNKS;
     public static final ModConfigSpec.IntValue CIWS_ACCURACY;
+    /** 1.7.10 BombConfig.fatmanRadius; used by the atomic bomber payload. */
+    public static final ModConfigSpec.IntValue FATMAN_RADIUS;
     public static final ModConfigSpec.DoubleValue MINE_AP_DAMAGE;
     public static final ModConfigSpec.DoubleValue MINE_HE_DAMAGE;
     public static final ModConfigSpec.DoubleValue MINE_SHRAP_DAMAGE;
@@ -60,7 +67,15 @@ public final class HbmConfig {
     public static final ModConfigSpec.LongValue FE_TO_HE_FE_USED;
     public static final ModConfigSpec.LongValue FE_TO_HE_HE_CREATED;
     public static final ModConfigSpec.DoubleValue FE_TO_HE_INPUT_DECAY;
+    /** 1.12's GeneralConfig.conversionRateHeToRF (one HE becomes this many FE/RF). */
+    public static final ModConfigSpec.DoubleValue HE_TO_FE_CONVERSION_RATE;
+    /** 1.12's GeneralConfig.autoCableConversion; enabled by default for modern FE compatibility. */
+    public static final ModConfigSpec.BooleanValue AUTO_CABLE_CONVERSION;
     public static final ModConfigSpec.BooleanValue ENABLE_POLLUTION;
+    /** 1.7.10 RadiationConfig.disableAsbestos inverse; default false. */
+    public static final ModConfigSpec.BooleanValue ENABLE_ASBESTOS;
+    /** 1.7.10 RadiationConfig.disableCoal inverse; default false. */
+    public static final ModConfigSpec.BooleanValue ENABLE_COAL_DUST;
     public static final ModConfigSpec.BooleanValue ENABLE_LEAD_FROM_BLOCKS;
     public static final ModConfigSpec.BooleanValue ENABLE_LEAD_POISONING;
     public static final ModConfigSpec.BooleanValue ENABLE_SOOT_FOG;
@@ -73,6 +88,7 @@ public final class HbmConfig {
     public static final ModConfigSpec.DoubleValue GLYPHID_RAMPANT_SMOKESTACK_OVERRIDE;
     public static final ModConfigSpec.BooleanValue GLYPHID_ENABLE_HIVES;
     public static final ModConfigSpec.IntValue GLYPHID_HIVE_SPAWN;
+    public static final ModConfigSpec.ConfigValue<String> LEGACY_DUNGEON_SPAWN_FLAG;
     public static final ModConfigSpec.DoubleValue GLYPHID_SCOUT_SOOT_THRESHOLD;
     public static final ModConfigSpec.IntValue GLYPHID_SCOUT_SWARM_CHANCE;
     public static final ModConfigSpec.IntValue GLYPHID_LARGE_HIVE_CHANCE;
@@ -86,6 +102,40 @@ public final class HbmConfig {
     public static final ModConfigSpec.BooleanValue GLYPHID_RAMPANT_GUIDANCE;
     public static final ModConfigSpec.BooleanValue GLYPHID_SCOUT_INITIAL_SPAWN;
     public static final ModConfigSpec.BooleanValue GLYPHID_WAYPOINT_DEBUG;
+    public static final ModConfigSpec.IntValue GLYPHID_SWARM_COOLDOWN_SECONDS;
+    public static final ModConfigSpec.IntValue GLYPHID_BASE_SWARM_SIZE;
+    public static final ModConfigSpec.DoubleValue GLYPHID_SWARM_SCALING_MULTIPLIER;
+    public static final ModConfigSpec.IntValue GLYPHID_SOOT_STEP;
+    public static final ModConfigSpec.DoubleValue GLYPHID_SPAWN_MAX;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_GRUNT_CHANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_BRAWLER_CHANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_BOMBARDIER_CHANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_BLASTER_CHANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_DIGGER_CHANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_BEHEMOTH_CHANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_BRENDA_CHANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends Integer>> GLYPHID_NUCLEAR_CHANCE;
+    public static final ModConfigSpec.BooleanValue ENABLE_STAT_REREGISTERING;
+    public static final ModConfigSpec.BooleanValue ENABLE_DUCKS;
+    public static final ModConfigSpec.BooleanValue ENABLE_MOB_GEAR;
+    public static final ModConfigSpec.BooleanValue ENABLE_MASK_MAN;
+    public static final ModConfigSpec.IntValue MASK_MAN_DELAY;
+    public static final ModConfigSpec.IntValue MASK_MAN_CHANCE;
+    public static final ModConfigSpec.IntValue MASK_MAN_MIN_RAD;
+    public static final ModConfigSpec.BooleanValue MASK_MAN_UNDERGROUND;
+    public static final ModConfigSpec.BooleanValue ENABLE_FBI_RAIDS;
+    public static final ModConfigSpec.IntValue FBI_RAID_DELAY;
+    public static final ModConfigSpec.IntValue FBI_RAID_CHANCE;
+    public static final ModConfigSpec.IntValue FBI_RAID_AMOUNT;
+    public static final ModConfigSpec.IntValue FBI_RAID_DRONES;
+    public static final ModConfigSpec.IntValue FBI_RAID_ATTACK_DISTANCE;
+    public static final ModConfigSpec.IntValue FBI_RAID_ATTACK_DELAY;
+    public static final ModConfigSpec.IntValue FBI_RAID_ATTACK_REACH;
+    public static final ModConfigSpec.BooleanValue ENABLE_MELTDOWN_ELEMENTALS;
+    public static final ModConfigSpec.IntValue ELEMENTAL_DELAY;
+    public static final ModConfigSpec.IntValue ELEMENTAL_CHANCE;
+    public static final ModConfigSpec.IntValue ELEMENTAL_AMOUNT;
+    public static final ModConfigSpec.IntValue ELEMENTAL_DISTANCE;
     public static final ModConfigSpec.IntValue RBMK_COLUMN_HEIGHT;
     public static final ModConfigSpec.DoubleValue RBMK_PASSIVE_COOLING;
     public static final ModConfigSpec.DoubleValue RBMK_PASSIVE_COOLING_INNER;
@@ -110,7 +160,19 @@ public final class HbmConfig {
     public static final ModConfigSpec.BooleanValue RBMK_ENABLE_XENON;
     public static final ModConfigSpec.IntValue RBMK_FALLOUT_RANGE;
     public static final ModConfigSpec.IntValue RBMK_FALLOUT_DELAY;
+    public static final ModConfigSpec.BooleanValue RBMK_PERMANENT_SCRAP;
 
+    public static final ModConfigSpec.BooleanValue ENABLE_NETHER_ORES;
+    public static final ModConfigSpec.BooleanValue ENABLE_NETHER_PLUTONIUM_ORE;
+    public static final ModConfigSpec.BooleanValue ENABLE_RADIATION_HOTSPOTS;
+    public static final ModConfigSpec.IntValue RADIATION_HOTSPOT_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue GAS_BUBBLE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue EXPLOSIVE_GAS_BUBBLE_SPAWN_RATE;
+    public static final ModConfigSpec.BooleanValue ENABLE_SULFUR_CAVES;
+    public static final ModConfigSpec.BooleanValue ENABLE_ASBESTOS_CAVES;
+    public static final ModConfigSpec.BooleanValue ENABLE_HEMATITE_DEPOSITS;
+    public static final ModConfigSpec.BooleanValue ENABLE_MALACHITE_DEPOSITS;
+    public static final ModConfigSpec.BooleanValue ENABLE_BAUXITE_DEPOSITS;
     public static final ModConfigSpec.BooleanValue GENERATE_OIL_DEPOSITS;
     public static final ModConfigSpec.IntValue OIL_DEPOSIT_SPAWN_RATE;
     public static final ModConfigSpec.IntValue OIL_DEPOSIT_DRY_BIOME_DIVISOR;
@@ -189,6 +251,23 @@ public final class HbmConfig {
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_PLAINS_NULL_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_OCEAN_NULL_WEIGHT;
     public static final ModConfigSpec.IntValue ANCIENT_TOMB_SPAWN_CHANCE;
+    public static final ModConfigSpec.IntValue ANTENNA_STRUCTURE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue ATOM_STRUCTURE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue LIBRARY_DUNGEON_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue DUD_STRUCTURE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue SPACESHIP_STRUCTURE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue WASTE_TANK_STRUCTURE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue BROADCASTER_SPAWN_RATE;
+    public static final ModConfigSpec.BooleanValue ENABLE_WORLDGEN_LANDMINES;
+    public static final ModConfigSpec.IntValue LANDMINE_SPAWN_RATE;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_BOSNIA_MINES;
+    public static final ModConfigSpec.BooleanValue ENABLE_WORLDGEN_VAULTS;
+    public static final ModConfigSpec.IntValue VAULT_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue SOYUZ_CAPSULE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue ARCTIC_VAULT_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue JUNGLE_DUNGEON_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue PINK_TREE_SPAWN_RATE;
+    public static final ModConfigSpec.IntValue STONE_KEYHOLE_SPAWN_RATE;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -197,6 +276,12 @@ public final class HbmConfig {
         ENABLE_528_MODE = builder
                 .comment("是否启用 HBM 528 模式。默认与 HBM 1.12.2 一致：false。启用后部分机器和配方会使用 528 模式。")
                 .define("enable528Mode", false);
+        ENABLE_528_COLTAN_DEPOSIT = builder
+                .comment("是否生成由世界种子决定的钶钽大型矿区。对应 HBM 1.7.10 GeneralConfig.enable528ColtanDeposit，默认：true。")
+                .define("enable528ColtanDeposit", true);
+        ENABLE_528_COLTAN_SPAWN = builder
+                .comment("是否让钶钽矿作为普通随机矿脉生成。对应 HBM 1.7.10 GeneralConfig.enable528ColtanSpawn，默认：false。")
+                .define("enable528ColtanSpawning", false);
         ENABLE_EXPENSIVE_MODE = builder
                 .comment("是否启用 HBM 1.7.10 昂贵模式。影响精密装配机故障产物的材料回收率。")
                 .define("enableExpensiveMode", false);
@@ -205,8 +290,8 @@ public final class HbmConfig {
         builder.push("recipes");
         ENABLE_INFINITE_WATER_TANK_RECIPES = builder
                 .comment(
-                        "是否启用无限水罐与无限水罐 Mk2 的制造配方。已有水泵的生存环境建议保持关闭；默认：false。",
-                        "Enable crafting recipes for the Infinite Water Tank and Infinite Water Tank Mk2. Default: false."
+                        "是否注册无限水罐、无限水罐 Mk2 及其制造配方。已有水泵的生存环境建议保持关闭；默认：false。",
+                        "Register the Infinite Water Tank, Infinite Water Tank Mk2 and their crafting recipes. Default: false."
                 )
                 .define("enableInfiniteWaterTankRecipes", false);
         builder.pop();
@@ -359,6 +444,9 @@ public final class HbmConfig {
         CIWS_ACCURACY = builder
                 .comment("近防炮命中率修正值。默认值与 HBM 1.7.10 的 7.03_ciwsAccuracy 一致：50。")
                 .defineInRange("ciwsAccuracy", 50, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        FATMAN_RADIUS = builder
+                .comment("Fatman/轰炸机原子弹子弹的 MK5 基础半径。对应 HBM 1.7.10 BombConfig.fatmanRadius，默认：35。")
+                .defineInRange("fatmanRadius", 35, 0, Integer.MAX_VALUE);
         MINE_AP_DAMAGE = builder
                 .comment("Anti-personnel mine base entity damage. HBM 1.7.10 default: 10.")
                 .defineInRange("mineApDamage", 10.0D, 0.0D, Double.MAX_VALUE);
@@ -399,12 +487,24 @@ public final class HbmConfig {
                 .comment("换算后剩余 FE 每 tick 的损耗比例。对应 HBM 1.7.10 的 D:inputDecay2，默认：0。")
                 .defineInRange("inputDecay", 0.0D, 0.0D, 1.0D);
         builder.pop();
+        HE_TO_FE_CONVERSION_RATE = builder
+                .comment("原生 HBM 电力与 Forge Energy/RF 的直接换算倍率。1 HE 等于该数值 FE；高版本整合默认：4.0。")
+                .defineInRange("conversionRateHeToRF", 4.0D, Double.MIN_VALUE, Double.MAX_VALUE);
+        AUTO_CABLE_CONVERSION = builder
+                .comment("HBM 电缆自动与相邻 Forge Energy 设备互转，无需转换器方块。高版本移植默认：true（1.7.10 原版默认：false）。")
+                .define("autoCableConversion", true);
         builder.pop();
 
         builder.push("pollution");
         ENABLE_POLLUTION = builder
                 .comment("是否启用 HBM 污染系统。默认与旧版一致：true。关闭后机器、流体和烟囱不会增加世界污染。")
                 .define("enablePollution", true);
+        ENABLE_ASBESTOS = builder
+                .comment("是否启用旧版石棉粉尘/石棉危害。对应 1.7.10 HAZ_00_disableAsbestos=false。")
+                .define("enableAsbestos", true);
+        ENABLE_COAL_DUST = builder
+                .comment("是否启用旧版煤尘/黑肺危害。对应 1.7.10 HAZ_01_disableCoaldust=false。")
+                .define("enableCoalDust", true);
         ENABLE_LEAD_FROM_BLOCKS = builder
                 .comment("是否启用旧版重金属污染区域破坏方块导致铅中毒的机制。默认与旧版一致：true。")
                 .define("enableLeadFromBlocks", true);
@@ -441,6 +541,9 @@ public final class HbmConfig {
         GLYPHID_HIVE_SPAWN = builder
                 .comment("Average number of Overworld chunks per naturally generated Glyphid hive. HBM 1.7.10 default: 256.")
                 .defineInRange("hiveSpawn", 256, 1, Integer.MAX_VALUE);
+        LEGACY_DUNGEON_SPAWN_FLAG = builder
+                .comment("HBM 1.7.10 1.03_enableDungeonSpawn: true forces structures on, false disables them, and flag respects the world Generate Structures setting.")
+                .define("legacyDungeonSpawn", "flag");
         GLYPHID_SCOUT_SOOT_THRESHOLD = builder
                 .comment("Minimum soot for Scout behavior to use polluted-world expansion. HBM 1.7.10 default: 1.")
                 .defineInRange("scoutSootThreshold", 1.0D, 0.0D, 10_000.0D);
@@ -483,6 +586,95 @@ public final class HbmConfig {
         GLYPHID_WAYPOINT_DEBUG = builder
                 .comment("Show Glyphid task waypoints for debugging. HBM 1.7.10 default: false.")
                 .define("waypointDebug", false);
+        GLYPHID_SWARM_COOLDOWN_SECONDS = builder
+                .comment("Seconds between Glyphid-spawner swarm checks. HBM 1.7.10 default: 120.")
+                .defineInRange("swarmCooldown", 120, 1, Integer.MAX_VALUE);
+        GLYPHID_BASE_SWARM_SIZE = builder
+                .comment("Glyphid-spawner base swarm size. HBM 1.7.10 default: 5.")
+                .defineInRange("baseSwarmSize", 5, 0, Integer.MAX_VALUE);
+        GLYPHID_SWARM_SCALING_MULTIPLIER = builder
+                .comment("Glyphid-spawner soot scaling multiplier. HBM 1.7.10 default: 1.2.")
+                .defineInRange("swarmScalingMult", 1.2D, 0.0D, Double.MAX_VALUE);
+        GLYPHID_SOOT_STEP = builder
+                .comment("Soot interval used by Glyphid-spawner swarm scaling. HBM 1.7.10 default: 50.")
+                .defineInRange("sootStep", 50, 1, Integer.MAX_VALUE);
+        GLYPHID_SPAWN_MAX = builder
+                .comment("Maximum loaded Glyphids before a Glyphid spawner stops. HBM 1.7.10 default: 50.")
+                .defineInRange("spawnMax", 50.0D, 0.0D, Double.MAX_VALUE);
+        GLYPHID_GRUNT_CHANCE = glyphidChance(builder, "glyphidChance", List.of(50, -45, 0));
+        GLYPHID_BRAWLER_CHANCE = glyphidChance(builder, "brawlerChance", List.of(10, 30, 1));
+        GLYPHID_BOMBARDIER_CHANCE = glyphidChance(builder, "bombardierChance", List.of(20, -15, 1));
+        GLYPHID_BLASTER_CHANCE = glyphidChance(builder, "blasterChance", List.of(-5, 40, 5));
+        GLYPHID_DIGGER_CHANCE = glyphidChance(builder, "diggerChance", List.of(-15, 25, 5));
+        GLYPHID_BEHEMOTH_CHANCE = glyphidChance(builder, "behemothChance", List.of(-30, 45, 10));
+        GLYPHID_BRENDA_CHANCE = glyphidChance(builder, "brendaChance", List.of(-50, 60, 20));
+        GLYPHID_NUCLEAR_CHANCE = glyphidChance(builder, "johnsonChance", List.of(-50, 60, 50));
+        builder.pop();
+
+        builder.push("legacyMobSpawning");
+        ENABLE_DUCKS = builder
+                .comment("Whether pressing O may spawn the one-time duck. HBM 1.7.10 default: true.")
+                .define("enableDucks", true);
+        ENABLE_MOB_GEAR = builder
+                .comment("Whether naturally spawned legacy zombies and skeletons receive their 1.7.10 equipment pools. Default: true.")
+                .define("enableMobGear", true);
+        ENABLE_STAT_REREGISTERING = builder
+                .comment("Keep the old mask-man crafted/placed-crystallizer statistic gate. HBM 1.7.10 default: true.")
+                .define("enableStatReRegistering", true);
+        ENABLE_MASK_MAN = builder
+                .comment("Whether Mask Man should spawn. HBM 1.7.10 default: true.")
+                .define("enableMaskman", true);
+        MASK_MAN_DELAY = builder
+                .comment("World ticks between Mask Man checks. HBM 1.7.10 default: 216000.")
+                .defineInRange("maskmanDelay", 216_000, 1, Integer.MAX_VALUE);
+        MASK_MAN_CHANCE = builder
+                .comment("Mask Man chance denominator. HBM 1.7.10 default: 3.")
+                .defineInRange("maskmanChance", 3, 1, Integer.MAX_VALUE);
+        MASK_MAN_MIN_RAD = builder
+                .comment("Minimum radiation for Mask Man. HBM 1.7.10 default: 50.")
+                .defineInRange("maskmanMinRad", 50, 0, Integer.MAX_VALUE);
+        MASK_MAN_UNDERGROUND = builder
+                .comment("Whether the Mask Man target must be more than three blocks below the surface. HBM 1.7.10 default: true.")
+                .define("maskmanUnderground", true);
+        ENABLE_FBI_RAIDS = builder
+                .comment("Whether FBI raids should spawn. HBM 1.7.10 default: false.")
+                .define("enableFBIRaids", false);
+        FBI_RAID_DELAY = builder
+                .comment("World ticks between FBI raid checks. HBM 1.7.10 default: 108000.")
+                .defineInRange("raidDelay", 108_000, 1, Integer.MAX_VALUE);
+        FBI_RAID_CHANCE = builder
+                .comment("FBI raid chance denominator. HBM 1.7.10 default: 3.")
+                .defineInRange("raidChance", 3, 1, Integer.MAX_VALUE);
+        FBI_RAID_AMOUNT = builder
+                .comment("FBI agents per raid. HBM 1.7.10 default: 15.")
+                .defineInRange("raidAmount", 15, 0, Integer.MAX_VALUE);
+        FBI_RAID_DRONES = builder
+                .comment("FBI drones per raid. HBM 1.7.10 default: 5.")
+                .defineInRange("raidDrones", 5, 0, Integer.MAX_VALUE);
+        FBI_RAID_ATTACK_DISTANCE = builder
+                .comment("FBI raid spawn radius. HBM 1.7.10 default: 32; old elemental spawning also uses this value.")
+                .defineInRange("raidAttackDistance", 32, 0, Integer.MAX_VALUE);
+        FBI_RAID_ATTACK_DELAY = builder
+                .comment("FBI machine-break attempt interval. HBM 1.7.10 MobConfig.raidAttackDelay default: 40.")
+                .defineInRange("raidAttackDelay", 40, 1, Integer.MAX_VALUE);
+        FBI_RAID_ATTACK_REACH = builder
+                .comment("FBI machine-break ray length. HBM 1.7.10 MobConfig.raidAttackReach default: 2.")
+                .defineInRange("raidAttackReach", 2, 1, Integer.MAX_VALUE);
+        ENABLE_MELTDOWN_ELEMENTALS = builder
+                .comment("Whether reactor meltdowns can mark players for radiation beasts. HBM 1.7.10 default: true.")
+                .define("enableMeltdownElementals", true);
+        ELEMENTAL_DELAY = builder
+                .comment("World ticks between radiation-beast checks. HBM 1.7.10 default: 108000.")
+                .defineInRange("elementalDelay", 108_000, 1, Integer.MAX_VALUE);
+        ELEMENTAL_CHANCE = builder
+                .comment("Radiation-beast chance denominator. HBM 1.7.10 default: 2.")
+                .defineInRange("elementalChance", 2, 1, Integer.MAX_VALUE);
+        ELEMENTAL_AMOUNT = builder
+                .comment("Radiation beasts per marked-player event. HBM 1.7.10 default: 10.")
+                .defineInRange("elementalAmount", 10, 0, Integer.MAX_VALUE);
+        ELEMENTAL_DISTANCE = builder
+                .comment("Retained legacy elemental-distance setting. BossSpawnHandler uses raidAttackDistance in 1.7.10.")
+                .defineInRange("elementalAttackDistance", 32, 0, Integer.MAX_VALUE);
         builder.pop();
 
         builder.push("rbmk");
@@ -558,72 +750,112 @@ public final class HbmConfig {
         RBMK_FALLOUT_DELAY = builder
                 .comment("RBMK 融毁焦土效果每批区块处理之间的 tick 间隔。默认与 HBM 1.7.10 falloutDelay 一致：4。")
                 .defineInRange("rbmkFalloutDelay", 4, 0, 200);
+        RBMK_PERMANENT_SCRAP = builder
+                .comment("RBMK 融毁残骸是否永久保留。默认与 HBM 1.7.10 的 dialEnablePermaScrap 一致：true。")
+                .define("rbmkPermanentScrap", true);
         builder.pop();
 
         builder.push("worldgen");
+        ENABLE_NETHER_ORES = builder
+                .comment("是否生成 HBM 下界矿石。关闭后不会生成常规下界矿、深层钕矿或下界基岩矿；熔燃矿与下界间歇泉保持生成，与 HBM 1.7.10 的 netherOres 开关一致。默认：true。")
+                .define("enableNetherOres", true);
+        ENABLE_NETHER_PLUTONIUM_ORE = builder
+                .comment("是否生成下界钚矿。对应 HBM 1.7.10 GeneralConfig.enablePlutoniumOre，默认：false。")
+                .define("enableNetherPlutoniumOre", false);
+        ENABLE_RADIATION_HOTSPOTS = builder
+                .comment("是否生成 Sellafield 辐射热点地形。对应 HBM 1.7.10 GeneralConfig.enableRad，默认：true。")
+                .define("enableRadiationHotspots", true);
+        RADIATION_HOTSPOT_SPAWN_RATE = builder
+                .comment("Sellafield 辐射热点生成间隔，数值越大越稀有。HBM 1.7.10 WorldConfig.radfreq 默认：5000；设置为 0 可禁用。")
+                .defineInRange("radiationHotspotSpawnRate", 5000, 0, 1_000_000);
+        GAS_BUBBLE_SPAWN_RATE = builder
+                .comment("易燃气泡矿脉生成间隔。HBM 1.7.10 WorldConfig.gasbubbleSpawn 默认：12；设置为 0 可禁用。")
+                .defineInRange("gasBubbleSpawnRate", 12, 0, 1_000_000);
+        EXPLOSIVE_GAS_BUBBLE_SPAWN_RATE = builder
+                .comment("爆炸气泡矿脉生成间隔。HBM 1.7.10 WorldConfig.explosivebubbleSpawn 默认：0，默认禁用。")
+                .defineInRange("explosiveGasBubbleSpawnRate", 0, 0, 1_000_000);
+        ENABLE_SULFUR_CAVES = builder
+                .comment("是否生成硫磺洞穴。对应 HBM 1.7.10 WorldConfig.enableSulfurCave，默认：true。")
+                .define("enableSulfurCaves", true);
+        ENABLE_ASBESTOS_CAVES = builder
+                .comment("是否生成石棉洞穴。对应 HBM 1.7.10 WorldConfig.enableAsbestosCave，默认：true。")
+                .define("enableAsbestosCaves", true);
+
+        builder.push("resourceLayers");
+        ENABLE_HEMATITE_DEPOSITS = builder
+                .comment("是否生成赤铁矿 stone_resource 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableHematite，默认：true。")
+                .define("enableHematite", true);
+        ENABLE_MALACHITE_DEPOSITS = builder
+                .comment("是否生成孔雀石 stone_resource 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableMalachite，默认：true。")
+                .define("enableMalachite", true);
+        ENABLE_BAUXITE_DEPOSITS = builder
+                .comment("是否生成铝土矿 stone_resource 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableBauxite，默认：true。")
+                .define("enableBauxite", true);
+        builder.pop();
+
         builder.push("oil");
 
         GENERATE_OIL_DEPOSITS = builder
-                .comment("是否生成油田。默认与 HBM 1.12.2 一致：true。")
+                .comment("是否生成油田。默认与 HBM 1.7.10 一致：true。")
                 .define("generateOilDeposits", true);
         OIL_DEPOSIT_SPAWN_RATE = builder
-                .comment("油田生成间隔，数值越大越稀有。HBM 1.12.2 默认：100。")
+                .comment("油田生成间隔，数值越大越稀有。HBM 1.7.10 WorldConfig.oilSpawn 默认：100。")
                 .defineInRange("oilDepositSpawnRate", 100, 1, 1_000_000);
         OIL_DEPOSIT_DRY_BIOME_DIVISOR = builder
-                .comment("炎热干燥群系中的油田生成间隔除数。HBM 1.12.2 默认：3。")
+                .comment("炎热干燥群系中的油田生成间隔除数。HBM 1.7.10 MapGenBubble 固定：3。")
                 .defineInRange("oilDepositHotDryBiomeDivisor", 3, 1, 1_000);
         OIL_DEPOSIT_MIN_RADIUS = builder
-                .comment("油田最小半径。HBM 1.12.2 默认：10。")
-                .defineInRange("oilDepositMinRadius", 10, 1, 128);
+                .comment("油田最小半径。HBM 1.7.10 默认：8。")
+                .defineInRange("oilDepositMinRadius", 8, 1, 128);
         OIL_DEPOSIT_MAX_RADIUS = builder
-                .comment("油田最大半径。HBM 1.12.2 默认：16。")
+                .comment("油田最大半径。HBM 1.7.10 默认：16。")
                 .defineInRange("oilDepositMaxRadius", 16, 1, 128);
 
         GENERATE_OIL_SAND_DEPOSITS = builder
-                .comment("是否生成油砂矿床。HBM 1.12.2 默认：true。")
+                .comment("是否生成油砂矿床。HBM 1.7.10 硬编码启用。")
                 .define("generateOilSandDeposits", true);
         OIL_SAND_DEPOSIT_SPAWN_RATE = builder
-                .comment("油砂矿床生成间隔，数值越大越稀有。HBM 1.12.2 默认：600。")
-                .defineInRange("oilSandDepositSpawnRate", 600, 1, 1_000_000);
+                .comment("油砂矿床生成间隔，数值越大越稀有。HBM 1.7.10 硬编码默认：200。")
+                .defineInRange("oilSandDepositSpawnRate", 200, 1, 1_000_000);
         OIL_SAND_DEPOSIT_MIN_RADIUS = builder
-                .comment("油砂矿床最小半径。HBM 1.12.2 默认：15。")
-                .defineInRange("oilSandDepositMinRadius", 15, 1, 128);
+                .comment("油砂矿床最小半径。HBM 1.7.10 默认：16。")
+                .defineInRange("oilSandDepositMinRadius", 16, 1, 128);
         OIL_SAND_DEPOSIT_MAX_RADIUS = builder
-                .comment("油砂矿床最大半径。HBM 1.12.2 默认：45。")
-                .defineInRange("oilSandDepositMaxRadius", 45, 1, 128);
+                .comment("油砂矿床最大半径。HBM 1.7.10 默认：48。")
+                .defineInRange("oilSandDepositMaxRadius", 48, 1, 128);
 
         GENERATE_BEDROCK_OIL_DEPOSITS = builder
-                .comment("是否生成基岩油田。HBM 1.12.2 默认：true。")
+                .comment("是否生成基岩油田。HBM 1.7.10 WorldConfig.bedrockOilSpawn 默认开启。")
                 .define("generateBedrockOilDeposits", true);
         BEDROCK_OIL_DEPOSIT_SPAWN_RATE = builder
-                .comment("基岩油田生成间隔，数值越大越稀有。HBM 1.12.2 默认：200。")
+                .comment("基岩油田生成间隔，数值越大越稀有。HBM 1.7.10 默认：200。")
                 .defineInRange("bedrockOilDepositSpawnRate", 200, 1, 1_000_000);
         BEDROCK_OIL_DXZ_LIMIT = builder
-                .comment("基岩油田水平偏移限制。HBM 1.12.2 默认：4。")
+                .comment("基岩油田水平偏移限制。HBM 1.7.10 MapGenBedrockOil range 固定：4。")
                 .defineInRange("bedrockOilHorizontalLimit", 4, 1, 64);
         BEDROCK_OIL_MAX_Y_OFFSET = builder
-                .comment("基岩油田最大垂直偏移。HBM 1.12.2 默认：4。")
+                .comment("基岩油田最大垂直偏移。HBM 1.7.10 生成 y=0..4。")
                 .defineInRange("bedrockOilMaxYOffset", 4, 0, 64);
         BEDROCK_OIL_L1_MAX = builder
-                .comment("基岩油田 L1 半径。HBM 1.12.2 默认：6。")
+                .comment("基岩油田 L1 半径。HBM 1.7.10 固定：6。")
                 .defineInRange("bedrockOilL1Radius", 6, 1, 128);
         BEDROCK_OIL_SURFACE_RADIUS = builder
-                .comment("基岩油田地表油泥半径。HBM 1.12.2 默认：5。")
+                .comment("基岩油田地表油泥半径。HBM 1.7.10 spotWidth 默认：5。")
                 .defineInRange("bedrockOilSurfaceRadius", 5, 1, 128);
         BEDROCK_OIL_SURFACE_ATTEMPTS = builder
-                .comment("基岩油田地表油泥放置尝试次数。HBM 1.12.2 默认：50。")
+                .comment("基岩油田地表油泥放置尝试次数。HBM 1.7.10 spotCount 默认：50。")
                 .defineInRange("bedrockOilSurfaceAttempts", 50, 0, 10_000);
         BEDROCK_OIL_POROUS_VEIN_COUNT = builder
-                .comment("基岩油田多孔岩脉数量。HBM 1.12.2 默认：16。")
+                .comment("兼容旧配置保留：1.7.10 基岩油没有多孔岩伴生，本字段不会被世界生成使用。")
                 .defineInRange("bedrockOilPorousStoneVeinCount", 16, 0, 10_000);
         BEDROCK_OIL_POROUS_VEIN_SIZE = builder
-                .comment("基岩油田多孔岩脉大小。HBM 1.12.2 默认：8。")
+                .comment("兼容旧配置保留：1.7.10 基岩油没有多孔岩伴生，本字段不会被世界生成使用。")
                 .defineInRange("bedrockOilPorousStoneVeinSize", 8, 1, 128);
         BEDROCK_OIL_POROUS_MIN_Y = builder
-                .comment("基岩油田多孔岩脉最低 Y。HBM 1.12.2 默认：10。")
+                .comment("兼容旧配置保留：1.7.10 基岩油没有多孔岩伴生，本字段不会被世界生成使用。")
                 .defineInRange("bedrockOilPorousStoneMinY", 10, -256, 512);
         BEDROCK_OIL_POROUS_Y_VARIANCE = builder
-                .comment("基岩油田多孔岩脉 Y 随机范围。HBM 1.12.2 默认：50。")
+                .comment("兼容旧配置保留：1.7.10 基岩油没有多孔岩伴生，本字段不会被世界生成使用。")
                 .defineInRange("bedrockOilPorousStoneYVariance", 50, 0, 512);
         GENERATE_BEDROCK_ORES = builder
                 .comment("是否生成通用基岩矿。HBM 1.7.10 默认：true。")
@@ -731,6 +963,57 @@ public final class HbmConfig {
         ANCIENT_TOMB_SPAWN_CHANCE = builder
                 .comment("古代墓穴生成概率，旧版 HBM 1.7.10 默认每 4000 个区块尝试一次；设置为 0 可禁用。")
                 .defineInRange("ancientTombSpawnChance", 4000, 0, Integer.MAX_VALUE);
+        ANTENNA_STRUCTURE_SPAWN_RATE = builder
+                .comment("旧版地表天线结构生成间隔。HBM 1.7.10 WorldConfig.antennaStructure 默认：250；设置为 0 可禁用。")
+                .defineInRange("antennaStructureSpawnRate", 250, 0, 1_000_000);
+        ATOM_STRUCTURE_SPAWN_RATE = builder
+                .comment("旧版沙漠核设施生成间隔。HBM 1.7.10 WorldConfig.atomStructure 默认：500；设置为 0 可禁用。")
+                .defineInRange("atomStructureSpawnRate", 500, 0, 1_000_000);
+        LIBRARY_DUNGEON_SPAWN_RATE = builder
+                .comment("旧版图书馆地牢生成间隔。HBM 1.7.10 WorldConfig.dungeonStructure 默认：64；设置为 0 可禁用。")
+                .defineInRange("libraryDungeonSpawnRate", 64, 0, 1_000_000);
+        DUD_STRUCTURE_SPAWN_RATE = builder
+                .comment("未爆弹地表生成间隔。HBM 1.7.10 WorldConfig.dudStructure 默认：500；设置为 0 可禁用。")
+                .defineInRange("dudStructureSpawnRate", 500, 0, 1_000_000);
+        SPACESHIP_STRUCTURE_SPAWN_RATE = builder
+                .comment("旧版坠毁飞船生成间隔。HBM 1.7.10 WorldConfig.spaceshipStructure 默认：1000；设置为 0 可禁用。")
+                .defineInRange("spaceshipStructureSpawnRate", 1000, 0, 1_000_000);
+        WASTE_TANK_STRUCTURE_SPAWN_RATE = builder
+                .comment("旧版核废料罐结构生成间隔。HBM 1.7.10 WorldConfig.barrelStructure 默认：5000；设置为 0 可禁用。")
+                .defineInRange("wasteTankStructureSpawnRate", 5000, 0, 1_000_000);
+        BROADCASTER_SPAWN_RATE = builder
+                .comment("腐化广播器地表生成间隔。HBM 1.7.10 WorldConfig.broadcaster 默认：5000；设置为 0 可禁用。")
+                .defineInRange("broadcasterSpawnRate", 5000, 0, 1_000_000);
+        ENABLE_WORLDGEN_LANDMINES = builder
+                .comment("是否生成旧版地表反步兵地雷。对应 HBM 1.7.10 GeneralConfig.enableMines，默认：true。")
+                .define("enableWorldgenLandmines", true);
+        LANDMINE_SPAWN_RATE = builder
+                .comment("旧版地表反步兵地雷生成间隔。HBM 1.7.10 WorldConfig.minefreq 默认：64；设置为 0 可禁用。")
+                .defineInRange("landmineSpawnRate", 64, 0, 1_000_000);
+        ENABLE_528_BOSNIA_MINES = builder
+                .comment("是否启用 528 波黑模拟器高爆地雷散点生成。HBM 1.7.10 默认随 528 模式关闭：false。")
+                .define("enable528BosniaMines", false);
+        ENABLE_WORLDGEN_VAULTS = builder
+                .comment("是否生成旧版地表保险箱。对应 HBM 1.7.10 GeneralConfig.enableVaults，默认：true。")
+                .define("enableWorldgenVaults", true);
+        VAULT_SPAWN_RATE = builder
+                .comment("旧版地表保险箱生成间隔。HBM 1.7.10 WorldConfig.vaultfreq 默认：2500；设置为 0 可禁用。")
+                .defineInRange("vaultSpawnRate", 2500, 0, 1_000_000);
+        SOYUZ_CAPSULE_SPAWN_RATE = builder
+                .comment("沙滩联盟号返回舱生成间隔。HBM 1.7.10 WorldConfig.capsuleStructure 默认：100；设置为 0 可禁用。")
+                .defineInRange("soyuzCapsuleSpawnRate", 100, 0, 1_000_000);
+        ARCTIC_VAULT_SPAWN_RATE = builder
+                .comment("寒冷地下代码库生成间隔。HBM 1.7.10 WorldConfig.arcticStructure 默认：500；设置为 0 可禁用。")
+                .defineInRange("arcticVaultSpawnRate", 500, 0, 1_000_000);
+        JUNGLE_DUNGEON_SPAWN_RATE = builder
+                .comment("旧版丛林地牢生成间隔。HBM 1.7.10 WorldConfig.jungleStructure 默认：2000；设置为 0 可禁用。")
+                .defineInRange("jungleDungeonSpawnRate", 2000, 0, 1_000_000);
+        PINK_TREE_SPAWN_RATE = builder
+                .comment("橡木替换为粉色树干的旧版彩蛋生成间隔。HBM 1.7.10 硬编码默认：1000；设置为 0 可禁用。")
+                .defineInRange("pinkTreeSpawnRate", 1000, 0, 1_000_000);
+        STONE_KEYHOLE_SPAWN_RATE = builder
+                .comment("石钥孔散点生成间隔。HBM 1.7.10 硬编码默认：4；设置为 0 可禁用。")
+                .defineInRange("stoneKeyholeSpawnRate", 4, 0, 1_000_000);
 
         builder.pop();
         builder.pop();
@@ -751,6 +1034,15 @@ public final class HbmConfig {
         int min = Math.min(minValue.get(), maxValue.get());
         int max = Math.max(minValue.get(), maxValue.get());
         return min + random.nextInt(max - min + 1);
+    }
+
+    /** CommonConfig.parseStructureFlag used by HBM 1.7.10's HbmWorldGen. */
+    public static boolean legacyDungeonGenerationEnabled(boolean worldGenerateStructures) {
+        return switch (LEGACY_DUNGEON_SPAWN_FLAG.get().toLowerCase(Locale.US)) {
+            case "true", "on", "yes" -> true;
+            case "false", "off", "no" -> false;
+            default -> worldGenerateStructures;
+        };
     }
 
     /** Mirrors VersatileConfig's 1.7.10 RTG rule: 528 mode forces decay. */
@@ -781,6 +1073,25 @@ public final class HbmConfig {
 
     public static int glyphidScoutSwarmChance() {
         return GLYPHID_RAMPANT_MODE.get() ? 1 : GLYPHID_SCOUT_SWARM_CHANCE.get();
+    }
+
+    public static int glyphidSwarmCooldown() {
+        return Math.multiplyExact(GLYPHID_SWARM_COOLDOWN_SECONDS.get(), 20);
+    }
+
+    public static int[] glyphidChance(ModConfigSpec.ConfigValue<List<? extends Integer>> value, String key) {
+        List<? extends Integer> entries = value.get();
+        if (entries.size() != 3) {
+            throw new IllegalStateException("Glyphid chance entry " + key + " must contain exactly three integers.");
+        }
+        return new int[]{entries.get(0), entries.get(1), entries.get(2)};
+    }
+
+    private static ModConfigSpec.ConfigValue<List<? extends Integer>> glyphidChance(
+            ModConfigSpec.Builder builder, String key, List<Integer> defaults
+    ) {
+        return builder.comment("Glyphid spawning tuple: base chance, soot modifier, minimum soot. HBM 1.7.10 default: " + defaults + '.')
+                .defineList(key, defaults, value -> value instanceof Integer);
     }
 
     public static double glyphidScoutSootThreshold() {

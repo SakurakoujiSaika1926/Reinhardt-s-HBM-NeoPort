@@ -1,0 +1,25 @@
+{
+    "replace": false,
+    "values": [
+        "reinhardtshbm:red_cable",
+        "reinhardtshbm:red_cable_classic",
+        "reinhardtshbm:red_cable_box",
+        "reinhardtshbm:red_cable_paintable",
+        "reinhardtshbm:red_cable_gauge",
+        "reinhardtshbm:red_wire_coated",
+        "reinhardtshbm:cable_diode",
+        "reinhardtshbm:cable_switch",
+        "reinhardtshbm:cable_detector",
+        "reinhardtshbm:machine_battery_redd",
+        "reinhardtshbm:machine_battery_socket",
+        "reinhardtshbm:capacitor_copper",
+        "reinhardtshbm:capacitor_bus",
+        "reinhardtshbm:machine_wood_burner",
+        "reinhardtshbm:machine_stirling",
+        "reinhardtshbm:machine_stirling_steel",
+        "reinhardtshbm:machine_stirling_creative",
+        "reinhardtshbm:machine_diesel",
+        "reinhardtshbm:machine_combustion_engine",
+        "reinhardtshbm:machine_steam_engine"
+    ]
+}
