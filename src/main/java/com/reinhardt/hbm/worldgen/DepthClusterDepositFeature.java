@@ -21,17 +21,34 @@ public class DepthClusterDepositFeature extends Feature<NoneFeatureConfiguration
 
     private final Supplier<? extends Block> ore;
     private final int chance;
+    private final double fill;
 
     public DepthClusterDepositFeature(Supplier<? extends Block> ore, int chance) {
+        this(ore, chance, FILL);
+    }
+
+    /**
+     * Creates a legacy depth deposit.  The old generator used a denser fill
+     * factor for depth ores (0.8) than for the iron/titanium/tungsten
+     * clusters (0.6), so keep that value configurable instead of silently
+     * flattening all deposits to one shape.
+     */
+    public DepthClusterDepositFeature(Supplier<? extends Block> ore, int chance, double fill) {
         super(NoneFeatureConfiguration.CODEC);
         this.ore = ore;
         this.chance = chance;
+        this.fill = fill;
     }
 
     public DepthClusterDepositFeature(Codec<NoneFeatureConfiguration> codec, Supplier<? extends Block> ore, int chance) {
+        this(codec, ore, chance, FILL);
+    }
+
+    public DepthClusterDepositFeature(Codec<NoneFeatureConfiguration> codec, Supplier<? extends Block> ore, int chance, double fill) {
         super(codec);
         this.ore = ore;
         this.chance = chance;
+        this.fill = fill;
     }
 
     @Override
@@ -42,19 +59,22 @@ public class DepthClusterDepositFeature extends Feature<NoneFeatureConfiguration
         }
 
         BlockPos origin = context.origin();
-        int x = origin.getX();
+        int chunkX = origin.getX() & ~15;
+        int chunkZ = origin.getZ() & ~15;
+        int x = chunkX + random.nextInt(16) + 8;
         int y = Math.max(context.level().getMinBuildHeight(), random.nextInt(3));
-        int z = origin.getZ();
-        return generate(context.level(), x, y, z, this.ore.get(), random);
+        int z = chunkZ + random.nextInt(16) + 8;
+        return generate(context.level(), x, y, z, this.ore.get(), random, this.fill);
     }
 
-    private static boolean generate(WorldGenLevel level, int centerX, int centerY, int centerZ, Block ore, RandomSource random) {
+    private static boolean generate(WorldGenLevel level, int centerX, int centerY, int centerZ, Block ore,
+                                    RandomSource random, double fill) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         boolean placed = false;
         for (int x = centerX - SIZE; x <= centerX + SIZE; x++) {
             int dx = centerX - x;
             for (int y = centerY - SIZE; y <= centerY + SIZE; y++) {
-                if (y < level.getMinBuildHeight() || y > 126 || y >= level.getMaxBuildHeight()) {
+                if (y < 1 || y > 126 || y < level.getMinBuildHeight() || y >= level.getMaxBuildHeight()) {
                     continue;
                 }
                 int dy = centerY - y;
@@ -67,7 +87,7 @@ public class DepthClusterDepositFeature extends Feature<NoneFeatureConfiguration
                     }
 
                     double len = Math.sqrt(dx * (double) dx + dy * (double) dy + dz * (double) dz);
-                    if (len + random.nextInt(2) < SIZE * FILL) {
+                    if (len + random.nextInt(2) < SIZE * fill) {
                         level.setBlock(pos, ore.defaultBlockState(), SET_FLAGS);
                         placed = true;
                     } else if (len + random.nextInt(2) <= SIZE) {

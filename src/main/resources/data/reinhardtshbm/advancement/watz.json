@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:schrab",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:watz_pellet"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.watz.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.watz.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

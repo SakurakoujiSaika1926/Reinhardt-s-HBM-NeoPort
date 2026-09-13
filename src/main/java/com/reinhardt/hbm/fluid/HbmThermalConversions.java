@@ -28,7 +28,18 @@ public final class HbmThermalConversions {
             return Optional.empty();
         }
         return switch (input.name()) {
+            // TileEntityRBMKHeater accepts every 1.7.10 FT_Heatable fluid
+            // which has a HEATEXCHANGER efficiency, not coolant alone.  The
+            // water step is the sole non-unit-efficiency entry (0.25).
+            case "water" -> heating(input, "steam", 200, 1, 100, 0.25D);
+            case "oil" -> heating(input, "hotoil", 10, 1, 1, 1.0D);
+            case "oil_ds" -> heating(input, "hotoil_ds", 10, 1, 1, 1.0D);
+            case "crackoil" -> heating(input, "hotcrackoil", 10, 1, 1, 1.0D);
+            case "crackoil_ds" -> heating(input, "hotcrackoil_ds", 10, 1, 1, 1.0D);
             case "coolant" -> heating(input, "coolant_hot", 300, 1, 1, 1.0D);
+            case "perfluoromethyl" -> heating(input, "perfluoromethyl_hot", 300, 1, 1, 1.0D);
+            case "mug" -> heating(input, "mug_hot", 400, 1, 1, 1.0D);
+            case "blood" -> heating(input, "blood_hot", 500, 1, 1, 1.0D);
             default -> Optional.empty();
         };
     }

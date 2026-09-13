@@ -63,11 +63,30 @@ public final class FilingCabinetBlockEntity extends BlockEntity implements MenuP
         float speed = cabinet.playersUsing > 0 ? 1.0F / 16.0F : 1.0F / 25.0F;
         float max = 0.8F;
         if (cabinet.playersUsing > 0) {
+            if (cabinet.lowerExtent == 0.0F && cabinet.upperExtent == 0.0F) {
+                cabinet.playDrawerSound(true, 0.8F, 1.0F);
+            } else {
+                if (cabinet.upperExtent + speed >= max && cabinet.lowerExtent < max) {
+                    cabinet.playDrawerSound(true, 0.5F, level.random.nextFloat() * 0.1F + 0.7F);
+                }
+                if (cabinet.lowerExtent + speed >= max && cabinet.lowerExtent < max) {
+                    cabinet.playDrawerSound(true, 0.5F, level.random.nextFloat() * 0.1F + 0.7F);
+                }
+            }
             cabinet.lowerExtent += speed;
             if (cabinet.timer >= 10) {
                 cabinet.upperExtent += speed;
             }
         } else if (cabinet.lowerExtent > 0.0F) {
+            if (cabinet.upperExtent - speed < max / 2.0F
+                    && cabinet.upperExtent >= max / 2.0F
+                    && cabinet.upperExtent != cabinet.lowerExtent) {
+                cabinet.playDrawerSound(false, 0.8F, 1.0F);
+            }
+            if (cabinet.lowerExtent - speed < max / 2.0F
+                    && cabinet.lowerExtent >= max / 2.0F) {
+                cabinet.playDrawerSound(false, 0.8F, 1.0F);
+            }
             cabinet.lowerExtent -= speed;
             cabinet.upperExtent -= speed;
         }
@@ -76,19 +95,24 @@ public final class FilingCabinetBlockEntity extends BlockEntity implements MenuP
     }
 
     public void openInventory() {
-        playersUsing++;
-        playDrawerSound(true);
+        // TileEntityFileCabinet (1.7.10) only counted server-side viewers.
+        // The menu is constructed on both logical sides in 1.21.1, so keep
+        // this counter authoritative on the server and synchronize it below.
+        if (level != null && !level.isClientSide) {
+            playersUsing++;
+        }
     }
 
     public void closeInventory() {
-        playersUsing = Math.max(0, playersUsing - 1);
-        playDrawerSound(false);
+        if (level != null && !level.isClientSide) {
+            playersUsing--;
+        }
     }
 
-    private void playDrawerSound(boolean open) {
+    private void playDrawerSound(boolean open, float volume, float pitch) {
         if (level != null && !level.isClientSide) {
             level.playSound(null, worldPosition, open ? HbmSoundEvents.CRATE_OPEN.get() : HbmSoundEvents.CRATE_CLOSE.get(),
-                    SoundSource.BLOCKS, 0.8F, 1.0F);
+                    SoundSource.BLOCKS, volume, pitch);
         }
     }
 
@@ -158,9 +182,26 @@ public final class FilingCabinetBlockEntity extends BlockEntity implements MenuP
         locked = tag.getBoolean("isLocked");
         lockMod = tag.contains("lockMod") ? tag.getDouble("lockMod") : .1D;
         cheesable = !tag.contains("cheesable") || tag.getBoolean("cheesable");
+        // These two fields are transient in the old tile entity, but are
+        // carried by its client update packet.  Read them only when present
+        // so ordinary world saves retain the old persistent format.
+        if (tag.contains("timer")) {
+            timer = tag.getInt("timer");
+        }
+        if (tag.contains("playersUsing")) {
+            playersUsing = tag.getInt("playersUsing");
+        }
     }
 
-    @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries) { CompoundTag tag = super.getUpdateTag(registries); saveAdditional(tag, registries); return tag; }
+    @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        saveAdditional(tag, registries);
+        // TileEntityFileCabinet#serialize writes these on every networkPackNT
+        // update.  They must not be omitted from the modern block update.
+        tag.putInt("timer", timer);
+        tag.putInt("playersUsing", playersUsing);
+        return tag;
+    }
     @Nullable @Override public Packet<ClientGamePacketListener> getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
 
     private void sync() {

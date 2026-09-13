@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/snowglobe"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

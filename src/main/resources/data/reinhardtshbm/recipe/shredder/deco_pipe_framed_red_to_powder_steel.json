@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "item": "reinhardtshbm:deco_pipe_framed_red"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_steel"
+  }
+}

@@ -88,10 +88,12 @@ public final class DecoDisplayBlockEntityRenderer implements BlockEntityRenderer
 
     private static float crtRotation(net.minecraft.core.Direction facing) {
         return switch (facing) {
-            case SOUTH -> 0.0F;
+            // RenderCRT metadata 0/1/2/3 maps to NORTH/EAST/WEST/SOUTH;
+            // its inventory/world rotations are 90/0/270/180 degrees.
+            case NORTH -> 90.0F;
+            case EAST -> 0.0F;
             case WEST -> 270.0F;
-            case EAST -> 180.0F;
-            default -> 90.0F;
+            default -> 180.0F;
         };
     }
 }

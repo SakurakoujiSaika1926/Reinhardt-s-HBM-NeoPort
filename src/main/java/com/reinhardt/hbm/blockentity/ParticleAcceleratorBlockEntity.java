@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.block.MachineDummyBlock;
 import com.reinhardt.hbm.block.ParticleAcceleratorBlock;
@@ -27,6 +28,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -44,6 +46,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -482,12 +485,28 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
                 if (!recipe.output2().isEmpty()) {
                     addStack(OUTPUT_B_SLOT, recipe.output2());
                 }
+                if (producesDigamma(recipe) && this.level instanceof ServerLevel serverLevel) {
+                    AABB area = new AABB(
+                            this.worldPosition.getX() + 0.5D,
+                            this.worldPosition.getY() + 0.5D,
+                            this.worldPosition.getZ() + 0.5D,
+                            this.worldPosition.getX() + 0.5D,
+                            this.worldPosition.getY() + 0.5D,
+                            this.worldPosition.getZ() + 0.5D
+                    ).inflate(100.0D, 50.0D, 100.0D);
+                    HbmAdvancements.awardNearby(serverLevel, area, "omega12");
+                }
             }
             particle.crash(source, PAState.SUCCESS);
             sync();
             return;
         }
         particle.crash(source, PAState.CRASH_NORECIPE);
+    }
+
+    private static boolean producesDigamma(ParticleAcceleratorRecipe recipe) {
+        return recipe.output1().is(HbmItems.PARTICLE_DIGAMMA.get())
+                || recipe.output2().is(HbmItems.PARTICLE_DIGAMMA.get());
     }
 
     @Nullable

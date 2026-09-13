@@ -12,8 +12,10 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
@@ -45,6 +47,7 @@ public final class LegacyMistEntity extends Entity {
         this.entityData.set(AREA_WIDTH, width);
         this.entityData.set(AREA_HEIGHT, height);
         this.entityData.set(MAX_AGE, duration);
+        refreshDimensions();
     }
 
     @Override
@@ -58,6 +61,8 @@ public final class LegacyMistEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        // 1.7.10 calls setSize(watchedWidth, watchedHeight) every update.
+        refreshDimensions();
         if (level().isClientSide) {
             spawnLegacyParticles();
             return;
@@ -66,7 +71,6 @@ public final class LegacyMistEntity extends Entity {
         double intensity = 1.0D - (double) this.tickCount / (double) maxAge;
         MistType type = mistType();
         for (Entity entity : level().getEntities(this, effectBounds(), Entity::isAlive)) {
-            entity.clearFire();
             if (entity instanceof LivingEntity living) {
                 affectLiving(type, living, intensity);
             }
@@ -188,6 +192,20 @@ public final class LegacyMistEntity extends Entity {
         this.entityData.set(AREA_WIDTH, tag.getFloat("width"));
         this.entityData.set(AREA_HEIGHT, tag.getFloat("height"));
         this.entityData.set(MAX_AGE, Math.max(1, tag.getInt("max_age")));
+        refreshDimensions();
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
+        if (AREA_WIDTH.equals(key) || AREA_HEIGHT.equals(key)) {
+            refreshDimensions();
+        }
+    }
+
+    @Override
+    public EntityDimensions getDimensions(Pose pose) {
+        return EntityDimensions.scalable(this.entityData.get(AREA_WIDTH), this.entityData.get(AREA_HEIGHT));
     }
 
     @Override
@@ -197,7 +215,10 @@ public final class LegacyMistEntity extends Entity {
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return true;
+        double width = this.entityData.get(AREA_WIDTH);
+        double height = this.entityData.get(AREA_HEIGHT);
+        double edge = (2.0D * width + height) / 3.0D * 64.0D;
+        return distance < edge * edge;
     }
 
     public enum MistType {

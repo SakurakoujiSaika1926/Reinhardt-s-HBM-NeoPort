@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -52,7 +53,7 @@ public final class LegacyShrapnelEntity extends Entity {
         Vec3 start = position();
         Vec3 motion = getDeltaMovement();
         Vec3 end = start.add(motion);
-        HitResult blockHit = level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        BlockHitResult blockHit = level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
         Vec3 entityEnd = blockHit.getType() == HitResult.Type.MISS ? end : blockHit.getLocation();
         EntityHitResult entityHit = findEntityHit(start, entityEnd);
         HitResult hit = entityHit != null ? entityHit : blockHit;
@@ -67,8 +68,8 @@ public final class LegacyShrapnelEntity extends Entity {
         if (!level().isClientSide && hit.getType() != HitResult.Type.MISS && this.tickCount > 5) {
             ServerLevel serverLevel = (ServerLevel) level();
             byte mode = this.entityData.get(MODE);
-            if (entityHit == null && (mode == 2 || mode == 4) && blockHit.getType() != HitResult.Type.MISS) {
-                BlockPos hitPos = net.minecraft.core.BlockPos.containing(blockHit.getLocation());
+            if ((mode == 2 || mode == 4) && blockHit.getType() != HitResult.Type.MISS) {
+                BlockPos hitPos = blockHit.getBlockPos();
                 if (getDeltaMovement().y < -0.2D) {
                     BlockState lava = (mode == 4 ? HbmBlocks.RAD_LAVA_BLOCK : HbmBlocks.VOLCANIC_LAVA_BLOCK)
                             .get().defaultBlockState();
@@ -92,8 +93,8 @@ public final class LegacyShrapnelEntity extends Entity {
                             (mode == 4 ? HbmBlocks.RAD_LAVA_BLOCK : HbmBlocks.VOLCANIC_LAVA_BLOCK)
                                     .get().defaultBlockState());
                 }
-            } else if (entityHit == null && mode == 3 && blockHit.getType() != HitResult.Type.MISS) {
-                BlockPos hitPos = net.minecraft.core.BlockPos.containing(blockHit.getLocation());
+            } else if (mode == 3 && blockHit.getType() != HitResult.Type.MISS) {
+                BlockPos hitPos = blockHit.getBlockPos();
                 BlockPos above = hitPos.above();
                 if (serverLevel.getBlockState(above).canBeReplaced()) {
                     serverLevel.setBlock(above, HbmBlocks.MUD_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
@@ -166,6 +167,6 @@ public final class LegacyShrapnelEntity extends Entity {
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 65536.0D;
+        return distance < 256.0D;
     }
 }

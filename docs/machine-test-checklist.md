@@ -140,4 +140,4 @@
 - [ ] 大型雷达 - `machine_radar_large`
 - [ ] 警报器 - `machine_siren`
 - [ ] LPW-2 空间站推进器 - `machine_lpw2`
-- [ ] 武器改装台 - `machine_weapon_table`
+- [x] 武器改装台 - `machine_weapon_table`（随 HBM 枪械系统移除，改由 TACZ）

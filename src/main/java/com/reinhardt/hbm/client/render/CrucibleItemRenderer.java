@@ -11,6 +11,7 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** 1.7.10 ItemRenderCrucible transforms, split into the original OBJ parts. */
 public final class CrucibleItemRenderer extends BlockEntityWithoutLevelRenderer {
@@ -23,26 +24,75 @@ public final class CrucibleItemRenderer extends BlockEntityWithoutLevelRenderer 
         super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
     }
 
+    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(HILT);
+        event.register(GUARD_LEFT);
+        event.register(GUARD_RIGHT);
+        event.register(BLADE);
+    }
+
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
         boolean charged = LegacyCrucibleItem.isCharged(stack);
-        if (context == ItemDisplayContext.GUI) {
-            poseStack.translate(2.0F, 14.0F, 0.0F);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(-135.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-            poseStack.scale(1.5F, 1.5F, 1.5F);
-        } else {
-            if (context == ItemDisplayContext.GROUND) {
+        boolean fullBrightBlade = switch (context) {
+            case GUI -> {
+                // ItemRenderCrucible#INVENTORY.  Forge 1.7.10 invokes this
+                // non-block custom renderer in the 16-pixel GUI coordinate
+                // space, so its authored (2, 14) offset and 1.5 scale must be
+                // converted to the 1.21 item-unit pose space here.
+                poseStack.translate(2.0F / 16.0F, 14.0F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-135.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                poseStack.scale(1.5F / 16.0F, 1.5F / 16.0F, 1.5F / 16.0F);
+                yield false;
+            }
+            case GROUND -> {
+                // ItemRenderCrucible#ENTITY, then its intentional fall-through
+                // into EQUIPPED.
                 poseStack.translate(-0.75F, 0.6F, 0.0F);
                 poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0F));
+                poseStack.mulPose(Axis.ZP.rotationDegrees(45.0F));
+                poseStack.translate(0.75F, -0.4F, 0.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                poseStack.scale(0.15F, 0.15F, 0.15F);
+                yield true;
             }
-            poseStack.mulPose(Axis.ZP.rotationDegrees(45.0F));
-            poseStack.translate(0.75F, -0.4F, 0.0F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-            poseStack.scale(0.15F, 0.15F, 0.15F);
-        }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                // ItemRenderCrucible#EQUIPPED. The 1.7.10 render type had no
+                // handedness distinction; Minecraft supplies that outside this renderer.
+                poseStack.mulPose(Axis.ZP.rotationDegrees(45.0F));
+                poseStack.translate(0.75F, -0.4F, 0.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                poseStack.scale(0.15F, 0.15F, 0.15F);
+                yield true;
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                // ItemRenderer#renderItemInFirstPerson applied this fixed
+                // 0.4 scale before Forge dispatched the custom renderer.
+                // ForgeHooksClient#renderEquippedItem then used its literal
+                // non-EQUIPPED_BLOCK path because ItemRenderCrucible returns
+                // false for that helper in first person. Keep that call order
+                // here; these are item-specific legacy values, not a fit.
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+                poseStack.translate(0.0F, -0.3F, 0.0F);
+                poseStack.scale(1.5F, 1.5F, 1.5F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(50.0F));
+                poseStack.mulPose(Axis.ZP.rotationDegrees(335.0F));
+                poseStack.translate(-0.9375F, -0.0625F, 0.0F);
+
+                // ItemRenderCrucible#EQUIPPED_FIRST_PERSON. Its animation
+                // source (HbmAnimations) has no 1.21.1 counterpart, so no
+                // substitute animation or transformed fallback is invented.
+                poseStack.translate(1.5F, -0.3F, 0.0F);
+                poseStack.scale(0.3F, 0.3F, 0.3F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(45.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                yield true;
+            }
+            case NONE, HEAD, FIXED -> throw new IllegalArgumentException(
+                    "ItemRenderCrucible had no 1.7.10 ItemRenderType for " + context);
+        };
 
         render(HILT, poseStack, bufferSource, packedLight, packedOverlay);
         renderGuard(GUARD_LEFT, poseStack, bufferSource, packedLight, packedOverlay, charged, true);
@@ -50,8 +100,12 @@ public final class CrucibleItemRenderer extends BlockEntityWithoutLevelRenderer 
         if (charged) {
             poseStack.pushPose();
             poseStack.translate(0.005F, 0.0F, 0.0F);
-            MachineModelRenderer.renderUnculledFullBright(MachineModelRenderer.model(BLADE), poseStack, bufferSource,
-                    Blocks.IRON_BLOCK.defaultBlockState(), packedOverlay);
+            if (fullBrightBlade) {
+                MachineModelRenderer.renderUnculledFullBright(MachineModelRenderer.model(BLADE), poseStack, bufferSource,
+                        Blocks.IRON_BLOCK.defaultBlockState(), packedOverlay);
+            } else {
+                render(BLADE, poseStack, bufferSource, packedLight, packedOverlay);
+            }
             poseStack.popPose();
         }
         poseStack.popPose();

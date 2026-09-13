@@ -1,0 +1,64 @@
+{
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.circuit",
+  "duration": 400,
+  "consumption": 100000,
+  "fluid": {
+    "fluid": "helium4",
+    "amount": 1000
+  },
+  "toppings": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_quantum"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_bismoid"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_atomic_clock"
+      },
+      "count": 4
+    }
+  ],
+  "pcb": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_pcb"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 4
+    }
+  ],
+  "solder": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_quantum"
+  }
+}

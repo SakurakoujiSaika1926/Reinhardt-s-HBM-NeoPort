@@ -52,7 +52,7 @@
                         },
                         {
                             "ingredient":  {
-                                               "tag":  "c:bolts/dura_steel"
+                                               "item":  "reinhardtshbm:bolt_dura_steel"
                                            },
                             "count":  32
                         }

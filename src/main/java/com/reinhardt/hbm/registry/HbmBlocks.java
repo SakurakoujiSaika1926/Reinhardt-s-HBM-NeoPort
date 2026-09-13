@@ -14,7 +14,7 @@ import com.reinhardt.hbm.block.AncientScrapBlock;
 import com.reinhardt.hbm.block.ArmorTableBlock;
 import com.reinhardt.hbm.block.AsbestosGasBlock;
 import com.reinhardt.hbm.block.AshpitBlock;
-import com.reinhardt.hbm.block.AsbestosDecoBlock;
+import com.reinhardt.hbm.block.AsbestosOutgassingBlock;
 import com.reinhardt.hbm.block.BarbedWireBlock;
 import com.reinhardt.hbm.block.BatteryReddBlock;
 import com.reinhardt.hbm.block.BatterySocketBlock;
@@ -79,12 +79,12 @@ import com.reinhardt.hbm.block.LootCrateBlock;
 import com.reinhardt.hbm.block.CrystalPulsarBlock;
 import com.reinhardt.hbm.block.CrystalVirusBlock;
 import com.reinhardt.hbm.block.CyclotronBlock;
+import com.reinhardt.hbm.block.CyberCrabSpawnerBlock;
 import com.reinhardt.hbm.block.DfcComponentBlock;
 import com.reinhardt.hbm.block.DfcCoreBlock;
 import com.reinhardt.hbm.block.DemonLampBlock;
 import com.reinhardt.hbm.block.DecorationEmitterBlock;
 import com.reinhardt.hbm.block.DeadPlantBlock;
-import com.reinhardt.hbm.block.DepthOreBlock;
 import com.reinhardt.hbm.block.DepthRockBlock;
 import com.reinhardt.hbm.block.DetonatableBlock;
 import com.reinhardt.hbm.block.DropOreBlock;
@@ -108,7 +108,6 @@ import com.reinhardt.hbm.block.DungeonChainBlock;
 import com.reinhardt.hbm.block.DungeonSpawnerBlock;
 import com.reinhardt.hbm.block.EnargiteBrickBlock;
 import com.reinhardt.hbm.block.ElectrolyzerBlock;
-import com.reinhardt.hbm.block.EnergyConverterBlock;
 import com.reinhardt.hbm.block.ExplosiveGasBlock;
 import com.reinhardt.hbm.block.ExcavatorBlock;
 import com.reinhardt.hbm.block.ExposureChamberBlock;
@@ -142,6 +141,7 @@ import com.reinhardt.hbm.block.FusionMachineBlock;
 import com.reinhardt.hbm.block.FusionTorusStructBlock;
 import com.reinhardt.hbm.block.GasFlareBlock;
 import com.reinhardt.hbm.block.GasTurbineBlock;
+import com.reinhardt.hbm.block.GroundwaterPipeBlock;
 import com.reinhardt.hbm.block.GroundwaterPumpBlock;
 import com.reinhardt.hbm.block.GeothermalHeatExchangerBlock;
 import com.reinhardt.hbm.block.GlyphBlock;
@@ -285,7 +285,9 @@ import com.reinhardt.hbm.block.SteamCondenserBlock;
 import com.reinhardt.hbm.block.SteamEngineBlock;
 import com.reinhardt.hbm.block.SteamTurbineBlock;
 import com.reinhardt.hbm.block.SteelGrateBlock;
+import com.reinhardt.hbm.block.SteelBeamBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
+import com.reinhardt.hbm.block.SteelRoofBlock;
 import com.reinhardt.hbm.block.SteelScaffoldBlock;
 import com.reinhardt.hbm.block.SteelWallBlock;
 import com.reinhardt.hbm.block.SellafieldBlock;
@@ -298,6 +300,7 @@ import com.reinhardt.hbm.block.SpotlightBlock;
 import com.reinhardt.hbm.block.FanBlock;
 import com.reinhardt.hbm.block.FloodlightBeamBlock;
 import com.reinhardt.hbm.block.FloodlightBlock;
+import com.reinhardt.hbm.block.FloodlightDummyBlock;
 import com.reinhardt.hbm.block.TritiumLampBlock;
 import com.reinhardt.hbm.block.RedBrickBlock;
 import com.reinhardt.hbm.block.SpeedyBlock;
@@ -332,7 +335,6 @@ import com.reinhardt.hbm.block.WasteEarthBlock;
 import com.reinhardt.hbm.block.WasteLeavesBlock;
 import com.reinhardt.hbm.block.WasteLogBlock;
 import com.reinhardt.hbm.block.WasteMyceliumBlock;
-import com.reinhardt.hbm.block.WeaponTableBlock;
 import com.reinhardt.hbm.block.WoodBurnerBlock;
 import com.reinhardt.hbm.block.ZirnoxDestroyedBlock;
 import com.reinhardt.hbm.block.ZirnoxReactorBlock;
@@ -372,6 +374,8 @@ import com.reinhardt.hbm.item.FusionComponentBlockItem;
 import com.reinhardt.hbm.item.LegacyVariantBlockItem;
 import com.reinhardt.hbm.item.GasFlareBlockItem;
 import com.reinhardt.hbm.item.GasTurbineBlockItem;
+import com.reinhardt.hbm.item.ChargerBlockItem;
+import com.reinhardt.hbm.item.WallChargeBlockItem;
 import com.reinhardt.hbm.item.GlyphBlockItem;
 import com.reinhardt.hbm.item.TrapBlockItem;
 import com.reinhardt.hbm.item.GeothermalHeatExchangerBlockItem;
@@ -403,6 +407,8 @@ import com.reinhardt.hbm.item.PurexBlockItem;
 import com.reinhardt.hbm.item.RbmkComponentBlockItem;
 import com.reinhardt.hbm.item.RbmkFuelChannelBlockItem;
 import com.reinhardt.hbm.item.RadarScreenBlockItem;
+import com.reinhardt.hbm.item.RefuelerBlockItem;
+import com.reinhardt.hbm.item.StorageDrumBlockItem;
 import com.reinhardt.hbm.item.SellafieldBlockItem;
 import com.reinhardt.hbm.item.SoyuzLauncherBlockItem;
 import com.reinhardt.hbm.item.SteamEngineBlockItem;
@@ -455,7 +461,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> ORE_LEAD = ore("ore_lead", 5.0F, 10.0F);
     public static final DeferredBlock<Block> ORE_BERYLLIUM = ore("ore_beryllium", 5.0F, 15.0F);
     public static final DeferredBlock<Block> ORE_LIGNITE = ore("ore_lignite", 5.0F, 15.0F);
-    public static final DeferredBlock<Block> ORE_ASBESTOS = ore("ore_asbestos", 5.0F, 15.0F);
+    public static final DeferredBlock<Block> ORE_ASBESTOS = registerBlock("ore_asbestos",
+            () -> new AsbestosOutgassingBlock(rock().strength(5.0F, 15.0F), true));
     public static final DeferredBlock<Block> ORE_OIL_EMPTY = ore("ore_oil_empty", 5.0F, 10.0F);
     public static final DeferredBlock<Block> ORE_COAL_OIL = ore("ore_coal_oil", 5.0F, 10.0F);
     public static final DeferredBlock<Block> ORE_OIL = oilDeposit("ore_oil");
@@ -485,7 +492,6 @@ public final class HbmBlocks {
                     .mapColor(MapColor.SAND)
                     .strength(0.5F, 0.0F)
                     .sound(SoundType.SAND)));
-    public static final DeferredBlock<Block> ORE_COPPER = ore("ore_copper", 5.0F, 10.0F);
     public static final DeferredBlock<Block> ORE_ALEXANDRITE = depthOre("ore_alexandrite", "gem_alexandrite", 1, 1);
     public static final DeferredBlock<Block> ORE_AUSTRALIUM = ore("ore_australium", 5.0F, 10.0F);
     public static final DeferredBlock<Block> ORE_COLTAN = ore("ore_coltan", 15.0F, 10.0F);
@@ -497,8 +503,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> ORE_GNEISS_GOLD = ore("ore_gneiss_gold", 1.5F, 10.0F);
     public static final DeferredBlock<Block> ORE_GNEISS_URANIUM = ore("ore_gneiss_uranium", 1.5F, 10.0F);
     public static final DeferredBlock<Block> ORE_GNEISS_URANIUM_SCORCHED = ore("ore_gneiss_uranium_scorched", 1.5F, 10.0F);
-    public static final DeferredBlock<Block> ORE_GNEISS_COPPER = ore("ore_gneiss_copper", 1.5F, 10.0F);
-    public static final DeferredBlock<Block> ORE_GNEISS_ASBESTOS = ore("ore_gneiss_asbestos", 1.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_GNEISS_ASBESTOS = registerBlock("ore_gneiss_asbestos",
+            () -> new AsbestosOutgassingBlock(rock().strength(1.5F, 10.0F), true));
     public static final DeferredBlock<Block> ORE_GNEISS_LITHIUM = ore("ore_gneiss_lithium", 1.5F, 10.0F);
     public static final DeferredBlock<Block> ORE_GNEISS_SCHRABIDIUM = ore("ore_gneiss_schrabidium", 1.5F, 10.0F);
     public static final DeferredBlock<Block> ORE_GNEISS_RARE = ore("ore_gneiss_rare", 1.5F, 10.0F);
@@ -514,40 +520,57 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> ORE_NETHER_FIRE = ore("ore_nether_fire", 0.4F, 10.0F);
     public static final DeferredBlock<Block> ORE_NETHER_COBALT = ore("ore_nether_cobalt", 0.4F, 10.0F);
     public static final DeferredBlock<Block> ORE_NETHER_SCHRABIDIUM = ore("ore_nether_schrabidium", 15.0F, 600.0F);
-    public static final DeferredBlock<Block> ORE_DEPTH_NETHER_NEODYMIUM = ore("ore_depth_nether_neodymium", 100.0F, 1_000.0F);
-    public static final DeferredBlock<Block> ORE_DEPTH_NETHER_NITAN = ore("ore_depth_nether_nitan", 100.0F, 1_000.0F);
+    public static final DeferredBlock<Block> ORE_DEPTH_NETHER_NEODYMIUM = depthOre("ore_depth_nether_neodymium", "fragment_neodymium", 2, 2);
+    public static final DeferredBlock<Block> ORE_DEPTH_NETHER_NITAN = ore("ore_depth_nether_nitan", 4.5F, 1_000.0F);
     public static final DeferredBlock<Block> ORE_DEPTH_CINNEBAR = depthOre("ore_depth_cinnebar", "cinnabar", 2, 3);
     public static final DeferredBlock<Block> ORE_DEPTH_BORAX = depthOre("ore_depth_borax", "powder_borax", 1, 1);
     public static final DeferredBlock<Block> ORE_DEPTH_ZIRCONIUM = depthOre("ore_depth_zirconium", "nugget_zirconium", 2, 2);
 
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_URANIUM = ore("ore_deepslate_uranium", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_URANIUM_SCORCHED = ore("ore_deepslate_uranium_scorched", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_THORIUM = ore("ore_deepslate_thorium", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_TITANIUM = ore("ore_deepslate_titanium", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_SULFUR = ore("ore_deepslate_sulfur", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_NITER = ore("ore_deepslate_niter", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_TUNGSTEN = ore("ore_deepslate_tungsten", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_ALUMINIUM = ore("ore_deepslate_aluminium", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_FLUORITE = ore("ore_deepslate_fluorite", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_LEAD = ore("ore_deepslate_lead", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_BERYLLIUM = ore("ore_deepslate_beryllium", 5.0F, 15.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_LIGNITE = ore("ore_deepslate_lignite", 5.0F, 15.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_ASBESTOS = ore("ore_deepslate_asbestos", 5.0F, 15.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_OIL_EMPTY = ore("ore_deepslate_oil_empty", 5.0F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_URANIUM = ore("ore_deepslate_uranium", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_URANIUM_SCORCHED = ore("ore_deepslate_uranium_scorched", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_THORIUM = ore("ore_deepslate_thorium", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_TITANIUM = ore("ore_deepslate_titanium", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_SULFUR = ore("ore_deepslate_sulfur", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_NITER = ore("ore_deepslate_niter", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_TUNGSTEN = ore("ore_deepslate_tungsten", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_ALUMINIUM = ore("ore_deepslate_aluminium", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_FLUORITE = ore("ore_deepslate_fluorite", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_LEAD = ore("ore_deepslate_lead", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_BERYLLIUM = ore("ore_deepslate_beryllium", 4.5F, 15.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_LIGNITE = ore("ore_deepslate_lignite", 4.5F, 15.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_ASBESTOS = registerBlock("ore_deepslate_asbestos",
+            () -> new AsbestosOutgassingBlock(rock().strength(4.5F, 15.0F), true));
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_OIL_EMPTY = ore("ore_deepslate_oil_empty", 4.5F, 10.0F);
     public static final DeferredBlock<Block> ORE_DEEPSLATE_OIL = deepslateOilDeposit("ore_deepslate_oil");
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_RARE = ore("ore_deepslate_rare", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_COBALT = ore("ore_deepslate_cobalt", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_CINNABAR = ore("ore_deepslate_cinnabar", 5.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_COLTAN = ore("ore_deepslate_coltan", 15.0F, 10.0F);
-    public static final DeferredBlock<Block> ORE_DEEPSLATE_SCHRABIDIUM = ore("ore_deepslate_schrabidium", 15.0F, 600.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_RARE = ore("ore_deepslate_rare", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_COBALT = ore("ore_deepslate_cobalt", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_CINNABAR = ore("ore_deepslate_cinnabar", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_COLTAN = ore("ore_deepslate_coltan", 4.5F, 10.0F);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_SCHRABIDIUM = ore("ore_deepslate_schrabidium", 4.5F, 600.0F);
+    // Modern counterparts for the legacy special overworld ores.  These were
+    // absent from the first resource pass even though the stone variants are
+    // registered and obtainable in 1.7.10.
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_ALEXANDRITE =
+            depthOre("ore_deepslate_alexandrite", "gem_alexandrite", 1, 1);
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_AUSTRALIUM =
+            ore("ore_deepslate_australium", 4.5F, 10.0F);
+    /** Spelling-compatible deep variant for the legacy ore_cinnebar id. */
+    public static final DeferredBlock<Block> ORE_DEEPSLATE_CINNEBAR =
+            ore("ore_deepslate_cinnebar", 4.5F, 10.0F);
 
     public static final DeferredBlock<Block> CLUSTER_IRON = ore("cluster_iron", 5.0F, 35.0F);
     public static final DeferredBlock<Block> CLUSTER_TITANIUM = ore("cluster_titanium", 5.0F, 35.0F);
     public static final DeferredBlock<Block> CLUSTER_ALUMINIUM = ore("cluster_aluminium", 5.0F, 35.0F);
+    /** HBM-specific copper ore cluster; it drops copper crystal rather than raw copper. */
     public static final DeferredBlock<Block> CLUSTER_COPPER = ore("cluster_copper", 5.0F, 35.0F);
-    public static final DeferredBlock<Block> CLUSTER_DEPTH_IRON = ore("cluster_depth_iron", 100.0F, 1_000.0F);
-    public static final DeferredBlock<Block> CLUSTER_DEPTH_TITANIUM = ore("cluster_depth_titanium", 100.0F, 1_000.0F);
-    public static final DeferredBlock<Block> CLUSTER_DEPTH_TUNGSTEN = ore("cluster_depth_tungsten", 100.0F, 1_000.0F);
+    public static final DeferredBlock<Block> CLUSTER_DEEPSLATE_IRON = ore("cluster_deepslate_iron", 4.5F, 35.0F);
+    public static final DeferredBlock<Block> CLUSTER_DEEPSLATE_TITANIUM = ore("cluster_deepslate_titanium", 4.5F, 35.0F);
+    public static final DeferredBlock<Block> CLUSTER_DEEPSLATE_ALUMINIUM = ore("cluster_deepslate_aluminium", 4.5F, 35.0F);
+    /** HBM-specific deepslate copper ore cluster; it drops copper crystal rather than raw copper. */
+    public static final DeferredBlock<Block> CLUSTER_DEEPSLATE_COPPER = ore("cluster_deepslate_copper", 4.5F, 35.0F);
+    public static final DeferredBlock<Block> CLUSTER_DEPTH_IRON = depthClusterOre("cluster_depth_iron");
+    public static final DeferredBlock<Block> CLUSTER_DEPTH_TITANIUM = depthClusterOre("cluster_depth_titanium");
+    public static final DeferredBlock<Block> CLUSTER_DEPTH_TUNGSTEN = depthClusterOre("cluster_depth_tungsten");
 
     public static final DeferredBlock<Block> DIRT_DEAD = fallingSoil("dirt_dead", MapColor.DIRT, SoundType.GRAVEL);
     public static final DeferredBlock<Block> DIRT_OILY = fallingSoil("dirt_oily", MapColor.DIRT, SoundType.GRAVEL);
@@ -562,9 +585,9 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> STONE_POROUS = registerBlock("stone_porous",
             () -> new PorousStoneBlock(rock().strength(1.5F, 30.0F)));
     public static final DeferredBlock<Block> STONE_DEPTH = registerBlock("stone_depth",
-            () -> new DepthRockBlock(rock().strength(100.0F, 1_000.0F)));
+            () -> new DepthRockBlock(depthRockProperties()));
     public static final DeferredBlock<Block> STONE_DEPTH_NETHER = registerBlock("stone_depth_nether",
-            () -> new DepthRockBlock(rock().strength(100.0F, 1_000.0F)));
+            () -> new DepthRockBlock(depthRockProperties()));
     public static final DeferredBlock<Block> STONE_GNEISS = registerBlock("stone_gneiss",
             () -> new Block(rock().strength(1.5F, 10.0F)));
     public static final DeferredBlock<Block> STONE_RESOURCE = registerVariantBlock("stone_resource",
@@ -692,7 +715,7 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> METEOR_PILLAR = registerBlock("meteor_pillar",
             () -> new net.minecraft.world.level.block.RotatedPillarBlock(rock().strength(15.0F, 360.0F)));
     public static final DeferredBlock<Block> METEOR_POLISHED = meteorBlock("meteor_polished");
-    public static final DeferredBlock<Block> METEOR_SPAWNER = meteorBlock("meteor_spawner");
+    public static final DeferredBlock<Block> METEOR_SPAWNER = cyberCrabSpawner("meteor_spawner");
     // 1.7.10 BlockPillar: a coil above this block is kept fully charged.
     public static final DeferredBlock<Block> METEOR_BATTERY = meteorBattery("meteor_battery");
     public static final DeferredBlock<Block> TESLA = registerObjBlock("tesla",
@@ -1090,7 +1113,6 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> BLOCK_DINEUTRONIUM = materialBlock("block_dineutronium");
     public static final DeferredBlock<Block> BLOCK_WASTE_VITRIFIED = materialBlock("block_waste_vitrified");
     public static final DeferredBlock<Block> BLOCK_PU_MIX = materialBlock("block_pu_mix");
-    public static final DeferredBlock<Block> BLOCK_COPPER = materialBlock("block_copper");
     public static final DeferredBlock<Block> BLOCK_FLUORITE = materialBlock("block_fluorite");
     public static final DeferredBlock<Block> BLOCK_NITER = materialBlock("block_niter");
     public static final DeferredBlock<Block> BLOCK_RED_COPPER = materialBlock("block_red_copper");
@@ -1154,7 +1176,11 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> BLOCK_WHITE_PHOSPHORUS = materialBlock("block_white_phosphorus");
     public static final DeferredBlock<Block> BLOCK_RED_PHOSPHORUS = materialBlock("block_red_phosphorus");
     public static final DeferredBlock<Block> BLOCK_INSULATOR = materialBlock("block_insulator");
-    public static final DeferredBlock<Block> BLOCK_ASBESTOS = materialBlock("block_asbestos");
+    public static final DeferredBlock<Block> BLOCK_ASBESTOS = registerBlock("block_asbestos",
+            () -> new AsbestosOutgassingBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOL)
+                    .strength(5.0F, 10.0F)
+                    .sound(SoundType.WOOL), true));
     public static final DeferredBlock<Block> BLOCK_FIBERGLASS = registerBlock("block_fiberglass",
             () -> new net.minecraft.world.level.block.RotatedPillarBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOL)
@@ -1223,6 +1249,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> FLUID_PUMP = fluidPump("fluid_pump");
     public static final DeferredBlock<Block> MACHINE_DRAIN = drain("machine_drain");
     public static final DeferredBlock<Block> OIL_PIPE = oilPipe("oil_pipe");
+    /** Dedicated intake sections placed by the groundwater pumps. */
+    public static final DeferredBlock<Block> PUMP_PIPE = pumpPipe("pump_pipe");
     public static final DeferredBlock<Block> BARREL_PLASTIC = fluidBarrel("barrel_plastic", FluidBarrelBlock.Kind.PLASTIC);
     public static final DeferredBlock<Block> BARREL_CORRODED = fluidBarrel("barrel_corroded", FluidBarrelBlock.Kind.CORRODED);
     public static final DeferredBlock<Block> BARREL_STEEL = fluidBarrel("barrel_steel", FluidBarrelBlock.Kind.STEEL);
@@ -1252,7 +1280,7 @@ public final class HbmBlocks {
             () -> new CapacitorBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> CAPACITOR_BUS = registerBlockWithoutItem("capacitor_bus",
             () -> new CapacitorBusBlock(metal().strength(5.0F, 10.0F)));
-    public static final DeferredBlock<Block> CHARGER = registerObjBlock("charger", () -> new ChargerBlock(metal()
+    public static final DeferredBlock<Block> CHARGER = charger("charger", () -> new ChargerBlock(metal()
             .strength(5.0F, 10.0F)
             .noOcclusion()));
     // 1.7.10 BlockConveyorBase family. These use dedicated block items solely for
@@ -1302,10 +1330,6 @@ public final class HbmBlocks {
     /** Compatibility id used by old 1.7.10 breeding-reactor item stacks. */
     public static final DeferredBlock<Block> MACHINE_REACTOR = registerBlock("machine_reactor",
             () -> new LegacyDirectionalBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
-    public static final DeferredBlock<Block> MACHINE_CONVERTER_HE_RF = registerBlock("machine_converter_he_rf",
-            () -> new EnergyConverterBlock(metal().strength(5.0F, 10.0F), EnergyConverterBlock.Kind.HE_TO_FE));
-    public static final DeferredBlock<Block> MACHINE_CONVERTER_RF_HE = registerBlock("machine_converter_rf_he",
-            () -> new EnergyConverterBlock(metal().strength(5.0F, 10.0F), EnergyConverterBlock.Kind.FE_TO_HE));
     public static final DeferredBlock<Block> MACHINE_DETECTOR = registerBlock("machine_detector",
             () -> new PowerDetectorBlock(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> MACHINE_TRANSFORMER = registerBlock("machine_transformer",
@@ -1340,6 +1364,9 @@ public final class HbmBlocks {
             () -> new FanBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> FLOODLIGHT = registerObjBlock("floodlight",
             () -> new FloodlightBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
+    /** Invisible footprint parts; deliberately not registered with an item. */
+    public static final DeferredBlock<Block> FLOODLIGHT_DUMMY = registerBlockWithoutItem("floodlight_dummy",
+            () -> new FloodlightDummyBlock(metal().strength(5.0F, 10.0F).noOcclusion().noLootTable()));
     public static final DeferredBlock<Block> CARGO_ELEVATOR = registerObjBlock("cargo_elevator",
             () -> new CargoElevatorBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> BROADCASTER_PC = registerBlock("broadcaster_pc",
@@ -1351,7 +1378,7 @@ public final class HbmBlocks {
             () -> new RadioRecBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> RADIO_AUTOCAL = registerObjBlock("radio_autocal",
             () -> new AutocalBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
-    public static final DeferredBlock<Block> REFUELER = registerObjBlock("refueler",
+    public static final DeferredBlock<Block> REFUELER = refueler("refueler",
             () -> new RefuelerBlock(metal().strength(3.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> DECO_EMITTER = registerBlock("deco_emitter",
             () -> new DecorationEmitterBlock(metal().strength(5.0F, 20.0F).noOcclusion()));
@@ -1425,8 +1452,6 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> MACHINE_MICROWAVE = microwave("machine_microwave");
     public static final DeferredBlock<Block> MACHINE_ARMOR_TABLE = registerBlock("machine_armor_table",
             () -> new ArmorTableBlock(metal().strength(5.0F, 10.0F)));
-    public static final DeferredBlock<Block> MACHINE_WEAPON_TABLE = registerBlock("machine_weapon_table",
-            () -> new WeaponTableBlock(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> MACHINE_ASSEMBLY_FACTORY = assemblyFactory("machine_assembly_factory");
     public static final DeferredBlock<Block> MACHINE_ASSEMBLY_MACHINE = assemblyMachine("machine_assembly_machine");
     public static final DeferredBlock<Block> MACHINE_CHEMICAL_FACTORY = chemicalFactory("machine_chemical_factory");
@@ -1589,19 +1614,19 @@ public final class HbmBlocks {
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(0.0F, 0.0F).sound(SoundType.GRASS),
             TimedExplosiveEntity.Kind.TNT
     ));
-    public static final DeferredBlock<Block> CHARGE_DYNAMITE = registerBlock("charge_dynamite", () -> new WallChargeBlock(
+    public static final DeferredBlock<Block> CHARGE_DYNAMITE = wallCharge("charge_dynamite", () -> new WallChargeBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN).strength(0.0F, 0.0F).noOcclusion().noCollission(),
             WallChargeBlock.Kind.DYNAMITE
     ));
-    public static final DeferredBlock<Block> CHARGE_MINER = registerBlock("charge_miner", () -> new WallChargeBlock(
+    public static final DeferredBlock<Block> CHARGE_MINER = wallCharge("charge_miner", () -> new WallChargeBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN).strength(0.0F, 0.0F).noOcclusion().noCollission(),
             WallChargeBlock.Kind.MINER
     ));
-    public static final DeferredBlock<Block> CHARGE_C4 = registerBlock("charge_c4", () -> new WallChargeBlock(
+    public static final DeferredBlock<Block> CHARGE_C4 = wallCharge("charge_c4", () -> new WallChargeBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN).strength(0.0F, 0.0F).noOcclusion().noCollission(),
             WallChargeBlock.Kind.C4
     ));
-    public static final DeferredBlock<Block> CHARGE_SEMTEX = registerBlock("charge_semtex", () -> new WallChargeBlock(
+    public static final DeferredBlock<Block> CHARGE_SEMTEX = wallCharge("charge_semtex", () -> new WallChargeBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN).strength(0.0F, 0.0F).noOcclusion().noCollission(),
             WallChargeBlock.Kind.SEMTEX
     ));
@@ -1723,7 +1748,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> BLAST_DOOR = registerBlockWithoutItem("blast_door",
             () -> new BlastDoorBlock(metal()
                     .strength(10.0F, 1000.0F)
-                    .noOcclusion()));
+                    .noOcclusion()
+                    .isViewBlocking((state, level, pos) -> false)));
     public static final DeferredItem<Item> BLAST_DOOR_ITEM = HbmItems.ITEMS.register(
             "blast_door",
             () -> new BlastDoorBlockItem(BLAST_DOOR.get(), new Item.Properties())
@@ -1732,17 +1758,18 @@ public final class HbmBlocks {
             () -> new BlastDoorDummyBlock(metal()
                     .strength(10.0F, 1000.0F)
                     .noOcclusion()
+                    .isViewBlocking((state, level, pos) -> false)
                     .noLootTable()));
     public static final DeferredBlock<Block> HEAVY_DOOR_PART = registerBlockWithoutItem("heavy_door_part",
             () -> new HbmHeavyDoorPartBlock(metal()
                     .strength(5.0F, 10.0F)
-                    .noOcclusion()));
+                    .noOcclusion()
+                    .isViewBlocking((state, level, pos) -> false)));
     public static final DeferredBlock<Block> FIRE_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.FIRE_DOOR);
     public static final DeferredBlock<Block> TRANSITION_SEAL = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.TRANSITION_SEAL);
     public static final DeferredBlock<Block> SLIDING_BLAST_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_BLAST_DOOR);
     public static final DeferredBlock<Block> SLIDING_BLAST_DOOR_2 = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_BLAST_DOOR_2);
     public static final DeferredBlock<Block> SLIDING_GATE_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_GATE_DOOR);
-    public static final DeferredBlock<Block> QE_SLIDING = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.QE_SLIDING);
     public static final DeferredBlock<Block> QE_SLIDING_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.QE_SLIDING_DOOR);
     public static final DeferredBlock<Block> QE_CONTAINMENT = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.QE_CONTAINMENT);
     public static final DeferredBlock<Block> SLIDING_SEAL_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_SEAL_DOOR);
@@ -1968,9 +1995,6 @@ public final class HbmBlocks {
             HEATER_ELECTRIC,
             HEATER_HEATEX,
             MACHINE_ASHPIT,
-            SPOTLIGHT_INCANDESCENT,
-            SPOTLIGHT_FLUORO,
-            SPOTLIGHT_HALOGEN,
             DECON,
             MACHINE_BOILER,
             MACHINE_INDUSTRIAL_BOILER,
@@ -2044,9 +2068,7 @@ public final class HbmBlocks {
             GEIGER,
             TESLA,
             MACHINE_SHREDDER,
-            MACHINE_MICROWAVE,
             MACHINE_ARMOR_TABLE,
-            MACHINE_WEAPON_TABLE,
             MACHINE_ASSEMBLY_FACTORY,
             MACHINE_ASSEMBLY_MACHINE,
             MACHINE_CHEMICAL_FACTORY,
@@ -2111,10 +2133,8 @@ public final class HbmBlocks {
             , TELEANCHOR
             , MACHINE_TURBOFAN
             , FAN
-            , FLOODLIGHT
             , CARGO_ELEVATOR
             , BROADCASTER_PC
-            , LAMP_DEMON
             , RADIOBOX
             , RADIOREC
             , RADIO_AUTOCAL
@@ -2321,7 +2341,6 @@ public final class HbmBlocks {
             SLIDING_BLAST_DOOR,
             SLIDING_BLAST_DOOR_2,
             SLIDING_GATE_DOOR,
-            QE_SLIDING,
             QE_SLIDING_DOOR,
             QE_CONTAINMENT,
             SLIDING_SEAL_DOOR,
@@ -2343,7 +2362,6 @@ public final class HbmBlocks {
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_BLAST_DOOR, SLIDING_BLAST_DOOR),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_BLAST_DOOR_2, SLIDING_BLAST_DOOR_2),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_GATE_DOOR, SLIDING_GATE_DOOR),
-            Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.QE_SLIDING, QE_SLIDING),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.QE_SLIDING_DOOR, QE_SLIDING_DOOR),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.QE_CONTAINMENT, QE_CONTAINMENT),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.SLIDING_SEAL_DOOR, SLIDING_SEAL_DOOR),
@@ -2382,7 +2400,6 @@ public final class HbmBlocks {
             ORE_COBALT,
             ORE_CINNABAR,
             ORE_CINNEBAR,
-            ORE_COPPER,
             ORE_ALEXANDRITE,
             ORE_AUSTRALIUM,
             ORE_DEPTH_CINNEBAR,
@@ -2391,7 +2408,16 @@ public final class HbmBlocks {
             ORE_COLTAN,
             ORE_SCHRABIDIUM,
             ORE_METEOR,
-            ORE_BASALT
+            ORE_BASALT,
+            // Special legacy ores which do not belong to the ordinary
+            // overworld generation groups, but still belong in the ore tab.
+            ORE_TIKITE,
+            ORE_TEKTITE_OSMIRIDIUM,
+            ORE_SELLAFIELD_DIAMOND,
+            ORE_SELLAFIELD_EMERALD,
+            ORE_SELLAFIELD_URANIUM_SCORCHED,
+            ORE_SELLAFIELD_SCHRABIDIUM,
+            ORE_SELLAFIELD_RADGEM
     );
 
     public static final List<DeferredBlock<Block>> SCHIST_ORES = List.of(
@@ -2400,15 +2426,11 @@ public final class HbmBlocks {
             ORE_GNEISS_GOLD,
             ORE_GNEISS_URANIUM,
             ORE_GNEISS_URANIUM_SCORCHED,
-            ORE_GNEISS_COPPER,
             ORE_GNEISS_ASBESTOS,
             ORE_GNEISS_LITHIUM,
             ORE_GNEISS_SCHRABIDIUM,
             ORE_GNEISS_RARE,
-            ORE_GNEISS_GAS,
-            GNEISS_BRICK,
-            GNEISS_TILE,
-            GNEISS_CHISELED
+            ORE_GNEISS_GAS
     );
 
     public static final List<DeferredBlock<Block>> NETHER_ORES = List.of(
@@ -2445,8 +2467,11 @@ public final class HbmBlocks {
             ORE_DEEPSLATE_RARE,
             ORE_DEEPSLATE_COBALT,
             ORE_DEEPSLATE_CINNABAR,
+            ORE_DEEPSLATE_CINNEBAR,
             ORE_DEEPSLATE_COLTAN,
-            ORE_DEEPSLATE_SCHRABIDIUM
+            ORE_DEEPSLATE_SCHRABIDIUM,
+            ORE_DEEPSLATE_ALEXANDRITE,
+            ORE_DEEPSLATE_AUSTRALIUM
     );
 
     public static final List<DeferredBlock<Block>> ORE_CLUSTERS = List.of(
@@ -2454,6 +2479,10 @@ public final class HbmBlocks {
             CLUSTER_TITANIUM,
             CLUSTER_ALUMINIUM,
             CLUSTER_COPPER,
+            CLUSTER_DEEPSLATE_IRON,
+            CLUSTER_DEEPSLATE_TITANIUM,
+            CLUSTER_DEEPSLATE_ALUMINIUM,
+            CLUSTER_DEEPSLATE_COPPER,
             CLUSTER_DEPTH_IRON,
             CLUSTER_DEPTH_TITANIUM,
             CLUSTER_DEPTH_TUNGSTEN
@@ -2542,10 +2571,10 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> DECO_BERYLLIUM = registerBlock("deco_beryllium",
             () -> new Block(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> DECO_ASBESTOS = registerBlock("deco_asbestos",
-            () -> new AsbestosDecoBlock(BlockBehaviour.Properties.of()
+            () -> new AsbestosOutgassingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_GRAY)
                     .strength(5.0F, 10.0F)
-                    .sound(SoundType.STONE)));
+                    .sound(SoundType.STONE), true));
     public static final DeferredBlock<Block> DECO_RBMK = registerBlock("deco_rbmk",
             () -> new Block(metal().strength(5.0F, 100.0F)));
     public static final DeferredBlock<Block> DECO_RBMK_SMOOTH = registerBlock("deco_rbmk_smooth",
@@ -2624,7 +2653,7 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> BRICK_LIGHT_STAIRS = stairs("brick_light_stairs", BRICK_LIGHT,
             concrete().strength(5.0F, 20.0F));
     public static final DeferredBlock<Block> BRICK_ASBESTOS = registerBlock("brick_asbestos",
-            () -> new Block(rock().strength(5.0F, 1000.0F)));
+            () -> new AsbestosOutgassingBlock(rock().strength(5.0F, 1000.0F), true));
     public static final DeferredBlock<Block> BRICK_ASBESTOS_STAIRS = stairs("brick_asbestos_stairs", BRICK_ASBESTOS,
             rock().strength(5.0F, 1000.0F));
     public static final DeferredBlock<Block> BRICK_COMPOUND = registerBlock("brick_compound",
@@ -2699,11 +2728,11 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> GLASS_URANIUM = glass("glass_uranium", 0.3F, 0.3F, 5, false);
 
     public static final DeferredBlock<Block> STEEL_BEAM = registerBlock("steel_beam",
-            () -> new Block(metal().strength(5.0F, 15.0F)));
+            () -> new SteelBeamBlock(metal().strength(5.0F, 15.0F).noOcclusion()));
     public static final DeferredBlock<Block> STEEL_POLES = registerBlock("steel_poles",
             () -> new SteelPolesBlock(metal().strength(5.0F, 15.0F).noOcclusion()));
     public static final DeferredBlock<Block> STEEL_ROOF = registerBlock("steel_roof",
-            () -> new Block(metal().strength(5.0F, 15.0F)));
+            () -> new SteelRoofBlock(metal().strength(5.0F, 15.0F).noOcclusion()));
     public static final DeferredBlock<Block> STEEL_SCAFFOLD = registerBlock("steel_scaffold",
             () -> new SteelScaffoldBlock(metal().strength(5.0F, 15.0F).noOcclusion()));
 
@@ -2724,11 +2753,11 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> LIGHTSTONE_BRICKS_STAIRS = stairs("lightstone_bricks_stairs", LIGHTSTONE_BRICKS,
             rock().strength(2.0F, 15.0F));
     public static final DeferredBlock<Block> TILE_LAB = registerBlock("tile_lab",
-            () -> new Block(rock().strength(1.0F, 20.0F).sound(SoundType.GLASS)));
+            () -> new AsbestosOutgassingBlock(rock().strength(1.0F, 20.0F).sound(SoundType.GLASS), false));
     public static final DeferredBlock<Block> TILE_LAB_CRACKED = registerBlock("tile_lab_cracked",
-            () -> new Block(rock().strength(1.0F, 20.0F).sound(SoundType.GLASS)));
+            () -> new AsbestosOutgassingBlock(rock().strength(1.0F, 20.0F).sound(SoundType.GLASS), false));
     public static final DeferredBlock<Block> TILE_LAB_BROKEN = registerBlock("tile_lab_broken",
-            () -> new Block(rock().strength(1.0F, 20.0F).sound(SoundType.GLASS)));
+            () -> new AsbestosOutgassingBlock(rock().strength(1.0F, 20.0F).sound(SoundType.GLASS), true));
     public static final DeferredBlock<Block> TILE_LAB_STAIRS = stairs("tile_lab_stairs", TILE_LAB,
             rock().strength(1.0F, 20.0F).sound(SoundType.GLASS));
     public static final DeferredBlock<Block> TILE_LAB_CRACKED_STAIRS = stairs("tile_lab_cracked_stairs", TILE_LAB_CRACKED,
@@ -2900,7 +2929,8 @@ public final class HbmBlocks {
                     .strength(1.0F, 2.5F)
                     .sound(SoundType.SAND)));
 
-    public static final List<DeferredBlock<Block>> BUILDING_BLOCKS = List.of(
+    /** Decorative objects and household/electronic appliances. */
+    public static final List<DeferredBlock<Block>> DECORATION_APPLIANCE_BLOCKS = List.of(
             DECO_TOASTER,
             DECO_EMITTER,
             PART_EMITTER,
@@ -2908,12 +2938,37 @@ public final class HbmBlocks {
             BOBBLEHEAD,
             SNOWGLOBE,
             PLUSHIE,
-            LANTERN,
-            GLYPHID_BASE,
             DECO_COMPUTER,
             DECO_CRT,
             FILING_CABINET,
             TAPE_RECORDER,
+            MACHINE_MICROWAVE
+    );
+
+    /**
+     * Registered light-fixture items.  Invisible beam/footprint blocks are
+     * intentionally excluded because they do not have an item entry.
+     */
+    public static final List<DeferredBlock<Block>> LIGHTING_BLOCKS = List.of(
+            LANTERN,
+            FLOODLIGHT,
+            LAMP_DEMON,
+            SPOTLIGHT_INCANDESCENT,
+            SPOTLIGHT_INCANDESCENT_OFF,
+            SPOTLIGHT_FLUORO,
+            SPOTLIGHT_FLUORO_OFF,
+            SPOTLIGHT_HALOGEN,
+            SPOTLIGHT_HALOGEN_OFF,
+            REINFORCED_LAMP_OFF,
+            REINFORCED_LAMP_ON,
+            LAMP_TRITIUM_GREEN_OFF,
+            LAMP_TRITIUM_GREEN_ON,
+            LAMP_TRITIUM_BLUE_OFF,
+            LAMP_TRITIUM_BLUE_ON
+    );
+
+    public static final List<DeferredBlock<Block>> BUILDING_BLOCKS = List.of(
+            GLYPHID_BASE,
             PEDESTAL,
             SKELETON_HOLDER,
             STONE_KEYHOLE,
@@ -3075,8 +3130,6 @@ public final class HbmBlocks {
             REINFORCED_LAMINATE,
             REINFORCED_LAMINATE_PANE,
             REINFORCED_LIGHT,
-            REINFORCED_LAMP_OFF,
-            REINFORCED_LAMP_ON,
             STEEL_WALL,
             STEEL_CORNER,
             STEEL_GRATE,
@@ -3136,12 +3189,7 @@ public final class HbmBlocks {
             BURNING_EARTH,
             SELLAFIELD,
             SELLAFIELD_SLAKED,
-            SELLAFIELD_BEDROCK,
-            ORE_SELLAFIELD_DIAMOND,
-            ORE_SELLAFIELD_EMERALD,
-            ORE_SELLAFIELD_URANIUM_SCORCHED,
-            ORE_SELLAFIELD_SCHRABIDIUM,
-            ORE_SELLAFIELD_RADGEM
+            SELLAFIELD_BEDROCK
     );
 
     public static final List<DeferredBlock<Block>> METEOR_BLOCKS = List.of(
@@ -3188,7 +3236,6 @@ public final class HbmBlocks {
             BLOCK_DINEUTRONIUM,
             BLOCK_WASTE_VITRIFIED,
             BLOCK_PU_MIX,
-            BLOCK_COPPER,
             BLOCK_FLUORITE,
             BLOCK_NITER,
             BLOCK_RED_COPPER,
@@ -3272,11 +3319,23 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> depthBlock(String name) {
-        return registerBlock(name, () -> new DepthRockBlock(rock().strength(100.0F, 1_000.0F)));
+        return registerBlock(name, () -> new DepthRockBlock(depthRockProperties()));
     }
 
     private static DeferredBlock<Block> depthOre(String name, String dropId, int minimum, int range) {
-        return registerBlock(name, () -> new DepthOreBlock(rock().strength(100.0F, 1_000.0F), dropId, minimum, range));
+        return registerBlock(name, () -> new DepthRockBlock(depthOreProperties()));
+    }
+
+    private static DeferredBlock<Block> depthClusterOre(String name) {
+        return registerBlock(name, () -> new DepthRockBlock(rock().strength(4.5F, 35.0F)));
+    }
+
+    private static BlockBehaviour.Properties depthOreProperties() {
+        return rock().strength(4.5F, 10.0F);
+    }
+
+    private static BlockBehaviour.Properties depthRockProperties() {
+        return rock().strength(100.0F, 10.0F);
     }
 
     private static DeferredBlock<Block> oreWithLight(String name, float hardness, float resistance, int light) {
@@ -3287,6 +3346,10 @@ public final class HbmBlocks {
 
     private static DeferredBlock<Block> meteorBlock(String name) {
         return registerBlock(name, () -> hazardAwareBlock(name, rock().strength(15.0F, 360.0F)));
+    }
+
+    private static DeferredBlock<Block> cyberCrabSpawner(String name) {
+        return registerBlock(name, () -> new CyberCrabSpawnerBlock(rock().strength(15.0F, 360.0F).noLootTable()));
     }
 
     private static DeferredBlock<Block> meteorBattery(String name) {
@@ -3327,7 +3390,7 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> deepslateOilDeposit(String name) {
-        return registerBlock(name, () -> new OilDepositBlock(rock().strength(5.0F, 10.0F), ORE_DEEPSLATE_OIL_EMPTY::get));
+        return registerBlock(name, () -> new OilDepositBlock(rock().strength(4.5F, 10.0F), ORE_DEEPSLATE_OIL_EMPTY::get));
     }
 
     private static DeferredBlock<Block> oilSand(String name) {
@@ -3491,11 +3554,22 @@ public final class HbmBlocks {
                 .sound(HbmSoundTypes.PIPE)));
     }
 
+    private static DeferredBlock<Block> pumpPipe(String name) {
+        return registerBlockWithoutItem(name, () -> new GroundwaterPipeBlock(metal()
+                .strength(5.0F, 10.0F)
+                .sound(HbmSoundTypes.PIPE)));
+    }
+
     private static DeferredBlock<Block> decorativePipe(String name) {
-        return registerBlock(name, () -> new RotatedPillarBlock(metal()
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new RotatedPillarBlock(metal()
                 .strength(2.0F, 5.0F)
                 .sound(HbmSoundTypes.PIPE)
                 .noOcclusion()));
+        // RenderPipe in 1.7.10 is an OBJ block renderer.  A plain BlockItem
+        // makes NeoForge bake the item parent as a flat icon, so every
+        // decorative pipe must use the dedicated OBJ item route as well.
+        HbmItems.ITEMS.register(name, () -> new ObjMachineBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> fluidBarrel(String name, FluidBarrelBlock.Kind kind) {
@@ -3516,7 +3590,7 @@ public final class HbmBlocks {
 
     private static DeferredBlock<Block> fluidTank(String name) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new FluidTankBlock(metal()
-                .strength(5.0F, 10.0F)
+                .strength(5.0F, 20.0F)
                 .noOcclusion(), LargeMachineBlock.Footprint.centered(2, 3, 1), Shapes.block()));
         HbmItems.ITEMS.register(name, () -> new FluidTankBlockItem(block.get(), new Item.Properties()));
         return block;
@@ -4060,22 +4134,26 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> compactLauncher(String name) {
-        return registerBlock(name, () -> new CompactLauncherBlock(metal()
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new CompactLauncherBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
+        HbmItems.ITEMS.register(name, () -> new com.reinhardt.hbm.item.ObjMachineBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> launchTable(String name) {
-        return registerBlock(name, () -> new LaunchTableBlock(metal()
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new LaunchTableBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
+        HbmItems.ITEMS.register(name, () -> new com.reinhardt.hbm.item.ObjMachineBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> launchPad(String name, LaunchPadBlock.Kind kind) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new LaunchPadBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion(), kind));
-        HbmItems.ITEMS.register(name, () -> new LegacyOffsetBlockItem(
+        HbmItems.ITEMS.register(name, () -> new com.reinhardt.hbm.item.ObjMachineLegacyOffsetBlockItem(
                 block.get(),
                 new Item.Properties(),
                 kind == LaunchPadBlock.Kind.LARGE ? 4 : 1,
@@ -4119,7 +4197,7 @@ public final class HbmBlocks {
 
     private static DeferredBlock<Block> machineBlastFurnace(String name) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new MachineBlastFurnaceBlock(metal()
-                .strength(5.0F, 100.0F)
+                .strength(5.0F, 10.0F)
                 .noOcclusion()));
         HbmItems.ITEMS.register(name, () -> new ObjMachineBlockItem(block.get(), new Item.Properties()));
         return block;
@@ -4190,19 +4268,22 @@ public final class HbmBlocks {
     private static DeferredBlock<Block> vanillaDoor(String name) {
         return registerBlock(name, () -> new HbmLegacyDoorBlock(metal()
                 .strength(5.0F, 10.0F)
-                .noOcclusion()));
+                .noOcclusion()
+                .isViewBlocking((state, level, pos) -> false)));
     }
 
     private static DeferredBlock<Block> vanillaTrapdoor(String name) {
         return registerBlock(name, () -> new HbmLegacyTrapDoorBlock(metal()
                 .strength(5.0F, 10.0F)
-                .noOcclusion()));
+                .noOcclusion()
+                .isViewBlocking((state, level, pos) -> false)));
     }
 
     private static DeferredBlock<Block> heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl decl) {
         DeferredBlock<Block> block = registerBlockWithoutItem(decl.id(), () -> new HbmHeavyDoorBlock(metal()
                 .strength(5.0F, 10.0F)
-                .noOcclusion(), decl));
+                .noOcclusion()
+                .isViewBlocking((state, level, pos) -> false), decl));
         HbmItems.ITEMS.register(decl.id(), () -> new HbmHeavyDoorBlockItem(block.get(), new Item.Properties()));
         return block;
     }
@@ -4255,9 +4336,11 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> storageDrum(String name) {
-        return registerObjBlock(name, () -> new StorageDrumBlock(metal()
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new StorageDrumBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
+        HbmItems.ITEMS.register(name, () -> new StorageDrumBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> compressor(String name, CompressorBlockEntity.Kind kind) {
@@ -4737,6 +4820,24 @@ public final class HbmBlocks {
     private static <T extends Block> DeferredBlock<T> registerObjBlock(String name, Supplier<T> block) {
         DeferredBlock<T> deferredBlock = registerBlockWithoutItem(name, block);
         HbmItems.ITEMS.register(name, () -> new ObjMachineBlockItem(deferredBlock.get(), new Item.Properties()));
+        return deferredBlock;
+    }
+
+    private static <T extends Block> DeferredBlock<T> refueler(String name, Supplier<T> block) {
+        DeferredBlock<T> deferredBlock = registerBlockWithoutItem(name, block);
+        HbmItems.ITEMS.register(name, () -> new RefuelerBlockItem(deferredBlock.get(), new Item.Properties()));
+        return deferredBlock;
+    }
+
+    private static <T extends Block> DeferredBlock<T> charger(String name, Supplier<T> block) {
+        DeferredBlock<T> deferredBlock = registerBlockWithoutItem(name, block);
+        HbmItems.ITEMS.register(name, () -> new ChargerBlockItem(deferredBlock.get(), new Item.Properties()));
+        return deferredBlock;
+    }
+
+    private static <T extends Block> DeferredBlock<T> wallCharge(String name, Supplier<T> block) {
+        DeferredBlock<T> deferredBlock = registerBlockWithoutItem(name, block);
+        HbmItems.ITEMS.register(name, () -> new WallChargeBlockItem(deferredBlock.get(), new Item.Properties()));
         return deferredBlock;
     }
 

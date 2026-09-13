@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:boss_creeper",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:coin_radiation"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.boss_meltdown.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.boss_meltdown.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["QDQ","SBS","QDQ"],"key":{"Q":{"item":"reinhardtshbm:glass_quartz"},"D":{"tag":"c:ingots/dineutronium"},"B":{"item":"reinhardtshbm:egg_balefire"},"S":{"item":"reinhardtshbm:powder_spark_mix"}},"result":{"id":"reinhardtshbm:laser_crystal_dnt"}}

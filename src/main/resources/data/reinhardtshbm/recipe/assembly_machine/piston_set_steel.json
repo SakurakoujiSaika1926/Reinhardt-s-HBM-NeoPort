@@ -7,7 +7,7 @@
     { "ingredient": { "tag": "c:plates/steel" }, "count": 16 },
     { "ingredient": { "tag": "c:plates/copper" }, "count": 4 },
     { "ingredient": { "tag": "c:ingots/tungsten" }, "count": 8 },
-    { "ingredient": { "tag": "c:bolts/tungsten" }, "count": 16 }
+    { "ingredient": { "item": "reinhardtshbm:bolt_tungsten" }, "count": 16 }
   ],
   "result": {
     "id": "reinhardtshbm:piston_set",

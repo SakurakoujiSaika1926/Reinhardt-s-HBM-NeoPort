@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:fluid_tank_full"],"components":{"minecraft:custom_data":{"fluid":"unsaturateds"}}},{"tag":"c:dusts/niter"},{"tag":"reinhardtshbm:chemistry_set"}],"result":{"id":"reinhardtshbm:ingot_c4","count":4}}

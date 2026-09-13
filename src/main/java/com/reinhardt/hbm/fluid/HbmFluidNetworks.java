@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.fluid;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.blockentity.ChimneyBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
@@ -159,13 +160,26 @@ public final class HbmFluidNetworks {
         if (type == null || type.isNone()) {
             return false;
         }
+        Direction targetSide = direction.getOpposite();
+        if (isLegacyChimneyExhaustPort(level, target, targetSide, type)) {
+            return true;
+        }
         if (level instanceof Level realLevel) {
             if (!realLevel.isLoaded(target) || !mobileFluidEndpointAllowed(realLevel, target)) {
                 return false;
             }
-            return realLevel.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite()) != null;
+            return realLevel.getCapability(Capabilities.FluidHandler.BLOCK, target, targetSide) != null;
         }
         return false;
+    }
+
+    private static boolean isLegacyChimneyExhaustPort(LevelAccessor level, BlockPos target, Direction side, HbmFluidDefinition type) {
+        if (!(level.getBlockEntity(target) instanceof MachineDummyBlockEntity dummy)) {
+            return false;
+        }
+        BlockEntity core = dummy.core();
+        return core instanceof ChimneyBlockEntity chimney
+                && chimney.canConnectLegacyExhaustPort(target, side, type);
     }
 
     /**

@@ -157,7 +157,11 @@ public final class LegacyMukeExplosion {
             if (damage > 0.0F) {
                 LegacyProjectileUtil.hurtNoIFrame(
                         entity,
-                        level.damageSources().source(HbmDamageTypes.NUCLEAR_BLAST, source, null),
+                        // 1.7.10 ModDamageSource.nuclearBlast was a global source
+                        // without an entity owner, so use the same source shape
+                        // here to resolve death.attack.nuclearBlast (not a missing
+                        // death.attack.nuclearBlast.player variant).
+                        level.damageSources().source(HbmDamageTypes.NUCLEAR_BLAST),
                         damage
                 );
             }
@@ -183,7 +187,7 @@ public final class LegacyMukeExplosion {
             boolean hurt;
             int oldInvulnerability = entity.invulnerableTime;
             entity.invulnerableTime = 0;
-            hurt = entity.hurt(level.damageSources().source(HbmDamageTypes.NUCLEAR_BLAST, source, null), damage);
+            hurt = entity.hurt(level.damageSources().source(HbmDamageTypes.NUCLEAR_BLAST), damage);
             entity.invulnerableTime = 0;
             if (oldInvulnerability < 0) {
                 entity.invulnerableTime = oldInvulnerability;

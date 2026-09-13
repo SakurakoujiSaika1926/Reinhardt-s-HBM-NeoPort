@@ -67,18 +67,27 @@ public class RadonGasBlock extends HbmGasBlock {
         if (level.isClientSide || !(entity instanceof LivingEntity living)) {
             return;
         }
+        if (tomb) {
+            // BlockGasRadonTomb intentionally strips both countermeasures on
+            // every collision.  Keep this before applying the bypass dose so
+            // RadAway/Rad-X cannot survive a tomb-gas tick.
+            living.removeEffect(com.reinhardt.hbm.registry.HbmMobEffects.RADAWAY);
+            living.removeEffect(com.reinhardt.hbm.registry.HbmMobEffects.RADX);
+        }
         if (!tomb && HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE, 1)) {
             return;
         }
         HbmLivingRadiation data = HbmLivingRadiation.get(living);
         float dose = tomb ? 0.5F : 0.05F;
-        if (!(living instanceof Player player && (player.isCreative() || player.isSpectator()))) {
+        // The 1.7.10 contamination helper added environmental dose before
+        // checking creative immunity; asbestos itself was not creative-gated.
+        data.addEnvironmentRadiation(dose);
+        if (!(living instanceof Player player && player.isCreative())) {
             data.addRadiation(dose);
-            data.addEnvironmentRadiation(dose);
-            HbmLivingHazards hazards = HbmLivingHazards.get(living);
-            hazards.addAsbestos(living, tomb ? 10 : 1);
-            HbmLivingHazards.set(living, hazards);
         }
+        HbmLivingHazards hazards = HbmLivingHazards.get(living);
+        hazards.addAsbestos(living, tomb ? 10 : 1);
+        HbmLivingHazards.set(living, hazards);
         HbmLivingRadiation.set(living, data);
     }
 }

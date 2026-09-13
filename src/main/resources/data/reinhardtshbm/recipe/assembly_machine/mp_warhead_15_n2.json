@@ -1,0 +1,39 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpw15n2",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/weaponsteel"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ball_tatb"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_advanced"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_warhead_15_n2",
+    "count": 1
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

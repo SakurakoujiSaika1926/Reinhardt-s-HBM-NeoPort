@@ -282,6 +282,15 @@
       }
     ]
   },
+  "block.storage_close": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/storage_close",
+        "stream": false
+      }
+    ]
+  },
   "block.door.wgh_start": {
     "subtitle": "subtitles.block.door_wgh_start",
     "sounds": [
@@ -300,6 +309,23 @@
       }
     ]
   },
+  "block.door.transition_seal_open": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/transition_seal_open", "stream": true}] },
+  "block.door.alarm6": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/alarm6", "stream": true}] },
+  "block.door.sliding_door_shut": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/sliding_door_shut", "stream": false}] },
+  "block.door.sliding_door_opened": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/sliding_door_opened", "stream": false}] },
+  "block.door.sliding_door_opening": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/sliding_door_opening", "stream": false}] },
+  "block.door.garage_move": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/garage_move", "stream": false}] },
+  "block.door.garage_stop": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/garage_stop", "stream": false}] },
+  "block.door.lever": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/lever1", "stream": false}] },
+  "block.door.wgh_big_start": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/door_wgh_big_start", "stream": false}] },
+  "block.door.wgh_big_stop": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/door_wgh_big_stop", "stream": false}] },
+  "block.door.qe_sliding_shut": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/doorshut_1", "stream": false}] },
+  "block.door.qe_sliding_opened": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/doorslide_opened1", "stream": false}] },
+  "block.door.qe_sliding_opening": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/doorslide_opening1", "stream": false}] },
+  "block.door.sliding_seal_open": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/doormove2", "stream": false}] },
+  "block.door.sliding_seal_stop": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/door/metal_stop1", "stream": false}] },
+  "block.vault_scrape_new": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/vault_scrape_new", "stream": false}] },
+  "block.vault_thud_new": { "category": "block", "sounds": [{"name": "reinhardtshbm:block/vault_thud_new", "stream": false}] },
   "block.turbinegasrunning": {
     "subtitle": "subtitles.block.turbinegas_running",
     "sounds": [
@@ -472,6 +498,15 @@
       "reinhardtshbm:player/cough4"
     ]
   },
+  "step.iron": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:footsteps/iron1",
+      "reinhardtshbm:footsteps/iron2",
+      "reinhardtshbm:footsteps/iron3",
+      "reinhardtshbm:footsteps/iron4"
+    ]
+  },
   "player.gulp": {
     "category": "player",
     "sounds": [
@@ -518,6 +553,10 @@
       "reinhardtshbm:entity/ducc1",
       "reinhardtshbm:entity/ducc2"
     ]
+  },
+  "entity.megaquacc": {
+    "subtitle": "subtitles.entity.megaquacc",
+    "sounds": ["reinhardtshbm:entity/megaquacc"]
   },
   "block.fensuhum": {
     "subtitle": "subtitles.block.fensu_hum",
@@ -823,6 +862,18 @@
     "category": "record",
     "sounds": [{"name": "reinhardtshbm:alarm/razortrain_horn", "stream": false}]
   },
+  "alarm.chime": {
+    "category": "master",
+    "sounds": [{"name": "reinhardtshbm:alarm/chime", "stream": false}]
+  },
+  "weapon.grenade_bounce": {
+    "category": "player",
+    "sounds": [
+      {"name": "reinhardtshbm:weapon/gbounce1", "stream": false},
+      {"name": "reinhardtshbm:weapon/gbounce2", "stream": false},
+      {"name": "reinhardtshbm:weapon/gbounce3", "stream": false}
+    ]
+  },
   "turret.chekhov_fire": {
     "category": "block",
     "sounds": [
@@ -904,6 +955,15 @@
       }
     ]
   },
+  "weapon.saw_shoot": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/saw_shoot",
+        "stream": false
+      }
+    ]
+  },
   "weapon.ricochet": {
     "category": "player",
     "sounds": [
@@ -939,6 +999,34 @@
   "entity.bomber_small_loop": {
     "category": "hostile",
     "sounds": [{"name": "reinhardtshbm:entity/bomber2", "stream": true}]
+  },
+  "entity.plane_crash": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/planecrash", "stream": false}]
+  },
+  "entity.plane_shot_down": {
+    "category": "hostile",
+    "sounds": [{"name": "reinhardtshbm:entity/planeshotdown", "stream": false}]
+  },
+  "entity.cybercrab": {
+    "category": "hostile",
+    "sounds": [
+      "reinhardtshbm:entity/radio_random1",
+      "reinhardtshbm:entity/radio_random2",
+      "reinhardtshbm:entity/radio_random3",
+      "reinhardtshbm:entity/radio_random4",
+      "reinhardtshbm:entity/radio_random5",
+      "reinhardtshbm:entity/radio_random6",
+      "reinhardtshbm:entity/radio_random7",
+      "reinhardtshbm:entity/radio_random8",
+      "reinhardtshbm:entity/radio_random9",
+      "reinhardtshbm:entity/radio_random10",
+      "reinhardtshbm:entity/radio_random11",
+      "reinhardtshbm:entity/radio_random12",
+      "reinhardtshbm:entity/radio_random13",
+      "reinhardtshbm:entity/radio_random14",
+      "reinhardtshbm:entity/radio_random15"
+    ]
   },
   "entity.bomb_whistle": {
     "category": "hostile",
@@ -1092,6 +1180,18 @@
   ,"entity.chopper_crashing_loop": {
     "category": "hostile",
     "sounds": [{"name": "reinhardtshbm:entity/chopper_crashing_loop", "stream": true}]
+  }
+  ,"misc.null_chopper": {
+    "category": "player",
+    "sounds": [{"name": "reinhardtshbm:misc/null", "stream": false}]
+  }
+  ,"misc.null_crashing": {
+    "category": "player",
+    "sounds": [{"name": "reinhardtshbm:misc/null", "stream": false}]
+  }
+  ,"misc.null_mine": {
+    "category": "player",
+    "sounds": [{"name": "reinhardtshbm:misc/null", "stream": false}]
   }
   ,"block.broadcast1": {
     "category": "block",

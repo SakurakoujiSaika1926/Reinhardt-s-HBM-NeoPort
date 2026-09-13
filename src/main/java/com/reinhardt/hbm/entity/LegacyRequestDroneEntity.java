@@ -6,6 +6,7 @@ import com.reinhardt.hbm.blockentity.DroneRequesterBlockEntity;
 import com.reinhardt.hbm.drone.DroneItemMatcher;
 import com.reinhardt.hbm.item.LegacyDroneItem;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -88,7 +89,7 @@ public final class LegacyRequestDroneEntity extends LegacyDeliveryDroneEntity {
             if (carried != null && !carried.isEmpty()) {
                 setCargo(0, carried);
                 setAppearance(1);
-                level().playSound(null, blockPosition(), SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 0.75F);
+                level().playSound(null, blockPosition(), HbmSoundEvents.ITEM_UNPACK.get(), SoundSource.BLOCKS, 0.5F, 0.75F);
             }
         }
         nextActionTimer = 5;
@@ -101,7 +102,7 @@ public final class LegacyRequestDroneEntity extends LegacyDeliveryDroneEntity {
             setCargo(0, remaining);
             if (remaining.isEmpty()) {
                 setAppearance(0);
-                level().playSound(null, blockPosition(), SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.5F, 0.75F);
+                level().playSound(null, blockPosition(), HbmSoundEvents.ITEM_UNPACK.get(), SoundSource.BLOCKS, 0.5F, 0.75F);
             }
         }
         nextActionTimer = 5;
@@ -117,7 +118,7 @@ public final class LegacyRequestDroneEntity extends LegacyDeliveryDroneEntity {
                     dockEntity.setItem(slot, drone);
                     returnCarriedToDock(dockEntity, carried, slot);
                     discard();
-                    level().playSound(null, dockEntity.getBlockPos(), SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 2.0F, 1.0F);
+                    level().playSound(null, dockEntity.getBlockPos(), HbmSoundEvents.STORAGE_CLOSE.get(), SoundSource.BLOCKS, 2.0F, 1.0F);
                     return;
                 }
                 if (ItemStack.isSameItemSameComponents(stack, drone) && stack.getCount() < stack.getMaxStackSize()) {
@@ -125,7 +126,7 @@ public final class LegacyRequestDroneEntity extends LegacyDeliveryDroneEntity {
                     dockEntity.setChanged();
                     returnCarriedToDock(dockEntity, carried, slot);
                     discard();
-                    level().playSound(null, dockEntity.getBlockPos(), SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 2.0F, 1.0F);
+                    level().playSound(null, dockEntity.getBlockPos(), HbmSoundEvents.STORAGE_CLOSE.get(), SoundSource.BLOCKS, 2.0F, 1.0F);
                     return;
                 }
             }

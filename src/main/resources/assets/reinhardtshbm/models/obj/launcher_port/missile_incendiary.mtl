@@ -1,0 +1,4 @@
+newmtl launcher_material
+Ka 0 0 0
+Kd 1 1 1
+map_Kd reinhardtshbm:models/missile/missile_v2_inc

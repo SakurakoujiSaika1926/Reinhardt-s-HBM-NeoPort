@@ -21,25 +21,8 @@ import java.util.List;
 
 /** Server-side port of BlockGlyphidSpawner's initial and periodic swarm logic. */
 public final class GlyphidSpawnerBlockEntity extends BlockEntity {
-    private static final int SWARM_COOLDOWN = 120 * 20;
-    private static final int BASE_SWARM_SIZE = 5;
-    private static final double SWARM_SCALING = 1.2D;
-    private static final int SOOT_STEP = 50;
-    private static final int SPAWN_MAX = 50;
     private record SpawnChance(GlyphidEntity.Variant variant, int base, int sootModifier, int minimumSoot) {
     }
-
-    // Same order as BlockGlyphidSpawner.spawnMap in 1.7.10.
-    private static final SpawnChance[] CHANCES = {
-            new SpawnChance(GlyphidEntity.Variant.NORMAL, 50, -45, 0),
-            new SpawnChance(GlyphidEntity.Variant.BOMBARDIER, 20, -15, 1),
-            new SpawnChance(GlyphidEntity.Variant.BRAWLER, 10, 30, 1),
-            new SpawnChance(GlyphidEntity.Variant.DIGGER, -15, 25, 5),
-            new SpawnChance(GlyphidEntity.Variant.BLASTER, -5, 40, 5),
-            new SpawnChance(GlyphidEntity.Variant.BEHEMOTH, -30, 45, 10),
-            new SpawnChance(GlyphidEntity.Variant.BRENDA, -50, 60, 20),
-            new SpawnChance(GlyphidEntity.Variant.NUCLEAR, -50, 60, 50)
-    };
 
     private boolean initialSpawn = true;
 
@@ -51,15 +34,15 @@ public final class GlyphidSpawnerBlockEntity extends BlockEntity {
         if (level.isClientSide || level.getDifficulty() == Difficulty.PEACEFUL) {
             return;
         }
-        if (!spawner.initialSpawn && level.getGameTime() % SWARM_COOLDOWN != 0) {
+        if (!spawner.initialSpawn && level.getGameTime() % HbmConfig.glyphidSwarmCooldown() != 0) {
             return;
         }
-        boolean firstSpawn = spawner.initialSpawn;
         spawner.initialSpawn = false;
-        if (level instanceof ServerLevel serverLevel && countLoadedGlyphids(serverLevel) >= SPAWN_MAX) {
+        if (level instanceof ServerLevel serverLevel && countLoadedGlyphids(serverLevel) >= HbmConfig.GLYPHID_SPAWN_MAX.get()) {
             return;
         }
-        AABB nearbyBox = new AABB(pos).inflate(5.0D, 0.0D, 5.0D).expandTowards(1.0D, 7.0D, 1.0D);
+        AABB nearbyBox = new AABB(pos.getX() - 5.0D, pos.getY() + 1.0D, pos.getZ() - 5.0D,
+                pos.getX() + 6.0D, pos.getY() + 7.0D, pos.getZ() + 6.0D);
         List<GlyphidEntity> nearby = level.getEntitiesOfClass(GlyphidEntity.class, nearbyBox);
         int subtype = Math.max(0, Math.min(2, state.getValue(com.reinhardt.hbm.block.LegacyVariantBlock.VARIANT)));
         if (nearby.size() > 3 && subtype != GlyphidEntity.TYPE_RADIOACTIVE) {
@@ -68,14 +51,17 @@ public final class GlyphidSpawnerBlockEntity extends BlockEntity {
         double soot = level instanceof ServerLevel serverLevel
                 ? HbmPollutionData.get(serverLevel).get(pos, HbmPollutionType.SOOT)
                 : 0.0D;
-        int swarmAmount = (int) Math.min(BASE_SWARM_SIZE * Math.max(SWARM_SCALING * (soot / SOOT_STEP), 1.0D), 10.0D);
+        int swarmAmount = (int) Math.min(HbmConfig.GLYPHID_BASE_SWARM_SIZE.get()
+                * Math.max(HbmConfig.GLYPHID_SWARM_SCALING_MULTIPLIER.get()
+                * (soot / HbmConfig.GLYPHID_SOOT_STEP.get()), 1.0D), 10.0D);
         List<GlyphidEntity> swarm = new ArrayList<>();
         int attempts = 100;
+        java.util.Random random = new java.util.Random();
         while (swarm.size() <= swarmAmount && attempts-- >= 0) {
-            for (SpawnChance chance : CHANCES) {
+            for (SpawnChance chance : chances()) {
                 int adjusted = (int) (chance.base + (chance.sootModifier
                         - chance.sootModifier / Math.max((soot + 1.0D) / 3.0D, 1.0D)));
-                if (soot >= chance.minimumSoot && level.random.nextInt(100) <= adjusted) {
+                if (soot >= chance.minimumSoot && random.nextInt(100) <= adjusted) {
                     GlyphidEntity glyphid = new GlyphidEntity(com.reinhardt.hbm.registry.HbmEntityTypes.GLYPHID.get(), level);
                     glyphid.setSubtype(subtype);
                     glyphid.setVariant(chance.variant);
@@ -86,8 +72,7 @@ public final class GlyphidSpawnerBlockEntity extends BlockEntity {
         for (GlyphidEntity glyphid : swarm) {
             spawn(level, pos, glyphid);
         }
-        if ((!firstSpawn || HbmConfig.GLYPHID_SCOUT_INITIAL_SPAWN.get())
-                && subtype != GlyphidEntity.TYPE_RADIOACTIVE
+        if (subtype != GlyphidEntity.TYPE_RADIOACTIVE
                 && level.random.nextInt(HbmConfig.glyphidScoutSwarmChance() + 1) == 0
                 && soot >= HbmConfig.glyphidScoutSootThreshold()) {
             GlyphidEntity scout = new GlyphidEntity(
@@ -96,13 +81,12 @@ public final class GlyphidSpawnerBlockEntity extends BlockEntity {
             scout.setVariant(GlyphidEntity.Variant.SCOUT);
             spawn(level, pos, scout);
         }
-        spawner.setChanged();
     }
 
     private static int countLoadedGlyphids(ServerLevel level) {
         int count = 0;
         for (net.minecraft.world.entity.Entity entity : level.getAllEntities()) {
-            if (entity instanceof GlyphidEntity && entity.isAlive() && ++count >= SPAWN_MAX) {
+            if (entity instanceof GlyphidEntity && ++count >= HbmConfig.GLYPHID_SPAWN_MAX.get()) {
                 return count;
             }
         }
@@ -119,7 +103,27 @@ public final class GlyphidSpawnerBlockEntity extends BlockEntity {
                 return;
             }
         }
-        glyphid.discard();
+    }
+
+    /** Same BlockGlyphidSpawner.spawnMap order, with each 1.7.10 config tuple intact. */
+    private static SpawnChance[] chances() {
+        return new SpawnChance[]{
+                chance(GlyphidEntity.Variant.NORMAL, HbmConfig.GLYPHID_GRUNT_CHANCE, "glyphidChance"),
+                chance(GlyphidEntity.Variant.BOMBARDIER, HbmConfig.GLYPHID_BOMBARDIER_CHANCE, "bombardierChance"),
+                chance(GlyphidEntity.Variant.BRAWLER, HbmConfig.GLYPHID_BRAWLER_CHANCE, "brawlerChance"),
+                chance(GlyphidEntity.Variant.DIGGER, HbmConfig.GLYPHID_DIGGER_CHANCE, "diggerChance"),
+                chance(GlyphidEntity.Variant.BLASTER, HbmConfig.GLYPHID_BLASTER_CHANCE, "blasterChance"),
+                chance(GlyphidEntity.Variant.BEHEMOTH, HbmConfig.GLYPHID_BEHEMOTH_CHANCE, "behemothChance"),
+                chance(GlyphidEntity.Variant.BRENDA, HbmConfig.GLYPHID_BRENDA_CHANCE, "brendaChance"),
+                chance(GlyphidEntity.Variant.NUCLEAR, HbmConfig.GLYPHID_NUCLEAR_CHANCE, "johnsonChance")
+        };
+    }
+
+    private static SpawnChance chance(GlyphidEntity.Variant variant,
+                                      net.neoforged.neoforge.common.ModConfigSpec.ConfigValue<List<? extends Integer>> value,
+                                      String key) {
+        int[] tuple = HbmConfig.glyphidChance(value, key);
+        return new SpawnChance(variant, tuple[0], tuple[1], tuple[2]);
     }
 
     @Override

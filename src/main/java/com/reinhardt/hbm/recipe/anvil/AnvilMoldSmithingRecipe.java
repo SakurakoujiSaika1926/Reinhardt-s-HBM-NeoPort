@@ -2,14 +2,23 @@ package com.reinhardt.hbm.recipe.anvil;
 
 import net.minecraft.world.item.ItemStack;
 
+import java.util.function.Predicate;
+
 public class AnvilMoldSmithingRecipe extends AnvilSmithingRecipe {
+    private final Predicate<ItemStack> leftMatcher;
+
     public AnvilMoldSmithingRecipe(int tier, ItemStack output, AnvilIngredient reference, AnvilIngredient moldBase) {
+        this(tier, output, reference, moldBase, stack -> stack.getCount() == reference.count() && reference.matchesItem(stack));
+    }
+
+    public AnvilMoldSmithingRecipe(int tier, ItemStack output, AnvilIngredient reference, AnvilIngredient moldBase, Predicate<ItemStack> leftMatcher) {
         super(tier, output, reference, moldBase);
+        this.leftMatcher = leftMatcher;
     }
 
     @Override
     public Match match(ItemStack leftStack, ItemStack rightStack) {
-        if (leftStack.getCount() == left().count() && left().matchesItem(leftStack) && right().matches(rightStack)) {
+        if (this.leftMatcher.test(leftStack) && right().matches(rightStack)) {
             return new Match(this, false);
         }
         return null;

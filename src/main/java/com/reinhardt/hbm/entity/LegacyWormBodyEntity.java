@@ -12,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
@@ -43,6 +44,11 @@ public final class LegacyWormBodyEntity extends Monster {
                 .add(Attributes.MAX_HEALTH, 15_000.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.0D);
+    }
+
+    @Override
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
+        return false;
     }
 
     public void initialize(UUID headUuid, UUID previousUuid, int partNumber) {
@@ -77,11 +83,28 @@ public final class LegacyWormBodyEntity extends Monster {
         LegacyWormHeadEntity head = head();
         Entity previous = previous();
         if (head == null || !head.isAlive() || previous == null || !previous.isAlive()) {
+            if (previous == null || !previous.isAlive()) {
+                // EntityWormBaseNT occasionally detonates a detached segment
+                // while it is resolving the predecessor link.
+                if (random.nextInt(60) == 0) {
+                    level().explode(this, getX(), getY(), getZ(), 2.0F, Level.ExplosionInteraction.NONE);
+                }
+            }
             discard();
             return;
         }
         follow(previous);
         Entity target = target(head);
+        if (target != null) {
+            double dx = target.getX() - getX();
+            double dy = target.getY() - getY();
+            double dz = target.getZ() - getZ();
+            double horizontal = Math.sqrt(dx * dx + dz * dz);
+            setYRot((float) Math.toDegrees(Math.atan2(dx, dz)));
+            setXRot((float) Math.toDegrees(Math.atan2(dy, horizontal)));
+            yBodyRot = getYRot();
+            yHeadRot = getYRot();
+        }
         if (target instanceof LivingEntity living && canSee(target)) {
             if (++attackCounter == 10) {
                 fireBolt(living);
@@ -114,6 +137,12 @@ public final class LegacyWormBodyEntity extends Monster {
         }
     }
 
+    @Override
+    public boolean canBeAffected(MobEffectInstance effect) {
+        // EntityBOTPrimeBody#isPotionApplicable always returned false.
+        return false;
+    }
+
     private Entity target(LegacyWormHeadEntity head) {
         Entity headTarget = null;
         if (head.getLastHurtMob() != null && head.getLastHurtMob().isAlive()) headTarget = head.getLastHurtMob();
@@ -130,9 +159,17 @@ public final class LegacyWormBodyEntity extends Monster {
     }
 
     private void fireBolt(LivingEntity target) {
-        Vec3 origin = getEyePosition();
+        double sourceY = getY() + getEyeHeight() - 0.1D;
+        double dx = target.getX() - getX();
+        double dz = target.getZ() - getZ();
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        if (horizontal < 1.0E-7D) return;
+        Vec3 origin = new Vec3(getX() + dx / horizontal, sourceY, getZ() + dz / horizontal);
+        Vec3 direction = new Vec3(dx,
+                target.getY() + target.getBbHeight() / 3.0D - sourceY,
+                dz);
         level().addFreshEntity(new LegacyBossProjectileEntity(level(), this, origin,
-                target.getEyePosition().subtract(origin).normalize(), LegacyBossProjectileEntity.Type.WORM_BOLT, target));
+                direction, LegacyBossProjectileEntity.Type.WORM_BOLT, target, 0.125F));
         level().playSound(null, blockPosition(), HbmSoundEvents.WEAPON_BALLS_LASER.get(), SoundSource.HOSTILE, 5.0F, 1.0F);
     }
 
@@ -177,5 +214,12 @@ public final class LegacyWormBodyEntity extends Monster {
         previousUuid = tag.hasUUID("previous") ? tag.getUUID("previous") : null;
         partNumber = tag.getInt("part");
         attackCounter = tag.getInt("attack");
+    }
+
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        // Same EntityBOTPrimeBase renderDistanceWeight = 15 as the head;
+        // this registration is 2 blocks wide.
+        return distance < 3_686_400.0D;
     }
 }

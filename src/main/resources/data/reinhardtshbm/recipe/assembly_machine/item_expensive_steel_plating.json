@@ -32,7 +32,16 @@
                         },
                         {
                             "ingredient":  {
-                                               "tag":  "c:bolts/steel"
+                                               "type":  "neoforge:components",
+                                               "items":  [
+                                                             "reinhardtshbm:bolt"
+                                                         ],
+                                               "components":  {
+                                                                  "minecraft:custom_data":  {
+                                                                                                "material_id":  30,
+                                                                                                "material":  "steel"
+                                                                                            }
+                                                              }
                                            },
                             "count":  16
                         }

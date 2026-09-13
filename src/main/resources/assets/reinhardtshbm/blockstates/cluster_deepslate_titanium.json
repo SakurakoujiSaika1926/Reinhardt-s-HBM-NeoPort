@@ -1,0 +1,7 @@
+{
+    "variants":  {
+                     "":  {
+                              "model":  "reinhardtshbm:block/cluster_deepslate_titanium"
+                          }
+                 }
+}

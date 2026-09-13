@@ -22,11 +22,11 @@ public final class PlayerInformOverlay {
     }
 
     public static void accept(PlayerInformPayload payload) {
-        Component message = payload.args().isEmpty()
-                ? Component.literal(payload.message())
-                : Component.translatable(payload.message(), payload.args().stream()
+        Component message = payload.translated()
+                ? Component.translatable(payload.message(), payload.args().stream()
                         .map(arg -> arg.startsWith("@") ? Component.translatable(arg.substring(1)) : arg)
-                        .toArray());
+                        .toArray())
+                : Component.literal(payload.message());
         LINES.put(payload.line(), new Line(message, payload.color(), System.currentTimeMillis() + payload.lifetimeMillis()));
     }
 

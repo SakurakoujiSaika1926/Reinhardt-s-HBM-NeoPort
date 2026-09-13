@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["P","C","B"],"key":{"B":{"item":"minecraft:iron_bars"},"C":{"item":"reinhardtshbm:rod_empty"},"P":{"tag":"c:plates/iron"}},"result":{"id":"reinhardtshbm:syringe_metal_empty","count":6}}

@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -67,6 +68,10 @@ public final class ChlorineGeyserFeature extends Feature<NoneFeatureConfiguratio
         }
 
         WorldGenLevel level = context.level();
+        if (level.getLevel().dimension() != Level.OVERWORLD
+                || !HbmConfig.legacyDungeonGenerationEnabled(level.getLevel().getServer().getWorldData().worldGenOptions().generateStructures())) {
+            return false;
+        }
         BlockPos origin = context.origin();
         int x = origin.getX();
         int z = origin.getZ();

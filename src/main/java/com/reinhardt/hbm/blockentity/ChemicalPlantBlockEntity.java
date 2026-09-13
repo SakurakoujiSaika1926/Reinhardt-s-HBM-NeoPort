@@ -955,9 +955,9 @@ public class ChemicalPlantBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private void treatMeteoriteSword() {
-        ItemStack batterySlot = this.items.get(BATTERY_SLOT);
-        if (isMachinedMeteoriteSword(batterySlot)) {
-            this.items.set(BATTERY_SLOT, new ItemStack(HbmItems.METEORITE_SWORD_TREATED.get()));
+        ItemStack input = this.items.get(SOLID_INPUT_START);
+        if (isMachinedMeteoriteSword(input)) {
+            this.items.set(SOLID_INPUT_START, new ItemStack(HbmItems.METEORITE_SWORD_TREATED.get()));
         }
     }
 

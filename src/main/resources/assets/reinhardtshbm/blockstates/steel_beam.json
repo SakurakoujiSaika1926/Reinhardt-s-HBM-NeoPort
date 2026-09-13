@@ -1,7 +1,8 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/steel_beam"
-                          }
-                 }
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/steel_beam", "y": 0 },
+    "facing=south": { "model": "reinhardtshbm:block/steel_beam", "y": 180 },
+    "facing=west": { "model": "reinhardtshbm:block/steel_beam", "y": 270 },
+    "facing=east": { "model": "reinhardtshbm:block/steel_beam", "y": 90 }
+  }
 }

@@ -11,6 +11,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 /** Uses the exact 1.7.10 schematic background selected by the bomb type. */
 public final class LegacyNukeScreen extends AbstractContainerScreen<LegacyNukeMenu> {
+    private static final ResourceLocation IVY_MIKE_OVERLAY = ReinhardtsHBM.id("textures/gui/weapon/ivymikeschematic.png");
+
     public LegacyNukeScreen(LegacyNukeMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         LegacyNukeDefinition definition = menu.definition();
@@ -27,8 +29,11 @@ public final class LegacyNukeScreen extends AbstractContainerScreen<LegacyNukeMe
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(texture(menu.definition()), this.leftPos, this.topPos, 0, 0,
-                this.imageWidth, this.imageHeight);
+        graphics.blit(texture(menu.definition()), this.leftPos, this.topPos, 0.0F, 0.0F,
+                this.imageWidth, this.imageHeight, 256, 256);
+        if (menu.definition() == LegacyNukeDefinition.TSAR) {
+            renderTsarOverlays(graphics);
+        }
     }
 
     @Override
@@ -40,17 +45,47 @@ public final class LegacyNukeScreen extends AbstractContainerScreen<LegacyNukeMe
 
     private static ResourceLocation texture(LegacyNukeDefinition definition) {
         String name = switch (definition) {
-            case GADGET -> "gadgetSchematic";
-            case MAN -> "fatManSchematic";
-            case MIKE -> "ivyMikeSchematic";
-            case TSAR -> "tsarBombaSchematic";
-            case FLEIJA -> "fleijaSchematic";
+            case GADGET -> "gadgetschematic";
+            case MAN -> "fatmanschematic";
+            case MIKE -> "ivymikeschematic";
+            case TSAR -> "tsarbombaschematic";
+            case FLEIJA -> "fleijaschematic";
             case PROTOTYPE -> "gui_prototype";
-            case SOLINIUM -> "soliniumSchematic";
-            case N2 -> "n2Schematic";
-            case CUSTOM -> "gunBombSchematic";
-            case BALEFIRE -> "fstbmbSchematic";
+            case SOLINIUM -> "soliniumschematic";
+            case N2 -> "n2schematic";
+            case CUSTOM -> "gunbombschematic";
+            case BALEFIRE -> "fstbmbschematic";
         };
         return ReinhardtsHBM.id("textures/gui/weapon/" + name + ".png");
+    }
+
+    private void renderTsarOverlays(GuiGraphics graphics) {
+        if (menu.isFilled()) {
+            blit(graphics, 18, 50, 176, 18, 16, 16);
+        } else if (menu.isReady()) {
+            blit(graphics, 18, 50, 176, 0, 16, 16);
+        }
+
+        for (int slot = 0; slot < 4; slot++) {
+            if (menu.slotHasExpectedItem(slot)) {
+                switch (slot) {
+                    case 0 -> blit(graphics, 40, 36, 209, 1, 23, 23);
+                    case 2 -> blit(graphics, 63, 36, 232, 1, 23, 23);
+                    case 1 -> blit(graphics, 40, 59, 209, 24, 23, 23);
+                    case 3 -> blit(graphics, 63, 59, 232, 24, 23, 23);
+                    default -> {
+                    }
+                }
+            }
+        }
+
+        if (menu.slotHasExpectedItem(5)) {
+            blit(graphics, 91, 41, 176, 220, 80, 36);
+        }
+    }
+
+    private void blit(GuiGraphics graphics, int x, int y, int u, int v, int width, int height) {
+        graphics.blit(IVY_MIKE_OVERLAY, this.leftPos + x, this.topPos + y, (float) u, (float) v,
+                width, height, 256, 256);
     }
 }

@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.worldgen;
 
 import com.mojang.serialization.Codec;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -23,6 +24,7 @@ public class NetherOreLegacyFeature extends Feature<NoneFeatureConfiguration> {
             new OreEntry(8, 32, 16, 96, HbmBlocks.ORE_NETHER_COAL),
             new OreEntry(2, 6, 100, 26, HbmBlocks.ORE_NETHER_COBALT)
     };
+    private static final OreEntry PLUTONIUM = new OreEntry(8, 4, 0, 127, HbmBlocks.ORE_NETHER_PLUTONIUM);
 
     public NetherOreLegacyFeature() {
         super(NoneFeatureConfiguration.CODEC);
@@ -43,8 +45,13 @@ public class NetherOreLegacyFeature extends Feature<NoneFeatureConfiguration> {
         int chunkX = origin.getX() & ~15;
         int chunkZ = origin.getZ() & ~15;
         boolean placed = false;
-        for (OreEntry ore : ORES) {
-            placed |= generateOre(level, random, chunkX, chunkZ, ore);
+        if (HbmConfig.ENABLE_NETHER_ORES.get()) {
+            for (OreEntry ore : ORES) {
+                placed |= generateOre(level, random, chunkX, chunkZ, ore);
+            }
+            if (HbmConfig.ENABLE_NETHER_PLUTONIUM_ORE.get()) {
+                placed |= generateOre(level, random, chunkX, chunkZ, PLUTONIUM);
+            }
         }
         placed |= generateSmoldering(level, random, chunkX, chunkZ);
         placed |= generateGeyser(level, random, chunkX, chunkZ);

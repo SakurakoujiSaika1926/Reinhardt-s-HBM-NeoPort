@@ -42,6 +42,7 @@ public class LegacyBulletEntity extends Entity {
             SynchedEntityData.defineId(LegacyBulletEntity.class, EntityDataSerializers.BOOLEAN);
 
     private UUID targetUuid;
+    private UUID ownerUuid;
     private int ricochets;
 
     public LegacyBulletEntity(EntityType<? extends LegacyBulletEntity> type, Level level) {
@@ -50,16 +51,28 @@ public class LegacyBulletEntity extends Entity {
     }
 
     public LegacyBulletEntity(Level level, double x, double y, double z, Vec3 direction, StandardAmmoItem.StandardAmmoType ammo, float baseDamage) {
+        this(level, x, y, z, direction, ammo, baseDamage, null, 0.0F);
+    }
+
+    /**
+     * EntityBulletBaseMK4's constructor: apply its Gaussian heading spread,
+     * then the BulletConfig velocity.  Mob firearm callers also retain the
+     * owner so BulletConfig.selfDamageDelay is respected.
+     */
+    public LegacyBulletEntity(Level level, double x, double y, double z, Vec3 direction,
+                              StandardAmmoItem.StandardAmmoType ammo, float baseDamage,
+                              Entity owner, float spread) {
         this(HbmEntityTypes.LEGACY_BULLET.get(), level);
         setPos(x, y, z);
         setAmmoType(ammo);
         setBaseDamage(baseDamage * ammo.damageMultiplier());
-        Vec3 normalized = direction.normalize();
-        double speed = switch (ammo.family()) {
-            case ROCKET_ML -> 0.0D;
-            case FLAME -> 1.0D;
-            default -> 10.0D;
-        };
+        this.ownerUuid = owner == null ? null : owner.getUUID();
+        Vec3 normalized = direction.normalize().add(
+                random.nextGaussian() * 0.0075D * spread,
+                random.nextGaussian() * 0.0075D * spread,
+                random.nextGaussian() * 0.0075D * spread
+        ).normalize();
+        double speed = ammo.projectileSpeed();
         Vec3 motion = normalized.scale(speed);
         setDeltaMovement(motion);
         updateRotationFromMotion(normalized);
@@ -144,6 +157,8 @@ public class LegacyBulletEntity extends Entity {
         setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);
         if (ammo.family() == StandardAmmoItem.AmmoFamily.ROCKET_ML) {
             setDeltaMovement(nextRocketMotion(motion));
+        } else if (ammo.projectileGravity() != 0.0D) {
+            setDeltaMovement(motion.add(0.0D, -ammo.projectileGravity(), 0.0D));
         }
         if (ammo.family() == StandardAmmoItem.AmmoFamily.FLAME && level().isClientSide) {
             level().addParticle(
@@ -151,7 +166,7 @@ public class LegacyBulletEntity extends Entity {
                     getX(), getY() - 0.125D, getZ(), 0.0D, 0.0D, 0.0D
             );
         }
-        int maxLife = ammo.family() == StandardAmmoItem.AmmoFamily.FLAME ? 100 : ammo.family() == StandardAmmoItem.AmmoFamily.ROCKET_ML ? 300 : 30;
+        int maxLife = ammo.projectileLifetime();
         if (!level().isClientSide && (tickCount > maxLife || getY() < level().getMinBuildHeight() - 16)) {
             discard();
         }
@@ -214,6 +229,10 @@ public class LegacyBulletEntity extends Entity {
             LegacyProjectileUtil.hurtSednaFire(hit, this, this.entityData.get(BASE_DAMAGE));
             discard();
             return true;
+        }
+        if (ammo.family() == StandardAmmoItem.AmmoFamily.FLARE && hit instanceof LivingEntity living) {
+            // XFactory40mm.LAMBDA_STANDARD_IGNITE affects entities only.
+            HbmLivingHazards.get(living).extendFire(200);
         }
         LegacyProjectileUtil.SednaImpact impact = LegacyProjectileUtil.bulletImpact(
                 ammo,
@@ -312,13 +331,16 @@ public class LegacyBulletEntity extends Entity {
     private static boolean isSednaBullet(StandardAmmoItem.StandardAmmoType ammo) {
         return ammo.family() == StandardAmmoItem.AmmoFamily.BMG50
                 || ammo.family() == StandardAmmoItem.AmmoFamily.R556
-                || ammo.family() == StandardAmmoItem.AmmoFamily.P9;
+                || ammo.family() == StandardAmmoItem.AmmoFamily.P9
+                || ammo.family() == StandardAmmoItem.AmmoFamily.LEGACY_BULLET
+                || ammo.family() == StandardAmmoItem.AmmoFamily.FLARE;
     }
 
     private List<EntityHitResult> findEntityHits(Vec3 start, Vec3 end) {
         AABB area = getBoundingBox().expandTowards(end.subtract(start)).inflate(1.0D);
         List<EntityHitResult> hits = new java.util.ArrayList<>();
-        for (Entity entity : level().getEntities(this, area, entity -> entity.isAlive() && entity.isPickable())) {
+        for (Entity entity : level().getEntities(this, area, entity -> entity.isAlive()
+                && entity.isPickable() && !isProtectedOwner(entity))) {
             Optional<Vec3> optionalHit = entity.getBoundingBox().inflate(0.3D).clip(start, end);
             if (optionalHit.isEmpty()) {
                 continue;
@@ -331,6 +353,10 @@ public class LegacyBulletEntity extends Entity {
         return hits;
     }
 
+    private boolean isProtectedOwner(Entity entity) {
+        return this.tickCount < ammoType().selfDamageDelay() && this.ownerUuid != null && this.ownerUuid.equals(entity.getUUID());
+    }
+
     private void updateRotationFromMotion(Vec3 motion) {
         double horizontal = Math.sqrt(motion.x * motion.x + motion.z * motion.z);
         if (horizontal < 1.0E-7D && Math.abs(motion.y) < 1.0E-7D) {
@@ -340,12 +366,21 @@ public class LegacyBulletEntity extends Entity {
         setXRot((float) Mth.wrapDegrees(-Math.toDegrees(Math.atan2(motion.y, horizontal))));
     }
 
+    /** EntityBullet#canTriggerWalking returned false in 1.7.10. */
+    @Override
+    public boolean isIgnoringBlockTriggers() {
+        return true;
+    }
+
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putInt("ammo_type", this.entityData.get(AMMO_TYPE));
         tag.putFloat("base_damage", this.entityData.get(BASE_DAMAGE));
         tag.putBoolean("balefire", this.entityData.get(BALEFIRE));
         tag.putInt("ricochets", this.ricochets);
+        if (this.ownerUuid != null) {
+            tag.putUUID("owner", this.ownerUuid);
+        }
     }
 
     @Override
@@ -354,11 +389,14 @@ public class LegacyBulletEntity extends Entity {
         this.entityData.set(BASE_DAMAGE, tag.getFloat("base_damage"));
         this.entityData.set(BALEFIRE, tag.getBoolean("balefire"));
         this.ricochets = tag.getInt("ricochets");
+        this.ownerUuid = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
         this.targetUuid = null;
     }
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 65536.0D;
+        // EntityBullet sets renderDistanceWeight = 10.  Its 0.5 x 0.5 x 0.5
+        // box therefore renders through the legacy 320-block squared range.
+        return distance < 102400.0D;
     }
 }

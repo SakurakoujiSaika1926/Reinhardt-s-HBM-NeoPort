@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:resource_layer_bauxite",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

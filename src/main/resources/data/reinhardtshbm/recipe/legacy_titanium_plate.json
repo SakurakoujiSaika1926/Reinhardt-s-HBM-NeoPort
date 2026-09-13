@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"equipment",
+  "pattern":["X X","XXX","XXX"],
+  "key":{"X":{"tag":"c:ingots/titanium"}},
+  "result":{"id":"reinhardtshbm:titanium_plate"}
+}

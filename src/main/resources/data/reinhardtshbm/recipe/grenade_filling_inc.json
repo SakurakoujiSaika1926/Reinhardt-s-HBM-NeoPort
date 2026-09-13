@@ -11,7 +11,7 @@
                           "item":  "reinhardtshbm:powder_fire"
                       },
                 "I":  {
-                          "item":  "reinhardtshbm:plate_polymer"
+                          "tag":  "c:plates/polymer"
                       }
             },
     "result":  {

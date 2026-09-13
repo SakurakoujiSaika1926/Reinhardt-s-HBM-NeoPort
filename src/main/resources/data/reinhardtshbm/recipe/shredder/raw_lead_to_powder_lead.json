@@ -3,8 +3,9 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_lead"
                    },
+    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_lead",
-                   "count":  3
+                       "count":  3
                }
 }

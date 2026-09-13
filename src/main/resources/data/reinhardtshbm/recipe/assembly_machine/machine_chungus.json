@@ -15,9 +15,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
+        "items": "reinhardtshbm:shell",
         "components": {
           "minecraft:custom_data": {
             "material_id": 30,
@@ -30,9 +28,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
+        "items": "reinhardtshbm:plate_welded",
         "components": {
           "minecraft:custom_data": {
             "material_id": 30,
@@ -75,9 +71,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
+        "items": "reinhardtshbm:wire_dense",
         "components": {
           "minecraft:custom_data": {
             "material_id": 7900,
@@ -89,13 +83,31 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/dura_steel"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 33,
+            "material": "dura_steel"
+          }
+        }
       },
       "count": 16
     },
     {
       "ingredient": {
-        "tag": "c:pipes/steel"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
       },
       "count": 16
     }

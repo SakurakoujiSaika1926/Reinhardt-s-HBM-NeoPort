@@ -5,7 +5,7 @@
     "PRP"
   ],
   "key": {
-    "P": { "item": "reinhardtshbm:plate_steel" },
+    "P": { "tag": "c:plates/steel" },
     "R": { "item": "reinhardtshbm:ingot_red_copper" }
   },
   "result": {

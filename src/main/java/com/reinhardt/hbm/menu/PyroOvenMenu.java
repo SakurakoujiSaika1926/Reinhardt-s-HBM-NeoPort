@@ -171,7 +171,7 @@ public final class PyroOvenMenu extends AbstractContainerMenu {
         }
     }
 
-    private static final class OutputSlot extends Slot {
+    private static final class OutputSlot extends LegacyAchievementOutputSlot {
         private OutputSlot(Container container, int index, int x, int y) {
             super(container, index, x, y);
         }

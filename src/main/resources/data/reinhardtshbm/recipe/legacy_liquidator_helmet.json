@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "III",
+    "CBC",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/rubber"
+    },
+    "C": {
+      "item": "reinhardtshbm:cladding_lead"
+    },
+    "B": {
+      "item": "reinhardtshbm:hazmat_helmet_grey"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:liquidator_helmet"
+  }
+}

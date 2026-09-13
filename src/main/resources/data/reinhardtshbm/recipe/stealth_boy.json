@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" B","LI","LC"],"key":{"B":{"item":"minecraft:stone_button"},"L":{"item":"minecraft:leather"},"I":{"tag":"c:ingots/steel"},"C":{"item":"reinhardtshbm:circuit_basic"}},"result":{"id":"reinhardtshbm:stealth_boy"}}

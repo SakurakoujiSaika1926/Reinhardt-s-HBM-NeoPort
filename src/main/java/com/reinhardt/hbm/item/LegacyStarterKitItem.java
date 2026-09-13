@@ -185,10 +185,10 @@ public final class LegacyStarterKitItem extends Item {
                     e("machine_blast_furnace", 1), e("machine_gascent", 1), e("machine_reactor_breeding", 1),
                     e("machine_assembly_machine", 1), e("machine_chemical_plant", 1), e("machine_reactor_small", 1),
                     e("machine_turbine", 2), e("radaway", 8), e("radx", 2), e("stamp_titanium_flat", 3),
-                    e("ingot_steel", 64), e("ingot_lead", 64), e("ingot_copper", 64), e("gas_mask_m65", 1), e("geiger_counter", 1)
+                    e("ingot_steel", 64), e("ingot_lead", 64), e("minecraft:copper_ingot", 64), e("gas_mask_m65", 1), e("geiger_counter", 1)
             ), 1, true, true);
             case "nuke_advanced_kit" -> new Kit(List.of(
-                    e("powder_yellowcake", 64), e("powder_plutonium", 64), e("ingot_steel", 64), e("ingot_copper", 64),
+                    e("powder_yellowcake", 64), e("powder_plutonium", 64), e("ingot_steel", 64), e("minecraft:copper_ingot", 64),
                     e("ingot_tungsten", 64), e("ingot_lead", 64), e("ingot_polymer", 64), e("machine_blast_furnace", 3),
                     e("machine_gascent", 3), e("machine_centrifuge", 2), e("machine_uf6_tank", 2), e("machine_puf6_tank", 2),
                     e("machine_reactor_breeding", 2), e("machine_reactor_small", 4), e("machine_turbine", 4), e("machine_radgen", 1),

@@ -16,6 +16,8 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.CaveSpider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -28,6 +30,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Random;
+
 public final class SafeBlockEntity extends BlockEntity implements MenuProvider, WorldlyContainer, MachineInventory, LockableBlockEntity {
     public static final int SLOT_COUNT = 15;
     private static final int[] SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
@@ -38,6 +42,7 @@ public final class SafeBlockEntity extends BlockEntity implements MenuProvider, 
     private boolean locked;
     private double lockMod = 0.1D;
     private boolean cheesable = true;
+    private boolean hasSpiders;
 
     public SafeBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.SAFE.get(), pos, state);
@@ -109,6 +114,31 @@ public final class SafeBlockEntity extends BlockEntity implements MenuProvider, 
         }
     }
 
+    /** TileEntityCrateBase#fillWithSpiders. */
+    public void fillWithSpiders() {
+        hasSpiders = true;
+        sync();
+    }
+
+    /** Exact placed-crate branch of TileEntityCrateBase#spawnSpiders. */
+    public void releaseSpiders(Player player) {
+        if (!hasSpiders || level == null || level.isClientSide) {
+            return;
+        }
+        Random random = new Random();
+        for (int index = 0; index < 3; index++) {
+            CaveSpider spider = new CaveSpider(EntityType.CAVE_SPIDER, level);
+            spider.moveTo(worldPosition.getX() + random.nextGaussian() * 2.0D,
+                    worldPosition.getY() + 1.0D,
+                    worldPosition.getZ() + random.nextGaussian() * 2.0D,
+                    random.nextFloat(), 0.0F);
+            spider.setTarget(player);
+            level.addFreshEntity(spider);
+        }
+        hasSpiders = false;
+        sync();
+    }
+
     @Override public boolean isLocked() { return locked; }
     @Override public void lock() { locked = true; lockChanged(); }
     @Override public void unlock() { locked = false; lockChanged(); }
@@ -135,6 +165,9 @@ public final class SafeBlockEntity extends BlockEntity implements MenuProvider, 
         data.putBoolean("isLocked", locked);
         data.putDouble("lockMod", lockMod);
         data.putBoolean("cheesable", cheesable);
+        if (hasSpiders) {
+            data.putBoolean("spiders", true);
+        }
         CompoundTag root = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         root.put(ITEM_DATA_KEY, data);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(root));
@@ -148,6 +181,7 @@ public final class SafeBlockEntity extends BlockEntity implements MenuProvider, 
         tag.putBoolean("isLocked", locked);
         tag.putDouble("lockMod", lockMod);
         tag.putBoolean("cheesable", cheesable);
+        tag.putBoolean("spiders", hasSpiders);
     }
 
     @Override
@@ -155,6 +189,7 @@ public final class SafeBlockEntity extends BlockEntity implements MenuProvider, 
         super.loadAdditional(tag, registries);
         ContainerHelper.loadAllItems(tag, items, registries);
         readLockData(tag);
+        hasSpiders = tag.getBoolean("spiders");
     }
 
     private void readData(CompoundTag tag, HolderLookup.Provider registries) {
@@ -167,6 +202,7 @@ public final class SafeBlockEntity extends BlockEntity implements MenuProvider, 
         locked = tag.getBoolean("isLocked");
         lockMod = tag.contains("lockMod") ? tag.getDouble("lockMod") : 0.1D;
         cheesable = !tag.contains("cheesable") || tag.getBoolean("cheesable");
+        hasSpiders = tag.getBoolean("spiders");
     }
 
     @Override

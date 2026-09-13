@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:rad_poison",
+  "display": {
+    "icon": {
+      "id": "minecraft:skeleton_skull"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.rad_death.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.rad_death.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

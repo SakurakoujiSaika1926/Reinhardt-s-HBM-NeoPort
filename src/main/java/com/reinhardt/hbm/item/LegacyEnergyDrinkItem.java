@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmMobEffects;
 import net.minecraft.ChatFormatting;
@@ -218,6 +219,7 @@ public class LegacyEnergyDrinkItem extends Item {
                 player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 60 * 20, 2));
                 if (id.equals("coffee_radium")) {
                     radiation(player, 500.0F);
+                    HbmAdvancements.award(player, "radium");
                 }
             }
             default -> {

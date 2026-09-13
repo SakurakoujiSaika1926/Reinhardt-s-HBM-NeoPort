@@ -72,9 +72,13 @@ public final class SpotlightBlockEntityRenderer implements BlockEntityRenderer<S
                 0.5F - facing.getStepY() * 0.5F,
                 0.5F - facing.getStepZ() * 0.5F
         );
-        poseStack.mulPose(Axis.XP.rotation(modularRoll(connectionDirection, facing)));
-        poseStack.mulPose(Axis.ZP.rotation(pitch(facing)));
-        poseStack.mulPose(Axis.YP.rotation(yaw(facing)));
+        // RenderLight used Vec3.rotateAroundX/Z.  Those legacy methods have
+        // the opposite sign from a positive modern PoseStack axis rotation;
+        // Y rotation is already the same convention.  Preserve each old axis
+        // operation explicitly rather than applying a shared orientation.
+        poseStack.mulPose(Axis.XP.rotationDegrees(-modularRoll(connectionDirection, facing)));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-pitch(facing)));
+        poseStack.mulPose(Axis.YP.rotationDegrees(yaw(facing)));
 
         ModelResourceLocation model = switch (block.kind()) {
             case INCANDESCENT -> block.isLit() ? INCANDESCENT_ON : INCANDESCENT_OFF;

@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:digamma_kauai_moho",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:achievement_icon"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.digamma_up_on_top.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.digamma_up_on_top.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

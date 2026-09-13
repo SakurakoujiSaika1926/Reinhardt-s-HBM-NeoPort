@@ -4,5 +4,5 @@
   "ingredient": { "tag": "c:ores/cinnabar" },
   "acid": { "fluid": "peroxide", "amount": 500 },
   "duration": 600,
-  "result": { "id": "reinhardtshbm:crystal_cinnabar" }
+  "result": { "id": "reinhardtshbm:crystal_cinnebar" }
 }

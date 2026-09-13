@@ -4,6 +4,8 @@ import com.reinhardt.hbm.item.PlateFuelItem;
 import com.reinhardt.hbm.item.WasteFuelItem;
 import com.reinhardt.hbm.menu.ResearchReactorMenu;
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -19,6 +21,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -35,6 +38,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -427,6 +431,15 @@ public class ResearchReactorBlockEntity extends BlockEntity implements MachineIn
         level.setBlock(this.worldPosition.above(2), legacyBlock("deco_steel").defaultBlockState(), 3);
         if (level instanceof ServerLevel serverLevel) {
             ChunkRadiationData.get(serverLevel).incrementRadiation(this.worldPosition, 50.0D, 15_000.0D);
+            if (HbmConfig.ENABLE_MELTDOWN_ELEMENTALS.get()) {
+                // Old: AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1).expand(100, 100, 100).
+                AABB area = new AABB(worldPosition.getX() - 100.0D, worldPosition.getY() - 100.0D,
+                        worldPosition.getZ() - 100.0D, worldPosition.getX() + 101.0D,
+                        worldPosition.getY() + 101.0D, worldPosition.getZ() + 101.0D);
+                for (ServerPlayer player : serverLevel.getEntitiesOfClass(ServerPlayer.class, area)) {
+                    LegacyMobSpawnEvents.markRadiationBeastTarget(player);
+                }
+            }
         }
     }
 

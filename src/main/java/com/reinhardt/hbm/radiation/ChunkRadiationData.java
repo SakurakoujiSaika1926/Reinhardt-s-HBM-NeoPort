@@ -11,7 +11,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChunkRadiationData extends SavedData {
@@ -24,6 +26,14 @@ public class ChunkRadiationData extends SavedData {
     private final Map<Long, Double> sections = new HashMap<>();
     /** Main-thread index used to seed one loaded chunk without scanning all saved radiation. */
     private final Map<Long, Map<Long, Double>> sectionsByChunk = new HashMap<>();
+    /**
+     * Main-thread emission combiner.  Several systems, especially RBMK neutron
+     * streaming, may add radiation to the same section many times in one game
+     * tick.  The old gameplay result is additive, but notifying SavedData and
+     * the async diffusion worker for every tiny add is pure overhead.  Queue
+     * increments in call order and flush them at stable boundaries.
+     */
+    private final Map<Long, PendingRadiation> pendingIncrements = new HashMap<>();
     private long revision;
     private transient ServerLevel owner;
 
@@ -51,6 +61,7 @@ public class ChunkRadiationData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        flushPendingIncrements();
         ListTag list = new ListTag();
         for (Map.Entry<Long, Double> entry : sections.entrySet()) {
             double radiation = sanitize(entry.getValue());
@@ -71,6 +82,7 @@ public class ChunkRadiationData extends SavedData {
     }
 
     public double getRadiation(long sectionKey) {
+        flushPendingIncrements();
         return sections.getOrDefault(sectionKey, 0.0D);
     }
 
@@ -79,6 +91,11 @@ public class ChunkRadiationData extends SavedData {
     }
 
     public void setRadiation(long sectionKey, double radiation) {
+        flushPendingIncrements();
+        setRadiationImmediate(sectionKey, radiation);
+    }
+
+    private void setRadiationImmediate(long sectionKey, double radiation) {
         double sanitized = sanitize(radiation);
         if (sanitized <= 0.0D) {
             if (sections.remove(sectionKey) != null) {
@@ -114,12 +131,13 @@ public class ChunkRadiationData extends SavedData {
     }
 
     public void incrementRadiation(BlockPos pos, double amount, double max) {
-        long sectionKey = SectionPos.asLong(pos);
-        double current = getRadiation(sectionKey);
-        if (current >= max && amount > 0.0D) {
+        if (!Double.isFinite(amount) || amount == 0.0D) {
             return;
         }
-        setRadiation(sectionKey, Math.min(max, current + amount));
+        long sectionKey = SectionPos.asLong(pos);
+        pendingIncrements
+                .computeIfAbsent(sectionKey, ignored -> new PendingRadiation())
+                .add(amount, sanitizeMax(max));
     }
 
     public void decrementRadiation(BlockPos pos, double amount) {
@@ -135,18 +153,22 @@ public class ChunkRadiationData extends SavedData {
     }
 
     boolean isEmpty() {
+        flushPendingIncrements();
         return sections.isEmpty();
     }
 
     long revision() {
+        flushPendingIncrements();
         return revision;
     }
 
     Map<Long, Double> sectionsForChunk(long chunkKey) {
+        flushPendingIncrements();
         return Map.copyOf(sectionsByChunk.getOrDefault(chunkKey, Map.of()));
     }
 
     boolean applySolvedSnapshot(Map<Long, Double> solved, long expectedRevision, java.util.Set<Long> updatedSections) {
+        flushPendingIncrements();
         if (revision != expectedRevision) {
             return false;
         }
@@ -176,6 +198,48 @@ public class ChunkRadiationData extends SavedData {
         return true;
     }
 
+    void flushPendingIncrements() {
+        if (pendingIncrements.isEmpty()) {
+            return;
+        }
+
+        Map<Long, Double> changedSections = new HashMap<>();
+        for (Map.Entry<Long, PendingRadiation> entry : pendingIncrements.entrySet()) {
+            long sectionKey = entry.getKey();
+            double current = sections.getOrDefault(sectionKey, 0.0D);
+            double updated = entry.getValue().apply(current);
+            updated = sanitize(updated);
+            if (Double.compare(current, updated) == 0) {
+                continue;
+            }
+            if (updated > 0.0D) {
+                sections.put(sectionKey, updated);
+                index(sectionKey, updated);
+            } else {
+                sections.remove(sectionKey);
+                removeIndexed(sectionKey);
+            }
+            changedSections.put(sectionKey, updated);
+        }
+        pendingIncrements.clear();
+        if (changedSections.isEmpty()) {
+            return;
+        }
+
+        revision++;
+        setDirty();
+        if (owner != null) {
+            if (sections.isEmpty()) {
+                HbmRadiationWorlds.markInactive(owner);
+            } else {
+                HbmRadiationWorlds.markActive(owner);
+            }
+            for (Map.Entry<Long, Double> entry : changedSections.entrySet()) {
+                HbmRadiationWorlds.onRadiationChanged(owner, entry.getKey(), entry.getValue(), revision);
+            }
+        }
+    }
+
     private void putLoaded(long sectionKey, double radiation) {
         sections.put(sectionKey, radiation);
         index(sectionKey, radiation);
@@ -203,5 +267,42 @@ public class ChunkRadiationData extends SavedData {
             return 0.0D;
         }
         return Math.min(value, HbmRadiationConstants.CHUNK_RADIATION_MAX);
+    }
+
+    private static double sanitizeMax(double max) {
+        if (!Double.isFinite(max) || max <= 0.0D) {
+            return HbmRadiationConstants.CHUNK_RADIATION_MAX;
+        }
+        return Math.min(max, HbmRadiationConstants.CHUNK_RADIATION_MAX);
+    }
+
+    private static final class PendingRadiation {
+        private final List<Increment> increments = new ArrayList<>(1);
+
+        void add(double amount, double max) {
+            int lastIndex = increments.size() - 1;
+            if (lastIndex >= 0) {
+                Increment last = increments.get(lastIndex);
+                if (Double.compare(last.max(), max) == 0) {
+                    increments.set(lastIndex, new Increment(last.amount() + amount, max));
+                    return;
+                }
+            }
+            increments.add(new Increment(amount, max));
+        }
+
+        double apply(double base) {
+            double current = base;
+            for (Increment increment : increments) {
+                if (current >= increment.max() && increment.amount() > 0.0D) {
+                    continue;
+                }
+                current = Math.min(increment.max(), current + increment.amount());
+            }
+            return current;
+        }
+    }
+
+    private record Increment(double amount, double max) {
     }
 }

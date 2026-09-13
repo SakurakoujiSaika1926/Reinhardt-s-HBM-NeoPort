@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["OOO", "PDP", "OOO"],
+  "key": {
+    "O": { "tag": "c:plates/iron" },
+    "P": { "tag": "c:plates/polymer" },
+    "D": { "item": "reinhardtshbm:ducttape" }
+  },
+  "result": { "id": "reinhardtshbm:cladding_iron" }
+}

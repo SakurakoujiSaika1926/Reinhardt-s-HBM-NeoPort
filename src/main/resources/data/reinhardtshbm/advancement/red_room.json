@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:root",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:key_red"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.red_room.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.red_room.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

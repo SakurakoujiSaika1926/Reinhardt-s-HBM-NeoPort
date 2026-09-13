@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
-/** Exact ItemRenderLibrary bobble transform: inventory y=-3.5, x10 then common x0.5. */
+/** Renders the metadata-bearing bobblehead with the legacy ItemRenderBase pose. */
 public final class BobbleheadItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final IClientItemExtensions EXTENSION = new IClientItemExtensions() {
         private final BobbleheadItemRenderer renderer = new BobbleheadItemRenderer();
@@ -35,6 +35,10 @@ public final class BobbleheadItemRenderer extends BlockEntityWithoutLevelRendere
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BobbleheadType type = BobbleheadBlockItem.type(stack);
         poseStack.pushPose();
+        // ItemRenderLibrary supplied a 1/16 base transform before the bobble's
+        // inventory/common transforms. Without it the old scale(10) inventory
+        // adjustment is applied directly to block-sized OBJ coordinates.
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -3.5F, 0.0F);
             poseStack.scale(10.0F, 10.0F, 10.0F);

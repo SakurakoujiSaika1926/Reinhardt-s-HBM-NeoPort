@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:resource_layer_hematite",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

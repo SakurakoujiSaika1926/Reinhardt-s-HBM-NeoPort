@@ -41,7 +41,7 @@ public final class LegacyPoleSatelliteReceiverModel {
                              float x, float y, float z, float dx, float dy, float dz,
                              float px, float py, float pz, float rx, float ry, float rz) {
         root.addOrReplaceChild(name,
-                CubeListBuilder.create().texOffs(u, v).addBox(x, y, z, dx, dy, dz),
+                CubeListBuilder.create().texOffs(u, v).mirror().addBox(x, y, z, dx, dy, dz),
                 PartPose.offsetAndRotation(px, py, pz, rx, ry, rz));
     }
 

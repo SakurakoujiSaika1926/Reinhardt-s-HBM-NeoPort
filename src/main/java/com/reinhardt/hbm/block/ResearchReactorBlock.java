@@ -2,6 +2,7 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.blockentity.ResearchReactorBlockEntity;
+import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -58,6 +59,9 @@ public class ResearchReactorBlock extends LargeMachineBlock implements EntityBlo
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
+        }
+        if (!player.isCrouching() && player instanceof ServerPlayer serverPlayer) {
+            LegacyMobSpawnEvents.markFbi(serverPlayer);
         }
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MenuProvider menuProvider && player instanceof ServerPlayer serverPlayer) {

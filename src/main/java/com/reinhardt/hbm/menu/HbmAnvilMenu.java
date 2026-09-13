@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.menu;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.recipe.anvil.AnvilConstructionRecipe;
 import com.reinhardt.hbm.recipe.anvil.AnvilSmithingRecipe;
 import com.reinhardt.hbm.recipe.anvil.HbmAnvilRecipes;
@@ -182,6 +183,7 @@ public class HbmAnvilMenu extends AbstractContainerMenu {
 
         @Override
         public void onTake(Player player, ItemStack stack) {
+            HbmAdvancements.awardForCraftedStack(player, stack);
             ItemStack left = HbmAnvilMenu.this.input.getItem(LEFT_INPUT_SLOT);
             ItemStack right = HbmAnvilMenu.this.input.getItem(RIGHT_INPUT_SLOT);
             AnvilSmithingRecipe.Match match = HbmAnvilRecipes.findSmithing(left, right, HbmAnvilMenu.this.tier);

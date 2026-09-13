@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.radiation.HbmLivingHazards;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -9,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -44,11 +44,11 @@ public class AsbestosGasBlock extends HbmGasBlock {
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         super.entityInside(state, level, pos, entity);
-        if (level.isClientSide || !(entity instanceof LivingEntity living)
-                || living instanceof Player player && (player.isCreative() || player.isSpectator())) {
+        if (level.isClientSide || !HbmConfig.ENABLE_ASBESTOS.get()
+                || !(entity instanceof LivingEntity living)) {
             return;
         }
-        if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE, 1)) {
+        if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE)) {
             HbmLivingHazards hazards = HbmLivingHazards.get(living);
             hazards.addAsbestos(living, 1);
             HbmLivingHazards.set(living, hazards);

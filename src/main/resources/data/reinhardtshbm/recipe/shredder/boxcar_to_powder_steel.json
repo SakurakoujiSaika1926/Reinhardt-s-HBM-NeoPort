@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "item": "reinhardtshbm:boxcar"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_steel",
+    "count": 32
+  }
+}

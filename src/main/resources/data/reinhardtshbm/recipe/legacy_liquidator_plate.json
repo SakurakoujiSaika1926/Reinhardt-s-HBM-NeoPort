@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ICI",
+    "TBT",
+    "ICI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/rubber"
+    },
+    "C": {
+      "item": "reinhardtshbm:cladding_lead"
+    },
+    "B": {
+      "item": "reinhardtshbm:hazmat_plate_grey"
+    },
+    "T": {
+      "item": "reinhardtshbm:gas_empty"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:liquidator_plate"
+  }
+}

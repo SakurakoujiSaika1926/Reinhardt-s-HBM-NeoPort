@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pellet_rtg_depleted"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "rtg_depleted_material": "lead"
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:ingot_lead",
+    "count": 2
+  }
+}

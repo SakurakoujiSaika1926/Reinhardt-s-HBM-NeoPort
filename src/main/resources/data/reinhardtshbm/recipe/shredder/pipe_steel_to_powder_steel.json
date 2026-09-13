@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "item": "reinhardtshbm:pipe_steel"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_steel",
+    "count": 27
+  }
+}

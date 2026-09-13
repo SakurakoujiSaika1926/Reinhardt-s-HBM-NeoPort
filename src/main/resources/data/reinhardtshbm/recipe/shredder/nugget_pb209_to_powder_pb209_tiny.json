@@ -1,9 +1,0 @@
-﻿{
-    "type":  "reinhardtshbm:shredder",
-    "ingredient":  {
-                       "item":  "reinhardtshbm:nugget_pb209"
-                   },
-    "result":  {
-                   "id":  "reinhardtshbm:powder_pb209_tiny"
-               }
-}

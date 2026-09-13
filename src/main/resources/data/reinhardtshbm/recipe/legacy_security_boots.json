@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"equipment",
+  "pattern":["P P","I I"],
+  "key":{"P":{"tag":"c:plates/steel"},"I":{"tag":"c:ingots/rubber"}},
+  "result":{"id":"reinhardtshbm:security_boots"}
+}

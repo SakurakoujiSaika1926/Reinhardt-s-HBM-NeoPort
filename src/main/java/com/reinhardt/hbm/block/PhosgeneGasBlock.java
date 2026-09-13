@@ -6,7 +6,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -17,8 +16,7 @@ public class PhosgeneGasBlock extends ChlorineGasBlock {
 
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-        if (level.isClientSide || !(entity instanceof LivingEntity living)
-                || living instanceof Player player && (player.isCreative() || player.isSpectator())) {
+        if (level.isClientSide || !(entity instanceof LivingEntity living)) {
             return;
         }
         if (HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.GAS_LUNG, 1)) {

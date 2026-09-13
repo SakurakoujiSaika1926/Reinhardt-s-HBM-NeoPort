@@ -2,6 +2,7 @@
     "replace": false,
     "values": [
         "#c:raw_materials/aluminium",
+        "#c:raw_materials/australium",
         "#c:raw_materials/beryllium",
         "#c:raw_materials/cobalt",
         "#c:raw_materials/coltan",
@@ -9,6 +10,8 @@
         "#c:raw_materials/gold",
         "#c:raw_materials/iron",
         "#c:raw_materials/lead",
+        "#c:raw_materials/lithium",
+        "#c:raw_materials/plutonium",
         "#c:raw_materials/schrabidium",
         "#c:raw_materials/thorium",
         "#c:raw_materials/titanium",

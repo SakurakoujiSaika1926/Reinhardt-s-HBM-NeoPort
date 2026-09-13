@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "M M",
+    "S S",
+    "W W"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:orange_wool"
+    },
+    "S": {
+      "tag": "c:ingots/steel"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:dieselsuit_legs"
+  }
+}

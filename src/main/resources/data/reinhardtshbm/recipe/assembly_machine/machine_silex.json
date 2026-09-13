@@ -39,7 +39,16 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:pipe_steel"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
       },
       "count": 8
     }

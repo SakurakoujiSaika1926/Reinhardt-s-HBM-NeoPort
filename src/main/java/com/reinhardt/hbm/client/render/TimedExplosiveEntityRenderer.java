@@ -29,6 +29,11 @@ public final class TimedExplosiveEntityRenderer extends EntityRenderer<TimedExpl
             case DET_CHARGE -> HbmBlocks.DET_CHARGE.get().defaultBlockState();
             case DET_NUKE -> HbmBlocks.DET_NUKE.get().defaultBlockState();
             case DET_MINER -> HbmBlocks.DET_MINER.get().defaultBlockState();
+            case RED_BARREL -> HbmBlocks.RED_BARREL.get().defaultBlockState();
+            case PINK_BARREL -> HbmBlocks.PINK_BARREL.get().defaultBlockState();
+            case LOX_BARREL -> HbmBlocks.LOX_BARREL.get().defaultBlockState();
+            case TAINT_BARREL -> HbmBlocks.TAINT_BARREL.get().defaultBlockState();
+            case YELLOW_BARREL -> HbmBlocks.YELLOW_BARREL.get().defaultBlockState();
         };
         poseStack.pushPose();
         poseStack.translate(-0.5D, -0.5D, -0.5D);

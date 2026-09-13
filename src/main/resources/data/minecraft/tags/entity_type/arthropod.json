@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:entity_glyphid",
+    "reinhardtshbm:entity_glyphid_brawler",
+    "reinhardtshbm:entity_glyphid_behemoth",
+    "reinhardtshbm:entity_glyphid_brenda",
+    "reinhardtshbm:entity_glyphid_bombardier",
+    "reinhardtshbm:entity_glyphid_blaster",
+    "reinhardtshbm:entity_glyphid_scout",
+    "reinhardtshbm:entity_glyphid_nuclear",
+    "reinhardtshbm:entity_glyphid_digger",
+    "reinhardtshbm:entity_parasite_maggot"
+  ]
+}

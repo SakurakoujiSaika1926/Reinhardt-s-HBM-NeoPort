@@ -54,4 +54,10 @@ public final class RubberBoatEntity extends Boat {
             fallDistance -= (float) y;
         }
     }
+
+    /** EntityBoatRubber#canTriggerWalking returned false in 1.7.10. */
+    @Override
+    public boolean isIgnoringBlockTriggers() {
+        return true;
+    }
 }

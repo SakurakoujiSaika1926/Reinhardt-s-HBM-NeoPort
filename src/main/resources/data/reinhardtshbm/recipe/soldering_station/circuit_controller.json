@@ -1,4 +1,12 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
   "type": "reinhardtshbm:soldering_station",
   "group": "soldering.computer",
   "duration": 400,

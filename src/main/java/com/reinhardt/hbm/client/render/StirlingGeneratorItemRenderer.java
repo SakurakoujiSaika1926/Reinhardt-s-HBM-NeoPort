@@ -42,15 +42,41 @@ public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevel
         float rot = hasCog ? (System.currentTimeMillis() % 3600L) * 0.1F : 0.0F;
 
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
-        if (context == ItemDisplayContext.GUI) {
-            // RenderStirling#getRenderer: the legacy inventory-only pose.
-            poseStack.translate(0.0F, -1.5F, 0.0F);
-            poseStack.scale(3.25F, 3.25F, 3.25F);
+        switch (context) {
+            case GUI -> {
+                // RenderStirling#getRenderer's ItemRenderBase#INVENTORY,
+                // followed by its own renderInventory and renderCommonWithStack.
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                poseStack.translate(0.0F, -1.5F, 0.0F);
+                poseStack.scale(3.25F, 3.25F, 3.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                // Both map to the sole 1.7.10 EQUIPPED render type.
+                poseStack.translate(0.5F, 0.25F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                // 1.7.10 EQUIPPED_FIRST_PERSON: ItemRenderBase's 90 degrees,
+                // then RenderStirling#renderCommonWithStack's 90 degrees.
+                poseStack.translate(0.5F, 0.25F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case GROUND -> {
+                // 1.7.10 ENTITY: 1.5 * 0.25, then the two authored Y rotations.
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case NONE, HEAD, FIXED -> throw new IllegalArgumentException(
+                    "RenderStirling had no 1.7.10 ItemRenderType for " + context);
         }
-        // RenderStirling#renderCommonWithStack applies this rotation in every
-        // display context after ItemRenderBase has established its pose.
-        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
 
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.world), poseStack, bufferSource, state, packedLight, packedOverlay);
 
@@ -80,16 +106,20 @@ public final class StirlingGeneratorItemRenderer extends BlockEntityWithoutLevel
 
     private record PartSet(Block block, ModelResourceLocation world, ModelResourceLocation cog, ModelResourceLocation cogSmall, ModelResourceLocation piston) {
         private static PartSet forStack(ItemStack stack) {
-            if (stack.getItem() instanceof BlockItem blockItem) {
-                Block block = blockItem.getBlock();
-                if (block == HbmBlocks.MACHINE_STIRLING_CREATIVE.get()) {
-                    return new PartSet(block, WORLD_CREATIVE, COG_CREATIVE, COG_SMALL_CREATIVE, PISTON_CREATIVE);
-                }
-                if (block == HbmBlocks.MACHINE_STIRLING_STEEL.get()) {
-                    return new PartSet(block, WORLD_STEEL, COG_STEEL, COG_SMALL_STEEL, PISTON_STEEL);
-                }
+            if (!(stack.getItem() instanceof BlockItem blockItem)) {
+                throw new IllegalArgumentException("Stirling renderer received a non-block item: " + stack.getItem());
             }
-            return new PartSet(HbmBlocks.MACHINE_STIRLING.get(), WORLD, COG, COG_SMALL, PISTON);
+            Block block = blockItem.getBlock();
+            if (block == HbmBlocks.MACHINE_STIRLING.get()) {
+                return new PartSet(block, WORLD, COG, COG_SMALL, PISTON);
+            }
+            if (block == HbmBlocks.MACHINE_STIRLING_CREATIVE.get()) {
+                return new PartSet(block, WORLD_CREATIVE, COG_CREATIVE, COG_SMALL_CREATIVE, PISTON_CREATIVE);
+            }
+            if (block == HbmBlocks.MACHINE_STIRLING_STEEL.get()) {
+                return new PartSet(block, WORLD_STEEL, COG_STEEL, COG_SMALL_STEEL, PISTON_STEEL);
+            }
+            throw new IllegalArgumentException("Stirling renderer received an unsupported block: " + block);
         }
     }
 }

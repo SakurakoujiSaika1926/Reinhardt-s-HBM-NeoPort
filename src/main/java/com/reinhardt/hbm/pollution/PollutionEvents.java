@@ -2,6 +2,7 @@ package com.reinhardt.hbm.pollution;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.entity.GlyphidEntity;
 import com.reinhardt.hbm.network.PollutionSyncPayload;
 import com.reinhardt.hbm.radiation.HbmLivingHazards;
 import com.reinhardt.hbm.registry.HbmMobEffects;
@@ -15,6 +16,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
@@ -24,7 +27,9 @@ import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
+import net.neoforged.neoforge.event.entity.living.MobDespawnEvent;
+import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -49,31 +54,72 @@ public final class PollutionEvents {
         }
     }
 
+    /**
+     * PollutionHandler.decorateMob received LivingSpawnEvent.CheckSpawn in
+     * 1.7.10.  PositionCheck is its modern spawn-check counterpart.
+     */
     @SubscribeEvent
-    public static void onEntityJoin(EntityJoinLevelEvent event) {
-        if (!HbmConfig.ENABLE_POLLUTION.get() || event.getLevel().isClientSide || !(event.getLevel() instanceof ServerLevel level)) {
+    public static void onLegacySpawnCheck(MobSpawnEvent.PositionCheck event) {
+        decorateLegacySpawn(event.getEntity(), event.getLevel());
+    }
+
+    /**
+     * The old handler also received LivingSpawnEvent.SpecialSpawn from
+     * SpawnerAnimals.  Direct addFreshEntity sites are deliberately excluded:
+     * old World.spawnEntityInWorld did not emit a LivingSpawnEvent.
+     */
+    @SubscribeEvent
+    public static void onLegacyNaturalSpecialSpawn(FinalizeSpawnEvent event) {
+        if (event.getSpawnType() == MobSpawnType.NATURAL) {
+            decorateLegacySpawn(event.getEntity(), event.getLevel());
+        }
+    }
+
+    /**
+     * LivingSpawnEvent.AllowDespawn was another child received by the old
+     * base-class listener.  Forge 1.7.10 emitted it only when entityAge's low
+     * five bits were all set, and only for non-persistent EntityLiving mobs.
+     */
+    @SubscribeEvent
+    public static void onLegacyDespawnCheck(MobDespawnEvent event) {
+        Mob mob = event.getEntity();
+        if (!mob.isPersistenceRequired() && (mob.getNoActionTime() & 0x1F) == 0x1F) {
+            decorateLegacySpawn(mob, event.getLevel());
+        }
+    }
+
+    /** Called after the exact old BossSpawnHandler doSpecialSpawn position. */
+    public static void onLegacySpecialSpawn(Mob mob, ServerLevel level) {
+        decorateLegacySpawn(mob, level);
+    }
+
+    private static void decorateLegacySpawn(Mob mob, net.minecraft.world.level.ServerLevelAccessor levelAccessor) {
+        if (!HbmConfig.ENABLE_POLLUTION.get()
+                || !(levelAccessor instanceof ServerLevel level)
+                || !(mob instanceof Enemy)
+                || mob instanceof GlyphidEntity) {
             return;
         }
-        if (!(event.getEntity() instanceof LivingEntity living) || !(living instanceof Enemy)) {
-            return;
-        }
-        double soot = HbmPollutionWorlds.get(level, living.blockPosition(), HbmPollutionType.SOOT);
+        double soot = HbmPollutionWorlds.get(level, mob.blockPosition(), HbmPollutionType.SOOT);
         if (soot <= HbmConfig.POLLUTION_MOB_BUFF_THRESHOLD.get()) {
             return;
         }
-        if (living.getAttribute(Attributes.MAX_HEALTH) != null && living.getAttribute(Attributes.MAX_HEALTH).getModifier(SOOT_HEALTH) == null) {
-            living.getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier(SOOT_HEALTH, 1.0D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        if (mob.getAttribute(Attributes.MAX_HEALTH) != null && mob.getAttribute(Attributes.MAX_HEALTH).getModifier(SOOT_HEALTH) == null) {
+            mob.getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier(SOOT_HEALTH, 1.0D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
         }
-        if (living.getAttribute(Attributes.ATTACK_DAMAGE) != null && living.getAttribute(Attributes.ATTACK_DAMAGE).getModifier(SOOT_DAMAGE) == null) {
-            living.getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier(SOOT_DAMAGE, 1.5D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        if (mob.getAttribute(Attributes.ATTACK_DAMAGE) != null && mob.getAttribute(Attributes.ATTACK_DAMAGE).getModifier(SOOT_DAMAGE) == null) {
+            mob.getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier(SOOT_DAMAGE, 1.5D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
         }
-        living.heal(living.getMaxHealth());
+        mob.heal(mob.getMaxHealth());
     }
 
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Pre event) {
         if (!(event.getEntity() instanceof LivingEntity living)
                 || event.getEntity().level().isClientSide || !(event.getEntity().level() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!living.isAlive()) {
             return;
         }
         BlockPos eyePos = BlockPos.containing(living.getX(), living.getEyeY(), living.getZ());
@@ -84,7 +130,7 @@ public final class PollutionEvents {
             double poison = HbmPollutionWorlds.get(level, eyePos, HbmPollutionType.POISON);
             if (HbmConfig.ENABLE_POISON_EFFECT.get()
                     && poison > 10.0D) {
-                boolean protectedFromPoison = HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.GAS_BLISTERING, 1);
+                boolean protectedFromPoison = HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.GAS_BLISTERING);
                 if (!protectedFromPoison && poison < 25.0D) {
                     living.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 0));
                 } else if (!protectedFromPoison && poison < 50.0D) {
@@ -97,7 +143,7 @@ public final class PollutionEvents {
             double heavyMetal = HbmPollutionWorlds.get(level, eyePos, HbmPollutionType.HEAVYMETAL);
             if (HbmConfig.ENABLE_LEAD_POISONING.get()
                     && heavyMetal > 25.0D) {
-                if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE, 1)) {
+                if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE)) {
                     int amplifier = heavyMetal < 50.0D ? 0 : 2;
                     living.addEffect(new MobEffectInstance(HbmMobEffects.LEAD_POISONING, 100, amplifier));
                 }
@@ -114,7 +160,7 @@ public final class PollutionEvents {
         if (heavyMetal < 5.0D) {
             return;
         }
-        if (HbmArmorProtection.hasHeadProtection(event.getPlayer(), HbmArmorProtection.HazardClass.PARTICLE_FINE, 1)) {
+        if (HbmArmorProtection.hasHeadProtection(event.getPlayer(), HbmArmorProtection.HazardClass.PARTICLE_FINE)) {
             return;
         }
         int amplifier = heavyMetal < 10.0D ? 0 : heavyMetal < 25.0D ? 1 : 2;
@@ -166,7 +212,7 @@ public final class PollutionEvents {
     }
 
     private static void handleLungDisease(ServerLevel level, LivingEntity living, BlockPos eyePos) {
-        if (living instanceof ServerPlayer player && (player.isCreative() || player.isSpectator())) {
+        if (living instanceof ServerPlayer player && player.isCreative()) {
             HbmLivingHazards.clear(living);
             return;
         }
@@ -183,7 +229,7 @@ public final class PollutionEvents {
         double soot = living instanceof ServerPlayer && HbmConfig.ENABLE_POLLUTION.get()
                 ? HbmPollutionWorlds.get(level, eyePos, HbmPollutionType.SOOT)
                 : 0.0D;
-        if (soot > 0.0D && HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_COARSE, 1)) {
+        if (soot > 0.0D && HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_COARSE)) {
             soot = 0.0D;
         }
 

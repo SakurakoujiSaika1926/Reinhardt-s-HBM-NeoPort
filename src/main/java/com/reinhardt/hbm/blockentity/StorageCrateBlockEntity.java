@@ -21,6 +21,8 @@ import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.CaveSpider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -39,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Random;
 
 public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider, WorldlyContainer, MachineInventory, LockableBlockEntity, PowerEndpoint {
     public static final String ITEM_DATA_KEY = "crate_data";
@@ -54,6 +57,7 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
     private boolean locked;
     private double lockMod = 0.1D;
     private boolean cheesable = true;
+    private boolean hasSpiders;
 
     public StorageCrateBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.STORAGE_CRATE.get(), pos, blockState);
@@ -87,6 +91,35 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
 
     public int heatTimer() {
         return this.heatTimer;
+    }
+
+    /** TileEntityCrateBase#fillWithSpiders. */
+    public void fillWithSpiders() {
+        this.hasSpiders = true;
+        sync();
+    }
+
+    /**
+     * TileEntityCrateBase#spawnSpiders for a placed crate: three cave spiders
+     * use a newly constructed Java Random, the crate origin, y + 1, and the
+     * opening player as their target.
+     */
+    public void releaseSpiders(Player player) {
+        if (!this.hasSpiders || this.level == null || this.level.isClientSide) {
+            return;
+        }
+        Random random = new Random();
+        for (int index = 0; index < 3; index++) {
+            CaveSpider spider = new CaveSpider(EntityType.CAVE_SPIDER, this.level);
+            spider.moveTo(this.worldPosition.getX() + random.nextGaussian() * 2.0D,
+                    this.worldPosition.getY() + 1.0D,
+                    this.worldPosition.getZ() + random.nextGaussian() * 2.0D,
+                    random.nextFloat(), 0.0F);
+            spider.setTarget(player);
+            this.level.addFreshEntity(spider);
+        }
+        this.hasSpiders = false;
+        sync();
     }
 
     @Override
@@ -347,6 +380,9 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
             data.putDouble("lockMod", this.lockMod);
             data.putBoolean("cheesable", this.cheesable);
         }
+        if (this.hasSpiders) {
+            data.putBoolean("spiders", true);
+        }
         return data;
     }
 
@@ -358,6 +394,7 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
         this.locked = data.getBoolean("isLocked");
         this.lockMod = data.contains("lockMod") ? data.getDouble("lockMod") : 0.1D;
         this.cheesable = !data.contains("cheesable") || data.getBoolean("cheesable");
+        this.hasSpiders = data.getBoolean("spiders");
     }
 
     private boolean isValidSlot(int slot) {
@@ -434,6 +471,7 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
         tag.putBoolean("isLocked", this.locked);
         tag.putDouble("lockMod", this.lockMod);
         tag.putBoolean("cheesable", this.cheesable);
+        tag.putBoolean("spiders", this.hasSpiders);
     }
 
     @Override
@@ -445,6 +483,7 @@ public class StorageCrateBlockEntity extends BlockEntity implements MenuProvider
         this.locked = tag.getBoolean("isLocked");
         this.lockMod = tag.getDouble("lockMod");
         this.cheesable = tag.getBoolean("cheesable");
+        this.hasSpiders = tag.getBoolean("spiders");
     }
 
     @Override

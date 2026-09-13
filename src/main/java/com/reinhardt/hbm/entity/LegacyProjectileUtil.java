@@ -40,6 +40,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -84,6 +86,41 @@ public final class LegacyProjectileUtil {
 
     public static void standardExplosion(Entity source, Vec3 pos, float radius, boolean breakBlocks) {
         standardExplosion(source, pos, radius, 1.0F, breakBlocks, true);
+    }
+
+    /**
+     * The dedicated 1.7.10 EntityMissileBaseNT.explodeStandard path.
+     *
+     * This intentionally does not call the shared weapon/vanilla explosion
+     * helpers.  The old missile method supplied its own VNT allocator and
+     * processors: the caller's resolution is significant, block drops are
+     * disabled, the optional fire mutator runs after block processing, and
+     * entity range is exactly 2 * explosion size.
+     */
+    public static void standardLegacyMissileExplosion(
+            Entity source, Vec3 pos, float strength, int resolution, boolean fire) {
+        if (resolution < 2) {
+            throw new IllegalArgumentException("Legacy missile explosion resolution must be >= 2");
+        }
+        if (source.level() instanceof ServerLevel serverLevel) {
+            Set<BlockPos> affected = allocateLegacyMissileStandardBlocks(
+                    serverLevel, pos, strength, resolution);
+            // ExplosionVNT.explode processes the entity processor between
+            // allocation and block processing; keep that ordering here.
+            applyLegacyMissileCrossDamage(source, pos, strength);
+            processLegacyMissileStandardBlocks(serverLevel, pos, strength, affected, fire);
+        }
+    }
+
+    /** Dedicated port of EntityMissileCustom's ExplosionLarge warhead path. */
+    public static void legacyLargeMissileWarheadExplosion(
+            Entity source, Vec3 pos, float strength, boolean fire) {
+        if (source.level() instanceof ServerLevel serverLevel) {
+            Set<BlockPos> affected = allocateLegacyMissileStandardBlocks(
+                    serverLevel, pos, strength, 48);
+            applyLegacyMissileCrossDamage(source, pos, strength);
+            processLegacyMissileStandardBlocks(serverLevel, pos, strength, affected, fire);
+        }
     }
 
     public static void standardExplosion(Entity source, Vec3 pos, float radius, float rangeMod, boolean breakBlocks) {
@@ -453,8 +490,12 @@ public final class LegacyProjectileUtil {
     }
 
     public static SednaImpact bulletImpact(StandardAmmoItem.StandardAmmoType ammo, Entity projectile, Entity target, Vec3 hitLocation, float damageRemaining) {
+        net.minecraft.resources.ResourceKey<net.minecraft.world.damagesource.DamageType> damageType =
+                ammo.family() == StandardAmmoItem.AmmoFamily.TAU
+                        ? HbmDamageTypes.TAU
+                        : HbmDamageTypes.SEDNA_PHYSICAL;
         if (!(target instanceof LivingEntity living)) {
-            hurtNoIFrame(target, projectile.damageSources().source(HbmDamageTypes.SEDNA_PHYSICAL, projectile, null), damageRemaining);
+            hurtNoIFrame(target, projectile.damageSources().source(damageType, projectile, null), damageRemaining);
             return new SednaImpact(damageRemaining, true);
         }
         float intendedDamage = damageRemaining;
@@ -466,7 +507,7 @@ public final class LegacyProjectileUtil {
 
         float previousHealth = living.getHealth();
         float finalDamage = sednaPhysicalDamage(living, intendedDamage, ammo.armorThresholdNegation(), ammo.armorPiercingPercent());
-        hurtNoIFrame(living, projectile.damageSources().source(HbmDamageTypes.SEDNA_PHYSICAL, projectile, null), finalDamage);
+        hurtNoIFrame(living, projectile.damageSources().source(damageType, projectile, null), finalDamage);
         float remaining = damageRemaining;
         if (ammo.damageFalloffByPenetration()) {
             remaining -= Math.max(previousHealth - living.getHealth(), 0.0F) * 0.5F;
@@ -907,6 +948,125 @@ public final class LegacyProjectileUtil {
                 pos.add(-nodeDist, 0.0D, 0.0D),
                 pos.add(nodeDist, 0.0D, 0.0D)
         };
+    }
+
+    /** Exact ray allocation used by BlockAllocatorStandard(resolution). */
+    private static Set<BlockPos> allocateLegacyMissileStandardBlocks(
+            ServerLevel level, Vec3 center, float strength, int resolution) {
+        Set<BlockPos> affected = new HashSet<>();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int i = 0; i < resolution; i++) {
+            for (int j = 0; j < resolution; j++) {
+                for (int k = 0; k < resolution; k++) {
+                    if (i != 0 && i != resolution - 1
+                            && j != 0 && j != resolution - 1
+                            && k != 0 && k != resolution - 1) {
+                        continue;
+                    }
+                    double dx = (double) i / (resolution - 1.0D) * 2.0D - 1.0D;
+                    double dy = (double) j / (resolution - 1.0D) * 2.0D - 1.0D;
+                    double dz = (double) k / (resolution - 1.0D) * 2.0D - 1.0D;
+                    double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    dx /= length;
+                    dy /= length;
+                    dz /= length;
+                    float power = strength * (0.7F + level.random.nextFloat() * 0.6F);
+                    double x = center.x;
+                    double y = center.y;
+                    double z = center.z;
+                    for (float step = 0.3F; power > 0.0F; power -= step * 0.75F) {
+                        cursor.set(Mth.floor(x), Mth.floor(y), Mth.floor(z));
+                        if (!level.isInWorldBounds(cursor)) {
+                            break;
+                        }
+                        BlockState state = level.getBlockState(cursor);
+                        if (!state.isAir()) {
+                            power -= (state.getExplosionResistance(level, cursor, null) + 0.3F) * step;
+                        }
+                        // BlockAllocatorStandard includes the current position when
+                        // power remains; BlockProcessorStandard removes air entries.
+                        if (power > 0.0F) {
+                            affected.add(cursor.immutable());
+                        }
+                        x += dx * step;
+                        y += dy * step;
+                        z += dz * step;
+                    }
+                }
+            }
+        }
+        return affected;
+    }
+
+    /** Exact BlockProcessorStandard.setNoDrop plus BlockMutatorFire. */
+    private static void processLegacyMissileStandardBlocks(
+            ServerLevel level, Vec3 center, float strength, Set<BlockPos> affected, boolean fire) {
+        // ExplosionVNT.compat is constructed without an exploder in
+        // EntityMissileBaseNT. DESTROY lets onExplosionHit perform the old
+        // onBlockExploded removal while the empty drop consumer preserves
+        // BlockProcessorStandard.setNoDrop().
+        Explosion context = new Explosion(level, null, center.x, center.y, center.z,
+                strength, false, Explosion.BlockInteraction.DESTROY);
+        for (BlockPos blockPos : affected) {
+            BlockState state = level.getBlockState(blockPos);
+            if (state.isAir()) {
+                continue;
+            }
+            // onExplosionHit is the 1.21 equivalent of the old
+            // Block.onBlockExploded callback. An empty drop consumer is the
+            // direct equivalent of BlockProcessorStandard.setNoDrop().
+            state.onExplosionHit(level, blockPos, context, (stack, dropPos) -> { });
+        }
+        if (!fire) {
+            return;
+        }
+        // BlockMutatorFire.mutatePost is run after all blocks are processed.
+        for (BlockPos blockPos : affected) {
+            if (level.random.nextInt(3) != 0
+                    || !level.isEmptyBlock(blockPos)
+                    || !level.getBlockState(blockPos.below()).isSolidRender(level, blockPos.below())) {
+                continue;
+            }
+            level.setBlockAndUpdate(blockPos, net.minecraft.world.level.block.BaseFireBlock.getState(level, blockPos));
+        }
+    }
+
+    /** Exact EntityProcessorCross(7.5D).withRangeMod(2) damage calculation. */
+    private static void applyLegacyMissileCrossDamage(Entity source, Vec3 center, float strength) {
+        Level level = source.level();
+        double size = strength * 2.0D * 2.0D;
+        AABB area = new AABB(center, center).inflate(size + 1.0D);
+        Vec3[] nodes = legacyCrossNodes(center, 7.5D);
+        Map<Entity, Float> damageMap = new HashMap<>();
+        for (Entity entity : level.getEntities(source, area, candidate -> candidate != source)) {
+            double distanceScaled = legacyBoxDistance(entity, center) / size;
+            if (distanceScaled > 1.0D) {
+                continue;
+            }
+            Vec3 delta = new Vec3(entity.getX() - center.x, entity.getEyeY() - center.y,
+                    entity.getZ() - center.z);
+            double distance = delta.length();
+            if (distance == 0.0D) {
+                continue;
+            }
+            double density = 0.0D;
+            for (Vec3 node : nodes) {
+                density = Math.max(density, Explosion.getSeenPercent(node, entity));
+            }
+            double knockback = (1.0D - distanceScaled) * density;
+            float damage = (float) ((int) ((knockback * knockback + knockback)
+                    / 2.0D * 8.0D * size + 1.0D));
+            // EntityProcessorCross applies knockback during collection and
+            // attacks entities only in its second pass.
+            entity.setDeltaMovement(entity.getDeltaMovement().add(delta.scale(knockback / distance)));
+            entity.hurtMarked = true;
+            damageMap.merge(entity, damage, Math::max);
+        }
+        for (Map.Entry<Entity, Float> entry : damageMap.entrySet()) {
+            if (entry.getValue() > 0.0F) {
+                entry.getKey().hurt(level.damageSources().explosion(null), entry.getValue());
+            }
+        }
     }
 
     private static double legacyBoxDistance(Entity entity, Vec3 pos) {

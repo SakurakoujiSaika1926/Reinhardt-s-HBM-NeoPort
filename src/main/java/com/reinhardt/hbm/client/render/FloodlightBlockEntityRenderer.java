@@ -30,24 +30,40 @@ public final class FloodlightBlockEntityRenderer implements BlockEntityRenderer<
                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = light.getBlockState();
         poseStack.pushPose();
-        switch (state.getValue(FloodlightBlock.FACING)) {
-            case DOWN -> poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(180.0F));
-            case NORTH -> { poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F)); poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(180.0F)); }
-            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F));
-            case WEST -> { poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F)); poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90.0F)); }
-            case EAST -> { poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F)); poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(-90.0F)); }
-            case UP -> { }
+        // RenderFloodlight starts at (x + 0.5, y + 0.5, z + 0.5).  The
+        // block-entity pose is block-local, so restore that origin before
+        // applying the legacy metadata rotations and offsets.
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        // RenderFloodlight used the complete legacy metadata (facing ordinal,
+        // with flipped variants 6/7) rather than a generic direction transform.
+        int meta = state.getValue(FloodlightBlock.FACING).ordinal()
+                + (state.getValue(FloodlightBlock.FLIPPED) ? 6 : 0);
+        switch (meta) {
+            case 0, 6 -> poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(180.0F));
+            case 1, 7 -> { }
+            case 2 -> {
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F));
+                poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(180.0F));
+            }
+            case 3 -> poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F));
+            case 4 -> {
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F));
+                poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90.0F));
+            }
+            case 5 -> {
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F));
+                poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(270.0F));
+            }
         }
         poseStack.translate(0.0F, -0.5F, 0.0F);
-        if (state.getValue(FloodlightBlock.FACING) != net.minecraft.core.Direction.UP
-                && state.getValue(FloodlightBlock.FACING) != net.minecraft.core.Direction.DOWN) {
+        if (meta != 0 && meta != 1) {
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
         }
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.translate(0.0F, 0.5F, 0.0F);
         float rotation = light.rotation();
-        if (state.getValue(FloodlightBlock.FACING) == net.minecraft.core.Direction.DOWN) rotation -= 90.0F;
-        if (state.getValue(FloodlightBlock.FACING) == net.minecraft.core.Direction.UP) rotation += 90.0F;
+        if (meta == 0 || meta == 6) rotation -= 90.0F;
+        if (meta == 1 || meta == 7) rotation += 90.0F;
         poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(rotation));
         poseStack.translate(0.0F, -0.5F, 0.0F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LIGHTS), poseStack, bufferSource, state, packedLight, packedOverlay);

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MPM",
+    "PBP",
+    "PDP"
+  ],
+  "key": {
+    "M": {
+      "item": "reinhardtshbm:motor_desh"
+    },
+    "P": {
+      "tag": "c:plates/armor_fau"
+    },
+    "B": {
+      "item": "reinhardtshbm:starmetal_legs"
+    },
+    "D": {
+      "item": "reinhardtshbm:billet_polonium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:fau_legs"
+  }
+}

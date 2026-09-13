@@ -1,0 +1,74 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.shuttlemissile",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:missile_generic"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:missile_strong"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/orange"
+      },
+      "count": 5
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:canister_full"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "fluid": "gasoline_leaded"
+          }
+        }
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/fiberglass"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic_explosive"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:glass_panes"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_shuttle",
+    "count": 1
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "item": "reinhardtshbm:steel_beam"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_steel_tiny",
+    "count": 3
+  }
+}

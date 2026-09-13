@@ -1,0 +1,83 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.satellitelunarminer",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ingot_meteorite"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/desh"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:drill_titanium"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_advanced"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:fluid_barrel_full"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "fluid": "kerosene"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thruster_small"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:photo_panel"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:battery_pack"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "battery_lithium"
+          },
+          "minecraft:custom_model_data": 2
+        }
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:sat_lunar_miner",
+    "count": 1
+  }
+}

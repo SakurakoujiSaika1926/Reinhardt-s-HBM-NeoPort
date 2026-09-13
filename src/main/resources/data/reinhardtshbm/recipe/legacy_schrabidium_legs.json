@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "EEE",
+    "ESE",
+    "EPE"
+  ],
+  "key": {
+    "E": {
+      "tag": "c:ingots/schrabidium"
+    },
+    "S": {
+      "item": "reinhardtshbm:starmetal_legs"
+    },
+    "P": {
+      "item": "reinhardtshbm:pellet_charged"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:schrabidium_legs"
+  }
+}

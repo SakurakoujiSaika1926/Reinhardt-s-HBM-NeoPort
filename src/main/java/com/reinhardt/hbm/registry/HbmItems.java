@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.registry;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.item.AmmoArtyItem;
 import com.reinhardt.hbm.item.ArcElectrodeBurntItem;
 import com.reinhardt.hbm.item.ArcElectrodeItem;
@@ -52,6 +53,7 @@ import com.reinhardt.hbm.item.DrillbitItem;
 import com.reinhardt.hbm.item.DefuserItem;
 import com.reinhardt.hbm.item.HbmAxeItem;
 import com.reinhardt.hbm.item.ArmorFSBItem;
+import com.reinhardt.hbm.item.LegacyObjHelmetItem;
 import com.reinhardt.hbm.item.FueledArmorFSBItem;
 import com.reinhardt.hbm.item.PoweredArmorFSBItem;
 import com.reinhardt.hbm.item.ArtilleryDesignatorItem;
@@ -241,6 +243,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -295,6 +298,8 @@ public final class HbmItems {
     public static final List<DeferredItem<Item>> TURRET_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> SATELLITE_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> PORTED_PLAIN_ITEMS = new ArrayList<>();
+    /** Filled legacy cells backed by the fluid capability (1.7.10 registry parity). */
+    public static final List<DeferredItem<Item>> LEGACY_FLUID_CELL_ITEMS = new ArrayList<>();
     /** Concrete Glyphid spawn eggs exposed by the 1.7.10 mob mappings. */
     public static final List<DeferredItem<Item>> GLYPHID_SPAWN_EGGS = new ArrayList<>();
     /** Standard eggs for the 1.7.10 mobs that already have a direct port. */
@@ -461,7 +466,6 @@ public final class HbmItems {
     public static final DeferredItem<Item> INGOT_STEEL = ingot("ingot_steel");
     public static final DeferredItem<Item> INGOT_TH232 = ingot("ingot_th232");
     public static final DeferredItem<Item> INGOT_ALUMINIUM = ingot("ingot_aluminium");
-    public static final DeferredItem<Item> INGOT_COPPER = ingot("ingot_copper");
     public static final DeferredItem<Item> INGOT_TITANIUM = ingot("ingot_titanium");
     public static final DeferredItem<Item> INGOT_TUNGSTEN = ingot("ingot_tungsten");
     public static final DeferredItem<Item> INGOT_TUNGSTEN_CARBIDE = ingot("ingot_tungsten_carbide");
@@ -734,8 +738,6 @@ public final class HbmItems {
             "spawn_glyphid_nuclear", GlyphidEntity.Variant.NUCLEAR, 0x267F00, 0xA0A0A0);
     public static final DeferredItem<Item> SPAWN_GLYPHID_DIGGER = glyphidSpawnEgg(
             "spawn_glyphid_digger", GlyphidEntity.Variant.DIGGER, 0x273038, 0x724A21);
-    public static final DeferredItem<Item> SPAWN_HUNTER_CHOPPER = mobSpawnEgg(
-            "spawn_hunter_chopper", () -> HbmEntityTypes.LEGACY_CHOPPER.get(), 0x000020, 0x2D2D72);
     public static final DeferredItem<Item> SPAWN_DUCK_EGG = mobSpawnEgg(
             "spawn_duck_egg", () -> HbmEntityTypes.DUCK.get(), 0xD0D0D0, 0xFFBF00);
     public static final DeferredItem<Item> SPAWN_NUCLEAR_CREEPER = mobSpawnEgg(
@@ -911,14 +913,9 @@ public final class HbmItems {
             "fluid_identifier_multi",
             () -> new FluidIdentifierItem(new Item.Properties().stacksTo(1))
     );
-    public static final DeferredItem<Item> INF_WATER = fluidItem(
-            "inf_water",
-            () -> new InfiniteFluidContainerItem(new Item.Properties().stacksTo(1), "water", 50)
-    );
-    public static final DeferredItem<Item> INF_WATER_MK2 = fluidItem(
-            "inf_water_mk2",
-            () -> new InfiniteFluidContainerItem(new Item.Properties().stacksTo(1), "water", 500)
-    );
+    /** Optional legacy infinite-water items; disabled means no registry entry is created. */
+    public static final DeferredItem<Item> INF_WATER = DeferredItem.createItem(ReinhardtsHBM.id("inf_water"));
+    public static final DeferredItem<Item> INF_WATER_MK2 = DeferredItem.createItem(ReinhardtsHBM.id("inf_water_mk2"));
     public static final DeferredItem<Item> FLUID_BARREL_INFINITE = fluidItem(
             "fluid_barrel_infinite",
             () -> new InfiniteFluidContainerItem(new Item.Properties().stacksTo(1), null, 1_000_000_000)
@@ -1735,12 +1732,12 @@ public final class HbmItems {
     // These were initialized in ModItemsArmor rather than ModItems in 1.7.10.
     public static final DeferredItem<Item> GOGGLES = armorItem(
             "goggles",
-            () -> new ArmorItem(HbmArmorMaterials.GOGGLES, ArmorItem.Type.HELMET,
+            () -> new LegacyObjHelmetItem(HbmArmorMaterials.GOGGLES,
                     new Item.Properties().stacksTo(1).durability(ArmorItem.Type.HELMET.getDurability(15)))
     );
     public static final DeferredItem<Item> ASHGLASSES = armorItem(
             "ashglasses",
-            () -> new ArmorItem(HbmArmorMaterials.ASH_GLASSES, ArmorItem.Type.HELMET,
+            () -> new LegacyObjHelmetItem(HbmArmorMaterials.ASH_GLASSES,
                     new Item.Properties().stacksTo(1).durability(ArmorItem.Type.HELMET.getDurability(15)))
     );
     public static final DeferredItem<Item> MASK_OF_INFAMY = armorItem(
@@ -1760,7 +1757,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> HAT = armorItem(
             "hat",
-            () -> new ArmorItem(HbmArmorMaterials.HAT, ArmorItem.Type.HELMET,
+            () -> new LegacyObjHelmetItem(HbmArmorMaterials.HAT,
                     new Item.Properties().stacksTo(1).durability(ArmorItem.Type.HELMET.getDurability(40)))
     );
     public static final DeferredItem<Item> NO9 = armorItem("no9", () -> new LegacyNo9ArmorItem(HbmArmorMaterials.NO9));
@@ -1851,10 +1848,10 @@ public final class HbmItems {
     public static final DeferredItem<Item> HAZMAT_LEGS_GREY = fsbArmor("hazmat_legs_grey", "hazmat_grey", HbmArmorMaterials.HAZMAT_GREY, ArmorItem.Type.LEGGINGS, 15, false);
     public static final DeferredItem<Item> HAZMAT_BOOTS_GREY = fsbArmor("hazmat_boots_grey", "hazmat_grey", HbmArmorMaterials.HAZMAT_GREY, ArmorItem.Type.BOOTS, 15, false);
 
-    public static final DeferredItem<Item> HAZMAT_PAA_HELMET = fsbArmor("hazmat_paa_helmet", "hazmat_paa", HbmArmorMaterials.PAA, ArmorItem.Type.HELMET, 75, false);
-    public static final DeferredItem<Item> HAZMAT_PAA_PLATE = fsbArmor("hazmat_paa_plate", "hazmat_paa", HbmArmorMaterials.PAA, ArmorItem.Type.CHESTPLATE, 75, false);
-    public static final DeferredItem<Item> HAZMAT_PAA_LEGS = fsbArmor("hazmat_paa_legs", "hazmat_paa", HbmArmorMaterials.PAA, ArmorItem.Type.LEGGINGS, 75, false);
-    public static final DeferredItem<Item> HAZMAT_PAA_BOOTS = fsbArmor("hazmat_paa_boots", "hazmat_paa", HbmArmorMaterials.PAA, ArmorItem.Type.BOOTS, 75, false);
+    public static final DeferredItem<Item> HAZMAT_PAA_HELMET = fsbArmor("hazmat_paa_helmet", "hazmat_paa", HbmArmorMaterials.HAZMAT_PAA, ArmorItem.Type.HELMET, 75, false);
+    public static final DeferredItem<Item> HAZMAT_PAA_PLATE = fsbArmor("hazmat_paa_plate", "hazmat_paa", HbmArmorMaterials.HAZMAT_PAA, ArmorItem.Type.CHESTPLATE, 75, false);
+    public static final DeferredItem<Item> HAZMAT_PAA_LEGS = fsbArmor("hazmat_paa_legs", "hazmat_paa", HbmArmorMaterials.HAZMAT_PAA, ArmorItem.Type.LEGGINGS, 75, false);
+    public static final DeferredItem<Item> HAZMAT_PAA_BOOTS = fsbArmor("hazmat_paa_boots", "hazmat_paa", HbmArmorMaterials.HAZMAT_PAA, ArmorItem.Type.BOOTS, 75, false);
 
     public static final DeferredItem<Item> PAA_PLATE = fsbArmor(
             "paa_plate", "paa", HbmArmorMaterials.PAA, ArmorItem.Type.CHESTPLATE, 75, true,
@@ -2810,7 +2807,7 @@ public final class HbmItems {
     }
 
     public static boolean isCoreItem(String id) {
-        return CORE_ITEM_IDS.contains(id);
+        return CORE_ITEM_IDS.contains(id) || isOptionalInfiniteWaterItem(id);
     }
 
     public static boolean isHiddenPortedPlainItem(DeferredItem<Item> item) {
@@ -2989,8 +2986,15 @@ public final class HbmItems {
                         "launch_code_piece", "launch_key", "man_igniter", "mike_cooling_unit", "mike_core",
                         "missile_assembly", "reacher", "tsar_core" -> legacyPlainItem(id, new Item.Properties().stacksTo(1));
                 case "syringe_empty", "syringe_metal_empty" -> legacyPlainItem(id, new Item.Properties());
-                case "cell_antimatter", "cell_anti_schrabidium", "cell_balefire", "cell_deuterium", "cell_puf6", "cell_uf6" ->
-                        legacyContainerItem(id, new Item.Properties(), () -> CELL_EMPTY.get());
+                case "cell_deuterium" -> legacyFluidCellItem(id, "deuterium");
+                case "cell_antimatter" -> legacyFluidCellItem(id, "amat");
+                case "cell_anti_schrabidium" -> legacyFluidCellItem(id, "aschrab");
+                case "cell_puf6" -> legacyFluidCellItem(id, "puf6");
+                case "cell_uf6" -> legacyFluidCellItem(id, "uf6");
+                // Unlike the entries above, balefire was not a registered
+                // 1.7.10 fluid-cell conversion; it only preserves its empty
+                // cell crafting remainder.
+                case "cell_balefire" -> legacyContainerItem(id, new Item.Properties(), () -> CELL_EMPTY.get());
                 case "mike_deut" -> legacyContainerItem(id, new Item.Properties().stacksTo(1), () -> TANK_STEEL.get());
                 case "rod_zirnox_les_fuel_depleted", "rod_zirnox_mox_fuel_depleted",
                         "rod_zirnox_natural_uranium_fuel_depleted", "rod_zirnox_plutonium_fuel_depleted",
@@ -3009,7 +3013,10 @@ public final class HbmItems {
                 continue;
             }
             DeferredItem<Item> item = coreItem(id, () -> legacyLoreItem(id));
-            if (isNuclearLoreItem(id)) {
+            if (id.equals("cell_sas3")) {
+                LEGACY_FLUID_CELL_ITEMS.add(item);
+                PORTED_PLAIN_ITEMS.add(item);
+            } else if (isNuclearLoreItem(id)) {
                 NUCLEAR_WEAPON_ITEMS.add(item);
             } else if (isMaterialLoreItem(id)) {
                 MISC_MATERIALS.add(item);
@@ -3079,7 +3086,9 @@ public final class HbmItems {
         return switch (id) {
             case "bottle_mercury" -> LegacyLoreItem.fromLegacyId(id, new Item.Properties(), () -> Items.GLASS_BOTTLE);
             case "canister_napalm" -> LegacyLoreItem.fromLegacyId(id, new Item.Properties(), () -> CANISTER_EMPTY.get());
-            case "cell_sas3" -> LegacyLoreItem.fromLegacyId(id, new Item.Properties(), () -> CELL_EMPTY.get());
+            case "cell_sas3" -> new HbmFluidContainerItem(
+                    new Item.Properties(), HbmFluidContainerItem.Kind.CELL, true, "sas3"
+            );
             case "custom_amat", "custom_dirty", "custom_fall", "custom_hydro", "custom_nuke", "custom_schrab", "custom_tnt",
                     "gadget_core", "igniter", "man_core", "key_red", "key_red_cracked", "mech_key", "rune_blank",
                     "rune_dagaz", "rune_hagalaz", "rune_isa", "rune_jera", "rune_thurisaz", "watch" ->
@@ -3119,6 +3128,14 @@ public final class HbmItems {
     private static void legacyContainerItem(String name, Item.Properties properties, Supplier<Item> remainder) {
         DeferredItem<Item> item = coreItem(name, () -> new LegacyContainerRemainderItem(properties, remainder));
         PORTED_PLAIN_ITEMS.add(item);
+    }
+
+    private static void legacyFluidCellItem(String name, String fluidName) {
+        DeferredItem<Item> item = coreItem(name, () -> new HbmFluidContainerItem(
+                new Item.Properties(), HbmFluidContainerItem.Kind.CELL, true, fluidName
+        ));
+        PORTED_PLAIN_ITEMS.add(item);
+        LEGACY_FLUID_CELL_ITEMS.add(item);
     }
 
     private static void registerLegacyMaterialItems() {
@@ -3207,6 +3224,12 @@ public final class HbmItems {
         rawOre("raw_cobalt");
         rawOre("raw_coltan");
         rawOre("raw_schrabidium");
+        // Metals which only existed as direct block/ingot drops in 1.7.10
+        // also get the modern raw-ore intermediate used by the vanilla ore
+        // processing chain.
+        rawOre("raw_lithium");
+        rawOre("raw_plutonium");
+        rawOre("raw_australium");
     }
 
     /**
@@ -3222,6 +3245,7 @@ public final class HbmItems {
                     || blockIds.contains(id)
                     || RETIRED_LEGACY_CATALOG_ITEM_IDS.contains(id)
                     || FLUID_BUCKET_ITEM_IDS.contains(id)
+                    || isOptionalInfiniteWaterItem(id)
                     || id.startsWith("gun_")) {
                 continue;
             }
@@ -3234,6 +3258,10 @@ public final class HbmItems {
         }
     }
 
+    private static boolean isOptionalInfiniteWaterItem(String id) {
+        return id.equals("inf_water") || id.equals("inf_water_mk2");
+    }
+
     private static List<String> loadLegacyItemIds() {
         // Keep the complete 1.7.10 catalog separate from the unresolved
         // placeholder manifest consumed by LegacyHbmContent.
@@ -3243,6 +3271,7 @@ public final class HbmItems {
         }
 
         List<String> ids = new ArrayList<>();
+        Set<String> seen = new LinkedHashSet<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -3254,6 +3283,9 @@ public final class HbmItems {
                     continue;
                 }
                 if (isValidPath(id)) {
+                    if (!seen.add(id)) {
+                        throw new IllegalStateException("Duplicate legacy HBM item id '" + id + "' in item_catalog.txt");
+                    }
                     ids.add(id);
                 }
             }
@@ -3278,7 +3310,9 @@ public final class HbmItems {
                     id = id.substring(1);
                 }
                 if (!id.isEmpty() && !id.startsWith("#") && isValidPath(id)) {
-                    ids.add(id);
+                    if (!ids.add(id)) {
+                        throw new IllegalStateException("Duplicate legacy HBM block id '" + id + "' in block_catalog.txt");
+                    }
                 }
             }
         } catch (IOException exception) {
@@ -3299,6 +3333,28 @@ public final class HbmItems {
     }
 
     public static void register(IEventBus eventBus) {
+        eventBus.addListener(HbmItems::registerOptionalInfiniteWaterItems);
         ITEMS.register(eventBus);
+    }
+
+    private static void registerOptionalInfiniteWaterItems(RegisterEvent event) {
+        if (!event.getRegistryKey().equals(Registries.ITEM) || !HbmConfig.SPEC.isLoaded()
+                || !HbmConfig.ENABLE_INFINITE_WATER_TANK_RECIPES.get()) {
+            return;
+        }
+        event.register(
+                Registries.ITEM,
+                ReinhardtsHBM.id("inf_water"),
+                () -> new InfiniteFluidContainerItem(new Item.Properties().stacksTo(1), "water", 50)
+        );
+        event.register(
+                Registries.ITEM,
+                ReinhardtsHBM.id("inf_water_mk2"),
+                () -> new InfiniteFluidContainerItem(new Item.Properties().stacksTo(1), "water", 500)
+        );
+        CORE_ITEM_IDS.add("inf_water");
+        CORE_ITEM_IDS.add("inf_water_mk2");
+        FLUID_ITEMS.add(INF_WATER);
+        FLUID_ITEMS.add(INF_WATER_MK2);
     }
 }

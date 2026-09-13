@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["ACA","CXC","ACA"],"key":{"A":{"tag":"c:ingots/copper"},"C":{"tag":"c:crystals/cinnabar"},"X":{"item":"minecraft:compass"}},"result":{"id":"reinhardtshbm:coltan_tool"}}

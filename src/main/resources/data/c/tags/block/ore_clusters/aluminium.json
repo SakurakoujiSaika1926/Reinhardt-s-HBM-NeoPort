@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:cluster_aluminium"
+    "reinhardtshbm:cluster_aluminium",
+    "reinhardtshbm:cluster_deepslate_aluminium"
   ]
 }

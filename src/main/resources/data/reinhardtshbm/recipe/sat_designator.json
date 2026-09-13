@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RRD",
+    "PIC",
+    "  P"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/gold"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "D": {
+      "item": "reinhardtshbm:sat_chip"
+    },
+    "I": {
+      "tag": "c:ingots/gold"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:sat_designator",
+    "count": 1
+  }
+}
+

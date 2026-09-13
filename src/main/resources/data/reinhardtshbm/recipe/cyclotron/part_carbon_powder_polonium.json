@@ -5,7 +5,7 @@
                      "item":  "reinhardtshbm:part_carbon"
                  },
     "input":  {
-                  "item":  "reinhardtshbm:ingot_mercury"
+                  "item":  "reinhardtshbm:nugget_mercury"
               },
     "output":  {
                    "id":  "reinhardtshbm:powder_polonium"

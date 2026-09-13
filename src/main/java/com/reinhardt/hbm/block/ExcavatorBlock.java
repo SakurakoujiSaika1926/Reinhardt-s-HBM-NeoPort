@@ -168,6 +168,9 @@ public class ExcavatorBlock extends LargeMachineBlock implements EntityBlock {
     }
 
     private static void removeOldDummies(Level level, BlockPos corePos, Direction facing) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos pos : oldFootprintPositions(corePos, facing)) {
                 if (pos.equals(corePos)) {

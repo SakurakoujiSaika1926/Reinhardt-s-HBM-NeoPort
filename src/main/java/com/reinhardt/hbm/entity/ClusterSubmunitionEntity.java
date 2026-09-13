@@ -18,8 +18,10 @@ import net.minecraft.world.phys.Vec3;
  * its unconfigured default velocity of ten during each movement step.
  */
 public final class ClusterSubmunitionEntity extends Entity {
-    private static final double INITIAL_SPEED = 0.375D;
-    private static final double LEGACY_CONFIG_VELOCITY = 10.0D;
+    // EntityBulletBaseMK4#setThrowableHeading uses unit speed; do not apply
+    // a modern/global velocity multiplier here.
+    private static final double INITIAL_SPEED = 1.0D;
+    private static final double LEGACY_CONFIG_VELOCITY = 1.0D;
     private static final double GRAVITY = 0.025D;
     private static final int LIFETIME = 1_200;
 
@@ -46,6 +48,16 @@ public final class ClusterSubmunitionEntity extends Entity {
             float yaw = (float) (level.random.nextGaussian() * Math.PI * 2.0D);
             float pitch = (float) (Math.PI * 0.5D + level.random.nextGaussian() * Math.PI * 0.125D);
             level.addFreshEntity(new ClusterSubmunitionEntity(level, position, yaw, pitch));
+        }
+    }
+
+    /** ExplosionChaos.cluster: preserve the old caller's raw yaw/pitch units
+     * and its independent Gaussian spread of PI/4. */
+    public static void spawn(Level level, Vec3 position, int count, float yaw, float pitch) {
+        for (int index = 0; index < count; index++) {
+            float childYaw = yaw + (float) (Math.PI * 0.25D * level.random.nextGaussian());
+            float childPitch = pitch + (float) (Math.PI * 0.25D * level.random.nextGaussian());
+            level.addFreshEntity(new ClusterSubmunitionEntity(level, position, childYaw, childPitch));
         }
     }
 
@@ -126,6 +138,6 @@ public final class ClusterSubmunitionEntity extends Entity {
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 65_536.0D;
+        return distance < 102400.0D;
     }
 }

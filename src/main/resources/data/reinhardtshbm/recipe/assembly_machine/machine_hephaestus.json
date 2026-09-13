@@ -1,30 +1,69 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:not",
-      "value": { "type": "reinhardtshbm:enable_528_mode" }
+  "neoforge:conditions": {
+    "type": "neoforge:not",
+    "value": {
+      "type": "reinhardtshbm:enable_528_mode"
     }
-  ],
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.hephaestus",
   "duration": 200,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "tag": "c:pipes/steel" }, "count": 12 },
-    { "ingredient": { "tag": "c:ingots/steel" }, "count": 24 },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_cast"],
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
         "components": {
-          "minecraft:custom_data": { "material_id": 2900, "material": "copper" }
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/steel"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:plate_cast",
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
         }
       },
       "count": 24
     },
-    { "ingredient": { "tag": "c:ingots/niobium" }, "count": 4 },
-    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 12 },
-    { "ingredient": { "item": "reinhardtshbm:glass_quartz" }, "count": 16 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/niobium"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:glass_quartz"
+      },
+      "count": 16
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_hephaestus" }
+  "result": {
+    "id": "reinhardtshbm:machine_hephaestus"
+  }
 }

@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " SD",
+    "APS",
+    "FA "
+  ],
+  "key": {
+    "S": {
+      "item": "reinhardtshbm:blades_steel"
+    },
+    "D": {
+      "item": "reinhardtshbm:powder_chlorophyte"
+    },
+    "A": {
+      "tag": "c:ingots/fiberglass"
+    },
+    "P": {
+      "item": "reinhardtshbm:volcanic_pickaxe"
+    },
+    "F": {
+      "item": "reinhardtshbm:bolt_dura_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:chlorophyte_pickaxe"
+  }
+}

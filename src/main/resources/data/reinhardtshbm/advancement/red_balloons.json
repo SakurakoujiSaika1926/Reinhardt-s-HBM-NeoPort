@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:polymer",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:missile_nuclear"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.red_balloons.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.red_balloons.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

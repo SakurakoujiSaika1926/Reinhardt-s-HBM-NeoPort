@@ -5,7 +5,7 @@
                        "item":  "reinhardtshbm:powder_copper"
                    },
     "result":  {
-                   "id":  "reinhardtshbm:ingot_copper"
+                   "id":  "minecraft:copper_ingot"
                },
     "experience":  1,
     "cookingtime":  200

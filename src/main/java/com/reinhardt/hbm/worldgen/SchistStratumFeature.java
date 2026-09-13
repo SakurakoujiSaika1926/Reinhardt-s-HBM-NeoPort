@@ -25,7 +25,6 @@ public class SchistStratumFeature extends Feature<NoneFeatureConfiguration> {
             new OreEntry(25, 6, HbmBlocks.ORE_GNEISS_IRON),
             new OreEntry(10, 6, HbmBlocks.ORE_GNEISS_GOLD),
             new OreEntry(21, 6, HbmBlocks.ORE_GNEISS_URANIUM),
-            new OreEntry(36, 6, HbmBlocks.ORE_GNEISS_COPPER),
             new OreEntry(6, 6, HbmBlocks.ORE_GNEISS_ASBESTOS),
             new OreEntry(6, 6, HbmBlocks.ORE_GNEISS_LITHIUM),
             new OreEntry(6, 6, HbmBlocks.ORE_GNEISS_RARE),

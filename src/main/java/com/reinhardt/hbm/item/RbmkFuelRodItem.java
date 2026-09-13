@@ -16,6 +16,7 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
     private static final String XENON_TAG = "xenon";
     private static final String CORE_HEAT_TAG = "coreHeat";
     private static final String HULL_HEAT_TAG = "hullHeat";
+    private static final String STATE_MIGRATED_TAG = "rbmkStateV2";
     private final String fixedFuelId;
 
     public static final List<String> FUEL_IDS = List.of(
@@ -117,12 +118,12 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
 
     public float nextDepletion(ItemStack stack, double flux) {
         Fuel fuel = fuel(stack);
-        double inFlux = Math.max(0.0D, flux) + fuel.selfRate();
+        double inFlux = flux + fuel.selfRate();
         return (float) Math.max(0.0D, Math.min(1.0D, depletion(stack) + inFlux / fuel.yield()));
     }
 
     public double remainingReactivity(ItemStack stack) {
-        return Math.max(0.0D, 1.0D - depletion(stack));
+        return 1.0D - depletion(stack);
     }
 
     public double inputFlux(ItemStack stack, com.reinhardt.hbm.blockentity.NeutronFluxProvider.NeutronFlux flux) {
@@ -133,7 +134,9 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
         return switch (fuel(stack).neutronOut()) {
             case SLOW -> 0.0D;
             case FAST -> 1.0D;
-            case ANY -> 0.5D;
+            // TileEntityRBMKRod used `rType == SLOW ? 0 : 1`; ANY was
+            // therefore emitted as a fully-fast stream in 1.7.10.
+            case ANY -> 1.0D;
         };
     }
 
@@ -148,27 +151,44 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
             boolean xenonEnabled
     ) {
         Fuel fuel = fuel(stack);
-        double workingFlux = Math.max(0.0D, inFlux) + fuel.selfRate();
+        double workingFlux = inFlux + fuel.selfRate();
         double xenonLevel = xenon(stack);
 
         if (xenonEnabled) {
+            // ItemRBMKRod.burn() reads getPoisonLevel(stack) after reducing
+            // its local poison value but before writing it back.  That means
+            // attenuation uses the poison present at the start of the tick,
+            // not the post-burn value.
+            double oldXenonLevel = Math.max(0.0D, Math.min(1.0D, xenonLevel));
             xenonLevel -= xenonBurn(fuel, workingFlux) / 100.0D;
-            workingFlux *= 1.0D - Math.max(0.0D, Math.min(1.0D, xenonLevel));
+            workingFlux *= 1.0D - oldXenonLevel;
             xenonLevel += xenonGen(fuel, workingFlux) / 100.0D;
             xenonLevel = Math.max(0.0D, Math.min(1.0D, xenonLevel));
         }
 
-        double outputFlux = reactivity(fuel, workingFlux, remainingReactivity(stack)) * Math.max(0.0D, reactivityMod);
+        // ItemRBMKRod.burn applies the optional heat coefficient to the fuel
+        // enrichment before calculating output flux.  In 1.7.10 this is used
+        // by UZH (start 1000, length 500); all other fuels keep multiplier 1.
+        double coreHeat = coreHeat(stack);
+        double enrichment = 1.0D - depletion(stack);
+        if (fuel.heatCoeffStart() != 0.0D && coreHeat >= fuel.heatCoeffStart()) {
+            double progress = (coreHeat - fuel.heatCoeffStart()) / fuel.heatCoeffLength();
+            if (progress > 1.0D) {
+                progress = 1.0D;
+            }
+            enrichment *= Math.sin((progress * Math.PI + Math.PI) / 2.0D);
+        }
+        double outputFlux = reactivity(fuel, workingFlux, enrichment) * reactivityMod;
         double depletion = depletion(stack);
         if (depletionEnabled) {
             depletion = Math.max(0.0D, Math.min(1.0D, depletion + workingFlux / fuel.yield()));
         }
-        double coreHeat = rectify(coreHeat(stack) + outputFlux * fuel.heat());
-        double hullHeat = rectify(hullHeat(stack));
+        coreHeat = rectify(coreHeat + outputFlux * fuel.heat());
+        double hullHeat = hullHeat(stack);
 
         if (coreHeat > hullHeat) {
             double mid = (coreHeat - hullHeat) / 2.0D;
-            double diffusion = fuel.diffusion() * Math.max(0.0D, diffusionMod);
+            double diffusion = fuel.diffusion() * diffusionMod;
             coreHeat = rectify(coreHeat - mid * diffusion);
             hullHeat = rectify(hullHeat + mid * diffusion);
         }
@@ -182,12 +202,15 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
         } else if (hullHeat <= channelHeat) {
             providedHeat = 0.0D;
         } else {
-            providedHeat = (hullHeat - channelHeat) / 2.0D;
+            double removableHeat = (hullHeat - channelHeat) / 2.0D;
+            providedHeat = removableHeat * heatProvision;
+            // The old implementation subtracts the same scaled amount that
+            // it returns.  Subtracting the unscaled half (as the port did)
+            // loses heat too quickly whenever heat provision is below 1.
             hullHeat -= providedHeat;
-            providedHeat *= Math.max(0.0D, Math.min(1.0D, heatProvision));
         }
 
-        setState(stack, (float) depletion, (float) xenonLevel, (float) coreHeat, (float) hullHeat);
+        setState(stack, depletion, xenonLevel, coreHeat, hullHeat);
         return new FuelTickResult(outputFlux, providedHeat, hullHeat);
     }
 
@@ -238,7 +261,7 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        return Math.min(13, Math.round(13.0F * depletion(stack)));
+        return (int) Math.min(13L, Math.round(13.0D * depletion(stack)));
     }
 
     @Override
@@ -249,51 +272,118 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         Fuel fuel = fuel(stack);
+        boolean digamma = isDigammaFuel(stack);
         if (hullHeat(stack) >= 50.0F || coreHeat(stack) >= 50.0F) {
             tooltip.add(Component.translatable("desc.item.wasteCooling").withStyle(ChatFormatting.GOLD));
         }
         if (fuel.selfRate() > 0.0D || fuel.function() == BurnFunction.SIGMOID) {
-            tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.source").withStyle(ChatFormatting.RED));
+            tooltip.add(Component.translatable(tooltipKey(digamma, "source")).withStyle(ChatFormatting.RED));
         }
         tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.full_name", fuel.fullName()).withStyle(ChatFormatting.ITALIC));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.depletion", percent(depletion(stack))).withStyle(ChatFormatting.GREEN));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.xenon", round(xenon(stack), 3)).withStyle(ChatFormatting.DARK_PURPLE));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.splits_with", fuel.neutronIn().title()).withStyle(ChatFormatting.BLUE));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.splits_into", fuel.neutronOut().title()).withStyle(ChatFormatting.BLUE));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.flux_func", fluxFunction(fuel)).withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.func_type", fuel.function().title()).withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.xenon_gen", "x * " + round(fuel.xenonGen(), 3)).withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.xenon_burn", "x^2 / " + round(fuel.xenonBurn(), 3)).withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.heat", round(fuel.heat(), 3)).withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.diffusion", round(fuel.diffusion(), 4)).withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.skin_temp", round(hullHeat(stack), 1)).withStyle(ChatFormatting.RED));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.core_temp", round(coreHeat(stack), 1)).withStyle(ChatFormatting.RED));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.melt", round(fuel.meltingPoint(), 1)).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "depletion"), percent(depletion(stack)) + "%").withStyle(ChatFormatting.GREEN));
+        // The legacy NBT stored xenon as a 0..100 percentage.  The port keeps
+        // the state normalized to 0..1, so convert only at the display edge.
+        tooltip.add(Component.translatable(tooltipKey(digamma, "xenon"), round(xenon(stack) * 100.0D, 3) + "%").withStyle(ChatFormatting.DARK_PURPLE));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "splits_with"), neutronTypeName(fuel.neutronIn(), digamma)).withStyle(ChatFormatting.BLUE));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "splits_into"), neutronTypeName(fuel.neutronOut(), digamma)).withStyle(ChatFormatting.BLUE));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "flux_func"), fluxFunction(stack, fuel)).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "func_type"), fuel.function().title()).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "xenon_gen"), "x * " + round(fuel.xenonGen(), 3)).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "xenon_burn"), "x² / " + round(fuel.xenonBurn(), 3)).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "heat"), round(fuel.heat(), 3) + "°C").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "diffusion"), round(fuel.diffusion(), 4) + "¹/²").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "skin_temp"), round(hullHeat(stack), 1) + (digamma ? "m" : "°C")).withStyle(ChatFormatting.RED));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "core_temp"), round(coreHeat(stack), 1) + (digamma ? "m" : "°C")).withStyle(ChatFormatting.RED));
+        tooltip.add(Component.translatable(tooltipKey(digamma, "melt"), round(fuel.meltingPoint(), 1) + (digamma ? "m" : "°C")).withStyle(ChatFormatting.DARK_RED));
     }
 
-    public static float depletion(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getFloat(DEPLETION_TAG);
+    public static double depletion(ItemStack stack) {
+        return stateData(stack).getDouble(DEPLETION_TAG);
     }
 
-    public static float xenon(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getFloat(XENON_TAG);
+    public static double xenon(ItemStack stack) {
+        return stateData(stack).getDouble(XENON_TAG);
     }
 
-    public static float coreHeat(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getFloat(CORE_HEAT_TAG);
+    public static double coreHeat(ItemStack stack) {
+        return stateData(stack).getDouble(CORE_HEAT_TAG);
     }
 
-    public static float hullHeat(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getFloat(HULL_HEAT_TAG);
+    private static String tooltipKey(boolean digamma, String key) {
+        return "tooltip.reinhardtshbm.rbmk_fuel." + (digamma ? "drx." : "") + key;
     }
 
-    public static void setState(ItemStack stack, float depletion, float xenon, float coreHeat, float hullHeat) {
+    private static Component neutronTypeName(NeutronType type, boolean digamma) {
+        return Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.neutron_type."
+                + (digamma ? "drx." : "") + type.name().toLowerCase(Locale.ROOT));
+    }
+
+    public static double hullHeat(ItemStack stack) {
+        return stateData(stack).getDouble(HULL_HEAT_TAG);
+    }
+
+    public static void setState(ItemStack stack, double depletion, double xenon, double coreHeat, double hullHeat) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        tag.putFloat(DEPLETION_TAG, Math.max(0.0F, depletion));
-        tag.putFloat(XENON_TAG, Math.max(0.0F, xenon));
-        tag.putFloat(CORE_HEAT_TAG, Math.max(0.0F, coreHeat));
-        tag.putFloat(HULL_HEAT_TAG, Math.max(0.0F, hullHeat));
+        // ItemRBMKRod#setDouble persisted all four values as NBT doubles;
+        // retaining double precision is part of the legacy burn result.
+        tag.putDouble(DEPLETION_TAG, Math.max(0.0D, depletion));
+        tag.putDouble(XENON_TAG, Math.max(0.0D, xenon));
+        tag.putDouble(CORE_HEAT_TAG, Math.max(0.0D, coreHeat));
+        tag.putDouble(HULL_HEAT_TAG, Math.max(0.0D, hullHeat));
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+    }
+
+    /**
+     * Reads the modern normalized state while converting an old rod's exact
+     * NBT keys and units on first access.  1.7.10 stored remaining fuel under
+     * {@code yield} (an absolute double), xenon as 0..100, and temperatures
+     * under {@code core}/{@code hull}; the port stores depletion/xenon as
+     * normalized doubles and uses coreHeat/hullHeat.
+     */
+    private static CompoundTag stateData(ItemStack stack) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (!(stack.getItem() instanceof RbmkFuelRodItem rod)) {
+            return tag;
+        }
+
+        boolean legacy = tag.contains("yield") || tag.contains("core") || tag.contains("hull");
+        boolean changed = false;
+        Fuel fuel = rod.fuel(stack);
+        if (legacy && !tag.getBoolean(STATE_MIGRATED_TAG)) {
+            // Convert all old keys together.  The marker is required because
+            // the old and new xenon keys share the spelling "xenon"; without
+            // it a second read could not distinguish 0..100 from 0..1.
+            double remaining = tag.contains("yield") ? tag.getDouble("yield") : fuel.yield();
+            double poison = tag.contains("xenon") ? tag.getDouble("xenon") : 0.0D;
+            tag.putDouble(DEPLETION_TAG, Math.max(0.0D,
+                    Math.min(1.0D, (fuel.yield() - remaining) / fuel.yield())));
+            tag.putDouble(XENON_TAG, Math.max(0.0D, Math.min(1.0D, poison / 100.0D)));
+            tag.putDouble(CORE_HEAT_TAG, tag.contains("core") ? tag.getDouble("core") : 20.0D);
+            tag.putDouble(HULL_HEAT_TAG, tag.contains("hull") ? tag.getDouble("hull") : 20.0D);
+            tag.putBoolean(STATE_MIGRATED_TAG, true);
+            changed = true;
+        } else {
+            if (!tag.contains(DEPLETION_TAG)) {
+                tag.putDouble(DEPLETION_TAG, 0.0D);
+                changed = true;
+            }
+            if (!tag.contains(XENON_TAG)) {
+                tag.putDouble(XENON_TAG, 0.0D);
+                changed = true;
+            }
+            if (!tag.contains(CORE_HEAT_TAG)) {
+                tag.putDouble(CORE_HEAT_TAG, 20.0D);
+                changed = true;
+            }
+            if (!tag.contains(HULL_HEAT_TAG)) {
+                tag.putDouble(HULL_HEAT_TAG, 20.0D);
+                changed = true;
+            }
+        }
+        if (changed) {
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+        return tag;
     }
 
     /**
@@ -309,7 +399,7 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
         double core = rectify(coreHeat(stack));
         double hull = rectify(hullHeat(stack));
         if (core > hull) {
-            double movedHeat = (core - hull) / 2.0D * fuel.diffusion() * Math.max(0.0D, diffusionModifier) * 0.025D;
+            double movedHeat = (core - hull) / 2.0D * fuel.diffusion() * diffusionModifier * 0.025D;
             core = rectify(core - movedHeat);
             hull = rectify(hull + movedHeat);
         }
@@ -320,31 +410,40 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
             hull = average;
         } else if (hull > 20.0D) {
             double removedHeat = (hull - 20.0D) / 2.0D;
-            removedHeat *= Math.max(0.0D, Math.min(1.0D, heatProvision)) * 0.025D;
+            removedHeat *= heatProvision * 0.025D;
             hull -= removedHeat;
         }
 
-        setState(stack, depletion(stack), xenon(stack), (float) core, (float) hull);
+        setState(stack, depletion(stack), xenon(stack), core, hull);
     }
 
-    private static String fluxFunction(Fuel fuel) {
-        String x = fuel.selfRate() > 0.0D ? "(x + " + round(fuel.selfRate(), 3) + ")" : "x";
-        String r = round(fuel.reactivity(), 3);
-        return switch (fuel.function()) {
-            case PASSIVE -> round(fuel.selfRate(), 3);
-            case LOG_TEN -> "log10(" + x + " + 1) * 0.5 * " + r;
-            case PLATEU -> "(1 - e^(-" + x + " / 25)) * " + r;
-            case ARCH -> "(" + x + " - " + x + "^2 / 10000) / 100 * " + r + " [0;inf]";
-            case SIGMOID -> r + " / (1 + e^(-(" + x + " - 50) / 10))";
-            case SQUARE_ROOT -> "sqrt(" + x + ") * " + r + " / 10";
-            case LINEAR -> x + " / 100 * " + r;
-            case QUADRATIC -> x + "^2 / 10000 * " + r;
-            case EXPERIMENTAL -> x + " * (sin(" + x + ") + 1) * " + r;
+    private static String fluxFunction(ItemStack stack, Fuel fuel) {
+        String function = switch (fuel.function()) {
+            case PASSIVE -> Double.toString(fuel.selfRate());
+            case LOG_TEN -> "log10(%1$s + 1) * 0.5 * %2$s";
+            case PLATEU -> "(1 - e^(-%1$s / 25)) * %2$s";
+            case ARCH -> "(%1$s - %1$s² / 10000) / 100 * %2$s [0;∞]";
+            case SIGMOID -> "%2$s / (1 + e^(-(%1$s - 50) / 10))";
+            case SQUARE_ROOT -> "sqrt(%1$s) * %2$s / 10";
+            case LINEAR -> "%1$s / 100 * %2$s";
+            case QUADRATIC -> "%1$s² / 10000 * %2$s";
+            case EXPERIMENTAL -> "%1$s * (sin(%1$s) + 1) * %2$s";
         };
+        String x = fuel.selfRate() > 0.0D ? "(x + " + fuel.selfRate() + ")" : "x";
+        // Tooltip enrichment is the same getEnrichment() value used by the
+        // legacy rod: remaining yield normalized to the rod's full yield.
+        double enrichment = 1.0D - depletion(stack);
+        if (enrichment < 1.0D) {
+            double multiplier = reactivityModByEnrichment(fuel.depletionFunction(), enrichment);
+            double reactivity = ((int) (fuel.reactivity() * multiplier * 1_000.0D)) / 1_000.0D;
+            double enrichmentPercent = ((int) (multiplier * 1_000.0D)) / 10.0D;
+            return String.format(Locale.US, function, x, reactivity) + " (" + enrichmentPercent + "%)";
+        }
+        return String.format(Locale.US, function, x, fuel.reactivity());
     }
 
-    private static double percent(float depletion) {
-        return Math.floor(Math.max(0.0F, depletion) * 100_000.0D) / 1_000.0D;
+    private static double percent(double depletion) {
+        return Math.floor(Math.max(0.0D, depletion) * 100_000.0D) / 1_000.0D;
     }
 
     private static String round(double value, int places) {
@@ -413,36 +512,42 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
             double xenonBurn,
             double heat,
             double diffusion,
+            double heatCoeffStart,
+            double heatCoeffLength,
             double meltingPoint,
             NeutronType neutronIn,
             NeutronType neutronOut
     ) {
         private Fuel(String id, String fullName, double yield, double reactivity, double selfRate, BurnFunction function) {
-            this(id, fullName, yield, reactivity, selfRate, function, DepletionFunction.GENTLE_SLOPE, 0.5D, 50.0D, 1.0D, 0.02D, 1000.0D, NeutronType.SLOW, NeutronType.FAST);
+            this(id, fullName, yield, reactivity, selfRate, function, DepletionFunction.GENTLE_SLOPE, 0.5D, 50.0D, 1.0D, 0.02D, 0.0D, 0.0D, 1000.0D, NeutronType.SLOW, NeutronType.FAST);
         }
 
         private Fuel deplete(DepletionFunction value) {
-            return new Fuel(id, fullName, yield, reactivity, selfRate, function, value, xenonGen, xenonBurn, heat, diffusion, meltingPoint, neutronIn, neutronOut);
+            return new Fuel(id, fullName, yield, reactivity, selfRate, function, value, xenonGen, xenonBurn, heat, diffusion, heatCoeffStart, heatCoeffLength, meltingPoint, neutronIn, neutronOut);
         }
 
         private Fuel xenon(double gen, double burn) {
-            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, gen, burn, heat, diffusion, meltingPoint, neutronIn, neutronOut);
+            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, gen, burn, heat, diffusion, heatCoeffStart, heatCoeffLength, meltingPoint, neutronIn, neutronOut);
         }
 
         private Fuel heat(double value) {
-            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, value, diffusion, meltingPoint, neutronIn, neutronOut);
+            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, value, diffusion, heatCoeffStart, heatCoeffLength, meltingPoint, neutronIn, neutronOut);
         }
 
         private Fuel diffusion(double value) {
-            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, heat, value, meltingPoint, neutronIn, neutronOut);
+            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, heat, value, heatCoeffStart, heatCoeffLength, meltingPoint, neutronIn, neutronOut);
         }
 
         private Fuel melt(double value) {
-            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, heat, diffusion, value, neutronIn, neutronOut);
+            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, heat, diffusion, heatCoeffStart, heatCoeffLength, value, neutronIn, neutronOut);
         }
 
         private Fuel neutrons(NeutronType in, NeutronType out) {
-            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, heat, diffusion, meltingPoint, in, out);
+            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, heat, diffusion, heatCoeffStart, heatCoeffLength, meltingPoint, in, out);
+        }
+
+        private Fuel heatCoeff(double start, double length) {
+            return new Fuel(id, fullName, yield, reactivity, selfRate, function, depletionFunction, xenonGen, xenonBurn, heat, diffusion, start, length, meltingPoint, neutronIn, neutronOut);
         }
     }
 
@@ -451,7 +556,7 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
             new Fuel("meu", "Medium Enriched Uranium", 100_000_000D, 20D, 0D, BurnFunction.LOG_TEN).deplete(DepletionFunction.RAISING_SLOPE).heat(0.65D).melt(2865D),
             new Fuel("heu233", "Highly Enriched Uranium-233", 100_000_000D, 27.5D, 0D, BurnFunction.LINEAR).heat(1.25D).melt(2865D),
             new Fuel("heu235", "Highly Enriched Uranium-235", 100_000_000D, 50D, 0D, BurnFunction.SQUARE_ROOT).melt(2865D),
-            new Fuel("uzh", "Uranium Zirconium Hydride", 50_000_000D, 30D, 0D, BurnFunction.LOG_TEN).heat(0.75D).diffusion(0.1D).melt(1845D),
+            new Fuel("uzh", "Uranium Zirconium Hydride", 50_000_000D, 30D, 0D, BurnFunction.LOG_TEN).heat(0.75D).heatCoeff(1_000D, 500D).diffusion(0.1D).melt(1845D),
             new Fuel("thmeu", "Thorium with MEU Driver Fuel", 100_000_000D, 20D, 0D, BurnFunction.PLATEU).deplete(DepletionFunction.BOOSTED_SLOPE).heat(0.65D).melt(3350D),
             new Fuel("lep", "Low Enriched Plutonium-239", 100_000_000D, 35D, 0D, BurnFunction.LOG_TEN).deplete(DepletionFunction.RAISING_SLOPE).heat(0.75D).melt(2744D),
             new Fuel("mep", "Medium Enriched Plutonium-239", 100_000_000D, 35D, 0D, BurnFunction.SQUARE_ROOT).melt(2744D),

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PP",
+    "SS",
+    "BB"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/titanium"
+    },
+    "S": {
+      "item": "reinhardtshbm:steel_scaffold"
+    },
+    "B": {
+      "item": "reinhardtshbm:steel_beam"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:seg_15",
+    "count": 1
+  }
+}
+

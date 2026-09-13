@@ -33,7 +33,7 @@ public final class LegacyDuckEntity extends Chicken {
 
     @Override
     public Chicken getBreedOffspring(ServerLevel level, AgeableMob otherParent) {
-        return HbmEntityTypes.DUCK.get().create(level);
+        return new LegacyDuckEntity(HbmEntityTypes.DUCK.get(), level);
     }
 
     @Override

@@ -1,0 +1,6 @@
+{
+  "feature": "reinhardtshbm:depth_ore_zirconium",
+  "placement": [
+    { "type": "minecraft:biome" }
+  ]
+}

@@ -1,13 +1,48 @@
 {
-  "neoforge:conditions": [{ "type": "reinhardtshbm:enable_528_mode" }],
+  "neoforge:conditions": {
+    "type": "reinhardtshbm:enable_528_mode"
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pwrport",
   "duration": 200,
   "power": 500,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "lead_plating" } } }, "count": 1 },
-    { "ingredient": { "tag": "c:concretes" }, "count": 4 },
-    { "ingredient": { "tag": "c:pipes/steel" }, "count": 4 }
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:item_expensive",
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "lead_plating"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:concretes"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 4
+    }
   ],
-  "result": { "id": "reinhardtshbm:pwr_port", "count": 4 }
+  "result": {
+    "id": "reinhardtshbm:pwr_port",
+    "count": 4
+  }
 }

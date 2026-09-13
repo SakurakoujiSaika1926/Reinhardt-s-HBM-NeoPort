@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["DPS"," RD"," D "],"key":{"D":{"tag":"c:ingots/dura_steel"},"P":{"item":"reinhardtshbm:part_generic"},"R":{"tag":"c:ingots/rubber"},"S":{"type":"neoforge:components","items":["reinhardtshbm:shell"],"components":{"minecraft:custom_data":{"material_id":30,"material":"steel"}}}},"result":{"id":"reinhardtshbm:boltgun"}}

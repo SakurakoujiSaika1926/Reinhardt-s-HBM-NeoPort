@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
+import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import com.reinhardt.hbm.blockentity.BigAssTankBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticCrackerBlockEntity;
 import com.reinhardt.hbm.blockentity.CentrifugeBlockEntity;
@@ -26,6 +27,7 @@ import com.reinhardt.hbm.blockentity.LegacyTurretType;
 import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RadarScreenBlockEntity;
+import com.reinhardt.hbm.blockentity.RefineryBlockEntity;
 import com.reinhardt.hbm.blockentity.StrandCasterBlockEntity;
 import com.reinhardt.hbm.block.TurretChekhovBlock;
 import com.reinhardt.hbm.block.LegacyTurretBlock;
@@ -117,6 +119,20 @@ public class MachineDummyBlock extends Block implements EntityBlock {
     }
 
     @Override
+    protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy) {
+            BlockPos corePos = dummy.getCorePos();
+            if (!corePos.equals(pos)) {
+                BlockState coreState = level.getBlockState(corePos);
+                if (!coreState.isAir()) {
+                    return coreState.getDestroyProgress(player, level, corePos);
+                }
+            }
+        }
+        return super.getDestroyProgress(state, player, level, pos);
+    }
+
+    @Override
     public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy) {
             BlockState coreState = level.getBlockState(dummy.getCorePos());
@@ -127,9 +143,34 @@ public class MachineDummyBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity part
+                && level.getBlockEntity(part.getCorePos()) instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher) {
+            if (level.isClientSide) return InteractionResult.SUCCESS;
+            if (player.isCrouching()) return InteractionResult.PASS;
+            if (player instanceof ServerPlayer serverPlayer) serverPlayer.openMenu(launcher, buffer -> buffer.writeBlockPos(launcher.getBlockPos()));
+            return InteractionResult.CONSUME;
+        }
+        if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity launcherPart
+                && level.getBlockEntity(launcherPart.getCorePos()) instanceof com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity soyuz) {
+            if (level.isClientSide) return InteractionResult.SUCCESS;
+            if (player.isCrouching()) return InteractionResult.PASS;
+            if (player instanceof ServerPlayer serverPlayer) {
+                com.reinhardt.hbm.event.LegacyMobSpawnEvents.markFbi(serverPlayer);
+                serverPlayer.openMenu(soyuz, buffer -> buffer.writeBlockPos(soyuz.getBlockPos()));
+            }
+            return InteractionResult.CONSUME;
+        }
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof LegacyTurretBlockEntity turret
                 && turret.type() == LegacyTurretType.HOWARD_DAMAGED) {
+            return InteractionResult.PASS;
+        }
+        // The legacy RBMK crane dummy had no onBlockActivated/openInv path;
+        // preserve vanilla PASS on both sides instead of forwarding a GUI or
+        // generic info interaction that did not exist in 1.7.10.
+        if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof RbmkComponentBlockEntity rbmk
+                && rbmk.kind() == RbmkComponentBlock.Kind.CRANE_CONSOLE) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy) {
@@ -149,11 +190,18 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                 }
             }
             if (coreEntity instanceof RbmkComponentBlockEntity rbmk) {
+                markFbiTarget(player, rbmk.kind());
                 if (coreEntity instanceof MenuProvider menuProvider
                         && rbmk.kind().hasMenu()
                         && !player.isShiftKeyDown()
                         && player instanceof ServerPlayer serverPlayer) {
                     serverPlayer.openMenu(menuProvider, buffer -> buffer.writeBlockPos(corePos));
+                    return InteractionResult.CONSUME;
+                }
+                // A legacy dummy forwarded a sneaking RBMK click to
+                // RBMKBase.openInv, which consumed it without opening a GUI
+                // or changing control/fuel state.
+                if (player.isShiftKeyDown()) {
                     return InteractionResult.CONSUME;
                 }
                 if (rbmk.handleEmptyHand(player)) {
@@ -169,7 +217,11 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             }
             if (coreEntity instanceof LegacyMachineBlockEntity machine
                     && machine.handleEmptyHandInteraction(player)) {
+                markFbiTarget(player, machine);
                 return InteractionResult.CONSUME;
+            }
+            if (coreEntity instanceof LegacyMachineBlockEntity machine) {
+                markFbiTarget(player, machine);
             }
             if (coreEntity instanceof LegacyMachineBlockEntity machine
                     && machine.machineId().equals("machine_orbus") && player.isCrouching()) {
@@ -257,12 +309,22 @@ public class MachineDummyBlock extends Block implements EntityBlock {
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof RbmkComponentBlockEntity rbmk
                 && rbmk.handleItemUse(player, hand, stack)) {
+            markFbiTarget(player, rbmk.kind());
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof RbmkComponentBlockEntity rbmk) {
+            markFbiTarget(player, rbmk.kind());
         }
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof LegacyMachineBlockEntity machine
                 && machine.handleItemInteraction(player, stack)) {
+            markFbiTarget(player, machine);
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof LegacyMachineBlockEntity machine) {
+            markFbiTarget(player, machine);
         }
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof StrandCasterBlockEntity caster) {
@@ -488,6 +550,18 @@ public class MachineDummyBlock extends Block implements EntityBlock {
     }
 
     @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
+                                   BlockPos fromPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher) {
+            // LaunchPad's old BlockDummyable received redstone updates on every
+            // dummy segment, not only on the core block.
+            launcher.updateRedstonePower(pos);
+        }
+    }
+
+    @Override
     public void onBlockExploded(BlockState state, Level level, BlockPos pos, Explosion explosion) {
         if (!level.isClientSide
                 && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
@@ -495,6 +569,11 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             tank.handleExplosion(explosion);
             runWithoutCoreDestroy(() -> level.removeBlock(pos, false));
             return;
+        }
+        if (!level.isClientSide
+                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof RefineryBlockEntity) {
+            RefineryBlockEntity.awardInfernoForBombletExplosion(level, pos, explosion);
         }
         super.onBlockExploded(state, level, pos, explosion);
     }
@@ -506,6 +585,24 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             action.run();
         } finally {
             SUPPRESS_CORE_DESTROY.set(previous);
+        }
+    }
+
+    private static void markFbiTarget(Player player, LegacyMachineBlockEntity machine) {
+        if (!player.level().isClientSide && !player.isCrouching() && player instanceof ServerPlayer serverPlayer
+                && (machine.machineId().equals("machine_missile_assembly")
+                || machine.machineId().equals("machine_radiolysis"))) {
+            LegacyMobSpawnEvents.markFbi(serverPlayer);
+        }
+    }
+
+    private static void markFbiTarget(Player player, RbmkComponentBlock.Kind kind) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        if (kind == RbmkComponentBlock.Kind.STORAGE || kind.acceptsFuel()
+                || kind == RbmkComponentBlock.Kind.CONSOLE && !player.isShiftKeyDown()) {
+            LegacyMobSpawnEvents.markFbi(serverPlayer);
         }
     }
 

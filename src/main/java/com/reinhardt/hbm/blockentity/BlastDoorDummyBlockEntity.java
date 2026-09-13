@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.block.BlastDoorDummyBlock;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
@@ -15,7 +16,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class BlastDoorDummyBlockEntity extends BlockEntity {
+    private static final String CREATE_CORE_OFFSET_X = "HbmCoreOffsetX";
+    private static final String CREATE_CORE_OFFSET_Y = "HbmCoreOffsetY";
+    private static final String CREATE_CORE_OFFSET_Z = "HbmCoreOffsetZ";
     private BlockPos corePos = BlockPos.ZERO;
+    private boolean dropCoreWhenRemoved = true;
 
     public BlastDoorDummyBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.BLAST_DOOR_DUMMY.get(), pos, blockState);
@@ -23,7 +28,7 @@ public class BlastDoorDummyBlockEntity extends BlockEntity {
 
     public static void tick(Level level, BlockPos pos, BlockState state, BlastDoorDummyBlockEntity dummy) {
         if (!level.isClientSide && !level.getBlockState(dummy.corePos).is(HbmBlocks.BLAST_DOOR.get())) {
-            level.destroyBlock(pos, false);
+            BlastDoorDummyBlock.runWithoutCoreDestroy(() -> level.destroyBlock(pos, false));
         }
     }
 
@@ -39,18 +44,51 @@ public class BlastDoorDummyBlockEntity extends BlockEntity {
         }
     }
 
+    /** Records whether a player harvest should drop the single blast-door core. */
+    public void setDropCoreWhenRemoved(boolean drop) {
+        this.dropCoreWhenRemoved = drop;
+    }
+
+    public boolean consumeDropCoreWhenRemoved() {
+        boolean drop = this.dropCoreWhenRemoved;
+        this.dropCoreWhenRemoved = true;
+        return drop;
+    }
+
+    public BlockPos coreOffset() {
+        return this.corePos.subtract(this.worldPosition);
+    }
+
+    public void setCoreOffset(BlockPos coreOffset) {
+        setCorePos(this.worldPosition.offset(coreOffset));
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("tx", this.corePos.getX());
         tag.putInt("ty", this.corePos.getY());
         tag.putInt("tz", this.corePos.getZ());
+        BlockPos coreOffset = coreOffset();
+        tag.putInt(CREATE_CORE_OFFSET_X, coreOffset.getX());
+        tag.putInt(CREATE_CORE_OFFSET_Y, coreOffset.getY());
+        tag.putInt(CREATE_CORE_OFFSET_Z, coreOffset.getZ());
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        this.corePos = new BlockPos(tag.getInt("tx"), tag.getInt("ty"), tag.getInt("tz"));
+        if (tag.contains(CREATE_CORE_OFFSET_X)
+                && tag.contains(CREATE_CORE_OFFSET_Y)
+                && tag.contains(CREATE_CORE_OFFSET_Z)) {
+            this.corePos = this.worldPosition.offset(
+                    tag.getInt(CREATE_CORE_OFFSET_X),
+                    tag.getInt(CREATE_CORE_OFFSET_Y),
+                    tag.getInt(CREATE_CORE_OFFSET_Z)
+            ).immutable();
+        } else {
+            this.corePos = new BlockPos(tag.getInt("tx"), tag.getInt("ty"), tag.getInt("tz"));
+        }
     }
 
     @Override

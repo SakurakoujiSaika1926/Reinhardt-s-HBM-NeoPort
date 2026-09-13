@@ -26,12 +26,12 @@ public final class GlyphidHiveFeature extends Feature<NoneFeatureConfiguration> 
         WorldGenLevel level = context.level();
         if (!HbmConfig.GLYPHID_ENABLE_HIVES.get()
                 || level.getLevel().dimension() != Level.OVERWORLD
-                || !level.getLevel().getServer().getWorldData().worldGenOptions().generateStructures()) {
+                || !HbmConfig.legacyDungeonGenerationEnabled(level.getLevel().getServer().getWorldData().worldGenOptions().generateStructures())) {
             return false;
         }
 
         RandomSource random = context.random();
-        if (random.nextInt(Math.max(1, HbmConfig.GLYPHID_HIVE_SPAWN.get())) != 0) {
+        if (random.nextInt(HbmConfig.GLYPHID_HIVE_SPAWN.get()) != 0) {
             return false;
         }
 

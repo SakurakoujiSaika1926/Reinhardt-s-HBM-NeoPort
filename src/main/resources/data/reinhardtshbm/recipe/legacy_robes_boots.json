@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"equipment",
+  "pattern":["R R","P P"],
+  "key":{"R":{"item":"reinhardtshbm:rag"},"P":{"tag":"c:ingots/rubber"}},
+  "result":{"id":"reinhardtshbm:robes_boots"}
+}

@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:sulfur_cave",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

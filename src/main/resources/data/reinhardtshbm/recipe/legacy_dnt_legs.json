@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"equipment",
+  "pattern":["EE ","EEE","E E"],
+  "key":{"E":{"tag":"c:ingots/chainsteel"}},
+  "result":{"id":"reinhardtshbm:dnt_legs"}
+}

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:crystal_redstone" },
+  "result": { "id": "minecraft:redstone", "count": 6 },
+  "experience": 2.0,
+  "cookingtime": 200
+}

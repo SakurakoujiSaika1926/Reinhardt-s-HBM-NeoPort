@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["DPD", "PRP", "DPD"],
+  "key": {
+    "D": { "item": "reinhardtshbm:ducttape" },
+    "P": { "tag": "c:plates/desh" },
+    "R": { "item": "reinhardtshbm:cladding_lead" }
+  },
+  "result": { "id": "reinhardtshbm:cladding_desh" }
+}

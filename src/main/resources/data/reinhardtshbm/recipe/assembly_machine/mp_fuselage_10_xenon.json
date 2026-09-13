@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpf10xenon",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/copper"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_fuselage_10_xenon",
+    "count": 1
+  }
+}

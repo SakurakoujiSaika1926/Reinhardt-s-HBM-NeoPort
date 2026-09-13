@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.dynamite",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": ["reinhardtshbm:sand_mix"],
+    "components": {
+      "minecraft:custom_data": { "variant": "quartz" },
+      "minecraft:custom_model_data": 4
+    }
+  },
+  "acid": { "fluid": "nitroglycerin", "amount": 1000 },
+  "duration": 20,
+  "result": { "id": "reinhardtshbm:ball_dynamite", "count": 16 }
+}

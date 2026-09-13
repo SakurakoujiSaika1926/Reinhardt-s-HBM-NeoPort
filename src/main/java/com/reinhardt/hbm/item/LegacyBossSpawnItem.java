@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.event.EventHooks;
 
 import java.util.List;
 
@@ -44,10 +45,6 @@ public final class LegacyBossSpawnItem extends Item {
     @Override
     public InteractionResult useOn(UseOnContext context) {
         BlockPos clicked = context.getClickedPos();
-        if (context.getPlayer() != null
-                && !context.getPlayer().mayUseItemAt(clicked, context.getClickedFace(), context.getItemInHand())) {
-            return InteractionResult.FAIL;
-        }
         BlockPos spawn = clicked.relative(context.getClickedFace());
         double verticalOffset = context.getClickedFace().getAxis().isVertical() && context.getClickedFace().getStepY() > 0
                 && context.getLevel().getBlockState(clicked).getBlock() instanceof SnowLayerBlock ? 0.5D : 0.0D;
@@ -62,8 +59,9 @@ public final class LegacyBossSpawnItem extends Item {
                 || !(level.getBlockState(blockHit.getBlockPos()).getBlock() instanceof LiquidBlock)) {
             return InteractionResultHolder.pass(stack);
         }
-        if (!player.mayUseItemAt(blockHit.getBlockPos(), blockHit.getDirection(), stack)) {
-            return InteractionResultHolder.fail(stack);
+        if (!level.mayInteract(player, blockHit.getBlockPos())
+                || !player.mayUseItemAt(blockHit.getBlockPos(), blockHit.getDirection(), stack)) {
+            return InteractionResultHolder.pass(stack);
         }
         return new InteractionResultHolder<>(spawn(level, player, stack, blockHit.getBlockPos(), 0.0D), stack);
     }
@@ -72,14 +70,11 @@ public final class LegacyBossSpawnItem extends Item {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        Entity entity = switch (type) {
-            case CHOPPER -> HbmEntityTypes.LEGACY_CHOPPER.get().create(level);
-            case UFO -> HbmEntityTypes.LEGACY_UFO.get().create(level);
-            case WORM -> HbmEntityTypes.LEGACY_WORM_HEAD.get().create(level);
+        Mob entity = switch (type) {
+            case CHOPPER -> new LegacyChopperEntity(HbmEntityTypes.LEGACY_CHOPPER.get(), level);
+            case UFO -> new LegacyUfoEntity(HbmEntityTypes.LEGACY_UFO.get(), level);
+            case WORM -> new LegacyWormHeadEntity(HbmEntityTypes.LEGACY_WORM_HEAD.get(), level);
         };
-        if (entity == null) {
-            return InteractionResult.FAIL;
-        }
 
         double y = pos.getY() + verticalOffset;
         if (entity instanceof LegacyUfoEntity ufo) {
@@ -88,17 +83,20 @@ public final class LegacyBossSpawnItem extends Item {
         }
         entity.moveTo(pos.getX() + 0.5D, y, pos.getZ() + 0.5D,
                 Mth.wrapDegrees(level.random.nextFloat() * 360.0F), 0.0F);
-        if (entity instanceof Mob mob && level instanceof ServerLevel serverLevel) {
-            mob.finalizeSpawn(serverLevel, level.getCurrentDifficultyAt(pos), MobSpawnType.SPAWN_EGG, null);
+        entity.setYHeadRot(entity.getYRot());
+        entity.setYBodyRot(entity.getYRot());
+        if (level instanceof ServerLevel serverLevel) {
+            EventHooks.finalizeMobSpawn(entity, serverLevel,
+                    level.getCurrentDifficultyAt(pos), MobSpawnType.SPAWN_EGG, null);
         }
         if (entity instanceof LivingEntity living && stack.has(DataComponents.CUSTOM_NAME)) {
             living.setCustomName(stack.getHoverName());
         }
         level.addFreshEntity(entity);
         if (entity instanceof LegacyWormHeadEntity worm && level instanceof ServerLevel serverLevel) {
-            worm.createSegments(serverLevel);
+            worm.initializeLegacySpawn(serverLevel);
         }
-        if (player == null || !player.getAbilities().instabuild) {
+        if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
         return InteractionResult.SUCCESS;

@@ -180,6 +180,9 @@ public class TurretJeremyBlock extends HorizontalDirectionalBlock implements Ent
     }
 
     private static void removeDummies(Level level, BlockPos corePos, Direction facing) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos pos : TurretJeremyBlockEntity.occupiedPositions(corePos, facing)) {
                 if (pos.equals(corePos)) {

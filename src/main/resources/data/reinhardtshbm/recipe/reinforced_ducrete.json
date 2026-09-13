@@ -11,7 +11,7 @@
       "item": "reinhardtshbm:brick_ducrete"
     },
     "S": {
-      "item": "reinhardtshbm:plate_steel"
+      "tag": "c:plates/steel"
     },
     "U": {
       "item": "reinhardtshbm:billet_u238"

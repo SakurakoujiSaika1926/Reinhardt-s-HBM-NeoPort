@@ -699,7 +699,6 @@ ingot_chainsteel
 ingot_co60
 ingot_cobalt
 ingot_combine_steel
-ingot_copper
 ingot_desh
 ingot_dineutronium
 ingot_dura_steel

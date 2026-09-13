@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "TCT",
+    "TGT",
+    "RRR"
+  ],
+  "key": {
+    "T": {
+      "tag": "c:plates/titanium"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_chip"
+    },
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "R": {
+      "tag": "c:ingots/rubber"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:envsuit_helmet"
+  }
+}

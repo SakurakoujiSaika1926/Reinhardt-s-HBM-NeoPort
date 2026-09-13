@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PCP",
+    "DJD",
+    "PAP"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "P": {
+      "tag": "c:plates/tungsten"
+    },
+    "D": {
+      "tag": "c:ingots/desh"
+    },
+    "J": {
+      "item": "reinhardtshbm:jetpack_vector"
+    },
+    "A": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 2900,
+          "material": "copper"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:jetpack_boost"
+  }
+}

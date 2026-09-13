@@ -9,6 +9,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 
 /** 1.7.10 nuclear waste subtypes, formerly stored in ItemStack metadata. */
@@ -68,6 +70,26 @@ public final class NuclearWasteItem extends Item {
     @Override
     public int getEntityLifespan(ItemStack itemStack, Level level) {
         return Integer.MAX_VALUE;
+    }
+
+    /** Recreates EntityItemWaste's custom, explosion-proof entity wrapper. */
+    @Override
+    public boolean hasCustomEntity(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public Entity createEntity(Level level, Entity original, ItemStack stack) {
+        if (!(original instanceof ItemEntity itemEntity)) {
+            return original;
+        }
+        com.reinhardt.hbm.entity.LegacyWasteItemEntity replacement =
+                new com.reinhardt.hbm.entity.LegacyWasteItemEntity(level,
+                        itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), stack.copy());
+        replacement.setDeltaMovement(itemEntity.getDeltaMovement());
+        replacement.setPickUpDelay(10);
+        original.discard();
+        return replacement;
     }
 
     @Override

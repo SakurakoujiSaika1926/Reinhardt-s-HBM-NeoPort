@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.util.SavedItemStackPreview;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -53,7 +54,7 @@ public final class LegacyCustomKitItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        List<ItemStack> contents = contents(stack, context.registries());
+        List<ItemStack> contents = contentsForTooltip(stack);
         if (contents.isEmpty()) {
             return;
         }
@@ -104,6 +105,10 @@ public final class LegacyCustomKitItem extends Item {
             }
         }
         return contents;
+    }
+
+    public static List<ItemStack> contentsForTooltip(ItemStack kit) {
+        return SavedItemStackPreview.listFromCustomData(kit, CONTENTS);
     }
 
     public static void setColors(ItemStack kit, int colorOne, int colorTwo) {

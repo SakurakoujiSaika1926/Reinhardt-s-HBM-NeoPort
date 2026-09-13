@@ -1,8 +1,10 @@
 package com.reinhardt.hbm.explosion;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.entity.NukeTorexEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.radiation.HbmRadiationWorlds;
@@ -78,12 +80,69 @@ public final class NukeExplosionManager {
     }
 
     public static void scheduleLegacyNuke(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, true, true, true);
+    }
+
+    /** 1.7.10 EntityMissileMicro: PARAMS_HIGH delegates to MK5 directly and
+     * does not create the ordinary missile Torex. MK5 still creates fallout. */
+    public static void scheduleMicroNuke(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, false, true, true);
+    }
+
+    /** 1.7.10 EntityMissileSchrabidium: MK3 Fleija explosion.  The Fleija
+     * cloud is emitted explicitly; no standard Torex is substituted. */
+    public static void scheduleFleijaNuke(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, false, false, false);
+        sendFleijaCloud(level, x, y, z, radius);
+    }
+
+    /** EntityNukeExplosionMK5.statFac (ordinary nuclear/TX warheads). */
+    public static void scheduleMk5Nuclear(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, true, true, true);
+    }
+
+    /** EntityNukeExplosionMK5.statFacNoRad used by custom N2. */
+    public static void scheduleMk5NoRadiation(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, true, false, false);
+    }
+
+    /** EntityMissileMirv doubles missileRadius and uses the normal MK5/Torex pair. */
+    public static void scheduleMirv(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius * 2, true, true, true);
+    }
+
+    /** EntityMissileDoomsday: MK5.moreFallout(100). */
+    public static void scheduleDoomsday(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, true, true, true);
+        NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), 100, 20 * 20);
+    }
+
+    /** EntityMissileDoomsdayRusted uses missileRadius (not doubled) and the
+     * same extra fallout modifier. */
+    public static void scheduleRustedDoomsday(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, true, true, true);
+        NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), 100, 20 * 20);
+    }
+
+    private static void scheduleInternal(ServerLevel level, double x, double y, double z, int radius,
+                                          boolean spawnTorex, boolean deferredFallout, boolean radiation) {
+        HbmAdvancements.awardAll(level, "manhattan");
         TASKS.computeIfAbsent(level.dimension().location(), unused -> new ArrayDeque<>())
-                .add(new NukeTask(new Vec3(x, y, z), radius * 2, radius));
+                .add(new NukeTask(new Vec3(x, y, z), radius * 2, radius, radiation));
         playInitialSound(level, x, y, z);
-        spawnTorex(level, x, y + 0.5D, z, radius);
+        if (spawnTorex) {
+            spawnTorex(level, x, y + 0.5D, z, radius);
+        }
         sendInitialParticles(level, x, y, z);
-        NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), (int) (radius * 2.5D), 20 * 20);
+        if (deferredFallout) {
+            NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), (int) (radius * 2.5D), 20 * 20);
+        }
+    }
+
+    private static void sendFleijaCloud(ServerLevel level, double x, double y, double z, int radius) {
+        int count = Math.max(64, radius * 10);
+        level.sendParticles(com.reinhardt.hbm.registry.HbmParticleTypes.LEGACY_CLOUD.get(),
+                x, y, z, count, radius * 0.05D, radius * 0.05D, radius * 0.05D, 0.35D);
     }
 
     /**
@@ -202,6 +261,7 @@ public final class NukeExplosionManager {
         private final Vec3 center;
         private final int strength;
         private final int length;
+        private final boolean radiationEnabled;
         private final Long2LongOpenHashMap blockSampleCache = new Long2LongOpenHashMap();
         private final Queue<Long> pendingDestroy = new ArrayDeque<>();
         private final LongOpenHashSet queuedDestroy = new LongOpenHashSet();
@@ -215,10 +275,11 @@ public final class NukeExplosionManager {
         private int damageTicks = DAMAGE_TICKS;
         private boolean raysDone;
 
-        private NukeTask(Vec3 center, int strength, int length) {
+        private NukeTask(Vec3 center, int strength, int length, boolean radiationEnabled) {
             this.center = center;
             this.strength = strength;
             this.length = length;
+            this.radiationEnabled = radiationEnabled;
             this.blockSampleCache.defaultReturnValue(CACHE_MISS);
             this.directions = CompletableFuture.supplyAsync(() -> createDirections(length), PLANNER);
         }
@@ -253,13 +314,20 @@ public final class NukeExplosionManager {
                     continue;
                 }
                 double exposure = 1.0D - distance / damageRange;
-                entity.hurt(level.damageSources().explosion((Explosion) null), (float) Math.max(4.0D, exposure * this.strength * 4.0D));
+                // Legacy nuclear blasts use HBM's nuclearBlast damage type,
+                // rather than vanilla explosion, so the old death message is
+                // preserved for scheduled (powered) creeper detonations too.
+                entity.hurt(level.damageSources().source(HbmDamageTypes.NUCLEAR_BLAST),
+                        (float) Math.max(4.0D, exposure * this.strength * 4.0D));
                 applyPromptRadiation(level, entity, distance, damageRange);
             }
         }
 
         private void applyPromptRadiation(ServerLevel level, LivingEntity entity, double distance, double range) {
-            if (this.damageTicks >= 10 || this.strength < 150) {
+            if (!this.radiationEnabled || this.damageTicks >= 10 || this.strength < 150) {
+                return;
+            }
+            if (com.reinhardt.hbm.radiation.RadiationEvents.isLegacyRadiationImmune(entity)) {
                 return;
             }
             Vec3 target = new Vec3(entity.getX(), entity.getEyeY(), entity.getZ());

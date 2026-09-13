@@ -15,8 +15,18 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  * 1.7.10 EntityUndeadSoldier. The old five firearm stacks remain deliberately
  * absent because the basic HBM firearm family was retired from this port.
  */
-public final class LegacyUndeadSoldierEntity extends Zombie {
+public final class LegacyUndeadSoldierEntity extends Monster {
     private static final EntityDataAccessor<Byte> TYPE = SynchedEntityData.defineId(
             LegacyUndeadSoldierEntity.class, EntityDataSerializers.BYTE);
     public static final byte TYPE_ZOMBIE = 0;
@@ -36,10 +46,23 @@ public final class LegacyUndeadSoldierEntity extends Zombie {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Zombie.createAttributes()
+        return Monster.createMonsterAttributes()
                 .add(Attributes.FOLLOW_RANGE, 40.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.ATTACK_DAMAGE, 5.0D);
+    }
+
+    /** EntityUndeadSoldier only registered these six legacy goals; it did not
+     * inherit Zombie's door breaking, conversion, reinforcement or melee goal. */
+    @Override
+    protected void registerGoals() {
+        goalSelector.addGoal(0, new FloatGoal(this));
+        goalSelector.addGoal(4, new RandomStrollGoal(this, 1.0D));
+        goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        goalSelector.addGoal(6, new RandomLookAroundGoal(this));
+        targetSelector.addGoal(1, new HurtByTargetGoal(this));
+        targetSelector.addGoal(2, new NearestAttackableTargetGoal<Player>(this, Player.class, 0, true, false, null));
+        targetSelector.addGoal(3, new NearestAttackableTargetGoal<Villager>(this, Villager.class, 0, true, false, null));
     }
 
     @Override
@@ -61,16 +84,13 @@ public final class LegacyUndeadSoldierEntity extends Zombie {
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             setDropChance(slot, 0.0F);
         }
+        setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        setCanPickUpLoot(false);
         return result;
     }
 
     public boolean isSkeletonVariant() {
         return entityData.get(TYPE) == TYPE_SKELETON;
-    }
-
-    @Override
-    protected boolean isSunBurnTick() {
-        return false;
     }
 
     @Override
@@ -86,6 +106,12 @@ public final class LegacyUndeadSoldierEntity extends Zombie {
     @Override
     protected SoundEvent getDeathSound() {
         return isSkeletonVariant() ? SoundEvents.SKELETON_DEATH : SoundEvents.ZOMBIE_DEATH;
+    }
+
+    @Override
+    protected void playStepSound(BlockPos pos, BlockState state) {
+        playSound(isSkeletonVariant() ? SoundEvents.SKELETON_STEP : SoundEvents.ZOMBIE_STEP,
+                0.15F, 1.0F);
     }
 
     @Override

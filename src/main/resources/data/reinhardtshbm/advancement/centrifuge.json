@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:polymer",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:machine_centrifuge"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.centrifuge.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.centrifuge.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

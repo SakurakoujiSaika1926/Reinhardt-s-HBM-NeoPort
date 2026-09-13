@@ -713,11 +713,15 @@ public class RbmkComponentBlockEntityRenderer implements BlockEntityRenderer<Rbm
             addConsoleBoardColumn(consumer, pose, x, y, z, color);
             RbmkComponentBlock.Kind kind = RbmkComponentBlock.Kind.values()[kindOrdinal];
             if (kind.acceptsFuel()) {
-                int green = 64 + Math.min(191, Math.max(0, rbmk.consoleFuelDepletion(index) * 191 / 1000));
+                // Legacy RenderRBMKConsole used the rod's enrichment, not
+                // its spent fraction: green is brightest for fresh fuel and
+                // fades as depletion rises.
+                int enrichment = 1000 - rbmk.consoleFuelDepletion(index);
+                int green = 64 + Math.min(191, Math.max(0, enrichment * 191 / 1000));
                 addConsoleBoardDot(consumer, pose, x + 0.01D, y, z, 0, green, 0);
             } else if (kind.isControl()) {
                 int level = Math.min(255, Math.max(0, rbmk.consoleControl(index) * 255 / 100));
-                if (kind == RbmkComponentBlock.Kind.CONTROL_AUTO) {
+                if (kind.isAutomaticControl()) {
                     addConsoleBoardDot(consumer, pose, x + 0.01D, y, z, level, 0, level);
                 } else {
                     addConsoleBoardDot(consumer, pose, x + 0.01D, y, z, level, level, 0);
@@ -747,11 +751,14 @@ public class RbmkComponentBlockEntityRenderer implements BlockEntityRenderer<Rbm
             addConsoleBoardColumn(consumer, pose, x, y, z, color);
             RbmkComponentBlock.Kind kind = RbmkComponentBlock.Kind.values()[kindOrdinal];
             if (kind.acceptsFuel()) {
-                int green = 64 + Math.min(191, Math.max(0, rbmk.displayFuelDepletion(index) * 191 / 1000));
+                // Same enrichment-based color as the 1.7.10 display
+                // renderer; depletion is the inverse quantity in modern NBT.
+                int enrichment = 1000 - rbmk.displayFuelDepletion(index);
+                int green = 64 + Math.min(191, Math.max(0, enrichment * 191 / 1000));
                 addConsoleBoardDot(consumer, pose, x + 0.01D, y, z, 0, green, 0);
             } else if (kind.isControl()) {
                 int level = Math.min(255, Math.max(0, rbmk.displayControl(index) * 255 / 100));
-                if (kind == RbmkComponentBlock.Kind.CONTROL_AUTO) {
+                if (kind.isAutomaticControl()) {
                     addConsoleBoardDot(consumer, pose, x + 0.01D, y, z, level, 0, level);
                 } else {
                     addConsoleBoardDot(consumer, pose, x + 0.01D, y, z, level, level, 0);

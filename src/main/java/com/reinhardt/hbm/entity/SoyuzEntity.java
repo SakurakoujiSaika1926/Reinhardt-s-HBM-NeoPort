@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.entity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.satellite.SatelliteSavedData;
 import net.minecraft.core.particles.ParticleTypes;
@@ -78,7 +80,14 @@ public class SoyuzEntity extends Entity {
                 if (this.mode == 1) {
                     spawnCapsule();
                 } else if (level() instanceof ServerLevel serverLevel) {
-                    SatelliteSavedData.get(serverLevel).orbit(this.payload[0]);
+                    ItemStack payload = this.payload[0];
+                    if (payload.is(HbmItems.FLAME_PONY.get())) {
+                        HbmAdvancements.awardAll(serverLevel, "space");
+                    }
+                    if (payload.is(HbmItems.SAT_FOEQ.get())) {
+                        HbmAdvancements.awardAll(serverLevel, "foeq");
+                    }
+                    SatelliteSavedData.get(serverLevel).orbit(serverLevel, payload);
                 }
                 discard();
             }
@@ -110,9 +119,12 @@ public class SoyuzEntity extends Entity {
         for (Entity entity : entities) {
             entity.igniteForSeconds(15.0F);
             entity.hurt(source, 100.0F);
-            if (entity instanceof Player && !this.playedSoyuzed) {
-                this.playedSoyuzed = true;
-                level().playSound(null, getX(), getY(), getZ(), HbmSoundEvents.SOYUZED.get(), SoundSource.RECORDS, 100.0F, 1.0F);
+            if (entity instanceof Player player) {
+                HbmAdvancements.award(player, "soyuz");
+                if (!this.playedSoyuzed) {
+                    this.playedSoyuzed = true;
+                    level().playSound(null, getX(), getY(), getZ(), HbmSoundEvents.SOYUZED.get(), SoundSource.RECORDS, 100.0F, 1.0F);
+                }
             }
         }
     }
@@ -154,11 +166,6 @@ public class SoyuzEntity extends Entity {
             capsule.setPayload(i, this.payload[i]);
         }
         level().addFreshEntity(capsule);
-    }
-
-    @Override
-    public boolean fireImmune() {
-        return true;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.reinhardt.hbm.radiation;
 
 import com.mojang.serialization.Codec;
 import com.reinhardt.hbm.network.PlayerInformPayload;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmDataAttachments;
 import net.minecraft.nbt.CompoundTag;
@@ -37,6 +38,8 @@ public class HbmLivingHazards {
     private int blackLung;
     private int fire;
     private int balefire;
+    /** Legacy black-fire timer used by EntityFireLingering type BLACK. */
+    private int blackFire;
 
     public static HbmLivingHazards get(LivingEntity entity) {
         return entity.getData(HbmDataAttachments.LIVING_HAZARDS);
@@ -52,14 +55,19 @@ public class HbmLivingHazards {
         data.setBlackLung(entity, 0);
         data.fire = 0;
         data.balefire = 0;
+        data.blackFire = 0;
         set(entity, data);
     }
 
     public int getAsbestos() {
-        return asbestos;
+        return HbmConfig.ENABLE_ASBESTOS.get() ? asbestos : 0;
     }
 
     public void setAsbestos(LivingEntity entity, int asbestos) {
+        if (!HbmConfig.ENABLE_ASBESTOS.get()) {
+            this.asbestos = 0;
+            return;
+        }
         this.asbestos = Math.max(0, asbestos);
         if (this.asbestos >= MAX_ASBESTOS) {
             this.asbestos = 0;
@@ -68,6 +76,9 @@ public class HbmLivingHazards {
     }
 
     public void addAsbestos(LivingEntity entity, int amount) {
+        if (!HbmConfig.ENABLE_ASBESTOS.get()) {
+            return;
+        }
         setAsbestos(entity, this.asbestos + amount);
         if (entity instanceof ServerPlayer player) {
             PacketDistributor.sendToPlayer(player, PlayerInformPayload.translated(
@@ -80,10 +91,14 @@ public class HbmLivingHazards {
     }
 
     public int getBlackLung() {
-        return blackLung;
+        return HbmConfig.ENABLE_COAL_DUST.get() ? blackLung : 0;
     }
 
     public void setBlackLung(LivingEntity entity, int blackLung) {
+        if (!HbmConfig.ENABLE_COAL_DUST.get()) {
+            this.blackLung = 0;
+            return;
+        }
         this.blackLung = Math.max(0, blackLung);
         if (this.blackLung >= MAX_BLACK_LUNG) {
             this.blackLung = 0;
@@ -92,6 +107,9 @@ public class HbmLivingHazards {
     }
 
     public void addBlackLung(LivingEntity entity, int amount) {
+        if (!HbmConfig.ENABLE_COAL_DUST.get()) {
+            return;
+        }
         setBlackLung(entity, this.blackLung + amount);
         if (entity instanceof ServerPlayer player) {
             PacketDistributor.sendToPlayer(player, PlayerInformPayload.translated(
@@ -135,12 +153,28 @@ public class HbmLivingHazards {
         }
     }
 
+    public int getBlackFire() {
+        return blackFire;
+    }
+
+    /** EntityFireLingering's BLACK type starts at 200 ticks, then adds five per hit. */
+    public void extendBlackFire() {
+        this.blackFire = this.blackFire < 200 ? 200 : this.blackFire + 5;
+    }
+
+    public void tickBlackFire() {
+        if (this.blackFire > 0) {
+            this.blackFire--;
+        }
+    }
+
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
         tag.putInt("asbestos", asbestos);
         tag.putInt("black_lung", blackLung);
         tag.putInt("fire", fire);
         tag.putInt("balefire", balefire);
+        tag.putInt("black_fire", blackFire);
         return tag;
     }
 
@@ -152,5 +186,6 @@ public class HbmLivingHazards {
         this.blackLung = Math.max(0, tag.getInt("black_lung"));
         this.fire = Math.max(0, tag.getInt("fire"));
         this.balefire = Math.max(0, tag.getInt("balefire"));
+        this.blackFire = Math.max(0, tag.getInt("black_fire"));
     }
 }

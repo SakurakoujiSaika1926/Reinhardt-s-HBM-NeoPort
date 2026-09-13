@@ -1,12 +1,12 @@
 {
   "variants": {
-    "facing=east,variant=0": { "model": "reinhardtshbm:block/vending_machine_soda" },
-    "facing=south,variant=0": { "model": "reinhardtshbm:block/vending_machine_soda", "y": 270 },
-    "facing=west,variant=0": { "model": "reinhardtshbm:block/vending_machine_soda", "y": 180 },
-    "facing=north,variant=0": { "model": "reinhardtshbm:block/vending_machine_soda", "y": 90 },
-    "facing=east,variant=1": { "model": "reinhardtshbm:block/vending_machine_snacks" },
-    "facing=south,variant=1": { "model": "reinhardtshbm:block/vending_machine_snacks", "y": 270 },
-    "facing=west,variant=1": { "model": "reinhardtshbm:block/vending_machine_snacks", "y": 180 },
-    "facing=north,variant=1": { "model": "reinhardtshbm:block/vending_machine_snacks", "y": 90 }
+    "facing=east,variant=0": { "model": "reinhardtshbm:block/empty" },
+    "facing=south,variant=0": { "model": "reinhardtshbm:block/empty" },
+    "facing=west,variant=0": { "model": "reinhardtshbm:block/empty" },
+    "facing=north,variant=0": { "model": "reinhardtshbm:block/empty" },
+    "facing=east,variant=1": { "model": "reinhardtshbm:block/empty" },
+    "facing=south,variant=1": { "model": "reinhardtshbm:block/empty" },
+    "facing=west,variant=1": { "model": "reinhardtshbm:block/empty" },
+    "facing=north,variant=1": { "model": "reinhardtshbm:block/empty" }
   }
 }

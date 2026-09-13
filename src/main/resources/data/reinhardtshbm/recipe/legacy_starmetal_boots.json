@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "E E",
+    "ECE"
+  ],
+  "key": {
+    "E": {
+      "tag": "c:ingots/starmetal"
+    },
+    "C": {
+      "item": "reinhardtshbm:cobalt_boots"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:starmetal_boots"
+  }
+}

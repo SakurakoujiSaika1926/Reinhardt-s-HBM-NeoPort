@@ -45,7 +45,7 @@ public class WatzPumpBlock extends Block implements EntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) != null) {
             com.reinhardt.hbm.block.MachineDummyBlock.runWithoutCoreDestroy(() -> {
                 BlockPos upper = pos.above();
                 if (level.getBlockState(upper).is(HbmBlocks.MACHINE_DUMMY.get())

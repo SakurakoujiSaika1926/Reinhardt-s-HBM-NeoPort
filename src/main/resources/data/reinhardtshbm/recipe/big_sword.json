@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["QIQ", "QIQ", "GSG"],
+  "key": {
+    "G": { "item": "minecraft:gold_ingot" },
+    "S": { "item": "minecraft:stick" },
+    "I": { "item": "minecraft:iron_ingot" },
+    "Q": { "item": "minecraft:quartz" }
+  },
+  "result": { "id": "reinhardtshbm:big_sword" }
+}

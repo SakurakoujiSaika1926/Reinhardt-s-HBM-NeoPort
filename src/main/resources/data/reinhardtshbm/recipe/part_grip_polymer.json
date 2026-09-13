@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["W "," W"," W"],"key":{"W":{"tag":"c:ingots/polymer"}},"result":{"id":"reinhardtshbm:part_grip","components":{"minecraft:custom_data":{"material_id":20001,"material":"polymer"}}}}

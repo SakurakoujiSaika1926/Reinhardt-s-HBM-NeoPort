@@ -8,7 +8,16 @@
                 ],
     "key":  {
                 "F":  {
-                          "tag":  "c:bolts/steel"
+                          "type":  "neoforge:components",
+                          "items":  [
+                                        "reinhardtshbm:bolt"
+                                    ],
+                          "components":  {
+                                             "minecraft:custom_data":  {
+                                                                           "material_id":  30,
+                                                                           "material":  "steel"
+                                                                       }
+                                         }
                       },
                 "B":  {
                           "item":  "reinhardtshbm:reinforced_brick"

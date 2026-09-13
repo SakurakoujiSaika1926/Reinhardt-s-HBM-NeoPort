@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:powder_i131_tiny"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_i131"
+  }
+}

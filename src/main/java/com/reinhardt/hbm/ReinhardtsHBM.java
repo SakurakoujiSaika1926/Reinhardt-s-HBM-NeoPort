@@ -2,6 +2,9 @@ package com.reinhardt.hbm;
 
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.config.HbmClientConfig;
+import com.reinhardt.hbm.integration.create.HbmCreateAdditionCompat;
+import com.reinhardt.hbm.integration.create.HbmCreateMultiblockCompat;
+import com.reinhardt.hbm.integration.immersiveengineering.HbmImmersiveEngineeringCompat;
 import com.reinhardt.hbm.item.LegacyItemComponents;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmArmorMaterials;
@@ -21,13 +24,16 @@ import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.registry.HbmWorldgenFeatures;
 import com.reinhardt.hbm.registry.HbmWorldgenStructures;
+import com.reinhardt.hbm.registry.HbmBiomeModifierSerializers;
 import com.reinhardt.hbm.registry.LegacyHbmContent;
 import com.reinhardt.hbm.registry.PortStatus;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +45,18 @@ public class ReinhardtsHBM {
     public ReinhardtsHBM(IEventBus modEventBus) {
         modEventBus.addListener(HbmNetwork::register);
         modEventBus.addListener(HbmChunkTickets::register);
+        if (ModList.get().isLoaded("create")) {
+            modEventBus.addListener((FMLCommonSetupEvent event) ->
+                    event.enqueueWork(HbmCreateMultiblockCompat::install));
+        }
+        if (ModList.get().isLoaded("createaddition")) {
+            modEventBus.addListener((FMLCommonSetupEvent event) ->
+                    event.enqueueWork(HbmCreateAdditionCompat::applyMotorBalanceDefaults));
+        }
+        if (ModList.get().isLoaded("immersiveengineering")) {
+            modEventBus.addListener((FMLCommonSetupEvent event) ->
+                    event.enqueueWork(HbmImmersiveEngineeringCompat::applyDieselGeneratorBalanceDefaults));
+        }
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, HbmConfig.SPEC);
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.CLIENT, HbmClientConfig.SPEC);
 
@@ -60,6 +78,7 @@ public class ReinhardtsHBM {
         HbmSoundEvents.register(modEventBus);
         HbmWorldgenFeatures.register(modEventBus);
         HbmWorldgenStructures.register(modEventBus);
+        HbmBiomeModifierSerializers.register(modEventBus);
         HbmCreativeTabs.register(modEventBus);
         HbmDataAttachments.register(modEventBus);
 

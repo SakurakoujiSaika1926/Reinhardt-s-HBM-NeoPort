@@ -14,7 +14,7 @@
       "item": "reinhardtshbm:demon_core_closed"
     },
     "P": {
-      "item": "reinhardtshbm:plate_armor_fau"
+      "tag": "c:plates/armor_fau"
     },
     "B": {
       "item": "reinhardtshbm:starmetal_plate"

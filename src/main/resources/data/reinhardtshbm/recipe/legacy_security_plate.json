@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"equipment",
+  "pattern":["KWK","IKI","WKW"],
+  "key":{"K":{"tag":"c:plates/kevlar"},"I":{"tag":"c:ingots/plastic"},"W":{"item":"minecraft:white_wool"}},
+  "result":{"id":"reinhardtshbm:security_plate"}
+}

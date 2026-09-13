@@ -56,13 +56,13 @@ public class MeltdownGasBlock extends HbmGasBlock {
         }
         HbmLivingRadiation data = HbmLivingRadiation.get(living);
         data.addEnvironmentRadiation(0.5F);
-        if (!(living instanceof Player player && (player.isCreative() || player.isSpectator()))) {
+        if (!(living instanceof Player player && player.isCreative())) {
             data.addRadiation(0.5F);
-            if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE, 1)) {
-                HbmLivingHazards hazards = HbmLivingHazards.get(living);
-                hazards.addAsbestos(living, 5);
-                HbmLivingHazards.set(living, hazards);
-            }
+        }
+        if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE, 1)) {
+            HbmLivingHazards hazards = HbmLivingHazards.get(living);
+            hazards.addAsbestos(living, 5);
+            HbmLivingHazards.set(living, hazards);
         }
         HbmLivingRadiation.set(living, data);
     }

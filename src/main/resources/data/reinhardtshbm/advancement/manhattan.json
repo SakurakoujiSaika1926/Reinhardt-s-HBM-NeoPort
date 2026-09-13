@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:polymer",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:nuke_boy"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.manhattan.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.manhattan.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

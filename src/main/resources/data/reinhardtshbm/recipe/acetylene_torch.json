@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SS ",
+    " PS",
+    " T "
+  ],
+  "key": {
+    "S": {
+      "tag": "c:plates/steel"
+    },
+    "P": {
+      "tag": "c:ingots/plastic"
+    },
+    "T": {
+      "item": "reinhardtshbm:tank_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:acetylene_torch",
+    "components": {
+      "minecraft:custom_data": {
+        "blowtorch_unsaturateds": 0,
+        "blowtorch_oxygen": 0
+      }
+    }
+  }
+}

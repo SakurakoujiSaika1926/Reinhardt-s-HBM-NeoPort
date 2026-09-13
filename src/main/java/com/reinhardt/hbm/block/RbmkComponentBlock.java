@@ -4,6 +4,7 @@ import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -186,6 +187,9 @@ public class RbmkComponentBlock extends Block implements EntityBlock {
     }
 
     private static void removeColumnDummies(Level level, BlockPos corePos) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (int y = 1; y <= columnHeight(level); y++) {
                 BlockPos dummyPos = corePos.above(y);
@@ -225,6 +229,9 @@ public class RbmkComponentBlock extends Block implements EntityBlock {
     }
 
     private static void removeOldDummyFootprint(Level level, BlockPos corePos, Direction facing, Kind kind) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos dummyPos : oldDummyFootprint(corePos, facing, kind)) {
                 if (dummyPos.equals(corePos)) {
@@ -297,14 +304,27 @@ public class RbmkComponentBlock extends Block implements EntityBlock {
         if (!(blockEntity instanceof RbmkComponentBlockEntity rbmk)) {
             return InteractionResult.PASS;
         }
+        // TileEntityCraneConsole did not implement onBlockActivated or expose
+        // a GUI in 1.7.10; empty-hand clicks therefore fell through to the
+        // vanilla Block result instead of opening a null menu or printing
+        // generic RBMK info.
+        if (rbmk.kind() == Kind.CRANE_CONSOLE) {
+            return InteractionResult.PASS;
+        }
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
+        markFbiTarget(player);
         if (blockEntity instanceof MenuProvider menuProvider && player instanceof ServerPlayer serverPlayer) {
             if (kind.hasMenu() && !player.isShiftKeyDown()) {
                 serverPlayer.openMenu(menuProvider, buffer -> buffer.writeBlockPos(pos));
                 return InteractionResult.CONSUME;
             }
+        }
+        // RBMKBase.openInv returned true for a sneaking click without opening
+        // a menu or mutating the component.
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.CONSUME;
         }
         if (rbmk.handleEmptyHand(player)) {
             return InteractionResult.CONSUME;
@@ -328,11 +348,23 @@ public class RbmkComponentBlock extends Block implements EntityBlock {
             BlockHitResult hitResult
     ) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!level.isClientSide) {
+            markFbiTarget(player);
+        }
         if (blockEntity instanceof RbmkComponentBlockEntity rbmk
                 && rbmk.handleItemUse(player, hand, stack)) {
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    private void markFbiTarget(Player player) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        if (kind == Kind.STORAGE || kind.acceptsFuel() || kind == Kind.CONSOLE && !player.isShiftKeyDown()) {
+            LegacyMobSpawnEvents.markFbi(serverPlayer);
+        }
     }
 
     @Override

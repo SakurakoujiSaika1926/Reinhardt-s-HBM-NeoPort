@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_titanium"
+                       "tag":  "c:plates/titanium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_titanium"

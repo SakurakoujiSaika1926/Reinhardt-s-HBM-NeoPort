@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import com.reinhardt.hbm.util.ArmorModHandler;
 
 public class GasMaskFilterItem extends Item {
     public GasMaskFilterItem(Properties properties) {
@@ -18,15 +19,31 @@ public class GasMaskFilterItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack filter = player.getItemInHand(hand);
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
-        if (!(helmet.getItem() instanceof FilterableGasMask)) {
+        ItemStack target = helmet;
+        if (!(target.getItem() instanceof FilterableGasMask)) {
+            // 1.7.10 ItemFilter also searched the helmet_only armor-mod slot
+            // (the common attachment_mask/attachment_mask_mono path).
+            for (ItemStack mod : ArmorModHandler.pryMods(helmet, player.registryAccess())) {
+                if (mod.getItem() instanceof FilterableGasMask
+                        && mod.getItem() instanceof ArmorModItem
+                        && ((ArmorModItem) mod.getItem()).slotType() == ArmorModHandler.HELMET_ONLY) {
+                    target = mod;
+                    break;
+                }
+            }
+        }
+        if (target.isEmpty() || !(target.getItem() instanceof FilterableGasMask)) {
             return InteractionResultHolder.pass(filter);
         }
 
-        ItemStack oldFilter = GasMaskItem.getInstalledFilter(helmet, player.registryAccess());
+        ItemStack oldFilter = GasMaskItem.getInstalledFilter(target, player.registryAccess());
         ItemStack installed = filter.copy();
         installed.setCount(1);
-        if (!GasMaskItem.installFilter(helmet, installed, player)) {
+        if (!GasMaskItem.installFilter(target, installed, player)) {
             return InteractionResultHolder.pass(filter);
+        }
+        if (target != helmet) {
+            ArmorModHandler.applyMod(helmet, target, player.registryAccess());
         }
 
         if (!level.isClientSide) {

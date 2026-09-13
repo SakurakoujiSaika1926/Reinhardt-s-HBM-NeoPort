@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/steel"
+    },
+    {
+      "tag": "c:dusts/tungsten"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_dura_steel",
+    "count": 2
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpw15he",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_warhead_15_he",
+    "count": 1
+  }
+}

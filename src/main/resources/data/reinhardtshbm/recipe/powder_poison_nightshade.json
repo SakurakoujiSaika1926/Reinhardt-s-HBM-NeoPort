@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:plant_flower"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_poison"
+  }
+}

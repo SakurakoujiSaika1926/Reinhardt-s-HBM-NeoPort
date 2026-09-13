@@ -3,7 +3,7 @@
   "category": "misc",
   "pattern": ["I", "C", "S"],
   "key": {
-    "I": { "item": "reinhardtshbm:plate_polymer" },
+    "I": { "tag": "c:plates/polymer" },
     "C": { "tag": "c:dusts/smokeless" },
     "S": { "tag": "c:ingots/steel" }
   },

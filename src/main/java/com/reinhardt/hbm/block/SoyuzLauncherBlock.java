@@ -2,6 +2,7 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity;
+import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -29,7 +30,10 @@ public class SoyuzLauncherBlock extends LargeMachineBlock implements EntityBlock
     public static final Footprint FOOTPRINT = footprint();
 
     public SoyuzLauncherBlock(Properties properties) {
-        super(properties, FOOTPRINT, Shapes.empty());
+        // The fixed-east footprint below is transcribed from the 1.7.10
+        // MultiblockHandlerXR dimension boxes rather than authored in the
+        // modern north-facing basis.
+        super(properties, FOOTPRINT, Shapes.empty(), RotationBasis.HBM_LEGACY_SOUTH);
     }
 
     @Override
@@ -67,12 +71,33 @@ public class SoyuzLauncherBlock extends LargeMachineBlock implements EntityBlock
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide) {
+            if (level.getBlockEntity(pos) instanceof SoyuzLauncherBlockEntity launcher) {
+                launcher.dropContents(level, pos);
+                // SoyuzLauncher.breakBlock: the completed multiblock returns its construction materials.
+                dropMaterial(level, pos, HbmBlocks.STRUCT_LAUNCHER.get(), 414);
+                dropMaterial(level, pos, HbmBlocks.CONCRETE_SMOOTH.get(), 294);
+                dropMaterial(level, pos, HbmBlocks.STRUCT_SCAFFOLD.get(), 447);
+                dropMaterial(level, pos, HbmBlocks.STRUCT_SOYUZ_CORE.get(), 1);
+            }
             removeDummies(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
+    private static void dropMaterial(Level level, BlockPos pos, Block block, int count) {
+        while (count > 0) {
+            int size = Math.min(count, 64);
+            level.addFreshEntity(new net.minecraft.world.entity.item.ItemEntity(level,
+                    pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
+                    new net.minecraft.world.item.ItemStack(block, size)));
+            count -= size;
+        }
+    }
+
     private static void removeDummies(Level level, BlockPos corePos) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : FOOTPRINT.offsets()) {
                 BlockPos pos = corePos.offset(offset);
@@ -95,7 +120,8 @@ public class SoyuzLauncherBlock extends LargeMachineBlock implements EntityBlock
             BlockState state,
             net.minecraft.world.level.block.entity.BlockEntityType<T> blockEntityType
     ) {
-        return level.isClientSide ? null : (tickerLevel, tickerPos, tickerState, blockEntity) -> {
+        if (blockEntityType != com.reinhardt.hbm.registry.HbmBlockEntities.SOYUZ_LAUNCHER.get()) return null;
+        return (tickerLevel, tickerPos, tickerState, blockEntity) -> {
             if (blockEntity instanceof SoyuzLauncherBlockEntity soyuz) {
                 SoyuzLauncherBlockEntity.tick(tickerLevel, tickerPos, tickerState, soyuz);
             }
@@ -104,6 +130,11 @@ public class SoyuzLauncherBlock extends LargeMachineBlock implements EntityBlock
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (player.isCrouching()) return InteractionResult.PASS;
+        if (!level.isClientSide && !player.isCrouching() && player instanceof ServerPlayer serverPlayer) {
+            LegacyMobSpawnEvents.markFbi(serverPlayer);
+        }
         if (!level.isClientSide
                 && level.getBlockEntity(pos) instanceof MenuProvider menuProvider
                 && player instanceof ServerPlayer serverPlayer) {

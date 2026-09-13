@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:powder_lithium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_lithium_tiny",
+    "count": 9
+  }
+}

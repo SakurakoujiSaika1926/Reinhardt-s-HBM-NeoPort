@@ -4,11 +4,45 @@
   "duration": 200,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "tag": "c:ingots/starmetal" }, "count": 24 },
-    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 16 },
-    { "ingredient": { "tag": "c:plates/advanced_alloy" }, "count": 24 },
-    { "ingredient": { "tag": "c:ingots/niobium" }, "count": 16 },
-    { "ingredient": { "tag": "c:pipes/dura_steel" }, "count": 4 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/starmetal"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/advanced_alloy"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/niobium"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 33,
+            "material": "dura_steel"
+          }
+        }
+      },
+      "count": 4
+    }
   ],
   "result": {
     "id": "reinhardtshbm:piston_set",

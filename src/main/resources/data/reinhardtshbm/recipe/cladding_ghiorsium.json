@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["DPD", "PRP", "DPD"],
+  "key": {
+    "D": { "item": "reinhardtshbm:ducttape" },
+    "P": { "item": "reinhardtshbm:ingot_gh336" },
+    "R": { "item": "reinhardtshbm:cladding_desh" }
+  },
+  "result": { "id": "reinhardtshbm:cladding_ghiorsium" }
+}

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:crystal_sulfur" },
+  "result": { "id": "reinhardtshbm:sulfur", "count": 6 },
+  "experience": 2.0,
+  "cookingtime": 200
+}

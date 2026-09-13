@@ -3,6 +3,7 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -85,6 +86,7 @@ public class LegacyMachineBlock extends LargeMachineBlock implements EntityBlock
         if (!(level.getBlockEntity(pos) instanceof LegacyMachineBlockEntity machine)) {
             return InteractionResult.PASS;
         }
+        markFbiTarget(level, player, machine);
         if ((machine.machineId().equals("machine_radar") || machine.machineId().equals("machine_radar_large"))
                 && pos.getY() < HbmConfig.RADAR_ALTITUDE.get()) {
             if (level.isClientSide) {
@@ -144,9 +146,21 @@ public class LegacyMachineBlock extends LargeMachineBlock implements EntityBlock
     ) {
         if (level.getBlockEntity(pos) instanceof LegacyMachineBlockEntity machine
                 && machine.handleItemInteraction(player, stack)) {
+            markFbiTarget(level, player, machine);
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
+        if (level.getBlockEntity(pos) instanceof LegacyMachineBlockEntity machine) {
+            markFbiTarget(level, player, machine);
+        }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    private static void markFbiTarget(Level level, Player player, LegacyMachineBlockEntity machine) {
+        if (!level.isClientSide && !player.isCrouching() && player instanceof ServerPlayer serverPlayer
+                && (machine.machineId().equals("machine_missile_assembly")
+                || machine.machineId().equals("machine_radiolysis"))) {
+            LegacyMobSpawnEvents.markFbi(serverPlayer);
+        }
     }
 
     @Override

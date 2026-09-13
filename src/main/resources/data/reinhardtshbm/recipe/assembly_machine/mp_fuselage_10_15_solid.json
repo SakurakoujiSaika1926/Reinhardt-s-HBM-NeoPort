@@ -1,0 +1,36 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpf1015solid",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/titanium"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_fuselage_10_15_solid",
+    "count": 1
+  }
+}

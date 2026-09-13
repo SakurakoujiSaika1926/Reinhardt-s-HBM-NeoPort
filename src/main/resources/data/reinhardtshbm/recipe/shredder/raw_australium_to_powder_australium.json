@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": { "item": "reinhardtshbm:raw_australium" },
+  "input_count": 2,
+  "result": { "id": "reinhardtshbm:powder_australium", "count": 3 }
+}

@@ -20,7 +20,7 @@ public class CoatedEnergyCableBlock extends EnergyCableBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return withNeighborCoatedConnections(defaultBlockState(), context.getLevel(), context.getClickedPos());
+        return withNeighborConnections(defaultBlockState(), context.getLevel(), context.getClickedPos());
     }
 
     @Override
@@ -45,7 +45,8 @@ public class CoatedEnergyCableBlock extends EnergyCableBlock {
         return FULL_BLOCK;
     }
 
-    private BlockState withNeighborCoatedConnections(BlockState state, LevelAccessor level, BlockPos pos) {
+    @Override
+    protected BlockState withNeighborConnections(BlockState state, LevelAccessor level, BlockPos pos) {
         BlockState updated = state;
         for (Direction direction : Direction.values()) {
             updated = updated.setValue(

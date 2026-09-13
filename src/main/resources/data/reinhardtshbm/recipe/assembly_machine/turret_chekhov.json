@@ -1,18 +1,14 @@
 {
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.turretchekhov",
-  "blueprint_pools": [
-    "528.bmg"
-  ],
+  "blueprint_pools": "528.bmg",
   "duration": 200,
   "power": 100,
   "ingredients": [
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:battery_pack"
-        ],
+        "items": "reinhardtshbm:battery_pack",
         "components": {
           "minecraft:custom_data": {
             "variant": "battery_lead"
@@ -42,16 +38,23 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/steel"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
       },
       "count": 3
     },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:part_mechanism"
-        ],
+        "items": "reinhardtshbm:part_mechanism",
         "components": {
           "minecraft:custom_data": {
             "material_id": 49,

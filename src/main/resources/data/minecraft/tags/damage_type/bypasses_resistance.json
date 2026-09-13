@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:asbestos",
+    "reinhardtshbm:blacklung",
+    "reinhardtshbm:lead",
+    "reinhardtshbm:monoxide"
+  ]
+}

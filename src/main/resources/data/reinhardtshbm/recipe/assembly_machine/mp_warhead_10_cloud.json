@@ -1,0 +1,36 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpw10cloud",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:det_cord"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_magic"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_warhead_10_cloud",
+    "count": 1
+  }
+}

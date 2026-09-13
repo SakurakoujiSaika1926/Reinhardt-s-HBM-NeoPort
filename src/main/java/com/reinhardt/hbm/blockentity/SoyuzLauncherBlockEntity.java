@@ -66,8 +66,7 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
     public static final int TANK_CAPACITY = 128_000;
     public static final int MAX_COUNTDOWN = 600;
 
-    private static final int[] ALL_SLOTS = createSlotRange(0, SLOT_COUNT);
-    private static final int[] OUTPUT_SLOTS = {SLOT_KEROSENE_OUT, SLOT_OXYGEN_OUT};
+    private static final int[] AUTOMATION_SLOTS = {};
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank keroseneTank = new HbmFluidTank(kerosene(), TANK_CAPACITY);
@@ -103,6 +102,8 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
                 case 2 -> SoyuzLauncherBlockEntity.this.starting = value != 0;
                 case 3 -> SoyuzLauncherBlockEntity.this.countdown = value;
                 case 4 -> SoyuzLauncherBlockEntity.this.rocketType = (byte) value;
+                case 5 -> SoyuzLauncherBlockEntity.this.keroseneTank.setAmount(value);
+                case 7 -> SoyuzLauncherBlockEntity.this.oxygenTank.setAmount(value);
                 default -> {
                 }
             }
@@ -120,6 +121,7 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
 
     public static void tick(Level level, BlockPos pos, BlockState state, SoyuzLauncherBlockEntity blockEntity) {
         if (level.isClientSide) {
+            com.reinhardt.hbm.client.sound.SoyuzLauncherClientEffects.tick(blockEntity);
             return;
         }
 
@@ -165,6 +167,8 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     public boolean canLaunch() {
+        // TileEntitySoyuzLauncher.canLaunch checks hasRocket twice and omits hasOxy.
+        // Keep that legacy launch predicate; the oxygen gauge remains independent.
         return hasRocket() && hasFuel() && hasPower() && designatorState() != 1 && orbitalState() != 1 && satelliteState() != 1;
     }
 
@@ -181,7 +185,7 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     public boolean hasRocket() {
-        return legacyPath(this.items.get(SLOT_ROCKET)).equals("missile_soyuz");
+        return this.items.get(SLOT_ROCKET).is(HbmItems.MISSILE_SOYUZ.get());
     }
 
     public int designatorState() {
@@ -202,9 +206,9 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
         if (this.mode == 1) {
             return 0;
         }
-        String satellite = legacyPath(this.items.get(SLOT_SATELLITE));
-        if (satellite.equals("sat_gerald") || satellite.equals("sat_lunar_miner")) {
-            return legacyPath(this.items.get(SLOT_ORBITAL_MODULE)).equals("missile_soyuz_lander") ? 2 : 1;
+        ItemStack satellite = this.items.get(SLOT_SATELLITE);
+        if (isLegacyItem(satellite, "sat_gerald") || isLegacyItem(satellite, "sat_lunar_miner")) {
+            return this.items.get(SLOT_ORBITAL_MODULE).is(HbmItems.MISSILE_SOYUZ_LANDER.get()) ? 2 : 1;
         }
         return 0;
     }
@@ -370,35 +374,22 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return switch (slot) {
-            case SLOT_ROCKET -> legacyPath(stack).equals("missile_soyuz");
-            case SLOT_ORBITAL_MODULE -> legacyPath(stack).equals("missile_soyuz_lander");
-            case SLOT_DESIGNATOR -> isPotentialDesignator(stack);
-            case SLOT_SATELLITE -> !stack.isEmpty();
-            case SLOT_KEROSENE_IN -> canDrainInto(stack, this.keroseneTank, kerosene());
-            case SLOT_OXYGEN_IN -> canDrainInto(stack, this.oxygenTank, oxygen());
-            case SLOT_BATTERY -> BatteryPackItem.isBattery(stack);
-            default -> slot >= SLOT_CARGO_START && slot < SLOT_COUNT;
-        };
+        // TileEntityMachineBase.isItemValidForSlot was false; the GUI used plain Slots.
+        return false;
     }
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        return ALL_SLOTS;
+        return AUTOMATION_SLOTS;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
-        return slot != SLOT_KEROSENE_OUT && slot != SLOT_OXYGEN_OUT && canPlaceItem(slot, stack);
+        return false;
     }
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        for (int output : OUTPUT_SLOTS) {
-            if (slot == output) {
-                return true;
-            }
-        }
         return false;
     }
 
@@ -441,8 +432,6 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
         }
         tag.putLong("Power", this.power);
         tag.putByte("Mode", this.mode);
-        tag.putBoolean("Starting", this.starting);
-        tag.putInt("Countdown", this.countdown);
         tag.putByte("RocketType", this.rocketType);
         tag.put("Kerosene", this.keroseneTank.save());
         tag.put("Oxygen", this.oxygenTank.save());
@@ -468,6 +457,9 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         saveAdditional(tag, registries);
+        // Countdown is synchronized to clients, but restarting the world cancels it in 1.7.10.
+        tag.putBoolean("Starting", this.starting);
+        tag.putInt("Countdown", this.countdown);
         return tag;
     }
 
@@ -478,6 +470,8 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private void liftOff() {
+        if (this.level == null || this.level.isClientSide || !canLaunch()) return;
+        boolean consumeModule = orbitalState() == 2;
         this.starting = false;
         int requirement = getFuelRequired();
         this.keroseneTank.drain(kerosene(), requirement, false);
@@ -497,10 +491,10 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
             this.level.playSound(null, this.worldPosition, HbmSoundEvents.SOYUZ_TAKEOFF.get(), SoundSource.BLOCKS, 100.0F, 1.1F);
         }
         if (this.mode == 0) {
-            this.items.set(SLOT_SATELLITE, ItemStack.EMPTY);
-            if (orbitalState() == 2) {
+            if (consumeModule) {
                 this.items.set(SLOT_ORBITAL_MODULE, ItemStack.EMPTY);
             }
+            this.items.set(SLOT_SATELLITE, ItemStack.EMPTY);
         } else {
             for (int i = SLOT_CARGO_START; i < SLOT_COUNT; i++) {
                 this.items.set(i, ItemStack.EMPTY);
@@ -558,6 +552,7 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private int getTargetDistance() {
+        if (designatorState() != 2) return 0;
         ItemStack designator = this.items.get(SLOT_DESIGNATOR);
         CompoundTag tag = designator.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
         if (!tag.contains("xCoord") || !tag.contains("zCoord")) {
@@ -593,7 +588,7 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
             return queriedPos.equals(this.worldPosition);
         }
         for (Port port : getConnectorPorts()) {
-            if (port.pos().equals(queriedPos) && port.face() == side) {
+            if (port.pos().relative(side.getOpposite()).equals(queriedPos) && port.face() == side) {
                 return true;
             }
         }
@@ -643,8 +638,8 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
         if (stack.isEmpty()) {
             return false;
         }
-        String path = legacyPath(stack);
-        return path.contains("designator") || path.contains("target") || path.equals("laser_designator");
+        return stack.getItem() instanceof com.reinhardt.hbm.item.LegacyCoordinateDesignatorItem
+                || stack.getItem() instanceof com.reinhardt.hbm.item.LegacyRangeDesignatorItem;
     }
 
     private static boolean isReadyDesignator(ItemStack stack) {
@@ -655,20 +650,17 @@ public class SoyuzLauncherBlockEntity extends BlockEntity implements PowerEndpoi
         return tag.contains("xCoord") && tag.contains("zCoord");
     }
 
-    private static String legacyPath(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return "";
-        }
-        ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return key == null ? "" : key.getPath();
+    private static boolean isLegacyItem(ItemStack stack, String id) {
+        return !stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem())
+                .equals(com.reinhardt.hbm.ReinhardtsHBM.id(id));
     }
 
     private static HbmFluidDefinition kerosene() {
-        return HbmFluids.byName("kerosene").orElse(HbmFluids.none());
+        return HbmFluids.byName("kerosene").orElseThrow();
     }
 
     private static HbmFluidDefinition oxygen() {
-        return HbmFluids.byName("oxygen").orElse(HbmFluids.none());
+        return HbmFluids.byName("oxygen").orElseThrow();
     }
 
     private static int[] createSlotRange(int start, int endExclusive) {

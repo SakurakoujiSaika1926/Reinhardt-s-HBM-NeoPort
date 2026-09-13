@@ -27,7 +27,6 @@ public final class MinerRocketEntity extends Entity {
 
     public MinerRocketEntity(EntityType<? extends MinerRocketEntity> type, Level level) {
         super(type, level);
-        this.noPhysics = true;
         this.noCulling = true;
     }
 
@@ -55,15 +54,24 @@ public final class MinerRocketEntity extends Entity {
 
         int mode = entityData.get(MODE);
         double motionY = mode == LANDING ? -0.75D : mode == LIFTING ? 1.0D : 0.0D;
+        // EntityMinerRocket zeroed its horizontal motion and orientation on
+        // every update; retaining any externally supplied X/Z velocity would
+        // make the return vehicle drift away from its satellite dock.
+        setDeltaMovement(0.0D, motionY, 0.0D);
+        setYRot(0.0F);
+        setXRot(0.0F);
         setPos(getX(), getY() + motionY, getZ());
 
-        BlockPos landing = BlockPos.containing(getX() - 0.5D, getY() - 0.5D, getZ() - 0.5D);
+        BlockPos landing = new BlockPos((int) (getX() - 0.5D), (int) (getY() - 0.5D), (int) (getZ() - 0.5D));
         if (mode == LANDING && level().getBlockState(landing).is(com.reinhardt.hbm.registry.HbmBlocks.SAT_DOCK.get())) {
             entityData.set(MODE, UNLOADING);
-            setPos(getX(), Math.floor(getY()), getZ());
+            setPos(getX(), (int) getY(), getZ());
         } else if (mode != UNLOADING && !level().isClientSide
-                && !level().getBlockState(BlockPos.containing(getX() - 0.5D, getY() + 1.0D, getZ() - 0.5D)).isAir()) {
-            level().explode(null, getX() - 0.5D, getY(), getZ() - 0.5D, 10.0F, Level.ExplosionInteraction.BLOCK);
+                && !level().getBlockState(new BlockPos((int) (getX() - 0.5D), (int) (getY() + 1.0D), (int) (getZ() - 0.5D))).isAir()) {
+            // EntityMinerRocket used the flaming ExplosionLarge path
+            // (break blocks, place fire, and emit its standard cloud effects).
+            level().explode(null, getX() - 0.5D, getY(), getZ() - 0.5D,
+                    10.0F, true, Level.ExplosionInteraction.BLOCK);
             discard();
             return;
         }
@@ -92,7 +100,6 @@ public final class MinerRocketEntity extends Entity {
         }
     }
 
-    @Override public boolean fireImmune() { return true; }
     @Override public boolean shouldRenderAtSqrDistance(double distance) { return distance < 500_000.0D; }
 
     @Override

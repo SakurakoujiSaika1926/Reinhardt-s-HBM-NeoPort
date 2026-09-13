@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.menu.RebarPlacerMenu;
+import com.reinhardt.hbm.util.SavedItemStackPreview;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -153,11 +154,15 @@ public final class LegacyRebarPlacerItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        ItemStack selected = selectedConcrete(stack, context.registries());
+        ItemStack selected = selectedConcreteForTooltip(stack);
         if (selected.isEmpty()) {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.rebar_placer.none").withStyle(ChatFormatting.RED));
         } else {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.rebar_placer.selected", selected.getHoverName()).withStyle(ChatFormatting.AQUA));
         }
+    }
+
+    public static ItemStack selectedConcreteForTooltip(ItemStack placer) {
+        return SavedItemStackPreview.fromCustomData(placer, SELECTED_CONCRETE);
     }
 }

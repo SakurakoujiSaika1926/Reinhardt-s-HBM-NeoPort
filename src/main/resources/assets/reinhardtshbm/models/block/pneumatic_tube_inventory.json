@@ -1,0 +1,22 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "reinhardtshbm:block/pneumatic_tube_straight",
+    "straight": "reinhardtshbm:block/pneumatic_tube_straight",
+    "connector": "reinhardtshbm:block/pneumatic_tube_connector"
+  },
+  "elements": [
+    {
+      "from": [5, 5, 0],
+      "to": [11, 11, 16],
+      "faces": {
+        "down": { "texture": "#straight" },
+        "up": { "texture": "#straight" },
+        "north": { "texture": "#connector" },
+        "south": { "texture": "#connector" },
+        "west": { "texture": "#straight" },
+        "east": { "texture": "#straight" }
+      }
+    }
+  ]
+}

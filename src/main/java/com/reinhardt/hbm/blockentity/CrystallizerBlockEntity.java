@@ -488,9 +488,9 @@ public class CrystallizerBlockEntity extends BlockEntity implements PowerEndpoin
             return false;
         }
         int acidCost = requiredAcid(recipe.acid().amount());
-        if (this.acidTank.type() != recipe.acid().type()
+        if (!recipe.acid().isEmpty() && (this.acidTank.type() != recipe.acid().type()
                 || this.acidTank.pressure() != recipe.acid().pressure()
-                || this.acidTank.amount() < acidCost) {
+                || this.acidTank.amount() < acidCost)) {
             return false;
         }
         ItemStack result = recipe.result();
@@ -512,7 +512,9 @@ public class CrystallizerBlockEntity extends BlockEntity implements PowerEndpoin
             output.grow(result.getCount());
         }
 
-        this.acidTank.drain(recipe.acid().type(), requiredAcid(recipe.acid().amount()), false);
+        if (!recipe.acid().isEmpty()) {
+            this.acidTank.drain(recipe.acid().type(), requiredAcid(recipe.acid().amount()), false);
+        }
         if (freeChance() <= 0.0F || freeChance() < level.random.nextFloat()) {
             this.items.get(INPUT_SLOT).shrink(recipe.inputCount());
             if (this.items.get(INPUT_SLOT).isEmpty()) {

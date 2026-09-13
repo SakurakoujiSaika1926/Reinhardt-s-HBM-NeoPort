@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["C","S"],"key":{"C":{"item":"reinhardtshbm:crate_steel"},"S":{"item":"minecraft:minecart"}},"result":{"id":"reinhardtshbm:cart","components":{"minecraft:custom_data":{"cartBase":0,"cartType":1}}}}

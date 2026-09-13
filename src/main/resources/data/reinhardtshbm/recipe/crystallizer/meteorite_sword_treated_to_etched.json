@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.weapon",
+  "ingredient": { "item": "reinhardtshbm:meteorite_sword_treated" },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:meteorite_sword_etched" }
+}

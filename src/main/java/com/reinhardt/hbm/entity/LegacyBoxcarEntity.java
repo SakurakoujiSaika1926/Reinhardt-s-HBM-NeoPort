@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
@@ -20,7 +21,6 @@ public final class LegacyBoxcarEntity extends Entity {
     public LegacyBoxcarEntity(EntityType<? extends LegacyBoxcarEntity> type, Level level) {
         super(type, level);
         this.noCulling = true;
-        this.noPhysics = true;
     }
 
     public LegacyBoxcarEntity(Level level, Vec3 position) {
@@ -59,10 +59,12 @@ public final class LegacyBoxcarEntity extends Entity {
         Vec3 center = new Vec3(getX(), getY() + 1.0D, getZ());
         for (Entity entity : level().getEntities(this, new AABB(getX() - 2.0D, getY() - 2.0D, getZ() - 2.0D,
                 getX() + 2.0D, getY() + 2.0D, getZ() + 2.0D), Entity::isAlive)) {
-            entity.hurt(damageSources().genericKill(), 1000.0F);
+            entity.hurt(damageSources().source(HbmDamageTypes.BOXCAR, this, this), 1000.0F);
         }
         if (level() instanceof ServerLevel serverLevel) {
-            LegacyProjectileUtil.sendSmallExplosionEffect(serverLevel, center, 72, 3.0F, 1.0F);
+            LegacyProjectileUtil.sendSmallExplosionEffect(serverLevel, center, 24, 3.0F, 1.0F);
+            LegacyProjectileUtil.sendSmallExplosionEffect(serverLevel, center, 24, 2.5F, 1.0F);
+            LegacyProjectileUtil.sendSmallExplosionEffect(serverLevel, center, 24, 2.0F, 1.0F);
             serverLevel.setBlock(new BlockPos((int) Math.floor(getX()), (int) Math.floor(getY() + 0.5D),
                     (int) Math.floor(getZ())), HbmBlocks.BOXCAR.get().defaultBlockState(), 3);
         }

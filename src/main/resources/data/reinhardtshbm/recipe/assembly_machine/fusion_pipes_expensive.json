@@ -1,61 +1,61 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.fusionpipes",
-    "blueprint_pools":  [
-                            "528.tcalloy"
-                        ],
-    "duration":  100,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "plastic"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  1
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:pipes/copper"
-                                           },
-                            "count":  4
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "circuit"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  1
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:fusion_component",
-                   "count":  4,
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "motor"
-                                                                },
-                                      "minecraft:custom_model_data":  3
-                                  }
-               }
+{
+  "neoforge:conditions": {
+    "type": "reinhardtshbm:enable_528_mode"
+  },
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fusionpipes",
+  "blueprint_pools": "528.tcalloy",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:item_expensive",
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "plastic"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:item_expensive",
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "circuit"
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fusion_component",
+    "count": 4,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "motor"
+      },
+      "minecraft:custom_model_data": 3
+    }
+  }
 }
-

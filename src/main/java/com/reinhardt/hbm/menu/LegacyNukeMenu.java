@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.menu;
 
+import com.reinhardt.hbm.block.LegacyNukeBlock;
 import com.reinhardt.hbm.block.LegacyNukeDefinition;
 import com.reinhardt.hbm.blockentity.LegacyNukeBlockEntity;
 import com.reinhardt.hbm.registry.HbmMenus;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class LegacyNukeMenu extends AbstractContainerMenu {
@@ -21,30 +23,29 @@ public final class LegacyNukeMenu extends AbstractContainerMenu {
     private final int playerStart;
 
     public LegacyNukeMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf buffer) {
-        this(containerId, inventory, containerAt(inventory, buffer.readBlockPos()));
+        this(containerId, inventory, contextAt(inventory, buffer));
     }
 
     public LegacyNukeMenu(int containerId, Inventory inventory, LegacyNukeBlockEntity container) {
+        this(containerId, inventory, container, container.definition());
+    }
+
+    private LegacyNukeMenu(int containerId, Inventory inventory, MenuContext context) {
+        this(containerId, inventory, context.container(), context.definition());
+    }
+
+    private LegacyNukeMenu(int containerId, Inventory inventory, Container container, LegacyNukeDefinition definition) {
         super(HbmMenus.LEGACY_NUKE.get(), containerId);
         this.container = container;
-        this.definition = container.definition();
-        this.machineSlots = definition.slotCount();
+        this.definition = definition;
+        this.machineSlots = this.definition.slotCount();
         this.playerStart = machineSlots;
         for (int slot = 0; slot < machineSlots; slot++) {
-            addSlot(new ManualSlot(container, slot, definition.slotX(slot), definition.slotY(slot), definition.isCustom() ? 64 : 64));
+            addSlot(new ManualSlot(container, slot, this.definition.slotX(slot), this.definition.slotY(slot), this.definition.isCustom() ? 64 : 64));
         }
         // The legacy containers already store the absolute inventory origin.
         // Applying the old metadata offset a second time moves tall layouts.
-        addPlayerInventory(inventory, definition.playerLeft(), definition.playerTop());
-    }
-
-    private LegacyNukeMenu(int containerId, Inventory inventory, Container missing) {
-        super(HbmMenus.LEGACY_NUKE.get(), containerId);
-        this.container = missing;
-        this.definition = LegacyNukeDefinition.CUSTOM;
-        this.machineSlots = 0;
-        this.playerStart = 0;
-        addPlayerInventory(inventory, 8, 84);
+        addPlayerInventory(inventory, this.definition.playerLeft(), this.definition.playerTop());
     }
 
     private void addPlayerInventory(Inventory inventory, int left, int top) {
@@ -71,13 +72,35 @@ public final class LegacyNukeMenu extends AbstractContainerMenu {
 
     @Override public boolean stillValid(Player player) { return container.stillValid(player); }
     public boolean isReady() { return container instanceof LegacyNukeBlockEntity nuke && nuke.isReady(); }
+    public boolean isFilled() { return container instanceof LegacyNukeBlockEntity nuke && nuke.isFilled(); }
     public boolean slotHasExpectedItem(int slot) { return container instanceof LegacyNukeBlockEntity nuke && nuke.slotHasExpectedItem(slot); }
     public LegacyNukeDefinition definition() { return definition; }
 
-    private static Container containerAt(Inventory inventory, BlockPos pos) {
+    private static MenuContext contextAt(Inventory inventory, RegistryFriendlyByteBuf buffer) {
+        BlockPos pos = buffer.readBlockPos();
+        LegacyNukeDefinition networkDefinition = readDefinition(buffer);
         BlockEntity entity = inventory.player.level().getBlockEntity(pos);
-        return entity instanceof LegacyNukeBlockEntity nuke ? nuke : new SimpleContainer(27);
+        if (entity instanceof LegacyNukeBlockEntity nuke) {
+            return new MenuContext(nuke, nuke.definition());
+        }
+        BlockState state = inventory.player.level().getBlockState(pos);
+        if (state.getBlock() instanceof LegacyNukeBlock block) {
+            LegacyNukeDefinition blockDefinition = block.definition();
+            return new MenuContext(new SimpleContainer(blockDefinition.slotCount()), blockDefinition);
+        }
+        return new MenuContext(new SimpleContainer(networkDefinition.slotCount()), networkDefinition);
     }
+
+    private static LegacyNukeDefinition readDefinition(RegistryFriendlyByteBuf buffer) {
+        if (buffer.readableBytes() <= 0) {
+            return LegacyNukeDefinition.CUSTOM;
+        }
+        int ordinal = buffer.readVarInt();
+        LegacyNukeDefinition[] values = LegacyNukeDefinition.values();
+        return ordinal >= 0 && ordinal < values.length ? values[ordinal] : LegacyNukeDefinition.CUSTOM;
+    }
+
+    private record MenuContext(Container container, LegacyNukeDefinition definition) {}
 
     private static final class ManualSlot extends Slot {
         private final int maxStackSize;

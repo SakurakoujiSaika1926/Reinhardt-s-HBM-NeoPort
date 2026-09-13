@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:meteorite_sword" },
+  "result": { "id": "reinhardtshbm:meteorite_sword_seared" },
+  "experience": 0.0,
+  "cookingtime": 200
+}

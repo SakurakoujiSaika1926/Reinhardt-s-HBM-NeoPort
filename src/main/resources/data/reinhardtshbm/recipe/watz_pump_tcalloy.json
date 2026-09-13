@@ -12,9 +12,7 @@
     },
     "P": {
       "type": "neoforge:components",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
+      "items": "reinhardtshbm:plate_cast",
       "components": {
         "minecraft:custom_data": {
           "material_id": 36,
@@ -26,7 +24,16 @@
       "item": "reinhardtshbm:circuit_bismoid"
     },
     "S": {
-      "tag": "c:pipes/dura_steel"
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 33,
+          "material": "dura_steel"
+        }
+      }
     }
   },
   "result": {

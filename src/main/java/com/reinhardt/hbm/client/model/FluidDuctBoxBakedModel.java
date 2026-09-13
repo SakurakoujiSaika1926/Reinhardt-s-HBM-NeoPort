@@ -165,9 +165,7 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
 
         List<BakedQuad> quads = new ArrayList<>(boxes.size() * 6);
         for (Box box : boxes) {
-            for (Direction face : Direction.values()) {
-                quads.add(bakeFace(box, face, iconFor(mask, face), false));
-            }
+            bakeWorldBox(quads, box, mask);
         }
         return List.copyOf(quads);
     }
@@ -178,9 +176,21 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
         for (Direction face : Direction.values()) {
             TextureAtlasSprite sprite = face == Direction.NORTH || face == Direction.SOUTH
                     ? this.textures.end : this.textures.straight;
-            quads.add(bakeFace(box, face, sprite, true));
+            quads.add(bakeFace(box, face, sprite, inventoryFaceUvLayout(face), false));
         }
         return List.copyOf(quads);
+    }
+
+    /**
+     * Exact RenderBoxDuct world path for the legacy silver/default state.  The
+     * old renderer applied its UV layout for every individual cube it emitted;
+     * doing the same here is essential because boxduct textures intentionally
+     * contain transparent pixels outside their face artwork.
+     */
+    private void bakeWorldBox(List<BakedQuad> quads, Box box, int mask) {
+        for (Direction face : Direction.values()) {
+            quads.add(bakeFace(box, face, iconFor(mask, face), worldFaceUvLayout(mask, face), true));
+        }
     }
 
     private void addArms(List<Box> boxes, int mask, float lower, float upper,
@@ -232,6 +242,17 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
         boolean north = has(mask, Direction.NORTH);
         boolean south = has(mask, Direction.SOUTH);
 
+        // FluidDuctBox#getIcon returns the straight icon for the face
+        // opposite each curve connection before selecting curve_* artwork.
+        if ((side == Direction.UP && down)
+                || (side == Direction.DOWN && up)
+                || (side == Direction.SOUTH && north)
+                || (side == Direction.NORTH && south)
+                || (side == Direction.EAST && west)
+                || (side == Direction.WEST && east)) {
+            return this.textures.straight;
+        }
+
         if (down) {
             if (south) return side == Direction.WEST ? this.textures.curveBr : this.textures.curveBl;
             if (north) return side == Direction.EAST ? this.textures.curveBr : this.textures.curveBl;
@@ -251,7 +272,65 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
         return this.textures.straight;
     }
 
-    private BakedQuad bakeFace(Box box, Direction face, TextureAtlasSprite sprite, boolean inventory) {
+    private static int inventoryFaceUvLayout(Direction face) {
+        return switch (face) {
+            // RenderBoxDuct#renderInventoryBlock sets uvRotateNorth=1 and
+            // uvRotateSouth=2 before emitting its six faces.
+            // In RenderBlocks, those legacy field names are applied by
+            // renderFaceXNeg (WEST) and renderFaceXPos (EAST), respectively.
+            case WEST -> 1;
+            case EAST -> 2;
+            case DOWN, UP, NORTH, SOUTH -> 0;
+        };
+    }
+
+    private static int worldFaceUvLayout(int mask, Direction face) {
+        if (isStraightX(mask)) {
+            return switch (face) {
+                // RenderBoxDuct straight-X: top/bottom=1,
+                // uvRotateEast=2 (NORTH/Z-), uvRotateWest=1 (SOUTH/Z+).
+                case DOWN, UP -> 1;
+                case NORTH -> 2;
+                case SOUTH -> 1;
+                case WEST, EAST -> 0;
+            };
+        }
+        if (isStraightZ(mask)) {
+            return switch (face) {
+                // RenderBoxDuct straight-Z: uvRotateNorth=1 (WEST/X-),
+                // uvRotateSouth=2 (EAST/X+).
+                case WEST -> 1;
+                case EAST -> 2;
+                case DOWN, UP, NORTH, SOUTH -> 0;
+            };
+        }
+        if (Integer.bitCount(mask) != 2) {
+            return 0;
+        }
+
+        boolean east = has(mask, Direction.EAST);
+        boolean west = has(mask, Direction.WEST);
+        boolean up = has(mask, Direction.UP);
+        boolean down = has(mask, Direction.DOWN);
+        if ((down || up) && (east || west) && (face == Direction.DOWN || face == Direction.UP)) {
+            // RenderBoxDuct curves with a vertical/X connection set top and
+            // bottom to layout 1 before drawing all participating cubes.
+            return 1;
+        }
+        if (!down && !up) {
+            return switch (face) {
+                // RenderBoxDuct horizontal curves: north=1/south=2 fields
+                // map to WEST/EAST faces; east=2/west=1 map to NORTH/SOUTH.
+                case WEST, SOUTH -> 1;
+                case EAST, NORTH -> 2;
+                case DOWN, UP -> 0;
+            };
+        }
+        return 0;
+    }
+
+    private BakedQuad bakeFace(Box box, Direction face, TextureAtlasSprite sprite, int oldUvLayout,
+                               boolean renderBlocksNtFixes) {
         QuadBakingVertexConsumer baker = new QuadBakingVertexConsumer();
         baker.setSprite(sprite);
         baker.setTintIndex(BlockElementTint.NONE);
@@ -259,10 +338,15 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
         baker.setHasAmbientOcclusion(false);
         baker.setDirection(face);
         float[][] vertices = vertices(box, face);
-        for (float[] vertex : vertices) {
+        FaceUv uv = oldFaceUv(box, face, oldUvLayout, renderBlocksNtFixes);
+        float[][] uvs = {
+                {uv.u0, uv.v0}, {uv.u1, uv.v1}, {uv.u2, uv.v2}, {uv.u3, uv.v3}
+        };
+        for (int index = 0; index < vertices.length; index++) {
+            float[] vertex = vertices[index];
             baker.addVertex(vertex[0], vertex[1], vertex[2]);
             baker.setColor(255, 255, 255, 255);
-            baker.setUv(sprite.getU(vertex[3]), sprite.getV(vertex[4]));
+            baker.setUv(sprite.getU(uvs[index][0] / 16.0F), sprite.getV(uvs[index][1] / 16.0F));
             baker.setLight(0);
             baker.setNormal(face.getStepX(), face.getStepY(), face.getStepZ());
         }
@@ -277,13 +361,185 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
                     {box.minX, box.maxY, box.minZ, 1, 1}, {box.minX, box.maxY, box.maxZ, 1, 0}};
             case NORTH -> new float[][]{{box.minX, box.maxY, box.minZ, 0, 0}, {box.maxX, box.maxY, box.minZ, 1, 0},
                     {box.maxX, box.minY, box.minZ, 1, 1}, {box.minX, box.minY, box.minZ, 0, 1}};
-            case SOUTH -> new float[][]{{box.maxX, box.maxY, box.maxZ, 0, 0}, {box.minX, box.maxY, box.maxZ, 1, 0},
-                    {box.minX, box.minY, box.maxZ, 1, 1}, {box.maxX, box.minY, box.maxZ, 0, 1}};
+            case SOUTH -> new float[][]{{box.minX, box.maxY, box.maxZ, 0, 0}, {box.minX, box.minY, box.maxZ, 1, 0},
+                    {box.maxX, box.minY, box.maxZ, 1, 1}, {box.maxX, box.maxY, box.maxZ, 0, 1}};
             case WEST -> new float[][]{{box.minX, box.maxY, box.maxZ, 0, 0}, {box.minX, box.maxY, box.minZ, 1, 0},
                     {box.minX, box.minY, box.minZ, 1, 1}, {box.minX, box.minY, box.maxZ, 0, 1}};
-            case EAST -> new float[][]{{box.maxX, box.maxY, box.minZ, 0, 0}, {box.maxX, box.maxY, box.maxZ, 1, 0},
-                    {box.maxX, box.minY, box.maxZ, 1, 1}, {box.maxX, box.minY, box.minZ, 0, 1}};
+            case EAST -> new float[][]{{box.maxX, box.minY, box.maxZ, 0, 0}, {box.maxX, box.minY, box.minZ, 1, 0},
+                    {box.maxX, box.maxY, box.minZ, 1, 1}, {box.maxX, box.maxY, box.maxZ, 0, 1}};
         };
+    }
+
+    /** Direct modern equivalent of the old RenderBlocks face UV layouts. */
+    private static FaceUv oldFaceUv(Box box, Direction face, int layout, boolean renderBlocksNtFixes) {
+        float x0 = box.minX * 16.0F;
+        float x1 = box.maxX * 16.0F;
+        float y0 = box.minY * 16.0F;
+        float y1 = box.maxY * 16.0F;
+        float z0 = box.minZ * 16.0F;
+        float z1 = box.maxZ * 16.0F;
+        return switch (face) {
+            case DOWN -> switch (layout) {
+                case 0 -> uv(x0, z1, x0, z0, x1, z0, x1, z1);
+                case 1 -> uv(16.0F - z1, x0, 16.0F - z0, x0, 16.0F - z0, x1, 16.0F - z1, x1);
+                case 2 -> uv(z1, 16.0F - x0, z0, 16.0F - x0, z0, 16.0F - x1, z1, 16.0F - x1);
+                case 3 -> uv(16.0F - x0, 16.0F - z1, 16.0F - x0, 16.0F - z0, 16.0F - x1, 16.0F - z0, 16.0F - x1, 16.0F - z1);
+                default -> throw invalidOldUvLayout(layout);
+            };
+            case UP -> switch (layout) {
+                case 0 -> uv(x1, z1, x1, z0, x0, z0, x0, z1);
+                case 1 -> uv(z1, 16.0F - x1, z0, 16.0F - x1, z0, 16.0F - x0, z1, 16.0F - x0);
+                case 2 -> uv(16.0F - z1, x1, 16.0F - z0, x1, 16.0F - z0, x0, 16.0F - z1, x0);
+                case 3 -> uv(16.0F - x1, 16.0F - z1, 16.0F - x1, 16.0F - z0, 16.0F - x0, 16.0F - z0, 16.0F - x0, 16.0F - z1);
+                default -> throw invalidOldUvLayout(layout);
+            };
+            case NORTH -> renderBlocksNtFixes
+                    ? renderBlocksNtNorthUv(x0, x1, y0, y1, layout)
+                    : switch (layout) {
+                case 0 -> uv(x1, 16.0F - y1, x0, 16.0F - y1, x0, 16.0F - y0, x1, 16.0F - y0);
+                case 1 -> uv(16.0F - y0, x0, 16.0F - y0, x1, 16.0F - y1, x1, 16.0F - y1, x0);
+                case 2 -> uv(y0, 16.0F - x0, y0, 16.0F - x1, y1, 16.0F - x1, y1, 16.0F - x0);
+                case 3 -> uv(16.0F - x1, y1, 16.0F - x0, y1, 16.0F - x0, y0, 16.0F - x1, y0);
+                default -> throw invalidOldUvLayout(layout);
+            };
+            case SOUTH -> switch (layout) {
+                case 0 -> uv(x0, 16.0F - y1, x0, 16.0F - y0, x1, 16.0F - y0, x1, 16.0F - y1);
+                case 1 -> uv(y0, 16.0F - x0, y1, 16.0F - x0, y1, 16.0F - x1, y0, 16.0F - x1);
+                case 2 -> uv(16.0F - y0, x0, 16.0F - y1, x0, 16.0F - y1, x1, 16.0F - y0, x1);
+                case 3 -> uv(16.0F - x0, y1, 16.0F - x0, y0, 16.0F - x1, y0, 16.0F - x1, y1);
+                default -> throw invalidOldUvLayout(layout);
+            };
+            case WEST -> switch (layout) {
+                case 0 -> uv(z1, 16.0F - y1, z0, 16.0F - y1, z0, 16.0F - y0, z1, 16.0F - y0);
+                case 1 -> uv(y0, 16.0F - z1, y0, 16.0F - z0, y1, 16.0F - z0, y1, 16.0F - z1);
+                case 2 -> uv(16.0F - y0, z1, 16.0F - y0, z0, 16.0F - y1, z0, 16.0F - y1, z1);
+                case 3 -> uv(16.0F - z1, y1, 16.0F - z0, y1, 16.0F - z0, y0, 16.0F - z1, y0);
+                default -> throw invalidOldUvLayout(layout);
+            };
+            case EAST -> renderBlocksNtFixes
+                    ? renderBlocksNtEastUv(z0, z1, y0, y1, layout)
+                    : switch (layout) {
+                case 0 -> uv(z0, 16.0F - y0, z1, 16.0F - y0, z1, 16.0F - y1, z0, 16.0F - y1);
+                case 1 -> uv(16.0F - y1, z1, 16.0F - y1, z0, 16.0F - y0, z0, 16.0F - y0, z1);
+                case 2 -> uv(y1, 16.0F - z1, y1, 16.0F - z0, y0, 16.0F - z0, y0, 16.0F - z1);
+                case 3 -> uv(16.0F - z0, y0, 16.0F - z1, y0, 16.0F - z1, y1, 16.0F - z0, y1);
+                default -> throw invalidOldUvLayout(layout);
+            };
+        };
+    }
+
+    /** UVs emitted by the legacy RenderBlocksNT Z-negative face renderer. */
+    private static FaceUv renderBlocksNtNorthUv(float x0, float x1, float y0, float y1, int layout) {
+        float minU = 16.0F - x0;
+        float maxU = 16.0F - x1;
+        float maxV = 16.0F - y1;
+        float minV = 16.0F - y0;
+        float minU2 = minU;
+        float maxU2 = maxU;
+        float maxV2 = maxV;
+        float minV2 = minV;
+        switch (layout) {
+            case 1 -> {
+                maxU = 16.0F - y1;
+                minU = 16.0F - y0;
+                maxV = x1;
+                minV = x0;
+                minU2 = minU;
+                maxU2 = maxU;
+                maxU = minU;
+                minU = maxU2;
+                maxV2 = minV;
+                minV2 = maxV;
+            }
+            case 2 -> {
+                maxU = y0;
+                minU = y1;
+                maxV = 16.0F - x0;
+                minV = 16.0F - x1;
+                maxV2 = maxV;
+                minV2 = minV;
+                minU2 = maxU;
+                maxU2 = minU;
+                maxV = minV;
+                minV = maxV2;
+            }
+            case 3 -> {
+                maxU = 16.0F - x0;
+                minU = 16.0F - x1;
+                maxV = y1;
+                minV = y0;
+                minU2 = minU;
+                maxU2 = maxU;
+                maxV2 = maxV;
+                minV2 = minV;
+            }
+            case 0 -> {
+                // Initial values are already the no-rotation path.
+            }
+            default -> throw invalidOldUvLayout(layout);
+        }
+        return uv(minU2, maxV2, maxU, maxV, maxU2, minV2, minU, minV);
+    }
+
+    /** UVs emitted by the legacy RenderBlocksNT X-positive face renderer. */
+    private static FaceUv renderBlocksNtEastUv(float z0, float z1, float y0, float y1, int layout) {
+        float minU = 16.0F - z0;
+        float maxU = 16.0F - z1;
+        float maxV = 16.0F - y1;
+        float minV = 16.0F - y0;
+        float minU2 = minU;
+        float maxU2 = maxU;
+        float maxV2 = maxV;
+        float minV2 = minV;
+        switch (layout) {
+            case 1 -> {
+                maxU = 16.0F - y1;
+                maxV = z1;
+                minU = 16.0F - y0;
+                minV = z0;
+                minU2 = minU;
+                maxU2 = maxU;
+                maxU = minU;
+                minU = maxU2;
+                maxV2 = minV;
+                minV2 = maxV;
+            }
+            case 2 -> {
+                maxU = y0;
+                maxV = 16.0F - z0;
+                minU = y1;
+                minV = 16.0F - z1;
+                maxV2 = maxV;
+                minV2 = minV;
+                minU2 = maxU;
+                maxU2 = minU;
+                maxV = minV;
+                minV = maxV2;
+            }
+            case 3 -> {
+                maxU = 16.0F - z0;
+                minU = 16.0F - z1;
+                maxV = y1;
+                minV = y0;
+                minU2 = minU;
+                maxU2 = maxU;
+                maxV2 = maxV;
+                minV2 = minV;
+            }
+            case 0 -> {
+                // Initial values are already the no-rotation path.
+            }
+            default -> throw invalidOldUvLayout(layout);
+        }
+        return uv(maxU2, minV2, minU, minV, minU2, maxV2, maxU, maxV);
+    }
+
+    private static FaceUv uv(float u0, float v0, float u1, float v1, float u2, float v2, float u3, float v3) {
+        return new FaceUv(u0, v0, u1, v1, u2, v2, u3, v3);
+    }
+
+    private static IllegalArgumentException invalidOldUvLayout(int layout) {
+        return new IllegalArgumentException("Unsupported RenderBoxDuct UV layout: " + layout);
     }
 
     private static int connectionMask(@Nullable BlockState state) {
@@ -330,6 +586,9 @@ public final class FluidDuctBoxBakedModel implements IDynamicBakedModel {
     }
 
     private record Box(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+    }
+
+    private record FaceUv(float u0, float v0, float u1, float v1, float u2, float v2, float u3, float v3) {
     }
 
     private static final class Textures {

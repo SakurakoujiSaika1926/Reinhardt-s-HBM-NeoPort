@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:hbm_legacy_scatter",
+  "biomes": "#reinhardtshbm:has_structure/hbm_legacy",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "legacy_scatter": "waste_tank"
+}

@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.RbmkComponentBlock;
 import com.reinhardt.hbm.block.MachineDummyBlock;
 import com.reinhardt.hbm.config.HbmConfig;
@@ -7,7 +8,9 @@ import com.reinhardt.hbm.entity.DigammaSpearEntity;
 import com.reinhardt.hbm.entity.RbmkDebrisEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
+import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmThermalConversions;
+import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.RbmkFuelRodItem;
 import com.reinhardt.hbm.menu.RbmkComponentMenu;
 import com.reinhardt.hbm.recipe.RbmkOutgasserRecipe;
@@ -19,14 +22,19 @@ import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.radiation.ChunkRadiationData;
-import com.reinhardt.hbm.worldgen.NuclearFalloutTerrainEffects;
+import com.reinhardt.hbm.power.PowerEndpoint;
+import com.reinhardt.hbm.power.PowerNetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -41,10 +49,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -56,8 +66,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 
-public class RbmkComponentBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer, NeutronFluxProvider, MenuProvider {
+public class RbmkComponentBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer, NeutronFluxProvider, MenuProvider, PowerEndpoint {
     public static final int SLOT_FUEL = 0;
     public static final int SLOT_BUFFER = 1;
     public static final int AUTOLOADER_INPUT_START = 0;
@@ -73,11 +84,16 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     public static final int OUTGASSER_DURATION = 10_000;
     public static final int REASIM_INTERNAL_CAPACITY = 16_000;
     public static final int REASIM_PORT_CAPACITY = 32_000;
+    /** Exact 1.7.10 RBMK cooler tank size (cold and warmed perfluoromethyl). */
+    public static final int COOLER_TANK_CAPACITY = 4_000;
     public static final int CONSOLE_GRID_SIZE = 15;
     public static final int CONSOLE_COLUMN_COUNT = CONSOLE_GRID_SIZE * CONSOLE_GRID_SIZE;
     public static final int DISPLAY_GRID_SIZE = 7;
     public static final int DISPLAY_COLUMN_COUNT = DISPLAY_GRID_SIZE * DISPLAY_GRID_SIZE;
     private static final double HEAT_EXCHANGER_TU_PER_DEGREE = 2_000.0D;
+    /** 1.7.10 ReaSim control rods consume 5,000 HE for every moving tick. */
+    private static final long REASIM_CONTROL_CONSUMPTION = 5_000L;
+    private static final long REASIM_CONTROL_MAX_POWER = REASIM_CONTROL_CONSUMPTION * 10L;
 
     private static final int[] FUEL_SLOT = {SLOT_FUEL};
     private static final int[] TWO_SLOTS = {SLOT_FUEL, SLOT_BUFFER};
@@ -92,15 +108,31 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     private final HbmFluidTank outgasserGas = new HbmFluidTank(HbmFluids.byName("tritium").orElse(HbmFluids.none()), OUTGASSER_GAS_CAPACITY);
     private final HbmFluidTank reasimInletWater = new HbmFluidTank(HbmFluids.byName("water").orElse(HbmFluids.none()), REASIM_PORT_CAPACITY);
     private final HbmFluidTank reasimOutletSteam = new HbmFluidTank(HbmFluids.byName("superhotsteam").orElse(HbmFluids.none()), REASIM_PORT_CAPACITY);
+    private final HbmFluidTank coolerInput = new HbmFluidTank(HbmFluids.byName("perfluoromethyl_cold").orElse(HbmFluids.none()), COOLER_TANK_CAPACITY);
+    private final HbmFluidTank coolerOutput = new HbmFluidTank(HbmFluids.byName("perfluoromethyl").orElse(HbmFluids.none()), COOLER_TANK_CAPACITY);
+    private int coolerTimer;
+    private final RbmkComponentBlockEntity[] coolerNeighbors = new RbmkComponentBlockEntity[25];
 
     private double heat;
+    /** Flux buffered by this column during the current neutron pass. */
     private double lastFlux;
     private double lastFluxFastRatio;
+    /** Flux emitted by a fuel rod for the next neutron pass. */
+    private double emittedFlux;
+    private double emittedFastRatio;
+    /**
+     * Legacy ReaSim stream fan angle (0..3, in nine-degree increments).  The
+     * old tile chose this when it emitted its eight rays; it is deliberately
+     * transient because the old stream list was not persisted either.
+     */
+    private int reasimRayOffset;
     private double outgasserProgress;
     private double controlLevel;
     private double lastControlLevel;
     private double targetControlLevel;
     private double startingControlLevel;
+    private long controlPower;
+    private boolean controlHasPower;
     private double autoLevelLower;
     private double autoLevelUpper;
     private double autoHeatLower;
@@ -117,6 +149,12 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     private LidType lidType = LidType.NONE;
     private final int[] consoleKinds = new int[CONSOLE_COLUMN_COUNT];
     private final int[] consoleHeat = new int[CONSOLE_COLUMN_COUNT];
+    // The legacy console retained each column's raw double values in its
+    // transient RBMKColumn NBT and only truncated after averaging a screen.
+    // Keep separate raw scan buffers; the integer arrays remain the compact
+    // network/save representation used by the client renderer.
+    private final double[] consoleHeatRaw = new double[CONSOLE_COLUMN_COUNT];
+    private final double[] consoleControlRaw = new double[CONSOLE_COLUMN_COUNT];
     private final int[] consoleMaxHeat = new int[CONSOLE_COLUMN_COUNT];
     private final int[] consoleFlux = new int[CONSOLE_COLUMN_COUNT];
     private final int[] consoleControl = new int[CONSOLE_COLUMN_COUNT];
@@ -175,6 +213,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     private boolean craneInputLeft;
     private boolean craneInputRight;
     private boolean craneInputLoad;
+    /** The player whose packet currently supplies the old first-player input. */
+    @Nullable
+    private UUID craneInputPlayer;
     private double autoloaderPiston;
     private double autoloaderLastPiston;
     private int autoloaderDelay;
@@ -241,6 +282,15 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
 
     public RbmkComponentBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.RBMK_COMPONENT.get(), pos, blockState);
+        // TileEntityRBMKConsole and TileEntityRBMKDisplay kept integer target
+        // coordinates whose Java defaults were all zero.  A freshly placed
+        // legacy panel therefore scanned around (0, 0, 0) until the RBMK
+        // linker assigned another target; null is not the old state.
+        if (blockState.getBlock() instanceof RbmkComponentBlock block
+                && (block.kind() == RbmkComponentBlock.Kind.CONSOLE
+                || block.kind() == RbmkComponentBlock.Kind.DISPLAY)) {
+            linkedReactor = BlockPos.ZERO;
+        }
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, RbmkComponentBlockEntity rbmk) {
@@ -249,21 +299,18 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return;
         }
         RbmkComponentBlock.Kind kind = rbmk.kind();
-        if (kind.isColumn()) {
-            if (rbmk.craneIndicator > 0) {
-                rbmk.craneIndicator--;
-            }
-            rbmk.diffuseHeat(level, pos);
-            if (HbmConfig.RBMK_REASIM_BOILERS.get()) {
-                rbmk.boilReasimWater();
-            }
-        }
+        /*
+         * 1.7.10 ordering is deliberate: each specialised tile performs its
+         * own work first, then calls TileEntityRBMKBase.updateEntity, which
+         * decrements the crane indicator, moves heat and applies passive
+         * cooling, and finally runs the optional ReaSim boiler.
+         */
         if (kind.acceptsFuel()) {
             rbmk.tickFuel(level, pos);
         } else if (kind == RbmkComponentBlock.Kind.MODERATOR) {
-            rbmk.heat = Math.max(20.0D, rbmk.heat * 0.999D);
+            // TileEntityRBMKModerator has no update override in 1.7.10.
         } else if (kind == RbmkComponentBlock.Kind.COOLER) {
-            rbmk.heat = Math.max(20.0D, rbmk.heat - 1.0D);
+            rbmk.tickCooler(level, pos);
         } else if (kind == RbmkComponentBlock.Kind.BOILER) {
             rbmk.boilWater(level, pos);
         } else if (kind == RbmkComponentBlock.Kind.HEATER) {
@@ -283,10 +330,51 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         } else if (kind == RbmkComponentBlock.Kind.CRANE_CONSOLE) {
             rbmk.tickCraneConsole(level, pos, state);
         } else if (kind.isControl()) {
-            rbmk.tickControl();
+            rbmk.tickControl(level);
+        }
+        // Legacy boiler/heater/cooler/outgasser tiles actively called
+        // tryProvide() every tick, even when no new fluid was produced.
+        // ReaSim outlets likewise pushed their tank to all six sides every
+        // tick. Keep this pass outside the conversion methods so existing
+        // output is still delivered on idle/full ticks.
+        if (kind == RbmkComponentBlock.Kind.BOILER) {
+            rbmk.pushRbmkFluid(level, rbmk.steam, false);
+        } else if (kind == RbmkComponentBlock.Kind.HEATER) {
+            rbmk.pushRbmkFluid(level, rbmk.heaterOutput, false);
+        } else if (kind == RbmkComponentBlock.Kind.COOLER) {
+            rbmk.pushRbmkFluid(level, rbmk.coolerOutput, false);
+        } else if (kind == RbmkComponentBlock.Kind.OUTGASSER) {
+            rbmk.pushRbmkFluid(level, rbmk.outgasserGas, true);
+        } else if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
+            rbmk.pushReasimOutlet(level);
         }
         if (kind == RbmkComponentBlock.Kind.STORAGE && level.getGameTime() % 10L == 0L) {
             rbmk.compactStorage();
+        }
+        // TileEntityRBMKBase.updateEntity() decremented this immediately
+        // after each specialised update and before moveHeat().
+        if (kind.isColumn() && rbmk.craneIndicator > 0) {
+            rbmk.craneIndicator--;
+        }
+        if (kind.isColumn()) {
+            rbmk.diffuseHeat(level, pos);
+            if (HbmConfig.RBMK_REASIM_BOILERS.get()) {
+                // TileEntityRBMKBase boils ReaSim water after heat movement.
+                rbmk.boilReasimWater();
+            }
+            // TileEntityRBMKRod called TileEntityRBMKBase.updateEntity() before
+            // checking maxHeat().  The shared heat pass above is that base
+            // update in the merged implementation, so perform the rod's
+            // 1,500°C check only after diffusion and optional ReaSim boiling.
+            if (kind.acceptsFuel() && rbmk.finishFuelTick(level, pos)) {
+                return;
+            }
+            // TileEntityRBMKBase.networkPackNT() ran every server tick,
+            // including for blank/moderator/reflector columns whose only
+            // changing state is heat, ReaSim buffers, or the crane lamp.
+            // Preserve that unconditional client update instead of relying
+            // on a specialised ticker having called setChangedAndSync().
+            rbmk.setChangedAndSync();
         }
         rbmk.redstoneLevel = Math.max(0, Math.min(15, (int) Math.round(rbmk.heat / 100.0D)));
     }
@@ -296,6 +384,68 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return block.kind();
         }
         return RbmkComponentBlock.Kind.BLANK;
+    }
+
+    private boolean isReasimControlKind() {
+        RbmkComponentBlock.Kind kind = kind();
+        return kind == RbmkComponentBlock.Kind.CONTROL_REASIM
+                || kind == RbmkComponentBlock.Kind.CONTROL_REASIM_AUTO;
+    }
+
+    @Override
+    public BlockPos getPowerPos() {
+        return worldPosition;
+    }
+
+    /**
+     * The legacy ReaSim rods exposed one and only one energy face: the block
+     * below the rod.  Other RBMK components are not energy receivers.
+     */
+    @Override
+    public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
+        return isReasimControlKind()
+                ? List.of(worldPosition.below().immutable())
+                : List.of();
+    }
+
+    @Override
+    public boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
+        return isReasimControlKind()
+                && machineSide == Direction.DOWN
+                && worldPosition.below().equals(connectorPos);
+    }
+
+    @Override
+    public long getAvailableOutput() {
+        return 0L;
+    }
+
+    @Override
+    public long getRequestedInput() {
+        return isReasimControlKind()
+                ? Math.max(0L, REASIM_CONTROL_MAX_POWER - controlPower)
+                : 0L;
+    }
+
+    @Override
+    public void applyPower(long usedOutput, long receivedInput) {
+        if (!isReasimControlKind() || receivedInput <= 0L) {
+            return;
+        }
+        controlPower = Math.min(REASIM_CONTROL_MAX_POWER, controlPower + receivedInput);
+        setChanged();
+    }
+
+    @Override
+    public PowerEndpoint.ConnectionPriority getPowerPriority() {
+        // Matches TileEntityRBMKControl.getPriority(): LOW (the old comment
+        // explicitly noted that this intentionally was not HIGH).
+        return PowerEndpoint.ConnectionPriority.LOW;
+    }
+
+    @Override
+    public Component getPowerStatus() {
+        return Component.literal(controlPower + " / " + REASIM_CONTROL_MAX_POWER + " HE");
     }
 
     public int redstoneLevel() {
@@ -317,11 +467,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (!kind.acceptsFuel() || items.get(SLOT_FUEL).isEmpty()) {
             return NeutronFluxProvider.NeutronFlux.ZERO;
         }
-        double flux = Math.max(0.0D, lastFlux);
-        if (lidType != LidType.NONE) {
-            flux *= 0.75D;
-        }
-        return NeutronFluxProvider.NeutronFlux.fromRatio(flux, lastFluxFastRatio);
+        // A lid only suppresses radiation leakage in 1.7.10; it does not
+        // attenuate the rod's neutron output.
+        double flux = Math.max(0.0D, emittedFlux);
+        return NeutronFluxProvider.NeutronFlux.fromRatio(flux, emittedFastRatio);
     }
 
     public boolean canUseLid() {
@@ -329,7 +478,12 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     public boolean hasLid() {
-        return lidType != LidType.NONE;
+        // TileEntityRBMKBase.hasLid() in 1.7.10 treated the fixed-lid
+        // control variants as permanently covered: their
+        // isLidRemovable() implementation returned false.  The modern
+        // control renderer has its own lid, so keep that same logical state
+        // even though controls never store a removable lid item.
+        return kind().isControl() || lidType != LidType.NONE;
     }
 
     public LidType lidType() {
@@ -350,7 +504,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     public ItemStack removeLidStack() {
-        if (!hasLid()) {
+        // Fixed-lid controls report hasLid() for radiation/collision logic,
+        // but the old screwdriver could not remove their lid.
+        if (!canUseLid() || lidType == LidType.NONE) {
             return ItemStack.EMPTY;
         }
         ItemStack stack = new ItemStack(lidType == LidType.GLASS
@@ -414,49 +570,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     public boolean handleEmptyHand(Player player) {
-        RbmkComponentBlock.Kind kind = kind();
-        if (kind.acceptsFuel() && !items.get(SLOT_FUEL).isEmpty()) {
-            if (level != null && !level.isClientSide) {
-                if (!coldEnoughForManual(items.get(SLOT_FUEL))) {
-                    player.displayClientMessage(Component.translatable("rbmk.rod.too_hot"), true);
-                    return true;
-                }
-                ItemStack extracted = items.get(SLOT_FUEL);
-                items.set(SLOT_FUEL, ItemStack.EMPTY);
-                player.getInventory().placeItemBackInInventory(extracted);
-                setChangedAndSync();
-            }
-            return true;
-        }
-        if (kind.isControl()) {
-            if (level != null && !level.isClientSide) {
-                if (player.isShiftKeyDown()) {
-                    double target = targetControlLevel - 0.25D;
-                    if (target < 0.0D) {
-                        target = 1.0D;
-                    }
-                    setTargetControlLevel(target);
-                } else {
-                    double target = targetControlLevel + 0.25D;
-                    if (target > 1.0D) {
-                        target = 0.0D;
-                    }
-                    setTargetControlLevel(target);
-                }
-                setChangedAndSync();
-            }
-            return true;
-        }
-        if (kind == RbmkComponentBlock.Kind.BOILER && player.isShiftKeyDown()) {
-            if (level != null && !level.isClientSide) {
-                cycleSteamCompression();
-                player.displayClientMessage(Component.translatable(
-                        "rbmk.boiler.type",
-                        Component.translatable(steamFluid().translationKey())
-                ), true);
-            }
-            return true;
-        }
+        // The 1.7.10 RBMK block activators delegated to openInv.  Sneaking
+        // therefore consumed the click without unloading fuel, cycling a
+        // control target, or changing boiler compression; these actions were
+        // only available through their GUI/console controls.
         return false;
     }
 
@@ -555,10 +672,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     public double maxConsoleHeat() {
-        ItemStack fuel = items.get(SLOT_FUEL);
-        if (kind().acceptsFuel() && fuel.getItem() instanceof RbmkFuelRodItem rod) {
-            return rod.meltingPoint(fuel);
-        }
+        // TileEntityRBMKBase.maxHeat() is the column's hull threshold and is
+        // fixed at 1500°C in 1.7.10.  A fuel rod's own melting point belongs
+        // only to the c_maxHeat/fuel tooltip field, not the column indicator.
         return 1500.0D;
     }
 
@@ -607,6 +723,16 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         return outgasserGas;
     }
 
+    /** Receiving (cold) coolant tank of the legacy RBMK cooler. */
+    public HbmFluidTank coolerInputTank() {
+        return coolerInput;
+    }
+
+    /** Sending (warmed) coolant tank of the legacy RBMK cooler. */
+    public HbmFluidTank coolerOutputTank() {
+        return coolerOutput;
+    }
+
     public double outgasserProgress() {
         return outgasserProgress;
     }
@@ -637,7 +763,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             data.put("hasRod", Boolean.toString(hasFuel));
             if (hasFuel && fuel.getItem() instanceof RbmkFuelRodItem rod) {
                 data.put("f_yield", stripNumber((1.0D - RbmkFuelRodItem.depletion(fuel)) * 100.0D) + "%");
-                data.put("f_xenon", stripNumber(RbmkFuelRodItem.xenon(fuel)) + "%");
+                data.put("f_xenon", stripNumber(RbmkFuelRodItem.xenon(fuel) * 100.0D) + "%");
                 data.put("f_heat", stripNumber(RbmkFuelRodItem.coreHeat(fuel))
                         + " / " + stripNumber(RbmkFuelRodItem.hullHeat(fuel))
                         + " / " + stripNumber(rod.meltingPoint(fuel)));
@@ -671,6 +797,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         } else if (kind() == RbmkComponentBlock.Kind.OUTGASSER) {
             data.put("progress", stripNumber(outgasserProgress));
             putTankDiagnostic(data, "gas", outgasserGas);
+        } else if (kind() == RbmkComponentBlock.Kind.COOLER) {
+            putTankDiagnostic(data, "coolantIn", coolerInput);
+            putTankDiagnostic(data, "coolantOut", coolerOutput);
         }
         return data;
     }
@@ -689,15 +818,23 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         return Double.toString(value);
     }
 
-    public void applyAutoControl(int function, int levelUpper, int levelLower, int heatUpper, int heatLower) {
+    public void applyAutoControl(int function, int levelUpper, int levelLower, int heatUpper, int heatLower,
+                                 boolean updateParameters) {
         if (!kind().isAutomaticControl()) {
             return;
         }
-        autoControlFunction = AutoControlFunction.byOrdinal(function);
-        autoLevelUpper = Math.max(0.0D, Math.min(100.0D, levelUpper));
-        autoLevelLower = Math.max(0.0D, Math.min(100.0D, levelLower));
-        autoHeatUpper = Math.max(0.0D, Math.min(9999.0D, heatUpper));
-        autoHeatLower = Math.max(0.0D, Math.min(9999.0D, heatLower));
+        // TileEntityRBMKControlAuto.receiveControl() treated the presence of
+        // "function" as an exclusive function update.  Its other packet
+        // shape changed only the four thresholds.  Do not overwrite fields
+        // that the corresponding old packet did not carry.
+        if (updateParameters) {
+            autoLevelUpper = Math.max(0.0D, Math.min(100.0D, levelUpper));
+            autoLevelLower = Math.max(0.0D, Math.min(100.0D, levelLower));
+            autoHeatUpper = Math.max(0.0D, Math.min(9999.0D, heatUpper));
+            autoHeatLower = Math.max(0.0D, Math.min(9999.0D, heatLower));
+        } else {
+            autoControlFunction = AutoControlFunction.byOrdinal(function);
+        }
         setChangedAndSync();
     }
 
@@ -919,14 +1056,20 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return false;
         }
         RbmkComponentBlockEntity target = craneTargetColumn(level);
-        return target != null && craneCanTargetInteract(target);
+        // 1.7.10 isAboveValidTarget() only checked whether the column
+        // implemented IRBMKLoadable.  It did not require the current load or
+        // unload operation to be possible (the lamp therefore stays green for
+        // a full/empty loadable column, exactly as it did in the old renderer).
+        return isCraneLoadableTarget(target);
     }
 
     public boolean isPlayerInCraneOperationArea(Player player) {
         if (kind() != RbmkComponentBlock.Kind.CRANE_CONSOLE) {
             return false;
         }
-        return craneOperationArea().contains(player.getX(), player.getY(), player.getZ());
+        // 1.7.10 used getEntitiesWithinAABB, which tests the player's whole
+        // bounding box rather than only its feet position.
+        return player.getBoundingBox().intersects(craneOperationArea());
     }
 
     @Nullable
@@ -942,11 +1085,6 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (level != null && !level.isClientSide) {
             if (kind() == RbmkComponentBlock.Kind.CRANE_CONSOLE) {
                 setupCrane(target);
-            } else if (kind() == RbmkComponentBlock.Kind.DISPLAY) {
-                scanDisplay(level);
-            } else {
-                scanConsole(level);
-                prepareConsoleScreens();
             }
         }
         setChangedAndSync();
@@ -965,14 +1103,12 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (action == com.reinhardt.hbm.network.RbmkConsoleControlPayload.ACTION_TOGGLE_SCREEN) {
             int slot = Math.floorMod(value, consoleScreenTypes.length);
             consoleScreenTypes[slot] = (consoleScreenTypes[slot] + 1) % ConsoleScreenType.values().length;
-            prepareConsoleScreens();
             setChangedAndSync();
             return;
         }
         if (action == com.reinhardt.hbm.network.RbmkConsoleControlPayload.ACTION_ASSIGN_SCREEN) {
             int slot = Math.floorMod(value, consoleScreenTypes.length);
             consoleScreenColumns[slot] = validConsoleIndices(selected);
-            prepareConsoleScreens();
             setChangedAndSync();
             return;
         }
@@ -981,23 +1117,28 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 continue;
             }
             BlockPos target = consoleIndexPos(index);
-            if (!(level.getBlockEntity(target) instanceof RbmkComponentBlockEntity rbmk)) {
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, target);
+            if (rbmk == null) {
                 continue;
             }
-            if (action == com.reinhardt.hbm.network.RbmkConsoleControlPayload.ACTION_SET_CONTROL && rbmk.kind().isControl()) {
+            if (action == com.reinhardt.hbm.network.RbmkConsoleControlPayload.ACTION_SET_CONTROL && rbmk.isManualControlKind()) {
                 rbmk.setTargetControlLevel(value / 100.0D);
                 rbmk.setChangedAndSync();
             } else if (action == com.reinhardt.hbm.network.RbmkConsoleControlPayload.ACTION_CYCLE_COMPRESSOR && rbmk.kind() == RbmkComponentBlock.Kind.BOILER) {
                 rbmk.cycleSteamCompression();
                 rbmk.setChangedAndSync();
-            } else if (action == com.reinhardt.hbm.network.RbmkConsoleControlPayload.ACTION_ASSIGN_COLOR && rbmk.kind().isControl()) {
+            } else if (action == com.reinhardt.hbm.network.RbmkConsoleControlPayload.ACTION_ASSIGN_COLOR && rbmk.isManualControlKind()) {
                 int clamped = Math.max(0, Math.min(4, value));
-                rbmk.colorGroup = rbmk.colorGroup == clamped ? -1 : clamped;
+                // The legacy console's assignColor packet always assigned the
+                // requested group; only the standalone control GUI toggled a
+                // same-color click back to unassigned.
+                rbmk.colorGroup = clamped;
                 rbmk.setChangedAndSync();
             }
         }
-        scanConsole(level);
-        prepareConsoleScreens();
+        // The legacy console refreshed its cached column/screen data only on
+        // the ten-tick rescan cadence.  Control packets changed the selected
+        // rods/screens immediately but did not force an out-of-band rescan.
         setChangedAndSync();
     }
 
@@ -1006,9 +1147,6 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return;
         }
         consoleRotation = (consoleRotation + 1) & 3;
-        if (level != null && !level.isClientSide) {
-            scanConsole(level);
-        }
         setChangedAndSync();
     }
 
@@ -1017,9 +1155,6 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return;
         }
         displayRotation = (displayRotation + 1) & 3;
-        if (level != null && !level.isClientSide) {
-            scanDisplay(level);
-        }
         setChangedAndSync();
     }
 
@@ -1032,14 +1167,22 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     public void applyCraneInput(Player player, boolean up, boolean down, boolean left, boolean right, boolean load) {
-        if (level == null || level.isClientSide || kind() != RbmkComponentBlock.Kind.CRANE_CONSOLE || !isPlayerInCraneOperationArea(player)) {
-            craneInputUp = false;
-            craneInputDown = false;
-            craneInputLeft = false;
-            craneInputRight = false;
-            craneInputLoad = false;
+        if (level == null || level.isClientSide || kind() != RbmkComponentBlock.Kind.CRANE_CONSOLE) {
+            clearCraneInput();
             return;
         }
+        // TileEntityCraneConsole selected players.get(0) from the AABB each
+        // tick.  Accept only that same first player, otherwise a second player
+        // could overwrite the legacy operator's key state.
+        Player first = firstCraneOperator();
+        if (first == null) {
+            clearCraneInput();
+            return;
+        }
+        if (!first.getUUID().equals(player.getUUID())) {
+            return;
+        }
+        craneInputPlayer = first.getUUID();
         craneInputUp = up;
         craneInputDown = down;
         craneInputLeft = left;
@@ -1067,25 +1210,102 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
 
     @Nullable
     public IFluidHandler fluidHandler(@Nullable Direction side) {
+        return fluidHandler(worldPosition, side);
+    }
+
+    /**
+     * Resolve the handler at the physical block position queried by a pipe.
+     * RBMK fluid machines did not expose one unrestricted tank on every face
+     * in 1.7.10: their subscriptions and provisions were registered at the
+     * exact bottom/top/loader coordinates.  Keeping that coordinate here is
+     * also what lets a column dummy represent its top output port.
+     */
+    @Nullable
+    public IFluidHandler fluidHandler(BlockPos exposedPos, @Nullable Direction side) {
         RbmkComponentBlock.Kind kind = kind();
         if (!kind.hasFluid() && kind != RbmkComponentBlock.Kind.OUTGASSER) {
             return null;
         }
-        return new RbmkFluidHandler();
+        if (!hasPotentialFluidPort(exposedPos, side)) {
+            return null;
+        }
+        return new RbmkFluidHandler(exposedPos.immutable(), side);
+    }
+
+    private boolean hasPotentialFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        RbmkComponentBlock.Kind kind = kind();
+        if (side == null || kind == RbmkComponentBlock.Kind.STEAM_INLET
+                || kind == RbmkComponentBlock.Kind.STEAM_OUTLET
+                || kind == RbmkComponentBlock.Kind.LOADER) {
+            return true;
+        }
+        if (kind == RbmkComponentBlock.Kind.BOILER
+                || kind == RbmkComponentBlock.Kind.HEATER
+                || kind == RbmkComponentBlock.Kind.COOLER
+                || kind == RbmkComponentBlock.Kind.OUTGASSER) {
+            if (exposedPos.equals(worldPosition) && side == Direction.DOWN) {
+                return true;
+            }
+            if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                    && side == Direction.DOWN) {
+                return true;
+            }
+            if (kind == RbmkComponentBlock.Kind.OUTGASSER
+                    && !hasRbmkLoaderBelow()
+                    && exposedPos.equals(worldPosition.below())
+                    && side == Direction.UP) {
+                return true;
+            }
+            return isAnyLoaderOutputPort(exposedPos, side);
+        }
+        return false;
+    }
+
+    private boolean hasRbmkLoaderBelow() {
+        return level != null && (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())
+                || level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get()));
+    }
+
+    private boolean isAnyLoaderOutputPort(BlockPos exposedPos, Direction side) {
+        if (level == null) {
+            return false;
+        }
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader == null) {
+            return false;
+        }
+        return (exposedPos.equals(loader.east()) && side == Direction.WEST)
+                || (exposedPos.equals(loader.west()) && side == Direction.EAST)
+                || (exposedPos.equals(loader.south()) && side == Direction.NORTH)
+                || (exposedPos.equals(loader.north()) && side == Direction.SOUTH)
+                || (exposedPos.equals(loader.below()) && side == Direction.UP);
     }
 
     private void tickFuel(Level level, BlockPos pos) {
         ItemStack fuel = items.get(SLOT_FUEL);
         if (fuel.isEmpty()) {
-            heat = Math.max(20.0D, heat - 0.05D);
+            // The 1.7.10 rod has no special empty-channel cooling.  It calls
+            // the common base ticker, whose passive-cooling step runs after
+            // this method.
             lastFlux = 0.0D;
             lastFluxFastRatio = 0.0D;
+            emittedFlux = 0.0D;
+            emittedFastRatio = 0.0D;
+            reasimRayOffset = 0;
             return;
         }
         NeutronFluxProvider.NeutronFlux flux = rbmkIncomingSpectrum(level, pos);
+        lastFlux = flux.total();
+        lastFluxFastRatio = flux.fastRatio();
         if (!(fuel.getItem() instanceof RbmkFuelRodItem rod)) {
-            lastFlux = 0.0D;
-            lastFluxFastRatio = 0.0D;
+            emittedFlux = 0.0D;
+            emittedFastRatio = 0.0D;
+            reasimRayOffset = 0;
             return;
         }
         RbmkFuelRodItem.FuelTickResult result = rod.burnAndProvideHeat(
@@ -1098,29 +1318,85 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 depletionEnabled(),
                 xenonEnabled()
         );
-        lastFlux = result.outputFlux();
-        lastFluxFastRatio = rod.outputFastRatio(fuel);
-        double multiplier = kind() == RbmkComponentBlock.Kind.FUEL_ROD_MOD || kind() == RbmkComponentBlock.Kind.FUEL_ROD_REASIM_MOD
-                ? 1.25D
-                : 1.0D;
-        heat += result.providedHeat() * multiplier;
+        emittedFlux = result.outputFlux();
+        emittedFastRatio = rod.outputFastRatio(fuel);
+        // TileEntityRBMKRodReaSim chose one random 0/9/18/27 degree starting
+        // angle every time it emitted a non-zero fan of eight streams.
+        if (isReasimFuelKind(kind()) && emittedFlux > 0.0D) {
+            reasimRayOffset = level.random.nextInt(4);
+        } else {
+            reasimRayOffset = 0;
+        }
+        // All legacy rod variants add provideHeat() directly; moderator and
+        // ReaSim variants do not receive an extra multiplier here.
+        heat += result.providedHeat();
         if (!hasLid() && flux.total() > 0.0D && level instanceof ServerLevel serverLevel) {
             ChunkRadiationData.get(serverLevel).incrementRadiation(pos, flux.total() * 0.05D);
         }
-        if (heat > rod.meltingPoint(fuel)) {
+        // The common ticker performs the rod's maxHeat/cap handling after
+        // this method, matching the old specialised-update -> base-update ->
+        // failure-check order.
+    }
+
+    /**
+     * Finish a fuel-rod tick after the merged implementation has run the
+     * legacy TileEntityRBMKBase heat movement and ReaSim boiler pass.
+     *
+     * @return true when the column entered the old overheat return path
+     */
+    private boolean finishFuelTick(Level level, BlockPos pos) {
+        // Column failure is governed by TileEntityRBMKBase.maxHeat() (1500°C)
+        // in 1.7.10; the fuel rod's own melting point only governs its hull
+        // state and is not the channel meltdown threshold.
+        if (heat > 1500.0D) {
             if (meltdownsDisabled()) {
                 if (level instanceof ServerLevel serverLevel) {
-                    serverLevel.sendParticles(HbmParticleTypes.RBMK_FIRE.get(), pos.getX() + 0.5D, pos.getY() + RbmkComponentBlock.columnHeight(level) - 0.5D, pos.getZ() + 0.5D, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                    // 1.7.10 used ParticleUtil.spawnGasFlame here (not the
+                    // RBMK fire-sheet particle), with a straight upward
+                    // velocity of 0.2.
+                    serverLevel.sendParticles(HbmParticleTypes.GAS_FLARE_FLAME.get(), pos.getX() + 0.5D, pos.getY() + RbmkComponentBlock.columnHeight(level) - 0.5D, pos.getZ() + 0.5D, 1, 0.0D, 0.2D, 0.0D, 0.0D);
                 }
             } else {
                 meltdown(level, pos);
             }
             lastFlux = 0.0D;
             lastFluxFastRatio = 0.0D;
+            emittedFlux = 0.0D;
+            emittedFastRatio = 0.0D;
+            reasimRayOffset = 0;
             setChangedAndSync();
-            return;
+            return true;
         }
-        setChangedAndSync();
+        // TileEntityRBMKRod caps an overheated channel at 10,000°C after the
+        // 1,500°C meltdown check (the cap is reachable when meltdown rules
+        // are disabled). Keep the ordering identical to 1.7.10.
+        if (heat > 10_000.0D) {
+            heat = 10_000.0D;
+        }
+        return false;
+    }
+
+    /**
+     * The 1.7.10 neutron walker converted every stream coordinate with
+     * {@code floor(0.5 + component * distance)}.  Keeping that operation in
+     * one place is important for the diagonal ReaSim fan: rounding the vector
+     * with block-position helpers changes which columns receive a stream.
+     */
+    private static int legacyRayCoordinate(double component, int distance) {
+        return (int) Math.floor(0.5D + component * distance);
+    }
+
+    private static boolean isReasimFuelKind(RbmkComponentBlock.Kind kind) {
+        return kind == RbmkComponentBlock.Kind.FUEL_ROD_REASIM
+                || kind == RbmkComponentBlock.Kind.FUEL_ROD_REASIM_MOD;
+    }
+
+    /** TileEntityRBMKBase.isModerated(), including the moderated control rod. */
+    private static boolean isModeratedKind(RbmkComponentBlock.Kind kind) {
+        return kind == RbmkComponentBlock.Kind.MODERATOR
+                || kind == RbmkComponentBlock.Kind.FUEL_ROD_MOD
+                || kind == RbmkComponentBlock.Kind.FUEL_ROD_REASIM_MOD
+                || kind == RbmkComponentBlock.Kind.CONTROL_MOD;
     }
 
     private NeutronFluxProvider.NeutronFlux rbmkIncomingSpectrum(Level level, BlockPos pos) {
@@ -1130,24 +1406,135 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             NeutronFluxProvider.NeutronFlux directional = scanRbmkFluxLine(level, pos, direction, range);
             total = total.add(directional);
         }
+
+        // ReaSim did not emit cardinal streams.  It selected one of four
+        // nine-degree offsets and emitted eight rays separated by 45 degrees;
+        // each ray carried 75% of the rod output.  Inverting those exact
+        // floor-rounded paths here gives the same result while retaining the
+        // modern buffered (target-driven) neutron pass.
+        for (int rayOffset = 0; rayOffset < 4; rayOffset++) {
+            double offset = Math.toRadians(rayOffset * 9.0D);
+            for (int ray = 0; ray < 8; ray++) {
+                double angle = offset + Math.toRadians(ray * 45.0D);
+                double forwardX = Math.cos(angle);
+                // Vec3.rotateAroundYDeg in 1.7.10 uses a negative Z sine.
+                double forwardZ = -Math.sin(angle);
+                total = total.add(scanRbmkRay(level, pos,
+                        -forwardX, -forwardZ, forwardX, forwardZ,
+                        range, rayOffset));
+            }
+        }
         return total;
     }
 
     private NeutronFluxProvider.NeutronFlux scanRbmkFluxLine(Level level, BlockPos origin, Direction direction, int range) {
         for (int distance = 1; distance <= range; distance++) {
             BlockPos cursor = origin.relative(direction, distance);
-            BlockEntity blockEntity = level.getBlockEntity(cursor);
-            if (blockEntity instanceof RbmkComponentBlockEntity rbmk) {
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, cursor);
+            if (rbmk != null) {
                 RbmkComponentBlock.Kind kind = rbmk.kind();
                 if (kind == RbmkComponentBlock.Kind.REFLECTOR) {
-                    return reflectedFluxToSelf(level, origin, direction, distance);
+                    // A reflector with efficiency below one attenuates the
+                    // outbound stream and lets it continue.  Only an exact
+                    // one reflects the stream back to its origin in 1.7.10.
+                    if (reflectorEfficiency() == 1.0D) {
+                        return reflectedFluxToSelf(level, origin, direction, distance);
+                    }
+                    continue;
                 }
                 if (kind.acceptsFuel()) {
+                    // TileEntityRBMKRod only received and stopped a stream
+                    // when it actually contained a rod; an empty channel was
+                    // transparent to the legacy neutron walker.
+                    if (rbmk.items.get(SLOT_FUEL).isEmpty()) {
+                        continue;
+                    }
+                    // ReaSim rods emit only their eight diagonal streams.  A
+                    // cardinal stream therefore stops at a loaded ReaSim rod
+                    // instead of incorrectly using its full output here.
+                    if (isReasimFuelKind(kind)) {
+                        return NeutronFluxProvider.NeutronFlux.ZERO;
+                    }
                     NeutronFluxProvider.NeutronFlux emitted = rbmk.neutronFluxSpectrum(level, origin);
                     return streamFlux(level, cursor, direction.getOpposite(), distance, emitted, true);
                 }
                 if (kind == RbmkComponentBlock.Kind.OUTGASSER) {
-                    return NeutronFluxProvider.NeutronFlux.ZERO;
+                    // An outgasser consumes a stream only while a recipe can
+                    // actually run.  The legacy neutron walker continued
+                    // past an idle/full outgasser instead of treating it as
+                    // an unconditional barrier.
+                    RecipeHolder<RbmkOutgasserRecipe> recipe = outgasserRecipe(level, rbmk.items.get(SLOT_FUEL));
+                    if (recipe != null && rbmk.canProcessOutgasser(recipe.value())) {
+                        return NeutronFluxProvider.NeutronFlux.ZERO;
+                    }
+                    continue;
+                }
+                continue;
+            }
+            if (opaqueColumnHits(level, cursor) >= RbmkComponentBlock.columnHeight(level)) {
+                return NeutronFluxProvider.NeutronFlux.ZERO;
+            }
+        }
+        return NeutronFluxProvider.NeutronFlux.ZERO;
+    }
+
+    /**
+     * Scan one of the eight diagonal ReaSim rays.  The scan is performed from
+     * a possible receiver back toward a possible source; the source is
+     * accepted only when its transient random nine-degree fan offset matches
+     * this ray.  Every coordinate uses the old floor(0.5 + vector * i)
+     * conversion, including the reverse lookup.
+     */
+    private NeutronFluxProvider.NeutronFlux scanRbmkRay(
+            Level level,
+            BlockPos origin,
+            double reverseX,
+            double reverseZ,
+            double forwardX,
+            double forwardZ,
+            int range,
+            int rayOffset) {
+        for (int distance = 1; distance <= range; distance++) {
+            BlockPos cursor = origin.offset(
+                    legacyRayCoordinate(reverseX, distance),
+                    0,
+                    legacyRayCoordinate(reverseZ, distance));
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, cursor);
+            if (rbmk != null) {
+                RbmkComponentBlock.Kind kind = rbmk.kind();
+                if (kind == RbmkComponentBlock.Kind.REFLECTOR) {
+                    if (reflectorEfficiency() != 1.0D) {
+                        // Non-perfect reflectors continue the original ray;
+                        // they do not return flux to the source rod.
+                        continue;
+                    }
+                    return reflectedRayFluxToSelf(level, origin, cursor,
+                            forwardX, forwardZ, distance, rayOffset);
+                }
+                if (kind.acceptsFuel()) {
+                    if (rbmk.items.get(SLOT_FUEL).isEmpty()) {
+                        continue;
+                    }
+                    // Only a ReaSim rod can be the source of a diagonal fan;
+                    // a loaded ordinary rod receives/stops a ray instead.
+                    if (!isReasimFuelKind(kind)
+                            || rbmk.reasimRayOffset != rayOffset
+                            || rbmk.emittedFlux <= 0.0D) {
+                        return NeutronFluxProvider.NeutronFlux.ZERO;
+                    }
+                    NeutronFluxProvider.NeutronFlux emitted =
+                            NeutronFluxProvider.NeutronFlux.fromRatio(
+                                    rbmk.emittedFlux * 0.75D,
+                                    rbmk.emittedFastRatio);
+                    return streamFluxVector(level, cursor, forwardX, forwardZ,
+                            distance, emitted, true, true, null);
+                }
+                if (kind == RbmkComponentBlock.Kind.OUTGASSER) {
+                    RecipeHolder<RbmkOutgasserRecipe> recipe = outgasserRecipe(level, rbmk.items.get(SLOT_FUEL));
+                    if (recipe != null && rbmk.canProcessOutgasser(recipe.value())) {
+                        return NeutronFluxProvider.NeutronFlux.ZERO;
+                    }
+                    continue;
                 }
                 continue;
             }
@@ -1159,41 +1546,172 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private NeutronFluxProvider.NeutronFlux reflectedFluxToSelf(Level level, BlockPos origin, Direction directionToReflector, int distance) {
-        if (!kind().acceptsFuel() || items.get(SLOT_FUEL).isEmpty() || lastFlux <= 0.0D) {
+        if (!kind().acceptsFuel()
+                || isReasimFuelKind(kind())
+                || items.get(SLOT_FUEL).isEmpty()
+                || emittedFlux <= 0.0D) {
             return NeutronFluxProvider.NeutronFlux.ZERO;
         }
-        NeutronFluxProvider.NeutronFlux reflected = NeutronFluxProvider.NeutronFlux.fromRatio(lastFlux, lastFluxFastRatio);
-        reflected = streamFlux(level, origin, directionToReflector, distance, reflected, false);
+        NeutronFluxProvider.NeutronFlux reflected =
+                NeutronFluxProvider.NeutronFlux.fromRatio(emittedFlux, emittedFastRatio);
+        int[] moderatedCount = {0};
+        reflected = streamFluxVector(level, origin,
+                directionToReflector.getStepX(), directionToReflector.getStepZ(),
+                distance, reflected, false, false, moderatedCount);
         if (reflected.total() <= 0.0D) {
             return NeutronFluxProvider.NeutronFlux.ZERO;
         }
-        if (kind() == RbmkComponentBlock.Kind.FUEL_ROD_MOD || kind() == RbmkComponentBlock.Kind.FUEL_ROD_REASIM_MOD) {
-            reflected = moderate(reflected);
+
+        BlockPos reflectorPos = origin.relative(directionToReflector, distance);
+        RbmkComponentBlockEntity reflector = rbmkColumnAt(level, reflectorPos);
+        if (reflector != null && !reflector.hasLid() && level instanceof ServerLevel serverLevel) {
+            ChunkRadiationData.get(serverLevel).incrementRadiation(reflectorPos, reflected.total() * 0.05D);
         }
-        return NeutronFluxProvider.NeutronFlux.fromRatio(reflected.total() * reflectorEfficiency(), reflected.fastRatio());
+
+        // The old handler added the origin's moderated flag at the reflector,
+        // then re-applied moderation for the complete count on the reflected
+        // stream.  This is intentionally not a single generic multiplier.
+        if (isModeratedKind(kind())) {
+            moderatedCount[0]++;
+        }
+        if (reflected.fastRatio() > 0.0D) {
+            for (int i = 0; i < moderatedCount[0]; i++) {
+                reflected = moderate(reflected);
+            }
+        }
+        return NeutronFluxProvider.NeutronFlux.fromRatio(
+                reflected.total() * reflectorEfficiency(), reflected.fastRatio());
     }
 
-    private NeutronFluxProvider.NeutronFlux streamFlux(Level level, BlockPos source, Direction streamDirection, int distanceToTarget, NeutronFluxProvider.NeutronFlux flux, boolean includeTarget) {
+    private NeutronFluxProvider.NeutronFlux reflectedRayFluxToSelf(
+            Level level,
+            BlockPos origin,
+            BlockPos reflectorPos,
+            double forwardX,
+            double forwardZ,
+            int distance,
+            int rayOffset) {
+        if (!isReasimFuelKind(kind())
+                || reasimRayOffset != rayOffset
+                || items.get(SLOT_FUEL).isEmpty()
+                || emittedFlux <= 0.0D) {
+            return NeutronFluxProvider.NeutronFlux.ZERO;
+        }
+        NeutronFluxProvider.NeutronFlux reflected =
+                NeutronFluxProvider.NeutronFlux.fromRatio(emittedFlux * 0.75D, emittedFastRatio);
+        int[] moderatedCount = {0};
+        reflected = streamFluxVector(level, origin, forwardX, forwardZ,
+                distance, reflected, false, false, moderatedCount);
+        if (reflected.total() <= 0.0D) {
+            return NeutronFluxProvider.NeutronFlux.ZERO;
+        }
+        RbmkComponentBlockEntity reflector = rbmkColumnAt(level, reflectorPos);
+        if (reflector != null && !reflector.hasLid() && level instanceof ServerLevel serverLevel) {
+            ChunkRadiationData.get(serverLevel).incrementRadiation(reflectorPos, reflected.total() * 0.05D);
+        }
+        if (isModeratedKind(kind())) {
+            moderatedCount[0]++;
+        }
+        if (reflected.fastRatio() > 0.0D) {
+            for (int i = 0; i < moderatedCount[0]; i++) {
+                reflected = moderate(reflected);
+            }
+        }
+        return NeutronFluxProvider.NeutronFlux.fromRatio(
+                reflected.total() * reflectorEfficiency(), reflected.fastRatio());
+    }
+
+    private NeutronFluxProvider.NeutronFlux streamFlux(
+            Level level,
+            BlockPos source,
+            Direction streamDirection,
+            int distanceToTarget,
+            NeutronFluxProvider.NeutronFlux flux,
+            boolean includeTarget) {
+        return streamFluxVector(level, source,
+                streamDirection.getStepX(), streamDirection.getStepZ(),
+                distanceToTarget, flux, includeTarget, true, null);
+    }
+
+    /** Run a legacy floor-rounded stream along either a cardinal or diagonal vector. */
+    private NeutronFluxProvider.NeutronFlux streamFluxVector(
+            Level level,
+            BlockPos source,
+            double vectorX,
+            double vectorZ,
+            int distanceToTarget,
+            NeutronFluxProvider.NeutronFlux flux,
+            boolean includeTarget,
+            boolean applyReflectorReturnModeration,
+            @Nullable int[] reflectedModerationCount) {
         NeutronFluxProvider.NeutronFlux current = flux;
+        int moderatedCount = 0;
+        RbmkComponentBlockEntity sourceRbmk = rbmkColumnAt(level, source);
         for (int step = 1; step <= distanceToTarget; step++) {
+            if (current.total() <= 0.0D) {
+                return NeutronFluxProvider.NeutronFlux.ZERO;
+            }
             boolean targetStep = step == distanceToTarget;
             if (targetStep && !includeTarget) {
                 break;
             }
-            BlockPos cursor = source.relative(streamDirection, step);
-            if (level.getBlockEntity(cursor) instanceof RbmkComponentBlockEntity rbmk) {
+            BlockPos cursor = source.offset(
+                    legacyRayCoordinate(vectorX, step),
+                    0,
+                    legacyRayCoordinate(vectorZ, step));
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, cursor);
+            if (rbmk != null) {
                 RbmkComponentBlock.Kind kind = rbmk.kind();
-                if (kind == RbmkComponentBlock.Kind.MODERATOR || kind == RbmkComponentBlock.Kind.FUEL_ROD_MOD || kind == RbmkComponentBlock.Kind.FUEL_ROD_REASIM_MOD) {
+                // runStreamInteraction irradiated every RBMK node before its
+                // type-specific receive/control logic, including the target.
+                if (!rbmk.hasLid() && level instanceof ServerLevel serverLevel) {
+                    ChunkRadiationData.get(serverLevel).incrementRadiation(
+                            cursor, current.total() * 0.05D);
+                }
+                if (isModeratedKind(kind)) {
+                    moderatedCount++;
                     current = moderate(current);
                 }
                 if (kind.isControl()) {
                     if (rbmk.controlLevel <= 0.0D) {
                         return NeutronFluxProvider.NeutronFlux.ZERO;
                     }
-                    current = NeutronFluxProvider.NeutronFlux.fromRatio(current.total() * rbmk.controlMultiplier(), current.fastRatio());
+                    current = NeutronFluxProvider.NeutronFlux.fromRatio(
+                            current.total() * rbmk.controlMultiplier(), current.fastRatio());
+                } else if (kind == RbmkComponentBlock.Kind.REFLECTOR) {
+                    if (applyReflectorReturnModeration) {
+                        if (sourceRbmk != null && isModeratedKind(sourceRbmk.kind())) {
+                            moderatedCount++;
+                        }
+                        if (current.fastRatio() > 0.0D) {
+                            for (int i = 0; i < moderatedCount; i++) {
+                                current = moderate(current);
+                            }
+                        }
+                    }
+                    if (reflectorEfficiency() == 1.0D) {
+                        // Perfect reflection returns to the origin and cannot
+                        // reach a downstream target.
+                        return NeutronFluxProvider.NeutronFlux.ZERO;
+                    }
+                    // A partial reflector is an outbound attenuation point;
+                    // the old handler continued the same stream.
+                    current = NeutronFluxProvider.NeutronFlux.fromRatio(
+                            current.total() * reflectorEfficiency(), current.fastRatio());
                 } else if (kind == RbmkComponentBlock.Kind.ABSORBER) {
                     current = rbmk.absorbFlux(current);
-                } else if (!targetStep && (kind.acceptsFuel() || kind == RbmkComponentBlock.Kind.OUTGASSER)) {
+                } else if (kind == RbmkComponentBlock.Kind.OUTGASSER) {
+                    RecipeHolder<RbmkOutgasserRecipe> recipe = outgasserRecipe(level, rbmk.items.get(SLOT_FUEL));
+                    if (recipe != null && rbmk.canProcessOutgasser(recipe.value())) {
+                        // The target outgasser receives this flux; an
+                        // intermediate processable outgasser consumes it.
+                        return targetStep ? current : NeutronFluxProvider.NeutronFlux.ZERO;
+                    }
+                } else if (kind.acceptsFuel() && !targetStep
+                        && !rbmk.items.get(SLOT_FUEL).isEmpty()) {
+                    // A loaded rod receives and stops a stream even when it is
+                    // not the requested receiver.  Empty channels are the
+                    // only transparent fuel nodes in the legacy walker.
                     return NeutronFluxProvider.NeutronFlux.ZERO;
                 }
                 if (current.total() <= 0.0D) {
@@ -1207,13 +1725,18 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             }
             if (hits > 0) {
                 double multiplier = 1.0D - (double) hits / RbmkComponentBlock.columnHeight(level);
-                current = NeutronFluxProvider.NeutronFlux.fromRatio(current.total() * multiplier, current.fastRatio());
+                current = NeutronFluxProvider.NeutronFlux.fromRatio(
+                        current.total() * multiplier, current.fastRatio());
                 if (level instanceof ServerLevel serverLevel) {
-                    ChunkRadiationData.get(serverLevel).incrementRadiation(cursor, current.total() * 0.05D, 2_000.0D);
+                    ChunkRadiationData.get(serverLevel).incrementRadiation(
+                            cursor, current.total() * 0.05D, 2_000.0D);
                 }
             } else if (level instanceof ServerLevel serverLevel && current.total() > 0.0D) {
                 ChunkRadiationData.get(serverLevel).incrementRadiation(cursor, current.total() * 0.05D);
             }
+        }
+        if (reflectedModerationCount != null) {
+            reflectedModerationCount[0] = moderatedCount;
         }
         return current;
     }
@@ -1240,7 +1763,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         for (int y = 0; y < height; y++) {
             BlockPos target = pos.above(y);
             BlockState state = level.getBlockState(target);
-            if (!state.isAir() && state.isCollisionShapeFullBlock(level, target)) {
+            // Legacy used Block#isOpaqueCube(), not collision-shape fullness.
+            if (!state.isAir() && state.isSolidRender(level, target)) {
                 hits++;
             }
         }
@@ -1273,6 +1797,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (columns.isEmpty()) {
             columns.add(this);
         }
+        Set<BlockPos> boilerBases = new HashSet<>();
         int minX = pos.getX();
         int maxX = pos.getX();
         int minZ = pos.getZ();
@@ -1287,6 +1812,12 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             ItemStack fuel = rbmk.items.get(SLOT_FUEL);
             if (fuel.getItem() instanceof RbmkFuelRodItem rod && rod.isDigammaFuel(fuel)) {
                 digamma = true;
+            }
+            if (rbmk.kind() == RbmkComponentBlock.Kind.BOILER) {
+                // TileEntityRBMKBoiler collected its fluid networks before
+                // replacing its own block in onMelt(). Preserve that order;
+                // after melting, kind() is no longer BOILER.
+                boilerBases.add(columnPos);
             }
         }
 
@@ -1320,20 +1851,47 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
 
         if (HbmConfig.RBMK_OVERPRESSURE.get()) {
-            overpressureFluidPipes(level, columns);
+            overpressureFluidPipes(level, boilerBases);
         }
 
         int smallDim = Math.min(maxX - minX, maxZ - minZ);
         int avgX = minX + (maxX - minX) / 2;
         int avgZ = minZ + (maxZ - minZ) / 2;
         if (level instanceof ServerLevel serverLevel) {
-            double scale = Math.max(1.0D, smallDim);
-            serverLevel.sendParticles(HbmParticleTypes.RBMK_MUSH.get(), avgX + 0.5D, pos.getY() + 1.0D, avgZ + 0.5D, 0, scale, 0.0D, 0.0D, 1.0D);
-            serverLevel.sendParticles(HbmParticleTypes.FALLOUT_RAIN.get(), avgX + 0.5D, pos.getY() + 1.0D, avgZ + 0.5D, 0, rbmkFalloutVisualRange(digamma), 0.0D, 0.0D, 1.0D);
-            NuclearFalloutTerrainEffects.scheduleRbmkMeltdown(serverLevel, new BlockPos(avgX, pos.getY(), avgZ), digamma);
+            // Old TileEntityRBMKBase sent one rbmkmush packet to a
+            // TargetPoint with a 250-block radius.  The ordinary
+            // sendParticles overload is limited to the vanilla tracking
+            // radius, so address each nearby player explicitly.  The
+            // footprint's small dimension is passed verbatim; a single
+            // column deliberately has scale 0.
+            double particleX = avgX + 0.5D;
+            double particleY = pos.getY() + 1.0D;
+            double particleZ = avgZ + 0.5D;
+            for (ServerPlayer player : serverLevel.players()) {
+                if (player.distanceToSqr(particleX, particleY, particleZ) <= 250.0D * 250.0D) {
+                    serverLevel.sendParticles(player, HbmParticleTypes.RBMK_MUSH.get(), true,
+                            particleX, particleY, particleZ, 0,
+                            smallDim, 0.0D, 0.0D, 1.0D);
+                }
+            }
         }
         level.playSound(null, avgX + 0.5D, pos.getY() + 1.0D, avgZ + 0.5D,
                 HbmSoundEvents.RBMK_EXPLOSION.get(), SoundSource.BLOCKS, 50.0F, 1.0F);
+        if (level instanceof ServerLevel serverLevel) {
+            // Legacy MainRegistry.achRBMKBoom was awarded to every player
+            // within 50 blocks of the initiating column (not the footprint
+            // midpoint). The modern advancement uses the same boundary.
+            AdvancementHolder boom = serverLevel.getServer().getAdvancements().get(ReinhardtsHBM.id("rbmk_boom"));
+            if (boom != null) {
+                AABB area = new AABB(
+                        pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
+                        pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D
+                ).inflate(50.0D);
+                for (ServerPlayer player : serverLevel.getEntitiesOfClass(ServerPlayer.class, area)) {
+                    player.getAdvancements().award(boom, "meltdown");
+                }
+            }
+        }
         if (digamma) {
             DigammaSpearEntity spear = new DigammaSpearEntity(HbmEntityTypes.DIGAMMA_SPEAR.get(), level);
             spear.setPos(avgX + 0.5D, pos.getY() + 100.0D, avgZ + 0.5D);
@@ -1343,15 +1901,6 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             rbmk.meltingDown = false;
         }
         meltingDown = false;
-    }
-
-    private static double rbmkFalloutVisualRange(boolean digamma) {
-        try {
-            int range = Math.max(0, Math.min(1024, HbmConfig.RBMK_FALLOUT_RANGE.get()));
-            return digamma ? range * 2.0D : range;
-        } catch (IllegalStateException ignored) {
-            return digamma ? 200.0D : 100.0D;
-        }
     }
 
     private boolean meltColumn(Level level, BlockPos pos, int reduce) {
@@ -1365,6 +1914,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         heat = 0.0D;
         lastFlux = 0.0D;
         lastFluxFastRatio = 0.0D;
+        emittedFlux = 0.0D;
+        emittedFastRatio = 0.0D;
+        reasimRayOffset = 0;
 
         if (meltKind.acceptsFuel()) {
             meltFuelRodColumn(level, pos, reduce, height, meltKind, hasFuel, hadNormalLid);
@@ -1405,7 +1957,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             for (int y = height - 1; y >= 0; y--) {
                 level.setBlock(pos.above(y), HbmBlocks.CORIUM_BLOCK.get().defaultBlockState(), 3);
             }
-            spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.FUEL, 1 + level.random.nextInt(Math.max(1, height)));
+            // Legacy RBMKDials#getColumnHeight() is the top-block offset;
+            // the merged block helper exposes total occupied height.
+            spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.FUEL,
+                    1 + level.random.nextInt(Math.max(1, height - 1)));
         } else {
             standardMeltColumn(level, pos, reduce, height);
         }
@@ -1425,7 +1980,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private static void standardMeltColumn(Level level, BlockPos pos, int reduce, int height) {
-        int clampedReduce = Math.max(1, Math.min(height, reduce));
+        // 1.7.10 clamps against h (the top offset), then applies the random
+        // +1 before writing h+1 blocks.  Modern height is h+1.
+        int clampedReduce = Math.max(1, Math.min(Math.max(1, height - 1), reduce));
         if (level.random.nextInt(3) == 0) {
             clampedReduce++;
         }
@@ -1494,15 +2051,12 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         return result;
     }
 
-    private static void overpressureFluidPipes(Level level, Set<RbmkComponentBlockEntity> columns) {
+    private static void overpressureFluidPipes(Level level, Set<BlockPos> boilerBases) {
         Set<BlockPos> pipes = new HashSet<>();
+        Set<BlockPos> receivers = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         int height = RbmkComponentBlock.columnHeight(level);
-        for (RbmkComponentBlockEntity rbmk : columns) {
-            if (rbmk.kind() != RbmkComponentBlock.Kind.BOILER) {
-                continue;
-            }
-            BlockPos base = rbmk.getBlockPos();
+        for (BlockPos base : boilerBases) {
             for (BlockPos output : rbmkBoilerOutputPositions(level, base, height)) {
                 if (level.getBlockState(output).getBlock() instanceof com.reinhardt.hbm.block.FluidDuctBlock) {
                     queue.add(output);
@@ -1521,20 +2075,56 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 }
             }
         }
+
+        // FluidNetMK2 kept receiver entries separately from its pipe links.
+        // Reconstruct that exact boundary before deleting any duct: every
+        // adjacent capability that the duct accepts for its configured fluid
+        // is one legacy receiver, while another duct remains part of the
+        // pipe set.  This also handles receivers on machine-dummy faces.
+        for (BlockPos pipePos : pipes) {
+            BlockEntity entity = level.getBlockEntity(pipePos);
+            if (!(entity instanceof FluidPipeBlockEntity pipe)) {
+                continue;
+            }
+            for (HbmFluidDefinition type : pipe.connectableFluidTypes()) {
+                for (Direction direction : Direction.values()) {
+                    BlockPos target = pipePos.relative(direction);
+                    if (pipes.contains(target)
+                            || !HbmFluidNetworks.canPipeConnect(level, pipePos, direction, type)) {
+                        continue;
+                    }
+                    if (level.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite()) != null) {
+                        receivers.add(target.immutable());
+                    }
+                }
+            }
+        }
         int max = Math.min(pipes.size() / 5, 100);
         int count = 0;
         for (BlockPos pipe : pipes) {
             if (count++ >= max) {
                 break;
             }
-            level.destroyBlock(pipe, false);
-            level.explode(null, pipe.getX() + 0.5D, pipe.getY() + 0.5D, pipe.getZ() + 0.5D, 1.5F, Level.ExplosionInteraction.NONE);
+            // The legacy network removed the selected FluidNode blocks
+            // without creating a separate explosion at every pipe.
+            level.removeBlock(pipe, false);
+        }
+        // IOverpressurable receivers in 1.7.10 supplied their own explosion;
+        // no modern HBM receiver exposes that legacy interface, so use the
+        // old generic branch: remove the receiver first, then apply a
+        // non-block-damaging strength-5 blast at its centre.
+        for (BlockPos receiver : receivers) {
+            level.removeBlock(receiver, false);
+            level.explode(null, receiver.getX() + 0.5D, receiver.getY() + 0.5D,
+                    receiver.getZ() + 0.5D, 5.0F, false, Level.ExplosionInteraction.NONE);
         }
     }
 
     private static List<BlockPos> rbmkBoilerOutputPositions(Level level, BlockPos base, int height) {
         List<BlockPos> outputs = new ArrayList<>();
-        outputs.add(base.above(height + 1));
+        // Legacy output is base.y + effectiveHeight + 1.  Modern height is
+        // the total four-block column, so this is base.y + height (y + 4).
+        outputs.add(base.above(height));
         if (level.getBlockState(base.below()).is(HbmBlocks.RBMK_LOADER.get())) {
             addLoaderOutputPositions(outputs, base, 1);
         } else if (level.getBlockState(base.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
@@ -1550,6 +2140,64 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         outputs.add(loader.south());
         outputs.add(loader.north());
         outputs.add(loader.below());
+    }
+
+    /**
+     * The 1.7.10 RBMK fluid machines actively called tryProvide() every
+     * server tick.  A capability by itself is only pull-based in the modern
+     * fluid network, so mirror the old sender pass at the exact old output
+     * coordinates.  The side is the receiving face (the opposite of the
+     * sender's ForgeDirection).
+     */
+    private void pushRbmkFluid(Level level, HbmFluidTank tank, boolean outgasser) {
+        if (tank.amount() <= 0 || tank.type().isNone()) {
+            return;
+        }
+        List<RbmkFluidOutput> outputs = new ArrayList<>();
+        int height = RbmkComponentBlock.columnHeight(level);
+        outputs.add(new RbmkFluidOutput(worldPosition.above(height), Direction.DOWN));
+
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader != null) {
+            // Exact TileEntityRBMK* getOutputPos() order: +X, -X, +Z,
+            // -Z, then the block below the loader.
+            outputs.add(new RbmkFluidOutput(loader.east(), Direction.WEST));
+            outputs.add(new RbmkFluidOutput(loader.west(), Direction.EAST));
+            outputs.add(new RbmkFluidOutput(loader.south(), Direction.NORTH));
+            outputs.add(new RbmkFluidOutput(loader.north(), Direction.SOUTH));
+            outputs.add(new RbmkFluidOutput(loader.below(), Direction.UP));
+        } else if (outgasser) {
+            // Outgasser has one additional downward output when no loader is
+            // installed; boiler/heater/cooler do not.
+            outputs.add(new RbmkFluidOutput(worldPosition.below(), Direction.UP));
+        }
+
+        for (RbmkFluidOutput output : outputs) {
+            if (tank.amount() <= 0) {
+                break;
+            }
+            FluidStack offered = HbmFluids.toNeoStack(tank.type(), tank.amount());
+            int accepted = HbmFluidNetworks.fillInto(
+                    level,
+                    output.target(),
+                    output.receivingSide(),
+                    offered,
+                    worldPosition,
+                    true
+            );
+            if (accepted > 0) {
+                tank.drain(tank.type(), accepted, false);
+                setChanged();
+            }
+        }
+    }
+
+    private record RbmkFluidOutput(BlockPos target, Direction receivingSide) {
     }
 
     private static boolean meltdownsDisabled() {
@@ -1584,19 +2232,19 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             waterUsed = Math.min(waterUsed, water.amount());
             steamProduced = (int) Math.floor((waterUsed * 100.0D) / factor);
         }
-        int acceptedSteam = Math.min(steamProduced, steam.capacity() - steam.amount());
-        if (waterUsed <= 0 || acceptedSteam <= 0 || steamType.isNone()) {
+        // The legacy boiler consumed the calculated water/heat before
+        // clamping an over-capacity steam fill.  A full steam tank therefore
+        // still consumes water and heat for that tick; do not scale
+        // waterUsed back to the amount that happened to fit.
+        if (waterUsed <= 0 || steamProduced <= 0 || steamType.isNone()) {
             return;
         }
-        if (acceptedSteam < steamProduced) {
-            waterUsed = steamCompression == 3
-                    ? (int) Math.floor(acceptedSteam / 100.0D * factor)
-                    : (int) Math.ceil(acceptedSteam * factor / 100.0D);
-        }
         boilerConsumption = waterUsed;
-        boilerOutput = acceptedSteam;
+        boilerOutput = steamProduced;
         water.drain(water.type(), waterUsed, false);
-        steam.fill(steamType, acceptedSteam, false);
+        // HbmFluidTank.fill naturally clamps to the 1.7.10 tank capacity,
+        // matching FluidTank#setFill followed by its explicit cap.
+        steam.fill(steamType, steamProduced, false);
         heat -= waterUsed * boilerHeatConsumption();
         setChangedAndSync();
     }
@@ -1604,15 +2252,40 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     private void exchangeHeat(Level level, BlockPos pos) {
         boilerConsumption = 0;
         boilerOutput = 0;
+        // TileEntityRBMKHeater called FluidTank#setType(0, slots) before
+        // resolving its first heating step.  The legacy slotted base did not
+        // expose this slot for insertion, but old saves (and manually
+        // migrated inventories) can still contain a fluid identifier there.
+        // Apply that identifier exactly once per server tick before the
+        // exchanger examines the tank type.
+        ItemStack identifier = items.get(SLOT_FUEL);
+        if (identifier.getItem() instanceof FluidIdentifierItem) {
+            HbmFluidDefinition selected = FluidIdentifierItem.primary(identifier);
+            if (heaterInput.type() != selected) {
+                heaterInput.setType(selected);
+            }
+        }
         HbmThermalConversions.firstHeatExchangerStep(heaterInput.type()).ifPresentOrElse(step -> {
+            // The legacy heater changes its output tank type on every server
+            // tick as soon as the input has a heat-exchanger step.  A type
+            // change clears the old output tank, exactly as FluidTank#setTankType
+            // did in 1.7.10.
+            heaterOutput.setType(step.output());
             double tempRange = heat - step.output().temperatureCelsius();
+            double efficiency = step.boilerEfficiency();
+            if (efficiency <= 0.0D) {
+                heaterInput.clear();
+                heaterOutput.clear();
+                setChangedAndSync();
+                return;
+            }
             if (tempRange <= 0.0D) {
                 return;
             }
-            double efficiency = step.boilerEfficiency();
+            double tuPerDegree = HEAT_EXCHANGER_TU_PER_DEGREE * efficiency;
             int inputOps = heaterInput.amount() / step.amountReq();
             int outputOps = (heaterOutput.capacity() - heaterOutput.amount()) / step.amountProduced();
-            int tempOps = (int) Math.floor((tempRange * HEAT_EXCHANGER_TU_PER_DEGREE * efficiency) / step.heatReq());
+            int tempOps = (int) Math.floor((tempRange * tuPerDegree) / step.heatReq());
             int ops = Math.min(inputOps, Math.min(outputOps, tempOps));
             if (ops <= 0) {
                 return;
@@ -1621,15 +2294,15 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             int outputMade = step.amountProduced() * ops;
             heaterInput.drain(step.input(), inputUsed, false);
             heaterOutput.fill(step.output(), outputMade, false);
-            heat -= (step.heatReq() * ops / HEAT_EXCHANGER_TU_PER_DEGREE) * efficiency;
+            heat -= (step.heatReq() * ops / tuPerDegree) * efficiency;
             boilerConsumption = inputUsed;
             boilerOutput = outputMade;
             setChangedAndSync();
         }, () -> {
-            if (heaterInput.amount() <= 0) {
-                return;
-            }
+            // The old heater cleared both tank types for an invalid/non-
+            // heatable input, even when the tank was already empty.
             heaterInput.clear();
+            heaterOutput.clear();
             setChangedAndSync();
         });
     }
@@ -1651,7 +2324,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
         double efficiency = Math.min(1.0D - flux.fastRatio() * 0.8D, 1.0D);
         outgasserProgress += flux.total() * efficiency * outgasserSpeedMod();
-        if (outgasserProgress >= OUTGASSER_DURATION) {
+        // TileEntityRBMKOutgasser.receiveFlux() used a strict `> duration`
+        // check; exactly 10,000 accumulated flux remains pending until the
+        // next neutron tick.
+        if (outgasserProgress > OUTGASSER_DURATION) {
             processOutgasser(holder.value());
         }
         setChangedAndSync();
@@ -1697,15 +2373,62 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
     }
 
+    /**
+     * The 1.7.10 RBMK cooler is a 4,000 mB cold-perfluoromethyl tank feeding a
+     * 4,000 mB warm tank.  Every 60 ticks it caches the 5x5 horizontal area;
+     * each 50 mB conversion removes exactly 200°C from every cached RBMK base
+     * tile (including the cooler itself), with a floor of 20°C.  This is kept
+     * as a dedicated path instead of the generic column cooling code because
+     * the old implementation explicitly used this area effect.
+     */
+    private void tickCooler(Level level, BlockPos pos) {
+        if (coolerTimer <= 0) {
+            coolerTimer = 60;
+            int index = 0;
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    coolerNeighbors[index++] = rbmkColumnAt(level, pos.offset(dx, 0, dz));
+                }
+            }
+        } else {
+            coolerTimer--;
+        }
+
+        if (coolerInput.amount() < 50 || coolerOutput.capacity() - coolerOutput.amount() < 50) {
+            return;
+        }
+        HbmFluidDefinition cold = HbmFluids.byName("perfluoromethyl_cold").orElse(HbmFluids.none());
+        HbmFluidDefinition warm = HbmFluids.byName("perfluoromethyl").orElse(HbmFluids.none());
+        if (coolerInput.type() != cold || coolerOutput.type() != warm && coolerOutput.amount() > 0) {
+            return;
+        }
+        coolerInput.drain(cold, 50, false);
+        coolerOutput.fill(warm, 50, false);
+        for (RbmkComponentBlockEntity neighbor : coolerNeighbors) {
+            if (neighbor != null) {
+                neighbor.heat = Math.max(20.0D, neighbor.heat - 200.0D);
+            }
+        }
+    }
+
     private void clientTick(Level level, BlockPos pos) {
         RbmkComponentBlock.Kind kind = kind();
+        if (kind == RbmkComponentBlock.Kind.CRANE_CONSOLE) {
+            // TileEntityCraneConsole reset the visual tilt on every client
+            // tick, then applied the local operator's key state.  Position,
+            // progress, and loading remained server-authoritative; only the
+            // two short-lived tilt angles were predicted locally.
+            craneLastTiltFront = craneTiltFront;
+            craneLastTiltLeft = craneTiltLeft;
+            craneTiltFront = 0.0D;
+            craneTiltLeft = 0.0D;
+            return;
+        }
         if (kind.isControl()) {
+            // TileEntityRBMKControl only copied level to lastLevel on the
+            // client.  Movement (and ReaSim power gating) was server-side;
+            // simulating it here makes an unpowered rod appear to move.
             lastControlLevel = controlLevel;
-            if (controlLevel < targetControlLevel) {
-                controlLevel = Math.min(targetControlLevel, controlLevel + controlSpeed());
-            } else if (controlLevel > targetControlLevel) {
-                controlLevel = Math.max(targetControlLevel, controlLevel - controlSpeed());
-            }
         }
         if (kind != RbmkComponentBlock.Kind.AUTOLOADER) {
             return;
@@ -1734,6 +2457,24 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
     }
 
+    /** Apply only the legacy client-side crane tilt prediction. */
+    public void applyClientCraneVisualInput(boolean up, boolean down, boolean left, boolean right) {
+        if (level == null || !level.isClientSide || kind() != RbmkComponentBlock.Kind.CRANE_CONSOLE
+                || craneIsLoading()) {
+            return;
+        }
+        if (up && !down) {
+            craneTiltFront = 30.0D;
+        } else if (!up && down) {
+            craneTiltFront = -30.0D;
+        }
+        if (left && !right) {
+            craneTiltLeft = 30.0D;
+        } else if (!left && right) {
+            craneTiltLeft = -30.0D;
+        }
+    }
+
     public double autoloaderPiston(float partialTick) {
         return autoloaderLastPiston + (autoloaderPiston - autoloaderLastPiston) * partialTick;
     }
@@ -1744,7 +2485,13 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return false;
         }
         ItemStack installed = rod.items.get(SLOT_FUEL);
-        return installed.isEmpty() || remainingFuelPercent(installed) < autoloaderCycle;
+        // The legacy autoloader only replaced an empty slot or an installed
+        // *fuel rod* below its cycle threshold.  A non-rod item made
+        // coldEnoughForAutoloader() true, but did not satisfy the old
+        // instanceof/remaining-fuel branch and therefore was left in place.
+        return installed.isEmpty()
+                || (installed.getItem() instanceof RbmkFuelRodItem
+                && remainingFuelPercent(installed) < autoloaderCycle);
     }
 
     private void serviceRodBelow(Level level, BlockPos pos) {
@@ -1783,8 +2530,29 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
 
     @Nullable
     private RbmkComponentBlockEntity rodBelow(Level level, BlockPos pos) {
-        BlockEntity blockEntity = level.getBlockEntity(pos.below());
-        return blockEntity instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().acceptsFuel() ? rbmk : null;
+        RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, pos.below());
+        return rbmk != null && rbmk.kind().acceptsFuel() ? rbmk : null;
+    }
+
+    /**
+     * Resolve an RBMK column from either its base block entity or one of the
+     * MachineDummy segments used for the old multi-block column.  The 1.7.10
+     * code consistently called RBMKBase.findCore/Compat.getTileStandard for
+     * these lookups, so checking only the directly stored BE loses columns
+     * when a port or neutron path touches a dummy segment.
+     */
+    @Nullable
+    private static RbmkComponentBlockEntity rbmkColumnAt(Level level, BlockPos pos) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().isColumn()) {
+            return rbmk;
+        }
+        if (blockEntity instanceof MachineDummyBlockEntity dummy
+                && dummy.core() instanceof RbmkComponentBlockEntity rbmk
+                && rbmk.kind().isColumn()) {
+            return rbmk;
+        }
+        return null;
     }
 
     private boolean hasAutoloaderFuel() {
@@ -1820,7 +2588,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (!(stack.getItem() instanceof RbmkFuelRodItem)) {
             return 0.0F;
         }
-        return Math.max(0.0F, Math.min(100.0F, (1.0F - RbmkFuelRodItem.depletion(stack)) * 100.0F));
+        return (float) Math.max(0.0D, Math.min(100.0D, (1.0D - RbmkFuelRodItem.depletion(stack)) * 100.0D));
     }
 
     private boolean canProcessOutgasser(RbmkOutgasserRecipe recipe) {
@@ -1828,7 +2596,12 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return false;
         }
         if (recipe.hasFluidOutput()) {
-            if (outgasserGas.amount() > 0 && outgasserGas.type() != recipe.fluidOutput().fluid()) {
+            // The legacy canProcess() retargets an empty gas tank before the
+            // capacity check. Preserve that side effect so the first recipe
+            // can fill even when the persisted/default tank type differs.
+            if (outgasserGas.amount() == 0 && outgasserGas.type() != recipe.fluidOutput().fluid()) {
+                outgasserGas.setType(recipe.fluidOutput().fluid());
+            } else if (outgasserGas.amount() > 0 && outgasserGas.type() != recipe.fluidOutput().fluid()) {
                 return false;
             }
             if (outgasserGas.amount() + recipe.fluidOutput().amount() > outgasserGas.capacity()) {
@@ -1837,7 +2610,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
         if (recipe.hasItemOutput()) {
             ItemStack existing = items.get(SLOT_BUFFER);
-            if (!existing.isEmpty() && (!ItemStack.isSameItemSameComponents(existing, recipe.itemOutput())
+            if (!existing.isEmpty() && (existing.getItem() != recipe.itemOutput().getItem()
+                    || existing.getDamageValue() != recipe.itemOutput().getDamageValue()
                     || existing.getCount() + recipe.itemOutput().getCount() > existing.getMaxStackSize())) {
                 return false;
             }
@@ -1874,8 +2648,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         int totalSteam = this.reasimSteam;
         boolean distributeReasim = HbmConfig.RBMK_REASIM_BOILERS.get();
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockEntity neighbor = level.getBlockEntity(pos.relative(direction));
-            if (neighbor instanceof RbmkComponentBlockEntity other && other.kind().isColumn()) {
+            RbmkComponentBlockEntity other = rbmkColumnAt(level, pos.relative(direction));
+            if (other != null) {
                 members[count++] = other;
                 total += other.heat;
                 if (distributeReasim) {
@@ -1928,8 +2702,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return;
         }
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockEntity blockEntity = level.getBlockEntity(pos.relative(direction));
-            if (blockEntity instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().isColumn()) {
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, pos.relative(direction));
+            if (rbmk != null) {
                 int moved = Math.min(REASIM_INTERNAL_CAPACITY - rbmk.reasimWater, reasimInletWater.amount());
                 if (moved > 0) {
                     rbmk.reasimWater += moved;
@@ -1953,8 +2727,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return;
         }
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockEntity blockEntity = level.getBlockEntity(pos.relative(direction));
-            if (blockEntity instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().isColumn()) {
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, pos.relative(direction));
+            if (rbmk != null) {
                 int moved = Math.min(reasimOutletSteam.capacity() - reasimOutletSteam.amount(), rbmk.reasimSteam);
                 if (moved > 0) {
                     rbmk.reasimSteam -= moved;
@@ -1969,21 +2743,82 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
     }
 
+    private void pushReasimOutlet(Level level) {
+        if (reasimOutletSteam.amount() <= 0 || reasimOutletSteam.type().isNone()) {
+            return;
+        }
+        for (Direction direction : Direction.values()) {
+            if (reasimOutletSteam.amount() <= 0) {
+                break;
+            }
+            FluidStack offered = HbmFluids.toNeoStack(reasimOutletSteam.type(), reasimOutletSteam.amount());
+            int accepted = HbmFluidNetworks.fillInto(
+                    level,
+                    worldPosition.relative(direction),
+                    direction.getOpposite(),
+                    offered,
+                    worldPosition,
+                    true
+            );
+            if (accepted > 0) {
+                reasimOutletSteam.drain(reasimOutletSteam.type(), accepted, false);
+                setChanged();
+            }
+        }
+    }
+
     private void coolPassively(int neighbors) {
         double clampedNeighbors = Math.max(0.0D, Math.min(4.0D, neighbors));
         double cooling = passiveCoolingInner() + (passiveCoolingEdge() - passiveCoolingInner()) * ((4.0D - clampedNeighbors) / 4.0D);
         heat = Math.max(20.0D, heat - cooling);
     }
 
-    private void tickControl() {
-        lastControlLevel = controlLevel;
+    private void tickControl(Level level) {
+        long previousPower = controlPower;
+        boolean previousHasPower = controlHasPower;
+        double previousTarget = targetControlLevel;
+
+        // TileEntityRBMKControlAuto calculated its target before entering
+        // TileEntityRBMKControl.updateEntity().  Preserve that order so the
+        // target is based on this tick's current heat, even while a ReaSim
+        // control is waiting for power.
         if (kind().isAutomaticControl()) {
             updateAutomaticControlTarget();
         }
-        if (controlLevel < targetControlLevel) {
-            controlLevel = Math.min(targetControlLevel, controlLevel + controlSpeed());
-        } else if (controlLevel > targetControlLevel) {
-            controlLevel = Math.max(targetControlLevel, controlLevel - controlSpeed());
+
+        // TileEntityRBMKControl subscribed to the network before checking its
+        // 5,000 HE movement cost.  Normal rods are always powered; only the
+        // two ReaSim variants participate in the modern power graph.
+        controlHasPower = true;
+        if (isReasimControlKind()) {
+            PowerNetworkManager.tickFromEndpoint(level, this);
+            controlHasPower = controlPower >= REASIM_CONTROL_CONSUMPTION;
+        }
+
+        lastControlLevel = controlLevel;
+        if (controlHasPower) {
+            if (controlLevel < targetControlLevel) {
+                controlLevel = Math.min(targetControlLevel, controlLevel + controlSpeed());
+            } else if (controlLevel > targetControlLevel) {
+                controlLevel = Math.max(targetControlLevel, controlLevel - controlSpeed());
+            }
+
+            // The old tile charged only for a tick in which the rod actually
+            // moved, never merely for having a target or being powered.
+            if (isReasimControlKind() && controlLevel != lastControlLevel) {
+                controlPower = Math.max(0L, controlPower - REASIM_CONTROL_CONSUMPTION);
+            }
+        }
+
+        // The legacy TileEntityRBMKBase network-packed every server tick.
+        // In particular, an automatic rod's target can change while its
+        // physical level is stationary (for example while a ReaSim rod is
+        // unpowered); that target still must reach the client.
+        if (previousPower != controlPower || previousHasPower != controlHasPower
+                || controlLevel != lastControlLevel || targetControlLevel != previousTarget) {
+            setChangedAndSync();
+        } else {
+            setChanged();
         }
     }
 
@@ -1995,9 +2830,11 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             fauxLevel = autoLevelLower;
         } else if (heat > upperBound) {
             fauxLevel = autoLevelUpper;
-        } else if (Math.abs(autoHeatUpper - autoHeatLower) < 0.0001D) {
-            fauxLevel = autoLevelLower;
         } else {
+            // Keep the legacy interpolation exactly.  The 1.7.10 code did
+            // not special-case equal heat bounds; an equal-bound setup is
+            // therefore allowed to produce the same IEEE-754 result rather
+            // than being silently replaced by a fallback level.
             fauxLevel = switch (autoControlFunction) {
                 case LINEAR -> (heat - autoHeatLower) * ((autoLevelUpper - autoLevelLower) / (autoHeatUpper - autoHeatLower)) + autoLevelLower;
                 case QUAD_UP -> Math.pow((heat - autoHeatLower) / (autoHeatUpper - autoHeatLower), 2.0D) * (autoLevelUpper - autoLevelLower) + autoLevelLower;
@@ -2009,7 +2846,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
 
     private void setTargetControlLevel(double target) {
         double clamped = Math.max(0.0D, Math.min(1.0D, target));
-        if (Math.abs(clamped - targetControlLevel) > 0.0001D) {
+        // TileEntityRBMKControlManual.setTarget always captured the current
+        // level, even when the requested target was unchanged.  That baseline
+        // is what the old insertion-surge calculation uses.
+        if (isManualControlKind()) {
             startingControlLevel = controlLevel;
         }
         targetControlLevel = clamped;
@@ -2025,7 +2865,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                     * (startingControlLevel - targetControlLevel)
                     * surgeMod();
         }
-        return Math.max(0.0D, controlLevel + surge);
+        // TileEntityRBMKControlManual.getMult returned the raw level plus
+        // surge.  It intentionally did not clamp the transient value; the
+        // neutron handler therefore sees the same insertion surge as 1.7.10.
+        return controlLevel + surge;
     }
 
     private boolean isManualControlKind() {
@@ -2100,11 +2943,14 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private void tickConsole(Level level, BlockPos pos) {
-        if (level.getGameTime() % 10L != 0L) {
-            return;
+        if (level.getGameTime() % 10L == 0L) {
+            scanConsole(level);
+            prepareConsoleScreens();
         }
-        scanConsole(level);
-        prepareConsoleScreens();
+        // TileEntityRBMKConsole.networkPackNT() ran every server tick; the
+        // expensive 15x15 rescan was the part throttled to every ten ticks.
+        // Keep the two cadences separate so live flux/control state does not
+        // wait for the next rescan before reaching the client.
         setChangedAndSync();
     }
 
@@ -2129,14 +2975,15 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
         for (int index = 0; index < DISPLAY_COLUMN_COUNT; index++) {
             BlockPos scanPos = displayIndexPos(index);
-            if (!(level.getBlockEntity(scanPos) instanceof RbmkComponentBlockEntity rbmk) || !rbmk.kind().isColumn()) {
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, scanPos);
+            if (rbmk == null) {
                 continue;
             }
             displayKinds[index] = rbmk.kind().ordinal();
             displayHeat[index] = (int) Math.round(rbmk.heat);
             displayMaxHeat[index] = (int) Math.round(rbmk.maxConsoleHeat());
             displayControl[index] = (int) Math.round(rbmk.controlLevel * 100.0D);
-            displayColorGroups[index] = rbmk.kind().isControl() ? rbmk.colorGroup : -1;
+            displayColorGroups[index] = rbmk.isManualControlKind() ? rbmk.colorGroup : -1;
             displayCraneIndicators[index] = rbmk.craneIndicator;
             if (rbmk.kind().acceptsFuel()) {
                 ItemStack fuel = rbmk.items.get(SLOT_FUEL);
@@ -2150,6 +2997,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     private void scanConsole(Level level) {
         java.util.Arrays.fill(consoleKinds, -1);
         java.util.Arrays.fill(consoleHeat, 0);
+        java.util.Arrays.fill(consoleHeatRaw, 0.0D);
+        java.util.Arrays.fill(consoleControlRaw, 0.0D);
         java.util.Arrays.fill(consoleMaxHeat, 1500);
         java.util.Arrays.fill(consoleFlux, 0);
         java.util.Arrays.fill(consoleControl, 0);
@@ -2169,23 +3018,31 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         java.util.Arrays.fill(consoleHeaterOutput, 0);
         java.util.Arrays.fill(consoleHeaterMax, 0);
         consoleTotalFlux = 0;
+        double rawTotalFlux = 0.0D;
         if (linkedReactor == null) {
             return;
         }
         for (int index = 0; index < CONSOLE_COLUMN_COUNT; index++) {
             BlockPos scanPos = consoleIndexPos(index);
-            if (!(level.getBlockEntity(scanPos) instanceof RbmkComponentBlockEntity rbmk) || !rbmk.kind().isColumn()) {
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, scanPos);
+            if (rbmk == null) {
                 continue;
             }
             consoleKinds[index] = rbmk.kind().ordinal();
+            consoleHeatRaw[index] = rbmk.heat;
+            consoleControlRaw[index] = rbmk.controlLevel * 100.0D;
             consoleHeat[index] = (int) Math.round(rbmk.heat);
             consoleMaxHeat[index] = (int) Math.round(rbmk.maxConsoleHeat());
             consoleFlux[index] = (int) Math.round(rbmk.lastFlux);
             consoleControl[index] = (int) Math.round(rbmk.controlLevel * 100.0D);
-            consoleColorGroups[index] = rbmk.kind().isControl() ? rbmk.colorGroup : -1;
+            consoleColorGroups[index] = rbmk.isManualControlKind() ? rbmk.colorGroup : -1;
             consoleCraneIndicators[index] = rbmk.craneIndicator;
             if (rbmk.kind().acceptsFuel()) {
-                consoleTotalFlux += consoleFlux[index];
+                // The old console accumulated each rod's raw double
+                // lastFluxQuantity and truncated only after the complete
+                // scan (its field was an int).  Summing already-rounded cells
+                // can differ by one or more units for fractional flux.
+                rawTotalFlux += rbmk.lastFlux;
                 ItemStack fuel = rbmk.items.get(SLOT_FUEL);
                 if (fuel.getItem() instanceof RbmkFuelRodItem rod) {
                     consoleFuelCoreHeat[index] = (int) Math.round(RbmkFuelRodItem.coreHeat(fuel));
@@ -2206,6 +3063,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 consoleHeaterMax[index] = rbmk.heaterInput.capacity();
             }
         }
+        consoleTotalFlux = (int) rawTotalFlux;
         for (int index = 0; index < consoleFluxBuffer.length - 1; index++) {
             consoleFluxBuffer[index] = consoleFluxBuffer[index + 1];
         }
@@ -2221,12 +3079,13 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 continue;
             }
             BlockPos target = consoleIndexPos(index);
-            if (level.getBlockEntity(target) instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().isControl()) {
+            RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, target);
+            if (rbmk != null && rbmk.isManualControlKind()) {
                 rbmk.setTargetControlLevel(levelPercent / 100.0D);
                 rbmk.setChangedAndSync();
             }
         }
-        scanConsole(level);
+        // Rescans remain on the legacy ten-tick scheduler.
         setChangedAndSync();
     }
 
@@ -2282,12 +3141,12 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 RbmkComponentBlock.Kind columnKind = RbmkComponentBlock.Kind.values()[consoleKinds[index]];
                 switch (type) {
                     case COL_TEMP -> {
-                        value += consoleHeat[index];
+                        value += consoleHeatRaw[index];
                         count++;
                     }
                     case ROD_EXTRACTION -> {
                         if (columnKind.isControl()) {
-                            value += consoleControl[index];
+                            value += consoleControlRaw[index];
                             count++;
                         }
                     }
@@ -2301,13 +3160,21 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                     case FUEL_POISON -> {
                         ItemStack rod = consoleFuelStack(index);
                         if (!rod.isEmpty()) {
-                            value += RbmkFuelRodItem.xenon(rod);
+                            // 1.7.10's getNBTForConsole stores xenon as a
+                            // percentage (getPoison(), 0..100), while the
+                            // modern item helper exposes the normalized
+                            // 0..1 value.  Keep the console's old percent
+                            // arithmetic before converting to tenths below.
+                            value += RbmkFuelRodItem.xenon(rod) * 100.0D;
                             count++;
                         }
                     }
                     case FUEL_TEMP -> {
                         ItemStack rod = consoleFuelStack(index);
                         if (!rod.isEmpty()) {
+                            // 1.7.10's FUEL_TEMP screen reads c_heat, which
+                            // getNBTForConsole fills with the rod hull/skin
+                            // temperature (c_coreHeat is a separate field).
                             value += RbmkFuelRodItem.hullHeat(rod);
                             count++;
                         }
@@ -2316,7 +3183,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                     }
                 }
             }
-            consoleScreenDisplays[slot] = count <= 0 ? 0 : (int) Math.round(value / count * 10.0D);
+            // Legacy prepareScreenInfo used an integer cast (truncate toward
+            // zero), not round(), before formatting one decimal place.
+            consoleScreenDisplays[slot] = count <= 0 ? 0 : (int) (value / count * 10.0D);
         }
     }
 
@@ -2325,7 +3194,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return ItemStack.EMPTY;
         }
         BlockPos target = consoleIndexPos(index);
-        if (level.getBlockEntity(target) instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().acceptsFuel()) {
+        RbmkComponentBlockEntity rbmk = rbmkColumnAt(level, target);
+        if (rbmk != null && rbmk.kind().acceptsFuel()) {
             return rbmk.items.get(SLOT_FUEL);
         }
         return ItemStack.EMPTY;
@@ -2364,7 +3234,16 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
 
         craneTiltFront = 0.0D;
         craneTiltLeft = 0.0D;
-        if (!craneIsLoading() && level.getEntitiesOfClass(Player.class, craneOperationArea()).stream().anyMatch(this::isPlayerInCraneOperationArea)) {
+        // The legacy tick read only the first player returned by its AABB
+        // query. Keep that ordering and discard stale input when the first
+        // player changes or leaves the area.
+        Player operator = firstCraneOperator();
+        boolean operatorOwnsInput = operator != null
+                && operator.getUUID().equals(craneInputPlayer);
+        if (!operatorOwnsInput) {
+            clearCraneInput();
+        }
+        if (!craneIsLoading() && operatorOwnsInput) {
             if (craneInputUp && !craneInputDown) {
                 craneTiltFront = 30.0D;
                 cranePosFront += 0.05D;
@@ -2403,6 +3282,13 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (level == null || kind() != RbmkComponentBlock.Kind.CRANE_CONSOLE) {
             return;
         }
+        // Legacy RBMKDials.getColumnHeight() returns the gamerule value minus
+        // one: with a raw height of 4, the top body block is coreY + 3 and
+        // setTarget stores centerY = coreY + 3 + 1 = coreY + 4.  The modern
+        // columnHeight() is the total body height (the body occupies offsets
+        // 0..height-1), so this same center is coreY + columnHeight().  The
+        // target resolver subtracts one and therefore lands on the top body
+        // block, never on the optional lid dummy at offset height.
         craneCenter = target.immutable().above(RbmkComponentBlock.columnHeight(level));
         int girderY = craneCenter.getY() + 6;
         Direction dir = getBlockState().getValue(RbmkComponentBlock.FACING).getOpposite();
@@ -2414,13 +3300,6 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         dir = dir.getClockWise();
         craneSpanL = findCraneRoomExtent(target.getX(), girderY, target.getZ(), dir, 16);
         craneHeight = 7;
-        cranePosFront = 0.0D;
-        cranePosLeft = 0.0D;
-        craneLastPosFront = 0.0D;
-        craneLastPosLeft = 0.0D;
-        craneProgress = 1.0D;
-        craneLastProgress = 1.0D;
-        craneGoesDown = false;
     }
 
     private int findCraneRoomExtent(int x, int y, int z, Direction direction, int max) {
@@ -2441,7 +3320,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (craneCenter == null) {
             return null;
         }
-        Direction dir = craneDirection();
+        // The old getColumnAtPos() used only the console block metadata.  The
+        // screwdriver's craneRotationOffset rotates the rendered bridge, but
+        // is deliberately not part of the logical target coordinates.
+        Direction dir = getBlockState().getValue(RbmkComponentBlock.FACING);
         Direction left = dir.getCounterClockWise();
         int x = (int) Math.floor(craneCenter.getX() - dir.getStepX() * cranePosFront - left.getStepX() * cranePosLeft + 0.5D);
         int y = craneCenter.getY() - 1;
@@ -2454,17 +3336,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         return blockEntity instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().isColumn() ? rbmk : null;
     }
 
-    private Direction craneDirection() {
-        Direction direction = getBlockState().getValue(RbmkComponentBlock.FACING);
-        int turns = Math.floorMod(craneRotationOffset / 90, 4);
-        for (int i = 0; i < turns; i++) {
-            direction = direction.getClockWise();
-        }
-        return direction;
-    }
-
     private boolean craneCanTargetInteract(@Nullable RbmkComponentBlockEntity target) {
-        if (target == null) {
+        if (!isCraneLoadableTarget(target)) {
             return false;
         }
         if (!craneLoadedItem.isEmpty()) {
@@ -2478,7 +3351,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return;
         }
         if (!craneLoadedItem.isEmpty()) {
-            target.items.set(craneLoadSlot(target), craneLoadedItem.copyWithCount(1));
+            // TileEntityRBMKRod/TileEntityRBMKStorage.load() copied the whole
+            // supplied stack; do not silently truncate a legacy stack here.
+            target.items.set(craneLoadSlot(target), craneLoadedItem.copy());
             craneLoadedItem = ItemStack.EMPTY;
             target.setChangedAndSync();
         } else {
@@ -2491,7 +3366,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private boolean craneCanLoad(RbmkComponentBlockEntity target, ItemStack stack) {
-        if (!(stack.getItem() instanceof RbmkFuelRodItem)) {
+        if (!isCraneLoadableTarget(target) || stack.isEmpty()) {
             return false;
         }
         if (target.kind().acceptsFuel()) {
@@ -2501,10 +3376,19 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private boolean craneCanUnload(RbmkComponentBlockEntity target) {
+        if (!isCraneLoadableTarget(target)) {
+            return false;
+        }
         if (target.kind().acceptsFuel()) {
             return !target.items.get(SLOT_FUEL).isEmpty();
         }
         return target.kind() == RbmkComponentBlock.Kind.STORAGE && !target.items.get(0).isEmpty();
+    }
+
+    /** The exact two 1.7.10 IRBMKLoadable implementations: rods and storage. */
+    private static boolean isCraneLoadableTarget(@Nullable RbmkComponentBlockEntity target) {
+        return target != null
+                && (target.kind().acceptsFuel() || target.kind() == RbmkComponentBlock.Kind.STORAGE);
     }
 
     private int craneLoadSlot(RbmkComponentBlockEntity target) {
@@ -2530,6 +3414,24 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 worldPosition.getY() + 2.0D,
                 Math.max(minZ, maxZ)
         );
+    }
+
+    @Nullable
+    private Player firstCraneOperator() {
+        if (level == null || kind() != RbmkComponentBlock.Kind.CRANE_CONSOLE) {
+            return null;
+        }
+        List<Player> players = level.getEntitiesOfClass(Player.class, craneOperationArea());
+        return players.isEmpty() ? null : players.get(0);
+    }
+
+    private void clearCraneInput() {
+        craneInputPlayer = null;
+        craneInputUp = false;
+        craneInputDown = false;
+        craneInputLeft = false;
+        craneInputRight = false;
+        craneInputLoad = false;
     }
 
     private void compactStorage() {
@@ -2558,19 +3460,57 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (steamCompression == next) {
             return;
         }
+        // TileEntityRBMKBoiler.cyceCompressor() converted the amount while
+        // changing the actual tank type.  It did not empty the tank: STEAM,
+        // HOTSTEAM and SUPERHOTSTEAM are divided by ten on each step, while
+        // ULTRAHOTSTEAM wraps to STEAM and is multiplied by one thousand.
+        // HbmFluidTank#setType clears its amount, so retain the old amount
+        // explicitly around the type change.
+        int previousCompression = steamCompressionFor(steam.type());
+        if (previousCompression < 0) {
+            // HbmFluidTank clears its type when the amount reaches zero;
+            // legacy FluidTank retained the selected steam type in that case.
+            previousCompression = steamCompression;
+        }
+        int previousAmount = steam.amount();
+        int convertedAmount = previousAmount;
+        if (previousCompression == 3 && next == 0) {
+            convertedAmount = (int) Math.min((long) previousAmount * 1000L, steam.capacity());
+        } else if (next == previousCompression + 1) {
+            convertedAmount = previousAmount / 10;
+        }
+        HbmFluidDefinition nextType = steamDefinition(next);
         steamCompression = next;
-        steam.clear();
+        steam.setType(nextType);
+        steam.setAmount(convertedAmount);
         setChangedAndSync();
     }
 
     private HbmFluidDefinition steamFluid() {
-        String name = switch (steamCompression) {
+        return steamDefinition(steamCompression);
+    }
+
+    private static HbmFluidDefinition steamDefinition(int compression) {
+        String name = switch (compression) {
             case 1 -> "hotsteam";
             case 2 -> "superhotsteam";
             case 3 -> "ultrahotsteam";
             default -> "steam";
         };
         return HbmFluids.byName(name).orElse(HbmFluids.byName("steam").orElse(HbmFluids.none()));
+    }
+
+    private static int steamCompressionFor(HbmFluidDefinition fluid) {
+        if (fluid == null || fluid.isNone()) {
+            return -1;
+        }
+        return switch (fluid.name()) {
+            case "steam" -> 0;
+            case "hotsteam" -> 1;
+            case "superhotsteam" -> 2;
+            case "ultrahotsteam" -> 3;
+            default -> -1;
+        };
     }
 
     private double steamHeatCap() {
@@ -2705,7 +3645,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
 
     @Override
     public boolean stillValid(Player player) {
-        double maxDistance = kind() == RbmkComponentBlock.Kind.CONSOLE ? 400.0D : 64.0D;
+        // TileEntityMachineBase/TileEntityRBMKActiveBase used the same
+        // 128-block-squared menu validity check for every RBMK GUI in 1.7.10.
+        double maxDistance = 128.0D;
         return level != null
                 && level.getBlockEntity(worldPosition) == this
                 && player.distanceToSqr(worldPosition.getX() + 0.5D, worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D) <= maxDistance;
@@ -2719,25 +3661,26 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                     && stack.getItem() instanceof RbmkFuelRodItem
                     && remainingFuelPercent(stack) >= autoloaderCycle;
         }
+        // The legacy outgasser accepts its recipe input in slot 0.  Check this
+        // before the generic RBMK fuel slot rule: an outgasser is not a fuel
+        // column, so routing slot 0 through acceptsFuel() would reject every
+        // valid recipe item.
+        if (kind() == RbmkComponentBlock.Kind.OUTGASSER) {
+            return slot == SLOT_FUEL
+                    && !stack.isEmpty()
+                    && (level == null || level.isClientSide || outgasserRecipe(level, stack) != null);
+        }
         if (slot == SLOT_FUEL) {
             return (kind().acceptsFuel() || kind() == RbmkComponentBlock.Kind.STORAGE) && stack.getItem() instanceof RbmkFuelRodItem;
         }
         if (kind() == RbmkComponentBlock.Kind.STORAGE) {
             return stack.getItem() instanceof RbmkFuelRodItem;
         }
-        if (kind() == RbmkComponentBlock.Kind.OUTGASSER) {
-            return slot == SLOT_FUEL
-                    && !stack.isEmpty()
-                    && (level == null || level.isClientSide || outgasserRecipe(level, stack) != null);
-        }
         return kind() == RbmkComponentBlock.Kind.STORAGE;
     }
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        if (kind().acceptsFuel() || kind() == RbmkComponentBlock.Kind.HEATER) {
-            return FUEL_SLOT;
-        }
         if (kind() == RbmkComponentBlock.Kind.OUTGASSER) {
             return TWO_SLOTS;
         }
@@ -2760,7 +3703,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (kind() == RbmkComponentBlock.Kind.AUTOLOADER) {
             return slot >= AUTOLOADER_OUTPUT_START && slot < AUTOLOADER_OUTPUT_END && autoloaderPiston <= 0.0D;
         }
-        return kind() != RbmkComponentBlock.Kind.OUTGASSER || slot == SLOT_BUFFER;
+        if (kind() == RbmkComponentBlock.Kind.OUTGASSER) {
+            return slot == SLOT_BUFFER;
+        }
+        return kind() == RbmkComponentBlock.Kind.STORAGE;
     }
 
     @Override
@@ -2785,9 +3731,18 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         tag.putDouble("heat", heat);
         tag.putDouble("lastFlux", lastFlux);
         tag.putDouble("lastFluxFastRatio", lastFluxFastRatio);
+        tag.putDouble("emittedFlux", emittedFlux);
+        tag.putDouble("emittedFastRatio", emittedFastRatio);
         tag.putDouble("controlLevel", controlLevel);
         tag.putDouble("targetControlLevel", targetControlLevel);
         tag.putDouble("startingControlLevel", startingControlLevel);
+        if (kind().isControl()) {
+            // The old base serializer carried power/hasPower for every
+            // control variant.  Ordinary rods keep their fixed powered state,
+            // while ReaSim rods use the same fields for their energy buffer.
+            tag.putLong("controlPower", controlPower);
+            tag.putBoolean("controlHasPower", controlHasPower);
+        }
         tag.putDouble("autoLevelLower", autoLevelLower);
         tag.putDouble("autoLevelUpper", autoLevelUpper);
         tag.putDouble("autoHeatLower", autoHeatLower);
@@ -2800,7 +3755,6 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         tag.putInt("boilerOutput", boilerOutput);
         tag.putInt("reasimWater", reasimWater);
         tag.putInt("reasimSteam", reasimSteam);
-        tag.putInt("craneIndicator", craneIndicator);
         tag.putString("lidType", lidType.name());
         tag.putIntArray("consoleKinds", consoleKinds);
         tag.putIntArray("consoleHeat", consoleHeat);
@@ -2848,15 +3802,16 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         tag.putInt("craneSpanL", craneSpanL);
         tag.putInt("craneSpanR", craneSpanR);
         tag.putInt("craneHeight", craneHeight);
-        tag.putDouble("craneTiltFront", craneTiltFront);
-        tag.putDouble("craneTiltLeft", craneTiltLeft);
         tag.putDouble("cranePosFront", cranePosFront);
         tag.putDouble("cranePosLeft", cranePosLeft);
-        tag.putDouble("craneProgress", craneProgress);
-        tag.putBoolean("craneGoesDown", craneGoesDown);
-        tag.putDouble("craneLoadedHeat", craneLoadedHeat);
-        tag.putDouble("craneLoadedEnrichment", craneLoadedEnrichment);
-        tag.put("craneLoadedItem", craneLoadedItem.saveOptional(registries));
+        // TileEntityCraneConsole.writeToNBT persisted only the geometry,
+        // carriage coordinates, and held stack.  Tilt/progress/goesDown and
+        // the two meter values were runtime fields; they were supplied to
+        // clients by the old network packet and deliberately reset after a
+        // server reload.  They are added back only by getUpdateTag below.
+        if (!craneLoadedItem.isEmpty()) {
+            tag.put("craneLoadedItem", craneLoadedItem.saveOptional(registries));
+        }
         tag.putDouble("outgasserProgress", outgasserProgress);
         tag.putDouble("autoloaderPiston", autoloaderPiston);
         tag.putInt("autoloaderDelay", autoloaderDelay);
@@ -2869,8 +3824,33 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         tag.put("outgasserGas", outgasserGas.save());
         tag.put("reasimInletWater", reasimInletWater.save());
         tag.put("reasimOutletSteam", reasimOutletSteam.save());
+        // TileEntityRBMKCooler used the legacy t0/t1 keys for its receiving
+        // cold and sending warm perfluoromethyl tanks.  Keep those exact keys
+        // so old worlds retain their coolant when the BE class is merged.
+        if (kind() == RbmkComponentBlock.Kind.COOLER) {
+            tag.put("t0", coolerInput.save());
+            tag.put("t1", coolerOutput.save());
+        }
         if (linkedReactor != null) {
             tag.putLong("linkedReactor", linkedReactor.asLong());
+        }
+        // Keep the exact 1.7.10 panel keys alongside the modern link key.
+        // Console/Display TileEntities persisted their target as tX/tY/tZ;
+        // the console also persisted rotation and six screen selections.
+        // Writing both forms makes the migrated state round-trip without
+        // changing the modern fields used by the network payloads.
+        if (kind() == RbmkComponentBlock.Kind.CONSOLE || kind() == RbmkComponentBlock.Kind.DISPLAY) {
+            BlockPos target = linkedReactor == null ? BlockPos.ZERO : linkedReactor;
+            tag.putInt("tX", target.getX());
+            tag.putInt("tY", target.getY());
+            tag.putInt("tZ", target.getZ());
+            tag.putInt("rotation", kind() == RbmkComponentBlock.Kind.CONSOLE ? consoleRotation : displayRotation);
+            if (kind() == RbmkComponentBlock.Kind.CONSOLE) {
+                for (int index = 0; index < consoleScreenTypes.length; index++) {
+                    tag.putByte("t" + index, (byte) consoleScreenTypes[index]);
+                    tag.putIntArray("s" + index, consoleScreenColumns[index]);
+                }
+            }
         }
     }
 
@@ -2879,21 +3859,70 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         super.loadAdditional(tag, registries);
         items.clear();
         ContainerHelper.loadAllItems(tag, items, registries);
+        // 1.7.10 used a lower-case `items` list with a byte `slot` field;
+        // ContainerHelper only understands the modern `Items` list.  Read
+        // the legacy list when the modern list is absent so rods, outgasser
+        // inputs and crane/autoloader inventories survive a world migration.
+        if (!tag.contains("Items") && tag.contains("items", Tag.TAG_LIST)) {
+            ListTag legacyItems = tag.getList("items", Tag.TAG_COMPOUND);
+            for (int index = 0; index < legacyItems.size(); index++) {
+                CompoundTag itemTag = legacyItems.getCompound(index);
+                int slot = itemTag.getByte("slot") & 0xFF;
+                if (slot >= 0 && slot < items.size()) {
+                    items.set(slot, ItemStack.parseOptional(registries, itemTag));
+                }
+            }
+        }
         heat = tag.getDouble("heat");
-        lastFlux = tag.getDouble("lastFlux");
-        lastFluxFastRatio = Math.max(0.0D, Math.min(1.0D, tag.getDouble("lastFluxFastRatio")));
-        controlLevel = tag.getDouble("controlLevel");
-        targetControlLevel = tag.getDouble("targetControlLevel");
-        startingControlLevel = tag.contains("startingControlLevel") ? tag.getDouble("startingControlLevel") : controlLevel;
-        autoLevelLower = Math.max(0.0D, Math.min(100.0D, tag.getDouble("autoLevelLower")));
-        autoLevelUpper = Math.max(0.0D, Math.min(100.0D, tag.getDouble("autoLevelUpper")));
-        autoHeatLower = Math.max(0.0D, Math.min(9999.0D, tag.getDouble("autoHeatLower")));
-        autoHeatUpper = Math.max(0.0D, Math.min(9999.0D, tag.getDouble("autoHeatUpper")));
-        autoControlFunction = AutoControlFunction.byName(tag.getString("autoControlFunction"));
-        colorGroup = tag.contains("colorGroup") ? tag.getInt("colorGroup") : -1;
+        if (tag.contains("lastFlux")) {
+            lastFlux = tag.getDouble("lastFlux");
+        } else if (tag.contains("fluxQuantity")) {
+            // Old rods persisted the incoming buffer under fluxQuantity and
+            // its fast-neutron ratio under fluxMod.
+            lastFlux = tag.getDouble("fluxQuantity");
+        } else if (tag.contains("fluxFast") || tag.contains("fluxSlow")) {
+            lastFlux = tag.getDouble("fluxFast") + tag.getDouble("fluxSlow");
+        } else {
+            lastFlux = 0.0D;
+        }
+        if (tag.contains("lastFluxFastRatio")) {
+            lastFluxFastRatio = Math.max(0.0D, Math.min(1.0D, tag.getDouble("lastFluxFastRatio")));
+        } else if (tag.contains("fluxMod")) {
+            lastFluxFastRatio = Math.max(0.0D, Math.min(1.0D, tag.getDouble("fluxMod")));
+        } else if (tag.contains("fluxFast") || tag.contains("fluxSlow")) {
+            double total = tag.getDouble("fluxFast") + tag.getDouble("fluxSlow");
+            lastFluxFastRatio = total > 0.0D ? tag.getDouble("fluxFast") / total : 0.0D;
+        } else {
+            lastFluxFastRatio = 0.0D;
+        }
+        emittedFlux = tag.contains("emittedFlux") ? Math.max(0.0D, tag.getDouble("emittedFlux")) : lastFlux;
+        emittedFastRatio = tag.contains("emittedFastRatio")
+                ? Math.max(0.0D, Math.min(1.0D, tag.getDouble("emittedFastRatio")))
+                : lastFluxFastRatio;
+        controlLevel = tag.contains("controlLevel") ? tag.getDouble("controlLevel") : tag.getDouble("level");
+        targetControlLevel = tag.contains("targetControlLevel") ? tag.getDouble("targetControlLevel") : tag.getDouble("targetLevel");
+        startingControlLevel = tag.contains("startingControlLevel")
+                ? tag.getDouble("startingControlLevel")
+                : (tag.contains("startingLevel") ? tag.getDouble("startingLevel") : controlLevel);
+        controlPower = tag.contains("controlPower")
+                ? Math.max(0L, Math.min(REASIM_CONTROL_MAX_POWER, tag.getLong("controlPower")))
+                : Math.max(0L, Math.min(REASIM_CONTROL_MAX_POWER, tag.getLong("power")));
+        controlHasPower = tag.contains("controlHasPower") ? tag.getBoolean("controlHasPower") : tag.getBoolean("hasPower");
+        autoLevelLower = tag.contains("autoLevelLower") ? tag.getDouble("autoLevelLower") : tag.getDouble("levelLower");
+        autoLevelUpper = tag.contains("autoLevelUpper") ? tag.getDouble("autoLevelUpper") : tag.getDouble("levelUpper");
+        autoHeatLower = tag.contains("autoHeatLower") ? tag.getDouble("autoHeatLower") : tag.getDouble("heatLower");
+        autoHeatUpper = tag.contains("autoHeatUpper") ? tag.getDouble("autoHeatUpper") : tag.getDouble("heatUpper");
+        if (tag.contains("autoControlFunction")) {
+            autoControlFunction = AutoControlFunction.byName(tag.getString("autoControlFunction"));
+        } else if (tag.contains("function")) {
+            autoControlFunction = AutoControlFunction.byOrdinal(tag.getInt("function"));
+        } else {
+            autoControlFunction = AutoControlFunction.LINEAR;
+        }
+        colorGroup = tag.contains("colorGroup") ? tag.getInt("colorGroup") : (tag.contains("color") ? tag.getInt("color") : -1);
         colorGroup = colorGroup < 0 ? -1 : Math.min(4, colorGroup);
         redstoneLevel = tag.getInt("redstoneLevel");
-        steamCompression = tag.getInt("steamCompression");
+        steamCompression = Math.max(0, Math.min(3, tag.getInt("steamCompression")));
         boilerConsumption = tag.getInt("boilerConsumption");
         boilerOutput = tag.getInt("boilerOutput");
         reasimWater = Math.max(0, Math.min(REASIM_INTERNAL_CAPACITY, tag.getInt("reasimWater")));
@@ -2901,19 +3930,57 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         craneIndicator = tag.getInt("craneIndicator");
         lidType = parseLidType(tag.getString("lidType"));
         outgasserProgress = tag.getDouble("outgasserProgress");
-        autoloaderPiston = tag.getDouble("autoloaderPiston");
-        autoloaderDelay = tag.getInt("autoloaderDelay");
-        autoloaderCycle = tag.contains("autoloaderCycle") ? tag.getInt("autoloaderCycle") : 50;
+        autoloaderPiston = tag.contains("autoloaderPiston") ? tag.getDouble("autoloaderPiston") : tag.getDouble("piston");
+        autoloaderDelay = tag.contains("autoloaderDelay") ? tag.getInt("autoloaderDelay") : tag.getInt("delay");
+        autoloaderCycle = tag.contains("autoloaderCycle") ? tag.getInt("autoloaderCycle") : (tag.contains("cycle") ? tag.getInt("cycle") : 50);
         autoloaderCycle = Math.max(5, Math.min(95, autoloaderCycle));
-        autoloaderRetracting = !tag.contains("autoloaderRetracting") || tag.getBoolean("autoloaderRetracting");
-        water.load(tag.getCompound("water"));
-        steam.load(tag.getCompound("steam"));
-        heaterInput.load(tag.getCompound("heaterInput"));
-        heaterOutput.load(tag.getCompound("heaterOutput"));
-        outgasserGas.load(tag.getCompound("outgasserGas"));
-        reasimInletWater.load(tag.getCompound("reasimInletWater"));
-        reasimOutletSteam.load(tag.getCompound("reasimOutletSteam"));
-        linkedReactor = tag.contains("linkedReactor") ? BlockPos.of(tag.getLong("linkedReactor")) : null;
+        autoloaderRetracting = tag.contains("autoloaderRetracting")
+                ? tag.getBoolean("autoloaderRetracting")
+                : (!tag.contains("ret") || tag.getBoolean("ret"));
+        loadTankCompat(water, tag, "water", "feed");
+        loadTankCompat(steam, tag, "steam", "steam");
+        // The selected steam type is authoritative in the old FluidTank NBT.
+        // Keep it in sync with the migrated compression field, including when
+        // a tank was empty (old FluidTank retained its type at zero fill).
+        int loadedCompression = steamCompressionFor(steam.type());
+        if (loadedCompression >= 0) {
+            steamCompression = loadedCompression;
+        } else if (steam.amount() == 0) {
+            steam.setType(steamDefinition(steamCompression));
+        }
+        loadTankCompat(heaterInput, tag, "heaterInput", "feed");
+        loadTankCompat(heaterOutput, tag, "heaterOutput", "steam");
+        loadTankCompat(outgasserGas, tag, "outgasserGas", "gas");
+        loadTankCompat(reasimInletWater, tag, "reasimInletWater", "tank");
+        loadTankCompat(reasimOutletSteam, tag, "reasimOutletSteam", "tank");
+        if (kind() == RbmkComponentBlock.Kind.COOLER) {
+            if (tag.contains("t0")) {
+                loadCoolerTank(coolerInput, tag, "t0");
+            } else if (tag.contains("coolerInput")) {
+                coolerInput.load(tag.getCompound("coolerInput"));
+            }
+            if (tag.contains("t1")) {
+                loadCoolerTank(coolerOutput, tag, "t1");
+            } else if (tag.contains("coolerOutput")) {
+                coolerOutput.load(tag.getCompound("coolerOutput"));
+            }
+            // The old timer was transient and was not serialized.
+            coolerTimer = 0;
+        }
+        boolean panelTarget = kind() == RbmkComponentBlock.Kind.CONSOLE
+                || kind() == RbmkComponentBlock.Kind.DISPLAY;
+        if (tag.contains("linkedReactor")) {
+            linkedReactor = BlockPos.of(tag.getLong("linkedReactor"));
+        } else if (panelTarget && (tag.contains("tX") || tag.contains("tY") || tag.contains("tZ"))) {
+            // 1.7.10 persisted panel targets as three integer tags.  Read
+            // those names when loading an old world instead of silently
+            // dropping the link.
+            linkedReactor = new BlockPos(tag.getInt("tX"), tag.getInt("tY"), tag.getInt("tZ"));
+        } else {
+            // The old fields were primitive ints and therefore defaulted to
+            // the origin even before the linker tool was used.
+            linkedReactor = panelTarget ? BlockPos.ZERO : null;
+        }
         loadIntArray(tag, "consoleKinds", consoleKinds, -1);
         loadIntArray(tag, "consoleHeat", consoleHeat, 0);
         loadIntArray(tag, "consoleMaxHeat", consoleMaxHeat, 1500);
@@ -2938,7 +4005,21 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         loadIntArray(tag, "consoleScreenTypes", consoleScreenTypes, 0);
         loadIntArray(tag, "consoleScreenDisplays", consoleScreenDisplays, 0);
         for (int index = 0; index < consoleScreenColumns.length; index++) {
-            consoleScreenColumns[index] = validConsoleIndices(tag.getIntArray("consoleScreenColumns" + index));
+            String modernColumnsKey = "consoleScreenColumns" + index;
+            if (tag.contains(modernColumnsKey)) {
+                consoleScreenColumns[index] = validConsoleIndices(tag.getIntArray(modernColumnsKey));
+            } else {
+                // Legacy Console used s0..s5 for the selected column list.
+                consoleScreenColumns[index] = validConsoleIndices(tag.getIntArray("s" + index));
+            }
+            // Legacy Console used a byte t0..t5 for each screen type.  The
+            // modern int array has priority when present, so this fallback
+            // only applies to an actual 1.7.10 tag.
+            if (kind() == RbmkComponentBlock.Kind.CONSOLE
+                    && !tag.contains("consoleScreenTypes")
+                    && tag.contains("t" + index)) {
+                consoleScreenTypes[index] = tag.getByte("t" + index);
+            }
         }
         loadIntArray(tag, "displayKinds", displayKinds, -1);
         loadIntArray(tag, "displayHeat", displayHeat, 0);
@@ -2948,29 +4029,58 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         loadIntArray(tag, "displayCraneIndicators", displayCraneIndicators, 0);
         loadIntArray(tag, "displayFuelDepletion", displayFuelDepletion, 0);
         consoleTotalFlux = tag.getInt("consoleTotalFlux");
-        consoleRotation = tag.getInt("consoleRotation") & 3;
-        displayRotation = tag.getInt("displayRotation") & 3;
-        craneCenter = tag.getBoolean("crane") && tag.contains("craneCenter") ? BlockPos.of(tag.getLong("craneCenter")) : null;
+        consoleRotation = tag.contains("consoleRotation")
+                ? tag.getInt("consoleRotation") & 3
+                : (kind() == RbmkComponentBlock.Kind.CONSOLE && tag.contains("rotation")
+                ? tag.getInt("rotation") & 3 : 0);
+        displayRotation = tag.contains("displayRotation")
+                ? tag.getInt("displayRotation") & 3
+                : (kind() == RbmkComponentBlock.Kind.DISPLAY && tag.contains("rotation")
+                ? tag.getInt("rotation") & 3 : 0);
+        // Old deserialize() received syncFront/syncLeft/syncProgress while
+        // leaving the current client values untouched; the next client tick
+        // then rendered from the previous value to the sync value. Preserve
+        // that interpolation when a NeoForge block-update packet arrives.
+        // A disk load intentionally has no craneRenderSync marker: the old
+        // writeToNBT omitted all of these runtime fields and therefore reset
+        // them after a restart.
+        boolean clientUpdate = level != null && level.isClientSide && tag.getBoolean("craneRenderSync");
+        double previousCraneTiltFront = craneTiltFront;
+        double previousCraneTiltLeft = craneTiltLeft;
+        double previousCranePosFront = cranePosFront;
+        double previousCranePosLeft = cranePosLeft;
+        double previousCraneProgress = craneProgress;
+        boolean legacyCraneGeometry = tag.contains("centerX") || tag.contains("centerY") || tag.contains("centerZ")
+                || tag.contains("spanF") || tag.contains("spanB") || tag.contains("spanL") || tag.contains("spanR");
+        boolean craneConfigured = tag.contains("crane") ? tag.getBoolean("crane") : legacyCraneGeometry;
+        if (craneConfigured) {
+            craneCenter = tag.contains("craneCenter")
+                    ? BlockPos.of(tag.getLong("craneCenter"))
+                    : new BlockPos(tag.getInt("centerX"), tag.getInt("centerY"), tag.getInt("centerZ"));
+        } else {
+            craneCenter = null;
+        }
         craneRotationOffset = tag.getInt("craneRotationOffset");
-        craneSpanF = tag.getInt("craneSpanF");
-        craneSpanB = tag.getInt("craneSpanB");
-        craneSpanL = tag.getInt("craneSpanL");
-        craneSpanR = tag.getInt("craneSpanR");
-        craneHeight = tag.getInt("craneHeight");
-        craneTiltFront = tag.getDouble("craneTiltFront");
-        craneLastTiltFront = craneTiltFront;
-        craneTiltLeft = tag.getDouble("craneTiltLeft");
-        craneLastTiltLeft = craneTiltLeft;
-        cranePosFront = tag.getDouble("cranePosFront");
-        craneLastPosFront = cranePosFront;
-        cranePosLeft = tag.getDouble("cranePosLeft");
-        craneLastPosLeft = cranePosLeft;
-        craneProgress = tag.contains("craneProgress") ? tag.getDouble("craneProgress") : 1.0D;
-        craneLastProgress = craneProgress;
-        craneGoesDown = tag.getBoolean("craneGoesDown");
-        craneLoadedHeat = tag.getDouble("craneLoadedHeat");
-        craneLoadedEnrichment = tag.getDouble("craneLoadedEnrichment");
-        craneLoadedItem = ItemStack.parseOptional(registries, tag.getCompound("craneLoadedItem"));
+        craneSpanF = tag.contains("craneSpanF") ? tag.getInt("craneSpanF") : tag.getInt("spanF");
+        craneSpanB = tag.contains("craneSpanB") ? tag.getInt("craneSpanB") : tag.getInt("spanB");
+        craneSpanL = tag.contains("craneSpanL") ? tag.getInt("craneSpanL") : tag.getInt("spanL");
+        craneSpanR = tag.contains("craneSpanR") ? tag.getInt("craneSpanR") : tag.getInt("spanR");
+        craneHeight = tag.contains("craneHeight") ? tag.getInt("craneHeight") : tag.getInt("height");
+        craneTiltFront = clientUpdate ? tag.getDouble("craneTiltFront") : 0.0D;
+        craneLastTiltFront = clientUpdate ? previousCraneTiltFront : craneTiltFront;
+        craneTiltLeft = clientUpdate ? tag.getDouble("craneTiltLeft") : 0.0D;
+        craneLastTiltLeft = clientUpdate ? previousCraneTiltLeft : craneTiltLeft;
+        cranePosFront = tag.contains("cranePosFront") ? tag.getDouble("cranePosFront") : tag.getDouble("posFront");
+        craneLastPosFront = clientUpdate ? previousCranePosFront : cranePosFront;
+        cranePosLeft = tag.contains("cranePosLeft") ? tag.getDouble("cranePosLeft") : tag.getDouble("posLeft");
+        craneLastPosLeft = clientUpdate ? previousCranePosLeft : cranePosLeft;
+        craneProgress = clientUpdate && tag.contains("craneProgress") ? tag.getDouble("craneProgress") : 1.0D;
+        craneLastProgress = clientUpdate ? previousCraneProgress : craneProgress;
+        craneGoesDown = clientUpdate && tag.getBoolean("craneGoesDown");
+        craneLoadedHeat = clientUpdate ? tag.getDouble("craneLoadedHeat") : 0.0D;
+        craneLoadedEnrichment = clientUpdate ? tag.getDouble("craneLoadedEnrichment") : 0.0D;
+        craneLoadedItem = ItemStack.parseOptional(registries,
+                tag.contains("craneLoadedItem") ? tag.getCompound("craneLoadedItem") : tag.getCompound("held"));
     }
 
     private static void loadIntArray(CompoundTag tag, String key, int[] target, int fallback) {
@@ -2979,10 +4089,83 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         System.arraycopy(source, 0, target, 0, Math.min(source.length, target.length));
     }
 
+    /**
+     * Load an RBMK tank from either the modern nested representation or the
+     * flat FluidTank representation emitted by 1.7.10.  The old tank kept its
+     * selected fluid and pressure even when the amount was zero; populate the
+     * amount last so HbmFluidTank's type-change rules do not erase that state.
+     */
+    private static void loadTankCompat(HbmFluidTank tank, CompoundTag root, String modernKey, String legacyKey) {
+        if (root.get(modernKey) instanceof CompoundTag nested) {
+            loadNestedTankPreservingEmpty(tank, nested);
+            return;
+        }
+        if (!hasFlatTank(root, legacyKey)) {
+            return;
+        }
+        int capacity = root.contains(legacyKey + "_max") && root.getInt(legacyKey + "_max") > 0
+                ? root.getInt(legacyKey + "_max") : tank.capacity();
+        int amount = root.getInt(legacyKey);
+        HbmFluidDefinition type = fluidTypeFromLegacy(root, legacyKey, tank.type());
+        int pressure = root.contains(legacyKey + "_p") ? Math.max(0, root.getShort(legacyKey + "_p")) : 0;
+        tank.setCapacity(capacity);
+        tank.setType(type);
+        tank.setPressure(pressure);
+        tank.setAmount(amount);
+    }
+
+    private static boolean hasFlatTank(CompoundTag root, String prefix) {
+        return root.contains(prefix) || root.contains(prefix + "_max")
+                || root.contains(prefix + "_type") || root.contains(prefix + "_p");
+    }
+
+    private static void loadNestedTankPreservingEmpty(HbmFluidTank tank, CompoundTag nested) {
+        int capacity = nested.contains("capacity") && nested.getInt("capacity") > 0
+                ? nested.getInt("capacity") : tank.capacity();
+        int amount = nested.getInt("amount");
+        HbmFluidDefinition type = HbmFluids.byName(nested.getString("type")).orElse(tank.type());
+        int pressure = Math.max(0, nested.getInt("pressure"));
+        tank.setCapacity(capacity);
+        tank.setType(type);
+        tank.setPressure(pressure);
+        tank.setAmount(amount);
+    }
+
+    private static HbmFluidDefinition fluidTypeFromLegacy(CompoundTag root, String prefix, HbmFluidDefinition fallback) {
+        HbmFluidDefinition byName = HbmFluids.byName(root.getString(prefix + "_type")).orElse(null);
+        return byName != null ? byName : HbmFluids.byOldId(root.getInt(prefix + "_type")).orElse(fallback);
+    }
+
+    /**
+     * Read either the modern nested tank tag or the flat 1.7.10 FluidTank
+     * keys ({@code t0}, {@code t0_max}, {@code t0_type}, {@code t0_p}).
+     * The latter is what TileEntityRBMKCooler.writeToNBT emitted.
+     */
+    private static void loadCoolerTank(HbmFluidTank tank, CompoundTag root, String key) {
+        loadTankCompat(tank, root, key, key);
+    }
+
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         saveAdditional(tag, registries);
+        // TileEntityRBMKBase serialized this transient lamp counter in its
+        // network packet, but never in writeToNBT().  Keep it out of disk
+        // saves while retaining the old client/display update.
+        tag.putInt("craneIndicator", craneIndicator);
+        if (kind() == RbmkComponentBlock.Kind.CRANE_CONSOLE) {
+            // NeoForge uses this tag for the client-side block-entity update
+            // packet.  Keep the legacy disk/network split explicit: these
+            // values correspond to TileEntityCraneConsole.serialize(), not
+            // its writeToNBT() persistence payload.
+            tag.putBoolean("craneRenderSync", true);
+            tag.putDouble("craneTiltFront", craneTiltFront);
+            tag.putDouble("craneTiltLeft", craneTiltLeft);
+            tag.putDouble("craneProgress", craneProgress);
+            tag.putBoolean("craneGoesDown", craneGoesDown);
+            tag.putDouble("craneLoadedHeat", craneLoadedHeat);
+            tag.putDouble("craneLoadedEnrichment", craneLoadedEnrichment);
+        }
         return tag;
     }
 
@@ -2993,6 +4176,15 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private final class RbmkFluidHandler implements IFluidHandler {
+        private final BlockPos exposedPos;
+        @Nullable
+        private final Direction side;
+
+        private RbmkFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+            this.exposedPos = exposedPos;
+            this.side = side;
+        }
+
         @Override
         public int getTanks() {
             RbmkComponentBlock.Kind kind = kind();
@@ -3001,6 +4193,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             }
             if (kind == RbmkComponentBlock.Kind.STEAM_INLET || kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
                 return 1;
+            }
+            if (kind == RbmkComponentBlock.Kind.COOLER) {
+                return 2;
             }
             return kind() == RbmkComponentBlock.Kind.OUTGASSER ? 1 : 2;
         }
@@ -3017,6 +4212,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             }
             if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
                 return reasimOutletSteam.getFluidInTank(tank);
+            }
+            if (kind == RbmkComponentBlock.Kind.COOLER) {
+                return tank == 0 ? coolerInput.getFluidInTank(0) : coolerOutput.getFluidInTank(0);
             }
             if (kind == RbmkComponentBlock.Kind.HEATER) {
                 return tank == 0 ? heaterInput.getFluidInTank(0) : heaterOutput.getFluidInTank(0);
@@ -3040,6 +4238,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
                 return reasimOutletSteam.getTankCapacity(tank);
             }
+            if (kind == RbmkComponentBlock.Kind.COOLER) {
+                return tank == 0 ? coolerInput.capacity() : coolerOutput.capacity();
+            }
             if (kind == RbmkComponentBlock.Kind.HEATER) {
                 return tank == 0 ? heaterInput.capacity() : heaterOutput.capacity();
             }
@@ -3058,7 +4259,10 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET || kind == RbmkComponentBlock.Kind.LOADER) {
                 return false;
             }
-            if (kind == RbmkComponentBlock.Kind.OUTGASSER || tank == 1) {
+            if (kind == RbmkComponentBlock.Kind.COOLER) {
+                return canFillPort() && tank == 0 && isCoolantInputStack(stack);
+            }
+            if (kind == RbmkComponentBlock.Kind.OUTGASSER || tank == 1 || !canFillPort()) {
                 return false;
             }
             if (kind == RbmkComponentBlock.Kind.HEATER) {
@@ -3081,9 +4285,29 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET || kind == RbmkComponentBlock.Kind.LOADER) {
                 return 0;
             }
-            if (kind == RbmkComponentBlock.Kind.HEATER) {
-                if (HbmFluids.fromNeoFluid(resource.getFluid()).flatMap(HbmThermalConversions::firstHeatExchangerStep).isEmpty()) {
+            if (!canFillPort()) {
+                return 0;
+            }
+            if (kind == RbmkComponentBlock.Kind.COOLER) {
+                if (!isCoolantInputStack(resource)) {
                     return 0;
+                }
+                return coolerInput.fill(resource, action);
+            }
+            if (kind == RbmkComponentBlock.Kind.HEATER) {
+                HbmFluidDefinition incoming = HbmFluids.fromNeoFluid(resource.getFluid()).orElse(HbmFluids.none());
+                if (HbmThermalConversions.firstHeatExchangerStep(incoming).isEmpty()) {
+                    return 0;
+                }
+                // FluidTank in 1.7.10 was retargeted by the accepted fluid's
+                // trait before filling.  The migrated tank starts with a
+                // diagnostic default type, so an empty tank must be retargeted
+                // before HbmFluidTank#fill would otherwise reject the fluid.
+                if (heaterInput.amount() == 0 && heaterInput.type() != incoming) {
+                    if (action.simulate()) {
+                        return Math.min(resource.getAmount(), heaterInput.capacity());
+                    }
+                    heaterInput.setType(incoming);
                 }
                 return heaterInput.fill(resource, action);
             }
@@ -3101,10 +4325,17 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             }
             if (kind == RbmkComponentBlock.Kind.LOADER) {
                 RbmkComponentBlockEntity source = loaderSource();
-                return source == null ? FluidStack.EMPTY : loaderDrain(source, resource, action);
+                return source == null || !loaderPortAllows(loaderOutputDefinition(source))
+                        ? FluidStack.EMPTY : loaderDrain(source, resource, action);
             }
             if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
                 return reasimOutletSteam.drain(resource, action);
+            }
+            if (!canDrainPort()) {
+                return FluidStack.EMPTY;
+            }
+            if (kind == RbmkComponentBlock.Kind.COOLER) {
+                return coolerOutput.drain(resource, action);
             }
             if (kind == RbmkComponentBlock.Kind.HEATER) {
                 return heaterOutput.drain(resource, action);
@@ -3123,10 +4354,17 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             }
             if (kind == RbmkComponentBlock.Kind.LOADER) {
                 RbmkComponentBlockEntity source = loaderSource();
-                return source == null ? FluidStack.EMPTY : loaderDrain(source, maxDrain, action);
+                return source == null || !loaderPortAllows(loaderOutputDefinition(source))
+                        ? FluidStack.EMPTY : loaderDrain(source, maxDrain, action);
             }
             if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
                 return reasimOutletSteam.drain(maxDrain, action);
+            }
+            if (!canDrainPort()) {
+                return FluidStack.EMPTY;
+            }
+            if (kind == RbmkComponentBlock.Kind.COOLER) {
+                return coolerOutput.drain(maxDrain, action);
             }
             if (kind == RbmkComponentBlock.Kind.HEATER) {
                 return heaterOutput.drain(maxDrain, action);
@@ -3142,6 +4380,82 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                     && HbmFluids.fromNeoFluid(stack.getFluid())
                     .map(definition -> definition == HbmFluids.byName("water").orElse(HbmFluids.none()))
                     .orElse(false);
+        }
+
+        private boolean isCoolantInputStack(FluidStack stack) {
+            return !stack.isEmpty()
+                    && HbmFluids.fromNeoFluid(stack.getFluid())
+                    .map(definition -> definition == HbmFluids.byName("perfluoromethyl_cold").orElse(HbmFluids.none()))
+                    .orElse(false);
+        }
+
+        private boolean canFillPort() {
+            RbmkComponentBlock.Kind kind = kind();
+            if (kind == RbmkComponentBlock.Kind.STEAM_INLET) {
+                return true;
+            }
+            return (kind == RbmkComponentBlock.Kind.BOILER
+                    || kind == RbmkComponentBlock.Kind.HEATER
+                    || kind == RbmkComponentBlock.Kind.COOLER)
+                    && exposedPos.equals(worldPosition)
+                    && (side == null || side == Direction.DOWN);
+        }
+
+        private boolean canDrainPort() {
+            RbmkComponentBlock.Kind kind = kind();
+            if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
+                return true;
+            }
+            if (!(kind == RbmkComponentBlock.Kind.BOILER
+                    || kind == RbmkComponentBlock.Kind.HEATER
+                    || kind == RbmkComponentBlock.Kind.COOLER
+                    || kind == RbmkComponentBlock.Kind.OUTGASSER)) {
+                return false;
+            }
+            if (side == null) {
+                return true;
+            }
+            if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                    && side == Direction.DOWN) {
+                return true;
+            }
+            if (kind == RbmkComponentBlock.Kind.OUTGASSER
+                    && !hasRbmkLoaderBelow()
+                    && exposedPos.equals(worldPosition.below())
+                    && side == Direction.UP) {
+                return true;
+            }
+            return isAnyLoaderOutputPort(exposedPos, side);
+        }
+
+        /** Exact 1.7.10 RBMKLoader.canConnect direction/type rule. */
+        private boolean loaderPortAllows(@Nullable HbmFluidDefinition type) {
+            if (type == null || type.isNone() || side == null) {
+                return side == null;
+            }
+            if (side == Direction.UP) {
+                return isLegacyHeatable(type);
+            }
+            return isLegacyCoolable(type);
+        }
+
+        private boolean isLegacyHeatable(HbmFluidDefinition type) {
+            return switch (type.name()) {
+                case "air", "water", "oil", "oil_ds", "crackoil", "crackoil_ds",
+                        "coolant", "perfluoromethyl_cold", "perfluoromethyl", "mug", "blood",
+                        "heavywater", "sodium", "lead", "thorium_salt" -> true;
+                default -> false;
+            };
+        }
+
+        private boolean isLegacyCoolable(HbmFluidDefinition type) {
+            return type.name().equals("perfluoromethyl") || switch (type.name()) {
+                case "steam", "hotsteam", "superhotsteam", "ultrahotsteam",
+                        "hotoil", "hotoil_ds", "hotcrackoil", "hotcrackoil_ds",
+                        "coolant_hot", "perfluoromethyl_hot", "mug_hot", "blood_hot",
+                        "heavywater_hot", "sodium_hot", "lead_hot", "thorium_salt_hot" -> true;
+                default -> false;
+            };
         }
 
         @Nullable
@@ -3163,7 +4477,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         private boolean loaderCanExpose(RbmkComponentBlock.Kind sourceKind) {
             return sourceKind == RbmkComponentBlock.Kind.BOILER
                     || sourceKind == RbmkComponentBlock.Kind.HEATER
-                    || sourceKind == RbmkComponentBlock.Kind.OUTGASSER;
+                    || sourceKind == RbmkComponentBlock.Kind.OUTGASSER
+                    || sourceKind == RbmkComponentBlock.Kind.COOLER;
         }
 
         private FluidStack loaderOutputFluid(RbmkComponentBlockEntity source) {
@@ -3171,8 +4486,15 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 case BOILER -> source.steam.getFluidInTank(0);
                 case HEATER -> source.heaterOutput.getFluidInTank(0);
                 case OUTGASSER -> source.outgasserGas.getFluidInTank(0);
+                case COOLER -> source.coolerOutput.getFluidInTank(0);
                 default -> FluidStack.EMPTY;
             };
+        }
+
+        @Nullable
+        private HbmFluidDefinition loaderOutputDefinition(RbmkComponentBlockEntity source) {
+            FluidStack stack = loaderOutputFluid(source);
+            return stack.isEmpty() ? null : HbmFluids.fromNeoFluid(stack.getFluid()).orElse(null);
         }
 
         private int loaderOutputCapacity(RbmkComponentBlockEntity source) {
@@ -3180,6 +4502,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 case BOILER -> source.steam.capacity();
                 case HEATER -> source.heaterOutput.capacity();
                 case OUTGASSER -> source.outgasserGas.capacity();
+                case COOLER -> source.coolerOutput.capacity();
                 default -> 0;
             };
         }
@@ -3189,6 +4512,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 case BOILER -> source.steam.drain(resource, action);
                 case HEATER -> source.heaterOutput.drain(resource, action);
                 case OUTGASSER -> source.outgasserGas.drain(resource, action);
+                case COOLER -> source.coolerOutput.drain(resource, action);
                 default -> FluidStack.EMPTY;
             };
         }
@@ -3198,6 +4522,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 case BOILER -> source.steam.drain(maxDrain, action);
                 case HEATER -> source.heaterOutput.drain(maxDrain, action);
                 case OUTGASSER -> source.outgasserGas.drain(maxDrain, action);
+                case COOLER -> source.coolerOutput.drain(maxDrain, action);
                 default -> FluidStack.EMPTY;
             };
         }

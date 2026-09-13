@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
     public static final long BASE_MAX_POWER = 50_000L;
@@ -60,6 +61,13 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
     private static final int[] TOP_SLOTS = {SLOT_INPUT};
     private static final int[] BOTTOM_SLOTS = {SLOT_OUTPUT, SLOT_BATTERY};
     private static final int[] SIDE_SLOTS = {SLOT_BATTERY};
+    private static final Set<String> ACCEPTED_FUELS = Set.of(
+            "diesel",
+            "diesel_crack",
+            "diesel_reform",
+            "diesel_crack_reform",
+            "biofuel"
+    );
     private static final Map<CombustibleFuelGrade, Double> FUEL_EFFICIENCY = Map.of(
             CombustibleFuelGrade.MEDIUM, 0.5D,
             CombustibleFuelGrade.HIGH, 0.75D,
@@ -127,7 +135,10 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
             return false;
         }
         CombustibleFuelGrade grade = fluid.combustibleFuelGrade();
-        return grade != null && grade != CombustibleFuelGrade.LOW && fluid.combustibleHeatEnergy() > 0;
+        return grade != null
+                && grade != CombustibleFuelGrade.LOW
+                && fluid.combustibleHeatEnergy() > 0
+                && ACCEPTED_FUELS.contains(fluid.name());
     }
 
     public static long heFromFuel(HbmFluidDefinition fluid) {
@@ -135,7 +146,9 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
             return 0L;
         }
         double efficiency = fuelEfficiency(fluid.combustibleFuelGrade());
-        return (long) (fluid.combustibleHeatEnergy() / 1000.0D * efficiency);
+        // 1.7.10 performs the integer division first:
+        // (combustionEnergy / 1000L) * efficiency, then truncates to long.
+        return (long) ((fluid.combustibleHeatEnergy() / 1000L) * efficiency);
     }
 
     public static double fuelEfficiency(CombustibleFuelGrade grade) {
@@ -391,7 +404,7 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements PowerEndp
     private void tickServer(Level level) {
         boolean changed = applyFluidIdentifierSlot();
         changed |= transferFluidInput();
-        this.powerCap = this.fuelTank.type().name().equals("nitan") ? BASE_MAX_POWER * 10L : BASE_MAX_POWER;
+        this.powerCap = BASE_MAX_POWER;
         this.power = BatteryPackItem.chargeFromMachine(this.items.get(SLOT_BATTERY), this.power);
         this.running = false;
         changed |= sendSmoke(level);

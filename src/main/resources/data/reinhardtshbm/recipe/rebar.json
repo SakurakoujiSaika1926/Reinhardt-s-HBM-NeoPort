@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BB",
+    "BB"
+  ],
+  "key": {
+    "B": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rebar",
+    "count": 8
+  }
+}

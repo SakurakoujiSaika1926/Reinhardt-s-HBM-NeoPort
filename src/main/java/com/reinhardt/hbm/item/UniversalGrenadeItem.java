@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.client.render.UniversalGrenadeItemRenderer;
 import com.reinhardt.hbm.entity.UniversalGrenadeEntity;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.ChatFormatting;
@@ -19,10 +20,12 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * The configurable grenade from 1.7.10.  Its four component choices are
@@ -38,6 +41,18 @@ public final class UniversalGrenadeItem extends Item {
 
     public UniversalGrenadeItem(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private final UniversalGrenadeItemRenderer renderer = new UniversalGrenadeItemRenderer();
+
+            @Override
+            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                return this.renderer;
+            }
+        });
     }
 
     @Override
@@ -182,23 +197,31 @@ public final class UniversalGrenadeItem extends Item {
     }
 
     public enum Filling {
-        POWDER(Shell.FRAG, Shell.STICK),
-        HE(Shell.FRAG, Shell.STICK),
-        DEMO(Shell.FRAG, Shell.STICK),
-        INC(Shell.FRAG, Shell.STICK),
-        WP(Shell.FRAG, Shell.STICK),
-        CLUSTER(Shell.FRAG, Shell.STICK),
-        EMP(Shell.TECH),
-        PLASMA(Shell.TECH),
-        LASER(Shell.TECH),
-        CLUSTER_HEAVY(Shell.NUKE),
-        NUCLEAR(Shell.NUKE),
-        NUCLEAR_DEMO(Shell.NUKE),
-        SCHRAB(Shell.NUKE);
+        POWDER(0x424242, 0x939176, Shell.FRAG, Shell.STICK),
+        HE(0x595533, 0xA49D62, Shell.FRAG, Shell.STICK),
+        DEMO(0x595533, 0xDD4029, Shell.FRAG, Shell.STICK),
+        INC(0x5A5A5A, 0xFF5F21, Shell.FRAG, Shell.STICK),
+        WP(0xDCDCDC, 0xFF5F21, Shell.FRAG, Shell.STICK),
+        CLUSTER(0x5A5A5A, 0xFFC711, Shell.FRAG, Shell.STICK),
+        EMP(0x93A1AC, 0x00FFFF, Shell.TECH),
+        PLASMA(0x655B2C, 0x4CFF00, Shell.TECH),
+        LASER(0x493A3A, 0xFF0000, Shell.TECH),
+        CLUSTER_HEAVY(0x5A5A5A, 0xFF5F21, Shell.NUKE),
+        NUCLEAR(0xDFD7A8, 0xA49D62, Shell.NUKE),
+        NUCLEAR_DEMO(0xDFD7A8, 0xDD4029, Shell.NUKE),
+        SCHRAB(0x00BDBD, 0x000000, Shell.NUKE);
 
         private final Shell[] shells;
-        Filling(Shell... shells) { this.shells = shells; }
+        private final int bodyColor;
+        private final int labelColor;
+        Filling(int bodyColor, int labelColor, Shell... shells) {
+            this.bodyColor = bodyColor;
+            this.labelColor = labelColor;
+            this.shells = shells;
+        }
         public String id() { return name().toLowerCase(Locale.ROOT); }
+        public int bodyColor() { return bodyColor; }
+        public int labelColor() { return labelColor; }
         public boolean supports(Shell shell) {
             for (Shell compatible : shells) if (compatible == shell) return true;
             return false;
@@ -210,8 +233,11 @@ public final class UniversalGrenadeItem extends Item {
     }
 
     public enum Fuze {
-        S3, S7, S15, IMPACT, AIRBURST;
+        S3(0x000000), S7(0x404040), S15(0x808080), IMPACT(0xE36C17), AIRBURST(0x56A137);
+        private final int bandColor;
+        Fuze(int bandColor) { this.bandColor = bandColor; }
         public String id() { return name().toLowerCase(Locale.ROOT); }
+        public int bandColor() { return bandColor; }
         public static Fuze byId(String id) {
             for (Fuze value : values()) if (value.id().equals(id)) return value;
             return S3;

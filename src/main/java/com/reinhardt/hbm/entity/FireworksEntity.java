@@ -124,6 +124,6 @@ public final class FireworksEntity extends Entity {
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 300.0D * 300.0D;
+        return distance < 4096.0D;
     }
 }

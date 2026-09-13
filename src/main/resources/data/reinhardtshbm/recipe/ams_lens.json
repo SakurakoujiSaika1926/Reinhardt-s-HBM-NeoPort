@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["PDP","GDG","PDP"],"key":{"P":{"tag":"c:plates/dineutronium"},"G":{"item":"reinhardtshbm:reinforced_glass"},"D":{"item":"minecraft:diamond_block"}},"result":{"id":"reinhardtshbm:ams_lens"}}

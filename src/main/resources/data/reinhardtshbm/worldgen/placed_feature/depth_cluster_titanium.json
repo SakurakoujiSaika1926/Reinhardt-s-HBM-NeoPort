@@ -2,9 +2,6 @@
   "feature": "reinhardtshbm:depth_cluster_titanium",
   "placement": [
     {
-      "type": "minecraft:in_square"
-    },
-    {
       "type": "minecraft:biome"
     }
   ]

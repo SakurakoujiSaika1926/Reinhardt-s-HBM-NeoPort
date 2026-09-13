@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["LLL","MGM","LLL"],"key":{"L":{"item":"minecraft:leather"},"G":{"tag":"c:plates/weaponsteel"},"M":{"tag":"c:mechanisms/weaponsteel"}},"result":{"id":"reinhardtshbm:ammo_bag"}}

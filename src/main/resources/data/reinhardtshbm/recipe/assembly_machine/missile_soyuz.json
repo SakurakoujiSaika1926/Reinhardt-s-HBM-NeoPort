@@ -1,0 +1,75 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.soyuz",
+  "duration": 6000,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2200,
+            "material": "titanium"
+          }
+        }
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:rocket_fuel"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thruster_small"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thruster_medium"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:part_generic"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "lde"
+          },
+          "minecraft:custom_model_data": 3
+        }
+      },
+      "count": 32
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_soyuz",
+    "count": 1
+  },
+  "blueprint_pools": [
+    "discover.soyuz"
+  ]
+}

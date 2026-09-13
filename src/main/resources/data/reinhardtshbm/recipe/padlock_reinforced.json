@@ -11,7 +11,7 @@
       "tag": "c:plates/dura_steel"
     },
     "B": {
-      "tag": "c:bolts/dura_steel"
+      "item": "reinhardtshbm:bolt_dura_steel"
     },
     "D": {
       "tag": "c:plates/desh"

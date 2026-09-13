@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MBM",
+    "NSN",
+    "N N"
+  ],
+  "key": {
+    "N": {
+      "tag": "c:plates/armor_lunar"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor_desh"
+    },
+    "S": {
+      "tag": "c:plates/starmetal"
+    },
+    "B": {
+      "item": "reinhardtshbm:block_starmetal"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bj_legs"
+  }
+}

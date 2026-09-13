@@ -1,7 +1,11 @@
 package com.reinhardt.hbm.block;
 
+import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.registry.HbmParticleTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
@@ -58,6 +62,28 @@ public abstract class HbmGasBlock extends Block {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 1.7.10 BlockGasBase only rendered a cloud when the client wore
+     * ashglasses.  Keep the same opt-in visibility for otherwise invisible
+     * gas blocks; the gameplay collision logic remains server authoritative.
+     */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!level.isClientSide) {
+            return;
+        }
+        Player viewer = level.getNearestPlayer(
+                pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 64.0D,
+                entity -> entity instanceof net.minecraft.world.entity.LivingEntity living
+                        && living.getItemBySlot(EquipmentSlot.HEAD).is(HbmItems.ASHGLASSES.get())
+        );
+        if (viewer != null) {
+            level.addParticle(HbmParticleTypes.LEGACY_CLOUD.get(),
+                    pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
+                    0.0D, 0.0D, 0.0D);
+        }
     }
 
     @Override

@@ -57,7 +57,6 @@ block_cobalt
 block_coke
 block_coltan
 block_combine_steel
-block_copper
 block_corium
 block_corium_cobble
 block_desh
@@ -650,14 +649,12 @@ ore_beryllium
 ore_cinnebar
 ore_cobalt
 ore_coltan
-ore_copper
 ore_depth_borax
 ore_depth_cinnebar
 ore_depth_nether_neodymium
 ore_depth_zirconium
 ore_fluorite
 ore_gneiss_asbestos
-ore_gneiss_copper
 ore_gneiss_gas
 ore_gneiss_gold
 ore_gneiss_iron

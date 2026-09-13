@@ -1,0 +1,60 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.missileassembly",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 1300,
+            "material": "aluminium"
+          }
+        }
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2200,
+            "material": "titanium"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:rocket_fuel"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_assembly",
+    "count": 1
+  }
+}

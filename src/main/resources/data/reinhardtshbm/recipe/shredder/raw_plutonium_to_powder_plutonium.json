@@ -1,0 +1,6 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": { "item": "reinhardtshbm:raw_plutonium" },
+  "input_count": 2,
+  "result": { "id": "reinhardtshbm:powder_plutonium", "count": 3 }
+}

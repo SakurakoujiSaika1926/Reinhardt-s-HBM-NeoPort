@@ -13,9 +13,11 @@ import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.SplittableRandom;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +31,8 @@ final class RadiationWorldEffects {
     private static final int TERRAIN_THRESHOLD = 10;
     private static final int CHUNK_ROLLS_PER_TICK = 5;
     private static final int LOCATION_ROLLS_PER_CHUNK = 10;
+    private static final int SURFACE_PASS_BUDGET_PER_TICK = 10;
+    private static final int MAX_QUEUED_SURFACE_PASSES = 200;
     private static final ExecutorService PLANNER = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "RHbm-RadiationWorldEffects");
         thread.setDaemon(true);
@@ -42,6 +46,7 @@ final class RadiationWorldEffects {
     static void tick(ServerLevel level, Map<Long, Double> radiation) {
         WorldEffects effects = EFFECTS.computeIfAbsent(level.dimension().location(), unused -> new WorldEffects());
         effects.applyReady(level);
+        effects.applyQueued(level);
         effects.plan(radiation, level.getGameTime());
     }
 
@@ -55,6 +60,7 @@ final class RadiationWorldEffects {
 
     private static final class WorldEffects {
         private CompletableFuture<EffectPlan> inFlight;
+        private final Queue<SurfacePass> queuedSurfacePasses = new ArrayDeque<>();
         private int fogTimer;
 
         void applyReady(ServerLevel level) {
@@ -63,11 +69,33 @@ final class RadiationWorldEffects {
             }
             EffectPlan plan = inFlight.join();
             inFlight = null;
-            applyPlan(level, plan);
+            applyFog(level, plan);
+            queuedSurfacePasses.addAll(plan.surfacePasses());
+            while (queuedSurfacePasses.size() > MAX_QUEUED_SURFACE_PASSES) {
+                queuedSurfacePasses.poll();
+            }
+        }
+
+        void applyQueued(ServerLevel level) {
+            if (queuedSurfacePasses.isEmpty()) {
+                return;
+            }
+            Block wasteEarth = block("waste_earth");
+            Block wasteLeaves = block("waste_leaves");
+            for (int i = 0; i < SURFACE_PASS_BUDGET_PER_TICK; i++) {
+                SurfacePass pass = queuedSurfacePasses.poll();
+                if (pass == null) {
+                    return;
+                }
+                contaminateChunkSurface(level, pass, wasteEarth, wasteLeaves);
+            }
         }
 
         void plan(Map<Long, Double> radiation, long gameTime) {
             if (inFlight != null) {
+                return;
+            }
+            if (queuedSurfacePasses.size() >= MAX_QUEUED_SURFACE_PASSES) {
                 return;
             }
             if (radiation.isEmpty()) {
@@ -129,14 +157,9 @@ final class RadiationWorldEffects {
         return result;
     }
 
-    private static void applyPlan(ServerLevel level, EffectPlan plan) {
-        Block wasteEarth = block("waste_earth");
-        Block wasteLeaves = block("waste_leaves");
+    private static void applyFog(ServerLevel level, EffectPlan plan) {
         for (FogCandidate candidate : plan.fog()) {
             spawnRadiationFog(level, candidate);
-        }
-        for (SurfacePass pass : plan.surfacePasses()) {
-            contaminateChunkSurface(level, pass, wasteEarth, wasteLeaves);
         }
     }
 
@@ -157,16 +180,21 @@ final class RadiationWorldEffects {
         if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
             return;
         }
-        for (int a = 0; a < 16; a++) {
-            for (int b = 0; b < 16; b++) {
-                int index = a * 16 + b;
-                if (!pass.shouldProcess(index)) {
-                    continue;
-                }
-                int x = chunkPos.getMinBlockX() + a;
-                int z = chunkPos.getMinBlockZ() + b;
-                BlockPos surface = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, new BlockPos(x, 0, z));
-                BlockPos pos = surface.below(pass.yDrop(index));
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        int minX = chunkPos.getMinBlockX();
+        int minZ = chunkPos.getMinBlockZ();
+        for (int base = 0; base < 256; base += Long.SIZE) {
+            long bits = pass.processBits(base);
+            while (bits != 0L) {
+                int bit = Long.numberOfTrailingZeros(bits);
+                int index = base + bit;
+                bits &= bits - 1L;
+
+                int x = minX + (index >> 4);
+                int z = minZ + (index & 15);
+                int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z)
+                        - pass.yDrop(index);
+                pos.set(x, y, z);
                 BlockState state = level.getBlockState(pos);
                 if (state.is(Blocks.GRASS_BLOCK)) {
                     level.setBlock(pos, wasteEarth.defaultBlockState(), 3);
@@ -248,6 +276,16 @@ final class RadiationWorldEffects {
 
         boolean shouldProcess(int index) {
             return bit(processLo, processMidLo, processMidHi, processHi, index);
+        }
+
+        long processBits(int base) {
+            return switch (base) {
+                case 0 -> processLo;
+                case 64 -> processMidLo;
+                case 128 -> processMidHi;
+                case 192 -> processHi;
+                default -> 0L;
+            };
         }
 
         int yDrop(int index) {

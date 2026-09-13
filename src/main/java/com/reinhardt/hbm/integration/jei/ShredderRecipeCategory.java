@@ -65,6 +65,7 @@ public class ShredderRecipeCategory implements IRecipeCategory<RecipeHolder<Shre
         ShredderRecipe recipe = holder.value();
         List<ItemStack> inputs = Arrays.stream(recipe.ingredient().getItems())
                 .map(ItemStack::copy)
+                .peek(stack -> stack.setCount(recipe.inputCount()))
                 .toList();
 
         builder.addInputSlot(38, 23)

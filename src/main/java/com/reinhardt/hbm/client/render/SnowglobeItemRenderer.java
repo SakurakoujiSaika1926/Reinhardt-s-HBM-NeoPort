@@ -34,6 +34,9 @@ public final class SnowglobeItemRenderer extends BlockEntityWithoutLevelRenderer
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         SnowglobeType type = SnowglobeBlockItem.type(stack);
         poseStack.pushPose();
+        // RenderSnowglobe extends ItemRenderBase in 1.7.10.  Apply that
+        // exact context pose before its inventory/common transforms below.
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(6.0F, 6.0F, 6.0F);

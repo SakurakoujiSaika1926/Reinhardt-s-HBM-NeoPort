@@ -1,0 +1,23 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.clusterpellets",
+  "duration": 50,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:pellet_cluster"
+  }
+}

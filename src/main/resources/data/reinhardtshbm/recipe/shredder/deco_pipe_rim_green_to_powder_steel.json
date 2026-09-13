@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "item": "reinhardtshbm:deco_pipe_rim_green"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_steel"
+  }
+}

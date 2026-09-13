@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.recipe.anvil;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -106,12 +107,17 @@ public final class AnvilConstructionRecipe {
         }
 
         consumeInputs(player.getInventory().items);
+        boolean firedAchievement = false;
         for (AnvilOutput output : this.outputs) {
             if (output.chance() < 1.0F && player.getRandom().nextFloat() > output.chance()) {
                 continue;
             }
 
             ItemStack stack = output.stack().copy();
+            if (!firedAchievement) {
+                HbmAdvancements.awardForCraftedStack(player, stack);
+                firedAchievement = true;
+            }
             if (!player.getInventory().add(stack)) {
                 player.drop(stack, false);
             }

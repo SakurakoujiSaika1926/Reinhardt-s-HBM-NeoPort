@@ -3,6 +3,7 @@
   "values": [
     "reinhardtshbm:ore_tungsten",
     "reinhardtshbm:ore_deepslate_tungsten",
-    "reinhardtshbm:cluster_depth_tungsten"
+    "reinhardtshbm:cluster_depth_tungsten",
+    "reinhardtshbm:ore_nether_tungsten"
   ]
 }

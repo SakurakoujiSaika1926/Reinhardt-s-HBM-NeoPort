@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -39,8 +38,7 @@ public class MonoxideGasBlock extends HbmGasBlock {
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         super.entityInside(state, level, pos, entity);
-        if (level.isClientSide || !(entity instanceof LivingEntity living)
-                || living instanceof Player player && (player.isCreative() || player.isSpectator())) {
+        if (level.isClientSide || !(entity instanceof LivingEntity living)) {
             return;
         }
         if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.GAS_MONOXIDE, 1)) {

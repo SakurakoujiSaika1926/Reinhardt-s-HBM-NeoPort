@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:powder_cerium"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_cerium_tiny",
+    "count": 9
+  }
+}

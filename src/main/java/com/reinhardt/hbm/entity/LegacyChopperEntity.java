@@ -2,6 +2,7 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -12,6 +13,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
@@ -50,10 +52,9 @@ public final class LegacyChopperEntity extends Monster {
             BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
     private Vec3 waypoint = Vec3.ZERO;
     private int courseChangeCooldown;
+    private int prevAttackCounter;
     private int attackCounter;
     private int mineDropCounter;
-    private int explosionCooldown;
-    private int damageCooldown;
     private java.util.UUID targetUuid;
     private boolean crashResolved;
 
@@ -88,14 +89,29 @@ public final class LegacyChopperEntity extends Monster {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (isCrashing() || damageCooldown > 0 || getHealth() <= 0.1F) {
+        if (isCrashing() || getHealth() <= 0.1F) {
             return false;
         }
-        // EntityHunterChopper only accepts full damage from explosions and the
-        // HBM heavy damage families.  Modern sources have no equivalent family
-        // discriminator, so all direct non-explosion impacts keep the old 10% rule.
-        if (!source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)) {
+        // EntityHunterChopper only accepted full damage from explosions,
+        // shrapnel, nuclear blasts, black holes, tau and subatomic rounds.
+        // The last two were string-identified legacy sources; retain those
+        // exact identifiers for callers that still construct them.
+        String damageId = source.getMsgId();
+        boolean fullDamage = source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)
+                || source.is(HbmDamageTypes.SHRAPNEL)
+                || source.is(HbmDamageTypes.NUCLEAR_BLAST)
+                || source.is(HbmDamageTypes.BLACK_HOLE)
+                || "tau".equals(damageId)
+                || "tauBlast".equals(damageId)
+                || damageId.startsWith("subAtomic");
+        if (!fullDamage) {
             amount *= 0.1F;
+        }
+        // The old EntityDamageSource guard rejected every entity-caused
+        // source (including indirect projectiles), not just direct melee.
+        // DamageSource#getEntity is the exact modern equivalent.
+        if (isInvulnerable() || source.getEntity() != null) {
+            return false;
         }
         if (amount >= getHealth()) {
             beginCrash();
@@ -104,7 +120,6 @@ public final class LegacyChopperEntity extends Monster {
         }
         boolean hurt = super.hurt(source, amount);
         if (hurt) {
-            damageCooldown = 1;
             if (random.nextInt(15) == 0 && !level().isClientSide) {
                 LegacyProjectileUtil.standardExplosion(this, position(), 5.0F, 1.0F, true, true);
                 dropDamageItem();
@@ -123,7 +138,6 @@ public final class LegacyChopperEntity extends Monster {
             discard();
             return;
         }
-        if (damageCooldown > 0) damageCooldown--;
         if (isCrashing()) {
             tickCrash();
         } else {
@@ -134,8 +148,11 @@ public final class LegacyChopperEntity extends Monster {
 
     private void tickCombat() {
         setNoGravity(true);
+        level().playSound(null, blockPosition(), HbmSoundEvents.MISC_NULL_CHOPPER.get(),
+                SoundSource.PLAYERS, 10.0F, 0.5F);
+        prevAttackCounter = attackCounter;
         Entity target = target();
-        if (target == null || !target.isAlive()) {
+        if (target == null || !target.isAlive() || attackCounter <= 0) {
             target = findTarget();
             targetUuid = target == null ? null : target.getUUID();
         }
@@ -185,9 +202,12 @@ public final class LegacyChopperEntity extends Monster {
         setYRot(getYRot() + 20.0F);
         yBodyRot = getYRot();
         yHeadRot = getYRot();
-        if (explosionCooldown-- <= 0 && random.nextInt(20) == 0) {
-            explosionCooldown = 1;
+        if (random.nextInt(20) == 0) {
             LegacyProjectileUtil.standardExplosion(this, position(), 5.0F, 1.0F, true, true);
+        }
+        if (tickCount % 2 == 0) {
+            level().playSound(null, blockPosition(), HbmSoundEvents.MISC_NULL_CRASHING.get(),
+                    SoundSource.PLAYERS, 10.0F, 0.5F);
         }
         if (onGround() || horizontalCollision || verticalCollision) {
             if (!crashResolved) {
@@ -200,9 +220,20 @@ public final class LegacyChopperEntity extends Monster {
     }
 
     private Entity findTarget() {
-        return level().getEntities(this, getBoundingBox().inflate(250.0D), entity ->
-                        entity instanceof Player player && !player.isCreative() && !player.isSpectator() && !player.isInvisible())
-                .stream().min(Comparator.comparingDouble(this::distanceToSqr)).orElse(null);
+        return level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(250.0D), entity -> {
+                    if (!entity.isAlive() || entity instanceof LegacyChopperEntity) {
+                        return false;
+                    }
+                    // The 1.7.10 predicate checked the player's
+                    // disableDamage flag, so spectators are invalid targets
+                    // just like creative players.
+                    if (entity instanceof Player player && (player.isCreative() || player.isSpectator())) {
+                        return false;
+                    }
+                    double radius = entity.isShiftKeyDown() ? 200.0D : 250.0D;
+                    return distanceToSqr(entity) < radius * radius;
+                }).stream()
+                .min(Comparator.comparingDouble(this::distanceToSqr)).orElse(null);
     }
 
     private Entity target() {
@@ -230,16 +261,33 @@ public final class LegacyChopperEntity extends Monster {
     private void updateRotation(Entity target) {
         Vec3 direction = target == null ? getDeltaMovement() : position().subtract(target.position());
         double horizontal = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
-        if (horizontal < 1.0E-6D) return;
+        if (horizontal < 1.0E-6D) {
+            return;
+        }
         float wantedYaw = (float) Math.toDegrees(Math.atan2(direction.x, direction.z));
-        setYRot(Mth.approachDegrees(getYRot(), wantedYaw, 10.0F));
-        setXRot((float) Math.toDegrees(Math.atan2(getDeltaMovement().y, horizontal)));
+        float yawDelta = getYRot() - wantedYaw;
+        if (yawDelta >= 10.0F) {
+            yRotO = getYRot() - 10.0F;
+            setYRot(getYRot() - 10.0F);
+        }
+        if (yawDelta <= -10.0F) {
+            yRotO = getYRot() + 10.0F;
+            setYRot(getYRot() + 10.0F);
+        }
+        setXRot((float) Math.toDegrees(Math.atan2(getDeltaMovement().y,
+                Math.sqrt(getDeltaMovement().x * getDeltaMovement().x
+                        + getDeltaMovement().z * getDeltaMovement().z))));
+        float pitch = getXRot();
+        if (pitch <= 330.0F && pitch >= 30.0F) {
+            setXRot(pitch < 180.0F ? 30.0F : 330.0F);
+        }
         yBodyRot = getYRot();
         yHeadRot = getYRot();
     }
 
     private void fireBullet(Entity target) {
-        Vec3 origin = getEyePosition().add(getLookAngle().scale(2.0D)).add(0.0D, -0.5D, 0.0D);
+        Vec3 look = getLookAngle();
+        Vec3 origin = position().add(look.x * 2.0D, -0.5D, look.z * 2.0D);
         Vec3 direction = target.getBoundingBox().getCenter().subtract(origin)
                 .add(random.nextInt(3) - 1, random.nextInt(3) - 1, random.nextInt(3) - 1).normalize();
         level().addFreshEntity(new LegacyBossProjectileEntity(level(), this, origin, direction,
@@ -260,13 +308,11 @@ public final class LegacyChopperEntity extends Monster {
     }
 
     private void spawnMine(double x, double z) {
-        LegacyChopperMineEntity mine = HbmEntityTypes.LEGACY_CHOPPER_MINE.get().create(level());
-        if (mine != null) {
-            mine.setOwner(this);
-            mine.setPos(getX(), getY() - 0.5D, getZ());
-            mine.setDeltaMovement(x, -0.3D, z);
-            level().addFreshEntity(mine);
-        }
+        LegacyChopperMineEntity mine = new LegacyChopperMineEntity(HbmEntityTypes.LEGACY_CHOPPER_MINE.get(), level());
+        mine.setOwner(this);
+        mine.setPos(getX(), getY() - 0.5D, getZ());
+        mine.setDeltaMovement(x, -0.3D, z);
+        level().addFreshEntity(mine);
     }
 
     private void beginCrash() {
@@ -330,5 +376,25 @@ public final class LegacyChopperEntity extends Monster {
     @Override
     public Component getDisplayName() {
         return Component.translatable("entity.reinhardtshbm.entity_hunter_chopper");
+    }
+
+    @Override
+    protected float getSoundVolume() {
+        return 10.0F;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return null;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return null;
+    }
+
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        return distance < 25000.0D;
     }
 }

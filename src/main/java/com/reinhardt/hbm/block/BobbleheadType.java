@@ -61,6 +61,13 @@ public enum BobbleheadType {
     public String scrapVariant() { return scrapVariant; }
 
     public ResourceLocation texture() {
+        // RenderBobble's NONE/default branch used ResourceManager.universal,
+        // which lives beside the other model textures rather than in the
+        // trinkets directory. Keep that legacy path exact for an untyped
+        // stack; every actual bobble subtype remains under trinkets/.
+        if (this == NONE) {
+            return ReinhardtsHBM.id("textures/models/thegadget3_.png");
+        }
         return ReinhardtsHBM.id("textures/models/trinkets/" + texture + ".png");
     }
 

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "W W",
+    "P P"
+  ],
+  "key": {
+    "W": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 7900,
+          "material": "gold"
+        }
+      }
+    },
+    "P": {
+      "tag": "c:plates/bismuth"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bismuth_boots"
+  }
+}

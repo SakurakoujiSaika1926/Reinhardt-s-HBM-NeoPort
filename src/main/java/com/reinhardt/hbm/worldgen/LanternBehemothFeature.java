@@ -3,12 +3,14 @@ package com.reinhardt.hbm.worldgen;
 import com.reinhardt.hbm.blockentity.DecoLootBlockEntity;
 import com.reinhardt.hbm.blockentity.LanternBehemothBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.item.LegacyBookLoreItem;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -26,6 +28,10 @@ public final class LanternBehemothFeature extends Feature<NoneFeatureConfigurati
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
+        if (level.getLevel().dimension() != Level.OVERWORLD
+                || !HbmConfig.legacyDungeonGenerationEnabled(level.getLevel().getServer().getWorldData().worldGenOptions().generateStructures())) {
+            return false;
+        }
         BlockPos corePos = context.origin();
         BlockPos supportPos = corePos.below();
         if (!level.getBlockState(supportPos).isFaceSturdy(level, supportPos, Direction.UP)) {

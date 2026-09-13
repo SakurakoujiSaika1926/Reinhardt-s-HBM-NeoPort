@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ICI",
+    "CSC",
+    "ICI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:plates/polymer"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_chip"
+    },
+    "S": {
+      "tag": "c:dusts/strontium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:circuit_atomic_clock"
+  }
+}

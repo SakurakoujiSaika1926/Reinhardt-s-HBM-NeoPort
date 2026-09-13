@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.pollution.HbmArmorProtection;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmItems;
@@ -19,6 +21,10 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.animal.MushroomCow;
+import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
@@ -69,7 +75,7 @@ public class RbmkDebrisEntity extends Entity {
                 player.inventoryMenu.broadcastChanges();
             }
         }
-        return InteractionResult.sidedSuccess(level().isClientSide);
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -83,7 +89,8 @@ public class RbmkDebrisEntity extends Entity {
             if (type == DebrisType.FUEL || type == DebrisType.GRAPHITE) {
                 irradiateNearby(type == DebrisType.FUEL ? 9.0F : 4.0F);
             }
-            if (this.tickCount > lifetime() + getId() % 50) {
+            if (!HbmConfig.RBMK_PERMANENT_SCRAP.get()
+                    && this.tickCount > lifetime() + getId() % 50) {
                 discard();
                 return;
             }
@@ -138,11 +145,30 @@ public class RbmkDebrisEntity extends Entity {
         for (LivingEntity entity : level().getEntitiesOfClass(LivingEntity.class, area)) {
             HbmLivingRadiation data = HbmLivingRadiation.get(entity);
             data.addEnvironmentRadiation(dose);
-            if (!(entity instanceof Player player && (player.isCreative() || player.isSpectator()))) {
-                data.addRadiation(dose);
+            if (!isLegacyRadiationImmune(entity)
+                    && !(entity instanceof Player player
+                    && (player.isCreative() || player.isSpectator() || player.tickCount < 200))) {
+                data.addRadiation((float) (dose * HbmArmorProtection.radiationMultiplier(entity)));
             }
             HbmLivingRadiation.set(entity, data);
         }
+    }
+
+    private static boolean isLegacyRadiationImmune(LivingEntity target) {
+        return target instanceof LegacyNuclearCreeperEntity
+                || target instanceof LegacyTaintedCreeperEntity
+                || target instanceof LegacyCyberCrabEntity
+                || target instanceof LegacyMaskManEntity
+                || target instanceof LegacyRadBeastEntity
+                || target instanceof LegacyUfoEntity
+                || target instanceof LegacyChopperEntity
+                || target instanceof LegacyWormHeadEntity
+                || target instanceof LegacyWormBodyEntity
+                || target instanceof MushroomCow
+                || target instanceof Zombie
+                || target instanceof Skeleton
+                || target instanceof LegacyQuackosEntity
+                || target instanceof Ocelot;
     }
 
     private int lifetime() {
@@ -175,13 +201,18 @@ public class RbmkDebrisEntity extends Entity {
     }
 
     @Override
+    public boolean canBeCollidedWith() {
+        return isAlive();
+    }
+
+    @Override
     public float getPickRadius() {
         return 0.35F;
     }
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return true;
+        return distance < 128.0D * 128.0D;
     }
 
     @Override

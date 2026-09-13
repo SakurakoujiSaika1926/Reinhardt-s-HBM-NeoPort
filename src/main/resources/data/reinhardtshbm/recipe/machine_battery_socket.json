@@ -7,7 +7,7 @@
     "IRI"
   ],
   "key": {
-    "I": { "item": "reinhardtshbm:plate_polymer" },
+    "I": { "tag": "c:plates/polymer" },
     "R": { "item": "reinhardtshbm:coil_copper" }
   },
   "result": {

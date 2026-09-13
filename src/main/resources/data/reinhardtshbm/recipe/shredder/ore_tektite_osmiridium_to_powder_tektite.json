@@ -1,0 +1,9 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "item": "reinhardtshbm:ore_tektite_osmiridium"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_tektite"
+  }
+}

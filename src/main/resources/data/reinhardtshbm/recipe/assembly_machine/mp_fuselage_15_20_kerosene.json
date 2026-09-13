@@ -1,0 +1,36 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpf1520kero",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_20"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/aluminium"
+      },
+      "count": 48
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_fuselage_15_20_kerosene",
+    "count": 1
+  }
+}

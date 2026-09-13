@@ -80,12 +80,12 @@ import com.reinhardt.hbm.menu.SilexMenu;
 import com.reinhardt.hbm.menu.VacuumDistillMenu;
 import com.reinhardt.hbm.menu.WasteDrumMenu;
 import com.reinhardt.hbm.menu.WatzMenu;
-import com.reinhardt.hbm.menu.WeaponTableMenu;
 import com.reinhardt.hbm.menu.SolderingStationMenu;
 import com.reinhardt.hbm.menu.SirenMenu;
 import com.reinhardt.hbm.menu.SmallBoilerMenu;
 import com.reinhardt.hbm.menu.SoyuzCapsuleMenu;
 import com.reinhardt.hbm.menu.SoyuzLauncherMenu;
+import com.reinhardt.hbm.menu.LauncherMenu;
 import com.reinhardt.hbm.menu.SteamTurbineMenu;
 import com.reinhardt.hbm.menu.SteelFurnaceMenu;
 import com.reinhardt.hbm.menu.StorageCrateMenu;
@@ -163,9 +163,6 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ArmorTableMenu>> ARMOR_TABLE =
             MENUS.register("machine_armor_table", () -> IMenuTypeExtension.create(ArmorTableMenu::new));
-
-    public static final DeferredHolder<MenuType<?>, MenuType<WeaponTableMenu>> WEAPON_TABLE =
-            MENUS.register("machine_weapon_table", () -> IMenuTypeExtension.create(WeaponTableMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<MachineKeyForgeMenu>> MACHINE_KEYFORGE =
             MENUS.register("machine_keyforge", () -> IMenuTypeExtension.create(MachineKeyForgeMenu::new));
@@ -277,6 +274,9 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<SoyuzLauncherMenu>> SOYUZ_LAUNCHER =
             MENUS.register("soyuz_launcher", () -> IMenuTypeExtension.create(SoyuzLauncherMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<LauncherMenu>> LAUNCHER =
+            MENUS.register("launcher", () -> IMenuTypeExtension.create(LauncherMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SoyuzCapsuleMenu>> SOYUZ_CAPSULE =
             MENUS.register("soyuz_capsule", () -> IMenuTypeExtension.create(SoyuzCapsuleMenu::new));

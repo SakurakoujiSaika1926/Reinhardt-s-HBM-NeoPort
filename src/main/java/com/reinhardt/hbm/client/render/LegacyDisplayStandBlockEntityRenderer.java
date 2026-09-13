@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import com.reinhardt.hbm.block.LegacyDisplayStandBlock;
 import com.reinhardt.hbm.blockentity.LegacyDisplayStandBlockEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -66,7 +67,10 @@ public final class LegacyDisplayStandBlockEntityRenderer
         if (!threeDimensional && minecraft.player != null) {
             poseStack.mulPose(Axis.YN.rotationDegrees(minecraft.player.getYRot() + 180.0F));
         }
-        minecraft.getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, packedLight, packedOverlay,
+        int itemLight = stand.getLevel() == null
+                ? packedLight
+                : LevelRenderer.getLightColor(stand.getLevel(), stand.getBlockPos().above());
+        minecraft.getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, itemLight, packedOverlay,
                 poseStack, bufferSource, stand.getLevel(), 0);
         poseStack.popPose();
     }

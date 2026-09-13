@@ -1,0 +1,11 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/launcher_port/micro_erector.obj",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/launchpad/erector_micro"
+  }
+}

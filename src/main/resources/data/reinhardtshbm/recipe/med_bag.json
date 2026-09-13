@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["LLL","SIS","LLL"],"key":{"L":{"item":"minecraft:leather"},"S":{"item":"reinhardtshbm:syringe_metal_stimpak"},"I":{"item":"reinhardtshbm:syringe_antidote"}},"result":{"id":"reinhardtshbm:med_bag"}}

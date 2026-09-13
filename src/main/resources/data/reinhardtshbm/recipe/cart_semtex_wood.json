@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["S","C"],"key":{"S":{"item":"reinhardtshbm:semtex"},"C":{"type":"neoforge:components","items":["reinhardtshbm:cart"],"components":{"minecraft:custom_data":{"cartBase":1,"cartType":0}}}},"result":{"id":"reinhardtshbm:cart","components":{"minecraft:custom_data":{"cartBase":1,"cartType":4}}}}

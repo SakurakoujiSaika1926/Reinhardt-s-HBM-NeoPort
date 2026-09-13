@@ -17,7 +17,6 @@ public final class LegacyCyberCrabEntityRenderer
 
     public LegacyCyberCrabEntityRenderer(EntityRendererProvider.Context context) {
         super(context, new LegacyCyberCrabModel(context.bakeLayer(LegacyCyberCrabModel.LAYER)), 1.0F);
-        shadowRadius = 0.0F;
     }
 
     @Override

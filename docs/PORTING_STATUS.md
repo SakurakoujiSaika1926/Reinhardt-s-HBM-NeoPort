@@ -4,7 +4,7 @@ This project is the Minecraft 1.21.1 NeoForge staging port for HBM 1.12.2.
 
 ## Current Scope
 
-- NeoForge 21.1.248 Gradle workspace with Java 21.
+- NeoForge 21.1.250 Gradle workspace with Java 21.
 - Main mod id: `reinhardtshbm`.
 - First functional hand-written registrations:
   - 29 material/tool items.

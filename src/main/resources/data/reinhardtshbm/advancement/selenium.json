@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:burner_press",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:ingot_starmetal"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.selenium.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.selenium.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

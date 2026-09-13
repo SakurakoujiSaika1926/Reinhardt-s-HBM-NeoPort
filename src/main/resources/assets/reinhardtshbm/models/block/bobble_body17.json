@@ -4,8 +4,9 @@
     "mtl_override":  "reinhardtshbm:models/obj/trinkets/bobble.mtl",
     "automatic_culling":  false,
     "shade_quads":  true,
-    "flip_v":  false,
+    "flip_v": true,
     "visibility":  {
+                       "Cube":  false,
                        "Body":  false,
                        "Body17":  true,
                        "Drillgon":  false,
@@ -30,7 +31,5 @@
                        "Fluoro":  false,
                        "Glow":  false
                    },
-    "textures":  {
-                     "particle":  "reinhardtshbm:models/thegadget3_"
-                 }
+    "textures": { "default": "reinhardtshbm:models/thegadget3_", "particle": "reinhardtshbm:models/thegadget3_" }
 }

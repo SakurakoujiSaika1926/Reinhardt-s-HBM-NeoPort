@@ -92,10 +92,16 @@ public final class LegacyNukeBlockEntity extends BlockEntity implements MachineI
     public boolean isReady() {
         LegacyNukeDefinition def = definition();
         if (def.isCustom()) return hasCustomPayload();
-        for (int slot = 0; slot < def.slotCount(); slot++) {
+        int requiredSlots = def == LegacyNukeDefinition.TSAR ? 5 : def.slotCount();
+        for (int slot = 0; slot < requiredSlots; slot++) {
             if (!slotHasExpectedItem(slot)) return false;
         }
         return true;
+    }
+
+    public boolean isFilled() {
+        LegacyNukeDefinition def = definition();
+        return def == LegacyNukeDefinition.TSAR ? isReady() && slotHasExpectedItem(5) : isReady();
     }
 
     public void detonate() {

@@ -1,0 +1,69 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.lander",
+  "duration": 2400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 1300,
+            "material": "aluminium"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:rocket_fuel"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thruster_small"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:part_generic"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "lde"
+          },
+          "minecraft:custom_model_data": 3
+        }
+      },
+      "count": 12
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_soyuz_lander",
+    "count": 1
+  },
+  "blueprint_pools": [
+    "discover.soyuz"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadthermonuke",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2200,
+            "material": "titanium"
+          }
+        }
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_pu239"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ball_tatb"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_mirv",
+    "count": 1
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ],
+  "input_fluids": [
+    {
+      "fluid": "deuterium",
+      "amount": 4000
+    }
+  ]
+}

@@ -59,8 +59,12 @@ public final class LegacyRedstoneBombBlock extends Block {
      * power endpoint owns its stored energy, so applyPower with a saturated output
      * is the direct equivalent without touching unrelated block entities.
      */
-    private static void dischargeEmp(ServerLevel level, BlockPos origin) {
-        int radius = 50;
+    public static void dischargeEmp(ServerLevel level, BlockPos origin) {
+        dischargeEmp(level, origin, 50);
+    }
+
+    /** Radius-specific legacy EMP pulse used by the Tier-2 missile. */
+    public static void dischargeEmp(ServerLevel level, BlockPos origin, int radius) {
         int radiusSquaredHalf = radius * radius / 2;
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int x = -radius; x < radius; x++) {

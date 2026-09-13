@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:burner_press",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:machine_blast_furnace"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.blast_furnace.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.blast_furnace.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

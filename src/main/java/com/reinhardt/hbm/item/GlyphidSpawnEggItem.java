@@ -1,9 +1,9 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.entity.GlyphidEntity;
+import com.reinhardt.hbm.entity.LegacyGlyphidVariantEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -12,14 +12,16 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.event.EventHooks;
 
 /**
  * A fixed-variant Glyphid spawn egg.  The old 1.7.10 mob mappings exposed
@@ -60,61 +62,67 @@ public final class GlyphidSpawnEggItem extends Item {
                 context.getClickedPos(), context.getClickedFace(), context.getItemInHand())) {
             return InteractionResult.FAIL;
         }
-        BlockPos spawnPos = context.getClickedPos().relative(context.getClickedFace());
-        return spawn(context.getLevel(), player, context.getItemInHand(), spawnPos);
+        BlockPos clicked = context.getClickedPos();
+        BlockPos spawnPos = clicked.relative(context.getClickedFace());
+        double verticalOffset = context.getClickedFace().getAxis().isVertical()
+                && context.getClickedFace().getStepY() > 0
+                && context.getLevel().getBlockState(clicked).getBlock() instanceof SnowLayerBlock ? 0.5D : 0.0D;
+        return spawn(context.getLevel(), player, context.getItemInHand(), spawnPos, verticalOffset);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        HitResult hit = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
+        HitResult hit = getPlayerPOVHitResult(level, player, ClipContext.Fluid.ANY);
         if (!(hit instanceof BlockHitResult blockHit) || hit.getType() != HitResult.Type.BLOCK) {
             return InteractionResultHolder.pass(stack);
         }
-        if (!player.mayUseItemAt(blockHit.getBlockPos(), blockHit.getDirection(), stack)) {
-            return InteractionResultHolder.fail(stack);
+        if (!(level.getBlockState(blockHit.getBlockPos()).getBlock() instanceof LiquidBlock)
+                || !level.mayInteract(player, blockHit.getBlockPos())
+                || !player.mayUseItemAt(blockHit.getBlockPos(), blockHit.getDirection(), stack)) {
+            return InteractionResultHolder.pass(stack);
         }
-        BlockPos spawnPos = blockHit.getBlockPos().relative(blockHit.getDirection());
-        InteractionResult result = spawn(level, player, stack, spawnPos);
+        InteractionResult result = spawn(level, player, stack, blockHit.getBlockPos(), 0.0D);
         return new InteractionResultHolder<>(result, stack);
     }
 
-    private InteractionResult spawn(Level level, Player player, ItemStack stack, BlockPos pos) {
+    private InteractionResult spawn(Level level, Player player, ItemStack stack, BlockPos pos, double verticalOffset) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
         if (!(level instanceof ServerLevel serverLevel)) {
             return InteractionResult.FAIL;
         }
-        EntityType<? extends GlyphidEntity> entityType = switch (variant) {
-            case BRAWLER -> HbmEntityTypes.GLYPHID_BRAWLER.get();
-            case BEHEMOTH -> HbmEntityTypes.GLYPHID_BEHEMOTH.get();
-            case BRENDA -> HbmEntityTypes.GLYPHID_BRENDA.get();
-            case BOMBARDIER -> HbmEntityTypes.GLYPHID_BOMBARDIER.get();
-            case BLASTER -> HbmEntityTypes.GLYPHID_BLASTER.get();
-            case SCOUT -> HbmEntityTypes.GLYPHID_SCOUT.get();
-            case NUCLEAR -> HbmEntityTypes.GLYPHID_NUCLEAR.get();
-            case DIGGER -> HbmEntityTypes.GLYPHID_DIGGER.get();
-            default -> HbmEntityTypes.GLYPHID.get();
+        GlyphidEntity glyphid = switch (variant) {
+            case BRAWLER -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_BRAWLER.get());
+            case BEHEMOTH -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_BEHEMOTH.get());
+            case BRENDA -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_BRENDA.get());
+            case BOMBARDIER -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_BOMBARDIER.get());
+            case BLASTER -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_BLASTER.get());
+            case SCOUT -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_SCOUT.get());
+            case NUCLEAR -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_NUCLEAR.get());
+            case DIGGER -> fixedVariant(serverLevel, HbmEntityTypes.GLYPHID_DIGGER.get());
+            default -> new GlyphidEntity(HbmEntityTypes.GLYPHID.get(), serverLevel);
         };
-        GlyphidEntity glyphid = entityType.create(serverLevel);
-        if (glyphid == null) {
-            return InteractionResult.FAIL;
-        }
         glyphid.setVariant(variant);
-        glyphid.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D,
+        glyphid.moveTo(pos.getX() + 0.5D, pos.getY() + verticalOffset, pos.getZ() + 0.5D,
                 Mth.wrapDegrees(level.random.nextFloat() * 360.0F), 0.0F);
-        if (!level.noCollision(glyphid, glyphid.getBoundingBox())) {
-            return InteractionResult.FAIL;
-        }
-        glyphid.finalizeSpawn(serverLevel, level.getCurrentDifficultyAt(pos), MobSpawnType.SPAWN_EGG, null);
+        glyphid.setYHeadRot(glyphid.getYRot());
+        glyphid.setYBodyRot(glyphid.getYRot());
+        EventHooks.finalizeMobSpawn(glyphid, serverLevel,
+                level.getCurrentDifficultyAt(pos), MobSpawnType.SPAWN_EGG, null);
         if (stack.has(DataComponents.CUSTOM_NAME)) {
             glyphid.setCustomName(stack.getHoverName());
         }
         level.addFreshEntity(glyphid);
-        if (player == null || !player.getAbilities().instabuild) {
+        if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    private LegacyGlyphidVariantEntity fixedVariant(ServerLevel level,
+                                                     net.minecraft.world.entity.EntityType<LegacyGlyphidVariantEntity> type) {
+        return new LegacyGlyphidVariantEntity(type, level, variant);
     }
 }

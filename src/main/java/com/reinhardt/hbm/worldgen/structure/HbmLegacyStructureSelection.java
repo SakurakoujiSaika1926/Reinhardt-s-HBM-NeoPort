@@ -50,6 +50,10 @@ final class HbmLegacyStructureSelection {
                 .toList();
     }
 
+    static boolean isKnownStructureName(String name) {
+        return name != null && listStructures().contains(name);
+    }
+
     private static List<Candidate> candidates() {
         List<Candidate> candidates = new ArrayList<>();
         add(candidates, "spire", "spire", -1, 1, 128, false, HbmConfig.HBM_STRUCTURE_SPIRE_WEIGHT, HbmLegacyStructureSelection::isVeryFlatNonInvalid);

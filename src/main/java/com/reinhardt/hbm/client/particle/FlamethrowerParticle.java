@@ -18,6 +18,7 @@ public final class FlamethrowerParticle extends TextureSheetParticle {
     private final float initialGreen;
     private final float initialBlue;
     private final float rollStep;
+    private final Mode mode;
 
     private FlamethrowerParticle(
             ClientLevel level,
@@ -28,7 +29,7 @@ public final class FlamethrowerParticle extends TextureSheetParticle {
             double ySpeed,
             double zSpeed,
             SpriteSet sprites,
-            boolean balefire
+            Mode mode
     ) {
         super(level, x, y, z);
         this.setSprite(sprites.get(this.random));
@@ -45,13 +46,16 @@ public final class FlamethrowerParticle extends TextureSheetParticle {
         }
         this.rollStep = (this.random.nextBoolean() ? 15.0F : -15.0F) * Mth.DEG_TO_RAD;
 
-        float hue = balefire
+        float hue = mode == Mode.BALEFIRE
                 ? 65.0F + this.random.nextFloat() * 35.0F
+                : mode == Mode.DIGAMMA
+                ? -this.random.nextFloat() * 15.0F
                 : 15.0F + this.random.nextFloat() * 25.0F;
         Color color = Color.getHSBColor(hue / 255.0F, 1.0F, 1.0F);
-        this.initialRed = color.getRed() / 255.0F;
-        this.initialGreen = color.getGreen() / 255.0F;
-        this.initialBlue = color.getBlue() / 255.0F;
+        this.initialRed = mode == Mode.OXY || mode == Mode.BLACK ? 1.0F : color.getRed() / 255.0F;
+        this.initialGreen = mode == Mode.OXY || mode == Mode.BLACK ? 1.0F : color.getGreen() / 255.0F;
+        this.initialBlue = mode == Mode.OXY || mode == Mode.BLACK ? 1.0F : color.getBlue() / 255.0F;
+        this.mode = mode;
         this.rCol = this.initialRed;
         this.gCol = this.initialGreen;
         this.bCol = this.initialBlue;
@@ -84,11 +88,25 @@ public final class FlamethrowerParticle extends TextureSheetParticle {
     @Override
     public void render(com.mojang.blaze3d.vertex.VertexConsumer buffer, net.minecraft.client.Camera camera, float partialTick) {
         float ageScaled = Mth.clamp((this.age + partialTick) / (float) this.lifetime, 0.0F, 1.0F);
-        float add = 0.75F - ageScaled;
-        this.rCol = this.initialRed + add;
-        this.gCol = this.initialGreen + add;
-        this.bCol = this.initialBlue + add;
-        this.alpha = (float) Math.sqrt(1.0F - ageScaled) * 0.5F;
+        if (mode == Mode.OXY) {
+            float add = ageScaled * 1.25F - 0.25F;
+            this.rCol = initialRed - add;
+            this.gCol = initialGreen - add * 0.75F;
+            this.bCol = initialBlue;
+            this.alpha = 1.0F - ageScaled;
+        } else if (mode == Mode.BLACK) {
+            float add = ageScaled * 2.0F - 0.25F;
+            this.rCol = initialRed - add * 0.75F;
+            this.gCol = initialGreen - add;
+            this.bCol = initialBlue - add * 0.5F;
+            this.alpha = 1.0F - ageScaled;
+        } else {
+            float add = 0.75F - ageScaled;
+            this.rCol = this.initialRed + add;
+            this.gCol = this.initialGreen + add;
+            this.bCol = this.initialBlue + add;
+            this.alpha = (float) Math.sqrt(1.0F - ageScaled) * 0.5F;
+        }
         super.render(buffer, camera, partialTick);
     }
 
@@ -104,11 +122,15 @@ public final class FlamethrowerParticle extends TextureSheetParticle {
 
     public static final class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
-        private final boolean balefire;
+        private final Mode mode;
 
         public Provider(SpriteSet sprites, boolean balefire) {
+            this(sprites, balefire ? Mode.BALEFIRE : Mode.FIRE);
+        }
+
+        public Provider(SpriteSet sprites, Mode mode) {
             this.sprites = sprites;
-            this.balefire = balefire;
+            this.mode = mode;
         }
 
         @Nullable
@@ -125,8 +147,16 @@ public final class FlamethrowerParticle extends TextureSheetParticle {
                     ySpeed,
                     zSpeed,
                     this.sprites,
-                    this.balefire
+                    this.mode
             );
         }
+    }
+
+    public enum Mode {
+        FIRE,
+        BALEFIRE,
+        DIGAMMA,
+        OXY,
+        BLACK
     }
 }

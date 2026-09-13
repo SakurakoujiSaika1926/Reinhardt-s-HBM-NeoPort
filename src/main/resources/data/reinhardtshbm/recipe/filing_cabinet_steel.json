@@ -4,7 +4,7 @@
   "pattern": [" P ", "PIP", " P "],
   "key": {
     "P": { "tag": "c:plates/steel" },
-    "I": { "item": "reinhardtshbm:plate_polymer" }
+    "I": { "tag": "c:plates/polymer" }
   },
   "result": {
     "id": "reinhardtshbm:filing_cabinet",

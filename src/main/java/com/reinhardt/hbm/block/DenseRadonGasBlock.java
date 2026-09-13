@@ -62,13 +62,15 @@ public class DenseRadonGasBlock extends HbmGasBlock {
             return;
         }
         HbmLivingRadiation data = HbmLivingRadiation.get(living);
-        if (!(living instanceof Player player && (player.isCreative() || player.isSpectator()))) {
+        data.addEnvironmentRadiation(0.5F);
+        if (!(living instanceof Player player && player.isCreative())) {
             data.addRadiation(0.5F);
-            data.addEnvironmentRadiation(0.5F);
-            HbmLivingHazards hazards = HbmLivingHazards.get(living);
-            hazards.addAsbestos(living, 5);
-            HbmLivingHazards.set(living, hazards);
         }
+        // ContaminationType.CREATIVE only suppressed accumulated radiation in
+        // 1.7.10; the asbestos side effect was deliberately unconditional.
+        HbmLivingHazards hazards = HbmLivingHazards.get(living);
+        hazards.addAsbestos(living, 5);
+        HbmLivingHazards.set(living, hazards);
         HbmLivingRadiation.set(living, data);
     }
 

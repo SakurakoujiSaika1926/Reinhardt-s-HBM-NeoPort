@@ -65,7 +65,12 @@ public class FluidDuctRetypeRecipe extends CustomRecipe {
     public NonNullList<Ingredient> getIngredients() {
         NonNullList<Ingredient> ingredients = NonNullList.create();
         ingredients.add(Ingredient.of(HbmItems.FLUID_IDENTIFIER_MULTI.get()));
-        ingredients.add(Ingredient.of(HbmItems.FF_FLUID_DUCT.get(), HbmBlocks.FLUID_DUCT_MK2.asItem()));
+        ingredients.add(Ingredient.of(
+                HbmItems.FLUID_DUCT.get(),
+                HbmItems.FF_FLUID_DUCT.get(),
+                HbmBlocks.FLUID_DUCT_NEO.asItem(),
+                HbmBlocks.FLUID_DUCT_MK2.asItem()
+        ));
         return ingredients;
     }
 
@@ -92,7 +97,10 @@ public class FluidDuctRetypeRecipe extends CustomRecipe {
                 if (identifiers > 1 || fluid.isNone()) {
                     return RecipeState.INVALID;
                 }
-            } else if (item == HbmItems.FF_FLUID_DUCT.get() || item == HbmBlocks.FLUID_DUCT_MK2.asItem()) {
+            } else if (item == HbmItems.FLUID_DUCT.get()
+                    || item == HbmItems.FF_FLUID_DUCT.get()
+                    || item == HbmBlocks.FLUID_DUCT_NEO.asItem()
+                    || item == HbmBlocks.FLUID_DUCT_MK2.asItem()) {
                 ducts++;
             } else {
                 return RecipeState.INVALID;

@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_schrabidium"
+                       "tag":  "c:plates/schrabidium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_schrabidium"

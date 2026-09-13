@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "KLK",
+    "P P"
+  ],
+  "key": {
+    "L": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:parts_legendary"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "tier2"
+        }
+      }
+    },
+    "K": {
+      "tag": "c:plates/kevlar"
+    },
+    "P": {
+      "tag": "c:plates/armor_ajr"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rpa_boots"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "BBB",
+    "BBB",
+    "TTT"
+  ],
+  "key": {
+    "B": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "T": {
+      "item": "reinhardtshbm:ingot_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:spikes",
+    "count": 4
+  }
+}

@@ -22,6 +22,15 @@ import javax.annotation.Nullable;
 
 public class MachineDummyBlockEntity extends BlockEntity implements WorldlyContainer {
     private static final int[] NO_SLOTS = {};
+    /**
+     * These fields are deliberately separate from the legacy absolute core
+     * coordinates below.  A Create contraption serialises each captured block
+     * entity at a different position, so the core relation has to be retained
+     * as the exact part-to-core vector as well.
+     */
+    private static final String CREATE_CORE_OFFSET_X = "HbmCoreOffsetX";
+    private static final String CREATE_CORE_OFFSET_Y = "HbmCoreOffsetY";
+    private static final String CREATE_CORE_OFFSET_Z = "HbmCoreOffsetZ";
     private BlockPos corePos = BlockPos.ZERO;
 
     public MachineDummyBlockEntity(BlockPos pos, BlockState blockState) {
@@ -30,6 +39,15 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
 
     public BlockPos getCorePos() {
         return this.corePos;
+    }
+
+    /**
+     * Returns the actual core relation of this one proxy cell.  This is not a
+     * machine-wide placement offset: it is the persisted link that replaces
+     * 1.7.10's adjacent BlockDummyable core walk after a contraption moves.
+     */
+    public BlockPos getCoreOffset() {
+        return this.corePos.subtract(this.worldPosition);
     }
 
     @Nullable
@@ -46,6 +64,11 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
             refreshAdjacentNetworks();
             PowerNetworkManager.markDirty(this.level);
         }
+    }
+
+    /** Rebinds this proxy using its exact relative core link. */
+    public void setCoreOffset(BlockPos coreOffset) {
+        setCorePos(this.worldPosition.offset(coreOffset));
     }
 
     private void refreshAdjacentNetworks() {
@@ -237,11 +260,29 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         tag.putInt("CoreX", this.corePos.getX());
         tag.putInt("CoreY", this.corePos.getY());
         tag.putInt("CoreZ", this.corePos.getZ());
+        BlockPos coreOffset = getCoreOffset();
+        tag.putInt(CREATE_CORE_OFFSET_X, coreOffset.getX());
+        tag.putInt(CREATE_CORE_OFFSET_Y, coreOffset.getY());
+        tag.putInt(CREATE_CORE_OFFSET_Z, coreOffset.getZ());
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        boolean hasRelativeCoreLink = tag.contains(CREATE_CORE_OFFSET_X)
+                && tag.contains(CREATE_CORE_OFFSET_Y)
+                && tag.contains(CREATE_CORE_OFFSET_Z);
+        if (hasRelativeCoreLink) {
+            this.corePos = this.worldPosition.offset(
+                    tag.getInt(CREATE_CORE_OFFSET_X),
+                    tag.getInt(CREATE_CORE_OFFSET_Y),
+                    tag.getInt(CREATE_CORE_OFFSET_Z)
+            ).immutable();
+            return;
+        }
+
+        // Saves made before contraption support only contain the original
+        // absolute relation.  Preserve that legacy on-disk format exactly.
         this.corePos = new BlockPos(tag.getInt("CoreX"), tag.getInt("CoreY"), tag.getInt("CoreZ"));
     }
 

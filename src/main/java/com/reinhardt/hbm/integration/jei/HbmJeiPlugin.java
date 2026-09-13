@@ -4,6 +4,7 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.client.screen.ArcWelderScreen;
 import com.reinhardt.hbm.client.screen.ArcFurnaceScreen;
 import com.reinhardt.hbm.client.screen.AmmoPressScreen;
+import com.reinhardt.hbm.client.screen.ArmorTableScreen;
 import com.reinhardt.hbm.client.screen.CompressorScreen;
 import com.reinhardt.hbm.client.screen.CyclotronScreen;
 import com.reinhardt.hbm.client.screen.ExposureChamberScreen;
@@ -60,18 +61,31 @@ import com.reinhardt.hbm.recipe.VacuumDistillRecipe;
 import com.reinhardt.hbm.recipe.anvil.AnvilConstructionRecipe;
 import com.reinhardt.hbm.recipe.anvil.AnvilSmithingRecipe;
 import com.reinhardt.hbm.recipe.anvil.HbmAnvilRecipes;
+import com.reinhardt.hbm.foundry.FoundryMaterial;
+import com.reinhardt.hbm.foundry.FoundryMaterialStack;
+import com.reinhardt.hbm.item.FluidIdentifierItem;
+import com.reinhardt.hbm.item.FoundryShapeItem;
+import com.reinhardt.hbm.item.HbmFluidContainerItem;
+import com.reinhardt.hbm.item.HbmFluidDuctItem;
+import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.item.RawIngotItem;
+import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.util.Wavelength;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.ISubtypeRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -84,6 +98,19 @@ import java.util.List;
 
 @JeiPlugin
 public class HbmJeiPlugin implements IModPlugin {
+    private static final String NO_SUBTYPE = "";
+    private static final ISubtypeInterpreter<ItemStack> COMPONENT_SUBTYPE_INTERPRETER = new ISubtypeInterpreter<>() {
+        @Override
+        public Object getSubtypeData(ItemStack stack, UidContext context) {
+            return componentSubtype(stack);
+        }
+
+        @Override
+        public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
+            return componentSubtype(stack);
+        }
+    };
+
     public static final RecipeType<RecipeHolder<ShredderRecipe>> SHREDDER =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("shredder"));
     public static final RecipeType<SawmillJeiRecipe> SAWMILL =
@@ -144,6 +171,8 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.create(ReinhardtsHBM.MOD_ID, "storage_drum", StorageDrumJeiRecipe.class);
     public static final RecipeType<BoilingJeiRecipe> BOILING =
             RecipeType.create(ReinhardtsHBM.MOD_ID, "boiling", BoilingJeiRecipe.class);
+    public static final RecipeType<LegacyFluidContainerJeiRecipe> LEGACY_FLUID_CONTAINER =
+            RecipeType.create(ReinhardtsHBM.MOD_ID, "legacy_fluid_container", LegacyFluidContainerJeiRecipe.class);
     public static final RecipeType<OreSlopperJeiRecipe> ORE_SLOPPER =
             RecipeType.create(ReinhardtsHBM.MOD_ID, "ore_slopper", OreSlopperJeiRecipe.class);
     public static final RecipeType<RecipeHolder<PurexRecipe>> PUREX =
@@ -196,6 +225,8 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.create(ReinhardtsHBM.MOD_ID, "anvil_construction", AnvilConstructionRecipe.class);
     public static final RecipeType<AnvilSmithingRecipe> ANVIL_SMITHING =
             RecipeType.create(ReinhardtsHBM.MOD_ID, "anvil_smithing", AnvilSmithingRecipe.class);
+    public static final RecipeType<ArmorTableJeiRecipe> ARMOR_TABLE =
+            RecipeType.create(ReinhardtsHBM.MOD_ID, "armor_table", ArmorTableJeiRecipe.class);
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -208,6 +239,66 @@ public class HbmJeiPlugin implements IModPlugin {
                 VanillaTypes.ITEM_STACK,
                 List.of(new ItemStack(HbmBlocks.MACHINE_LARGE_TURBINE.get()))
         );
+    }
+
+    @Override
+    public void registerItemSubtypes(ISubtypeRegistration registration) {
+        for (Item item : BuiltInRegistries.ITEM) {
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+            if (ReinhardtsHBM.MOD_ID.equals(id.getNamespace()) && needsComponentSubtype(item)) {
+                registration.registerSubtypeInterpreter(item, COMPONENT_SUBTYPE_INTERPRETER);
+            }
+        }
+    }
+
+    private static boolean needsComponentSubtype(Item item) {
+        return item instanceof FoundryShapeItem
+                || item instanceof RawIngotItem
+                || item instanceof ScrapsItem
+                || item instanceof LegacyVariantItem
+                || item instanceof HbmFluidDuctItem
+                || item instanceof FluidIdentifierItem
+                || item instanceof HbmFluidContainerItem container && container.isFilledContainer();
+    }
+
+    private static String componentSubtype(ItemStack stack) {
+        if (stack.getItem() instanceof FoundryShapeItem foundryShape) {
+            return materialSubtype(foundryShape.material(stack));
+        }
+        if (stack.getItem() instanceof RawIngotItem rawIngot) {
+            return materialSubtype(rawIngot.material(stack));
+        }
+        if (stack.getItem() instanceof ScrapsItem) {
+            FoundryMaterialStack contents = ScrapsItem.contents(stack);
+            if (contents == null) {
+                return NO_SUBTYPE;
+            }
+            return materialSubtype(contents.material()) + ":amount:" + contents.amount()
+                    + (ScrapsItem.isLiquid(stack) ? ":liquid" : ":solid");
+        }
+        if (stack.getItem() instanceof LegacyVariantItem legacyVariant) {
+            return "variant:" + legacyVariant.variant(stack).id();
+        }
+        if (stack.getItem() instanceof HbmFluidDuctItem) {
+            return "fluid:" + HbmFluidDuctItem.fluid(stack).name();
+        }
+        if (stack.getItem() instanceof FluidIdentifierItem) {
+            return "fluid_identifier:"
+                    + FluidIdentifierItem.primary(stack).name()
+                    + ":"
+                    + FluidIdentifierItem.secondary(stack).name();
+        }
+        if (stack.getItem() instanceof HbmFluidContainerItem container && container.isFilledContainer()) {
+            return "fluid:" + HbmFluidContainerItem.fluid(stack).name();
+        }
+        return NO_SUBTYPE;
+    }
+
+    private static String materialSubtype(FoundryMaterial material) {
+        if (material == null) {
+            return NO_SUBTYPE;
+        }
+        return "material:" + material.id() + ":" + material.name();
     }
 
     @Override
@@ -243,6 +334,7 @@ public class HbmJeiPlugin implements IModPlugin {
                 new FuelPoolRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new StorageDrumRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new BoilingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new LegacyFluidContainerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new OreSlopperRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new PurexRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new FusionRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
@@ -268,7 +360,8 @@ public class HbmJeiPlugin implements IModPlugin {
                 new BlastFurnaceFuelRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new FoundryCastingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new AnvilConstructionRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
-                new AnvilSmithingRecipeCategory(registration.getJeiHelpers().getGuiHelper())
+                new AnvilSmithingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new ArmorTableRecipeCategory(registration.getJeiHelpers().getGuiHelper())
         );
     }
 
@@ -277,10 +370,14 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipes(ANVIL_CONSTRUCTION, HbmAnvilRecipes.construction());
         registration.addRecipes(ANVIL_SMITHING, HbmAnvilRecipes.smithing());
         registration.addRecipes(BOILING, BoilingJeiRecipe.createAll());
+        registration.addRecipes(LEGACY_FLUID_CONTAINER, LegacyFluidContainerJeiRecipe.createAll());
         registration.addRecipes(SAWMILL, SawmillJeiRecipe.createAll());
         registration.addRecipes(ORE_SLOPPER, java.util.List.of(OreSlopperJeiRecipe.create()));
 
         Minecraft minecraft = Minecraft.getInstance();
+        registration.addRecipes(ARMOR_TABLE, ArmorTableJeiRecipe.createAll(
+                minecraft.level == null ? null : minecraft.level.registryAccess()
+        ));
         if (minecraft.level == null) {
             return;
         }
@@ -414,6 +511,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeClickArea(SteelFurnaceScreen.class, 54, 18, 68, 5, RecipeTypes.SMELTING);
         registration.addRecipeClickArea(SteelFurnaceScreen.class, 54, 36, 68, 5, RecipeTypes.SMELTING);
         registration.addRecipeClickArea(SteelFurnaceScreen.class, 54, 54, 68, 5, RecipeTypes.SMELTING);
+        registration.addRecipeClickArea(ArmorTableScreen.class, 26, 24, 150, 96, ARMOR_TABLE);
     }
 
     @Override
@@ -454,6 +552,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_STORAGE_DRUM.get(), STORAGE_DRUM);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_BOILER.get(), BOILING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_INDUSTRIAL_BOILER.get(), BOILING);
+        registration.addRecipeCatalyst(HbmItems.TANK_STEEL.get(), LEGACY_FLUID_CONTAINER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_ORE_SLOPPER.get(), ORE_SLOPPER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_PUREX.get(), PUREX);
         registration.addRecipeCatalyst(HbmBlocks.FUSION_TORUS.get(), FUSION);
@@ -481,6 +580,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.FURNACE_STEEL.get(), RecipeTypes.SMELTING);
         registration.addRecipeCatalyst(HbmBlocks.FOUNDRY_MOLD.get(), CRUCIBLE_CASTING);
         registration.addRecipeCatalyst(HbmBlocks.FOUNDRY_BASIN.get(), CRUCIBLE_CASTING);
+        registration.addRecipeCatalyst(HbmBlocks.MACHINE_ARMOR_TABLE.get(), ARMOR_TABLE);
         for (var anvil : HbmBlocks.ANVIL_BLOCKS) {
             registration.addRecipeCatalyst(anvil.get(), ANVIL_CONSTRUCTION);
             registration.addRecipeCatalyst(anvil.get(), ANVIL_SMITHING);

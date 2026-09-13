@@ -59,13 +59,25 @@ public class LeviathanTurbineBlockEntityRenderer implements BlockEntityRenderer<
 
     @Override
     public AABB getRenderBoundingBox(LeviathanTurbineBlockEntity blockEntity) {
+        /*
+         * The legacy renderer translated the OBJ by -3 blocks along its local
+         * Z axis and then rotated it with the turbine's facing.  The OBJ spans
+         * roughly 15 blocks along that axis, so the rendered geometry reaches
+         * about ten blocks away from the block entity after the transform.
+         *
+         * The old 1.7.10 tile entity used INFINITE_EXTENT_AABB.  The previous
+         * port's -6..+7 box clipped the back half of the model, which made the
+         * whole OBJ disappear as soon as the camera moved far enough for the
+         * frustum test to reject that box.  Keep this finite but cover the
+         * complete rotated model (including the animated blade/lever margin).
+         */
         return new AABB(
-                blockEntity.getBlockPos().getX() - 6.0D,
-                blockEntity.getBlockPos().getY(),
-                blockEntity.getBlockPos().getZ() - 6.0D,
-                blockEntity.getBlockPos().getX() + 7.0D,
-                blockEntity.getBlockPos().getY() + 9.0D,
-                blockEntity.getBlockPos().getZ() + 7.0D
+                blockEntity.getBlockPos().getX() - 11.0D,
+                blockEntity.getBlockPos().getY() - 2.0D,
+                blockEntity.getBlockPos().getZ() - 11.0D,
+                blockEntity.getBlockPos().getX() + 12.0D,
+                blockEntity.getBlockPos().getY() + 10.0D,
+                blockEntity.getBlockPos().getZ() + 12.0D
         );
     }
 

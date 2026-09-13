@@ -1,25 +1,37 @@
 package com.reinhardt.hbm.entity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.explosion.NukeExplosionManager;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
+import com.reinhardt.hbm.radiation.HbmLivingRadiation;
+import com.reinhardt.hbm.pollution.HbmArmorProtection;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.animal.MushroomCow;
+import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.AABB;
 
 /** Shared 1.7.10 creeper base used by the five concrete HBM creepers. */
 public class LegacyCreeperEntity extends Creeper {
@@ -42,6 +54,12 @@ public class LegacyCreeperEntity extends Creeper {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
+        // EntityCreeperNuclear.attackEntityFrom returned false after the
+        // entity had already died; preserve that legacy guard before any
+        // healing or resistance branch.
+        if (kind == Kind.NUCLEAR && !isAlive()) {
+            return false;
+        }
         if ((kind == Kind.NUCLEAR || kind == Kind.TAINTED) && (source.is(HbmDamageTypes.RADIATION)
                 || source.is(HbmDamageTypes.MUD_POISONING))) {
             if (isAlive()) {
@@ -52,7 +70,7 @@ public class LegacyCreeperEntity extends Creeper {
         if (kind == Kind.PHOSGENE && !source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL)
                 && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_ARMOR)) {
             amount -= 4.0F;
-            if (amount <= 0.0F) {
+            if (amount < 0.0F) {
                 return false;
             }
         }
@@ -61,28 +79,61 @@ public class LegacyCreeperEntity extends Creeper {
 
     @Override
     public void tick() {
-        int swellDirection = getSwellDir();
         legacyPreviousFuse = legacyFuse;
-        if (swellDirection > 0) {
-            legacyFuse = Math.min(legacyFuseTime(), legacyFuse + 1);
-        } else {
-            legacyFuse = Math.max(0, legacyFuse - 1);
+
+        // EntityCreeperNuclear's 1.7.10 onUpdate contaminated every nearby
+        // living entity before the vanilla creeper tick.  The environmental
+        // buffer was deliberately unmitigated while the accumulated dose
+        // respected radiation resistance and creative/early-login guards.
+        if (kind == Kind.NUCLEAR && !level().isClientSide) {
+            AABB area = getBoundingBox().inflate(5.0D);
+            for (LivingEntity target : level().getEntitiesOfClass(LivingEntity.class, area,
+                    entity -> entity != this && entity.isAlive())) {
+                HbmLivingRadiation data = HbmLivingRadiation.get(target);
+                data.addEnvironmentRadiation(0.25F);
+                if (!isLegacyRadiationImmune(target)
+                        && !(target instanceof Player player
+                        && (player.isCreative() || player.isSpectator() || player.tickCount < 200))) {
+                    float dose = (float) (0.25D * HbmArmorProtection.radiationMultiplier(target));
+                    data.addRadiation(dose);
+                }
+                HbmLivingRadiation.set(target, data);
+            }
+        }
+
+        // Creeper.tick() owns the vanilla 30-tick swell counter and would
+        // detonate through its private explodeCreeper() before our legacy
+        // handlers get a chance to run.  The custom aiStep below captures the
+        // direction selected by SwellGoal, advances the legacy fuse, and then
+        // resets the vanilla direction so its private counter stays at zero.
+        super.tick();
+        if (!isAlive()) {
+            return;
         }
         if (!level().isClientSide && isAlive() && legacyFuse >= legacyFuseTime()) {
             detonateLegacy();
             return;
         }
 
-        // Creeper's private vanilla fuse would otherwise detonate at 30 ticks.
-        // Keep its AI direction synced while making the legacy fuse authoritative.
-        setSwellDir(-1);
-        super.tick();
-        setSwellDir(swellDirection);
-
         if (isAlive() && (kind == Kind.NUCLEAR || kind == Kind.TAINTED)
                 && getHealth() < getMaxHealth() && tickCount % 10 == 0) {
             heal(1.0F);
         }
+    }
+
+    @Override
+    public void aiStep() {
+        // Mob.aiStep runs after Creeper's private swell check.  At this point
+        // SwellGoal has written the direction for the next tick, so consume it
+        // for the 1.7.10 fuse before clearing it to disable the vanilla fuse.
+        super.aiStep();
+        int swellDirection = getSwellDir();
+        if (swellDirection > 0) {
+            legacyFuse = Math.min(legacyFuseTime(), legacyFuse + 1);
+        } else {
+            legacyFuse = Math.max(0, legacyFuse - 1);
+        }
+        setSwellDir(-1);
     }
 
     @Override
@@ -129,11 +180,20 @@ public class LegacyCreeperEntity extends Creeper {
     }
 
     @Override
+    public void die(DamageSource source) {
+        super.die(source);
+        if (kind == Kind.NUCLEAR && level() instanceof ServerLevel level) {
+            HbmAdvancements.awardNearby(level, getBoundingBox().inflate(50.0D), "boss_creeper");
+        }
+    }
+
+    @Override
     protected void dropCustomDeathLoot(net.minecraft.server.level.ServerLevel level,
                                        DamageSource source, boolean recentlyHit) {
+        int looting = legacyLootingLevel(level);
         switch (kind) {
             case NUCLEAR -> {
-                spawnAtLocation(new ItemStack(Items.TNT));
+                dropLegacyCreeperItem(Items.TNT, looting);
                 if (random.nextInt(3) == 0) {
                     spawnLegacyItem(level, "coin_creeper");
                 }
@@ -146,16 +206,35 @@ public class LegacyCreeperEntity extends Creeper {
                             com.reinhardt.hbm.item.StandardAmmoItem.StandardAmmoType.NUKE_STANDARD));
                 }
             }
-            case TAINTED, PHOSGENE -> spawnAtLocation(new ItemStack(Items.TNT));
+            case TAINTED -> dropLegacyCreeperItem(Items.TNT, looting);
+            case PHOSGENE -> dropLegacyCreeperItem(Items.GUNPOWDER, looting);
             case VOLATILE -> {
                 spawnLegacyItem(level, "sulfur", 2 + random.nextInt(3));
                 spawnLegacyItem(level, "stick_tnt", 1 + random.nextInt(2));
             }
             case GOLD -> {
-                int amount = recentlyHit ? 5 + random.nextInt(6) : 3;
+                int amount = recentlyHit ? 5 + random.nextInt(6 + looting * 2) : 3;
                 spawnLegacyItem(level, "crystal_gold", amount);
             }
         }
+    }
+
+    private void dropLegacyCreeperItem(Item item, int looting) {
+        int count = random.nextInt(3) + random.nextInt(1 + looting);
+        if (count > 0) {
+            spawnAtLocation(new ItemStack(item, count));
+        }
+    }
+
+    private int legacyLootingLevel(ServerLevel level) {
+        LivingEntity killer = getLastHurtByMob();
+        if (killer == null || killer.getMainHandItem().isEmpty()) {
+            return 0;
+        }
+        return EnchantmentHelper.getItemEnchantmentLevel(
+                level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.LOOTING),
+                killer.getMainHandItem());
     }
 
     private void spawnLegacyItem(ServerLevel level, String id) {
@@ -171,5 +250,22 @@ public class LegacyCreeperEntity extends Creeper {
 
     protected Kind kind() {
         return kind;
+    }
+
+    private static boolean isLegacyRadiationImmune(LivingEntity target) {
+        return target instanceof LegacyNuclearCreeperEntity
+                || target instanceof LegacyTaintedCreeperEntity
+                || target instanceof LegacyCyberCrabEntity
+                || target instanceof LegacyMaskManEntity
+                || target instanceof LegacyRadBeastEntity
+                || target instanceof LegacyUfoEntity
+                || target instanceof LegacyChopperEntity
+                || target instanceof LegacyWormHeadEntity
+                || target instanceof LegacyWormBodyEntity
+                || target instanceof MushroomCow
+                || target instanceof Zombie
+                || target instanceof Skeleton
+                || target instanceof LegacyQuackosEntity
+                || target instanceof Ocelot;
     }
 }

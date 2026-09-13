@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["WWW","WIW","WWW"],"key":{"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":38,"material":"magnetized_tungsten"}}},"I":{"tag":"c:ingots/steel"}},"result":{"id":"reinhardtshbm:coil_magnetized_tungsten"}}

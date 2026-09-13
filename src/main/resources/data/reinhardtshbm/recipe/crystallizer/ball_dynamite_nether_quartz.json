@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.dynamite",
+  "ingredient": { "tag": "c:dusts/quartz" },
+  "acid": { "fluid": "nitroglycerin", "amount": 250 },
+  "duration": 20,
+  "result": { "id": "reinhardtshbm:ball_dynamite", "count": 4 }
+}

@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -44,12 +45,16 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
     protected void init() {
         super.init();
         this.titleLabelX = 61 - this.font.width(this.title) / 2;
+        String previousQuery = this.search == null ? "" : this.search.getValue();
         this.search = new EditBox(this.font, this.leftPos + 10, this.topPos + 111, 84, 12, Component.translatable("container.reinhardtshbm.anvil.search"));
         this.search.setTextColor(0xFFFFFF);
         this.search.setTextColorUneditable(0xFFFFFF);
         this.search.setBordered(false);
         this.search.setMaxLength(25);
         this.search.setResponder(this::regenerateRecipes);
+        this.search.setValue(previousQuery);
+        this.search.setFocused(true);
+        this.setInitialFocus(this.search);
     }
 
     @Override
@@ -143,6 +148,8 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.search.mouseClicked(mouseX, mouseY, button)) {
+            this.setFocused(this.search);
+            this.search.setFocused(true);
             return true;
         }
 
@@ -204,7 +211,13 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (this.search.keyPressed(keyCode, scanCode, modifiers)) {
+        if (this.search.isFocused()) {
+            if (this.search.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
+            }
+            if (keyCode == 256) {
+                return super.keyPressed(keyCode, scanCode, modifiers);
+            }
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
@@ -212,7 +225,7 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
 
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
-        if (this.search.charTyped(codePoint, modifiers)) {
+        if (this.search.isFocused() && this.search.charTyped(codePoint, modifiers)) {
             return true;
         }
         return super.charTyped(codePoint, modifiers);
@@ -220,7 +233,7 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
 
     private void regenerateRecipes(String query) {
         this.recipes.clear();
-        String normalized = query.toLowerCase(Locale.ROOT);
+        String normalized = query.toLowerCase(Locale.ROOT).strip();
         for (AnvilConstructionRecipe recipe : this.originRecipes) {
             if (normalized.isBlank() || matchesSearch(recipe, normalized)) {
                 this.recipes.add(recipe);
@@ -248,7 +261,15 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
     }
 
     private static boolean stackMatchesSearch(ItemStack stack, String query) {
-        return !stack.isEmpty() && stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query);
+        if (stack.isEmpty()) {
+            return false;
+        }
+        if (stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+            return true;
+        }
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return id.toString().toLowerCase(Locale.ROOT).contains(query)
+                || id.getPath().toLowerCase(Locale.ROOT).contains(query);
     }
 
     private int recipeAt(int mouseX, int mouseY) {

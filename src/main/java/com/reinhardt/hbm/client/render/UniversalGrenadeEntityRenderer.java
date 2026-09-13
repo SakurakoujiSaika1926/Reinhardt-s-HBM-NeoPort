@@ -21,7 +21,6 @@ public final class UniversalGrenadeEntityRenderer extends EntityRenderer<Univers
     public void render(UniversalGrenadeEntity entity, float yaw, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
-        poseStack.scale(0.5F, 0.5F, 0.5F);
         Minecraft.getInstance().getItemRenderer().renderStatic(entity.grenadeStack(), ItemDisplayContext.GROUND,
                 packedLight, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, entity.level(), entity.getId());
         poseStack.popPose();

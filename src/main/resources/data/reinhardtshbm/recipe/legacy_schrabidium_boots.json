@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "EPE",
+    "ESE"
+  ],
+  "key": {
+    "E": {
+      "tag": "c:ingots/schrabidium"
+    },
+    "S": {
+      "item": "reinhardtshbm:starmetal_boots"
+    },
+    "P": {
+      "item": "reinhardtshbm:pellet_charged"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:schrabidium_boots"
+  }
+}

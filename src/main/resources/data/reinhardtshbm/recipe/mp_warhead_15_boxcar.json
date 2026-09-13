@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SNS",
+    "CBC",
+    "SFS"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:ingots/starmetal"
+    },
+    "N": {
+      "item": "reinhardtshbm:det_nuke"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "B": {
+      "item": "reinhardtshbm:boxcar"
+    },
+    "F": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:fluid_barrel_full"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "fluid": "tritium"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mp_warhead_15_boxcar",
+    "count": 1
+  }
+}
+

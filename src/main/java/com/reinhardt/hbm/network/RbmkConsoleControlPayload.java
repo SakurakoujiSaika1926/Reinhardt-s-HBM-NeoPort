@@ -53,7 +53,12 @@ public record RbmkConsoleControlPayload(BlockPos pos, int action, int value, int
     public static void handle(RbmkConsoleControlPayload payload, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player
                 && player.level().getBlockEntity(payload.pos) instanceof RbmkComponentBlockEntity rbmk
-                && player.distanceToSqr(payload.pos.getX() + 0.5D, payload.pos.getY() + 0.5D, payload.pos.getZ() + 0.5D) <= 400.0D) {
+                // TileEntityRBMKConsole.hasPermission used a strict
+                // 20-block radius in 1.7.10.
+                // TileEntityRBMKConsole.hasPermission compared against the
+                // integer block origin, while menus use the legacy +0.5
+                // centre check separately.
+                && player.distanceToSqr(payload.pos.getX(), payload.pos.getY(), payload.pos.getZ()) < 400.0D) {
             rbmk.applyConsoleControl(payload.action, payload.value, payload.selected);
         }
     }

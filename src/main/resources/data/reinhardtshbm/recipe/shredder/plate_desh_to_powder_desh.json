@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_desh"
+                       "tag":  "c:plates/desh"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_desh"

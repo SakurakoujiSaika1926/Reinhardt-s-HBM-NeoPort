@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:chemplant",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:ingot_desh"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.desh.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.desh.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

@@ -151,7 +151,7 @@ public final class AutocrafterMenu extends AbstractContainerMenu {
         @Override public boolean mayPlace(ItemStack stack) { return this.container.canPlaceItem(this.index, stack); }
     }
 
-    private static final class OutputSlot extends Slot {
+    private static final class OutputSlot extends LegacyAchievementOutputSlot {
         private OutputSlot(Container container, int index, int x, int y) {
             super(container, index, x, y);
         }

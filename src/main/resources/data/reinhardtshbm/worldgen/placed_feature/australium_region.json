@@ -1,0 +1,6 @@
+{
+  "feature": "reinhardtshbm:australium_region",
+  "placement": [
+    { "type": "minecraft:biome" }
+  ]
+}

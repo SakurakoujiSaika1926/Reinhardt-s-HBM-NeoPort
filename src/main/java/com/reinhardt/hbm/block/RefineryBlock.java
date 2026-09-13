@@ -11,6 +11,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -95,6 +96,12 @@ public class RefineryBlock extends LargeMachineBlock implements EntityBlock {
             PowerNetworkManager.markDirty(level);
             refreshPorts(level, pos);
         }
+    }
+
+    @Override
+    public void onBlockExploded(BlockState state, Level level, BlockPos pos, Explosion explosion) {
+        RefineryBlockEntity.awardInfernoForBombletExplosion(level, pos, explosion);
+        super.onBlockExploded(state, level, pos, explosion);
     }
 
     private static void refreshPorts(Level level, BlockPos corePos) {

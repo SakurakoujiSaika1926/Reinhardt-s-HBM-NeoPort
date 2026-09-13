@@ -1,7 +1,10 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.block.ZirnoxReactorBlock;
+import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -22,6 +25,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -36,6 +41,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -531,6 +537,27 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
         level.setBlock(this.worldPosition, destroyed, 3);
         LargeMachineBlock.placeDummies(level, this.worldPosition, facing, ZirnoxReactorBlock.FOOTPRINT);
         level.explode(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 3.0D, this.worldPosition.getZ() + 0.5D, 12.0F, Level.ExplosionInteraction.BLOCK);
+        if (level instanceof ServerLevel serverLevel) {
+            AABB area = new AABB(
+                    worldPosition.getX() - 100.0D, worldPosition.getY() - 100.0D, worldPosition.getZ() - 100.0D,
+                    worldPosition.getX() + 101.0D, worldPosition.getY() + 101.0D, worldPosition.getZ() + 101.0D
+            );
+            HbmAdvancements.awardNearby(serverLevel, area, "zirnox_boom");
+        }
+        markNearbyRadiationBeastTargets(level);
+    }
+
+    private void markNearbyRadiationBeastTargets(Level level) {
+        if (!HbmConfig.ENABLE_MELTDOWN_ELEMENTALS.get() || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        // Old: AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1).expand(100, 100, 100).
+        AABB area = new AABB(worldPosition.getX() - 100.0D, worldPosition.getY() - 100.0D,
+                worldPosition.getZ() - 100.0D, worldPosition.getX() + 101.0D,
+                worldPosition.getY() + 101.0D, worldPosition.getZ() + 101.0D);
+        for (ServerPlayer player : serverLevel.getEntitiesOfClass(ServerPlayer.class, area)) {
+            LegacyMobSpawnEvents.markRadiationBeastTarget(player);
+        }
     }
 
     private void setupTanks() {

@@ -21,6 +21,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.Mth;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The 1.7.10 delivery drone's autonomous movement, 18-slot cargo hold and
@@ -37,13 +41,14 @@ public class LegacyDeliveryDroneEntity extends Entity {
             SynchedEntityData.defineId(LegacyDeliveryDroneEntity.class, EntityDataSerializers.BOOLEAN);
 
     private final NonNullList<ItemStack> cargo = NonNullList.withSize(18, ItemStack.EMPTY);
-    private double targetX = Double.NaN;
-    private double targetY = Double.NaN;
-    private double targetZ = Double.NaN;
+    // EntityDroneBase used -1 as the unset sentinel for all three target
+    // coordinates; in particular targetY == -1 deliberately disables flight.
+    private double targetX = -1.0D;
+    private double targetY = -1.0D;
+    private double targetZ = -1.0D;
     private HbmFluidDefinition fluidType = HbmFluids.none();
     private int fluidAmount;
-    private int forcedChunkX = Integer.MIN_VALUE;
-    private int forcedChunkZ = Integer.MIN_VALUE;
+    private final Set<ChunkPos> forcedChunks = new HashSet<>();
 
     public LegacyDeliveryDroneEntity(EntityType<? extends LegacyDeliveryDroneEntity> type, Level level) {
         super(type, level);
@@ -85,7 +90,7 @@ public class LegacyDeliveryDroneEntity extends Entity {
     }
 
     public boolean hasTarget() {
-        return !Double.isNaN(targetY);
+        return targetY != -1.0D;
     }
 
     public boolean isAtTarget() {
@@ -168,34 +173,104 @@ public class LegacyDeliveryDroneEntity extends Entity {
             releaseForcedChunks();
             return;
         }
-        ChunkPos current = new ChunkPos(blockPosition());
-        if (current.x == forcedChunkX && current.z == forcedChunkZ) {
-            return;
-        }
         releaseForcedChunks();
-        // The original entity ticket pins an eight-chunk corridor around its
-        // movement segment. A 1.21 ticket follows the drone while retaining
-        // the same loaded radius and is removed immediately on discard.
-        for (int x = current.x - 8; x <= current.x + 8; x++) {
-            for (int z = current.z - 8; z <= current.z + 8; z++) {
-                HbmChunkTickets.DELIVERY_DRONES.forceChunk(serverLevel, this, x, z, true, true);
-            }
+        Vec3 motion = getDeltaMovement();
+        int x1 = Mth.floor(getX());
+        int z1 = Mth.floor(getZ());
+        int x0 = Mth.floor(getX() - motion.x);
+        int z0 = Mth.floor(getZ() - motion.z);
+        for (ChunkPos chunk : chunksAlongLineSegment(x0, z0, x1, z1, 8.0D)) {
+            HbmChunkTickets.DELIVERY_DRONES.forceChunk(serverLevel, this, chunk.x, chunk.z, true, true);
+            forcedChunks.add(chunk);
         }
-        forcedChunkX = current.x;
-        forcedChunkZ = current.z;
     }
 
     private void releaseForcedChunks() {
-        if (!(level() instanceof ServerLevel serverLevel) || forcedChunkX == Integer.MIN_VALUE) {
+        if (!(level() instanceof ServerLevel serverLevel) || forcedChunks.isEmpty()) {
             return;
         }
-        for (int x = forcedChunkX - 8; x <= forcedChunkX + 8; x++) {
-            for (int z = forcedChunkZ - 8; z <= forcedChunkZ + 8; z++) {
-                HbmChunkTickets.DELIVERY_DRONES.forceChunk(serverLevel, this, x, z, false, true);
+        for (ChunkPos chunk : forcedChunks) {
+            HbmChunkTickets.DELIVERY_DRONES.forceChunk(serverLevel, this, chunk.x, chunk.z, false, true);
+        }
+        forcedChunks.clear();
+    }
+
+    /**
+     * Direct port of 1.7.10 ChunkShapeHelper.getChunksAlongLineSegment.
+     * The eight-block padding is measured against chunk-box corners, not a
+     * generic square around the drone.
+     */
+    private static Set<ChunkPos> chunksAlongLineSegment(int x0, int z0, int x1, int z1, double padding) {
+        int dx = Math.abs(x1 - x0);
+        int sx = x0 < x1 ? 1 : -1;
+        int dz = -Math.abs(z1 - z0);
+        int sz = z0 < z1 ? 1 : -1;
+        int error = dx + dz;
+        int originalX = x0;
+        int originalZ = z0;
+        Set<ChunkPos> out = new HashSet<>();
+        Set<ChunkPos> checked = new HashSet<>();
+        while (true) {
+            ChunkPos current = new ChunkPos(x0 >> 4, z0 >> 4);
+            out.add(current);
+            int[][] neighbors = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+            for (int[] neighbor : neighbors) {
+                ChunkPos candidate = new ChunkPos(current.x + neighbor[0], current.z + neighbor[1]);
+                if (!checked.add(candidate) || out.contains(candidate)) {
+                    continue;
+                }
+                if (boxLineDistance(originalX, originalZ, x1, z1,
+                        candidate.x * 16, candidate.z * 16) < padding) {
+                    out.add(candidate);
+                }
+            }
+            int e2 = 2 * error;
+            if (e2 >= dz) {
+                if (x0 == x1) {
+                    break;
+                }
+                error += dz;
+                x0 += sx;
+            }
+            if (e2 <= dx) {
+                if (z0 == z1) {
+                    break;
+                }
+                error += dx;
+                z0 += sz;
             }
         }
-        forcedChunkX = Integer.MIN_VALUE;
-        forcedChunkZ = Integer.MIN_VALUE;
+        return out;
+    }
+
+    private static double boxLineDistance(int lineX0, int lineZ0, int lineX1, int lineZ1,
+                                          int boxX, int boxZ) {
+        double min = Double.MAX_VALUE;
+        int[][] corners = {{0, 0}, {0, 16}, {16, 0}, {16, 16}};
+        for (int[] corner : corners) {
+            min = Math.min(min, pointSegmentDistance(lineX0, lineZ0, lineX1, lineZ1,
+                    boxX + corner[0], boxZ + corner[1]));
+        }
+        return min;
+    }
+
+    private static double pointSegmentDistance(int x1, int z1, int x2, int z2, int px, int pz) {
+        int dx = x2 - x1;
+        int dz = z2 - z1;
+        if (dx == 0 && dz == 0) {
+            return Math.sqrt((double) (px - x1) * (px - x1) + (double) (pz - z1) * (pz - z1));
+        }
+        double t = ((px - x1) * (double) dx + (pz - z1) * (double) dz)
+                / (double) (dx * dx + dz * dz);
+        if (t < 0.0D) {
+            return Math.sqrt((double) (px - x1) * (px - x1) + (double) (pz - z1) * (pz - z1));
+        }
+        if (t > 1.0D) {
+            return Math.sqrt((double) (px - x2) * (px - x2) + (double) (pz - z2) * (pz - z2));
+        }
+        double projX = x1 + t * dx;
+        double projZ = z1 + t * dz;
+        return Math.sqrt((px - projX) * (px - projX) + (pz - projZ) * (pz - projZ));
     }
 
     private void spawnExhaust() {
@@ -283,7 +358,22 @@ public class LegacyDeliveryDroneEntity extends Entity {
     }
 
     @Override
+    public boolean canBeCollidedWith() {
+        return isAlive();
+    }
+
+    /**
+     * EntityDroneBase#canTriggerWalking returned false in 1.7.10.
+     * This is the modern block-trigger equivalent; the drone must not
+     * activate pressure plates or other walking-trigger blocks.
+     */
+    @Override
+    public boolean isIgnoringBlockTriggers() {
+        return true;
+    }
+
+    @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 250_000.0D;
+        return distance < 2304.0D;
     }
 }

@@ -9,7 +9,18 @@
   "key": {
     "C": { "item": "reinhardtshbm:coil_copper" },
     "I": { "tag": "c:plates/polymer" },
-    "W": { "item": "reinhardtshbm:pipe_steel" },
+    "W": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
     "S": { "tag": "c:cobblestones" }
   },
   "result": {

@@ -10,6 +10,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +20,9 @@ public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
     public static final Footprint FOOTPRINT = Footprint.centered(4, 1, 4);
 
     public LaunchTableBlock(Properties properties) {
-        super(properties, FOOTPRINT, Shapes.empty(), RotationBasis.MODERN_NORTH);
+        // LaunchTable inherits BlockContainer's full core collision in 1.7.10;
+        // only its surrounding dummy segments use the segmented shapes.
+        super(properties, FOOTPRINT, Shapes.block(), RotationBasis.MODERN_NORTH);
     }
 
     @Nullable
@@ -75,12 +79,16 @@ public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide) {
+            if (level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher) launcher.dropContents(level, pos);
             removeDummies(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     private static void removeDummies(Level level, BlockPos corePos) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : FOOTPRINT.offsets()) {
                 BlockPos pos = corePos.offset(offset);
@@ -101,4 +109,24 @@ public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.ENTITYBLOCK_ANIMATED;
     }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                                                    net.minecraft.world.entity.player.Player player,
+                                                                    net.minecraft.world.phys.BlockHitResult hit) {
+        if (level.isClientSide) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (player.isShiftKeyDown()) return net.minecraft.world.InteractionResult.PASS;
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher
+                && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(launcher, buffer -> buffer.writeBlockPos(pos));
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (type != com.reinhardt.hbm.registry.HbmBlockEntities.LAUNCHER.get()) return null;
+        return (l, p, s, be) -> LauncherBlockEntity.tick(l, p, s, (LauncherBlockEntity) be);
+    }
+
 }

@@ -129,7 +129,8 @@ final class HbmLegacyJigsawGenerator {
                     component.piece.heightOffset,
                     component.piece.conformToTerrain,
                     component.box,
-                    component.piece.replacementProfile
+                    component.piece.replacementProfile,
+                    selected.spawnName()
             ));
         }
         return pieces;

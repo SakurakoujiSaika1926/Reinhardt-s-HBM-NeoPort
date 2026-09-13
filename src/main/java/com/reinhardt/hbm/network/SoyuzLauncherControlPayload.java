@@ -37,7 +37,7 @@ public record SoyuzLauncherControlPayload(BlockPos pos, int button, int mode) im
     public static void handle(SoyuzLauncherControlPayload payload, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player)
                 || !(player.containerMenu instanceof SoyuzLauncherMenu menu)
-                || !menu.blockPos().equals(payload.pos())) {
+                || !menu.blockPos().equals(payload.pos()) || !menu.stillValid(player)) {
             return;
         }
         BlockEntity blockEntity = player.level().getBlockEntity(payload.pos());
@@ -45,6 +45,7 @@ public record SoyuzLauncherControlPayload(BlockPos pos, int button, int mode) im
             return;
         }
         if (payload.button() == BUTTON_MODE) {
+            if (payload.mode() != 0 && payload.mode() != 1) return;
             launcher.setMode(payload.mode());
         } else if (payload.button() == BUTTON_START) {
             launcher.startCountdown();

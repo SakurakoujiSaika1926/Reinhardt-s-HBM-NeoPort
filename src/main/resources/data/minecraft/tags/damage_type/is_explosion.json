@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:sedna_explosive"
+    "reinhardtshbm:sedna_explosive",
+    "reinhardtshbm:nuclear_blast"
   ]
 }

@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_dineutronium"
+                       "tag":  "c:plates/dineutronium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_dineutronium"

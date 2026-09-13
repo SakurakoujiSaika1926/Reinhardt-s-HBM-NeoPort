@@ -1,0 +1,10 @@
+{
+  "neoforge:conditions": [
+    { "type": "neoforge:mod_loaded", "modid": "create" }
+  ],
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": { "tag": "c:ingots/copper" },
+  "input_b": { "tag": "c:ingots/zinc" },
+  "duration": 400,
+  "result": { "id": "create:brass_ingot", "count": 2 }
+}

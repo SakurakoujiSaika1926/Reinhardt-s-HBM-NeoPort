@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "ingredient": {
+    "tag": "c:stones/limestone"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_limestone",
+    "count": 4
+  }
+}

@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
@@ -63,19 +64,38 @@ public final class LegacyWormHeadEntity extends Monster {
                 .add(Attributes.MOVEMENT_SPEED, 0.15D);
     }
 
+    @Override
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
+        return false;
+    }
+
     public void createSegments(ServerLevel level) {
         if (segmentsCreated) return;
         segmentsCreated = true;
         spawnPoint = blockPosition();
         UUID previous = getUUID();
         for (int part = 0; part < SEGMENT_COUNT; part++) {
-            LegacyWormBodyEntity body = HbmEntityTypes.LEGACY_WORM_BODY.get().create(level);
-            if (body == null) continue;
+            LegacyWormBodyEntity body = new LegacyWormBodyEntity(HbmEntityTypes.LEGACY_WORM_BODY.get(), level);
             body.initialize(getUUID(), previous, part);
-            body.moveTo(getX(), getY(), getZ(), getYRot(), getXRot());
+            // EntityBOTPrimeHead#onSpawnWithEgg floors the head position and
+            // places every body part at those integer coordinates.
+            body.moveTo(spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), getYRot(), getXRot());
             level.addFreshEntity(body);
             previous = body.getUUID();
         }
+    }
+
+    /**
+     * Modern equivalent of EntityBOTPrimeHead#onSpawnWithEgg.  That method
+     * floors the requested ItemChopper/Mechanist Circle position before it
+     * creates the 74 body parts and records the wandering origin.
+     */
+    public void initializeLegacySpawn(ServerLevel level) {
+        int x = Mth.floor(getX());
+        int y = Mth.floor(getY());
+        int z = Mth.floor(getZ());
+        moveTo(x, y, z, getYRot(), getXRot());
+        createSegments(level);
     }
 
     @Override
@@ -202,11 +222,18 @@ public final class LegacyWormHeadEntity extends Monster {
     }
 
     private void fireLasers(LivingEntity target) {
+        double sourceY = getY() + getEyeHeight() - 0.1D;
+        double dx = target.getX() - getX();
+        double dz = target.getZ() - getZ();
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        if (horizontal < 1.0E-7D) return;
+        Vec3 origin = new Vec3(getX() + dx / horizontal, sourceY, getZ() + dz / horizontal);
+        Vec3 direction = new Vec3(dx,
+                target.getY() + target.getBbHeight() / 3.0D - sourceY,
+                dz);
         for (int index = 0; index < 5; index++) {
-            Vec3 origin = getEyePosition();
-            Vec3 direction = target.getEyePosition().subtract(origin).normalize();
             level().addFreshEntity(new LegacyBossProjectileEntity(level(), this, origin, direction,
-                    LegacyBossProjectileEntity.Type.WORM_LASER, target));
+                    LegacyBossProjectileEntity.Type.WORM_LASER, target, index * 0.05F));
         }
         level().playSound(null, blockPosition(), HbmSoundEvents.WEAPON_BALLS_LASER.get(), SoundSource.HOSTILE, 5.0F, 0.75F);
     }
@@ -225,8 +252,9 @@ public final class LegacyWormHeadEntity extends Monster {
         super.die(source);
         if (level() instanceof ServerLevel server) {
             Item coin = BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("coin_worm"));
-            if (coin != net.minecraft.world.item.Items.AIR) {
-                for (ServerPlayer player : server.getEntitiesOfClass(ServerPlayer.class, getBoundingBox().inflate(200.0D))) {
+            for (ServerPlayer player : server.getEntitiesOfClass(ServerPlayer.class, getBoundingBox().inflate(200.0D))) {
+                HbmAdvancements.award(player, "boss_worm");
+                if (coin != net.minecraft.world.item.Items.AIR) {
                     player.getInventory().add(new ItemStack(coin));
                 }
             }
@@ -270,5 +298,13 @@ public final class LegacyWormHeadEntity extends Monster {
     @Override
     public Component getDisplayName() {
         return Component.translatable("entity.reinhardtshbm.entity_bot_prime_head");
+    }
+
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        // EntityBOTPrimeBase sets renderDistanceWeight = 15.  The head
+        // registration is 3 blocks wide, giving the legacy 2,880-block
+        // render radius.
+        return distance < 8_294_400.0D;
     }
 }

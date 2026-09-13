@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_aluminium"
+                       "tag":  "c:plates/aluminium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_aluminium"

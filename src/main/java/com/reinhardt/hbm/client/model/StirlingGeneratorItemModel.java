@@ -22,7 +22,14 @@ import java.util.List;
 import java.util.Map;
 
 public final class StirlingGeneratorItemModel implements IDynamicBakedModel {
-    private static final ItemTransforms ITEM_TRANSFORMS = itemTransforms();
+    /*
+     * The custom renderer is the complete 1.7.10 RenderStirling item path.
+     * Keeping the display transforms that used to live here applies them once
+     * in ItemRenderer and then applies the same transforms again in
+     * StirlingGeneratorItemRenderer.  An identity transform is required so
+     * only that renderer's literal legacy values reach the OBJ geometry.
+     */
+    private static final ItemTransforms ITEM_TRANSFORMS = identityTransforms();
 
     private final BakedModel delegate;
 
@@ -97,21 +104,11 @@ public final class StirlingGeneratorItemModel implements IDynamicBakedModel {
                 || path.equals("machine_stirling_creative");
     }
 
-    private static ItemTransforms itemTransforms() {
-        ItemTransform gui = transform(30.0F, 225.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.625F);
-        ItemTransform thirdPerson = transform(75.0F, 45.0F, 0.0F, 0.0F, 2.5F / 16.0F, 0.0F, 0.375F);
-        ItemTransform firstPerson = transform(0.0F, 45.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.4F);
-        ItemTransform ground = transform(0.0F, 0.0F, 0.0F, 0.0F, 3.0F / 16.0F, 0.0F, 0.25F);
-        ItemTransform head = transform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        ItemTransform fixed = transform(0.0F, 180.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        return new ItemTransforms(thirdPerson, thirdPerson, firstPerson, firstPerson, head, gui, ground, fixed);
-    }
-
-    private static ItemTransform transform(float rotX, float rotY, float rotZ, float translateX, float translateY, float translateZ, float scale) {
-        return new ItemTransform(
-                new Vector3f(rotX, rotY, rotZ),
-                new Vector3f(translateX, translateY, translateZ),
-                new Vector3f(scale, scale, scale)
+    private static ItemTransforms identityTransforms() {
+        ItemTransform identity = new ItemTransform(
+                new Vector3f(), new Vector3f(), new Vector3f(1.0F, 1.0F, 1.0F)
         );
+        return new ItemTransforms(identity, identity, identity, identity,
+                identity, identity, identity, identity);
     }
 }

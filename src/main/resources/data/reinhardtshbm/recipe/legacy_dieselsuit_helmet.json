@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "W W",
+    "W W",
+    "SCS"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:orange_wool"
+    },
+    "S": {
+      "tag": "c:ingots/steel"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_analog"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:dieselsuit_helmet"
+  }
+}

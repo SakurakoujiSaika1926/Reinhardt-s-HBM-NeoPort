@@ -455,7 +455,10 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
             if (this.ignitionEnabled && fluid.hasTrait(HbmFluidTrait.FLAMMABLE)) {
                 int consumed = Math.min(burnRate, this.tank.amount());
                 this.tank.drain(fluid, consumed, false);
-                long generated = (long) fluid.flammableHeatPerMillibucket() * consumed;
+                // Keep the old multiplication/division order.  The 1.7.10
+                // source multiplies total heat first, then converts the
+                // consumed millibuckets to HE.
+                long generated = (fluid.flammableHeatEnergy() * consumed) / 1_000L;
                 generated /= isGaseous(fluid) ? 5L : 10L;
                 generated += generated * effectLevel / 3L;
                 this.power = Math.min(MAX_POWER, this.power + generated);

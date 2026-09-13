@@ -34,7 +34,19 @@ public final class DedicatedItemRendererModel implements IDynamicBakedModel {
             "machine_funnel",
             "radar_screen",
             "lamp_demon",
-            "machine_deuterium_tower"
+            "machine_deuterium_tower",
+            "refueler",
+            "machine_storage_drum",
+            "barrel_plastic",
+            "barrel_steel",
+            "barrel_tcalloy",
+            "crucible",
+            "machine_turbinegas",
+            "charger",
+            "charge_dynamite",
+            "charge_miner",
+            "charge_c4",
+            "charge_semtex"
     );
     private static final ItemTransforms IDENTITY_TRANSFORMS = identityTransforms();
 

@@ -196,7 +196,7 @@ public class GasCentrifugeMenu extends AbstractContainerMenu {
         }
     }
 
-    private static final class OutputSlot extends Slot {
+    private static final class OutputSlot extends LegacyAchievementOutputSlot {
         private OutputSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }

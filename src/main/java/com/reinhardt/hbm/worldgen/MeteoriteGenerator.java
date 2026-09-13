@@ -10,9 +10,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -105,12 +102,6 @@ public final class MeteoriteGenerator {
                         realLevel.explode(null, center.getX() + 0.5D, center.getY() + 0.5D, center.getZ() + 0.5D, 10.0F, !safe, safe
                                 ? net.minecraft.world.level.Level.ExplosionInteraction.NONE
                                 : net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
-                        Item item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(ReinhardtsHBM.MOD_ID, "gun_b92"));
-                        if (item != net.minecraft.world.item.Items.AIR) {
-                            ItemStack stack = new ItemStack(item);
-                            stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, net.minecraft.network.chat.Component.literal("\u00a79Star Blaster\u00a7r"));
-                            realLevel.addFreshEntity(new ItemEntity(realLevel, center.getX() + 0.5D, center.getY() + 0.5D, center.getZ() + 0.5D, stack));
-                        }
                     }
                     return;
                 }

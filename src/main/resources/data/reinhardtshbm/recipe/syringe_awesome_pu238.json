@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["SNS","PCP","SNS"],"key":{"S":{"tag":"c:dusts/sulfur"},"P":{"tag":"c:nuggets/pu239"},"N":{"tag":"c:nuggets/pu238"},"C":{"item":"reinhardtshbm:syringe_empty"}},"result":{"id":"reinhardtshbm:syringe_awesome"}}

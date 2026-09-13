@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:stone_resource"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "limestone"
+      },
+      "minecraft:custom_model_data": 4
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_limestone",
+    "count": 4
+  }
+}

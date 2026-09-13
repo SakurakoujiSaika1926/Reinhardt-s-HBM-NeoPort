@@ -4,5 +4,5 @@
   "mtl_override": "reinhardtshbm:models/obj/entity/cart_powder.mtl",
   "automatic_culling": false,
   "flip_v": true,
-  "textures": { "particle": "reinhardtshbm:entity/cart_powder", "texture": "reinhardtshbm:entity/cart_powder" }
+  "textures": { "particle": "reinhardtshbm:block/block_gunpowder", "texture": "reinhardtshbm:block/block_gunpowder" }
 }

@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["MBM","PSP","MBM"],"key":{"M":{"item":"reinhardtshbm:motor_desh"},"B":{"item":"reinhardtshbm:bolt_dura_steel"},"P":{"tag":"c:plates/desh"},"S":{"item":"reinhardtshbm:servo_set"}},"result":{"id":"reinhardtshbm:servo_set_desh"}}

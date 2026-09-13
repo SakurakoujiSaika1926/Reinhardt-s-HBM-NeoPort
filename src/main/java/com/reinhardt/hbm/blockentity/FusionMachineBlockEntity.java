@@ -19,6 +19,7 @@ import com.reinhardt.hbm.recipe.PlasmaForgeRecipe;
 import com.reinhardt.hbm.recipe.RbmkOutgasserRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.util.LegacyMachineGeometry;
@@ -829,7 +830,11 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private boolean canProcessBreederSolid(Level level) {
-        RecipeHolder<RbmkOutgasserRecipe> holder = outgasserRecipe(level, this.items.get(BREEDER_INPUT_SLOT));
+        ItemStack input = this.items.get(BREEDER_INPUT_SLOT);
+        if (input.is(HbmItems.METEORITE_SWORD_IRRADIATED.get())) {
+            return canMergeOutput(BREEDER_OUTPUT_SLOT, new ItemStack(HbmItems.METEORITE_SWORD_FUSED.get()));
+        }
+        RecipeHolder<RbmkOutgasserRecipe> holder = outgasserRecipe(level, input);
         if (holder == null) {
             return false;
         }
@@ -888,7 +893,16 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private void processBreederSolid(Level level) {
-        RecipeHolder<RbmkOutgasserRecipe> holder = outgasserRecipe(level, this.items.get(BREEDER_INPUT_SLOT));
+        ItemStack input = this.items.get(BREEDER_INPUT_SLOT);
+        if (input.is(HbmItems.METEORITE_SWORD_IRRADIATED.get())) {
+            input.shrink(1);
+            if (input.isEmpty()) {
+                this.items.set(BREEDER_INPUT_SLOT, ItemStack.EMPTY);
+            }
+            mergeOutput(BREEDER_OUTPUT_SLOT, new ItemStack(HbmItems.METEORITE_SWORD_FUSED.get()));
+            return;
+        }
+        RecipeHolder<RbmkOutgasserRecipe> holder = outgasserRecipe(level, input);
         if (holder == null) {
             return;
         }
@@ -1247,7 +1261,8 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     private boolean canAcceptBreederInput(ItemStack stack) {
         return !stack.isEmpty()
                 && this.level != null
-                && outgasserRecipe(this.level, stack) != null;
+                && (stack.is(HbmItems.METEORITE_SWORD_IRRADIATED.get())
+                || outgasserRecipe(this.level, stack) != null);
     }
 
     private boolean canAcceptPlasmaForgeInput(int slot, ItemStack stack) {

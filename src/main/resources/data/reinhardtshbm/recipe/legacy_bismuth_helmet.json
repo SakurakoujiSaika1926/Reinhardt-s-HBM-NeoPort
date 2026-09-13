@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "GPP",
+    "P  ",
+    "FPP"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "P": {
+      "tag": "c:plates/bismuth"
+    },
+    "F": {
+      "item": "reinhardtshbm:rag"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bismuth_helmet"
+  }
+}

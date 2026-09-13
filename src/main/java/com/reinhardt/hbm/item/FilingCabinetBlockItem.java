@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.block.FilingCabinetBlock;
+import com.reinhardt.hbm.client.render.FilingCabinetItemRenderer;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -34,6 +36,18 @@ public final class FilingCabinetBlockItem extends ObjMachineBlockItem {
     public void addCreativeVariants(net.minecraft.world.item.CreativeModeTab.Output output) {
         output.accept(stackFor(this, 0));
         output.accept(stackFor(this, 1));
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private final BlockEntityWithoutLevelRenderer renderer = new FilingCabinetItemRenderer();
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                return renderer;
+            }
+        });
     }
 
     @Override

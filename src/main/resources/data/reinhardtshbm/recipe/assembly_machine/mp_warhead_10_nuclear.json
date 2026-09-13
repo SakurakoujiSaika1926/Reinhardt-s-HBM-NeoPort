@@ -1,0 +1,51 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpw10nukesmall",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/weaponsteel"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_pu239"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:neutron_reflector"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_warhead_10_nuclear",
+    "count": 1
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

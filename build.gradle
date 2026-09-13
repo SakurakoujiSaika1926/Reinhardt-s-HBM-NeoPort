@@ -96,9 +96,82 @@ tasks.register('validateJarIntegrity') {
     }
 }
 
+// Fail the build before NeoForge reaches registry bake if a literal registry
+// id or network payload id is accidentally declared twice. Dynamic ids from
+// legacy catalogs are checked below as well; runtime bootstrap guards provide
+// the same protection when a catalog is loaded from a packaged mod jar.
+tasks.register('validateRegistrySources') {
+    group = 'verification'
+    description = 'Checks literal registry and payload ids for duplicate declarations.'
+    inputs.dir file('src/main/java')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def registrationPattern = ~/(?m)([A-Za-z0-9_$.]+)\.register\(\s*"([a-z0-9_\.\/-]+)"\s*(?:,|\))/
+        def payloadPattern = ~/new Type<>\(ReinhardtsHBM\.id\("([a-z0-9_\.\/-]+)"\)\)/
+        def seenRegistrations = [:].withDefault { [] }
+        def seenPayloads = [:].withDefault { [] }
+        def duplicateCatalogs = [:]
+
+        [
+                file('src/main/resources/legacy/reinhardtshbm/blocks.txt'),
+                file('src/main/resources/legacy/reinhardtshbm/items.txt'),
+                file('src/main/resources/legacy/reinhardtshbm/block_catalog.txt'),
+                file('src/main/resources/legacy/reinhardtshbm/item_catalog.txt')
+        ].each { catalog ->
+            if (catalog.exists()) {
+                def ids = catalog.readLines('UTF-8').collect { line ->
+                    def id = line.trim()
+                    if (id.startsWith('\uFEFF')) {
+                        id = id.substring(1)
+                    }
+                    id
+                }.findAll { id -> !id.isEmpty() && !id.startsWith('#') }
+                def duplicates = ids.groupBy { it }.findAll { id, occurrences -> occurrences.size() > 1 }.keySet()
+                if (!duplicates.isEmpty()) {
+                    duplicateCatalogs[project.relativePath(catalog)] = duplicates
+                }
+            }
+        }
+
+        fileTree('src/main/java') {
+            include '**/*.java'
+        }.files.each { source ->
+            def sourceText = source.getText('UTF-8')
+            (sourceText =~ registrationPattern).each { match ->
+                seenRegistrations["${match[1]}:${match[2]}"] << project.relativePath(source)
+            }
+            (sourceText =~ payloadPattern).each { match ->
+                seenPayloads[match[1]] << project.relativePath(source)
+            }
+        }
+
+        def duplicateRegistrations = seenRegistrations.findAll { key, locations -> locations.size() > 1 }
+        def duplicatePayloads = seenPayloads.findAll { key, locations -> locations.size() > 1 }
+        if (!duplicateRegistrations.isEmpty() || !duplicatePayloads.isEmpty() || !duplicateCatalogs.isEmpty()) {
+            def details = []
+            duplicateRegistrations.each { key, locations -> details << "registry ${key}: ${locations.join(', ')}" }
+            duplicatePayloads.each { key, locations -> details << "payload ${key}: ${locations.join(', ')}" }
+            duplicateCatalogs.each { path, ids -> details << "catalog ${path}: ${ids.join(', ')}" }
+            throw new GradleException('Duplicate registration ids detected:\n' + details.join('\n'))
+        }
+        logger.lifecycle("Registry source audit passed (${seenRegistrations.size()} literal registrations, ${seenPayloads.size()} payload ids)")
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn tasks.named('validateRegistrySources')
+}
+
 def localClientModsDir = file(findProperty('local_client_mods_dir') ?: "${buildDir}/deployed-mods")
+def compileOnlyModsDir = file(findProperty('compile_only_mods_dir') ?: localClientModsDir)
 def jeiCompileOnlyFiles = fileTree(localClientModsDir) {
     include '*jei*.jar'
+}
+if (jeiCompileOnlyFiles.isEmpty()) {
+    jeiCompileOnlyFiles = fileTree(compileOnlyModsDir) {
+        include '*jei*.jar'
+    }
 }
 if (jeiCompileOnlyFiles.isEmpty()) {
     jeiCompileOnlyFiles = fileTree('local-deps') {
@@ -110,9 +183,28 @@ def jadeCompileOnlyFiles = fileTree(localClientModsDir) {
     include '*jade*.jar'
 }
 if (jadeCompileOnlyFiles.isEmpty()) {
+    jadeCompileOnlyFiles = fileTree(compileOnlyModsDir) {
+        include '*Jade*.jar'
+        include '*jade*.jar'
+    }
+}
+if (jadeCompileOnlyFiles.isEmpty()) {
     jadeCompileOnlyFiles = fileTree('local-deps') {
         include '*Jade*.jar'
         include '*jade*.jar'
+    }
+}
+def createCompileOnlyFiles = fileTree(localClientModsDir) {
+    include '*create-*.jar'
+}
+if (createCompileOnlyFiles.isEmpty()) {
+    createCompileOnlyFiles = fileTree(compileOnlyModsDir) {
+        include '*create-*.jar'
+    }
+}
+if (createCompileOnlyFiles.isEmpty()) {
+    createCompileOnlyFiles = fileTree('local-deps') {
+        include '*create-*.jar'
     }
 }
 
@@ -123,6 +215,7 @@ repositories {
 dependencies {
     compileOnly files(jeiCompileOnlyFiles)
     compileOnly files(jadeCompileOnlyFiles)
+    compileOnly files(createCompileOnlyFiles)
 }
 
 tasks.withType(ProcessResources).configureEach {
@@ -237,6 +330,7 @@ tasks.register('validateObjModels') {
         objMachineItemIds.removeAll { itemId ->
             itemId.startsWith('battery_pack_') || itemId.startsWith('deco_crt_')
                     || itemId.startsWith('filing_cabinet_') || itemId.startsWith('crashed_bomb_')
+                    || itemId.startsWith('vending_machine_')
         }
         objMachineItemIds.each { itemId ->
             def modelFile = new File(modelRoot, "item/${itemId}.json")
@@ -688,6 +782,9 @@ tasks.register('validateObjModels') {
                 'FOUNDRY_CASTING',
                 'FOUNDRY_FLOW',
                 'FOUNDRY_SLAG',
+                // Pedestals keep their static stone base while this shared BER renders the displayed item.
+                // The skeleton holder handled by the same block entity still uses an empty blockstate.
+                'LEGACY_DISPLAY_STAND',
                 // RBMK blockstates deliberately use the dummy particle model while BER draws dynamic segmented columns and controls.
                 'RBMK_COMPONENT'
         ] as Set
@@ -860,6 +957,9 @@ tasks.register('validateLangFiles') {
         def genericMojibakePattern = ~/[ÃÂ�]/
         def chineseMojibakePattern = ~/[閻濞閸闂缁闁濠鐐鍕鏋鐎鐢娴鍙鍌闆绋閾婵瀹灏璐鑱鐫]/ 
         def replacementQuestionPattern = ~/\?{3,}/
+        def intentionalReplacementQuestionKeys = [
+                'advancements.reinhardtshbm.c20_5.description' // 1.7.10 achievement.c20_5.desc is intentionally "???".
+        ] as Set
         fileTree(langRoot) {
             include '*.json'
         }.each { langFile ->
@@ -868,8 +968,9 @@ tasks.register('validateLangFiles') {
                 problems << "${project.relativePath(langFile)} starts with a UTF-8 BOM"
             }
             def text = langFile.getText('UTF-8')
+            def parsedLang = null
             try {
-                new groovy.json.JsonSlurper().parseText(text)
+                parsedLang = new groovy.json.JsonSlurper().parseText(text)
             } catch (Exception ex) {
                 problems << "${project.relativePath(langFile)} is not valid JSON: ${ex.message}"
             }
@@ -881,9 +982,15 @@ tasks.register('validateLangFiles') {
                 if (text.contains('\\\\u')) {
                     problems << "${project.relativePath(langFile)} contains literal unicode escape text"
                 }
-                def replacementQuestions = text.find(replacementQuestionPattern)
-                if (replacementQuestions != null) {
-                    problems << "${project.relativePath(langFile)} contains replacement question marks near '${replacementQuestions}'"
+                def replacementQuestionEntry = parsedLang instanceof Map ? parsedLang.find { key, value ->
+                    value instanceof String
+                            && (value =~ replacementQuestionPattern).find()
+                            && !intentionalReplacementQuestionKeys.contains(key)
+                } : null
+                if (replacementQuestionEntry != null) {
+                    problems << "${project.relativePath(langFile)} contains replacement question marks near '${replacementQuestionEntry.value}'"
+                } else if (!(parsedLang instanceof Map) && text.find(replacementQuestionPattern) != null) {
+                    problems << "${project.relativePath(langFile)} contains replacement question marks"
                 }
                 def chineseMojibake = text.find(chineseMojibakePattern)
                 if (chineseMojibake != null) {
@@ -1110,6 +1217,1000 @@ tasks.register('validateLegacyRecipes') {
         if (!problems.isEmpty()) {
             throw new GradleException("Legacy recipe validation failed:\n - " + problems.join('\n - '))
         }
+    }
+}
+
+tasks.register('validateCreatePressingParity') {
+    group = 'verification'
+    description = 'Checks Create pressing compatibility against HBM plate-stamp press recipes.'
+
+    def hbmPressRoot = file("src/main/resources/data/${project.mod_id}/recipe/press")
+    def createPressRoot = file('src/main/resources/data/create/recipe/pressing')
+    inputs.dir hbmPressRoot
+    inputs.dir createPressRoot
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+
+        def parseJson = { File jsonFile ->
+            try {
+                return parser.parseText(jsonFile.getText('UTF-8'))
+            } catch (Exception first) {
+                return parser.parseText(jsonFile.getText('UTF-8').replaceFirst('^\uFEFF', ''))
+            }
+        }
+        def ingredientKey = { ingredient ->
+            if (!(ingredient instanceof Map)) {
+                return String.valueOf(ingredient)
+            }
+            if (ingredient.item instanceof String) {
+                return "item:${ingredient.item}"
+            }
+            if (ingredient.tag instanceof String) {
+                return "tag:${ingredient.tag}"
+            }
+            return ingredient.toString()
+        }
+        def outputKey = { stack ->
+            if (!(stack instanceof Map) || !(stack.id instanceof String)) {
+                return null
+            }
+            def count = stack.containsKey('count') ? (stack.count as Integer) : 1
+            return "${stack.id}:${count}"
+        }
+
+        if (!hbmPressRoot.isDirectory()) {
+            problems << "Missing HBM press recipe directory ${project.relativePath(hbmPressRoot)}"
+        }
+        if (!createPressRoot.isDirectory()) {
+            problems << "Missing Create pressing recipe directory ${project.relativePath(createPressRoot)}"
+        }
+
+        def hbmRoutes = [:]
+        if (hbmPressRoot.isDirectory()) {
+            hbmPressRoot.listFiles()
+                    .findAll { it.isFile() && it.name.endsWith('.json') }
+                    .each { recipeFile ->
+                        def recipe
+                        try {
+                            recipe = parseJson(recipeFile)
+                        } catch (Exception ex) {
+                            problems << "${project.relativePath(recipeFile)} is not valid JSON: ${ex.message}"
+                            return
+                        }
+                        if (recipe.stamp != 'plate') {
+                            return
+                        }
+                        if ((recipe.input_count ?: 1) as Integer != 1) {
+                            problems << "${project.relativePath(recipeFile)} uses input_count=${recipe.input_count}; Create pressing compatibility requires one ingot per operation"
+                        }
+                        def key = "${ingredientKey(recipe.ingredient)}|${outputKey(recipe.result)}"
+                        if (hbmRoutes.containsKey(key)) {
+                            problems << "Duplicate HBM plate press route ${key}: ${hbmRoutes[key].name} and ${recipeFile.name}"
+                        } else {
+                            hbmRoutes[key] = recipeFile
+                        }
+                    }
+        }
+
+        def createRoutes = [:]
+        if (createPressRoot.isDirectory()) {
+            createPressRoot.listFiles()
+                    .findAll { it.isFile() && it.name.startsWith('hbm_plate_') && it.name.endsWith('.json') }
+                    .each { recipeFile ->
+                        def recipe
+                        try {
+                            recipe = parseJson(recipeFile)
+                        } catch (Exception ex) {
+                            problems << "${project.relativePath(recipeFile)} is not valid JSON: ${ex.message}"
+                            return
+                        }
+                        if (recipe.type != 'create:pressing') {
+                            problems << "${project.relativePath(recipeFile)} has type ${recipe.type}, expected create:pressing"
+                        }
+                        def conditions = recipe['neoforge:conditions']
+                        def hasCreateCondition = conditions instanceof List
+                                && conditions.any { it instanceof Map && it.type == 'neoforge:mod_loaded' && it.modid == 'create' }
+                        if (!hasCreateCondition) {
+                            problems << "${project.relativePath(recipeFile)} must be gated by neoforge:mod_loaded(create)"
+                        }
+                        if (!(recipe.ingredients instanceof List) || recipe.ingredients.size() != 1) {
+                            problems << "${project.relativePath(recipeFile)} must contain exactly one ingot ingredient"
+                            return
+                        }
+                        if (!(recipe.results instanceof List) || recipe.results.size() != 1) {
+                            problems << "${project.relativePath(recipeFile)} must contain exactly one plate result"
+                            return
+                        }
+                        def key = "${ingredientKey(recipe.ingredients[0])}|${outputKey(recipe.results[0])}"
+                        if (createRoutes.containsKey(key)) {
+                            problems << "Duplicate Create plate pressing route ${key}: ${createRoutes[key].name} and ${recipeFile.name}"
+                        } else {
+                            createRoutes[key] = recipeFile
+                        }
+                    }
+        }
+
+        (hbmRoutes.keySet() - createRoutes.keySet()).each { key ->
+            problems << "Missing Create pressing compatibility for HBM plate-stamp route ${key} (${hbmRoutes[key].name})"
+        }
+        (createRoutes.keySet() - hbmRoutes.keySet()).each { key ->
+            problems << "Create pressing route ${createRoutes[key].name} has no matching HBM press recipe with stamp: plate (${key})"
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("Create pressing parity validation failed:\n - " + problems.join('\n - '))
+        }
+        logger.lifecycle("Create pressing parity passed (${hbmRoutes.size()} HBM plate-stamp routes, ${createRoutes.size()} Create routes).")
+    }
+}
+
+tasks.register('validateCreateCuttingParity') {
+    group = 'verification'
+    description = 'Checks Create cutting plate-to-wire compatibility against HBM plate routes and wire-capable materials.'
+
+    def hbmPressRoot = file("src/main/resources/data/${project.mod_id}/recipe/press")
+    def createCuttingRoot = file('src/main/resources/data/create/recipe/cutting')
+    def shapeSource = file('src/main/java/com/reinhardt/hbm/foundry/FoundryMaterialShapes.java')
+    inputs.dir hbmPressRoot
+    inputs.dir createCuttingRoot
+    inputs.file shapeSource
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+
+        def parseJson = { File jsonFile ->
+            try {
+                return parser.parseText(jsonFile.getText('UTF-8'))
+            } catch (Exception first) {
+                return parser.parseText(jsonFile.getText('UTF-8').replaceFirst('^\uFEFF', ''))
+            }
+        }
+
+        def plateMaterials = [] as Set
+        if (!hbmPressRoot.isDirectory()) {
+            problems << "Missing HBM press recipe directory ${project.relativePath(hbmPressRoot)}"
+        } else {
+            hbmPressRoot.listFiles()
+                    .findAll { it.isFile() && it.name.endsWith('.json') }
+                    .each { recipeFile ->
+                        def recipe
+                        try {
+                            recipe = parseJson(recipeFile)
+                        } catch (Exception ex) {
+                            problems << "${project.relativePath(recipeFile)} is not valid JSON: ${ex.message}"
+                            return
+                        }
+                        if (recipe.stamp != 'plate'
+                                || !(recipe.result instanceof Map)
+                                || !(recipe.result.id instanceof String)) {
+                            return
+                        }
+                        def matcher = (recipe.result.id =~ /^${project.mod_id}:plate_(.+)$/)
+                        if (matcher.find()) {
+                            plateMaterials << matcher.group(1)
+                        }
+                    }
+        }
+
+        if (!shapeSource.isFile()) {
+            problems << "Missing foundry material shape source ${project.relativePath(shapeSource)}"
+        }
+        def wireMaterials = [] as Set
+        if (shapeSource.isFile()) {
+            def source = shapeSource.getText('UTF-8')
+            def matcher = (source =~ /(?s)WIRE_MATERIALS\s*=\s*Set\.of\((.*?)\);/)
+            if (!matcher.find()) {
+                problems << "${project.relativePath(shapeSource)} does not expose WIRE_MATERIALS"
+            } else {
+                def names = (matcher.group(1) =~ /"([^"]+)"/)
+                names.each { wireMaterials << it[1] }
+            }
+        }
+        def expectedMaterials = plateMaterials.intersect(wireMaterials)
+
+        if (!createCuttingRoot.isDirectory()) {
+            problems << "Missing Create cutting recipe directory ${project.relativePath(createCuttingRoot)}"
+        }
+        def createRoutes = [:]
+        if (createCuttingRoot.isDirectory()) {
+            createCuttingRoot.listFiles()
+                    .findAll { it.isFile() && it.name.startsWith('hbm_wire_fine_from_plate_') && it.name.endsWith('.json') }
+                    .each { recipeFile ->
+                        def recipe
+                        try {
+                            recipe = parseJson(recipeFile)
+                        } catch (Exception ex) {
+                            problems << "${project.relativePath(recipeFile)} is not valid JSON: ${ex.message}"
+                            return
+                        }
+
+                        def prefix = project.relativePath(recipeFile)
+                        def nameMatcher = (recipeFile.name =~ /^hbm_wire_fine_from_plate_(.+)\.json$/)
+                        def material = nameMatcher.find() ? nameMatcher.group(1) : null
+                        if (material == null) {
+                            problems << "${prefix} has an invalid material filename"
+                            return
+                        }
+                        if (!(material in expectedMaterials)) {
+                            problems << "${prefix} has no matching material with both an HBM plate route and WIRE support"
+                        }
+                        if (recipe.type != 'create:cutting') {
+                            problems << "${prefix} has type ${recipe.type}, expected create:cutting"
+                        }
+                        def conditions = recipe['neoforge:conditions']
+                        def hasCreateCondition = conditions instanceof List
+                                && conditions.any { it instanceof Map && it.type == 'neoforge:mod_loaded' && it.modid == 'create' }
+                        if (!hasCreateCondition) {
+                            problems << "${prefix} must be gated by neoforge:mod_loaded(create)"
+                        }
+                        if (!(recipe.ingredients instanceof List) || recipe.ingredients.size() != 1
+                                || !(recipe.ingredients[0] instanceof Map)
+                                || recipe.ingredients[0].tag != "c:plates/${material}") {
+                            problems << "${prefix} must use exactly the c:plates/${material} ingredient tag"
+                        }
+                        if ((recipe.processing_time as Integer) != 50) {
+                            problems << "${prefix} processing_time is ${recipe.processing_time}, expected 50"
+                        }
+                        if (!(recipe.results instanceof List) || recipe.results.size() != 1
+                                || !(recipe.results[0] instanceof Map)) {
+                            problems << "${prefix} must contain exactly one wire result"
+                            return
+                        }
+                        def result = recipe.results[0]
+                        if (result.id != "${project.mod_id}:wire_fine") {
+                            problems << "${prefix} result is ${result.id}, expected ${project.mod_id}:wire_fine"
+                        }
+                        if ((result.count ?: 1) as Integer != 8) {
+                            problems << "${prefix} result count is ${result.count ?: 1}, expected 8"
+                        }
+                        def customData = result.components instanceof Map ? result.components['minecraft:custom_data'] : null
+                        if (!(customData instanceof Map) || customData.material != material) {
+                            problems << "${prefix} must preserve wire material custom_data.material=${material}"
+                        }
+                        if (createRoutes.containsKey(material)) {
+                            problems << "Duplicate Create cutting route for ${material}: ${createRoutes[material].name} and ${recipeFile.name}"
+                        } else {
+                            createRoutes[material] = recipeFile
+                        }
+                    }
+        }
+
+        (expectedMaterials - createRoutes.keySet()).each { material ->
+            problems << "Missing Create cutting compatibility for HBM plate + WIRE material ${material}"
+        }
+        (createRoutes.keySet() - expectedMaterials).each { material ->
+            problems << "Create cutting route for ${material} has no matching HBM plate route with WIRE support"
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("Create cutting parity validation failed:\n - " + problems.join('\n - '))
+        }
+        logger.lifecycle("Create cutting parity passed (${expectedMaterials.size()} eligible materials, ${createRoutes.size()} Create routes).")
+    }
+}
+
+tasks.named('validateLegacyRecipes') {
+    dependsOn tasks.named('validateCreatePressingParity')
+    dependsOn tasks.named('validateCreateCuttingParity')
+}
+
+/*
+ * The 1.7.10 missile system is deliberately recursive: stage segments feed
+ * custom thrusters/fuselages/warheads, those parts feed the custom missile
+ * builder, and ordinary warheads feed the arc-welder missiles. Keep this
+ * coverage check close to the data so a future port cannot leave only a final
+ * item (or a creative-only shortcut) without its manufacturing chain.
+ */
+tasks.register('validateRocketMissileRecipes') {
+    group = 'verification'
+    description = 'Checks 1.7.10 rocket, missile, and satellite recipe coverage and dependency closure.'
+
+    def recipeRoot = file('src/main/resources/data/' + project.mod_id + '/recipe')
+    inputs.dir recipeRoot
+    inputs.file file('src/main/resources/legacy/' + project.mod_id + '/item_catalog.txt')
+    inputs.file file('src/main/resources/legacy/' + project.mod_id + '/block_catalog.txt')
+    inputs.files(
+            file('src/main/java/com/reinhardt/hbm/registry/HbmItems.java'),
+            file('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java'),
+            file('src/main/java/com/reinhardt/hbm/registry/LegacyHbmContent.java'),
+            file('src/main/java/com/reinhardt/hbm/blockentity/LegacyMachineBlockEntity.java'),
+            file('src/main/java/com/reinhardt/hbm/item/HbmFluidContainerItem.java'),
+            file('src/main/java/com/reinhardt/hbm/registry/HbmCapabilities.java')
+    )
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def mod = project.mod_id
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+        def parseJson = { File source ->
+            try {
+                parser.parseText(source.getText('UTF-8'))
+            } catch (Exception first) {
+                try {
+                    parser.parseText(source.getText('UTF-8').replaceFirst('^\\uFEFF', ''))
+                } catch (Exception second) {
+                    problems << project.relativePath(source) + ' is not valid JSON: ' + second.message
+                    null
+                }
+            }
+        }
+        // HBM's machine serializers use three output shapes: ordinary
+        // `result`, Chemical Plant `output_items`, and weighted Precision
+        // Assembler `outputs[*].result`. Treat all of them as producers when
+        // validating the recursive tree.
+        def recipeOutputIds = { recipe ->
+            def ids = [] as Set
+            def collect = { value ->
+                if (value instanceof Map) {
+                    if (value.id instanceof String) {
+                        ids << value.id
+                    }
+                    if (value.result instanceof Map && value.result.id instanceof String) {
+                        ids << value.result.id
+                    }
+                }
+            }
+            collect(recipe.result)
+            collect(recipe.output)
+            [recipe.output_items, recipe.outputs].each { entries ->
+                if (entries instanceof List) {
+                    entries.each { entry -> collect(entry) }
+                }
+            }
+            ids
+        }
+        def recipeActiveFor528Mode = { recipe, boolean enable528 ->
+            if (recipe['neoforge:conditions'] instanceof List) {
+                recipe['neoforge:conditions'].every { condition ->
+                    if (!(condition instanceof Map)) {
+                        true
+                    } else if (condition.type == mod + ':enable_528_mode') {
+                        enable528
+                    } else if (condition.type == 'neoforge:not'
+                            && condition.value instanceof Map
+                            && condition.value.type == mod + ':enable_528_mode') {
+                        !enable528
+                    } else {
+                        true
+                    }
+                }
+            } else {
+                true
+            }
+        }
+        def expectedFiles = [
+                'seg_10.json': 'seg_10',
+                'seg_15.json': 'seg_15',
+                'seg_20.json': 'seg_20',
+                // Existing standard-missile roots are part of the same
+                // recursive tree; include them here instead of assuming the
+                // newly ported warheads/custom parts are sufficient.
+                'chemical_plant/rocketfuel.json': 'rocket_fuel',
+                'shredder/enchanted_book_to_powder_magic.json': 'powder_magic',
+                'arc_welder/fuel_tank_small.json': 'fuel_tank_small',
+                'arc_welder/fuel_tank_medium.json': 'fuel_tank_medium',
+                'arc_welder/fuel_tank_large.json': 'fuel_tank_large',
+                'arc_welder/thruster_small.json': 'thruster_small',
+                'arc_welder/thruster_medium.json': 'thruster_medium',
+                'arc_welder/thruster_large.json': 'thruster_large',
+                'arc_welder/missile_anti_ballistic.json': 'missile_anti_ballistic',
+                'arc_welder/missile_generic.json': 'missile_generic',
+                'arc_welder/missile_incendiary.json': 'missile_incendiary',
+                'arc_welder/missile_cluster.json': 'missile_cluster',
+                'arc_welder/missile_buster.json': 'missile_buster',
+                'arc_welder/missile_decoy.json': 'missile_decoy',
+                'arc_welder/missile_strong.json': 'missile_strong',
+                'arc_welder/missile_incendiary_strong.json': 'missile_incendiary_strong',
+                'arc_welder/missile_cluster_strong.json': 'missile_cluster_strong',
+                'arc_welder/missile_buster_strong.json': 'missile_buster_strong',
+                'arc_welder/missile_emp_strong.json': 'missile_emp_strong',
+                'arc_welder/missile_burst.json': 'missile_burst',
+                'arc_welder/missile_inferno.json': 'missile_inferno',
+                'arc_welder/missile_rain.json': 'missile_rain',
+                'arc_welder/missile_drill.json': 'missile_drill',
+                'arc_welder/missile_nuclear.json': 'missile_nuclear',
+                'arc_welder/missile_nuclear_cluster.json': 'missile_nuclear_cluster',
+                'arc_welder/missile_volcano.json': 'missile_volcano',
+                'assembly_machine/missile_assembly.json': 'missile_assembly',
+                'assembly_machine/warhead_generic_small.json': 'warhead_generic_small',
+                'assembly_machine/warhead_generic_medium.json': 'warhead_generic_medium',
+                'assembly_machine/warhead_generic_large.json': 'warhead_generic_large',
+                'assembly_machine/warhead_incendiary_small.json': 'warhead_incendiary_small',
+                'assembly_machine/warhead_incendiary_medium.json': 'warhead_incendiary_medium',
+                'assembly_machine/warhead_incendiary_large.json': 'warhead_incendiary_large',
+                'assembly_machine/warhead_cluster_small.json': 'warhead_cluster_small',
+                'assembly_machine/warhead_cluster_medium.json': 'warhead_cluster_medium',
+                'assembly_machine/warhead_cluster_large.json': 'warhead_cluster_large',
+                'assembly_machine/warhead_buster_small.json': 'warhead_buster_small',
+                'assembly_machine/warhead_buster_medium.json': 'warhead_buster_medium',
+                'assembly_machine/warhead_buster_large.json': 'warhead_buster_large',
+                'assembly_machine/warhead_nuclear.json': 'warhead_nuclear',
+                'assembly_machine/warhead_mirv.json': 'warhead_mirv',
+                'assembly_machine/warhead_volcano.json': 'warhead_volcano',
+                'assembly_machine/thruster_nuclear.json': 'thruster_nuclear',
+                'assembly_machine/missile_stealth.json': 'missile_stealth',
+                'assembly_machine/missile_shuttle.json': 'missile_shuttle',
+                'missile_taint.json': 'missile_taint',
+                'missile_micro.json': 'missile_micro',
+                'missile_bhole.json': 'missile_bhole',
+                'missile_schrabidium.json': 'missile_schrabidium',
+                'missile_emp.json': 'missile_emp',
+                'assembly_machine/mp_thruster_10_kerosene.json': 'mp_thruster_10_kerosene',
+                'assembly_machine/mp_thruster_10_solid.json': 'mp_thruster_10_solid',
+                'assembly_machine/mp_thruster_10_xenon.json': 'mp_thruster_10_xenon',
+                'assembly_machine/mp_thruster_15_kerosene.json': 'mp_thruster_15_kerosene',
+                'assembly_machine/mp_thruster_15_kerosene_dual.json': 'mp_thruster_15_kerosene_dual',
+                'assembly_machine/mp_thruster_15_kerosene_triple.json': 'mp_thruster_15_kerosene_triple',
+                'assembly_machine/mp_thruster_15_solid.json': 'mp_thruster_15_solid',
+                'assembly_machine/mp_thruster_15_solid_hexdecuple.json': 'mp_thruster_15_solid_hexdecuple',
+                'assembly_machine/mp_thruster_15_hydrogen.json': 'mp_thruster_15_hydrogen',
+                'assembly_machine/mp_thruster_15_hydrogen_dual.json': 'mp_thruster_15_hydrogen_dual',
+                'assembly_machine/mp_thruster_15_balefire_short.json': 'mp_thruster_15_balefire_short',
+                'assembly_machine/mp_thruster_15_balefire.json': 'mp_thruster_15_balefire',
+                'assembly_machine/mp_thruster_15_balefire_large.json': 'mp_thruster_15_balefire_large',
+                'assembly_machine/mp_thruster_20_kerosene.json': 'mp_thruster_20_kerosene',
+                'assembly_machine/mp_thruster_20_kerosene_dual.json': 'mp_thruster_20_kerosene_dual',
+                'assembly_machine/mp_thruster_20_kerosene_triple.json': 'mp_thruster_20_kerosene_triple',
+                'assembly_machine/mp_thruster_20_solid.json': 'mp_thruster_20_solid',
+                'assembly_machine/mp_thruster_20_solid_multi.json': 'mp_thruster_20_solid_multi',
+                'assembly_machine/mp_thruster_20_solid_multier.json': 'mp_thruster_20_solid_multier',
+                'assembly_machine/mp_fuselage_10_kerosene.json': 'mp_fuselage_10_kerosene',
+                'assembly_machine/mp_fuselage_10_long_kerosene.json': 'mp_fuselage_10_long_kerosene',
+                'assembly_machine/mp_fuselage_10_solid.json': 'mp_fuselage_10_solid',
+                'assembly_machine/mp_fuselage_10_long_solid.json': 'mp_fuselage_10_long_solid',
+                'assembly_machine/mp_fuselage_10_xenon.json': 'mp_fuselage_10_xenon',
+                'assembly_machine/mp_fuselage_10_15_kerosene.json': 'mp_fuselage_10_15_kerosene',
+                'assembly_machine/mp_fuselage_10_15_solid.json': 'mp_fuselage_10_15_solid',
+                'assembly_machine/mp_fuselage_10_15_hydrogen.json': 'mp_fuselage_10_15_hydrogen',
+                'assembly_machine/mp_fuselage_10_15_balefire.json': 'mp_fuselage_10_15_balefire',
+                'assembly_machine/mp_fuselage_15_kerosene.json': 'mp_fuselage_15_kerosene',
+                'assembly_machine/mp_fuselage_15_solid.json': 'mp_fuselage_15_solid',
+                'assembly_machine/mp_fuselage_15_hydrogen.json': 'mp_fuselage_15_hydrogen',
+                'assembly_machine/mp_fuselage_15_20_kerosene.json': 'mp_fuselage_15_20_kerosene',
+                'assembly_machine/mp_fuselage_15_20_solid.json': 'mp_fuselage_15_20_solid',
+                'assembly_machine/mp_warhead_10_he.json': 'mp_warhead_10_he',
+                'assembly_machine/mp_warhead_10_incendiary.json': 'mp_warhead_10_incendiary',
+                'assembly_machine/mp_warhead_10_buster.json': 'mp_warhead_10_buster',
+                'assembly_machine/mp_warhead_10_nuclear.json': 'mp_warhead_10_nuclear',
+                'assembly_machine/mp_warhead_10_nuclear_large.json': 'mp_warhead_10_nuclear_large',
+                'assembly_machine/mp_warhead_10_taint.json': 'mp_warhead_10_taint',
+                'assembly_machine/mp_warhead_10_cloud.json': 'mp_warhead_10_cloud',
+                'assembly_machine/mp_warhead_15_he.json': 'mp_warhead_15_he',
+                'assembly_machine/mp_warhead_15_incendiary.json': 'mp_warhead_15_incendiary',
+                'assembly_machine/mp_warhead_15_nuclear.json': 'mp_warhead_15_nuclear',
+                'assembly_machine/mp_warhead_15_n2.json': 'mp_warhead_15_n2',
+                'assembly_machine/mp_warhead_15_balefire.json': 'mp_warhead_15_balefire',
+                'assembly_machine/missile_soyuz.json': 'missile_soyuz',
+                'assembly_machine/missile_soyuz_lander.json': 'missile_soyuz_lander',
+                'assembly_machine/sat_base.json': 'sat_base',
+                'assembly_machine/sat_head_mapper.json': 'sat_head_mapper',
+                'assembly_machine/sat_head_scanner.json': 'sat_head_scanner',
+                'assembly_machine/sat_head_radar.json': 'sat_head_radar',
+                'assembly_machine/sat_head_laser.json': 'sat_head_laser',
+                'assembly_machine/sat_head_resonator.json': 'sat_head_resonator',
+                'assembly_machine/sat_foeq.json': 'sat_foeq',
+                'assembly_machine/sat_miner.json': 'sat_miner',
+                'assembly_machine/sat_lunar_miner.json': 'sat_lunar_miner',
+                'arc_welder/sat_mapper.json': 'sat_mapper',
+                'arc_welder/sat_scanner.json': 'sat_scanner',
+                'arc_welder/sat_radar.json': 'sat_radar',
+                'arc_welder/sat_laser.json': 'sat_laser',
+                'arc_welder/sat_resonator.json': 'sat_resonator',
+                'plasma_forge/sat_gerald.json': 'sat_gerald',
+                'plasma_forge/sat_gerald_expensive.json': 'sat_gerald',
+                'mp_c_1.json': 'mp_c_1',
+                'mp_c_2.json': 'mp_c_2',
+                'mp_c_3.json': 'mp_c_3',
+                'mp_c_4.json': 'mp_c_4',
+                'mp_c_5.json': 'mp_c_5',
+                'mp_stability_10_flat.json': 'mp_stability_10_flat',
+                'mp_stability_10_cruise.json': 'mp_stability_10_cruise',
+                'mp_stability_10_space.json': 'mp_stability_10_space',
+                'mp_stability_15_flat.json': 'mp_stability_15_flat',
+                'mp_stability_15_thin.json': 'mp_stability_15_thin',
+                'mp_thruster_15_balefire_large_rad.json': 'mp_thruster_15_balefire_large_rad',
+                'mp_fuselage_10_kerosene_insulation.json': 'mp_fuselage_10_kerosene_insulation',
+                'mp_fuselage_10_long_kerosene_insulation.json': 'mp_fuselage_10_long_kerosene_insulation',
+                'mp_fuselage_15_kerosene_insulation.json': 'mp_fuselage_15_kerosene_insulation',
+                'mp_fuselage_10_solid_insulation.json': 'mp_fuselage_10_solid_insulation',
+                'mp_fuselage_10_long_solid_insulation.json': 'mp_fuselage_10_long_solid_insulation',
+                'mp_fuselage_15_solid_insulation.json': 'mp_fuselage_15_solid_insulation',
+                'mp_fuselage_15_solid_desh.json': 'mp_fuselage_15_solid_desh',
+                'mp_fuselage_10_kerosene_metal.json': 'mp_fuselage_10_kerosene_metal',
+                'mp_fuselage_10_long_kerosene_metal.json': 'mp_fuselage_10_long_kerosene_metal',
+                'mp_fuselage_15_kerosene_metal.json': 'mp_fuselage_15_kerosene_metal',
+                'mp_warhead_15_boxcar.json': 'mp_warhead_15_boxcar',
+                'sat_interface.json': 'sat_interface',
+                'sat_coord.json': 'sat_coord',
+                'sat_designator.json': 'sat_designator',
+                'sat_relay.json': 'sat_relay',
+                'circuit_chip_from_red_copper_wire.json': 'circuit_chip',
+                'circuit_chip_from_gold_wire.json': 'circuit_chip',
+                'circuit_chip_bismoid_from_red_copper_wire.json': 'circuit_chip_bismoid',
+                'circuit_chip_bismoid_from_gold_wire.json': 'circuit_chip_bismoid',
+                'circuit_chip_quantum_from_red_copper_wire.json': 'circuit_chip_quantum',
+                'circuit_chip_quantum_from_gold_wire.json': 'circuit_chip_quantum',
+                'circuit_atomic_clock.json': 'circuit_atomic_clock',
+                'circuit_controller_chassis.json': 'circuit_controller_chassis',
+                'soldering_station/circuit_controller.json': 'circuit_controller',
+                'soldering_station/circuit_controller_advanced.json': 'circuit_controller_advanced',
+                'soldering_station/circuit_controller_quantum.json': 'circuit_controller_quantum',
+                // Crafting/assembly support nodes required by the satellite
+                // and special-missile trees. Keep these in the same coverage
+                // set so a future port cannot leave a final part backed only
+                // by a creative/loot shortcut.
+                'powder_power.json': 'powder_power',
+                'powder_spark_mix.json': 'powder_spark_mix',
+                'singularity.json': 'singularity',
+                'singularity_counter_resonant.json': 'singularity_counter_resonant',
+                'singularity_super_heated.json': 'singularity_super_heated',
+                'crystal_xen.json': 'crystal_xen',
+                'black_hole.json': 'black_hole',
+                'singularity_spark.json': 'singularity_spark',
+                'singularity_spark_alt.json': 'singularity_spark',
+                'photo_panel.json': 'photo_panel',
+                'radar_linker.json': 'radar_linker',
+                'emp_bomb.json': 'emp_bomb',
+                'assembly_machine/magnetron.json': 'magnetron',
+                'soldering_station/circuit_quantum.json': 'circuit_quantum',
+                'fins_flat.json': 'fins_flat',
+                'fins_small_steel.json': 'fins_small_steel',
+                'fins_big_steel.json': 'fins_big_steel',
+                'fins_tri_steel.json': 'fins_tri_steel',
+                'fins_quad_titanium.json': 'fins_quad_titanium'
+        ]
+        def expectedResults = [:]
+        expectedFiles.each { path, output ->
+            File source = new File(recipeRoot, path.replace('/', File.separator))
+            if (!source.isFile()) {
+                problems << 'Missing migrated rocket/missile recipe ' + project.relativePath(source)
+                return
+            }
+            def recipe = parseJson(source)
+            if (!(recipe instanceof Map)) {
+                return
+            }
+            expectedResults[path] = recipe
+            if (!recipeOutputIds(recipe).contains(mod + ':' + output)) {
+                problems << project.relativePath(source) + ' does not output ' + mod + ':' + output
+            }
+            if (path.startsWith('assembly_machine/')) {
+                if (recipe.type != mod + ':assembly_machine') {
+                    problems << project.relativePath(source) + ' has type ' + recipe.type + ', expected ' + mod + ':assembly_machine'
+                }
+                if (!(recipe.ingredients instanceof List) || recipe.ingredients.isEmpty() || recipe.ingredients.size() > 12) {
+                    problems << project.relativePath(source) + ' must contain 1..12 assembly input slots'
+                }
+            } else if (path.startsWith('plasma_forge/')) {
+                if (recipe.type != mod + ':plasma_forge') {
+                    problems << project.relativePath(source) + ' has type ' + recipe.type + ', expected ' + mod + ':plasma_forge'
+                }
+                if (!(recipe.input_items instanceof List) || recipe.input_items.size() > 12) {
+                    problems << project.relativePath(source) + ' exceeds the Plasma Forge 12-input limit'
+                }
+                if (recipe.input_fluids instanceof List && recipe.input_fluids.size() > 1) {
+                    problems << project.relativePath(source) + ' exceeds the Plasma Forge one-fluid limit'
+                }
+            } else if (path.startsWith('arc_welder/')) {
+                if (recipe.type != mod + ':arc_welder') {
+                    problems << project.relativePath(source) + ' has type ' + recipe.type + ', expected ' + mod + ':arc_welder'
+                }
+                if (!(recipe.inputs instanceof List) || recipe.inputs.isEmpty()) {
+                    problems << project.relativePath(source) + ' must contain Arc Welder inputs'
+                }
+            } else if (path.startsWith('chemical_plant/')) {
+                if (recipe.type != mod + ':chemical_plant') {
+                    problems << project.relativePath(source) + ' has type ' + recipe.type + ', expected ' + mod + ':chemical_plant'
+                }
+                if (!(recipe.input_items instanceof List) || recipe.input_items.isEmpty()) {
+                    problems << project.relativePath(source) + ' must contain Chemical Plant item inputs'
+                }
+            } else if (path.startsWith('shredder/')) {
+                if (recipe.type != mod + ':shredder') {
+                    problems << project.relativePath(source) + ' has type ' + recipe.type + ', expected ' + mod + ':shredder'
+                }
+                if (!(recipe.ingredient instanceof Map)) {
+                    problems << project.relativePath(source) + ' must contain a Shredder ingredient'
+                }
+            }
+        }
+
+        def allRecipeFiles = recipeRoot.isDirectory()
+                ? fileTree(recipeRoot).matching { include '**/*.json' }.files
+                : [] as Set
+        def produced = [] as Set
+        allRecipeFiles.each { source ->
+            def recipe = parseJson(source)
+            if (recipe instanceof Map) {
+                produced.addAll(recipeOutputIds(recipe))
+            }
+        }
+        def requiredOutputs = [
+                'seg_10','seg_15','seg_20','rocket_fuel',
+                'fuel_tank_small','fuel_tank_medium','fuel_tank_large',
+                'thruster_small','thruster_medium','thruster_large','missile_assembly',
+                'missile_anti_ballistic','missile_generic','missile_incendiary','missile_cluster',
+                'missile_buster','missile_decoy','missile_strong','missile_incendiary_strong',
+                'missile_cluster_strong','missile_buster_strong','missile_emp_strong','missile_burst',
+                'missile_inferno','missile_rain','missile_drill','missile_nuclear',
+                'missile_nuclear_cluster','missile_volcano',
+                'warhead_generic_small','warhead_generic_medium','warhead_generic_large',
+                'warhead_incendiary_small','warhead_incendiary_medium','warhead_incendiary_large',
+                'warhead_cluster_small','warhead_cluster_medium','warhead_cluster_large',
+                'warhead_buster_small','warhead_buster_medium','warhead_buster_large',
+                'warhead_nuclear','warhead_mirv','warhead_volcano','thruster_nuclear',
+                'missile_stealth','missile_shuttle',
+                'mp_thruster_10_kerosene','mp_thruster_10_solid','mp_thruster_10_xenon',
+                'mp_thruster_15_kerosene','mp_thruster_15_kerosene_dual','mp_thruster_15_kerosene_triple',
+                'mp_thruster_15_solid','mp_thruster_15_solid_hexdecuple','mp_thruster_15_hydrogen',
+                'mp_thruster_15_hydrogen_dual','mp_thruster_15_balefire_short','mp_thruster_15_balefire',
+                'mp_thruster_15_balefire_large','mp_thruster_20_kerosene','mp_thruster_20_kerosene_dual',
+                'mp_thruster_20_kerosene_triple','mp_thruster_20_solid','mp_thruster_20_solid_multi',
+                'mp_thruster_20_solid_multier',
+                'mp_fuselage_10_kerosene','mp_fuselage_10_long_kerosene','mp_fuselage_10_solid',
+                'mp_fuselage_10_long_solid','mp_fuselage_10_xenon','mp_fuselage_10_15_kerosene',
+                'mp_fuselage_10_15_solid','mp_fuselage_10_15_hydrogen','mp_fuselage_10_15_balefire',
+                'mp_fuselage_15_kerosene','mp_fuselage_15_solid','mp_fuselage_15_hydrogen',
+                'mp_fuselage_15_20_kerosene','mp_fuselage_15_20_solid',
+                'mp_warhead_10_he','mp_warhead_10_incendiary','mp_warhead_10_buster',
+                'mp_warhead_10_nuclear','mp_warhead_10_nuclear_large','mp_warhead_10_taint',
+                'mp_warhead_10_cloud','mp_warhead_15_he','mp_warhead_15_incendiary',
+                'mp_warhead_15_nuclear','mp_warhead_15_n2','mp_warhead_15_balefire',
+                'mp_warhead_15_boxcar','mp_stability_10_flat','mp_stability_10_cruise',
+                'mp_stability_10_space','mp_stability_15_flat','mp_stability_15_thin',
+                'mp_thruster_15_balefire_large_rad','mp_c_1','mp_c_2','mp_c_3','mp_c_4','mp_c_5',
+                'missile_soyuz','missile_soyuz_lander','sat_base','sat_head_mapper','sat_head_scanner',
+                'sat_head_radar','sat_head_laser','sat_head_resonator','sat_foeq','sat_miner',
+                'sat_lunar_miner','sat_mapper','sat_scanner','sat_radar','sat_laser','sat_resonator',
+                'sat_gerald','sat_interface','sat_coord','sat_designator','sat_relay',
+                'fins_flat','fins_small_steel','fins_big_steel','fins_tri_steel','fins_quad_titanium',
+                'missile_taint','missile_micro','missile_bhole','missile_schrabidium','missile_emp',
+                'powder_magic','powder_power','powder_spark_mix','singularity','singularity_counter_resonant',
+                'singularity_super_heated','crystal_xen','black_hole','singularity_spark',
+                'photo_panel','radar_linker','emp_bomb','magnetron','circuit_quantum',
+                'circuit_chip','circuit_chip_bismoid','circuit_chip_quantum','circuit_atomic_clock',
+                'circuit_controller_chassis','circuit_controller','circuit_controller_advanced','circuit_controller_quantum'
+        ]
+        requiredOutputs.each { output ->
+            if (!produced.contains(mod + ':' + output)) {
+                problems << 'No recipe produces required legacy output ' + mod + ':' + output
+            }
+        }
+
+        // Check the two mutually-exclusive controller routes independently.
+        // A global producer set is not enough here: it can hide a recipe that
+        // exists only in the opposite 528 configuration.
+        def producedNon528 = [] as Set
+        def produced528 = [] as Set
+        allRecipeFiles.each { source ->
+            def recipe = parseJson(source)
+            if (recipe instanceof Map) {
+                def outputs = recipeOutputIds(recipe)
+                if (recipeActiveFor528Mode(recipe, false)) {
+                    producedNon528.addAll(outputs)
+                }
+                if (recipeActiveFor528Mode(recipe, true)) {
+                    produced528.addAll(outputs)
+                }
+            }
+        }
+        def modeControllerOutputs = [
+                'default non-528': producedNon528,
+                '528': produced528
+        ]
+        modeControllerOutputs.each { modeName, modeOutputs ->
+            ['circuit_chip', 'circuit_chip_bismoid', 'circuit_chip_quantum', 'circuit_atomic_clock',
+             'circuit_controller', 'circuit_controller_advanced', 'circuit_controller_quantum'].each { output ->
+                if (!modeOutputs.contains(mod + ':' + output)) {
+                    problems << modeName + ' mode has no active producer for ' + mod + ':' + output
+                }
+            }
+        }
+
+        // JsonSlurper returns LazyMap instances and root crafting recipes use
+        // direct ingredient maps while machine recipes wrap them in an
+        // `ingredient` field. Normalize both forms before checking edges.
+        def normalizedIngredients = { recipe ->
+            def entries = []
+            if (recipe.ingredient instanceof Map) {
+                entries << recipe.ingredient
+            }
+            [recipe.ingredients, recipe.inputs, recipe.input_items, recipe.toppings, recipe.pcb, recipe.solder].each { list ->
+                if (list instanceof List) {
+                    list.each { entry ->
+                        if (entry instanceof Map && entry.containsKey('ingredient')) {
+                            entries << entry.ingredient
+                        } else {
+                            entries << entry
+                        }
+                    }
+                }
+            }
+            // Vanilla shaped recipes keep their ingredient definitions under
+            // `key` instead of an ingredients list.
+            if (recipe.key instanceof Map) {
+                recipe.key.values().each { entry -> entries << entry }
+            }
+            entries
+        }
+        def ingredientHasItem = { recipe, String id ->
+            String wanted = mod + ':' + id
+            normalizedIngredients(recipe).any { ingredient ->
+                ingredient instanceof Map && (ingredient.item == wanted
+                        || (ingredient.items instanceof List && ingredient.items.contains(wanted)))
+            }
+        }
+        def ingredientHasTag = { recipe, String tag ->
+            normalizedIngredients(recipe).any { ingredient ->
+                ingredient instanceof Map && ingredient.tag == tag
+            }
+        }
+        def ingredientHasRawItem = { recipe, String id ->
+            normalizedIngredients(recipe).any { ingredient ->
+                ingredient instanceof Map && (ingredient.item == id
+                        || (ingredient.items instanceof List && ingredient.items.contains(id)))
+            }
+        }
+        def ingredientItemIds = { recipe ->
+            normalizedIngredients(recipe).findAll { ingredient -> ingredient instanceof Map }.collectMany { ingredient ->
+                def ids = []
+                if (ingredient.item instanceof String) {
+                    ids << ingredient.item
+                }
+                if (ingredient.items instanceof List) {
+                    ids.addAll(ingredient.items.findAll { it instanceof String })
+                }
+                ids
+            } as Set
+        }
+
+        // Every normal missile must be assembled from a warhead (or the
+        // anti-ballistic body), propulsion and—except for that body—the
+        // corresponding fuel tank. This checks that the legacy multi-stage
+        // Arc Welder tier has not been reduced to a final-item shortcut.
+        [
+                'arc_welder/missile_anti_ballistic.json', 'arc_welder/missile_generic.json',
+                'arc_welder/missile_incendiary.json', 'arc_welder/missile_cluster.json',
+                'arc_welder/missile_buster.json', 'arc_welder/missile_decoy.json',
+                'arc_welder/missile_strong.json', 'arc_welder/missile_incendiary_strong.json',
+                'arc_welder/missile_cluster_strong.json', 'arc_welder/missile_buster_strong.json',
+                'arc_welder/missile_emp_strong.json', 'arc_welder/missile_burst.json',
+                'arc_welder/missile_inferno.json', 'arc_welder/missile_rain.json',
+                'arc_welder/missile_drill.json', 'arc_welder/missile_nuclear.json',
+                'arc_welder/missile_nuclear_cluster.json', 'arc_welder/missile_volcano.json'
+        ].each { path ->
+            def recipe = expectedResults[path]
+            if (recipe) {
+                def inputs = ingredientItemIds(recipe)
+                if (path == 'arc_welder/missile_decoy.json') {
+                    // The legacy decoy is deliberately a steel dummy body,
+                    // not a warhead-bearing missile.
+                    if (!ingredientHasTag(recipe, 'c:ingots/steel')) {
+                        problems << path + ' is missing its legacy steel-decoy body prerequisite'
+                    }
+                } else if (!inputs.any { id -> id == mod + ':missile_assembly'
+                        || id.startsWith(mod + ':warhead_') || id == mod + ':emp_bomb' }) {
+                    problems << path + ' has no recursive warhead/missile_assembly/EMP payload prerequisite'
+                }
+                if (!inputs.any { id -> id.startsWith(mod + ':thruster_') }) {
+                    problems << path + ' has no recursive thruster prerequisite'
+                }
+                if (path != 'arc_welder/missile_anti_ballistic.json'
+                        && !inputs.any { id -> id.startsWith(mod + ':fuel_tank_') }) {
+                    problems << path + ' has no recursive fuel-tank prerequisite'
+                }
+            }
+        }
+        [
+                'arc_welder/sat_mapper.json': 'sat_head_mapper',
+                'arc_welder/sat_scanner.json': 'sat_head_scanner',
+                'arc_welder/sat_radar.json': 'sat_head_radar',
+                'arc_welder/sat_laser.json': 'sat_head_laser',
+                'arc_welder/sat_resonator.json': 'sat_head_resonator'
+        ].each { path, head ->
+            def recipe = expectedResults[path]
+            if (recipe && (!ingredientHasItem(recipe, 'sat_base') || !ingredientHasItem(recipe, head))) {
+                problems << path + ' must combine sat_base with ' + mod + ':' + head
+            }
+        }
+        def magicShredding = expectedResults['shredder/enchanted_book_to_powder_magic.json']
+        if (magicShredding && !ingredientHasRawItem(magicShredding, 'minecraft:enchanted_book')) {
+            problems << 'shredder/enchanted_book_to_powder_magic.json must preserve the legacy enchanted-book source'
+        }
+        ['small','medium','large'].each { size ->
+            ['warhead_incendiary','warhead_cluster','warhead_buster'].each { kind ->
+                def recipe = expectedResults['assembly_machine/' + kind + '_' + size + '.json']
+                if (recipe && !ingredientHasItem(recipe, 'warhead_generic_' + size)) {
+                    problems << kind + '_' + size + ' is not recursively based on warhead_generic_' + size
+                }
+            }
+        }
+        expectedResults.each { path, recipe ->
+            if (path.startsWith('assembly_machine/mp_')) {
+                def output = recipe.result.id.substring((mod + ':').length())
+                if (output.startsWith('mp_thruster_') || output.startsWith('mp_fuselage_') || output.startsWith('mp_warhead_')) {
+                    def hasSegment = ingredientHasItem(recipe, 'seg_10') || ingredientHasItem(recipe, 'seg_15') || ingredientHasItem(recipe, 'seg_20')
+                    if (!hasSegment) {
+                        problems << path + ' has no seg_10/seg_15/seg_20 prerequisite'
+                    }
+                }
+            }
+        }
+
+        // The non-linear legacy support tree is easy to accidentally replace
+        // with a final-item shortcut. Assert the important recursive edges
+        // explicitly, including both alternate singularity-spark layouts.
+        def dependencyChecks = [
+                'powder_power.json'                         : [items: [], tags: ['c:dusts/diamond', 'c:dusts/magnetized_tungsten']],
+                'powder_spark_mix.json'                     : [items: ['powder_power'], tags: ['c:dusts/desh', 'c:dusts/euphemium']],
+                'singularity.json'                          : [items: ['cell_anti_schrabidium', 'block_schrabidium'], tags: ['c:nuggets/euphemium']],
+                'singularity_counter_resonant.json'          : [items: ['singularity'], tags: ['c:plates/combine_steel', 'c:ingots/magnetized_tungsten']],
+                'singularity_super_heated.json'              : [items: ['singularity', 'powder_power'], tags: ['c:plates/saturnite']],
+                'crystal_xen.json'                          : [items: ['powder_power'], tags: ['c:ingots/euphemium']],
+                'black_hole.json'                            : [items: ['singularity', 'crystal_xen'], tags: []],
+                'singularity_spark.json'                    : [items: ['singularity_counter_resonant', 'singularity_super_heated', 'black_hole'], tags: ['c:plates/dineutronium']],
+                'singularity_spark_alt.json'                : [items: ['singularity_counter_resonant', 'singularity_super_heated', 'black_hole'], tags: ['c:plates/dineutronium']],
+                'photo_panel.json'                          : [items: ['circuit_pcb'], tags: ['c:glass_panes', 'c:plates/polymer', 'c:dusts/quartz']],
+                'radar_linker.json'                         : [items: ['crt_display', 'circuit_basic'], tags: ['c:plates/steel']],
+                'emp_bomb.json'                             : [items: ['magnetron', 'circuit_advanced'], tags: ['c:plates/lead']],
+                'assembly_machine/magnetron.json'           : [items: ['wire_fine'], tags: ['c:plates/copper']],
+                'soldering_station/circuit_quantum.json'    : [items: ['circuit_chip_quantum', 'circuit_chip_bismoid', 'circuit_atomic_clock', 'circuit_pcb', 'wire_fine'], tags: ['c:ingots/hard_plastic']],
+                'circuit_chip_quantum_from_red_copper_wire.json': [items: ['pellet_charged', 'wire_dense', 'wire_fine'], tags: ['c:ingots/hard_plastic']],
+                'circuit_chip_quantum_from_gold_wire.json' : [items: ['pellet_charged', 'wire_dense', 'wire_fine'], tags: ['c:ingots/hard_plastic']],
+                'circuit_atomic_clock.json'                : [items: ['circuit_chip'], tags: ['c:plates/polymer', 'c:dusts/strontium']],
+                'soldering_station/circuit_controller.json': [items: ['circuit_controller_chassis', 'upgrade_speed_1', 'circuit_chip', 'circuit_capacitor', 'circuit_capacitor_tantalium', 'wire_fine'], tags: []],
+                'soldering_station/circuit_controller_advanced.json': [items: ['circuit_chip_bismoid', 'circuit_capacitor_tantalium', 'circuit_atomic_clock', 'circuit_controller_chassis', 'upgrade_speed_3', 'wire_fine'], tags: []],
+                'soldering_station/circuit_controller_quantum.json': [items: ['circuit_chip_quantum', 'circuit_chip_bismoid', 'circuit_atomic_clock', 'circuit_controller_advanced', 'upgrade_overdrive_1', 'wire_fine'], tags: []]
+        ]
+        dependencyChecks.each { path, expected ->
+            def recipe = expectedResults[path]
+            if (recipe) {
+                expected.items.each { id ->
+                    if (!ingredientHasItem(recipe, id)) {
+                        problems << path + ' is missing recursive item prerequisite ' + mod + ':' + id
+                    }
+                }
+                expected.tags.each { tag ->
+                    if (!ingredientHasTag(recipe, tag)) {
+                        problems << path + ' is missing recursive tag prerequisite #' + tag
+                    }
+                }
+            }
+        }
+
+        // HBM 1.12.2 defaults to non-528 mode.  The soldering-station
+        // controller chain is therefore the active default path; 528 mode
+        // uses the existing Precision Assembler alternatives instead.  Keep
+        // this guard close to the recursive checks so a future change cannot
+        // silently leave the default rocket/satellite tree without a
+        // controller producer.
+        def hasNot528Condition = { recipe ->
+            recipe['neoforge:conditions'] instanceof List && recipe['neoforge:conditions'].any { condition ->
+                condition instanceof Map
+                        && condition.type == 'neoforge:not'
+                        && condition.value instanceof Map
+                        && condition.value.type == mod + ':enable_528_mode'
+            }
+        }
+        [
+                'soldering_station/circuit_controller.json',
+                'soldering_station/circuit_controller_advanced.json',
+                'soldering_station/circuit_controller_quantum.json'
+        ].each { path ->
+            def recipe = expectedResults[path]
+            if (recipe && !hasNot528Condition(recipe)) {
+                problems << path + ' must be enabled only when 528 mode is disabled'
+            }
+        }
+
+        def catalogIds = [] as Set
+        [file('src/main/resources/legacy/' + mod + '/item_catalog.txt'),
+         file('src/main/resources/legacy/' + mod + '/block_catalog.txt')].each { catalog ->
+            if (catalog.isFile()) {
+                catalog.eachLine('UTF-8') { line ->
+                    def id = line.trim().split(/[\s#]+/, 2)[0]
+                    if (id && !id.startsWith('#')) {
+                        catalogIds << id
+                    }
+                }
+            }
+        }
+        // Circuits and a few machine/core objects are declared as static
+        // DeferredItems/Blocks rather than in the generated legacy catalogs.
+        // Include their literal registry ids in the same allow-list.
+        [file('src/main/java/com/reinhardt/hbm/registry/HbmItems.java'),
+         file('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java'),
+         file('src/main/java/com/reinhardt/hbm/registry/LegacyHbmContent.java')].each { source ->
+            if (source.isFile()) {
+                source.eachLine('UTF-8') { line ->
+                    def matcher = line =~ /["']([a-z][a-z0-9_]{1,})["']/
+                    matcher.each { match -> catalogIds << match[1] }
+                }
+            }
+        }
+        produced.each { id ->
+            if (id.startsWith(mod + ':')) {
+                catalogIds << id.substring((mod + ':').length())
+            }
+        }
+        def collectDirectIds
+        collectDirectIds = { value, Set found ->
+            if (value instanceof Map) {
+                value.each { key, child ->
+                    if (key == 'item' && child instanceof String && child.startsWith(mod + ':')) {
+                        found << child.substring((mod + ':').length())
+                    } else if (key == 'items' && child instanceof List) {
+                        child.findAll { it instanceof String && it.startsWith(mod + ':') }.each {
+                            found << it.substring((mod + ':').length())
+                        }
+                    }
+                    collectDirectIds(child, found)
+                }
+            } else if (value instanceof List) {
+                value.each { collectDirectIds(it, found) }
+            }
+        }
+        expectedResults.each { path, recipe ->
+            def directIds = [] as Set
+            collectDirectIds(recipe, directIds)
+            directIds.each { id ->
+                if (!catalogIds.contains(id)) {
+                    problems << path + ' references unlisted legacy id ' + mod + ':' + id
+                }
+            }
+        }
+
+        // Custom missiles deliberately have no final JSON recipe: the
+        // Missile Assembly machine combines compatible chip, warhead,
+        // fuselage, optional fins and thruster parts at runtime. Assert that
+        // this final construction path remains present alongside the JSON
+        // component tree above.
+        def customAssemblySource = file('src/main/java/com/reinhardt/hbm/blockentity/LegacyMachineBlockEntity.java')
+        if (customAssemblySource.isFile()) {
+            def customAssembly = customAssemblySource.getText('UTF-8')
+            [
+                    'public boolean canConstructMissile()',
+                    'missileChipState() == 1',
+                    'missileWarheadState() == 1',
+                    'missileFuselageState() == 1',
+                    'missileThrusterState() == 1',
+                    'CustomMissileItem.build('
+            ].each { requiredSource ->
+                if (!customAssembly.contains(requiredSource)) {
+                    problems << 'Custom missile assembly is missing runtime construction guard: ' + requiredSource
+                }
+            }
+        } else {
+            problems << 'Missing custom missile assembly implementation ' + project.relativePath(customAssemblySource)
+        }
+
+        // cell_anti_schrabidium is not a crafting output in the old mod: it
+        // is made by filling cell_empty with ASCHRAB.  Keep that capability
+        // conversion explicit so the schrabidium-missile and singularity
+        // branches stay obtainable without a creative-only shortcut.
+        def itemsSource = file('src/main/java/com/reinhardt/hbm/registry/HbmItems.java')
+        def fluidCellSource = file('src/main/java/com/reinhardt/hbm/item/HbmFluidContainerItem.java')
+        def capabilitySource = file('src/main/java/com/reinhardt/hbm/registry/HbmCapabilities.java')
+        if (!itemsSource.isFile() || !itemsSource.getText('UTF-8').contains('case "cell_anti_schrabidium" -> legacyFluidCellItem(id, "aschrab")')) {
+            problems << 'Missing legacy ASCHRAB cell registration for the recursive missile/singularity tree'
+        }
+        if (!fluidCellSource.isFile() || !fluidCellSource.getText('UTF-8').contains('case "aschrab" -> "cell_anti_schrabidium"')) {
+            problems << 'Missing cell_empty -> cell_anti_schrabidium ASCHRAB fill conversion'
+        }
+        if (!capabilitySource.isFile() || !capabilitySource.getText('UTF-8').contains('HbmItems.LEGACY_FLUID_CELL_ITEMS')) {
+            problems << 'Missing fluid capability registration for legacy filled cells'
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException('Rocket/missile recipe validation failed:\\n - ' + problems.join('\\n - '))
+        }
+        logger.lifecycle('Rocket/missile recipe validation passed: ' + expectedFiles.size() + ' migrated files, ' + requiredOutputs.size() + ' required outputs.')
     }
 }
 
@@ -1733,16 +2834,103 @@ tasks.register('validateLegacyItemPorts') {
     }
 }
 
-tasks.register('deployClientMod', Copy) {
+tasks.register('deployClientMod') {
     group = 'distribution'
-    description = 'Copies the built mod jar into the configured local NeoForge mods folder.'
+    description = 'Atomically deploys the built mod jar into the configured local NeoForge mods folder.'
     dependsOn tasks.named('jar')
     dependsOn tasks.named('validateJarIntegrity')
-    dependsOn tasks.named('cleanDeployedClientMod')
     dependsOn tasks.named('validateThermalParity')
     dependsOn tasks.named('validatePowerParity')
-    from tasks.named('jar').flatMap { it.archiveFile }
-    into localClientModsDir
+    dependsOn tasks.named('validateRocketMissileRecipes')
+
+    doLast {
+        File sourceJar = tasks.named('jar').get().archiveFile.get().asFile
+        File targetDirectory = localClientModsDir
+        def minecraftProcesses = ProcessHandle.allProcesses()
+                .findAll { process ->
+                    process.pid() != ProcessHandle.current().pid()
+                            && process.info().commandLine()
+                            .map { commandLine ->
+                                commandLine.contains('net.minecraft.client.main.Main')
+                                        || commandLine.contains('net.minecraft.server.Main')
+                                        || commandLine.contains('cpw.mods.bootstraplauncher.BootstrapLauncher')
+                            }
+                            .orElse(false)
+                }
+                .collect { process ->
+                    def started = process.info().startInstant().map { it.toString() }.orElse('unknown start time')
+                    "${process.pid()} (${started})"
+                }
+        if (!minecraftProcesses.isEmpty()) {
+            throw new GradleException(
+                    "Refusing to deploy ${sourceJar.name} while Minecraft/NeoForge is running. " +
+                            "Close the game before deploying; running clients keep ZIP/class indexes open " +
+                            "and can crash with missing classes or broken textures after the jar is replaced. " +
+                            "Detected process ids: ${minecraftProcesses.join(', ')}"
+            )
+        }
+        if (!targetDirectory.exists() && !targetDirectory.mkdirs()) {
+            throw new GradleException("Unable to create client mods directory ${targetDirectory}")
+        }
+
+        File targetJar = new File(targetDirectory, sourceJar.name)
+        File temporaryJar = new File(targetDirectory, "${sourceJar.name}.tmp-${UUID.randomUUID()}")
+        try {
+            // Never stream directly into the live jar: a running client may still
+            // read classes/resources from that path and observe a half-written ZIP.
+            java.nio.file.Files.copy(
+                    sourceJar.toPath(),
+                    temporaryJar.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+            )
+            new java.util.zip.ZipFile(temporaryJar).withCloseable { zip ->
+                zip.entries().each { entry ->
+                    if (!entry.directory) {
+                        zip.getInputStream(entry).withCloseable { input ->
+                            byte[] buffer = new byte[16 * 1024]
+                            while (input.read(buffer) != -1) {
+                                // Consume every entry so CRC and size checks run.
+                            }
+                        }
+                    }
+                }
+            }
+
+            try {
+                java.nio.file.Files.move(
+                        temporaryJar.toPath(),
+                        targetJar.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                        java.nio.file.StandardCopyOption.ATOMIC_MOVE
+                )
+            } catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
+                java.nio.file.Files.move(
+                        temporaryJar.toPath(),
+                        targetJar.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                )
+            }
+
+            targetDirectory.listFiles()
+                    .findAll { it.isFile() && it.name.startsWith("${mod_id}-") && it.name.endsWith(".jar") && it.name != targetJar.name }
+                    .each { stale ->
+                        if (!stale.delete()) {
+                            logger.warn("Unable to remove stale deployed mod jar ${stale}")
+                        }
+                    }
+            logger.lifecycle("Atomically deployed ${targetJar.name} to ${targetDirectory}")
+        } catch (Exception ex) {
+            throw new GradleException(
+                    "Client mod deployment aborted; the live jar was not partially overwritten. " +
+                            "Close Minecraft before retrying if ${targetJar} is locked.",
+                    ex
+            )
+        } finally {
+            if (temporaryJar.exists()) {
+                temporaryJar.delete()
+            }
+        }
+    }
 }
 
 tasks.named('build') {
@@ -1753,6 +2941,7 @@ tasks.named('build') {
     dependsOn tasks.named('validateLangFiles')
     dependsOn tasks.named('validateDamageTypes')
     dependsOn tasks.named('validateLegacyRecipes')
+    dependsOn tasks.named('validateRocketMissileRecipes')
     dependsOn tasks.named('validatePortRegressionFixes')
     dependsOn tasks.named('validateThermalParity')
     dependsOn tasks.named('validatePowerParity')

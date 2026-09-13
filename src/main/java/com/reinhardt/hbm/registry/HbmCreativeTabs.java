@@ -251,8 +251,6 @@ public final class HbmCreativeTabs {
                         output.accept(HbmBlocks.RED_PYLON_MEDIUM_STEEL_TRANSFORMER);
                         output.accept(HbmBlocks.RED_PYLON_LARGE);
                         output.accept(HbmBlocks.SUBSTATION);
-                        output.accept(HbmBlocks.MACHINE_CONVERTER_HE_RF);
-                        output.accept(HbmBlocks.MACHINE_CONVERTER_RF_HE);
                         output.accept(HbmBlocks.MACHINE_DETECTOR);
                         output.accept(HbmItems.WIRING_RED_COPPER);
                     })
@@ -564,8 +562,6 @@ public final class HbmCreativeTabs {
                         for (var block : HbmBlocks.THERMAL_BLOCKS) {
                             acceptBlock(output, block);
                         }
-                        output.accept(HbmBlocks.LAMP_TRITIUM_GREEN_OFF);
-                        output.accept(HbmBlocks.LAMP_TRITIUM_BLUE_OFF);
                     })
                     .build()
     );
@@ -634,22 +630,7 @@ public final class HbmCreativeTabs {
                     .icon(() -> new ItemStack(HbmBlocks.BRICK_CONCRETE.get()))
                     .displayItems((parameters, output) -> {
                         for (var block : HbmBlocks.BUILDING_BLOCKS) {
-                            if (block == HbmBlocks.DECO_TOASTER
-                                    && block.get().asItem() instanceof ToasterBlockItem toaster) {
-                                toaster.addCreativeVariants(output);
-                            } else if (block == HbmBlocks.BOBBLEHEAD
-                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.BobbleheadBlockItem bobblehead) {
-                                bobblehead.addCreativeVariants(output);
-                            } else if (block == HbmBlocks.SNOWGLOBE
-                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.SnowglobeBlockItem snowglobe) {
-                                snowglobe.addCreativeVariants(output);
-                            } else if (block == HbmBlocks.PLUSHIE
-                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.PlushieBlockItem plushie) {
-                                plushie.addCreativeVariants(output);
-                            } else if (block == HbmBlocks.DECO_CRT
-                                    && block.get().asItem() instanceof com.reinhardt.hbm.item.DecoCrtBlockItem crt) {
-                                crt.addCreativeVariants(output);
-                            } else if (block.get().asItem() instanceof ConcreteColoredBlockItem concrete) {
+                            if (block.get().asItem() instanceof ConcreteColoredBlockItem concrete) {
                                 concrete.addCreativeVariants(output);
                             } else if (block.get().asItem() instanceof MetalFenceBlockItem metalFence) {
                                 metalFence.addCreativeVariants(output);
@@ -682,6 +663,32 @@ public final class HbmCreativeTabs {
                     .build()
     );
 
+    public static final Supplier<CreativeModeTab> DECORATION_APPLIANCES = TABS.register(
+            "decoration_appliances",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("creative_tab.reinhardtshbm.decoration_appliances"))
+                    .icon(() -> new ItemStack(HbmBlocks.DECO_COMPUTER.get()))
+                    .displayItems((parameters, output) -> {
+                        for (var block : HbmBlocks.DECORATION_APPLIANCE_BLOCKS) {
+                            acceptDecorationApplianceBlock(output, block);
+                        }
+                    })
+                    .build()
+    );
+
+    public static final Supplier<CreativeModeTab> LIGHTING = TABS.register(
+            "lighting",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("creative_tab.reinhardtshbm.lighting"))
+                    .icon(() -> new ItemStack(HbmBlocks.LANTERN.get()))
+                    .displayItems((parameters, output) -> {
+                        for (var block : HbmBlocks.LIGHTING_BLOCKS) {
+                            acceptBlock(output, block);
+                        }
+                    })
+                    .build()
+    );
+
     public static final Supplier<CreativeModeTab> DOORS = TABS.register(
             "doors",
             () -> CreativeModeTab.builder()
@@ -705,6 +712,9 @@ public final class HbmCreativeTabs {
                             acceptBlock(output, anvil);
                         }
                         for (var tool : HbmItems.TOOL_ITEMS) {
+                            if (isLegacySpawnItem(tool)) {
+                                continue;
+                            }
                             if (tool.get() instanceof BlueprintItem blueprints) {
                                 blueprints.addCreativeVariants(output);
                             } else if (tool.get() instanceof com.reinhardt.hbm.item.ConveyorWandItem conveyorWand) {
@@ -759,6 +769,34 @@ public final class HbmCreativeTabs {
                     .build()
     );
 
+    public static final Supplier<CreativeModeTab> SPAWN_EGGS = TABS.register(
+            "spawn_eggs",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("creative_tab.reinhardtshbm.spawn_eggs"))
+                    .icon(() -> new ItemStack(HbmItems.SPAWN_GLYPHID.get()))
+                    .displayItems((parameters, output) -> {
+                        for (var egg : HbmItems.GLYPHID_SPAWN_EGGS) {
+                            output.accept(egg);
+                        }
+                        for (var egg : HbmItems.MOB_SPAWN_EGGS) {
+                            output.accept(egg);
+                        }
+                        // The 1.7.10 port also has four standalone entity
+                        // spawners which are not SpawnEggItem instances.
+                        for (var tool : HbmItems.TOOL_ITEMS) {
+                            if (isLegacySpawnItem(tool)) {
+                                outputLegacyItem(output, tool);
+                            }
+                        }
+                        for (var item : HbmItems.PORTED_PLAIN_ITEMS) {
+                            if (isLegacySpawnItem(item)) {
+                                outputLegacyItem(output, item);
+                            }
+                        }
+                    })
+                    .build()
+    );
+
     public static final Supplier<CreativeModeTab> MISCELLANEOUS = TABS.register(
             "miscellaneous",
             () -> CreativeModeTab.builder()
@@ -766,15 +804,11 @@ public final class HbmCreativeTabs {
                     .icon(() -> new ItemStack(HbmItems.INGOT_ADVANCED_ALLOY.get()))
                     .displayItems((parameters, output) -> {
                         for (var item : HbmItems.PORTED_PLAIN_ITEMS) {
-                            if (!HbmItems.isHiddenPortedPlainItem(item) && !isPetroleumLegacyItem(item)) {
+                            if (!HbmItems.isHiddenPortedPlainItem(item)
+                                    && !isPetroleumLegacyItem(item)
+                                    && !isLegacySpawnItem(item)) {
                                 outputLegacyItem(output, item);
                             }
-                        }
-                        for (var egg : HbmItems.GLYPHID_SPAWN_EGGS) {
-                            output.accept(egg);
-                        }
-                        for (var egg : HbmItems.MOB_SPAWN_EGGS) {
-                            output.accept(egg);
                         }
                         if (HbmBlocks.VENDING_MACHINE.get().asItem() instanceof com.reinhardt.hbm.item.VendingMachineBlockItem vending) {
                             vending.addCreativeVariants(output);
@@ -809,6 +843,29 @@ public final class HbmCreativeTabs {
         }
     }
 
+    private static void acceptDecorationApplianceBlock(CreativeModeTab.Output output,
+                                                       DeferredBlock<? extends Block> block) {
+        Item item = BuiltInRegistries.ITEM.get(block.getId());
+        if (item == Items.AIR) {
+            return;
+        }
+        if (item instanceof ToasterBlockItem toaster) {
+            toaster.addCreativeVariants(output);
+        } else if (item instanceof com.reinhardt.hbm.item.BobbleheadBlockItem bobblehead) {
+            bobblehead.addCreativeVariants(output);
+        } else if (item instanceof com.reinhardt.hbm.item.SnowglobeBlockItem snowglobe) {
+            snowglobe.addCreativeVariants(output);
+        } else if (item instanceof com.reinhardt.hbm.item.PlushieBlockItem plushie) {
+            plushie.addCreativeVariants(output);
+        } else if (item instanceof com.reinhardt.hbm.item.DecoCrtBlockItem crt) {
+            crt.addCreativeVariants(output);
+        } else if (item instanceof com.reinhardt.hbm.item.FilingCabinetBlockItem filingCabinet) {
+            filingCabinet.addCreativeVariants(output);
+        } else {
+            output.accept(item);
+        }
+    }
+
     private static void outputLegacyItem(CreativeModeTab.Output output, net.neoforged.neoforge.registries.DeferredItem<Item> item) {
         if (item.get() instanceof com.reinhardt.hbm.item.LegacyConserveItem conserve) {
             conserve.addCreativeVariants(output);
@@ -835,6 +892,13 @@ public final class HbmCreativeTabs {
             "scrap_oil"
     );
 
+    private static final Set<String> LEGACY_SPAWN_ITEM_IDS = Set.of(
+            "spawn_duck",
+            "chopper",
+            "spawn_ufo",
+            "spawn_worm"
+    );
+
     private static boolean isPetroleumBlock(DeferredBlock<Block> block) {
         return block == HbmBlocks.ORE_OIL
                 || block == HbmBlocks.ORE_OIL_EMPTY
@@ -859,6 +923,10 @@ public final class HbmCreativeTabs {
 
     private static boolean isPetroleumLegacyItem(DeferredItem<Item> item) {
         return PETROLEUM_LEGACY_ITEMS.contains(item.getId().getPath());
+    }
+
+    private static boolean isLegacySpawnItem(DeferredItem<Item> item) {
+        return LEGACY_SPAWN_ITEM_IDS.contains(item.getId().getPath());
     }
 
     private static boolean isNuclearBilletItem(DeferredItem<Item> item) {

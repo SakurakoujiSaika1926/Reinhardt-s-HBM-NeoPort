@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import net.minecraft.core.BlockPos;
@@ -20,12 +21,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -84,7 +87,11 @@ public final class LegacyHazardLiquidBlock extends LiquidBlock {
         if (entity instanceof ItemEntity) {
             entity.setDeltaMovement(Vec3.ZERO);
             if (entity.tickCount % 20 == 0) {
+                boolean slime = ((ItemEntity) entity).getItem().is(Items.SLIME_BALL);
                 entity.hurt(level.damageSources().source(HbmDamageTypes.ACID), 0.5F);
+                if (slime && !entity.isAlive() && level instanceof ServerLevel serverLevel) {
+                    HbmAdvancements.awardNearby(serverLevel, new AABB(entity.blockPosition()).inflate(10.0D), "sulfuric");
+                }
             }
             if (entity.tickCount % 5 == 0 && level instanceof ServerLevel serverLevel) {
                 serverLevel.sendParticles(ParticleTypes.CLOUD, entity.getX(), entity.getY(), entity.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);

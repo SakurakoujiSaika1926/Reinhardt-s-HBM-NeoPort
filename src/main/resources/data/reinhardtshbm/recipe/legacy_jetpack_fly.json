@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ACA",
+    "TLT",
+    "D D"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:plates/aluminium"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_basic"
+    },
+    "T": {
+      "item": "reinhardtshbm:tank_steel"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "D": {
+      "item": "reinhardtshbm:thruster_small"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:jetpack_fly"
+  }
+}

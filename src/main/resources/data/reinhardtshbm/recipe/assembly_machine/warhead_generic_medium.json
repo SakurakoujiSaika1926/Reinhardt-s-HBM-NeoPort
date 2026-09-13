@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadhe2",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/titanium"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_generic_medium",
+    "count": 1
+  }
+}

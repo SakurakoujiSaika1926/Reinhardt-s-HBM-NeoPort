@@ -11,7 +11,7 @@
                           "item":  "reinhardtshbm:ingot_phosphorus"
                       },
                 "I":  {
-                          "item":  "reinhardtshbm:plate_polymer"
+                          "tag":  "c:plates/polymer"
                       }
             },
     "result":  {

@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ISI",
+    "PCP",
+    "PAP"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/steel"
+    },
+    "S": {
+      "tag": "c:ingots/starmetal"
+    },
+    "P": {
+      "tag": "c:plates/polymer"
+    },
+    "C": {
+      "item": "reinhardtshbm:sat_chip"
+    },
+    "A": {
+      "item": "reinhardtshbm:circuit_advanced"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:sat_interface",
+    "count": 1
+  }
+}
+

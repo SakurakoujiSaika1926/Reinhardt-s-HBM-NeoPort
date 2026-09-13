@@ -11,6 +11,7 @@ import com.reinhardt.hbm.item.MachineUpgradeItem;
 import com.reinhardt.hbm.menu.ExcavatorMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
+import com.reinhardt.hbm.recipe.ShredderRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -665,11 +666,18 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
         return this.level.getRecipeManager()
                 .getRecipeFor(HbmRecipeTypes.SHREDDER.get(), new SingleRecipeInput(stack), this.level)
                 .map(holder -> {
-                    ItemStack result = holder.value().assemble(new SingleRecipeInput(stack), this.level.registryAccess());
+                    ShredderRecipe recipe = holder.value();
+                    int inputCount = recipe.inputCount();
+                    if (stack.getCount() < inputCount || stack.getCount() % inputCount != 0) {
+                        return stack.copy();
+                    }
+
+                    ItemStack result = recipe.assemble(new SingleRecipeInput(stack), this.level.registryAccess());
                     if (isLegacyCrusherReject(result)) {
                         return stack.copy();
                     }
-                    result.setCount(Math.min(result.getMaxStackSize(), result.getCount() * stack.getCount()));
+                    int batches = stack.getCount() / inputCount;
+                    result.setCount(Math.min(result.getMaxStackSize(), result.getCount() * batches));
                     return result;
                 })
                 .filter(result -> !result.isEmpty())

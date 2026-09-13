@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCC",
+    "CTC",
+    "CCC"
+  ],
+  "key": {
+    "C": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 2900,
+          "material": "copper"
+        }
+      }
+    },
+    "T": {
+      "item": "reinhardtshbm:mp_thruster_15_balefire_large"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mp_thruster_15_balefire_large_rad",
+    "count": 1
+  }
+}
+

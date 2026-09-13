@@ -7,7 +7,7 @@
     "G": { "item": "reinhardtshbm:block_thorium" },
     "P": { "item": "reinhardtshbm:photo_panel" },
     "S": { "item": "reinhardtshbm:steel_shovel" },
-    "I": { "item": "reinhardtshbm:plate_polymer" },
+    "I": { "tag": "c:plates/polymer" },
     "A": { "item": "reinhardtshbm:ingot_australium" }
   },
   "result": { "id": "reinhardtshbm:memespoon" }

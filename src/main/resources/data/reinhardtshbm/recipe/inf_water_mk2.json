@@ -1,37 +1,42 @@
-﻿{
-    "neoforge:conditions":  [
-                                 {
-                                     "type":  "reinhardtshbm:enable_infinite_water_tank_recipes"
-                                 }
-                             ],
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "BPB",
-                    "PTP",
-                    "BPB"
-                ],
-    "key":  {
-                "B":  {
-                          "item":  "reinhardtshbm:inf_water"
-                      },
-                "P":  {
-                          "tag":  "c:pipes/steel"
-                      },
-                "T":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:shell"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:inf_water_mk2"
-               }
+{
+  "neoforge:conditions": {
+    "type": "reinhardtshbm:enable_infinite_water_tank_recipes"
+  },
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BPB",
+    "PTP",
+    "BPB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:inf_water"
+    },
+    "P": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "T": {
+      "type": "neoforge:components",
+      "items": "reinhardtshbm:shell",
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:inf_water_mk2"
+  }
 }

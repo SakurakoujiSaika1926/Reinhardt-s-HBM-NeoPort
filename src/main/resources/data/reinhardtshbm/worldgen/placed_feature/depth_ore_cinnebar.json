@@ -1,0 +1,6 @@
+{
+  "feature": "reinhardtshbm:depth_ore_cinnebar",
+  "placement": [
+    { "type": "minecraft:biome" }
+  ]
+}

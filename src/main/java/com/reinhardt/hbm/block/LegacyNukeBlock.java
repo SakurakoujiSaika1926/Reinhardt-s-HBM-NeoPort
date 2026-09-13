@@ -62,7 +62,10 @@ public final class LegacyNukeBlock extends HorizontalDirectionalBlock implements
         if (player.isShiftKeyDown()) return InteractionResult.PASS;
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(provider, buffer -> buffer.writeBlockPos(pos));
+            serverPlayer.openMenu(provider, buffer -> {
+                buffer.writeBlockPos(pos);
+                buffer.writeVarInt(definition.ordinal());
+            });
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

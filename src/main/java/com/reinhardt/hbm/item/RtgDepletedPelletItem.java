@@ -16,6 +16,17 @@ public final class RtgDepletedPelletItem extends Item {
         super(properties.stacksTo(1));
     }
 
+    /** Creates the material subtype carried by the old metadata value. */
+    public static ItemStack stackFor(RtgDepletedPelletItem item, String material) {
+        ItemStack stack = new ItemStack(item);
+        if (material != null && !material.isBlank()) {
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            tag.putString("rtg_depleted_material", material);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+        return stack;
+    }
+
     @Override
     public Component getName(ItemStack stack) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();

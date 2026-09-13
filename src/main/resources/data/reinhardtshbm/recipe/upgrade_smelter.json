@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["PHP","CUC","DTD"],"key":{"P":{"tag":"c:plates/copper"},"H":{"item":"minecraft:hopper"},"C":{"item":"reinhardtshbm:coil_tungsten"},"U":{"item":"reinhardtshbm:upgrade_template"},"D":{"item":"reinhardtshbm:coil_copper"},"T":{"item":"reinhardtshbm:machine_transformer"}},"result":{"id":"reinhardtshbm:upgrade_smelter"}}

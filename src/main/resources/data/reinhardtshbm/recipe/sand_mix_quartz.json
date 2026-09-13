@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    { "tag": "c:sands" },
+    { "tag": "c:sands" },
+    { "tag": "c:dusts/quartz" },
+    { "tag": "c:dusts/quartz" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:sand_mix",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": { "variant": "quartz" },
+      "minecraft:custom_model_data": 4
+    }
+  }
+}

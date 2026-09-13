@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_end",
+  "features": "reinhardtshbm:ore_tikite",
+  "step": "underground_ores"
+}

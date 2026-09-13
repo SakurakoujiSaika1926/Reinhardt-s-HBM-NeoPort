@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["IRI","PRP","IRI"],"key":{"I":{"tag":"c:plates/iron"},"R":{"item":"reinhardtshbm:block_redstone"},"P":{"tag":"c:plates/polymer"}},"result":{"id":"reinhardtshbm:battery_pack"}}

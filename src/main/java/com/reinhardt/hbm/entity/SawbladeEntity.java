@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.blockentity.TurretCasingEffects;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import net.minecraft.core.BlockPos;
@@ -16,6 +17,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.Item;
@@ -70,7 +72,8 @@ public final class SawbladeEntity extends ThrowableProjectile {
             discard();
             player.inventoryMenu.broadcastChanges();
         }
-        return InteractionResult.sidedSuccess(level().isClientSide);
+        // EntitySawblade#interactFirst returned false on both sides.
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -80,17 +83,14 @@ public final class SawbladeEntity extends ThrowableProjectile {
         if (!level().isClientSide && target.isAlive()) {
             boolean wasAlive = target.isAlive();
             target.hurt(damageSources().source(HbmDamageTypes.RUBBLE, this, this), 1000.0F);
-            if (wasAlive && !target.isAlive()) {
-                level().playSound(null, target.getX(), target.getY(), target.getZ(),
-                        SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.HOSTILE, 2.0F,
-                        0.95F + level().random.nextFloat() * 0.2F);
+            if (wasAlive && !target.isAlive() && target instanceof LivingEntity living) {
+                TurretCasingEffects.spawnMaxwellGib(level(), living, false);
             }
         }
     }
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        super.onHitBlock(result);
         if (level().isClientSide || this.tickCount <= 1) {
             return;
         }
@@ -132,6 +132,11 @@ public final class SawbladeEntity extends ThrowableProjectile {
     @Override
     public boolean isPickable() {
         return isAlive();
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return true;
     }
 
     @Override

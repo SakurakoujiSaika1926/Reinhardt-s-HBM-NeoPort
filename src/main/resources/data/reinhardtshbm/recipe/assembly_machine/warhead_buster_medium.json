@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadbb2",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:warhead_generic_medium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_buster_medium",
+    "count": 1
+  }
+}

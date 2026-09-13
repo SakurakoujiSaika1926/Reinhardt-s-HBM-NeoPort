@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/weapons/grenades.obj",
+  "mtl_override": "reinhardtshbm:models/obj/weapons/grenade_stick_label.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": { "NukaSpoon": false, "NukaRing": false, "Stick": true, "StickCap": false, "FragSpoon": false, "Frag": false, "FragRing": false, "Tech": false, "TechRing": false, "Nuka": false },
+  "textures": { "particle": "reinhardtshbm:models/weapons/grenades/stick_label" }
+}

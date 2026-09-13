@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.block.FluidBarrelBlock;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
@@ -251,6 +252,10 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
         }
         this.hasExploded = true;
         this.onFire = this.tank.type().hasTrait(HbmFluidTrait.FLAMMABLE);
+        if (this.onFire && explosion.getDirectSourceEntity() instanceof com.reinhardt.hbm.entity.LegacyBombletEntity
+                && this.level instanceof ServerLevel level) {
+            HbmAdvancements.awardNearby(level, new AABB(this.worldPosition).inflate(100.0D), "inferno");
+        }
         sync();
     }
 

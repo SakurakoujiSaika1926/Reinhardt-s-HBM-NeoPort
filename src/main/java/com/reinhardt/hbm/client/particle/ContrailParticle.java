@@ -32,7 +32,7 @@ public final class ContrailParticle extends TextureSheetParticle {
             RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            RenderSystem.disableDepthTest();
+            RenderSystem.enableDepthTest();
             RenderSystem.depthMask(false);
             return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
@@ -44,12 +44,14 @@ public final class ContrailParticle extends TextureSheetParticle {
     };
 
     private final int legacySeed;
+    private final float red, green, blue;
 
-    private ContrailParticle(ClientLevel level, double x, double y, double z, SpriteSet sprites) {
+    private ContrailParticle(ClientLevel level, double x, double y, double z, SpriteSet sprites, float red, float green, float blue) {
         super(level, x, y, z, 0.0D, 0.0D, 0.0D);
         this.setSprite(sprites.get(this.random));
         this.lifetime = 100 + this.random.nextInt(40);
         this.legacySeed = level.random.nextInt();
+        this.red = red; this.green = green; this.blue = blue;
         this.quadSize = 1.0F;
         this.hasPhysics = false;
         this.rCol = 0.0F;
@@ -85,9 +87,9 @@ public final class ContrailParticle extends TextureSheetParticle {
 
         for (int i = 0; i < LEGACY_QUADS; i++) {
             float brightness = jitter.nextFloat() * 0.2F + 0.2F;
-            this.rCol = brightness;
-            this.gCol = brightness;
-            this.bCol = brightness;
+            this.rCol = red + brightness;
+            this.gCol = green + brightness;
+            this.bCol = blue + brightness;
             this.quadSize = this.alpha + 0.5F;
 
             double offsetX = jitter.nextGaussian() * 0.5D;
@@ -133,9 +135,15 @@ public final class ContrailParticle extends TextureSheetParticle {
 
     public static final class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
+        private final float red, green, blue;
 
         public Provider(SpriteSet sprites) {
+            this(sprites, 0, 0, 0);
+        }
+
+        public Provider(SpriteSet sprites, float red, float green, float blue) {
             this.sprites = sprites;
+            this.red = red; this.green = green; this.blue = blue;
         }
 
         @Nullable
@@ -143,7 +151,7 @@ public final class ContrailParticle extends TextureSheetParticle {
         public Particle createParticle(SimpleParticleType type, ClientLevel level,
                                        double x, double y, double z,
                                        double xSpeed, double ySpeed, double zSpeed) {
-            return new ContrailParticle(level, x, y, z, this.sprites);
+            return new ContrailParticle(level, x, y, z, this.sprites, red, green, blue);
         }
     }
 }

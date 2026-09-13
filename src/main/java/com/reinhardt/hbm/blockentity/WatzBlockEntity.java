@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
@@ -40,6 +41,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -392,6 +394,10 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
         disassemble(level);
         if (level instanceof ServerLevel serverLevel) {
             ChunkRadiationData.get(serverLevel).incrementRadiation(this.worldPosition.above(), 1_000.0D);
+            HbmAdvancements.awardNearby(serverLevel, new AABB(
+                    this.worldPosition.getX() - 50.0D, this.worldPosition.getY() - 50.0D, this.worldPosition.getZ() - 50.0D,
+                    this.worldPosition.getX() + 51.0D, this.worldPosition.getY() + 51.0D, this.worldPosition.getZ() + 51.0D
+            ), "watz_boom");
             serverLevel.sendParticles(
                     HbmParticleTypes.RBMK_MUSH.get(),
                     this.worldPosition.getX() + 0.5D,
@@ -445,6 +451,9 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
     }
 
     public static void removeDummies(Level level, BlockPos core) {
+        if (level.getBlockEntity(core) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (int[] offset : allStructureOffsets()) {
                 BlockPos pos = core.offset(offset[0], offset[1], offset[2]);

@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.block;
 
+import com.reinhardt.hbm.entity.TimedExplosiveEntity;
 import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
@@ -8,6 +9,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -22,14 +25,20 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import javax.annotation.Nullable;
 
 /** Legacy 1.7.10 explosive, cryogenic, tainted, and radioactive barrel behavior. */
 public class LegacyBarrelBlock extends Block {
     public static final BooleanProperty IGNITED = BooleanProperty.create("ignited");
     private static final VoxelShape BARREL_SHAPE = Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 1.0D, 0.875D);
+    private static final int LEGACY_POP_FUSE = 100;
+    private static final int LEGACY_FLAMMABILITY = 15;
+    private static final int LEGACY_FIRE_SPREAD_SPEED = 2;
     private final Kind kind;
 
     public LegacyBarrelBlock(Properties properties, Kind kind) {
@@ -47,7 +56,7 @@ public class LegacyBarrelBlock extends Block {
             return;
         }
         level.removeBlock(pos, false);
-        detonate(level, pos, source);
+        detonateAt(level, Vec3.atLowerCornerOf(pos), pos, null);
     }
 
     @Override
@@ -68,7 +77,8 @@ public class LegacyBarrelBlock extends Block {
                 level.scheduleTick(pos, this, 20);
             }
             if (this.kind.flammable() && touchesFire(level, pos)) {
-                ignite(level, pos, state);
+                level.removeBlock(pos, false);
+                primeFromBlock((ServerLevel) level, pos, null);
             }
         }
     }
@@ -77,7 +87,8 @@ public class LegacyBarrelBlock extends Block {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
         if (!level.isClientSide && this.kind.flammable() && !state.getValue(IGNITED) && touchesFire(level, pos)) {
-            ignite(level, pos, state);
+            level.removeBlock(pos, false);
+            primeFromBlock((ServerLevel) level, pos, null);
         }
     }
 
@@ -89,7 +100,7 @@ public class LegacyBarrelBlock extends Block {
         }
         if (state.getValue(IGNITED)) {
             level.removeBlock(pos, false);
-            detonate(level, pos, null);
+            primeFromBlock(level, pos, null);
         }
     }
 
@@ -106,22 +117,50 @@ public class LegacyBarrelBlock extends Block {
 
     @Override
     public void onBlockExploded(BlockState state, Level level, BlockPos pos, net.minecraft.world.level.Explosion explosion) {
-        if (!level.isClientSide && this.kind != Kind.VITRIFIED) {
+        if (level instanceof ServerLevel server && this.kind.primesWhenExploded()) {
             level.removeBlock(pos, false);
-            detonate((ServerLevel) level, pos, null);
+            primeFromBlock(server, pos, explosion == null ? null : explosion.getIndirectSourceEntity());
+            return;
+        }
+        if (level instanceof ServerLevel server && this.kind != Kind.VITRIFIED) {
+            level.removeBlock(pos, false);
+            detonateAt(server, Vec3.atCenterOf(pos), pos, null);
             return;
         }
         super.onBlockExploded(state, level, pos, explosion);
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(IGNITED);
+    public void onCaughtFire(BlockState state, Level level, BlockPos pos, @Nullable Direction face, @Nullable LivingEntity igniter) {
+        if (!(level instanceof ServerLevel server) || !this.kind.flammable()) {
+            return;
+        }
+        level.removeBlock(pos, false);
+        primeFromBlock(server, pos, igniter);
     }
 
-    private void ignite(Level level, BlockPos pos, BlockState state) {
-        level.setBlock(pos, state.setValue(IGNITED, true), Block.UPDATE_CLIENTS);
-        level.scheduleTick(pos, this, 50 + level.random.nextInt(100));
+    public boolean canDropFromExplosion(net.minecraft.world.level.Explosion explosion) {
+        return false;
+    }
+
+    @Override
+    public boolean isFlammable(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
+        return this.kind.flammable();
+    }
+
+    @Override
+    public int getFlammability(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
+        return this.kind.flammable() ? LEGACY_FLAMMABILITY : 0;
+    }
+
+    @Override
+    public int getFireSpreadSpeed(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
+        return this.kind.flammable() ? LEGACY_FIRE_SPREAD_SPEED : 0;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(IGNITED);
     }
 
     private static boolean touchesFire(Level level, BlockPos pos) {
@@ -133,21 +172,49 @@ public class LegacyBarrelBlock extends Block {
         return false;
     }
 
-    private void detonate(ServerLevel level, BlockPos pos, Entity source) {
-        double x = pos.getX() + 0.5D;
-        double y = pos.getY() + 0.5D;
-        double z = pos.getZ() + 0.5D;
-        switch (this.kind) {
-            case RED, PINK -> level.explode(source, x, y, z, 2.5F, true, Level.ExplosionInteraction.TNT);
+    private void primeFromBlock(ServerLevel level, BlockPos pos, @Nullable Entity owner) {
+        TimedExplosiveEntity.Kind timedKind = this.kind.timedKind();
+        if (timedKind == null) {
+            detonateAt(level, Vec3.atCenterOf(pos), pos, owner);
+            return;
+        }
+        TimedExplosiveEntity entity = new TimedExplosiveEntity(
+                level,
+                pos.getX() + 0.5D,
+                pos.getY() + 0.5D,
+                pos.getZ() + 0.5D,
+                owner,
+                level.random.nextInt(LEGACY_POP_FUSE) + LEGACY_POP_FUSE / 2,
+                timedKind
+        );
+        level.addFreshEntity(entity);
+        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+    }
+
+    public static void detonatePrimed(ServerLevel level, Vec3 position, TimedExplosiveEntity.Kind timedKind, @Nullable Entity source) {
+        Kind kind = Kind.byTimedKind(timedKind);
+        if (kind == null) {
+            return;
+        }
+        detonateAt(level, position, BlockPos.containing(position), source, kind);
+    }
+
+    private void detonateAt(ServerLevel level, Vec3 position, BlockPos blockPos, @Nullable Entity source) {
+        detonateAt(level, position, blockPos, source, this.kind);
+    }
+
+    private static void detonateAt(ServerLevel level, Vec3 position, BlockPos blockPos, @Nullable Entity source, Kind kind) {
+        switch (kind) {
+            case RED, PINK -> level.explode(source, position.x, position.y, position.z, 2.5F, true, Level.ExplosionInteraction.TNT);
             case LOX -> {
-                level.explode(source, x, y, z, 1.0F, false, Level.ExplosionInteraction.NONE);
-                freeze(level, pos);
+                level.explode(source, position.x, position.y, position.z, 1.0F, false, Level.ExplosionInteraction.NONE);
+                freeze(level, blockPos);
             }
             case TAINT -> {
-                level.explode(source, x, y, z, 1.0F, false, Level.ExplosionInteraction.NONE);
-                spreadTaint(level, pos);
+                level.explode(source, position.x, position.y, position.z, 1.0F, false, Level.ExplosionInteraction.NONE);
+                spreadTaint(level, blockPos);
             }
-            case YELLOW -> detonateYellow(level, pos, source);
+            case YELLOW -> detonateYellow(level, position, blockPos, source);
             case VITRIFIED -> {
                 // 1.7.10 only gave this variant passive radiation; it must not inherit the yellow barrel detonation.
             }
@@ -182,11 +249,11 @@ public class LegacyBarrelBlock extends Block {
         }
     }
 
-    private static void detonateYellow(ServerLevel level, BlockPos pos, Entity source) {
+    private static void detonateYellow(ServerLevel level, Vec3 position, BlockPos pos, @Nullable Entity source) {
         if (level.random.nextInt(3) == 0) {
             level.setBlock(pos, HbmBlocks.TOXIC_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
         } else {
-            level.explode(source, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 12.0F, true, Level.ExplosionInteraction.TNT);
+            level.explode(source, position.x, position.y, position.z, 12.0F, true, Level.ExplosionInteraction.TNT);
         }
         NuclearFalloutTerrainEffects.schedule(level, pos, 35);
         for (int x = -5; x <= 5; x++) {
@@ -228,6 +295,34 @@ public class LegacyBarrelBlock extends Block {
 
         double radiation() {
             return this.radiation;
+        }
+
+        boolean primesWhenExploded() {
+            return this != VITRIFIED;
+        }
+
+        @Nullable
+        TimedExplosiveEntity.Kind timedKind() {
+            return switch (this) {
+                case RED -> TimedExplosiveEntity.Kind.RED_BARREL;
+                case PINK -> TimedExplosiveEntity.Kind.PINK_BARREL;
+                case LOX -> TimedExplosiveEntity.Kind.LOX_BARREL;
+                case TAINT -> TimedExplosiveEntity.Kind.TAINT_BARREL;
+                case YELLOW -> TimedExplosiveEntity.Kind.YELLOW_BARREL;
+                case VITRIFIED -> null;
+            };
+        }
+
+        @Nullable
+        static Kind byTimedKind(TimedExplosiveEntity.Kind timedKind) {
+            return switch (timedKind) {
+                case RED_BARREL -> RED;
+                case PINK_BARREL -> PINK;
+                case LOX_BARREL -> LOX;
+                case TAINT_BARREL -> TAINT;
+                case YELLOW_BARREL -> YELLOW;
+                default -> null;
+            };
         }
     }
 }

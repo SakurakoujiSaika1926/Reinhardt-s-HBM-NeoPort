@@ -61,7 +61,6 @@ import com.reinhardt.hbm.blockentity.DfcReceiverBlockEntity;
 import com.reinhardt.hbm.blockentity.DfcStabilizerBlockEntity;
 import com.reinhardt.hbm.blockentity.ElectricFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.ElectrolyzerBlockEntity;
-import com.reinhardt.hbm.blockentity.EnergyConverterBlockEntity;
 import com.reinhardt.hbm.blockentity.ExcavatorBlockEntity;
 import com.reinhardt.hbm.blockentity.ExposureChamberBlockEntity;
 import com.reinhardt.hbm.blockentity.FelBlockEntity;
@@ -98,6 +97,7 @@ import com.reinhardt.hbm.blockentity.GasCentrifugeBlockEntity;
 import com.reinhardt.hbm.blockentity.GasFlareBlockEntity;
 import com.reinhardt.hbm.blockentity.GasTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.GlyphidSpawnerBlockEntity;
+import com.reinhardt.hbm.blockentity.CyberCrabSpawnerBlockEntity;
 import com.reinhardt.hbm.blockentity.GroundwaterPumpBlockEntity;
 import com.reinhardt.hbm.blockentity.GeothermalHeatExchangerBlockEntity;
 import com.reinhardt.hbm.blockentity.HeatBoilerBlockEntity;
@@ -209,6 +209,7 @@ import com.reinhardt.hbm.blockentity.SpotlightBlockEntity;
 import com.reinhardt.hbm.blockentity.FanBlockEntity;
 import com.reinhardt.hbm.blockentity.FloodlightBeamBlockEntity;
 import com.reinhardt.hbm.blockentity.FloodlightBlockEntity;
+import com.reinhardt.hbm.blockentity.FloodlightDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.CargoElevatorBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyDisplayStandBlockEntity;
 import com.reinhardt.hbm.blockentity.SealHatchBlockEntity;
@@ -314,6 +315,12 @@ public final class HbmBlockEntities {
             BLOCK_ENTITIES.register(
                     "floodlight",
                     () -> BlockEntityType.Builder.of(FloodlightBlockEntity::new, HbmBlocks.FLOODLIGHT.get()).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FloodlightDummyBlockEntity>> FLOODLIGHT_DUMMY =
+            BLOCK_ENTITIES.register(
+                    "floodlight_dummy",
+                    () -> BlockEntityType.Builder.of(FloodlightDummyBlockEntity::new, HbmBlocks.FLOODLIGHT_DUMMY.get()).build(null)
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FloodlightBeamBlockEntity>> FLOODLIGHT_BEAM =
@@ -752,6 +759,15 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             GlyphidSpawnerBlockEntity::new,
                             HbmBlocks.GLYPHID_SPAWNER.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CyberCrabSpawnerBlockEntity>> CYBER_CRAB_SPAWNER =
+            BLOCK_ENTITIES.register(
+                    "meteor_spawner",
+                    () -> BlockEntityType.Builder.of(
+                            CyberCrabSpawnerBlockEntity::new,
+                            HbmBlocks.METEOR_SPAWNER.get()
                     ).build(null)
             );
 
@@ -1374,16 +1390,6 @@ public final class HbmBlockEntities {
                     ).build(null)
             );
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnergyConverterBlockEntity>> ENERGY_CONVERTER =
-            BLOCK_ENTITIES.register(
-                    "energy_converter",
-                    () -> BlockEntityType.Builder.of(
-                            (pos, state) -> new EnergyConverterBlockEntity(pos, state,
-                                    ((com.reinhardt.hbm.block.EnergyConverterBlock) state.getBlock()).kind()),
-                            HbmBlocks.MACHINE_CONVERTER_HE_RF.get(),
-                            HbmBlocks.MACHINE_CONVERTER_RF_HE.get()
-                    ).build(null)
-            );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PowerDetectorBlockEntity>> POWER_DETECTOR =
             BLOCK_ENTITIES.register(
@@ -1843,10 +1849,11 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             HbmHeavyDoorBlockEntity::new,
                             HbmBlocks.FIRE_DOOR.get(),
+                            HbmBlocks.TRANSITION_SEAL.get(),
                             HbmBlocks.SLIDING_BLAST_DOOR.get(),
                             HbmBlocks.SLIDING_BLAST_DOOR_2.get(),
                             HbmBlocks.SLIDING_GATE_DOOR.get(),
-                            HbmBlocks.QE_SLIDING.get(),
+                            HbmBlocks.QE_SLIDING_DOOR.get(),
                             HbmBlocks.QE_CONTAINMENT.get(),
                             HbmBlocks.SLIDING_SEAL_DOOR.get(),
                             HbmBlocks.SECURE_ACCESS_DOOR.get(),
@@ -1855,8 +1862,7 @@ public final class HbmBlockEntities {
                             HbmBlocks.VAULT_DOOR.get(),
                             HbmBlocks.WATER_DOOR.get(),
                             HbmBlocks.SILO_HATCH.get(),
-                            HbmBlocks.SILO_HATCH_LARGE.get(),
-                            HbmBlocks.TRANSITION_SEAL.get()
+                            HbmBlocks.SILO_HATCH_LARGE.get()
                     ).build(null)
             );
 
@@ -1977,6 +1983,7 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             FluidBarrelBlockEntity::new,
                             HbmBlocks.BARREL_PLASTIC.get(),
+                            HbmBlocks.BARREL_CORRODED.get(),
                             HbmBlocks.BARREL_STEEL.get(),
                             HbmBlocks.BARREL_TCALLOY.get(),
                             HbmBlocks.BARREL_ANTIMATTER.get()

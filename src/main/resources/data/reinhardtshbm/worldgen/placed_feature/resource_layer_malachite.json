@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:resource_layer_malachite",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

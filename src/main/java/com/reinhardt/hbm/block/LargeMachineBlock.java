@@ -227,6 +227,9 @@ public class LargeMachineBlock extends Block {
     }
 
     public static void removeDummies(Level level, BlockPos corePos, Direction facing, Footprint footprint, RotationBasis rotationBasis) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : footprint.offsets()) {
                 BlockPos pos = corePos.offset(rotate(offset, facing, rotationBasis));
@@ -267,6 +270,9 @@ public class LargeMachineBlock extends Block {
     }
 
     public static void removeDummiesOutsideFootprint(Level level, BlockPos corePos, Direction facing, Footprint staleFootprint, Footprint currentFootprint, RotationBasis rotationBasis) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : staleFootprint.offsets()) {
                 if (currentFootprint.offsets().contains(offset)) {

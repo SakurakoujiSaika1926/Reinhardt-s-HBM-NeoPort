@@ -30,7 +30,7 @@ public enum HbmToolTier implements Tier {
     VOLCANIC(4, 0, 50.0F, 0.0F, 200, "ingot_bismuth"),
     CHLOROPHYTE(5, 0, 50.0F, 0.0F, 200, "powder_chlorophyte"),
     MESE(6, 0, 50.0F, 0.0F, 200, "plate_paa"),
-    DWARVEN(2, 250, 4.0F, 0.0F, 10, "ingot_copper"),
+    DWARVEN(2, 250, 4.0F, 0.0F, 10, "minecraft:copper_ingot"),
     METEORITE(4, 0, 50.0F, 0.0F, 200, "plate_paa"),
     SHIMMER(1, 0, 25.0F, 26.0F, 200, "shimmer_axe_head"),
     STONE_COMPAT(1, 132, 4.0F, 1.0F, 5, "dust"),

@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -48,6 +49,15 @@ public final class ResourceStoneBlock extends LegacyVariantBlock {
                                ItemStack tool) {
         super.playerDestroy(level, player, pos, state, blockEntity, tool);
         if (!level.isClientSide && state.getValue(VARIANT) == ASBESTOS) {
+            level.setBlock(pos, HbmBlocks.GAS_ASBESTOS.get().defaultBlockState(), 3);
+        }
+    }
+
+    @Override
+    public void onBlockExploded(BlockState state, Level level, BlockPos pos, Explosion explosion) {
+        boolean asbestos = state.hasProperty(VARIANT) && state.getValue(VARIANT) == ASBESTOS;
+        super.onBlockExploded(state, level, pos, explosion);
+        if (asbestos && !level.isClientSide) {
             level.setBlock(pos, HbmBlocks.GAS_ASBESTOS.get().defaultBlockState(), 3);
         }
     }

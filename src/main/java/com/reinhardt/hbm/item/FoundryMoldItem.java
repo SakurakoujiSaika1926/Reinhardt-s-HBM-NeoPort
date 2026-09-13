@@ -107,6 +107,14 @@ public class FoundryMoldItem extends Item {
             case "advanced_alloy" -> new ItemStack(HbmItems.BLADES_ADVANCED_ALLOY.get());
             default -> ItemStack.EMPTY;
         });
+        multi(7, 0, "stamp", FoundryShape.INGOT.q(4), (material, count) -> switch (material.name()) {
+            case "stone" -> item("stamp_stone_flat", 1);
+            case "iron" -> item("stamp_iron_flat", 1);
+            case "steel" -> item("stamp_steel_flat", 1);
+            case "titanium" -> item("stamp_titanium_flat", 1);
+            case "obsidian" -> item("stamp_obsidian_flat", 1);
+            default -> ItemStack.EMPTY;
+        });
         shape(8, 0, "shell", FoundryShape.SHELL, 1);
         shape(9, 0, "pipe", FoundryShape.PIPE, 1);
         shape(10, 1, "ingots", FoundryShape.INGOT, 9);

@@ -14,6 +14,9 @@ import org.jetbrains.annotations.Nullable;
 
 /** Persistent core link for one of the old cargo-pad dummy cells. */
 public final class SatelliteDockDummyBlockEntity extends BlockEntity {
+    private static final String CREATE_CORE_OFFSET_X = "HbmCoreOffsetX";
+    private static final String CREATE_CORE_OFFSET_Y = "HbmCoreOffsetY";
+    private static final String CREATE_CORE_OFFSET_Z = "HbmCoreOffsetZ";
     private BlockPos corePos = BlockPos.ZERO;
 
     public SatelliteDockDummyBlockEntity(BlockPos pos, BlockState state) {
@@ -32,18 +35,40 @@ public final class SatelliteDockDummyBlockEntity extends BlockEntity {
         }
     }
 
+    public BlockPos coreOffset() {
+        return this.corePos.subtract(this.worldPosition);
+    }
+
+    public void setCoreOffset(BlockPos coreOffset) {
+        setCorePos(this.worldPosition.offset(coreOffset));
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("CoreX", corePos.getX());
         tag.putInt("CoreY", corePos.getY());
         tag.putInt("CoreZ", corePos.getZ());
+        BlockPos coreOffset = coreOffset();
+        tag.putInt(CREATE_CORE_OFFSET_X, coreOffset.getX());
+        tag.putInt(CREATE_CORE_OFFSET_Y, coreOffset.getY());
+        tag.putInt(CREATE_CORE_OFFSET_Z, coreOffset.getZ());
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        this.corePos = new BlockPos(tag.getInt("CoreX"), tag.getInt("CoreY"), tag.getInt("CoreZ"));
+        if (tag.contains(CREATE_CORE_OFFSET_X)
+                && tag.contains(CREATE_CORE_OFFSET_Y)
+                && tag.contains(CREATE_CORE_OFFSET_Z)) {
+            this.corePos = this.worldPosition.offset(
+                    tag.getInt(CREATE_CORE_OFFSET_X),
+                    tag.getInt(CREATE_CORE_OFFSET_Y),
+                    tag.getInt(CREATE_CORE_OFFSET_Z)
+            ).immutable();
+        } else {
+            this.corePos = new BlockPos(tag.getInt("CoreX"), tag.getInt("CoreY"), tag.getInt("CoreZ"));
+        }
     }
 
     @Override

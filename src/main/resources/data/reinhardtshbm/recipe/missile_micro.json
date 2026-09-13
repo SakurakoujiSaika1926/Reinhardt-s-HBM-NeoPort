@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:missile_assembly"
+    },
+    {
+      "item": "reinhardtshbm:ducttape"
+    },
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:ammo_standard"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "nuke_high"
+        },
+        "minecraft:custom_model_data": 22
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_micro",
+    "count": 1
+  }
+}

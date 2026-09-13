@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:desh",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:ingot_uranium_fuel"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.gas_cent.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.gas_cent.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

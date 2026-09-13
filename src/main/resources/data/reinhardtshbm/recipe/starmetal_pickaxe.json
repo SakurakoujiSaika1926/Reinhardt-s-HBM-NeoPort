@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["ISI"," B "," I "],"key":{"I":{"tag":"c:ingots/starmetal"},"S":{"item":"reinhardtshbm:ring_starmetal"},"B":{"item":"reinhardtshbm:cobalt_decorated_pickaxe"}},"result":{"id":"reinhardtshbm:starmetal_pickaxe"}}

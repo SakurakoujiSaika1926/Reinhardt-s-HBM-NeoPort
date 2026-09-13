@@ -36,6 +36,10 @@ public final class HbmArmorMaterials {
     public static final DeferredHolder<ArmorMaterial, ArmorMaterial> HAZMAT_GREY = register(
             "hazmat_grey", 1, 2, 3, 1, 5, 0.0F, item("hazmat_cloth_grey")
     );
+    /** Separate layer for the PAA hazmat variant; 1.7.10 used a distinct texture set. */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> HAZMAT_PAA = register(
+            "hazmat_paa", 3, 6, 8, 3, 25, 2.0F, commonTag("plates/paa")
+    );
     public static final DeferredHolder<ArmorMaterial, ArmorMaterial> ASBESTOS = register(
             "asbestos", 1, 3, 4, 1, 5, 0.0F, item("asbestos_cloth")
     );

@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -35,12 +34,6 @@ public final class PlushieBlockEntityRenderer implements BlockEntityRenderer<Plu
     private static final Map<String, ModelResourceLocation> HORSE = horseModels();
     private static final ModelResourceLocation NO9_HELMET = no9Model("Helmet");
     private static final ModelResourceLocation NO9_INSIGNIA = no9Model("Insignia");
-    private static final ResourceLocation YOMI_TEXTURE = texture("yomi.png");
-    private static final ResourceLocation HUNDUN_TEXTURE = texture("hundun.png");
-    private static final ResourceLocation DERG_TEXTURE = texture("derg.png");
-    private static final ResourceLocation NUMBER_NINE_TEXTURE = ReinhardtsHBM.id("textures/models/horse/numbernine.png");
-    private static final ResourceLocation NO9_TEXTURE = ReinhardtsHBM.id("textures/armor/no9.png");
-    private static final ResourceLocation NO9_INSIGNIA_TEXTURE = ReinhardtsHBM.id("textures/armor/no9_insignia.png");
 
     public PlushieBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -81,12 +74,12 @@ public final class PlushieBlockEntityRenderer implements BlockEntityRenderer<Plu
     private static void renderPlushie(PlushieType type, boolean squish, BlockState state, PoseStack poseStack,
                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         switch (type) {
-            case YOMI -> render(YOMI, YOMI_TEXTURE, state, poseStack, bufferSource, packedLight, packedOverlay);
+            case YOMI -> render(YOMI, state, poseStack, bufferSource, packedLight, packedOverlay);
             case NUMBER_NINE -> renderNumberNine(state, poseStack, bufferSource, packedLight, packedOverlay);
-            case HUNDUN -> render(HUNDUN, HUNDUN_TEXTURE, state, poseStack, bufferSource, packedLight, packedOverlay);
+            case HUNDUN -> render(HUNDUN, state, poseStack, bufferSource, packedLight, packedOverlay);
             case DERG -> {
-                render(DERG, DERG_TEXTURE, state, poseStack, bufferSource, packedLight, packedOverlay);
-                render(squish ? DERG_BLEP : DERG_FACE, DERG_TEXTURE, state, poseStack, bufferSource, packedLight, packedOverlay);
+                render(DERG, state, poseStack, bufferSource, packedLight, packedOverlay);
+                render(squish ? DERG_BLEP : DERG_FACE, state, poseStack, bufferSource, packedLight, packedOverlay);
             }
             case NONE -> {
             }
@@ -101,18 +94,18 @@ public final class PlushieBlockEntityRenderer implements BlockEntityRenderer<Plu
         poseStack.translate(0.0F, -0.25F, 0.75F);
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(-45.0F));
-        horsePart("body", NUMBER_NINE_TEXTURE, state, poseStack, bufferSource, packedLight, packedOverlay);
-        horsePivot("tail", 0.0F, 1.125F, -0.4375F, 0.0F, 60.0F, 90.0F, NUMBER_NINE_TEXTURE,
+        horsePart("body", state, poseStack, bufferSource, packedLight, packedOverlay);
+        horsePivot("tail", 0.0F, 1.125F, -0.4375F, 0.0F, 60.0F, 90.0F,
                 state, poseStack, bufferSource, packedLight, packedOverlay);
-        horsePivot("left_back_leg", 0.125F, 0.75F, -0.25F, 0.0F, -30.0F, 35.0F, NUMBER_NINE_TEXTURE,
+        horsePivot("left_back_leg", 0.125F, 0.75F, -0.25F, 0.0F, -30.0F, 35.0F,
                 state, poseStack, bufferSource, packedLight, packedOverlay);
-        horsePivot("right_back_leg", -0.125F, 0.75F, -0.25F, 0.0F, -30.0F, -35.0F, NUMBER_NINE_TEXTURE,
+        horsePivot("right_back_leg", -0.125F, 0.75F, -0.25F, 0.0F, -30.0F, -35.0F,
                 state, poseStack, bufferSource, packedLight, packedOverlay);
-        horsePivot("left_front_leg", 0.125F, 0.75F, 0.3125F, 0.0F, 20.0F, 5.0F, NUMBER_NINE_TEXTURE,
+        horsePivot("left_front_leg", 0.125F, 0.75F, 0.3125F, 0.0F, 20.0F, 5.0F,
                 state, poseStack, bufferSource, packedLight, packedOverlay);
-        horsePivot("right_front_leg", -0.125F, 0.75F, 0.3125F, 0.0F, 20.0F, -5.0F, NUMBER_NINE_TEXTURE,
+        horsePivot("right_front_leg", -0.125F, 0.75F, 0.3125F, 0.0F, 20.0F, -5.0F,
                 state, poseStack, bufferSource, packedLight, packedOverlay);
-        horsePivot("head", 0.0F, 1.125F, 0.375F, 0.0F, 60.0F, 0.0F, NUMBER_NINE_TEXTURE,
+        horsePivot("head", 0.0F, 1.125F, 0.375F, 0.0F, 60.0F, 0.0F,
                 state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
 
@@ -121,8 +114,8 @@ public final class PlushieBlockEntityRenderer implements BlockEntityRenderer<Plu
         poseStack.translate(0.0F, 1.0F, -0.6875F);
         poseStack.scale(0.0703125F, 0.0703125F, 0.0703125F);
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        render(NO9_HELMET, NO9_TEXTURE, state, poseStack, bufferSource, LightTexture.FULL_BRIGHT, packedOverlay);
-        render(NO9_INSIGNIA, NO9_INSIGNIA_TEXTURE, state, poseStack, bufferSource, LightTexture.FULL_BRIGHT, packedOverlay);
+        render(NO9_HELMET, state, poseStack, bufferSource, LightTexture.FULL_BRIGHT, packedOverlay);
+        render(NO9_INSIGNIA, state, poseStack, bufferSource, LightTexture.FULL_BRIGHT, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
@@ -140,7 +133,7 @@ public final class PlushieBlockEntityRenderer implements BlockEntityRenderer<Plu
     }
 
     private static void horsePivot(String part, float x, float y, float z, float yaw, float pitch, float roll,
-                                   ResourceLocation texture, BlockState state, PoseStack poseStack,
+                                   BlockState state, PoseStack poseStack,
                                    MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
         poseStack.translate(x, y, z);
@@ -148,20 +141,19 @@ public final class PlushieBlockEntityRenderer implements BlockEntityRenderer<Plu
         poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
         poseStack.mulPose(Axis.ZP.rotationDegrees(roll));
         poseStack.translate(-x, -y, -z);
-        horsePart(part, texture, state, poseStack, bufferSource, packedLight, packedOverlay);
+        horsePart(part, state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static void horsePart(String part, ResourceLocation texture, BlockState state, PoseStack poseStack,
+    private static void horsePart(String part, BlockState state, PoseStack poseStack,
                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        render(HORSE.get(part), texture, state, poseStack, bufferSource, packedLight, packedOverlay);
+        render(HORSE.get(part), state, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
-    private static void render(ModelResourceLocation model, ResourceLocation texture, BlockState state,
+    private static void render(ModelResourceLocation model, BlockState state,
                                PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BakedModel baked = MachineModelRenderer.model(model);
-        MachineModelRenderer.renderUnculledUv(baked, poseStack, bufferSource, state, packedLight, packedOverlay,
-                texture, 0.0F, 0.0F);
+        MachineModelRenderer.render(baked, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
     private static void applyWorldScale(PlushieType type, PoseStack poseStack) {
@@ -196,9 +188,5 @@ public final class PlushieBlockEntityRenderer implements BlockEntityRenderer<Plu
 
     private static ModelResourceLocation no9Model(String group) {
         return MachineModelRenderer.standalone("block/trinkets/no9_" + group.toLowerCase());
-    }
-
-    private static ResourceLocation texture(String name) {
-        return ReinhardtsHBM.id("textures/models/trinkets/" + name);
     }
 }

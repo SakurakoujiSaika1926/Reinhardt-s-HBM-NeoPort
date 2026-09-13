@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "EEE",
+    "N N",
+    "E E"
+  ],
+  "key": {
+    "E": {
+      "tag": "c:plates/paa"
+    },
+    "N": {
+      "item": "reinhardtshbm:neutron_reflector"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:paa_legs"
+  }
+}

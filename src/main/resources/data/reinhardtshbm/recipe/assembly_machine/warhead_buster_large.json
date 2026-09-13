@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadbb3",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:warhead_generic_large"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_buster_large",
+    "count": 1
+  }
+}

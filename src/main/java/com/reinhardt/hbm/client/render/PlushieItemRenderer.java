@@ -34,6 +34,10 @@ public final class PlushieItemRenderer extends BlockEntityWithoutLevelRenderer {
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         PlushieType type = PlushieBlockItem.type(stack);
         poseStack.pushPose();
+        // ItemRenderBase applied this common transform before the plushie's
+        // own inventory/hand branch.  Keep it explicit here so the legacy
+        // per-type scales below are not applied to raw OBJ coordinates.
+        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -6.0F, 0.0F);
             poseStack.scale(6.0F, 6.0F, 6.0F);

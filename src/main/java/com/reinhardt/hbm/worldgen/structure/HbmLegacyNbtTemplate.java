@@ -4,9 +4,16 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.MetalFenceBlock;
 import com.reinhardt.hbm.block.SteelWallBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
+import com.reinhardt.hbm.block.SteelBeamBlock;
 import com.reinhardt.hbm.block.DecoModelBlock;
 import com.reinhardt.hbm.block.DecoCrtBlock;
 import com.reinhardt.hbm.block.HbmLegacyDoorBlock;
+import com.reinhardt.hbm.block.LegacyTurretBlock;
+import com.reinhardt.hbm.block.FloodlightBlock;
+import com.reinhardt.hbm.block.SpotlightBlock;
+import com.reinhardt.hbm.blockentity.FloodlightBlockEntity;
+import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
+import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,17 +23,22 @@ import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.LadderBlock;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.RailBlock;
+import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,12 +68,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class HbmLegacyNbtTemplate {
     private static final Map<String, HbmLegacyNbtTemplate> CACHE = new ConcurrentHashMap<>();
     private static final Set<String> LOGGED_MISSING_BLOCKS = ConcurrentHashMap.newKeySet();
+    private static final Map<String, String> LEGACY_ID_ALIASES = Map.of(
+            "reinhardtshbm:brick_concrete_slab", "reinhardtshbm:concrete_brick_slab"
+    );
 
     private final String name;
     private final int sizeX;
     private final int sizeY;
     private final int sizeZ;
     private final List<PlacedBlock> blocks;
+    private final Map<BlockPos, LegacyStructureMultiblocks.Part> multiblockParts;
     private final List<List<JigsawConnection>> fromConnections;
     private final Map<String, List<JigsawConnection>> toTopConnections;
     private final Map<String, List<JigsawConnection>> toBottomConnections;
@@ -83,6 +99,7 @@ public final class HbmLegacyNbtTemplate {
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
         this.blocks = List.copyOf(blocks);
+        this.multiblockParts = indexLegacyMultiblocks(this.blocks);
         this.fromConnections = copyConnectionGroups(fromConnections);
         this.toTopConnections = copyConnectionMap(toTopConnections);
         this.toBottomConnections = copyConnectionMap(toBottomConnections);
@@ -127,37 +144,150 @@ public final class HbmLegacyNbtTemplate {
             @Nullable RandomSource random,
             @Nullable BlockReplacement replacement
     ) {
+        place(level, pieceBox, chunkBox, rotation, conformToTerrain, heightOffset, random, replacement, null);
+    }
+
+    void place(
+            WorldGenLevel level,
+            BoundingBox pieceBox,
+            BoundingBox chunkBox,
+            int rotation,
+            boolean conformToTerrain,
+            int heightOffset,
+            @Nullable RandomSource random,
+            @Nullable BlockReplacement replacement,
+            @Nullable String tandemStructureName
+    ) {
         for (PlacedBlock block : blocks) {
-            int x = rotateX(block.x, block.z, rotation) + pieceBox.minX();
-            int z = rotateZ(block.x, block.z, rotation) + pieceBox.minZ();
-            int yBase = conformToTerrain ? level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) + heightOffset : pieceBox.minY();
-            int y = yBase + block.y;
-            if (y < level.getMinBuildHeight() || y >= level.getMaxBuildHeight()) {
+            BlockPos localPos = new BlockPos(block.x, block.y, block.z);
+            BlockPos pos = worldPosFor(level, pieceBox, rotation, conformToTerrain, heightOffset, block);
+            if (pos.getY() < level.getMinBuildHeight() || pos.getY() >= level.getMaxBuildHeight()) {
                 continue;
             }
-
-            BlockPos pos = new BlockPos(x, y, z);
             if (!chunkBox.isInside(pos)) {
                 continue;
             }
 
-            BlockState state = block.state;
-            if (replacement != null && random != null) {
-                state = replacement.replace(block.name, block.meta, state, random);
+            try {
+                LegacyStructureMultiblocks.Part multiblockPart = this.multiblockParts.get(localPos);
+                boolean isLegacyDummy = multiblockPart != null && !multiblockPart.isCoreAt(localPos);
+                BlockState state;
+                if (isLegacyDummy) {
+                    // 1.7.10 saved this exact occupied block as a BlockDummyable
+                    // proxy.  It is not another core instance of the machine.
+                    state = HbmBlocks.MACHINE_DUMMY.get().defaultBlockState();
+                } else {
+                    state = block.state;
+                    if (replacement != null && random != null) {
+                        state = replacement.replace(block.name, block.meta, state, random);
+                    }
+                    if (this.name.equals("factory") && block.name.equals("reinhardtshbm:rail_narrow")) {
+                        state = factoryNarrowRailState(block.meta, rotation, state);
+                    }
+                    // Legacy NBTStructure transforms rail coordinates but leaves
+                    // RailGeneric metadata unchanged. Levers are the exception:
+                    // 1.7.10 transforms their complete EnumOrientation metadata
+                    // (including the intentionally face-flipping 0/7 and 5/6
+                    // pairs) before writing the block state.
+                    if (state.getBlock() == Blocks.LEVER) {
+                        state = stateFromLegacyId(block.name, transformLegacyLeverMeta(block.meta, rotation));
+                    } else if (!(state.getBlock() instanceof RailBlock)) {
+                        state = state.rotate(toMcRotation(rotation));
+                    }
+                }
+
+                setStructureBlock(level, pos, state);
+                if (isLegacyDummy) {
+                    BlockPos corePos = worldPosFor(
+                            level,
+                            pieceBox,
+                            rotation,
+                            conformToTerrain,
+                            heightOffset,
+                            blockAt(multiblockPart.corePos())
+                    );
+                    linkStructureDummy(level, pos, state, corePos);
+                } else {
+                    CompoundTag blockEntityNbt = transformStructureWandNbt(block.name, block.nbt, rotation, tandemStructureName);
+                    if (multiblockPart != null) {
+                        if (blockEntityNbt == null) {
+                            throw new IllegalStateException("Legacy " + multiblockPart.kind() + " core at " + localPos + " has no block entity NBT");
+                        }
+                        blockEntityNbt = LegacyStructureMultiblocks.migrateCoreNbt(multiblockPart.kind(), blockEntityNbt);
+                    }
+                    if (blockEntityNbt != null) {
+                        loadBlockEntity(level, pos, state, blockEntityNbt, multiblockPart != null);
+                    }
+                }
+                refreshPaneConnections(level, pos);
+            } catch (RuntimeException exception) {
+                ReinhardtsHBM.LOGGER.error(
+                        "Skipping legacy HBM structure block {} meta {} from template {} at local {} / world {}",
+                        block.name,
+                        block.meta,
+                        this.name,
+                        localPos,
+                        pos,
+                        exception
+                );
             }
-            // Legacy NBTStructure transforms rail coordinates but leaves RailGeneric metadata unchanged.
-            if (!(state.getBlock() instanceof RailBlock)) {
-                state = state.rotate(toMcRotation(rotation));
-            }
-            level.setBlock(pos, state, 2);
-            if (block.nbt != null) {
-                loadBlockEntity(level, pos, state, block.nbt, rotation);
-            }
-            refreshPaneConnections(level, pos);
         }
     }
 
-    private static void refreshPaneConnections(WorldGenLevel level, BlockPos changedPos) {
+    private BlockPos worldPosFor(
+            WorldGenLevel level,
+            BoundingBox pieceBox,
+            int rotation,
+            boolean conformToTerrain,
+            int heightOffset,
+            PlacedBlock block
+    ) {
+        int x = rotateX(block.x, block.z, rotation) + pieceBox.minX();
+        int z = rotateZ(block.x, block.z, rotation) + pieceBox.minZ();
+        int yBase = conformToTerrain
+                ? level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) + heightOffset
+                : pieceBox.minY();
+        return new BlockPos(x, yBase + block.y, z);
+    }
+
+    private PlacedBlock blockAt(BlockPos localPos) {
+        for (PlacedBlock block : this.blocks) {
+            if (block.x == localPos.getX() && block.y == localPos.getY() && block.z == localPos.getZ()) {
+                return block;
+            }
+        }
+        throw new IllegalStateException("Legacy multiblock core is absent from template " + this.name + " at " + localPos);
+    }
+
+    /**
+     * The factory template contains thirteen legacy {@code rail_narrow} states,
+     * all with metadata {@code 1} (east-west).  In 1.7.10 NBTStructure wrote
+     * that metadata unchanged, then BlockRailBase recalculated its final straight
+     * shape when the neighbouring rails were placed.  Worldgen now places the
+     * template one chunk at a time, so retain that final old-world result here
+     * rather than relying on an update that may occur before its neighbours exist.
+     */
+    private static BlockState factoryNarrowRailState(int legacyMeta, int rotation, BlockState state) {
+        if (legacyMeta != 1) {
+            throw new IllegalStateException("Factory narrow rail must use legacy metadata 1, got " + legacyMeta);
+        }
+        if (!(state.getBlock() instanceof RailBlock) || !state.hasProperty(BlockStateProperties.RAIL_SHAPE)) {
+            throw new IllegalStateException("Factory narrow rail did not resolve to a rail blockstate");
+        }
+
+        RailShape finalShape = switch (rotation & 3) {
+            case 0, 2 -> RailShape.EAST_WEST;
+            case 1, 3 -> RailShape.NORTH_SOUTH;
+            default -> throw new IllegalStateException("Unreachable factory rotation: " + rotation);
+        };
+        return state.setValue(BlockStateProperties.RAIL_SHAPE, finalShape);
+    }
+
+    static void refreshPaneConnections(WorldGenLevel level, BlockPos changedPos) {
+        // Both vanilla iron bars and HBM's custom metal fence store their
+        // neighbour connections in block-state booleans.  Legacy NBTStructure
+        // wrote with flag 2, so refresh both families explicitly after each
+        // placement (including all four horizontal neighbours).
         refreshPane(level, changedPos);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             refreshPane(level, changedPos.relative(direction));
@@ -166,6 +296,10 @@ public final class HbmLegacyNbtTemplate {
 
     private static void refreshPane(WorldGenLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof MetalFenceBlock) {
+            MetalFenceBlock.refreshConnections(level, pos);
+            return;
+        }
         if (!(state.getBlock() instanceof IronBarsBlock)) {
             return;
         }
@@ -254,6 +388,9 @@ public final class HbmLegacyNbtTemplate {
         } catch (IOException exception) {
             ReinhardtsHBM.LOGGER.error("Failed to read legacy HBM structure {}", name, exception);
             return empty(name);
+        } catch (RuntimeException exception) {
+            ReinhardtsHBM.LOGGER.error("Failed to parse legacy HBM structure {}", name, exception);
+            return empty(name);
         }
     }
 
@@ -304,16 +441,23 @@ public final class HbmLegacyNbtTemplate {
                 compound.putString("block", normalizeId(compound.getString("block")));
             }
 
-            if (looksLikeItemStack(compound)) {
-                fixItemStack(compound, itemPalette);
+            if (looksLikeItemStack(compound) && !fixItemStack(compound, itemPalette)) {
+                clearCompound(compound);
+                return;
             }
 
             for (String key : List.copyOf(compound.getAllKeys())) {
                 cleanLegacyNbt(compound.get(key), itemPalette);
             }
         } else if (tag instanceof ListTag list) {
-            for (int i = 0; i < list.size(); i++) {
-                cleanLegacyNbt(list.get(i), itemPalette);
+            for (int i = list.size() - 1; i >= 0; i--) {
+                Tag child = list.get(i);
+                if (child instanceof CompoundTag compound && looksLikeItemStack(compound)
+                        && !fixItemStack(compound, itemPalette)) {
+                    list.remove(i);
+                    continue;
+                }
+                cleanLegacyNbt(child, itemPalette);
             }
         }
     }
@@ -323,7 +467,7 @@ public final class HbmLegacyNbtTemplate {
                 && (tag.contains("Count") || tag.contains("count") || tag.contains("Slot") || tag.contains("slot") || tag.contains("Damage"));
     }
 
-    private static void fixItemStack(CompoundTag tag, Map<Short, String> itemPalette) {
+    private static boolean fixItemStack(CompoundTag tag, Map<Short, String> itemPalette) {
         if (tag.contains("id", Tag.TAG_STRING)) {
             tag.putString("id", normalizeItemId(tag.getString("id")));
         } else if (tag.contains("id", Tag.TAG_SHORT)) {
@@ -344,10 +488,98 @@ public final class HbmLegacyNbtTemplate {
         if (tag.contains("Count", Tag.TAG_BYTE) && !tag.contains("count")) {
             tag.putInt("count", Math.max(1, tag.getByte("Count") & 255));
         }
+        return !tag.contains("id", Tag.TAG_STRING) || !tag.getString("id").equals("minecraft:air");
     }
 
-    private static void loadBlockEntity(WorldGenLevel level, BlockPos pos, BlockState state, CompoundTag nbt, int rotation) {
+    private static void clearCompound(CompoundTag tag) {
+        for (String key : List.copyOf(tag.getAllKeys())) {
+            tag.remove(key);
+        }
+    }
+
+    @Nullable
+    private static CompoundTag transformStructureWandNbt(
+            String blockName,
+            @Nullable CompoundTag nbt,
+            int rotation,
+            @Nullable String tandemStructureName
+    ) {
+        if (nbt == null) {
+            return null;
+        }
+
+        // The 1.7.10 floodlight tile entity saved lower-case fields.  The
+        // modern block entity uses the normalised names below; without this
+        // bridge a structure loses its stored aim and power whenever it is
+        // generated from the legacy NBT template.
+        if (blockName.equals("reinhardtshbm:floodlight")) {
+            return migrateLegacyFloodlightNbt(nbt);
+        }
+
+        // 1.7.10 BlockWandLoot#transformTE: trigger on first tick and rotate only its stored placement yaw.
+        if (blockName.equals("reinhardtshbm:wand_loot")) {
+            CompoundTag copy = nbt.copy();
+            copy.putBoolean("trigger", true);
+            copy.putFloat("rot", Mth.wrapDegrees(copy.getFloat("rot") + (rotation & 3) * 90.0F));
+            return copy;
+        }
+
+        // 1.7.10 BlockWandLogic#transformTE: the logic direction is not transformed here.
+        if (blockName.equals("reinhardtshbm:wand_logic")) {
+            CompoundTag copy = nbt.copy();
+            copy.putBoolean("trigger", true);
+            return copy;
+        }
+
+        // 1.7.10 NBTStructure#buildTileEntity arms a tandem only while building a named jigsaw structure.
+        if (blockName.equals("reinhardtshbm:wand_tandem") && tandemStructureName != null && !tandemStructureName.isBlank()) {
+            CompoundTag copy = nbt.copy();
+            copy.putBoolean("isArmed", true);
+            copy.putString("structure", tandemStructureName);
+            return copy;
+        }
+
+        return nbt;
+    }
+
+    static CompoundTag migrateLegacyFloodlightNbt(CompoundTag nbt) {
+        CompoundTag copy = nbt.copy();
+        if (copy.contains("rotation", Tag.TAG_ANY_NUMERIC) && !copy.contains("Rotation", Tag.TAG_ANY_NUMERIC)) {
+            copy.putFloat("Rotation", copy.getFloat("rotation"));
+        }
+        if (copy.contains("power", Tag.TAG_ANY_NUMERIC) && !copy.contains("Power", Tag.TAG_ANY_NUMERIC)) {
+            long legacyPower = copy.getLong("power");
+            copy.putInt("Power", (int) Math.max(0L, Math.min((long) FloodlightBlockEntity.MAX_POWER, legacyPower)));
+        }
+        if (copy.contains("isOn", Tag.TAG_ANY_NUMERIC) && !copy.contains("On", Tag.TAG_ANY_NUMERIC)) {
+            copy.putBoolean("On", copy.getBoolean("isOn"));
+        }
+        return copy;
+    }
+
+    private static void setStructureBlock(WorldGenLevel level, BlockPos pos, BlockState state) {
+        // LegacyTurretBlock normally expands itself from onPlace.  NBTStructure
+        // did not do that: it wrote the saved 2x2 dummy layout verbatim.
+        if (state.getBlock() instanceof LegacyTurretBlock) {
+            LegacyTurretBlock.runWithoutAutomaticDummies(() -> level.setBlock(pos, state, 2));
+            return;
+        }
+        level.setBlock(pos, state, 2);
+    }
+
+    private static void linkStructureDummy(WorldGenLevel level, BlockPos pos, BlockState state, BlockPos corePos) {
+        BlockEntity blockEntity = getOrCreateBlockEntity(level, pos, state);
+        if (!(blockEntity instanceof MachineDummyBlockEntity dummy)) {
+            throw new IllegalStateException("Legacy structure dummy at " + pos + " did not create MachineDummyBlockEntity");
+        }
+        dummy.setCorePos(corePos);
+    }
+
+    private static void loadBlockEntity(WorldGenLevel level, BlockPos pos, BlockState state, CompoundTag nbt, boolean strictLegacyMultiblock) {
         if (!state.hasBlockEntity()) {
+            if (strictLegacyMultiblock) {
+                throw new IllegalStateException("Legacy multiblock core " + state + " at " + pos + " has no block entity state");
+            }
             return;
         }
 
@@ -356,15 +588,48 @@ public final class HbmLegacyNbtTemplate {
         copy.putInt("y", pos.getY());
         copy.putInt("z", pos.getZ());
 
+        BlockEntity blockEntity = getOrCreateBlockEntity(level, pos, state);
+        if (blockEntity == null) {
+            if (strictLegacyMultiblock) {
+                throw new IllegalStateException("Legacy multiblock core " + state + " at " + pos + " did not create a block entity");
+            }
+            ReinhardtsHBM.LOGGER.error("Skipping structure block entity NBT for {} at {} because no block entity was created", state, pos);
+            return;
+        }
+        try {
+            blockEntity.loadWithComponents(copy, level.registryAccess());
+            blockEntity.setChanged();
+        } catch (RuntimeException exception) {
+            if (strictLegacyMultiblock) {
+                throw new IllegalStateException("Failed to load strict legacy multiblock NBT for " + state + " at " + pos, exception);
+            }
+            // A malformed legacy tag must not abort the complete feature-placement
+            // task.  Keep the placed block and leave the entity at its defaults.
+            ReinhardtsHBM.LOGGER.error("Failed to load block entity NBT for structure block {} at {}", state, pos, exception);
+        }
+    }
+
+    @Nullable
+    private static BlockEntity getOrCreateBlockEntity(WorldGenLevel level, BlockPos pos, BlockState state) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity != null) {
+        // WorldGenRegion deliberately defers block-entity creation while a
+        // chunk is still being generated.  Create and attach the entity to
+        // the backing ChunkAccess before loading its legacy NBT; otherwise a
+        // perfectly valid structure block can abort feature placement (and
+        // crash the integrated server) with a null block entity.
+        if (blockEntity == null && level instanceof WorldGenRegion region
+                && state.getBlock() instanceof EntityBlock entityBlock) {
             try {
-                blockEntity.loadWithComponents(copy, level.registryAccess());
-                blockEntity.setChanged();
+                blockEntity = entityBlock.newBlockEntity(pos, state);
+                if (blockEntity != null) {
+                    region.getChunk(pos.getX() >> 4, pos.getZ() >> 4).setBlockEntity(blockEntity);
+                }
             } catch (RuntimeException exception) {
-                ReinhardtsHBM.LOGGER.debug("Failed to load block entity NBT for structure block {} at {}", state, pos, exception);
+                ReinhardtsHBM.LOGGER.error("Failed to create block entity for structure block {} at {}", state, pos, exception);
+                return null;
             }
         }
+        return blockEntity;
     }
 
     private static boolean isWandJigsaw(PaletteEntry entry, @Nullable CompoundTag nbt) {
@@ -455,6 +720,21 @@ public final class HbmLegacyNbtTemplate {
         return Collections.unmodifiableMap(copy);
     }
 
+    private static Map<BlockPos, LegacyStructureMultiblocks.Part> indexLegacyMultiblocks(List<PlacedBlock> blocks) {
+        Map<BlockPos, LegacyStructureMultiblocks.Source> sources = new HashMap<>();
+        for (PlacedBlock block : blocks) {
+            BlockPos pos = new BlockPos(block.x, block.y, block.z);
+            LegacyStructureMultiblocks.Source previous = sources.put(
+                    pos,
+                    new LegacyStructureMultiblocks.Source(block.name, block.meta)
+            );
+            if (previous != null) {
+                throw new IllegalStateException("Legacy template has more than one block at " + pos);
+            }
+        }
+        return LegacyStructureMultiblocks.index(sources);
+    }
+
     public static BlockState stateFromLegacyId(String name, int meta) {
         return stateFromLegacy(normalizeId(name), meta);
     }
@@ -469,6 +749,23 @@ public final class HbmLegacyNbtTemplate {
         BlockState state = block.defaultBlockState();
         if (block == Blocks.AIR) {
             return state;
+        }
+
+        // Legacy liquid metadata is the actual fluid level (0 = source,
+        // 1..7 = flowing, 8..15 = falling). Preserve it verbatim instead of
+        // letting the generic property conversion collapse every liquid to
+        // its default source state.
+        if (block instanceof LiquidBlock && state.hasProperty(LiquidBlock.LEVEL)) {
+            return state.setValue(LiquidBlock.LEVEL, Mth.clamp(meta, 0, 15));
+        }
+
+        LegacyStructureMultiblocks.Kind multiblockKind = LegacyStructureMultiblocks.Kind.fromBlockId(name);
+        if (multiblockKind != LegacyStructureMultiblocks.Kind.NONE && meta >= 12) {
+            Direction facing = LegacyStructureMultiblocks.coreFacing(multiblockKind, meta);
+            if (!state.hasProperty(HorizontalDirectionalBlock.FACING)) {
+                throw new IllegalStateException("Modern " + multiblockKind + " structure core has no horizontal facing state");
+            }
+            return state.setValue(HorizontalDirectionalBlock.FACING, facing);
         }
 
         if (block instanceof RailBlock && state.hasProperty(BlockStateProperties.RAIL_SHAPE)) {
@@ -488,6 +785,22 @@ public final class HbmLegacyNbtTemplate {
                     .setValue(DoorBlock.POWERED, false);
         }
 
+        if (block == Blocks.LEVER && state.hasProperty(BlockStateProperties.ATTACH_FACE)
+                && state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return legacyLeverState(state, meta);
+        }
+
+        if (block instanceof RepeaterBlock && state.hasProperty(HorizontalDirectionalBlock.FACING)) {
+            state = state.setValue(HorizontalDirectionalBlock.FACING, horizontalFromLegacy(meta & 3));
+            if (state.hasProperty(RepeaterBlock.DELAY)) {
+                state = state.setValue(RepeaterBlock.DELAY, ((meta >> 2) & 3) + 1);
+            }
+            if (state.hasProperty(BlockStateProperties.POWERED)) {
+                state = state.setValue(BlockStateProperties.POWERED, false);
+            }
+            return state;
+        }
+
         if (block instanceof DecoModelBlock && state.hasProperty(DecoModelBlock.FACING)) {
             return state.setValue(DecoModelBlock.FACING, DecoModelBlock.fromLegacyRotation(meta >> 2));
         }
@@ -503,6 +816,30 @@ public final class HbmLegacyNbtTemplate {
                     com.reinhardt.hbm.block.TapeRecorderBlock.fromLegacyMeta(meta));
         }
 
+        // 1.7.10 spotlights store the mounted face as side << 1 (with bit 0
+        // reserved for the broken-light flag).  Do not feed that value into
+        // the generic 0..5 facing conversion: metadata 8/10 are WEST/EAST,
+        // not DOWN/NORTH.  This is especially visible in the oil-rig
+        // template, whose elevated cage lamps use metadata 8 and 10 and
+        // otherwise appear to float away from their supports.
+        if (block instanceof SpotlightBlock && state.hasProperty(SpotlightBlock.FACING)) {
+            Direction direction = Direction.from3DDataValue((meta >> 1) & 7);
+            return state.setValue(SpotlightBlock.FACING, direction);
+        }
+
+        // Floodlights use the original 0..5 mount-face metadata, while
+        // values 6..11 carry the same face plus the upper-state bit used by
+        // the legacy renderer.  Preserve both parts explicitly so structure
+        // placement matches the saved 1.7.10 orientation and flip state.
+        if (block instanceof FloodlightBlock && state.hasProperty(FloodlightBlock.FACING)) {
+            Direction direction = Direction.from3DDataValue(Math.floorMod(meta, 6));
+            state = state.setValue(FloodlightBlock.FACING, direction);
+            if (state.hasProperty(FloodlightBlock.FLIPPED)) {
+                state = state.setValue(FloodlightBlock.FLIPPED, meta >= 6);
+            }
+            return state;
+        }
+
         if (block instanceof DecoCrtBlock) {
             int normalized = Math.abs(meta) % 16;
             return state.setValue(DecoCrtBlock.FACING, DecoCrtBlock.fromLegacyFacing(normalized & 3))
@@ -511,12 +848,11 @@ public final class HbmLegacyNbtTemplate {
         }
 
         if (name.startsWith("reinhardtshbm:barbed_wire") && state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-            Direction direction = switch (meta & 7) {
-                case 3 -> Direction.SOUTH;
-                case 4 -> Direction.WEST;
-                case 5 -> Direction.EAST;
-                default -> Direction.NORTH;
-            };
+            // RenderBarbedWire uses exactly two legacy metadata groups, not
+            // four facings: meta < 4 rotates the OBJ by -90° around Y, while
+            // meta >= 4 rotates it by -180°. The blockstate model maps WEST
+            // to -90° and SOUTH to -180°, respectively.
+            Direction direction = (meta & 7) < 4 ? Direction.WEST : Direction.SOUTH;
             return state.setValue(BlockStateProperties.HORIZONTAL_FACING, direction);
         }
 
@@ -531,6 +867,10 @@ public final class HbmLegacyNbtTemplate {
 
         if (block instanceof SteelPolesBlock && state.hasProperty(SteelPolesBlock.FACING)) {
             return state.setValue(SteelPolesBlock.FACING, SteelPolesBlock.fromLegacyMeta(meta));
+        }
+
+        if (block instanceof SteelBeamBlock && state.hasProperty(SteelBeamBlock.FACING)) {
+            return state.setValue(SteelBeamBlock.FACING, SteelBeamBlock.fromLegacyMeta(meta));
         }
 
         if (block instanceof SlabBlock && state.hasProperty(SlabBlock.TYPE)) {
@@ -779,6 +1119,80 @@ public final class HbmLegacyNbtTemplate {
         };
     }
 
+    /**
+     * Maps the 1.7.10/1.12 BlockLever.EnumOrientation values directly to the
+     * modern lever's face, horizontal-facing, and powered properties.
+     */
+    private static BlockState legacyLeverState(BlockState state, int meta) {
+        BlockState oriented = switch (meta & 7) {
+            case 0 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.CEILING)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.WEST);
+            case 1 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.EAST);
+            case 2 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.WEST);
+            case 3 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
+            case 4 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH);
+            case 5 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.FLOOR)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.WEST);
+            case 6 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.CEILING)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH);
+            default -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.FLOOR)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH);
+        };
+        return oriented.hasProperty(BlockStateProperties.POWERED)
+                ? oriented.setValue(BlockStateProperties.POWERED, (meta & 8) != 0)
+                : oriented;
+    }
+
+    static int transformLegacyLeverMeta(int meta, int coordBaseMode) {
+        if ((coordBaseMode & 3) == 0) {
+            return meta;
+        }
+        if (meta <= 0 || meta >= 7) {
+            if ((coordBaseMode & 3) == 1 || (coordBaseMode & 3) == 3) {
+                return meta ^ 0b111;
+            }
+            return meta;
+        }
+        if (meta >= 5) {
+            return ((coordBaseMode & 3) == 1 || (coordBaseMode & 3) == 3)
+                    ? (meta + 1) % 2 + 5
+                    : meta;
+        }
+        return switch (coordBaseMode & 3) {
+            case 1 -> switch (meta) {
+                case 1 -> 3;
+                case 2 -> 4;
+                case 3 -> 2;
+                default -> 1;
+            };
+            case 2 -> switch (meta) {
+                case 1 -> 2;
+                case 2 -> 1;
+                case 3 -> 4;
+                default -> 3;
+            };
+            case 3 -> switch (meta) {
+                case 1 -> 4;
+                case 2 -> 3;
+                case 3 -> 1;
+                default -> 2;
+            };
+            default -> meta;
+        };
+    }
+
     private static BlockState applyMatchingNumericProperties(BlockState state, int meta) {
         StateDefinition<Block, BlockState> definition = state.getBlock().getStateDefinition();
         Property<?> metaProperty = definition.getProperty("meta");
@@ -818,13 +1232,15 @@ public final class HbmLegacyNbtTemplate {
 
     private static String normalizeId(String name) {
         String lower = name.toLowerCase(Locale.ROOT);
+        String normalized;
         if (lower.startsWith("hbm:tile.")) {
-            return "reinhardtshbm:" + lower.substring("hbm:tile.".length());
+            normalized = "reinhardtshbm:" + lower.substring("hbm:tile.".length());
+        } else if (lower.startsWith("hbm:")) {
+            normalized = "reinhardtshbm:" + lower.substring("hbm:".length());
+        } else {
+            normalized = lower;
         }
-        if (lower.startsWith("hbm:")) {
-            return "reinhardtshbm:" + lower.substring("hbm:".length());
-        }
-        return lower;
+        return LEGACY_ID_ALIASES.getOrDefault(normalized, normalized);
     }
 
     private static String normalizeItemId(String name) {

@@ -16,8 +16,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.event.EventHooks;
 
 /** Direct ItemChopper implementation for the old standalone duck spawner. */
 public final class LegacyDuckSpawnItem extends Item {
@@ -27,10 +29,6 @@ public final class LegacyDuckSpawnItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if (context.getPlayer() != null
-                && !context.getPlayer().mayUseItemAt(context.getClickedPos(), context.getClickedFace(), context.getItemInHand())) {
-            return InteractionResult.FAIL;
-        }
         BlockPos target = context.getClickedPos().relative(context.getClickedFace());
         return spawn(context.getLevel(), context.getPlayer(), context.getItemInHand(), target);
     }
@@ -40,11 +38,12 @@ public final class LegacyDuckSpawnItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         HitResult hit = getPlayerPOVHitResult(level, player, ClipContext.Fluid.ANY);
         if (!(hit instanceof BlockHitResult blockHit) || hit.getType() != HitResult.Type.BLOCK
-                || level.getFluidState(blockHit.getBlockPos()).isEmpty()) {
+                || !(level.getBlockState(blockHit.getBlockPos()).getBlock() instanceof LiquidBlock)) {
             return InteractionResultHolder.pass(stack);
         }
-        if (!player.mayUseItemAt(blockHit.getBlockPos(), blockHit.getDirection(), stack)) {
-            return InteractionResultHolder.fail(stack);
+        if (!level.mayInteract(player, blockHit.getBlockPos())
+                || !player.mayUseItemAt(blockHit.getBlockPos(), blockHit.getDirection(), stack)) {
+            return InteractionResultHolder.pass(stack);
         }
         InteractionResult result = spawn(level, player, stack, blockHit.getBlockPos());
         return new InteractionResultHolder<>(result, stack);
@@ -55,20 +54,17 @@ public final class LegacyDuckSpawnItem extends Item {
             return InteractionResult.SUCCESS;
         }
         ServerLevel serverLevel = (ServerLevel) level;
-        LegacyDuckEntity duck = HbmEntityTypes.DUCK.get().create(serverLevel);
-        if (duck == null) {
-            return InteractionResult.FAIL;
-        }
+        LegacyDuckEntity duck = new LegacyDuckEntity(HbmEntityTypes.DUCK.get(), serverLevel);
         duck.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, Mth.wrapDegrees(level.random.nextFloat() * 360.0F), 0.0F);
-        if (!level.noCollision(duck, duck.getBoundingBox())) {
-            return InteractionResult.FAIL;
-        }
-        duck.finalizeSpawn(serverLevel, level.getCurrentDifficultyAt(pos), MobSpawnType.SPAWN_EGG, null);
+        duck.setYHeadRot(duck.getYRot());
+        duck.setYBodyRot(duck.getYRot());
+        EventHooks.finalizeMobSpawn(duck, serverLevel,
+                level.getCurrentDifficultyAt(pos), MobSpawnType.SPAWN_EGG, null);
         if (stack.has(DataComponents.CUSTOM_NAME)) {
             duck.setCustomName(stack.getHoverName());
         }
         level.addFreshEntity(duck);
-        if (player == null || !player.getAbilities().instabuild) {
+        if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
         return InteractionResult.SUCCESS;

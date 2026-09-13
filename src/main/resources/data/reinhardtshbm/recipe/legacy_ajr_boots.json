@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "P P",
+    "PBP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/armor_ajr"
+    },
+    "B": {
+      "item": "reinhardtshbm:titanium_boots"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:ajr_boots"
+  }
+}

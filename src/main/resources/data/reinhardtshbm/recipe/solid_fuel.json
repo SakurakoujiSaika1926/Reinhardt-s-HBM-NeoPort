@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:fluid_tank_full"],"components":{"minecraft:custom_data":{"fluid":"heatingoil"}}},{"tag":"reinhardtshbm:chemistry_set"}],"result":{"id":"reinhardtshbm:solid_fuel","count":3}}

@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" WS","WRS"," RS"],"key":{"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":2900,"material":"copper"}}},"R":{"item":"reinhardtshbm:ring_starmetal"},"S":{"tag":"c:plates/steel"}},"result":{"id":"reinhardtshbm:ballistic_gauntlet"}}

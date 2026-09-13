@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.entity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
@@ -84,6 +85,7 @@ public class DigammaSpearEntity extends Entity {
         ChunkRadiationData.get(serverLevel).incrementRadiation(surface, chunkDose, distance < 20.0D ? 50_000.0D : 15_000.0D);
         for (Player player : serverLevel.players()) {
             contaminate(player, 0.05F, false);
+            HbmAdvancements.award(player, "digamma_kauai_moho");
         }
     }
 

@@ -8,7 +8,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** The 1.7.10 depth-rock rule: only depth-rock tools can break it. */
+/** Depth rock keeps the legacy depth-rock pickaxe bonus without making the block unbreakable in modern play. */
 public class DepthRockBlock extends Block {
     public DepthRockBlock(Properties properties) {
         super(properties);
@@ -20,6 +20,6 @@ public class DepthRockBlock extends Block {
         if (held.getItem() instanceof HbmPickaxeItem pickaxe && pickaxe.canBreakDepthRock()) {
             return 1.0F / 50.0F;
         }
-        return 0.0F;
+        return super.getDestroyProgress(state, player, level, pos);
     }
 }

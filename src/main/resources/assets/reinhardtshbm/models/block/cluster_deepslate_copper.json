@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "all":  "reinhardtshbm:block/cluster_deepslate_copper"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

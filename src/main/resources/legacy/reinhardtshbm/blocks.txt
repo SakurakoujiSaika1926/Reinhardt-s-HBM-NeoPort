@@ -40,7 +40,6 @@ block_cdalloy
 block_cobalt
 block_coltan
 block_combine_steel
-block_copper
 block_desh
 block_dineutronium
 block_dura_steel
@@ -441,11 +440,9 @@ ore_bedrock_oil
 ore_beryllium
 ore_cobalt
 ore_coltan
-ore_copper
 ore_depth_nether_neodymium
 ore_fluorite
 ore_gneiss_asbestos
-ore_gneiss_copper
 ore_gneiss_gas
 ore_gneiss_gold
 ore_gneiss_iron

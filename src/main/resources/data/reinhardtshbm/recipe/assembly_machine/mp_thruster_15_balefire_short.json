@@ -1,0 +1,52 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpt15bfshort",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 33,
+            "material": "dura_steel"
+          }
+        }
+      },
+      "count": 5
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:plate_cast",
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7400,
+            "material": "tungsten"
+          }
+        }
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/saturnite"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_thruster_15_balefire_short",
+    "count": 1
+  }
+}

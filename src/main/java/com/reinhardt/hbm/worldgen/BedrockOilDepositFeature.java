@@ -39,7 +39,6 @@ public class BedrockOilDepositFeature extends Feature<NoneFeatureConfiguration> 
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
         boolean placed = generateBedrockOil(level, origin.getX(), origin.getZ());
-        generatePorousStone(level, random, origin.getX(), origin.getZ());
         OilFieldSurfaceEffects.generateBedrockOilSpot(
                 level,
                 random,

@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     { "tag": "c:plates/steel" },
-    { "item": "reinhardtshbm:plate_polymer" },
+    { "tag": "c:plates/polymer" },
     {
       "type": "neoforge:components",
       "items": ["reinhardtshbm:wire_fine"],

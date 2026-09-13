@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "c:dusts/desh" },
+    { "tag": "c:dusts/euphemium" },
+    { "item": "reinhardtshbm:powder_power" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_spark_mix",
+    "count": 3
+  }
+}

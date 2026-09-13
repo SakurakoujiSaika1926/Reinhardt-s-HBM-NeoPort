@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PCP",
+    "PBP",
+    "PSP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/armor_dnt"
+    },
+    "S": {
+      "tag": "c:ingots/chainsteel"
+    },
+    "B": {
+      "item": "reinhardtshbm:bj_boots"
+    },
+    "C": {
+      "item": "reinhardtshbm:demon_core_closed"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:dns_boots"
+  }
+}

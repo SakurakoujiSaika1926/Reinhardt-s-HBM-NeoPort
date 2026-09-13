@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -51,15 +52,17 @@ public final class LegacyChopperMineEntity extends Entity {
         Vec3 motion = getDeltaMovement();
         Vec3 end = start.add(motion);
         HitResult blockHit = level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-        boolean hitPlayer = !level().getEntities(this, getBoundingBox().expandTowards(motion).inflate(1.0D),
-                entity -> entity instanceof Player && entity != owner()).isEmpty();
+        Vec3 traceEnd = blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : end;
+        EntityHitResult playerHit = findPlayerHit(start, traceEnd, motion);
         // The original mine only shortens its projectile trace against blocks;
         // it detonates on the next tick after actually entering a non-air block.
-        if (hitPlayer || !level().getBlockState(blockPosition()).isAir() || entityData.get(FUSE) >= 100) {
-            LegacyProjectileUtil.standardExplosion(owner(), position(), 5.0F, 1.0F, false, false);
+        if (playerHit != null || !level().getBlockState(blockPosition()).isAir() || entityData.get(FUSE) >= 100) {
+            level().explode(owner(), getX(), getY(), getZ(), 5.0F, false, Level.ExplosionInteraction.NONE);
             discard();
             return;
         }
+        level().playSound(null, getX(), getY(), getZ(), HbmSoundEvents.MISC_NULL_MINE.get(),
+                SoundSource.PLAYERS, 10.0F, 1.0F);
         if (motion.y > -0.85D) motion = motion.add(0.0D, -0.05D, 0.0D);
         motion = new Vec3(motion.x * 0.9D, motion.y, motion.z * 0.9D);
         setDeltaMovement(motion);
@@ -70,7 +73,26 @@ public final class LegacyChopperMineEntity extends Entity {
     }
 
     private Entity owner() {
-        return ownerUuid != null && level() instanceof ServerLevel server ? server.getEntity(ownerUuid) : this;
+        return ownerUuid != null && level() instanceof ServerLevel server ? server.getEntity(ownerUuid) : null;
+    }
+
+    private EntityHitResult findPlayerHit(Vec3 start, Vec3 end, Vec3 motion) {
+        AABB area = getBoundingBox().expandTowards(motion).inflate(1.0D);
+        EntityHitResult closest = null;
+        double closestDistance = Double.MAX_VALUE;
+        for (Entity entity : level().getEntities(this, area,
+                candidate -> candidate instanceof Player && candidate.canBeCollidedWith() && candidate != owner())) {
+            var hit = entity.getBoundingBox().inflate(0.3D).clip(start, end);
+            if (hit.isEmpty()) {
+                continue;
+            }
+            double distance = start.distanceToSqr(hit.get());
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closest = new EntityHitResult(entity, hit.get());
+            }
+        }
+        return closest;
     }
 
     @Override

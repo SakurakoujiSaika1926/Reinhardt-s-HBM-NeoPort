@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "C C",
+    "DXD"
+  ],
+  "key": {
+    "D": {
+      "tag": "c:ingots/desh"
+    },
+    "C": {
+      "tag": "c:plates/copper"
+    },
+    "X": {
+      "item": "reinhardtshbm:steel_boots"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:steamsuit_boots"
+  }
+}

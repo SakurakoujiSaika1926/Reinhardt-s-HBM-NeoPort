@@ -9,8 +9,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 /** Direct modern transform of RenderHunterChopper, including the original Techne geometry and rotor animation. */
 public final class LegacyChopperEntityRenderer extends EntityRenderer<LegacyChopperEntity> {
@@ -30,9 +30,14 @@ public final class LegacyChopperEntityRenderer extends EntityRenderer<LegacyChop
         poseStack.translate(0.0D, 2.75D, 0.0D);
         poseStack.scale(4.0F, 4.0F, 4.0F);
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(entity.getYRot() - 90.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(entity.getXRot()));
-        model.render(poseStack, bufferSource.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), packedLight,
+        // RenderHunterChopper interpolated both angles before applying its
+        // authored Y/Z rotations. Keep the same linear interpolation here.
+        poseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(partialTick, entity.yRotO, entity.getYRot()) - 90.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(partialTick, entity.xRotO, entity.getXRot())));
+        // The legacy renderer retained back-face culling. Each zero-thickness
+        // rotor box already supplies its two outward-facing textured faces;
+        // rendering their back faces too overlays both UVs on the same plane.
+        model.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE)), packedLight,
                 OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);

@@ -410,9 +410,29 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
                 continue;
             }
 
-            ItemStack result = getResult(input);
+            Optional<RecipeHolder<ShredderRecipe>> holder = getRecipe(input);
+            int inputCount = 1;
+            ItemStack result;
+            if (holder.isPresent()) {
+                ShredderRecipe recipe = holder.get().value();
+                inputCount = recipe.inputCount();
+                result = recipe.assemble(new SingleRecipeInput(input), this.level.registryAccess());
+            } else {
+                if (hasExplicitIngredientMatch(input)) {
+                    continue;
+                }
+
+                // Preserve the 1.7.10 ore-dictionary fallback for compatible
+                // materials which do not have an explicit JSON recipe.
+                result = dynamicTagResult(input)
+                        .orElseGet(() -> new ItemStack(com.reinhardt.hbm.registry.HbmItems.SCRAP.get()));
+            }
+            if (result.isEmpty()) {
+                continue;
+            }
+
             insertOutput(result);
-            input.shrink(1);
+            input.shrink(inputCount);
             if (input.isEmpty()) {
                 this.items.set(inputSlot, ItemStack.EMPTY);
             }
@@ -466,10 +486,29 @@ public class ShredderBlockEntity extends BlockEntity implements PowerEndpoint, M
         if (this.level == null) {
             return ItemStack.EMPTY;
         }
-        return getRecipe(stack)
-                .map(recipe -> recipe.value().assemble(new SingleRecipeInput(stack), this.level.registryAccess()))
-                .orElseGet(() -> dynamicTagResult(stack)
-                        .orElseGet(() -> new ItemStack(com.reinhardt.hbm.registry.HbmItems.SCRAP.get())));
+        Optional<RecipeHolder<ShredderRecipe>> recipe = getRecipe(stack);
+        if (recipe.isPresent()) {
+            return recipe.get().value().assemble(new SingleRecipeInput(stack), this.level.registryAccess());
+        }
+
+        // An explicit recipe can require a batch (for example, two coarse ores
+        // for three powders). Do not fall through to the legacy dynamic-tag
+        // fallback and run a cycle that produces scrap while the batch is
+        // incomplete.
+        if (hasExplicitIngredientMatch(stack)) {
+            return ItemStack.EMPTY;
+        }
+
+        return dynamicTagResult(stack)
+                .orElseGet(() -> new ItemStack(com.reinhardt.hbm.registry.HbmItems.SCRAP.get()));
+    }
+
+    private boolean hasExplicitIngredientMatch(ItemStack stack) {
+        return this.level != null
+                && this.level.getRecipeManager()
+                .getAllRecipesFor(HbmRecipeTypes.SHREDDER.get())
+                .stream()
+                .anyMatch(holder -> holder.value().ingredient().test(stack));
     }
 
     private Optional<RecipeHolder<ShredderRecipe>> getRecipe(ItemStack stack) {

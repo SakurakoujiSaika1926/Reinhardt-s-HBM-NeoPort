@@ -196,7 +196,7 @@ public final class PrecisionAssemblerMenu extends AbstractContainerMenu {
         @Override public boolean mayPlace(ItemStack stack) { return this.container.canPlaceItem(this.index, stack); }
     }
 
-    private static final class OutputSlot extends Slot {
+    private static final class OutputSlot extends LegacyAchievementOutputSlot {
         private OutputSlot(Container container, int slot, int x, int y) { super(container, slot, x, y); }
         @Override public boolean mayPlace(ItemStack stack) { return false; }
     }

@@ -46,9 +46,13 @@ public class FoundryShapeItem extends Item {
 
     public FoundryMaterial material(ItemStack stack) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        return FoundryMaterial.byId(tag.getInt(MATERIAL_ID))
-                .or(() -> FoundryMaterial.byName(tag.getString(MATERIAL)))
-                .orElse(null);
+        if (tag.contains(MATERIAL_ID)) {
+            var materialById = FoundryMaterial.byId(tag.getInt(MATERIAL_ID));
+            if (materialById.isPresent()) {
+                return materialById.get();
+            }
+        }
+        return FoundryMaterial.byName(tag.getString(MATERIAL)).orElse(null);
     }
 
     public static ItemStack stackFor(Item item, FoundryMaterial material) {

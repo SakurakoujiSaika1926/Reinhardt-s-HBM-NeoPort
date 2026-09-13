@@ -46,7 +46,7 @@
                         },
                         {
                             "ingredient":  {
-                                               "tag":  "c:bolts/tungsten"
+                                               "item":  "reinhardtshbm:bolt_tungsten"
                                            },
                             "count":  32
                         }

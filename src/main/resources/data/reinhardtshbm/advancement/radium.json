@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:centrifuge",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:coffee_radium"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.radium.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.radium.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

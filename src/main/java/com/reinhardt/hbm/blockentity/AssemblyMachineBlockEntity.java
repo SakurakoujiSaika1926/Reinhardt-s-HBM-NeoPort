@@ -13,6 +13,7 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
@@ -495,6 +496,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             finishRecipe(recipe);
             this.progress = 0;
             this.completedCycles++;
+            machineMeteoriteSword();
         }
         setChanged();
     }
@@ -653,6 +655,13 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             output.grow(result.getCount());
         }
         produceFluidOutputs(recipe);
+    }
+
+    private void machineMeteoriteSword() {
+        ItemStack input = this.items.get(INPUT_START);
+        if (input.is(HbmItems.METEORITE_SWORD_ALLOYED.get())) {
+            this.items.set(INPUT_START, new ItemStack(HbmItems.METEORITE_SWORD_MACHINED.get()));
+        }
     }
 
     private void consumeInputs(AssemblyMachineRecipe recipe) {

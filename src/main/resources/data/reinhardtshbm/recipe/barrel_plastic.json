@@ -8,7 +8,7 @@
                 ],
     "key":  {
                 "I":  {
-                          "item":  "reinhardtshbm:plate_polymer"
+                          "tag":  "c:plates/polymer"
                       },
                 "P":  {
                           "tag":  "c:plates/aluminium"

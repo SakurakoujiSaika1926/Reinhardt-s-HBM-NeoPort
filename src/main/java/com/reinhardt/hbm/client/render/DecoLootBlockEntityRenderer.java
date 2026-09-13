@@ -1,24 +1,43 @@
 package com.reinhardt.hbm.client.render;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.blockentity.DecoLootBlockEntity;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.model.data.ModelData;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Direct port of the 1.7.10 RenderLoot special-item branches. */
 public final class DecoLootBlockEntityRenderer implements BlockEntityRenderer<DecoLootBlockEntity> {
     private static final BlockState MODEL_STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final RandomSource ITEM_RANDOM = RandomSource.create();
+    private static final float LEGACY_ITEM_THICKNESS = 0.0625F;
+    private static final Set<String> RENDER_WARNINGS = ConcurrentHashMap.newKeySet();
 
     private static final ModelResourceLocation MINI_NUKE = model("loot_mini_nuke");
 
@@ -73,30 +92,49 @@ public final class DecoLootBlockEntityRenderer implements BlockEntityRenderer<De
         for (DecoLootBlockEntity.LootEntry entry : loot.items()) {
             ItemStack stack = entry.stack();
             poseStack.pushPose();
-            poseStack.translate(entry.x(), entry.y(), entry.z());
-            if (isMiniNuke(stack)) {
-                renderMiniNuke(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.NCRPA_HELMET.get())) {
-                renderNcrpaHelmet(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.NCRPA_PLATE.get())) {
-                renderNcrpaPlate(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.NCRPA_LEGS.get())) {
-                renderNcrpaLegs(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.NCRPA_BOOTS.get())) {
-                renderNcrpaBoots(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.TRENCHMASTER_HELMET.get())) {
-                renderTrenchmasterHelmet(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.TRENCHMASTER_PLATE.get())) {
-                renderTrenchmasterPlate(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.TRENCHMASTER_LEGS.get())) {
-                renderTrenchmasterLegs(poseStack, bufferSource, packedLight, packedOverlay);
-            } else if (stack.is(HbmItems.TRENCHMASTER_BOOTS.get())) {
-                renderTrenchmasterBoots(poseStack, bufferSource, packedLight, packedOverlay);
-            } else {
-                renderStandardItem(loot, stack, poseStack, bufferSource, packedLight, packedOverlay);
+            try {
+                poseStack.translate(entry.x(), entry.y(), entry.z());
+                if (isMiniNuke(stack)) {
+                    renderMiniNuke(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.NCRPA_HELMET.get())) {
+                    renderNcrpaHelmet(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.NCRPA_PLATE.get())) {
+                    renderNcrpaPlate(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.NCRPA_LEGS.get())) {
+                    renderNcrpaLegs(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.NCRPA_BOOTS.get())) {
+                    renderNcrpaBoots(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.TRENCHMASTER_HELMET.get())) {
+                    renderTrenchmasterHelmet(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.TRENCHMASTER_PLATE.get())) {
+                    renderTrenchmasterPlate(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.TRENCHMASTER_LEGS.get())) {
+                    renderTrenchmasterLegs(poseStack, bufferSource, packedLight, packedOverlay);
+                } else if (stack.is(HbmItems.TRENCHMASTER_BOOTS.get())) {
+                    renderTrenchmasterBoots(poseStack, bufferSource, packedLight, packedOverlay);
+                } else {
+                    renderStandardItem(loot, stack, poseStack, bufferSource, packedLight, packedOverlay);
+                }
+            } catch (RuntimeException exception) {
+                // A loot pile must never take down the render thread because an external item
+                // supplies a custom/broken model.  Keep rendering the remaining pile entries.
+                String warningKey = stack.getItem().toString();
+                if (RENDER_WARNINGS.add(warningKey)) {
+                    ReinhardtsHBM.LOGGER.warn("Skipping loot pile item {} after a rendering failure", stack,
+                            exception);
+                }
+            } finally {
+                poseStack.popPose();
             }
-            poseStack.popPose();
         }
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(DecoLootBlockEntity loot) {
+        BlockPos pos = loot.getBlockPos();
+        return new AABB(
+                pos.getX() - 1.0D, pos.getY(), pos.getZ() - 1.0D,
+                pos.getX() + 2.0D, pos.getY() + 3.0D, pos.getZ() + 2.0D);
     }
 
     private static boolean isMiniNuke(ItemStack stack) {
@@ -110,11 +148,199 @@ public final class DecoLootBlockEntityRenderer implements BlockEntityRenderer<De
 
     private static void renderStandardItem(DecoLootBlockEntity loot, ItemStack stack, PoseStack poseStack,
                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        poseStack.translate(0.25F, 0.0F, 0.25F);
-        poseStack.scale(0.5F, 0.5F, 0.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED,
-                packedLight, packedOverlay, poseStack, bufferSource, loot.getLevel(), 0);
+        Minecraft minecraft = Minecraft.getInstance();
+        ItemRenderer itemRenderer = minecraft.getItemRenderer();
+        BakedModel resolvedModel = itemRenderer.getModel(stack, loot.getLevel(), null, 0);
+
+        // Keep the hand-built 1.7.10 card geometry for normal 2D icons.
+        // It is important that the fallback is rendered from a clean pose: applying the
+        // legacy card rotation to a 3D/custom item produces invalid transforms in several
+        // third-party renderers (TACZ is one example).
+        boolean renderedLegacy = false;
+        poseStack.pushPose();
+        try {
+            poseStack.translate(0.25F, 0.0F, 0.25F);
+            poseStack.scale(0.5F, 0.5F, 0.5F);
+            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            try {
+                renderedLegacy = renderLegacyItemIn2D(loot, stack, resolvedModel, poseStack,
+                        bufferSource, packedLight, packedOverlay);
+            } catch (RuntimeException ignoredLegacyFailure) {
+                // A malformed/custom icon is treated as a missing legacy layer.  The clean
+                // ItemRenderer path below is still able to render most 3D and built-in items.
+            }
+        } finally {
+            poseStack.popPose();
+        }
+
+        if (!renderedLegacy) {
+            poseStack.pushPose();
+            try {
+                poseStack.translate(0.5F, 0.0625F, 0.5F);
+                itemRenderer.renderStatic(stack,
+                        resolvedModel.isGui3d() ? ItemDisplayContext.GROUND : ItemDisplayContext.FIXED,
+                        packedLight, packedOverlay, poseStack, bufferSource, loot.getLevel(), 0);
+            } finally {
+                poseStack.popPose();
+            }
+        }
+    }
+
+    /**
+     * Direct equivalent of the 1.7.10 RenderLoot call to ItemRenderer.renderItemIn2D.
+     * Deliberately bypasses every modern ItemDisplayContext transform and its model-centering translation.
+     */
+    private static boolean renderLegacyItemIn2D(DecoLootBlockEntity loot, ItemStack stack, BakedModel resolvedModel,
+                                                PoseStack poseStack, MultiBufferSource bufferSource,
+                                                int packedLight, int packedOverlay) {
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean renderedAnyLayer = false;
+
+        for (BakedModel pass : resolvedModel.getRenderPasses(stack, true)) {
+            for (RenderType renderType : pass.getRenderTypes(stack, true)) {
+                Set<LegacyItemLayer> layers = legacyItemLayers(pass, renderType);
+                if (layers.isEmpty()) {
+                    continue;
+                }
+                renderedAnyLayer = true;
+
+                VertexConsumer consumer = ItemRenderer.getFoilBufferDirect(
+                        bufferSource, renderType, true, stack.hasFoil());
+                for (LegacyItemLayer layer : layers) {
+                    int color = layer.tintIndex() < 0
+                            ? 0xFFFFFFFF
+                            : minecraft.getItemColors().getColor(stack, layer.tintIndex());
+                    renderLegacyIcon(poseStack.last(), consumer, layer.sprite(), color,
+                            packedLight, packedOverlay);
+                }
+            }
+        }
+        return renderedAnyLayer;
+    }
+
+    private static Set<LegacyItemLayer> legacyItemLayers(BakedModel model, RenderType renderType) {
+        Set<LegacyItemLayer> layers = new LinkedHashSet<>();
+        collectLegacyItemLayers(model, null, renderType, layers);
+        for (Direction direction : Direction.values()) {
+            collectLegacyItemLayers(model, direction, renderType, layers);
+        }
+        return layers;
+    }
+
+    private static void collectLegacyItemLayers(BakedModel model, Direction side, RenderType renderType,
+                                                Set<LegacyItemLayer> layers) {
+        ITEM_RANDOM.setSeed(42L);
+        for (BakedQuad quad : model.getQuads(null, side, ITEM_RANDOM, ModelData.EMPTY, renderType)) {
+            if (quad.getDirection() == Direction.SOUTH) {
+                layers.add(new LegacyItemLayer(quad.getSprite(), quad.getTintIndex()));
+            }
+        }
+    }
+
+    private static void renderLegacyIcon(PoseStack.Pose pose, VertexConsumer consumer, TextureAtlasSprite sprite,
+                                         int color, int packedLight, int packedOverlay) {
+        float maxU = sprite.getU1();
+        float minV = sprite.getV0();
+        float minU = sprite.getU0();
+        float maxV = sprite.getV1();
+        int width = sprite.contents().width();
+        int height = sprite.contents().height();
+
+        // Front face: exact 1.7.10 renderItemIn2D vertex order and UV order.
+        legacyVertex(consumer, pose, 0.0F, 0.0F, 0.0F, maxU, maxV,
+                0.0F, 0.0F, 1.0F, color, packedLight, packedOverlay);
+        legacyVertex(consumer, pose, 1.0F, 0.0F, 0.0F, minU, maxV,
+                0.0F, 0.0F, 1.0F, color, packedLight, packedOverlay);
+        legacyVertex(consumer, pose, 1.0F, 1.0F, 0.0F, minU, minV,
+                0.0F, 0.0F, 1.0F, color, packedLight, packedOverlay);
+        legacyVertex(consumer, pose, 0.0F, 1.0F, 0.0F, maxU, minV,
+                0.0F, 0.0F, 1.0F, color, packedLight, packedOverlay);
+
+        // Back face.
+        legacyVertex(consumer, pose, 0.0F, 1.0F, -LEGACY_ITEM_THICKNESS, maxU, minV,
+                0.0F, 0.0F, -1.0F, color, packedLight, packedOverlay);
+        legacyVertex(consumer, pose, 1.0F, 1.0F, -LEGACY_ITEM_THICKNESS, minU, minV,
+                0.0F, 0.0F, -1.0F, color, packedLight, packedOverlay);
+        legacyVertex(consumer, pose, 1.0F, 0.0F, -LEGACY_ITEM_THICKNESS, minU, maxV,
+                0.0F, 0.0F, -1.0F, color, packedLight, packedOverlay);
+        legacyVertex(consumer, pose, 0.0F, 0.0F, -LEGACY_ITEM_THICKNESS, maxU, maxV,
+                0.0F, 0.0F, -1.0F, color, packedLight, packedOverlay);
+
+        float halfPixelU = 0.5F * (maxU - minU) / width;
+        float halfPixelV = 0.5F * (maxV - minV) / height;
+
+        // Left-facing pixel strips.
+        for (int pixel = 0; pixel < width; pixel++) {
+            float x = (float) pixel / width;
+            float u = maxU + (minU - maxU) * x - halfPixelU;
+            legacyVertex(consumer, pose, x, 0.0F, -LEGACY_ITEM_THICKNESS, u, maxV,
+                    -1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, x, 0.0F, 0.0F, u, maxV,
+                    -1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, x, 1.0F, 0.0F, u, minV,
+                    -1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, x, 1.0F, -LEGACY_ITEM_THICKNESS, u, minV,
+                    -1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+        }
+
+        // Right-facing pixel strips.
+        for (int pixel = 0; pixel < width; pixel++) {
+            float fraction = (float) pixel / width;
+            float u = maxU + (minU - maxU) * fraction - halfPixelU;
+            float x = fraction + 1.0F / width;
+            legacyVertex(consumer, pose, x, 1.0F, -LEGACY_ITEM_THICKNESS, u, minV,
+                    1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, x, 1.0F, 0.0F, u, minV,
+                    1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, x, 0.0F, 0.0F, u, maxV,
+                    1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, x, 0.0F, -LEGACY_ITEM_THICKNESS, u, maxV,
+                    1.0F, 0.0F, 0.0F, color, packedLight, packedOverlay);
+        }
+
+        // Up-facing pixel strips.
+        for (int pixel = 0; pixel < height; pixel++) {
+            float fraction = (float) pixel / height;
+            float v = maxV + (minV - maxV) * fraction - halfPixelV;
+            float y = fraction + 1.0F / height;
+            legacyVertex(consumer, pose, 0.0F, y, 0.0F, maxU, v,
+                    0.0F, 1.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, 1.0F, y, 0.0F, minU, v,
+                    0.0F, 1.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, 1.0F, y, -LEGACY_ITEM_THICKNESS, minU, v,
+                    0.0F, 1.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, 0.0F, y, -LEGACY_ITEM_THICKNESS, maxU, v,
+                    0.0F, 1.0F, 0.0F, color, packedLight, packedOverlay);
+        }
+
+        // Down-facing pixel strips.
+        for (int pixel = 0; pixel < height; pixel++) {
+            float y = (float) pixel / height;
+            float v = maxV + (minV - maxV) * y - halfPixelV;
+            legacyVertex(consumer, pose, 1.0F, y, 0.0F, minU, v,
+                    0.0F, -1.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, 0.0F, y, 0.0F, maxU, v,
+                    0.0F, -1.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, 0.0F, y, -LEGACY_ITEM_THICKNESS, maxU, v,
+                    0.0F, -1.0F, 0.0F, color, packedLight, packedOverlay);
+            legacyVertex(consumer, pose, 1.0F, y, -LEGACY_ITEM_THICKNESS, minU, v,
+                    0.0F, -1.0F, 0.0F, color, packedLight, packedOverlay);
+        }
+    }
+
+    private static void legacyVertex(VertexConsumer consumer, PoseStack.Pose pose,
+                                     float x, float y, float z, float u, float v,
+                                     float normalX, float normalY, float normalZ,
+                                     int color, int packedLight, int packedOverlay) {
+        consumer.addVertex(pose, x, y, z)
+                .setColor((color >>> 16) & 0xFF, (color >>> 8) & 0xFF, color & 0xFF, 0xFF)
+                .setUv(u, v)
+                .setOverlay(packedOverlay)
+                .setLight(packedLight)
+                .setNormal(pose, normalX, normalY, normalZ);
+    }
+
+    private record LegacyItemLayer(TextureAtlasSprite sprite, int tintIndex) {
     }
 
     private static void renderMiniNuke(PoseStack poseStack, MultiBufferSource bufferSource,

@@ -197,7 +197,7 @@ public class StorageCrateUpgradeRecipe extends CustomRecipe {
                 }
                 case DESH -> {
                     ingredients.add(Ingredient.of(HbmBlocks.CRATE_STEEL.asItem()));
-                    ingredients.add(Ingredient.of(item("plate_desh")));
+                    ingredients.add(Ingredient.of(tag("c:plates/desh")));
                 }
                 case TUNGSTEN -> {
                     ingredients.add(Ingredient.of(HbmBlocks.CRATE_STEEL.asItem()));
@@ -251,7 +251,7 @@ public class StorageCrateUpgradeRecipe extends CustomRecipe {
         }
 
         private static boolean isDeshPlate(CraftingInput input, int x, int y) {
-            return is(input, x, y, item("plate_desh"));
+            return isPlate(input, x, y, "desh");
         }
 
         private static boolean isPlate(CraftingInput input, int x, int y, String material) {

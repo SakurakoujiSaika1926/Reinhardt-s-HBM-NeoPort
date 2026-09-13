@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" C ","RPY"," B "],"key":{"B":{"tag":"c:dusts/lapis"},"C":{"tag":"c:dusts/coal"},"R":{"tag":"c:dusts/red_copper"},"Y":{"tag":"c:dusts/gold"},"P":{"item":"minecraft:paper"}},"result":{"id":"reinhardtshbm:polaroid"}}

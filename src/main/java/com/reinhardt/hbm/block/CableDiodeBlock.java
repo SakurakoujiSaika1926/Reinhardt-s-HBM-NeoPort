@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Mirror;
@@ -67,6 +68,26 @@ public final class CableDiodeBlock extends Block implements EntityBlock {
     protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
                                      LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         return state.setValue(propertyFor(direction), canConnectTo(level, pos, direction));
+    }
+
+    /**
+     * Refresh the diode's rendered connection mask when a capability-backed
+     * neighbour is created or removed after the initial shape update.
+     */
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos,
+                                   Block neighborBlock, BlockPos neighborPos,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        refreshConnections(level, pos);
+    }
+
+    /** Refresh when a neighbour block entity appears/disappears in place. */
+    @Override
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighborPos) {
+        if (level instanceof Level actual) {
+            refreshConnections(actual, pos);
+        }
     }
 
     @Override

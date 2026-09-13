@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:root",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:injector_knife"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.some_wounds.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.some_wounds.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

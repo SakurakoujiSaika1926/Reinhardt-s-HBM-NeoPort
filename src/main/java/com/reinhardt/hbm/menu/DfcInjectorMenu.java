@@ -140,7 +140,7 @@ public class DfcInjectorMenu extends AbstractContainerMenu {
         }
     }
 
-    private static class OutputSlot extends Slot {
+    private static class OutputSlot extends LegacyAchievementOutputSlot {
         private OutputSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }

@@ -79,6 +79,7 @@ public final class LegacyConserveItem extends Item {
         }
         if (!level.isClientSide) {
             Variant variant = variant(stack);
+            stack.shrink(1);
             player.getFoodData().eat(variant.nutrition, variant.saturation);
             give(player, keyStack());
             switch (variant) {
@@ -92,7 +93,6 @@ public final class LegacyConserveItem extends Item {
                 default -> {
                 }
             }
-            stack.shrink(1);
         }
         return stack;
     }

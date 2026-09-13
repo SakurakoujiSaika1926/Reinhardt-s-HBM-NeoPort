@@ -1,0 +1,12 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/launcher_port/missile_micro.obj",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "reinhardtshbm:models/missile/missile_micro",
+    "texture": "reinhardtshbm:models/missile/missile_micro"
+  }
+}

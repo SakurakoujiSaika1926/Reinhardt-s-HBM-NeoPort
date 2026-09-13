@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
 
-public record PlayerInformPayload(int line, String message, List<String> args, int color, int lifetimeMillis) implements CustomPacketPayload {
+public record PlayerInformPayload(int line, String message, List<String> args, boolean translated, int color, int lifetimeMillis) implements CustomPacketPayload {
     public static final Type<PlayerInformPayload> TYPE = new Type<>(ReinhardtsHBM.id("player_inform"));
     public static final StreamCodec<RegistryFriendlyByteBuf, PlayerInformPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,
@@ -20,6 +20,8 @@ public record PlayerInformPayload(int line, String message, List<String> args, i
             PlayerInformPayload::message,
             stringListCodec(),
             PlayerInformPayload::args,
+            ByteBufCodecs.BOOL,
+            PlayerInformPayload::translated,
             ByteBufCodecs.VAR_INT,
             PlayerInformPayload::color,
             ByteBufCodecs.VAR_INT,
@@ -28,11 +30,15 @@ public record PlayerInformPayload(int line, String message, List<String> args, i
     );
 
     public PlayerInformPayload(int line, String message, int color, int lifetimeMillis) {
-        this(line, message, List.of(), color, lifetimeMillis);
+        this(line, message, List.of(), false, color, lifetimeMillis);
+    }
+
+    public PlayerInformPayload(int line, String message, List<String> args, int color, int lifetimeMillis) {
+        this(line, message, args, false, color, lifetimeMillis);
     }
 
     public static PlayerInformPayload translated(int line, String translationKey, int color, int lifetimeMillis, Object... args) {
-        return new PlayerInformPayload(line, translationKey, stringify(args), color, lifetimeMillis);
+        return new PlayerInformPayload(line, translationKey, stringify(args), true, color, lifetimeMillis);
     }
 
     private static List<String> stringify(Object[] args) {

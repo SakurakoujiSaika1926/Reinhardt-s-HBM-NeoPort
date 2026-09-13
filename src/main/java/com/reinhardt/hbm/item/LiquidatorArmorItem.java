@@ -56,7 +56,7 @@ public final class LiquidatorArmorItem extends ArmorFSBItem implements Filterabl
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         if (this.filterHelmet) {
-            ItemStack filter = GasMaskItem.getInstalledFilter(stack, context.registries());
+            ItemStack filter = GasMaskItem.getInstalledFilterForTooltip(stack);
             if (filter.isEmpty()) {
                 tooltip.add(Component.translatable("tooltip.reinhardtshbm.gas_mask.no_filter").withStyle(ChatFormatting.RED));
             } else {

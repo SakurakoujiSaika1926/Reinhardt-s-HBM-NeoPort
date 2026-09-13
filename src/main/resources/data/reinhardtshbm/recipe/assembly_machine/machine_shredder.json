@@ -6,13 +6,13 @@
     "ingredients":  [
                         {
                             "ingredient":  {
-                                               "item":  "reinhardtshbm:plate_steel"
+                                               "tag":  "c:plates/steel"
                                            },
                             "count":  8
                         },
                         {
                             "ingredient":  {
-                                               "item":  "reinhardtshbm:plate_copper"
+                                               "tag":  "c:plates/copper"
                                            },
                             "count":  4
                         },

@@ -31,7 +31,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +61,11 @@ public class HbmHeavyDoorBlock extends Block implements EntityBlock {
         if (context instanceof PrecomputedDoorPlacement precomputed) {
             return this.defaultBlockState().setValue(FACING, precomputed.hbmDoorFacing());
         }
-        Direction facing = context.getHorizontalDirection();
+        // BlockDummyable 1.7.10 stores the direction opposite the player's
+        // facing (the multiblock extends toward the player).  Keep that exact
+        // metadata/OBJ basis; using the raw placement direction rotates and
+        // displaces every heavy-door model by 180 degrees.
+        Direction facing = context.getHorizontalDirection().getOpposite();
         BlockPos corePos = corePosForClicked(context.getClickedPos(), facing, this.decl);
         if (!canPlaceAt(context.getLevel(), corePos, facing, this.decl, context)) {
             return null;
@@ -142,6 +148,32 @@ public class HbmHeavyDoorBlock extends Block implements EntityBlock {
         };
     }
 
+    /**
+     * Converts a dummy's world-relative position into the coordinate basis
+     * consumed by the legacy DoorDecl#getBlockBound implementation.
+     *
+     * <p>The 1.7.10 code did not pass the footprint coordinate directly. It
+     * applied {@code Rotation.getBlockRotation(dir).add(COUNTERCLOCKWISE_90)}
+     * before selecting the open-door AABB. This extra quarter-turn is
+     * intentionally different from the footprint transform and from the
+     * opening-range transform above.</p>
+     */
+    public static BlockPos legacyCollisionLocalOffset(BlockPos worldRelative, Direction facing) {
+        return switch (facing) {
+            // Rotation.COUNTERCLOCKWISE_90: (x, z) -> (z, -x)
+            case NORTH -> new BlockPos(
+                    worldRelative.getZ(), worldRelative.getY(), -worldRelative.getX());
+            // Rotation.CLOCKWISE_90: (x, z) -> (-z, x)
+            case SOUTH -> new BlockPos(
+                    -worldRelative.getZ(), worldRelative.getY(), worldRelative.getX());
+            // Rotation.CLOCKWISE_180: (x, z) -> (-x, -z)
+            case EAST -> new BlockPos(
+                    -worldRelative.getX(), worldRelative.getY(), -worldRelative.getZ());
+            // Rotation.NONE
+            case WEST, UP, DOWN -> worldRelative;
+        };
+    }
+
     public static boolean hasNeighborSignalAnywhere(Level level, BlockPos corePos, HbmHeavyDoorBlock doorBlock, Direction facing) {
         if (level.hasNeighborSignal(corePos)) {
             return true;
@@ -213,20 +245,57 @@ public class HbmHeavyDoorBlock extends Block implements EntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapeAt(level, pos, false);
+        return shapeAt(state, level, pos, false);
     }
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapeAt(level, pos, true);
+        return shapeAt(state, level, pos, true);
     }
 
-    VoxelShape shapeAt(BlockGetter level, BlockPos pos, boolean collision) {
-        boolean open = false;
-        if (level.getBlockEntity(pos) instanceof HbmHeavyDoorBlockEntity door) {
-            open = door.isOpenForCollision();
+    VoxelShape shapeAt(BlockState state, BlockGetter level, BlockPos pos, boolean collision) {
+        if (!(level.getBlockEntity(pos) instanceof HbmHeavyDoorBlockEntity door)) {
+            // A client can receive the block state one packet before its
+            // block entity.  Returning a full cube here makes the camera
+            // enter an apparently open door and triggers the inside-block
+            // blackout.  The server keeps the legacy closed-door fallback;
+            // the client remains passable until the authoritative BE arrives.
+            if (level instanceof Level runtimeLevel && runtimeLevel.isClientSide) {
+                return Shapes.empty();
+            }
+            return orientLegacyShape(this.decl.localShape(0, 0, 0, false, collision),
+                    state.getValue(FACING));
         }
-        return this.decl.localShape(0, 0, 0, open, collision);
+        boolean open = door.isOpenForCollision();
+        VoxelShape localShape = this.decl.localShape(0, 0, 0, open, collision);
+        return orientLegacyShape(localShape, state.getValue(FACING));
+    }
+
+    /**
+     * Applies the exact per-facing AABB mapping used by the 1.7.10
+     * BlockDoorGeneric#getBoundingBox switch.  This is intentionally an
+     * explicit four-way mapping: the legacy code mirrors or swaps the local
+     * box differently for each metadata direction.
+     */
+    public static VoxelShape orientLegacyShape(VoxelShape localShape, Direction facing) {
+        if (localShape.isEmpty()) {
+            return Shapes.empty();
+        }
+        AABB box = localShape.bounds();
+        return switch (facing) {
+            case NORTH -> Shapes.box(
+                    1.0D - box.maxX, box.minY, 1.0D - box.maxZ,
+                    1.0D - box.minX, box.maxY, 1.0D - box.minZ);
+            case WEST -> Shapes.box(
+                    1.0D - box.maxZ, box.minY, box.minX,
+                    1.0D - box.minZ, box.maxY, box.maxX);
+            case EAST -> Shapes.box(
+                    box.minZ, box.minY, 1.0D - box.maxX,
+                    box.maxZ, box.maxY, 1.0D - box.minX);
+            default -> Shapes.box(
+                    box.minX, box.minY, box.minZ,
+                    box.maxX, box.maxY, box.maxZ);
+        };
     }
 
     @Override
@@ -240,25 +309,23 @@ public class HbmHeavyDoorBlock extends Block implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide) {
-            removeParts(level, pos);
+            removeParts(level, pos, state);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    static void removeParts(Level level, BlockPos corePos) {
+    static void removeParts(Level level, BlockPos corePos, BlockState oldCoreState) {
+        if (!(oldCoreState.getBlock() instanceof HbmHeavyDoorBlock doorBlock)) {
+            return;
+        }
+        Direction facing = oldCoreState.getValue(FACING);
         HbmHeavyDoorPartBlock.runWithoutCoreDestroy(() -> {
-            for (Direction facing : Direction.Plane.HORIZONTAL) {
-                BlockState coreState = level.getBlockState(corePos);
-                if (!(coreState.getBlock() instanceof HbmHeavyDoorBlock doorBlock)) {
-                    continue;
-                }
-                for (BlockPos partPos : worldOffsets(doorBlock.decl(), facing, corePos).keySet()) {
-                    if (!partPos.equals(corePos)
-                            && level.getBlockState(partPos).is(HbmBlocks.HEAVY_DOOR_PART.get())
-                            && level.getBlockEntity(partPos) instanceof HbmHeavyDoorPartBlockEntity part
-                            && part.corePos().equals(corePos)) {
-                        level.removeBlock(partPos, false);
-                    }
+            for (BlockPos partPos : worldOffsets(doorBlock.decl(), facing, corePos).keySet()) {
+                if (!partPos.equals(corePos)
+                        && level.getBlockState(partPos).is(HbmBlocks.HEAVY_DOOR_PART.get())
+                        && level.getBlockEntity(partPos) instanceof HbmHeavyDoorPartBlockEntity part
+                        && part.corePos().equals(corePos)) {
+                    level.removeBlock(partPos, false);
                 }
             }
         });

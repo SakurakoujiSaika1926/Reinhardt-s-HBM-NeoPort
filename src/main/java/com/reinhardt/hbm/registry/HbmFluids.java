@@ -183,10 +183,14 @@ public final class HbmFluids {
 
     private static void loadDefinitions() {
         for (HbmFluidDefinition definition : HbmFluidDefinitions.all()) {
+            if (BY_OLD_ID.putIfAbsent(definition.oldId(), definition) != null) {
+                throw new IllegalStateException("Duplicate legacy fluid old id: " + definition.oldId());
+            }
+            if (BY_NAME.putIfAbsent(definition.name(), definition) != null) {
+                throw new IllegalStateException("Duplicate legacy fluid name: " + definition.name());
+            }
             DEFINITIONS.add(definition);
             NICE_ORDER.add(definition);
-            BY_OLD_ID.put(definition.oldId(), definition);
-            BY_NAME.put(definition.name(), definition);
         }
 
         HbmFluidDefinition water = BY_NAME.get("water");

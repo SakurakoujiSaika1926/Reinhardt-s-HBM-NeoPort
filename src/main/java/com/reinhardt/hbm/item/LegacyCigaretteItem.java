@@ -1,7 +1,9 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.radiation.HbmLivingHazards;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -10,6 +12,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -53,6 +56,9 @@ public class LegacyCigaretteItem extends Item {
                 HbmLivingRadiation radiation = HbmLivingRadiation.get(player);
                 radiation.addRadiation(100.0F);
                 HbmLivingRadiation.set(player, radiation);
+                if (player.getItemBySlot(EquipmentSlot.HEAD).is(HbmItems.NO9.get())) {
+                    HbmAdvancements.award(player, "no9");
+                }
             }
             level.playSound(null, player.getX(), player.getY(), player.getZ(), HbmSoundEvents.PLAYER_COUGH.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }

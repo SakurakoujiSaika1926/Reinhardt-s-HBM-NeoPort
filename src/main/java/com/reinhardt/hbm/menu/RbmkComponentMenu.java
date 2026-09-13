@@ -104,6 +104,13 @@ public class RbmkComponentMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        // ContainerRBMKControl and ContainerRBMKControlAuto in 1.7.10 had
+        // no machine slots and deliberately returned null from
+        // transferStackInSlot; shift-clicking therefore did not move items
+        // between the player's inventory and hotbar.
+        if (kind.isControl()) {
+            return ItemStack.EMPTY;
+        }
         ItemStack moved = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if (!slot.hasItem()) {
@@ -151,6 +158,15 @@ public class RbmkComponentMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
+        // The legacy control containers deliberately overrode
+        // canInteractWith to return true, so their GUI stayed open regardless
+        // of player distance.  The legacy console exposed a GuiScreen (its
+        // provideContainer returned null), which likewise had no container
+        // distance check.  Keep those two menu-backed modern screens from
+        // applying the generic 8-block AbstractContainerMenu rule.
+        if (kind.isControl() || kind == RbmkComponentBlock.Kind.CONSOLE) {
+            return true;
+        }
         return container.stillValid(player);
     }
 
@@ -158,18 +174,6 @@ public class RbmkComponentMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(Player player, int id) {
         if (!(container instanceof RbmkComponentBlockEntity rbmk)) {
             return false;
-        }
-        if (id == 0 && rbmk.kind().isControl()) {
-            data.set(3, 0);
-            return true;
-        }
-        if (id == 1 && rbmk.kind().isControl()) {
-            data.set(3, 500);
-            return true;
-        }
-        if (id == 2 && rbmk.kind().isControl()) {
-            data.set(3, 1000);
-            return true;
         }
         if (id == 3 && rbmk.kind() == RbmkComponentBlock.Kind.BOILER) {
             data.set(6, (data.get(6) + 1) & 3);
@@ -297,7 +301,7 @@ public class RbmkComponentMenu extends AbstractContainerMenu {
         }
     }
 
-    private static final class OutputSlot extends Slot {
+    private static final class OutputSlot extends LegacyAchievementOutputSlot {
         private OutputSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }

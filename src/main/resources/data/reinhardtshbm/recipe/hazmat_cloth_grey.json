@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" P ", "ICI", " L "],
+  "key": {
+    "P": { "tag": "c:plates/iron" },
+    "I": { "tag": "c:ingots/rubber" },
+    "C": { "item": "reinhardtshbm:hazmat_cloth_red" },
+    "L": { "tag": "c:plates/lead" }
+  },
+  "result": { "id": "reinhardtshbm:hazmat_cloth_grey" }
+}

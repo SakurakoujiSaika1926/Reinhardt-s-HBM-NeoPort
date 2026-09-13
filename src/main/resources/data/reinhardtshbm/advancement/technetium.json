@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:centrifuge",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:ingot_tcalloy"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.technetium.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.technetium.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

@@ -3,6 +3,12 @@
     {
       "type": "neoforge:namespaced_directory",
       "namespace": "reinhardtshbm",
+      "source": "models",
+      "prefix": "models/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
       "source": "block/forgefluid",
       "prefix": "block/forgefluid/"
     },
@@ -53,6 +59,18 @@
       "namespace": "reinhardtshbm",
       "source": "models/armor",
       "prefix": "models/armor/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/trinkets",
+      "prefix": "models/trinkets/"
+    },
+    {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/horse",
+      "prefix": "models/horse/"
     },
     {
       "type": "neoforge:namespaced_directory",
@@ -143,6 +161,12 @@
       "prefix": "models/missile_parts/"
     },
     {
+      "type": "neoforge:namespaced_directory",
+      "namespace": "reinhardtshbm",
+      "source": "models/missile",
+      "prefix": "models/missile/"
+    },
+    {
       "type": "single",
       "resource": "reinhardtshbm:models/boxcar"
     },
@@ -215,6 +239,30 @@
     {
       "type": "single",
       "resource": "reinhardtshbm:entity/glyphid"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/maskman"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/iou"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/quadcopter"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/plasticbag"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/teslacrab"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/taintcrab"
     }
   ]
 }

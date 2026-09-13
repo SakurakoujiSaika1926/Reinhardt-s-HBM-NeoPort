@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:desh",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:missile_soyuz"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.space.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.space.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

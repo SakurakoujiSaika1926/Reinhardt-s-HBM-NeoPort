@@ -1,0 +1,45 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpt15kerotriple",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/tungsten"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_thruster_15_kerosene_triple",
+    "count": 1
+  }
+}

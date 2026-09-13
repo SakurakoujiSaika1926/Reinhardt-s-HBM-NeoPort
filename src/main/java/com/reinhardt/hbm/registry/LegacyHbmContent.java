@@ -782,6 +782,7 @@ public final class LegacyHbmContent {
         }
 
         List<String> ids = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -795,6 +796,9 @@ public final class LegacyHbmContent {
                 if (!isValidPath(id)) {
                     ReinhardtsHBM.LOGGER.warn("Skipping invalid legacy HBM id '{}'", id);
                     continue;
+                }
+                if (!seen.add(id)) {
+                    throw new IllegalStateException("Duplicate legacy HBM id '" + id + "' in " + path);
                 }
                 ids.add(id);
             }

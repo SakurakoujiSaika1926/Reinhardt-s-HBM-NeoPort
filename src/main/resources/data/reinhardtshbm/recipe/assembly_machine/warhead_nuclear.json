@@ -1,0 +1,63 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadnuke",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2200,
+            "material": "titanium"
+          }
+        }
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_u235"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:cordite"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_nuclear",
+    "count": 1
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadhe1",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/titanium"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ball_dynamite"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_generic_small",
+    "count": 1
+  }
+}

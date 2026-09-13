@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:root",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:geiger_counter"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.rad_poison.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.rad_poison.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

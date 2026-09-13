@@ -1,0 +1,26 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:raw_materials/lead"
+                   },
+    "input_count":  4,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_lead",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_lead",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_gold",
+                        "count":  3
+                    },
+                    {
+                        "id":  "minecraft:gravel",
+                        "count":  4
+                    }
+                ]
+}

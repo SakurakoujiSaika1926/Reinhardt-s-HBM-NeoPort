@@ -1,7 +1,7 @@
 {
-  "neoforge:conditions": [
-    { "type": "reinhardtshbm:enable_528_mode" }
-  ],
+  "neoforge:conditions": {
+    "type": "reinhardtshbm:enable_528_mode"
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.vaccumrefinery",
   "duration": 200,
@@ -10,27 +10,63 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "bronze_tubes" } }
+        "items": "reinhardtshbm:item_expensive",
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "bronze_tubes"
+          }
+        }
       },
       "count": 2
     },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "ferro_plating" } }
+        "items": "reinhardtshbm:item_expensive",
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "ferro_plating"
+          }
+        }
       },
       "count": 2
     },
-    { "ingredient": { "tag": "c:pipes/dura_steel" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 3 },
-    { "ingredient": { "item": "reinhardtshbm:circuit_chip_bismoid" }, "count": 16 },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "computer" } }
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 33,
+            "material": "dura_steel"
+          }
+        }
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_bismoid"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:item_expensive",
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "computer"
+          }
+        }
       },
       "count": 1
     }

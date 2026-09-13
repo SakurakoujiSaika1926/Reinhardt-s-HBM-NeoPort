@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"equipment",
+  "pattern":["EEE","E E","E E"],
+  "key":{"E":{"tag":"c:ingots/zirconium"}},
+  "result":{"id":"reinhardtshbm:zirconium_legs"}
+}

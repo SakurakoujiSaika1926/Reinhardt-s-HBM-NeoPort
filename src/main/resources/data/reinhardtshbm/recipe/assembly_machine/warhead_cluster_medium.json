@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadcl2",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:warhead_generic_medium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:pellet_cluster"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_cluster_medium",
+    "count": 1
+  }
+}

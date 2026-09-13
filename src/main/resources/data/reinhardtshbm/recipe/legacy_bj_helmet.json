@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SBS",
+    " C ",
+    " I "
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "B": {
+      "item": "minecraft:black_wool"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "I": {
+      "tag": "c:ingots/starmetal"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bj_helmet"
+  }
+}

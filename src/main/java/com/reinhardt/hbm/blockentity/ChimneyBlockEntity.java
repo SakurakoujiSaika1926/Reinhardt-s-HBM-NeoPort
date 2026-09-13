@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.block.FluidDuctBlock;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
@@ -47,6 +48,7 @@ public class ChimneyBlockEntity extends BlockEntity {
 
     public static void tick(Level level, BlockPos pos, BlockState state, ChimneyBlockEntity chimney) {
         if (!level.isClientSide && level.getGameTime() % 20L == 0L) {
+            chimney.refreshLegacyPortDucts(level);
             chimney.pullSmokeFromLegacyPorts(level);
         }
         if (chimney.onTicks > 0) {
@@ -62,9 +64,10 @@ public class ChimneyBlockEntity extends BlockEntity {
         }
     }
 
+    @Nullable
     public IFluidHandler fluidHandler(@Nullable Direction side) {
         // Legacy chimney ports are exposed through the outer dummy blocks, not the core block.
-        return EmptyFluidHandler.INSTANCE;
+        return null;
     }
 
     public boolean active() {
@@ -73,6 +76,25 @@ public class ChimneyBlockEntity extends BlockEntity {
 
     public boolean industrial() {
         return this.industrial;
+    }
+
+    public boolean canConnectLegacyExhaustPort(BlockPos queriedPos, @Nullable Direction side, HbmFluidDefinition fluid) {
+        return isAcceptedSmokeFluid(fluid) && allowsFluidPort(queriedPos, side);
+    }
+
+    private void refreshLegacyPortDucts(Level level) {
+        refreshLegacyPortDuct(level, Direction.EAST);
+        refreshLegacyPortDuct(level, Direction.WEST);
+        refreshLegacyPortDuct(level, Direction.SOUTH);
+        refreshLegacyPortDuct(level, Direction.NORTH);
+    }
+
+    private void refreshLegacyPortDuct(Level level, Direction portDirection) {
+        BlockPos pipePos = this.worldPosition.relative(portDirection, 2);
+        BlockState pipeState = level.getBlockState(pipePos);
+        if (pipeState.getBlock() instanceof FluidDuctBlock duct && duct.kind().isExhaust()) {
+            duct.refreshConnections(level, pipePos);
+        }
     }
 
     private void pullSmokeFromLegacyPorts(Level level) {
@@ -110,14 +132,24 @@ public class ChimneyBlockEntity extends BlockEntity {
             return false;
         }
         BlockPos diff = queriedPos.subtract(this.worldPosition);
-        // A pipe asks for the capability from the face of this outer dummy
-        // that faces back toward the pipe.  The legacy chimney accepts smoke
-        // through its four horizontal base dummies only.
+        // A pipe asks for the capability from the outward face of the outer
+        // dummy it is attached to. The legacy chimney accepts smoke through
+        // its four horizontal base dummies only.
         return diff.getY() == 0
-                && ((diff.getX() == 1 && diff.getZ() == 0 && side == Direction.WEST)
-                || (diff.getX() == -1 && diff.getZ() == 0 && side == Direction.EAST)
-                || (diff.getX() == 0 && diff.getZ() == 1 && side == Direction.NORTH)
-                || (diff.getX() == 0 && diff.getZ() == -1 && side == Direction.SOUTH));
+                && ((diff.getX() == 1 && diff.getZ() == 0 && side == Direction.EAST)
+                || (diff.getX() == -1 && diff.getZ() == 0 && side == Direction.WEST)
+                || (diff.getX() == 0 && diff.getZ() == 1 && side == Direction.SOUTH)
+                || (diff.getX() == 0 && diff.getZ() == -1 && side == Direction.NORTH));
+    }
+
+    private static boolean isAcceptedSmokeFluid(HbmFluidDefinition fluid) {
+        if (fluid == null) {
+            return false;
+        }
+        return switch (fluid.name()) {
+            case "smoke", "smoke_leaded", "smoke_poison" -> true;
+            default -> false;
+        };
     }
 
     @Override
@@ -243,42 +275,4 @@ public class ChimneyBlockEntity extends BlockEntity {
         };
     }
 
-    private enum EmptyFluidHandler implements IFluidHandler {
-        INSTANCE;
-
-        @Override
-        public int getTanks() {
-            return 0;
-        }
-
-        @Override
-        public FluidStack getFluidInTank(int tank) {
-            return FluidStack.EMPTY;
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
-            return 0;
-        }
-
-        @Override
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return false;
-        }
-
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            return 0;
-        }
-
-        @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            return FluidStack.EMPTY;
-        }
-
-        @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            return FluidStack.EMPTY;
-        }
-    }
 }

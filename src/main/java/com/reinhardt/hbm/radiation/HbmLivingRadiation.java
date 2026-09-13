@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public class HbmLivingRadiation {
     public static final float MAX_RADIATION = 2_500.0F;
     public static final float MAX_DIGAMMA = 10.0F;
+    private static final int SYNC_INTERVAL_TICKS = 5;
     private static final ResourceLocation DIGAMMA_HEALTH_MODIFIER = ReinhardtsHBM.id("digamma_health");
 
     public static final StreamCodec<RegistryFriendlyByteBuf, HbmLivingRadiation> STREAM_CODEC = StreamCodec.of(
@@ -42,10 +43,34 @@ public class HbmLivingRadiation {
     private float neutron;
     private float digamma;
     private boolean dirty;
+    private int syncCooldown;
     private float appliedDigamma = Float.NaN;
 
     public static HbmLivingRadiation get(LivingEntity entity) {
         return entity.getData(HbmDataAttachments.LIVING_RADIATION);
+    }
+
+    /**
+     * Clears all transient radiation state after a real death or a revive.
+     *
+     * The 1.7.10 implementation explicitly reset the accumulated radiation
+     * from its LivingDeathEvent.  Keeping the reset in one place is important
+     * here because the attachment also carries the environment buffer,
+     * neutron dose and digamma health modifier; leaving any of those behind
+     * can re-trigger a lethal check on a dead/revived player.
+     */
+    public static void clear(LivingEntity entity) {
+        HbmLivingRadiation data = entity.getExistingDataOrNull(HbmDataAttachments.LIVING_RADIATION);
+        if (data == null) {
+            return;
+        }
+        data.setRadiation(0.0F);
+        data.setEnvironmentRadiation(0.0F);
+        data.setRadiationBuffer(0.0F);
+        data.setChunkRadiation(0.0F);
+        data.setNeutron(0.0F);
+        data.setDigamma(0.0F);
+        set(entity, data);
     }
 
     public static void set(LivingEntity entity, HbmLivingRadiation data) {
@@ -53,9 +78,15 @@ public class HbmLivingRadiation {
         if (existing != data) {
             entity.setData(HbmDataAttachments.LIVING_RADIATION, data);
             data.dirty = false;
+            data.syncCooldown = SYNC_INTERVAL_TICKS;
         } else if (data.dirty) {
-            entity.syncData(HbmDataAttachments.LIVING_RADIATION);
-            data.dirty = false;
+            if (--data.syncCooldown <= 0) {
+                entity.syncData(HbmDataAttachments.LIVING_RADIATION);
+                data.dirty = false;
+                data.syncCooldown = SYNC_INTERVAL_TICKS;
+            }
+        } else if (data.syncCooldown > 0) {
+            data.syncCooldown--;
         }
         if (Float.compare(data.appliedDigamma, data.getDigamma()) != 0) {
             applyDigammaModifier(entity, data.getDigamma());

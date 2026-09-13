@@ -1,0 +1,15 @@
+{
+  "neoforge:conditions": [
+    { "type": "neoforge:mod_loaded", "modid": "create" }
+  ],
+  "type": "create:crushing",
+  "ingredients": [
+    { "tag": "c:ores/australium" }
+  ],
+  "processing_time": 300,
+  "results": [
+    { "id": "reinhardtshbm:powder_australium" },
+    { "chance": 0.5, "id": "reinhardtshbm:powder_australium" },
+    { "chance": 0.5, "id": "create:experience_nugget" }
+  ]
+}

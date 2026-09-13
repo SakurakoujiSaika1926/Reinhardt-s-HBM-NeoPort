@@ -1,6 +1,21 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/steel_beam"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/block",
+  "textures": {
+    "beam": "reinhardtshbm:block/steel_beam",
+    "particle": "#beam"
+  },
+  "elements": [
+    {
+      "from": [7, 0, 7],
+      "to": [9, 16, 9],
+      "faces": {
+        "down": { "uv": [2, 0, 4, 2], "texture": "#beam" },
+        "up": { "uv": [2, 0, 4, 2], "texture": "#beam" },
+        "north": { "uv": [0, 0, 2, 16], "texture": "#beam" },
+        "south": { "uv": [0, 0, 2, 16], "texture": "#beam" },
+        "west": { "uv": [0, 0, 2, 16], "texture": "#beam" },
+        "east": { "uv": [0, 0, 2, 16], "texture": "#beam" }
+      }
+    }
+  ]
 }

@@ -34,7 +34,7 @@ public class OilSandBubbleFeature extends Feature<NoneFeatureConfiguration> {
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
         Biome biome = level.getBiome(origin).value();
-        if (biome.hasPrecipitation() || biome.getBaseTemperature() < 1.8F) {
+        if (biome.hasPrecipitation() || biome.getBaseTemperature() < 1.5F) {
             return false;
         }
 

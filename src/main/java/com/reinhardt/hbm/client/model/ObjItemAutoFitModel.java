@@ -53,7 +53,14 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "machine_soldering_station", "machine_steam_engine", "machine_stirling",
             "machine_stirling_creative", "machine_stirling_steel", "machine_tower_large",
             "machine_tower_small", "machine_turbinegas", "machine_well", "machine_wood_burner",
-            "solar_mirror", "zirnox_destroyed"
+            "solar_mirror", "zirnox_destroyed",
+            // Every generic HBM door has its legacy ItemRenderLibrary transform
+            // encoded in the item model JSON. Do not fit these OBJ vertices again:
+            // that would apply a second scale/centering pass and corrupt the item pose.
+            "fire_door", "sliding_blast_door", "sliding_blast_door_2",
+            "sliding_gate_door", "qe_sliding_door", "qe_containment",
+            "sliding_seal_door", "secure_access_door", "round_airlock_door",
+            "large_vehicle_door", "vault_door", "water_door", "silo_hatch", "silo_hatch_large"
     );
 
     /* These items render their complete legacy OBJ assembly through BEWLR. */
@@ -62,7 +69,11 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "machine_missile_assembly", "machine_orbus", "machine_precass", "machine_pyrooven",
             "machine_radar", "machine_radar_large", "machine_radgen", "machine_radiolysis",
             "machine_rtg_grey", "machine_sawmill", "machine_turbofan", "machine_thresher", "machine_lpw2",
-            "pump_steam", "pump_electric", "machine_bat9000", "machine_bigasstank", "deco_toaster",
+            "pump_steam", "pump_electric", "machine_bat9000", "machine_bigasstank",
+            // These decorative items are rendered through their explicit
+            // legacy BEWLR paths; never run their inventory marker through
+            // the generic bounds auto-fit pass first.
+            "deco_toaster", "deco_crt",
             "transition_seal",
             "red_connector", "red_connector_super", "red_pylon_medium_wood",
             "red_pylon_medium_wood_transformer", "red_pylon_medium_steel", "red_pylon_medium_steel_transformer",
@@ -307,7 +318,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("sliding_blast_door")
                 || path.equals("sliding_blast_door_2")
                 || path.equals("sliding_gate_door")
-                || path.equals("qe_sliding")
+                || path.equals("qe_sliding_door")
                 || path.equals("qe_containment")
                 || path.equals("sliding_seal_door")
                 || path.equals("secure_access_door")
@@ -427,7 +438,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             case "dfc_core" -> 0.78F;
             case "chimney_brick" -> 0.95F;
             case "chimney_industrial" -> 1.03F;
-            case "sliding_gate_door", "qe_sliding", "sliding_seal_door" -> 1.05F;
+            case "sliding_gate_door", "qe_sliding_door", "sliding_seal_door" -> 1.05F;
             case "silo_hatch", "silo_hatch_large" -> 0.92F;
             case "large_vehicle_door" -> 1.08F;
             case "secure_access_door", "round_airlock_door", "vault_door", "water_door" -> 1.0F;

@@ -11,6 +11,10 @@
     "reinhardtshbm:microwave",
     "reinhardtshbm:death",
     "reinhardtshbm:cloud",
-    "reinhardtshbm:broadcast"
+    "reinhardtshbm:broadcast",
+    "reinhardtshbm:asbestos",
+    "reinhardtshbm:blacklung",
+    "reinhardtshbm:lead",
+    "reinhardtshbm:monoxide"
   ]
 }

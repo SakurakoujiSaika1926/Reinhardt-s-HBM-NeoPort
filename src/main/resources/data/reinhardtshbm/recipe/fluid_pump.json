@@ -1,38 +1,45 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    " S ",
-                    "PGP",
-                    "IMI"
-                ],
-    "key":  {
-                "S":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:shell"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      },
-                "P":  {
-                          "tag":  "c:pipes/steel"
-                      },
-                "G":  {
-                          "tag":  "c:ingots/graphite"
-                      },
-                "I":  {
-                          "tag":  "c:ingots/steel"
-                      },
-                "M":  {
-                          "item":  "reinhardtshbm:motor"
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:fluid_pump"
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    "PGP",
+    "IMI"
+  ],
+  "key": {
+    "S": {
+      "type": "neoforge:components",
+      "items": "reinhardtshbm:shell",
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "P": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "G": {
+      "tag": "c:ingots/graphite"
+    },
+    "I": {
+      "tag": "c:ingots/steel"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:fluid_pump"
+  }
 }

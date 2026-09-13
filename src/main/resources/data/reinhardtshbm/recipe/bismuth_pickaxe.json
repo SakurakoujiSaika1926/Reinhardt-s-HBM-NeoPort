@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" BM","BPB","TB "],"key":{"B":{"item":"reinhardtshbm:ingot_bismuth"},"M":{"item":"reinhardtshbm:ingot_meteorite"},"P":{"item":"reinhardtshbm:starmetal_pickaxe"},"T":{"item":"reinhardtshbm:bolt_tungsten"}},"result":{"id":"reinhardtshbm:bismuth_pickaxe"}}

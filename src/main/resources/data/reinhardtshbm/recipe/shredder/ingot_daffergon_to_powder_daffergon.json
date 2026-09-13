@@ -1,9 +1,0 @@
-﻿{
-    "type":  "reinhardtshbm:shredder",
-    "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_daffergon"
-                   },
-    "result":  {
-                   "id":  "reinhardtshbm:powder_daffergon"
-               }
-}

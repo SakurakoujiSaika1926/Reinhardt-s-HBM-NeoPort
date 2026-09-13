@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "R R",
+    "T T"
+  ],
+  "key": {
+    "T": {
+      "tag": "c:plates/titanium"
+    },
+    "R": {
+      "tag": "c:ingots/rubber"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:envsuit_boots"
+  }
+}

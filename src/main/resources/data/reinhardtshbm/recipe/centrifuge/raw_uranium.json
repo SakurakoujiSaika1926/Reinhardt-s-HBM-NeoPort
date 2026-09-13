@@ -1,0 +1,26 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:raw_materials/uranium"
+                   },
+    "input_count":  4,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_uranium",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_uranium",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_ra226",
+                        "count":  3
+                    },
+                    {
+                        "id":  "minecraft:gravel",
+                        "count":  4
+                    }
+                ]
+}

@@ -1,17 +1,14 @@
 package com.reinhardt.hbm.menu;
 
 import com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity;
-import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.registry.HbmMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,15 +23,13 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
     private final BlockPos blockPos;
-    private final boolean clientFallback;
 
     public SoyuzLauncherMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         this(containerId, playerInventory, menuContext(playerInventory, buffer));
     }
 
     private SoyuzLauncherMenu(int containerId, Inventory playerInventory, MenuContext context) {
-        this(containerId, playerInventory, context.container(), new SimpleContainerData(SoyuzLauncherBlockEntity.DATA_COUNT),
-                context.blockPos(), context.clientFallback());
+        this(containerId, playerInventory, context.container(), context.container().menuData(), context.blockPos());
     }
 
     public SoyuzLauncherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data) {
@@ -42,28 +37,22 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
     }
 
     private SoyuzLauncherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data, BlockPos blockPos) {
-        this(containerId, playerInventory, container, data, blockPos, false);
-    }
-
-    private SoyuzLauncherMenu(int containerId, Inventory playerInventory, Container container, ContainerData data,
-                              BlockPos blockPos, boolean clientFallback) {
         super(HbmMenus.SOYUZ_LAUNCHER.get(), containerId);
         checkContainerSize(container, MACHINE_SLOT_COUNT);
         checkContainerDataCount(data, SoyuzLauncherBlockEntity.DATA_COUNT);
         this.container = container;
         this.data = data;
         this.blockPos = blockPos;
-        this.clientFallback = clientFallback;
 
-        addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_ROCKET, 62, 18));
-        addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_DESIGNATOR, 62, 36));
-        addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_SATELLITE, 116, 18));
-        addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_ORBITAL_MODULE, 116, 36));
-        addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_KEROSENE_IN, 8, 90));
-        addSlot(new TakeOnlySlot(container, SoyuzLauncherBlockEntity.SLOT_KEROSENE_OUT, 8, 108));
-        addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_OXYGEN_IN, 26, 90));
-        addSlot(new TakeOnlySlot(container, SoyuzLauncherBlockEntity.SLOT_OXYGEN_OUT, 26, 108));
-        addSlot(new ValidatedSlot(container, SoyuzLauncherBlockEntity.SLOT_BATTERY, 44, 108));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_ROCKET, 62, 18));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_DESIGNATOR, 62, 36));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_SATELLITE, 116, 18));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_ORBITAL_MODULE, 116, 36));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_KEROSENE_IN, 8, 90));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_KEROSENE_OUT, 8, 108));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_OXYGEN_IN, 26, 90));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_OXYGEN_OUT, 26, 108));
+        addSlot(new Slot(container, SoyuzLauncherBlockEntity.SLOT_BATTERY, 44, 108));
 
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 6; column++) {
@@ -86,31 +75,12 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         moved = stack.copy();
 
-        if (index < MACHINE_SLOT_COUNT) {
-            if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
+        // ContainerSoyuzLauncher.transferStackInSlot uses these exact bounds.
+        if (index <= 27) {
+            if (!moveItemStackTo(stack, 9, this.slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (this.container.canPlaceItem(SoyuzLauncherBlockEntity.SLOT_ROCKET, stack)) {
-            if (!moveItemStackTo(stack, SoyuzLauncherBlockEntity.SLOT_ROCKET, SoyuzLauncherBlockEntity.SLOT_ROCKET + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (this.container.canPlaceItem(SoyuzLauncherBlockEntity.SLOT_KEROSENE_IN, stack)) {
-            if (!moveItemStackTo(stack, SoyuzLauncherBlockEntity.SLOT_KEROSENE_IN, SoyuzLauncherBlockEntity.SLOT_KEROSENE_IN + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (this.container.canPlaceItem(SoyuzLauncherBlockEntity.SLOT_OXYGEN_IN, stack)) {
-            if (!moveItemStackTo(stack, SoyuzLauncherBlockEntity.SLOT_OXYGEN_IN, SoyuzLauncherBlockEntity.SLOT_OXYGEN_IN + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (BatteryPackItem.isBattery(stack)) {
-            if (!moveItemStackTo(stack, SoyuzLauncherBlockEntity.SLOT_BATTERY, SoyuzLauncherBlockEntity.SLOT_BATTERY + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (index < PLAYER_INVENTORY_END) {
-            if (!moveItemStackTo(stack, HOTBAR_START, HOTBAR_END, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, PLAYER_INVENTORY_END, false)) {
+        } else if (!moveItemStackTo(stack, 0, 1, false)) {
             return ItemStack.EMPTY;
         }
 
@@ -124,9 +94,6 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        if (this.clientFallback) {
-            return player.canInteractWithBlock(this.blockPos, 8.0D);
-        }
         return this.container.stillValid(player);
     }
 
@@ -225,19 +192,19 @@ public class SoyuzLauncherMenu extends AbstractContainerMenu {
         BlockPos pos = buffer.readBlockPos();
         BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(pos);
         if (blockEntity instanceof SoyuzLauncherBlockEntity soyuz) {
-            return new MenuContext(soyuz, pos, false);
+            return new MenuContext(soyuz, pos);
         }
-        return new MenuContext(new SimpleContainer(MACHINE_SLOT_COUNT), pos, true);
+        throw new IllegalStateException("Soyuz launcher menu has no launcher block entity at " + pos);
     }
 
     private static BlockPos blockPosFromContainer(Container container) {
         if (container instanceof SoyuzLauncherBlockEntity soyuz) {
             return soyuz.getBlockPos();
         }
-        return BlockPos.ZERO;
+        throw new IllegalArgumentException("Soyuz launcher menu requires its block entity");
     }
 
-    private record MenuContext(Container container, BlockPos blockPos, boolean clientFallback) {
+    private record MenuContext(SoyuzLauncherBlockEntity container, BlockPos blockPos) {
     }
 
     private static final class ValidatedSlot extends Slot {

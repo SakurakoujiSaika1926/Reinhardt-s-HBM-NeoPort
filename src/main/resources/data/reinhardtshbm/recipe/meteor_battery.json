@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MSM",
+    "MWM",
+    "MSM"
+  ],
+  "key": {
+    "M": {
+      "item": "reinhardtshbm:meteor_polished"
+    },
+    "S": {
+      "item": "reinhardtshbm:block_starmetal"
+    },
+    "W": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 12626,
+          "material": "schrabidium"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:meteor_battery"
+  }
+}

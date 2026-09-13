@@ -2,9 +2,11 @@ package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.HbmHeavyDoorBlock;
 import com.reinhardt.hbm.block.HbmHeavyDoorPartBlock;
+import com.reinhardt.hbm.client.sound.HbmDoorClientSounds;
 import com.reinhardt.hbm.door.HbmDoorDecl;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -12,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,6 +29,10 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
     private byte state = STATE_CLOSED;
     private int openTicks;
     private byte skinIndex;
+    /** Equivalent to legacy redstonePower > 0: at least one door part is powered. */
+    private boolean redstonePowered;
+    /** Equivalent to the legacy one-tick redstonePower == -1 falling-edge state. */
+    private boolean redstoneReleasePending;
 
     public HbmHeavyDoorBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.HEAVY_DOOR.get(), pos, blockState);
@@ -37,11 +44,13 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
         }
         HbmDoorDecl decl = doorBlock.decl();
         if (level.isClientSide) {
+            HbmDoorClientSounds.tick(door);
             return;
         }
 
         boolean changed = false;
         if (door.state == STATE_OPENING) {
+            door.playVaultAnimationSound(decl, door.openTicks);
             door.openTicks = Math.min(decl.timeToOpen(), door.openTicks + 1);
             door.applyOpenRangeBlocks(level, decl, true);
             if (door.openTicks >= decl.timeToOpen()) {
@@ -49,6 +58,7 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
             }
             changed = true;
         } else if (door.state == STATE_CLOSING) {
+            door.playVaultAnimationSound(decl, door.openTicks);
             door.openTicks = Math.max(0, door.openTicks - 1);
             door.applyOpenRangeBlocks(level, decl, false);
             if (door.openTicks <= 0) {
@@ -57,12 +67,15 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
             changed = true;
         }
 
-        boolean powered = HbmHeavyDoorBlock.hasNeighborSignalAnywhere(level, pos, doorBlock, state.getValue(HbmHeavyDoorBlock.FACING));
-        if (powered && door.state == STATE_CLOSED) {
-            door.state = STATE_OPENING;
+        // TileEntityDoorGeneric maintained a persistent positive power latch
+        // plus a one-tick -1 state when its final signal vanished.  Do the
+        // same in explicit fields: this avoids treating ordinary unpowered
+        // manual doors as a continuous close command.
+        if (door.updateRedstoneState(level, pos, doorBlock,
+                state.getValue(HbmHeavyDoorBlock.FACING))) {
             changed = true;
-        } else if (!powered && door.state == STATE_OPEN) {
-            door.state = STATE_CLOSING;
+        }
+        if (door.applyRedstoneLatch()) {
             changed = true;
         }
 
@@ -72,6 +85,10 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
     }
 
     public boolean toggle() {
+        // Legacy tryToggle treats an energized closed door as a redstone lock.
+        if (this.state == STATE_CLOSED && this.redstonePowered) {
+            return false;
+        }
         if (this.state == STATE_CLOSED) {
             this.state = STATE_OPENING;
             sync();
@@ -89,19 +106,44 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
         if (this.level == null || this.level.isClientSide || !(this.getBlockState().getBlock() instanceof HbmHeavyDoorBlock doorBlock)) {
             return;
         }
-        boolean powered = HbmHeavyDoorBlock.hasNeighborSignalAnywhere(
-                this.level,
-                this.worldPosition,
-                doorBlock,
-                this.getBlockState().getValue(HbmHeavyDoorBlock.FACING)
-        );
-        if (powered && this.state == STATE_CLOSED) {
-            this.state = STATE_OPENING;
-            sync();
-        } else if (!powered && this.state == STATE_OPEN) {
-            this.state = STATE_CLOSING;
+        if (this.updateRedstoneState(this.level, this.worldPosition, doorBlock,
+                this.getBlockState().getValue(HbmHeavyDoorBlock.FACING))) {
             sync();
         }
+    }
+
+    private boolean updateRedstoneState(Level level, BlockPos pos, HbmHeavyDoorBlock doorBlock, Direction facing) {
+        boolean powered = HbmHeavyDoorBlock.hasNeighborSignalAnywhere(level, pos, doorBlock, facing);
+        if (powered == this.redstonePowered) {
+            return false;
+        }
+        this.redstonePowered = powered;
+        if (powered) {
+            // A new signal after a falling edge cancels old redstonePower == -1.
+            this.redstoneReleasePending = false;
+        } else {
+            this.redstoneReleasePending = true;
+        }
+        return true;
+    }
+
+    private boolean applyRedstoneLatch() {
+        boolean changed = false;
+        if (this.redstoneReleasePending) {
+            if (this.state == STATE_OPEN) {
+                this.state = STATE_CLOSING;
+                changed = true;
+            }
+            // TileEntityDoorGeneric reset redstonePower from -1 to 0 after
+            // evaluating it once, including while a door was still moving.
+            this.redstoneReleasePending = false;
+            return true;
+        }
+        if (this.redstonePowered && this.state == STATE_CLOSED) {
+            this.state = STATE_OPENING;
+            changed = true;
+        }
+        return changed;
     }
 
     public byte state() {
@@ -134,19 +176,20 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
             int[] range = decl.openRanges()[i];
             float time = decl.rangeOpenProgress(this.openTicks, i);
             int length = Math.abs(range[3]);
+            int legacyDenominator = Math.abs(range[3] - 1);
             if (length == 0) {
                 continue;
             }
             if (opening) {
                 for (int j = 0; j < length; j++) {
-                    if ((float) j / Math.max(1, length - 1) > time) {
+                    if ((float) j / legacyDenominator > time) {
                         break;
                     }
                     setRangeColumn(level, facing, range, j, true);
                 }
             } else {
                 for (int j = length - 1; j >= 0; j--) {
-                    if ((float) j / Math.max(1, length - 1) < time) {
+                    if ((float) j / legacyDenominator < time) {
                         break;
                     }
                     setRangeColumn(level, facing, range, j, false);
@@ -177,6 +220,18 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
         }
     }
 
+    private void playVaultAnimationSound(HbmDoorDecl decl, int ticks) {
+        if (decl != HbmDoorDecl.VAULT_DOOR || this.level == null || this.level.isClientSide) {
+            return;
+        }
+        if ((this.state == STATE_OPENING && ticks == 0) || (this.state == STATE_CLOSING && ticks == 30)) {
+            this.level.playSound(null, this.worldPosition, HbmSoundEvents.VAULT_SCRAPE_NEW.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
+        if (ticks >= 45 && ticks <= 115 && (ticks - 45) % 10 == 0) {
+            this.level.playSound(null, this.worldPosition, HbmSoundEvents.VAULT_THUD_NEW.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
+    }
+
     private void sync() {
         setChanged();
         if (this.level != null) {
@@ -197,6 +252,8 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
         tag.putByte("State", this.state);
         tag.putInt("OpenTicks", this.openTicks);
         tag.putByte("Skin", this.skinIndex);
+        tag.putBoolean("RedstonePowered", this.redstonePowered);
+        tag.putBoolean("RedstoneReleasePending", this.redstoneReleasePending);
     }
 
     @Override
@@ -205,6 +262,8 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
         this.state = tag.getByte("State");
         this.openTicks = tag.getInt("OpenTicks");
         this.skinIndex = tag.getByte("Skin");
+        this.redstonePowered = tag.getBoolean("RedstonePowered");
+        this.redstoneReleasePending = tag.getBoolean("RedstoneReleasePending");
     }
 
     @Override

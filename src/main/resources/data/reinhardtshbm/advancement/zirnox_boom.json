@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:centrifuge",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:debris_element"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.zirnox_boom.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.zirnox_boom.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

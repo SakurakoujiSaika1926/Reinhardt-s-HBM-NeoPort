@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "item": "reinhardtshbm:crate_iron"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_iron",
+    "count": 8
+  }
+}

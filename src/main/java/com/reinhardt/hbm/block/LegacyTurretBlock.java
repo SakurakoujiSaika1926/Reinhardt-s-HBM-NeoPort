@@ -44,6 +44,7 @@ public class LegacyTurretBlock extends HorizontalDirectionalBlock implements Ent
     private static final MapCodec<LegacyTurretBlock> CODEC = simpleCodec(properties -> new LegacyTurretBlock(properties, LegacyTurretType.FRIENDLY));
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape HALF_SHAPE = Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, 0.5D, 1.0D);
+    private static final ThreadLocal<Boolean> SUPPRESS_AUTOMATIC_DUMMIES = ThreadLocal.withInitial(() -> false);
     private final LegacyTurretType type;
 
     public LegacyTurretBlock(Properties properties, LegacyTurretType type) {
@@ -105,9 +106,23 @@ public class LegacyTurretBlock extends HorizontalDirectionalBlock implements Ent
 
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        if (!level.isClientSide && !state.is(oldState.getBlock())) {
+        if (!SUPPRESS_AUTOMATIC_DUMMIES.get() && !level.isClientSide && !state.is(oldState.getBlock())) {
             placeDummies(level, pos, state.getValue(FACING));
             PowerNetworkManager.markDirty(level);
+        }
+    }
+
+    /**
+     * A 1.7.10 NBTStructure writes every saved turret part itself.  Suppress
+     * normal item-placement expansion while that exact saved layout is loaded.
+     */
+    public static void runWithoutAutomaticDummies(Runnable action) {
+        boolean previous = SUPPRESS_AUTOMATIC_DUMMIES.get();
+        SUPPRESS_AUTOMATIC_DUMMIES.set(true);
+        try {
+            action.run();
+        } finally {
+            SUPPRESS_AUTOMATIC_DUMMIES.set(previous);
         }
     }
 
@@ -192,6 +207,9 @@ public class LegacyTurretBlock extends HorizontalDirectionalBlock implements Ent
 
     private void removeDummies(Level level, BlockPos corePos, Direction facing) {
         if (!this.type.hasDummies()) {
+            return;
+        }
+        if (level.getBlockEntity(corePos) == null) {
             return;
         }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CTC",
+    "TST",
+    "CTC"
+  ],
+  "key": {
+    "C": { "tag": "c:plates/saturnite" },
+    "T": { "item": "reinhardtshbm:powder_power" },
+    "S": { "item": "reinhardtshbm:singularity" }
+  },
+  "result": {
+    "id": "reinhardtshbm:singularity_super_heated",
+    "count": 1
+  }
+}

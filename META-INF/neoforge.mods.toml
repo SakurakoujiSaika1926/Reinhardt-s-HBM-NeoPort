@@ -12,7 +12,7 @@ license="GPL-3.0-or-later, LGPL-3.0-or-later"
 [[dependencies.reinhardtshbm]]
     modId="neoforge"
     type="required"
-    versionRange="[21.1.248,)"
+    versionRange="[21.1.250,)"
     ordering="NONE"
     side="BOTH"
 
@@ -21,4 +21,12 @@ license="GPL-3.0-or-later, LGPL-3.0-or-later"
     type="required"
     versionRange="[1.21.1]"
     ordering="NONE"
+    side="BOTH"
+
+[[dependencies.reinhardtshbm]]
+    modId="create"
+    type="optional"
+    reason="Moves the exact legacy BlockDummyable proxy chain with Create contraptions and trains."
+    versionRange="[6.0.10,)"
+    ordering="AFTER"
     side="BOTH"

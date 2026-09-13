@@ -1,0 +1,36 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpw10bus",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/weaponsteel"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_warhead_10_buster",
+    "count": 1
+  }
+}

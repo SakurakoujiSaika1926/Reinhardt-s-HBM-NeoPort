@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:press",
+  "group": "press.wire",
+  "stamp": "wire",
+  "ingredient": {
+    "tag": "c:ingots/aluminium"
+  },
+  "result": {
+    "id": "reinhardtshbm:wire_fine",
+    "count": 8,
+    "components": {
+      "minecraft:custom_data": {
+        "material_id": 1300,
+        "material": "aluminium"
+      }
+    }
+  }
+}

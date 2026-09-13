@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["QUQ","BCB","QTQ"],"key":{"Q":{"item":"reinhardtshbm:glass_quartz"},"U":{"tag":"c:ingots/uranium"},"T":{"tag":"c:ingots/th232"},"B":{"item":"reinhardtshbm:nugget_bismuth"},"C":{"item":"reinhardtshbm:crystal_rare"}},"result":{"id":"reinhardtshbm:laser_crystal_bismuth"}}

@@ -38,10 +38,10 @@ public record CrystallizerRecipe(
     public boolean matches(Input input, Level level) {
         return input.item().getCount() >= this.inputCount
                 && this.ingredient.test(input.item())
-                && !this.acid.isEmpty()
-                && input.acid().type() == this.acid.type()
+                && (this.acid.isEmpty()
+                || input.acid().type() == this.acid.type()
                 && input.acid().pressure() == this.acid.pressure()
-                && input.acid().amount() >= this.acid.amount();
+                && input.acid().amount() >= this.acid.amount());
     }
 
     @Override
@@ -82,9 +82,10 @@ public record CrystallizerRecipe(
     }
 
     public record AcidStack(HbmFluidDefinition type, int amount, int pressure) {
+        private static final AcidStack EMPTY = new AcidStack(HbmFluids.none(), 0, 0);
         private static final Codec<AcidStack> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("fluid").forGetter(stack -> stack.type().name()),
-                Codec.intRange(1, 1_000_000).fieldOf("amount").forGetter(AcidStack::amount),
+                Codec.intRange(0, 1_000_000).fieldOf("amount").forGetter(AcidStack::amount),
                 Codec.intRange(0, 1_000_000).optionalFieldOf("pressure", 0).forGetter(AcidStack::pressure)
         ).apply(instance, AcidStack::fromName));
 
@@ -132,7 +133,7 @@ public record CrystallizerRecipe(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(CrystallizerRecipe::group),
                 Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(CrystallizerRecipe::ingredient),
                 Codec.intRange(1, 64).optionalFieldOf("input_count", 1).forGetter(CrystallizerRecipe::inputCount),
-                AcidStack.CODEC.fieldOf("acid").forGetter(CrystallizerRecipe::acid),
+                AcidStack.CODEC.optionalFieldOf("acid", AcidStack.EMPTY).forGetter(CrystallizerRecipe::acid),
                 Codec.intRange(1, 1_000_000).optionalFieldOf("duration", 600).forGetter(CrystallizerRecipe::duration),
                 ItemStack.STRICT_CODEC.fieldOf("result").forGetter(CrystallizerRecipe::result)
         ).apply(instance, CrystallizerRecipe::new));

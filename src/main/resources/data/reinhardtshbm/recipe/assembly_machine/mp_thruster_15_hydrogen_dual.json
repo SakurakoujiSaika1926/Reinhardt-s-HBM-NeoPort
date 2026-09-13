@@ -1,0 +1,45 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpt15hydrodual",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 33,
+            "material": "dura_steel"
+          }
+        }
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/tungsten"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/desh"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_thruster_15_hydrogen_dual",
+    "count": 1
+  }
+}

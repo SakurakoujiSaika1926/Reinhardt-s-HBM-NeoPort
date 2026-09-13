@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:coltan_deposit",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

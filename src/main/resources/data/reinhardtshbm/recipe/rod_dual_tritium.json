@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:rod_dual"],"components":{"minecraft:custom_data":{"variant":"tritium"},"minecraft:custom_model_data":1}},{"item":"reinhardtshbm:cell_empty"},{"item":"reinhardtshbm:cell_empty"}],"result":{"id":"reinhardtshbm:cell_tritium","count":2}}

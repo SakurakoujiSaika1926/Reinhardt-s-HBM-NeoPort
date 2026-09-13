@@ -22,3 +22,19 @@ license="${mod_license}"
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="create"
+    type="optional"
+    reason="Moves the exact legacy BlockDummyable proxy chain with Create contraptions and trains."
+    versionRange="[6.0.10,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="immersiveengineering"
+    type="optional"
+    reason="Applies HBM's modern FE balance defaults to IE diesel generators and HV connectors."
+    versionRange="[12.4.2,)"
+    ordering="AFTER"
+    side="BOTH"

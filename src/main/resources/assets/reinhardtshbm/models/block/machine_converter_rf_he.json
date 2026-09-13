@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "all":  "reinhardtshbm:block/machine_converter_rf_he"
-                 },
-    "parent":  "minecraft:block/cube_all"
-}

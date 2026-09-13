@@ -1,0 +1,16 @@
+{
+  "feature": "reinhardtshbm:ore_alexandrite",
+  "placement": [
+    { "type": "minecraft:rarity_filter", "chance": 100 },
+    { "type": "minecraft:in_square" },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": { "absolute": 10 },
+        "max_inclusive": { "absolute": 14 }
+      }
+    },
+    { "type": "minecraft:biome" }
+  ]
+}

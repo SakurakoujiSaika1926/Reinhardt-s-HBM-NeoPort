@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:acidizer",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:machine_silex"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.silex.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.silex.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

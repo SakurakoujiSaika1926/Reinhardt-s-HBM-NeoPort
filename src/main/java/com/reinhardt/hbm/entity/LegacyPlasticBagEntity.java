@@ -33,8 +33,10 @@ public final class LegacyPlasticBagEntity extends WaterAnimal {
 
     public static AttributeSupplier.Builder createAttributes() {
         return WaterAnimal.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 1.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.2D);
+                // EntityPlasticBag leaves EntityWaterMob's inherited
+                // attributes untouched in 1.7.10.
+                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.25D);
     }
 
     @Override
@@ -68,7 +70,12 @@ public final class LegacyPlasticBagEntity extends WaterAnimal {
             Vec3 motion = getDeltaMovement();
             double horizontal = Math.sqrt(motion.x * motion.x + motion.z * motion.z);
             if (horizontal > 1.0E-7D) {
-                setYRot(getYRot() + (float) ((-Math.atan2(motion.x, motion.z) * 180.0D / Math.PI - getYRot()) * 0.1D));
+                float desiredYaw = (float) (-Math.atan2(motion.x, motion.z) * 180.0D / Math.PI);
+                float smoothedYaw = yBodyRot
+                        + (float) ((desiredYaw - yBodyRot) * 0.1D);
+                setYRot(smoothedYaw);
+                yBodyRot = smoothedYaw;
+                yHeadRot = smoothedYaw;
             }
             setXRot((float) (Math.atan2(motion.y, horizontal) * 180.0D / Math.PI));
         } else if (!level().isClientSide) {
@@ -87,7 +94,10 @@ public final class LegacyPlasticBagEntity extends WaterAnimal {
     public boolean hurt(DamageSource source, float amount) {
         if (!level().isClientSide && isAlive()) {
             discard();
-            spawnAtLocation(HbmItems.PLASTIC_BAG.get());
+            LegacyBuoyantItemEntity drop = new LegacyBuoyantItemEntity(level(), getX(), getY(), getZ(),
+                    new net.minecraft.world.item.ItemStack(HbmItems.PLASTIC_BAG.get()));
+            drop.setPickUpDelay(10);
+            level().addFreshEntity(drop);
         }
         return true;
     }
@@ -116,8 +126,18 @@ public final class LegacyPlasticBagEntity extends WaterAnimal {
         return super.checkSpawnRules(level, reason);
     }
 
+    /** EntityPlasticBag#canTriggerWalking: the bag never activates block triggers. */
+    @Override
+    public boolean isIgnoringBlockTriggers() {
+        return true;
+    }
+
     private void updateRandomMotion(boolean inWater) {
-        if (tickCount > 100) {
+        // EntityPlasticBag used EntityLiving.entityAge, which is the
+        // modern mob's noActionTime counter (and is reset by the normal
+        // nearby-player despawn check), rather than the immutable world
+        // tickCount.
+        if (noActionTime > 100) {
             randomMotionX = randomMotionY = randomMotionZ = 0.0F;
         } else if (random.nextInt(50) == 0 || !inWater
                 || randomMotionX == 0.0F && randomMotionY == 0.0F && randomMotionZ == 0.0F) {

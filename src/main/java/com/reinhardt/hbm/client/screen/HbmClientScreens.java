@@ -27,7 +27,6 @@ public final class HbmClientScreens {
         event.register(HbmMenus.SHREDDER.get(), ShredderScreen::new);
         event.register(HbmMenus.MICROWAVE.get(), MicrowaveScreen::new);
         event.register(HbmMenus.ARMOR_TABLE.get(), ArmorTableScreen::new);
-        event.register(HbmMenus.WEAPON_TABLE.get(), WeaponTableScreen::new);
         event.register(HbmMenus.MACHINE_KEYFORGE.get(), MachineKeyForgeScreen::new);
         event.register(HbmMenus.ASSEMBLY_MACHINE.get(), AssemblyMachineScreen::new);
         event.register(HbmMenus.ASSEMBLY_FACTORY.get(), AssemblyFactoryScreen::new);
@@ -66,6 +65,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.LEGACY_NUKE.get(), LegacyNukeScreen::new);
         event.register(HbmMenus.BOMB_MULTI.get(), BombMultiScreen::new);
         event.register(HbmMenus.SOYUZ_LAUNCHER.get(), SoyuzLauncherScreen::new);
+        event.register(HbmMenus.LAUNCHER.get(), LauncherScreen::new);
         event.register(HbmMenus.SOYUZ_CAPSULE.get(), SoyuzCapsuleScreen::new);
         event.register(HbmMenus.TOOLBOX.get(), ToolboxScreen::new);
         event.register(HbmMenus.CRAFT_BOOK.get(), LegacyCraftBookScreen::new);

@@ -321,6 +321,9 @@ public class GlyphidEntity extends Monster {
             Vec3 motion = getDeltaMovement();
             setDeltaMovement(motion.x, Math.max(motion.y, 0.2D), motion.z);
         }
+        if (tickCount % 100 == 0) {
+            swing(InteractionHand.MAIN_HAND);
+        }
         runLegacyVariantBehavior();
     }
 
@@ -334,8 +337,7 @@ public class GlyphidEntity extends Monster {
         }
 
         if (hasEffect(net.minecraft.world.effect.MobEffects.BLINDNESS)) {
-            setTarget(null);
-            getNavigation().stop();
+            onLegacyBlinded();
             return;
         }
 
@@ -365,6 +367,31 @@ public class GlyphidEntity extends Monster {
                 }
             }
             getNavigation().moveTo(taskX + 0.5D, taskY, taskZ + 0.5D, 1.0D);
+        }
+    }
+
+    /** Direct port of EntityGlyphid.onBlinded, including the large-glyphid
+     * lantern-breaking behavior used by the old AI. */
+    private void onLegacyBlinded() {
+        setTarget(null);
+        getNavigation().stop();
+        if (modelScale() < 1.25D || tickCount % 20 != 0) {
+            return;
+        }
+        for (int index = 0; index < 16; index++) {
+            float angle = (float) Math.toRadians(360.0D / 16.0D * index);
+            Vec3 direction = new Vec3(0.0D, 0.0D, 4.0D).yRot(angle);
+            Vec3 start = new Vec3(getX(), getY() + 1.0D, getZ());
+            Vec3 end = start.add(direction);
+            BlockHitResult hit = (BlockHitResult) level().clip(new ClipContext(
+                    start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+            if (hit.getType() == HitResult.Type.BLOCK
+                    && level().getBlockState(hit.getBlockPos()).is(HbmBlocks.LANTERN.get())) {
+                setYRot(360.0F / 16.0F * index);
+                swing(InteractionHand.MAIN_HAND);
+                level().setBlock(hit.getBlockPos(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
+                        net.minecraft.world.level.block.Block.UPDATE_ALL);
+            }
         }
     }
 
@@ -641,7 +668,16 @@ public class GlyphidEntity extends Monster {
                 net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, nestX, nestZ);
         net.minecraft.core.BlockPos groundPos = new net.minecraft.core.BlockPos(nestX, nestY - 1, nestZ);
         net.minecraft.world.level.block.state.BlockState ground = level().getBlockState(groundPos);
-        boolean farEnough = position().distanceToSqr(nestX, nestY, nestZ)
+        // EntityGlyphidScout measured the candidate against its recorded
+        // hive home, not against the scout's current position.  Keeping the
+        // home-relative distance matters after a scout has travelled toward
+        // a previous waypoint.
+        double homeDistanceX = nestX - homeX;
+        double homeDistanceY = nestY - homeY;
+        double homeDistanceZ = nestZ - homeZ;
+        boolean farEnough = homeDistanceX * homeDistanceX
+                + homeDistanceY * homeDistanceY
+                + homeDistanceZ * homeDistanceZ
                 > scoutMinimumHiveDistance * scoutMinimumHiveDistance;
         if (!farEnough || ground.isAir() || !ground.isCollisionShapeFullBlock(level(), groundPos)
                 || ground.is(HbmBlocks.GLYPHID_BASE.get())) {
@@ -849,7 +885,7 @@ public class GlyphidEntity extends Monster {
             }
             Vec3 motion = rubbleMotion.lengthSqr() == 0.0D ? new Vec3(0.0D, 0.0D, 0.0D) : rubbleMotion;
             level().addFreshEntity(new MineRubbleEntity(level(), pos.getX() + 0.5D, pos.getY() + 2.0D,
-                    pos.getZ() + 0.5D, motion));
+                    pos.getZ() + 0.5D, motion, state));
             level().setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
                     net.minecraft.world.level.block.Block.UPDATE_ALL);
         }
@@ -1100,9 +1136,12 @@ public class GlyphidEntity extends Monster {
                         maggot.setDeltaMovement(offsetX, 0.0D, offsetZ);
                         serverLevel.addFreshEntity(maggot);
                     }
-                } else {
-                    LegacyProjectileUtil.detonateGlyphidNuclear(serverLevel, this, position(), !infected);
                 }
+                // EntityGlyphidNuclear always executed its radius-25 VNT
+                // explosion.  The infected branch only omitted the block
+                // allocator; it still damaged entities/players, played the
+                // muke sound and sent the flash/wave effect.
+                LegacyProjectileUtil.detonateGlyphidNuclear(serverLevel, this, position(), !infected);
             }
             discard();
             return;
@@ -1179,19 +1218,35 @@ public class GlyphidEntity extends Monster {
                                        net.minecraft.world.damagesource.DamageSource source,
                                        boolean recentlyHit) {
         super.dropCustomDeathLoot(level, source, recentlyHit);
-        ItemStack meat = new ItemStack(isOnFire() ? HbmItems.GLYPHID_MEAT_GRILLED.get() : HbmItems.GLYPHID_MEAT.get(),
-                1 + random.nextInt(3) + (recentlyHit ? 1 : 0));
-        spawnAtLocation(meat);
+        if (random.nextInt(2) == 0) {
+            int looting = 0;
+            LivingEntity killer = getLastHurtByMob();
+            if (killer != null && !killer.getMainHandItem().isEmpty()) {
+                looting = net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(
+                        level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+                                .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.LOOTING),
+                        killer.getMainHandItem());
+            }
+            int count = ((int) modelScale() * 2) + looting;
+            if (count > 0) {
+                spawnAtLocation(new ItemStack(
+                        isOnFire() ? HbmItems.GLYPHID_MEAT_GRILLED.get() : HbmItems.GLYPHID_MEAT.get(),
+                        count));
+            }
+        }
         if (getVariant() == Variant.BRENDA && random.nextInt(3) == 0) {
             HbmFluidDefinition pheromone = HbmFluids.byName("pheromone").orElse(HbmFluids.none());
             spawnAtLocation(HbmFluidContainerItem.makeFull(HbmItems.GLYPHID_GLAND::get, pheromone));
+        }
+        if (getVariant() == Variant.BEHEMOTH) {
+            HbmFluidDefinition acid = HbmFluids.byName("sulfuric_acid").orElse(HbmFluids.none());
+            spawnAtLocation(HbmFluidContainerItem.makeFull(HbmItems.GLYPHID_GLAND::get, acid));
         }
     }
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
-        return getTarget() == null && currentTask == TASK_IDLE && tickCount > 100
-                && distanceToClosestPlayer > 32.0D;
+        return getTarget() == null && currentTask == TASK_IDLE && tickCount > 100;
     }
 
     @Override

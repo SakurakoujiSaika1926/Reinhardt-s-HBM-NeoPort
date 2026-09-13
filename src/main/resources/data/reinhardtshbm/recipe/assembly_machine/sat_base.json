@@ -1,0 +1,101 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.satellitebase",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2200,
+            "material": "titanium"
+          }
+        }
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thruster_medium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:part_generic"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "lde"
+          },
+          "minecraft:custom_model_data": 3
+        }
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/desh"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:fluid_barrel_full"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "fluid": "kerosene"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:photo_panel"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:battery_pack"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "battery_lithium"
+          },
+          "minecraft:custom_model_data": 2
+        }
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:sat_base",
+    "count": 1
+  }
+}

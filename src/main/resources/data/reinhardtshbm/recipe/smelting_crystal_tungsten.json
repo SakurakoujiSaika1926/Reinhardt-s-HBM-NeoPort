@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:crystal_tungsten" },
+  "result": { "id": "reinhardtshbm:ingot_tungsten", "count": 2 },
+  "experience": 2.0,
+  "cookingtime": 200
+}

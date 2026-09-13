@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:boss_creeper",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:coin_maskman"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.boss_maskman.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.boss_maskman.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

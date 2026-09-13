@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["BIB","P P","B B"],"key":{"B":{"item":"reinhardtshbm:bolt_tungsten"},"I":{"tag":"c:ingots/tungsten"},"P":{"tag":"c:ingots/rubber"}},"result":{"id":"reinhardtshbm:reacher"}}

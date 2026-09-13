@@ -10,6 +10,13 @@
                       "rolls":  1,
                       "conditions":  [
                                          {
+                                             "block":  "reinhardtshbm:door_metal",
+                                             "condition":  "minecraft:block_state_property",
+                                             "properties":  {
+                                                               "half":  "lower"
+                                                           }
+                                         },
+                                         {
                                              "condition":  "minecraft:survives_explosion"
                                          }
                                      ]

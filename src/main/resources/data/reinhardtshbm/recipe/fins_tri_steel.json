@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " PI",
+    "IIB",
+    " PI"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "I": {
+      "tag": "c:ingots/steel"
+    },
+    "B": {
+      "item": "reinhardtshbm:block_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:fins_tri_steel",
+    "count": 1
+  }
+}
+

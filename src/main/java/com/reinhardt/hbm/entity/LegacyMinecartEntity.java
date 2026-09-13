@@ -112,6 +112,12 @@ public final class LegacyMinecartEntity extends Minecart {
         }
     }
 
+    /** EntityMinecartModBase/EntityMinecartDeobf#canTriggerWalking returned false. */
+    @Override
+    public boolean isIgnoringBlockTriggers() {
+        return true;
+    }
+
     private void destroyMatchedItems() {
         boolean destroyed = false;
         for (ItemEntity entity : level().getEntitiesOfClass(ItemEntity.class, new AABB(getX() - 2.5D, getY() - 1.5D, getZ() - 2.5D, getX() + 2.5D, getY() + 2.0D, getZ() + 2.5D))) {

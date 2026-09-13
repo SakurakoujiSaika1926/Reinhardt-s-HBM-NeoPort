@@ -8,6 +8,7 @@ import net.minecraft.world.level.Level;
 public final class LegacyTeslaCrabEntity extends LegacyCyberCrabEntity {
     public LegacyTeslaCrabEntity(EntityType<? extends LegacyTeslaCrabEntity> type, Level level) {
         super(type, level, Kind.TESLA);
+        noCulling = true;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -16,7 +17,7 @@ public final class LegacyTeslaCrabEntity extends LegacyCyberCrabEntity {
 
     @Override
     public void tick() {
-        super.tick();
         updateTeslaTargets(1.0D, 3.0D);
+        super.tick();
     }
 }

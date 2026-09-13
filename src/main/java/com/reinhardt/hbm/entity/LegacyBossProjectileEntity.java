@@ -48,13 +48,26 @@ public final class LegacyBossProjectileEntity extends Entity {
     }
 
     public LegacyBossProjectileEntity(Level level, Entity owner, Vec3 origin, Vec3 direction, Type type, Entity target) {
+        this(level, owner, origin, direction, type, target, 0.0F);
+    }
+
+    public LegacyBossProjectileEntity(Level level, Entity owner, Vec3 origin, Vec3 direction,
+                                      Type type, Entity target, float spread) {
         this(HbmEntityTypes.LEGACY_BOSS_PROJECTILE.get(), level);
         setPos(origin.x, origin.y, origin.z);
         this.ownerUuid = owner.getUUID();
         this.targetUuid = target == null ? null : target.getUUID();
         entityData.set(TYPE, type.ordinal());
         entityData.set(DAMAGE, type.damage(level.random));
-        Vec3 motion = direction.normalize().scale(type.speed());
+        // EntityBulletBaseNT#setThrowableHeading normalizes the requested
+        // heading, adds Gaussian noise (0.0075 * inaccuracy), and then
+        // applies the velocity without renormalizing the noisy vector.
+        Vec3 normalized = direction.normalize();
+        Vec3 motion = new Vec3(
+                normalized.x + random.nextGaussian() * 0.0075D * spread,
+                normalized.y + random.nextGaussian() * 0.0075D * spread,
+                normalized.z + random.nextGaussian() * 0.0075D * spread
+        ).scale(type.speed());
         setDeltaMovement(motion);
         updateRotation(motion);
     }
@@ -79,7 +92,18 @@ public final class LegacyBossProjectileEntity extends Entity {
         Vec3 motion = getDeltaMovement();
         if (projectileType() == Type.UFO_ROCKET) {
             Entity target = target();
-            if (target != null && target.isAlive()) {
+            if (target == null) {
+                target = chooseHomingTarget();
+                targetUuid = target == null ? null : target.getUUID();
+            }
+            if (target != null) {
+                // GunNPCFactory.getRocketUFOConfig detonates once the homing
+                // rocket is within sqrt(5) blocks, even without a collision
+                // ray crossing the target's box.
+                if (distanceToSqr(target) < 5.0D) {
+                    impact(target.position(), null);
+                    return;
+                }
                 motion = target.position().add(0.0D, target.getBbHeight() * 0.5D, 0.0D)
                         .subtract(position()).normalize().scale(Math.max(2.0D, motion.length()));
                 setDeltaMovement(motion);
@@ -100,6 +124,8 @@ public final class LegacyBossProjectileEntity extends Entity {
             return;
         }
         setPos(end);
+        double gravity = projectileType().gravity();
+        setDeltaMovement(new Vec3(motion.x, motion.y - gravity, motion.z));
         if (!level().isClientSide && (tickCount > projectileType().maxAge() || getY() < level().getMinBuildHeight() - 16)) {
             discard();
         }
@@ -141,6 +167,37 @@ public final class LegacyBossProjectileEntity extends Entity {
         return hits.isEmpty() ? null : hits.getFirst();
     }
 
+    private Entity chooseHomingTarget() {
+        Vec3 motion = getDeltaMovement();
+        if (motion.lengthSqr() < 1.0E-8D) {
+            return null;
+        }
+        Entity owner = owner();
+        Entity best = null;
+        double bestAngle = 90.0D;
+        AABB area = new AABB(position(), position()).inflate(100.0D);
+        for (LivingEntity candidate : level().getEntitiesOfClass(LivingEntity.class, area,
+                entity -> entity.isAlive() && entity != owner)) {
+            Vec3 delta = candidate.position().add(0.0D, candidate.getBbHeight() * 0.5D, 0.0D)
+                    .subtract(position());
+            if (delta.lengthSqr() < 1.0E-8D) {
+                continue;
+            }
+            HitResult sight = level().clip(new ClipContext(position(), position().add(delta),
+                    ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+            if (sight.getType() != HitResult.Type.MISS) {
+                continue;
+            }
+            double cosine = motion.normalize().dot(delta.normalize());
+            double angle = Math.toDegrees(Math.acos(Mth.clamp(cosine, -1.0D, 1.0D)));
+            if (angle < bestAngle) {
+                bestAngle = angle;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
     private Entity owner() {
         return ownerUuid == null || !(level() instanceof ServerLevel serverLevel) ? null : serverLevel.getEntity(ownerUuid);
     }
@@ -156,6 +213,13 @@ public final class LegacyBossProjectileEntity extends Entity {
         }
         setYRot((float) Mth.wrapDegrees(Math.toDegrees(Math.atan2(motion.x, motion.z))));
         setXRot((float) Mth.wrapDegrees(-Math.toDegrees(Math.atan2(motion.y, horizontal))));
+    }
+
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        // EntityBulletBaseNT used renderDistanceWeight = 10, i.e. the
+        // vanilla 64-block base multiplied by ten.
+        return distance < 102400.0D;
     }
 
     @Override
@@ -175,26 +239,33 @@ public final class LegacyBossProjectileEntity extends Entity {
     }
 
     public enum Type {
-        WORM_BOLT(0.5D, 60, 15.0F, 25.0F),
-        WORM_LASER(1.0D, 100, 35.0F, 60.0F),
-        UFO_ROCKET(2.0D, 100, 20.0F, 20.0F),
-        CHOPPER_BULLET(3.0D, 30, 3.0F, 7.0F);
+        WORM_BOLT(0.5D, 60, 15.0F, 25.0F, 0.0D),
+        WORM_LASER(1.0D, 100, 35.0F, 60.0F, 0.0D),
+        UFO_LASER(2.0D, 100, 35.0F, 60.0F, 0.0D),
+        UFO_ROCKET(2.0D, 300, 10.0F, 15.0F, 0.005D),
+        CHOPPER_BULLET(3.0D, 250, 3.0F, 7.0F, 0.0D);
 
         private final double speed;
         private final int maxAge;
         private final float minDamage;
         private final float maxDamage;
+        private final double gravity;
 
-        Type(double speed, int maxAge, float minDamage, float maxDamage) {
+        Type(double speed, int maxAge, float minDamage, float maxDamage, double gravity) {
             this.speed = speed;
             this.maxAge = maxAge;
             this.minDamage = minDamage;
             this.maxDamage = maxDamage;
+            this.gravity = gravity;
         }
 
         private double speed() { return speed; }
         private int maxAge() { return maxAge; }
+        private double gravity() { return gravity; }
         private float damage(net.minecraft.util.RandomSource random) {
+            if (this == CHOPPER_BULLET) {
+                return minDamage + random.nextInt((int) (maxDamage - minDamage + 1.0F));
+            }
             return minDamage + random.nextFloat() * (maxDamage - minDamage + 1.0F);
         }
     }

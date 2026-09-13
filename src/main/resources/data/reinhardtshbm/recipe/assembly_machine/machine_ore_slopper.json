@@ -7,7 +7,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_cast"],
+        "items": "reinhardtshbm:plate_cast",
         "components": {
           "minecraft:custom_data": {
             "material_id": 30,
@@ -25,7 +25,16 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/copper"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
+        }
       },
       "count": 3
     },

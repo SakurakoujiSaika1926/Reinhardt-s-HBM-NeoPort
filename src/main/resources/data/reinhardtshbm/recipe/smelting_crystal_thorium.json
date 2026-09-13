@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:crystal_thorium" },
+  "result": { "id": "reinhardtshbm:ingot_th232", "count": 2 },
+  "experience": 2.0,
+  "cookingtime": 200
+}

@@ -106,7 +106,8 @@ public final class SatelliteDockBlock extends BaseEntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide && !REMOVING_PARTS.get()) {
+        if (!state.is(newState.getBlock()) && !level.isClientSide && !REMOVING_PARTS.get()
+                && level.getBlockEntity(pos) != null) {
             if (level.getBlockEntity(pos) instanceof SatelliteDockBlockEntity dock) {
                 dock.dropContents(level, pos);
             }

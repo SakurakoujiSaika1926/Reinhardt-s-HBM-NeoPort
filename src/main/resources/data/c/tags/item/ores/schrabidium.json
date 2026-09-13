@@ -2,6 +2,8 @@
     "replace":  false,
     "values":  [
                    "reinhardtshbm:ore_schrabidium",
-                   "reinhardtshbm:ore_deepslate_schrabidium"
+                   "reinhardtshbm:ore_deepslate_schrabidium",
+                   "reinhardtshbm:ore_gneiss_schrabidium",
+                   "reinhardtshbm:ore_nether_schrabidium"
                ]
 }

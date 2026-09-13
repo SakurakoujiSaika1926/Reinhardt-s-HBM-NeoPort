@@ -1,9 +1,7 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "reinhardtshbm:enable_528_mode"
-    }
-  ],
+  "neoforge:conditions": {
+    "type": "reinhardtshbm:enable_528_mode"
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.hpcondenser",
   "duration": 600,
@@ -12,9 +10,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
+        "items": "reinhardtshbm:item_expensive",
         "components": {
           "minecraft:custom_data": {
             "variant": "ferro_plating"
@@ -31,17 +27,24 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/steel"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
       },
       "count": 24
     }
   ],
-  "input_fluids": [
-    {
-      "fluid": "lubricant",
-      "amount": 16000
-    }
-  ],
+  "input_fluids": {
+    "fluid": "lubricant",
+    "amount": 16000
+  },
   "result": {
     "id": "reinhardtshbm:machine_condenser_powered"
   }

@@ -4,9 +4,8 @@
   "pattern": ["PLP", "PSP", "PLP"],
   "key": {
     "P": { "tag": "c:plates/steel" },
-    "L": { "item": "reinhardtshbm:plate_dura_steel" },
-    "S": { "item": "reinhardtshbm:ring_starmetal" },
-    "C": { "item": "reinhardtshbm:fusion_core" }
+    "L": { "tag": "c:plates/dura_steel" },
+    "S": { "item": "reinhardtshbm:ring_starmetal" }
   },
   "result": { "id": "reinhardtshbm:radiobox" }
 }

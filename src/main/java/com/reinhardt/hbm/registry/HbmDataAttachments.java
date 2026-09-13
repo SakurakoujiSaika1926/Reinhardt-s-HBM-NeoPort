@@ -5,6 +5,7 @@ import com.reinhardt.hbm.radiation.HbmLivingHazards;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.item.HbmPlayerShield;
 import com.reinhardt.hbm.player.HbmPlayerArmorState;
+import com.reinhardt.hbm.player.HbmLegacyMobSpawnState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -21,6 +22,9 @@ public final class HbmDataAttachments {
             () -> AttachmentType.builder(HbmLivingRadiation::new)
                     .serialize(HbmLivingRadiation.CODEC)
                     .sync(HbmLivingRadiation.STREAM_CODEC)
+                    // Deliberately not copyOnDeath: the 1.7.10 death hook
+                    // reset radiation, and carrying it into a respawn would
+                    // re-enter the lethal threshold immediately.
                     .build()
     );
     public static final Supplier<AttachmentType<HbmLivingHazards>> LIVING_HAZARDS = ATTACHMENTS.register(
@@ -43,6 +47,13 @@ public final class HbmDataAttachments {
             () -> AttachmentType.builder(HbmPlayerArmorState::new)
                     .serialize(HbmPlayerArmorState.CODEC)
                     .sync(HbmPlayerArmorState.STREAM_CODEC)
+                    .copyOnDeath()
+                    .build()
+    );
+    public static final Supplier<AttachmentType<HbmLegacyMobSpawnState>> LEGACY_MOB_SPAWN_STATE = ATTACHMENTS.register(
+            "legacy_mob_spawn_state",
+            () -> AttachmentType.builder(() -> HbmLegacyMobSpawnState.EMPTY)
+                    .serialize(HbmLegacyMobSpawnState.CODEC)
                     .copyOnDeath()
                     .build()
     );

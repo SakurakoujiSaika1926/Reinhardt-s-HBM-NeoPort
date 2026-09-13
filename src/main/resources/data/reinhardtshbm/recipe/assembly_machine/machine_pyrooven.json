@@ -1,17 +1,70 @@
 {
-  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }],
+  "neoforge:conditions": {
+    "type": "neoforge:not",
+    "value": {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pyrooven",
-  "blueprint_pools": ["528.hardplastic"],
+  "blueprint_pools": "528.hardplastic",
   "duration": 300,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_welded"], "components": { "minecraft:custom_data": { "material_id": 30, "material": "steel" } } }, "count": 16 },
-    { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:ingot_cft" }, "count": 4 },
-    { "ingredient": { "tag": "c:pipes/copper" }, "count": 12 },
-    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 1 },
-    { "ingredient": { "item": "reinhardtshbm:circuit_bismoid" }, "count": 1 }
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:plate_welded",
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ingot_cft"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
+        }
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_bismoid"
+      },
+      "count": 1
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_pyrooven" }
+  "result": {
+    "id": "reinhardtshbm:machine_pyrooven"
+  }
 }

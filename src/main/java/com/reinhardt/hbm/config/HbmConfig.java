@@ -71,6 +71,13 @@ public final class HbmConfig {
     public static final ModConfigSpec.DoubleValue HE_TO_FE_CONVERSION_RATE;
     /** 1.12's GeneralConfig.autoCableConversion; enabled by default for modern FE compatibility. */
     public static final ModConfigSpec.BooleanValue AUTO_CABLE_CONVERSION;
+    public static final ModConfigSpec.BooleanValue ENABLE_CREATE_ADDITION_MOTOR_DEFAULTS;
+    public static final ModConfigSpec.IntValue CREATE_ADDITION_FE_AT_MAX_RPM;
+    public static final ModConfigSpec.IntValue CREATE_ADDITION_MAX_STRESS;
+    public static final ModConfigSpec.BooleanValue ENABLE_IMMERSIVE_ENGINEERING_DIESEL_GENERATOR_DEFAULTS;
+    public static final ModConfigSpec.IntValue IMMERSIVE_ENGINEERING_DIESEL_GENERATOR_OUTPUT;
+    public static final ModConfigSpec.IntValue IMMERSIVE_ENGINEERING_HV_WIRE_TRANSFER_RATE;
+    public static final ModConfigSpec.IntValue IMMERSIVE_ENGINEERING_HV_CONNECTOR_RATE;
     public static final ModConfigSpec.BooleanValue ENABLE_POLLUTION;
     /** 1.7.10 RadiationConfig.disableAsbestos inverse; default false. */
     public static final ModConfigSpec.BooleanValue ENABLE_ASBESTOS;
@@ -493,6 +500,36 @@ public final class HbmConfig {
         AUTO_CABLE_CONVERSION = builder
                 .comment("HBM 电缆自动与相邻 Forge Energy 设备互转，无需转换器方块。高版本移植默认：true（1.7.10 原版默认：false）。")
                 .define("autoCableConversion", true);
+        builder.pop();
+
+        builder.push("compatibility");
+        ENABLE_CREATE_ADDITION_MOTOR_DEFAULTS = builder
+                .comment(
+                        "检测到 Create Crafts & Additions 时，是否由 HBM 应用推荐的电动马达平衡值。",
+                        "启用后无需手动编辑 createaddition-common.toml；默认把满速马达消耗提高到 4096 FE/t。"
+                )
+                .define("enableCreateAdditionMotorDefaults", true);
+        CREATE_ADDITION_FE_AT_MAX_RPM = builder
+                .comment("CCA 电动马达/发电机在 256 RPM 时的 FE/t 换算值。HBM 高版本整合推荐默认：4096。")
+                .defineInRange("createAdditionFeAtMaxRpm", 4_096, 1, Integer.MAX_VALUE);
+        CREATE_ADDITION_MAX_STRESS = builder
+                .comment("CCA 电动马达/发电机最大应力。-1 表示不覆盖 CCA 自身配置；HBM 当前推荐保持不改。")
+                .defineInRange("createAdditionMaxStress", -1, -1, Integer.MAX_VALUE);
+        ENABLE_IMMERSIVE_ENGINEERING_DIESEL_GENERATOR_DEFAULTS = builder
+                .comment(
+                        "检测到 Immersive Engineering 时，是否由 HBM 应用推荐的柴油发电机与高压线缆平衡值。",
+                        "启用后无需手动编辑 immersiveengineering-server.toml；默认让 IE 大型柴油发电机能够稳定驱动 8 台满速 CCA 电动马达。"
+                )
+                .define("enableImmersiveEngineeringDieselGeneratorDefaults", true);
+        IMMERSIVE_ENGINEERING_DIESEL_GENERATOR_OUTPUT = builder
+                .comment("IE 柴油发电机每 tick 输出的 FE/IF。HBM 高版本整合推荐默认：32768。")
+                .defineInRange("immersiveEngineeringDieselGeneratorOutput", 32_768, 1, Integer.MAX_VALUE);
+        IMMERSIVE_ENGINEERING_HV_WIRE_TRANSFER_RATE = builder
+                .comment("IE 高压线缆每 tick 最大传输 FE/IF。-1 表示不覆盖 IE 自身配置；默认提升到 131072，可承受单台 IE 柴油发电机 3 个 32768 FE/t 高压接线器合流后的瞬时负载。")
+                .defineInRange("immersiveEngineeringHvWireTransferRate", 131_072, -1, Integer.MAX_VALUE);
+        IMMERSIVE_ENGINEERING_HV_CONNECTOR_RATE = builder
+                .comment("IE 高压接线器每 tick 最大输入/输出 FE/IF。-1 表示不覆盖 IE 自身配置；默认提升到 32768。")
+                .defineInRange("immersiveEngineeringHvConnectorRate", 32_768, -1, Integer.MAX_VALUE);
         builder.pop();
 
         builder.push("pollution");

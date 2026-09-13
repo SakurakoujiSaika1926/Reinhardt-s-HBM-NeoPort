@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "KPK",
+    "PLP",
+    " F "
+  ],
+  "key": {
+    "L": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:parts_legendary"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "tier2"
+        }
+      }
+    },
+    "K": {
+      "tag": "c:plates/kevlar"
+    },
+    "P": {
+      "tag": "c:plates/armor_ajr"
+    },
+    "F": {
+      "item": "reinhardtshbm:gas_mask_filter_combo"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rpa_helmet"
+  }
+}

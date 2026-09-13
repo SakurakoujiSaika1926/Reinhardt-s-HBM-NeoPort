@@ -1,0 +1,109 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.gerald",
+  "blueprint_pools": [
+    "discover.gerald"
+  ],
+  "duration": 12000,
+  "power": 50000000,
+  "ignition_temp": 25000000,
+  "input_items": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 12600,
+            "material": "schrabidate"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 12600,
+            "material": "schrabidate"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 48,
+            "material": "bscco"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 48,
+            "material": "bscco"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:det_nuke"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:part_generic"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "hde"
+          },
+          "minecraft:custom_model_data": 4
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_quantum"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:coin_ufo"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:sat_gerald",
+    "count": 1
+  }
+}

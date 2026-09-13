@@ -7,8 +7,8 @@
     "PDP"
   ],
   "key": {
-    "P": { "item": "reinhardtshbm:plate_polymer" },
-    "S": { "item": "reinhardtshbm:plate_steel" },
+    "P": { "tag": "c:plates/polymer" },
+    "S": { "tag": "c:plates/steel" },
     "G": { "tag": "c:glass_panes" },
     "M": { "item": "reinhardtshbm:magnetron" },
     "D": { "item": "reinhardtshbm:motor" }

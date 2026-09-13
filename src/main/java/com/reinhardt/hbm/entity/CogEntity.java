@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.blockentity.TurretCasingEffects;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmItems;
@@ -16,6 +17,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
@@ -84,7 +86,10 @@ public class CogEntity extends ThrowableProjectile {
                 player.inventoryMenu.broadcastChanges();
             }
         }
-        return InteractionResult.sidedSuccess(level().isClientSide);
+        // EntityCog#interactFirst always returned false after attempting the
+        // pickup; preserve that interaction result instead of consuming the
+        // right-click in the modern wrapper.
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -94,24 +99,14 @@ public class CogEntity extends ThrowableProjectile {
         if (!level().isClientSide && entity.isAlive()) {
             boolean wasAlive = entity.isAlive();
             entity.hurt(damageSources().source(HbmDamageTypes.RUBBLE, this, this), 1000.0F);
-            if (wasAlive && !entity.isAlive()) {
-                level().playSound(
-                        null,
-                        entity.getX(),
-                        entity.getY(),
-                        entity.getZ(),
-                        SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR,
-                        SoundSource.HOSTILE,
-                        2.0F,
-                        0.95F + level().random.nextFloat() * 0.2F
-                );
+            if (wasAlive && !entity.isAlive() && entity instanceof LivingEntity living) {
+                TurretCasingEffects.spawnMaxwellGib(level(), living, false);
             }
         }
     }
 
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        super.onHitBlock(result);
         if (level().isClientSide || this.tickCount <= 1) {
             return;
         }
@@ -160,6 +155,11 @@ public class CogEntity extends ThrowableProjectile {
     @Override
     public boolean isPickable() {
         return isAlive();
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return true;
     }
 
     @Override

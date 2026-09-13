@@ -3,6 +3,7 @@
     "ingredient":  {
                        "item":  "minecraft:raw_iron"
                    },
+    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_iron",
                    "count":  3

@@ -1,9 +1,12 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.reinhardt.hbm.block.ChargerBlock;
 import com.reinhardt.hbm.blockentity.ChargerBlockEntity;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -18,17 +21,38 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
     private static final ModelResourceLocation BASE = part("charger_base");
     private static final ModelResourceLocation LEFT = part("charger_left");
     private static final ModelResourceLocation RIGHT = part("charger_right");
-    private static final ModelResourceLocation LIGHT = part("charger_light");
     private static final ModelResourceLocation SLIDE = part("charger_slide");
+    private static final float[][] LIGHT_VERTICES = {
+            {-0.266762F, 0.501450F, -0.023437F},
+            {-0.269068F, 0.517861F, -0.016573F},
+            {-0.270024F, 0.524659F, 0.0F},
+            {-0.269068F, 0.517861F, 0.016573F},
+            {-0.266762F, 0.501450F, 0.023438F},
+            {-0.264455F, 0.485038F, 0.016573F},
+            {-0.263500F, 0.478240F, 0.0F},
+            {-0.264455F, 0.485038F, -0.016573F}
+    };
+    private static final int[][] LIGHT_TRIANGLES = {
+            {2, 4, 6}, {0, 1, 2}, {2, 3, 4},
+            {4, 5, 6}, {6, 7, 0}, {0, 2, 6}
+    };
 
     public ChargerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    /** ItemRenderLibrary#charger renders exactly these two legacy OBJ groups. */
+    static void renderItemAssembly(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
+                                   int packedLight, int packedOverlay) {
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SLIDE), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(BASE);
         event.register(LEFT);
         event.register(RIGHT);
-        event.register(LIGHT);
         event.register(SLIDE);
     }
 
@@ -70,8 +94,9 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
         poseStack.popPose();
 
         // RenderCharger disables texturing and lighting for this orange lamp.
-        MachineModelRenderer.renderUnculledTintedLightning(MachineModelRenderer.model(LIGHT), poseStack,
-                bufferSource, state, packedOverlay, 0xFFFFBF00);
+        // The original Light group has position/normal indices but no UVs, so
+        // it must stay on this direct non-textured rendering path.
+        renderLegacyLight(poseStack, bufferSource, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(-0.34375D, 0.25D, 0.0D);
@@ -95,6 +120,21 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
 
     private static Quaternionf xRotation(float degrees) {
         return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 1.0F, 0.0F, 0.0F));
+    }
+
+    private static void renderLegacyLight(PoseStack poseStack, MultiBufferSource bufferSource, int packedOverlay) {
+        VertexConsumer consumer = bufferSource.getBuffer(RenderType.lightning());
+        PoseStack.Pose pose = poseStack.last();
+        for (int[] triangle : LIGHT_TRIANGLES) {
+            for (int index : triangle) {
+                float[] vertex = LIGHT_VERTICES[index];
+                consumer.addVertex(pose, vertex[0], vertex[1], vertex[2])
+                        .setColor(255, 191, 0, 255)
+                        .setOverlay(packedOverlay)
+                        .setLight(LightTexture.FULL_BRIGHT)
+                        .setNormal(pose, 0.9903F, 0.1392F, 0.0F);
+            }
+        }
     }
 
     private static Quaternionf zRotation(float degrees) {

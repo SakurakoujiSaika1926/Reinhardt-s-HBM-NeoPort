@@ -3,8 +3,9 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_thorium"
                    },
+    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_thorium",
-                   "count":  3
+                       "count": 3
                }
 }

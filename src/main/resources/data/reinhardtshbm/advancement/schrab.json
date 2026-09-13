@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:desh",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:ingot_schrabidium"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.schrab.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.schrab.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

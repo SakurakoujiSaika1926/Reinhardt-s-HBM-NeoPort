@@ -50,6 +50,20 @@ public final class SatelliteDockDummyBlock extends BaseEntityBlock {
     }
 
     @Override
+    protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof SatelliteDockDummyBlockEntity dummy) {
+            BlockPos corePos = dummy.corePos();
+            if (!corePos.equals(pos)) {
+                BlockState coreState = level.getBlockState(corePos);
+                if (!coreState.isAir()) {
+                    return coreState.getDestroyProgress(player, level, corePos);
+                }
+            }
+        }
+        return super.getDestroyProgress(state, player, level, pos);
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;

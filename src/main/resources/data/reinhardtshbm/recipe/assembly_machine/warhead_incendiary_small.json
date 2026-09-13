@@ -1,0 +1,24 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.warheadinc1",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:warhead_generic_small"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/fire"
+      },
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:warhead_incendiary_small",
+    "count": 1
+  }
+}

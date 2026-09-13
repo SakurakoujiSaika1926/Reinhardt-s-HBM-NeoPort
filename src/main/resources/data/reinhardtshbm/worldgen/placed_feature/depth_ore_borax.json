@@ -1,0 +1,6 @@
+{
+  "feature": "reinhardtshbm:depth_ore_borax",
+  "placement": [
+    { "type": "minecraft:biome" }
+  ]
+}

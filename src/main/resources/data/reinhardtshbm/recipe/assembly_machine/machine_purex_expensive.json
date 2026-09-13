@@ -6,18 +6,14 @@
   "result": {
     "id": "reinhardtshbm:machine_purex"
   },
-  "neoforge:conditions": [
-    {
-      "type": "reinhardtshbm:enable_528_mode"
-    }
-  ],
+  "neoforge:conditions": {
+    "type": "reinhardtshbm:enable_528_mode"
+  },
   "ingredients": [
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
+        "items": "reinhardtshbm:item_expensive",
         "components": {
           "minecraft:custom_data": {
             "variant": "lead_plating"
@@ -29,9 +25,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
+        "items": "reinhardtshbm:shell",
         "components": {
           "minecraft:custom_data": {
             "material_id": 30,
@@ -43,7 +37,16 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/rubber"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 20003,
+            "material": "rubber"
+          }
+        }
       },
       "count": 12
     },
@@ -56,9 +59,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
+        "items": "reinhardtshbm:item_expensive",
         "components": {
           "minecraft:custom_data": {
             "variant": "circuit"

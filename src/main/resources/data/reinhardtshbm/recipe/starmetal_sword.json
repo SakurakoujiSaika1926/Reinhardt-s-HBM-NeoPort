@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [" I ", " B ", "ISI"],
+  "key": {
+    "I": { "tag": "c:ingots/starmetal" },
+    "S": { "item": "reinhardtshbm:ring_starmetal" },
+    "B": { "item": "reinhardtshbm:cobalt_decorated_sword" }
+  },
+  "result": { "id": "reinhardtshbm:starmetal_sword" }
+}

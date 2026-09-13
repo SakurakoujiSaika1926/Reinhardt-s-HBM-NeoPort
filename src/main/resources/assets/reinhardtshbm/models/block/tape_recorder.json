@@ -1,3 +1,12 @@
 {
-    "parent": "reinhardtshbm:block/empty"
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/blocks/taperecorder.obj",
+  "mtl_override": "reinhardtshbm:models/obj/blocks/taperecorder.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": false,
+  "textures": {
+    "particle": "reinhardtshbm:block/deco_tape_recorder_flipped"
+  },
+  "render_type": "minecraft:cutout"
 }

@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTrait;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -7,6 +8,7 @@ import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.util.HbmFluidTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -26,11 +28,23 @@ public class HbmFluidContainerItem extends Item {
 
     private final Kind kind;
     private final boolean filled;
+    /**
+     * Static legacy cells have their own item id (for example
+     * {@code cell_anti_schrabidium}) rather than a generic cell with NBT.
+     * Keep the associated fluid here so they still participate in NeoForge's
+     * item fluid capability just like the original registry entries.
+     */
+    private final String defaultFluid;
 
     public HbmFluidContainerItem(Properties properties, Kind kind, boolean filled) {
+        this(properties, kind, filled, "");
+    }
+
+    public HbmFluidContainerItem(Properties properties, Kind kind, boolean filled, String defaultFluid) {
         super(properties);
         this.kind = Objects.requireNonNull(kind);
         this.filled = filled;
+        this.defaultFluid = defaultFluid == null ? "" : defaultFluid;
     }
 
     public Kind kind() {
@@ -53,7 +67,7 @@ public class HbmFluidContainerItem extends Item {
 
     @Override
     public Component getName(ItemStack stack) {
-        if (!filled) {
+        if (!filled || (kind == Kind.CELL && !defaultFluid.isBlank())) {
             return super.getName(stack);
         }
         HbmFluidDefinition fluid = fluid(stack);
@@ -92,6 +106,12 @@ public class HbmFluidContainerItem extends Item {
     }
 
     public ItemStack filledStack(HbmFluidDefinition fluid) {
+        if (kind == Kind.CELL) {
+            ItemStack legacyCell = Handler.fullStackForKind(kind, fluid);
+            if (!legacyCell.isEmpty()) {
+                return legacyCell;
+            }
+        }
         ItemStack stack = new ItemStack(this);
         setFluid(stack, fluid);
         return stack;
@@ -105,13 +125,17 @@ public class HbmFluidContainerItem extends Item {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         String fluidName = tag.getString(FLUID);
         if (fluidName.isBlank() && stack.getItem() instanceof HbmFluidContainerItem container) {
-            fluidName = container.kind.defaultFluid();
+            fluidName = container.defaultFluid.isBlank() ? container.kind.defaultFluid() : container.defaultFluid;
         }
         return HbmFluids.byName(fluidName).orElse(HbmFluids.none());
     }
 
     public static ItemStack makeFull(Supplier<? extends Item> item, HbmFluidDefinition fluid) {
-        ItemStack stack = new ItemStack(item.get());
+        Item target = item.get();
+        if (target instanceof HbmFluidContainerItem container && container.kind == Kind.CELL) {
+            return container.filledStack(fluid);
+        }
+        ItemStack stack = new ItemStack(target);
         setFluid(stack, fluid);
         return stack;
     }
@@ -168,7 +192,7 @@ public class HbmFluidContainerItem extends Item {
         FLUID_PACK(32_000, "item.reinhardtshbm.fluid_pack_full.named", HbmFluidContainerItem::allowsRegularTank),
         DISPERSER(2_000, "item.reinhardtshbm.disperser_canister.named", HbmFluidContainerItem::allowsDisperser),
         GLYPHID_GLAND(4_000, "item.reinhardtshbm.glyphid_gland.named", HbmFluidContainerItem::allowsGlyphidGland),
-        CELL(1_000, "item.reinhardtshbm.cell_tritium.named", HbmFluidContainerItem::allowsTritiumCell);
+        CELL(1_000, "item.reinhardtshbm.cell_tritium.named", HbmFluidContainerItem::allowsLegacyCell);
 
         private final int capacity;
         private final String nameKey;
@@ -238,8 +262,11 @@ public class HbmFluidContainerItem extends Item {
         return fluid.name().equals("pheromone") || fluid.name().equals("sulfuric_acid");
     }
 
-    private static boolean allowsTritiumCell(HbmFluidDefinition fluid) {
-        return fluid.name().equals("tritium");
+    private static boolean allowsLegacyCell(HbmFluidDefinition fluid) {
+        return switch (fluid.name()) {
+            case "deuterium", "tritium", "uf6", "puf6", "amat", "aschrab", "sas3" -> true;
+            default -> false;
+        };
     }
 
     private static final class Handler implements IFluidHandlerItem {
@@ -336,8 +363,28 @@ public class HbmFluidContainerItem extends Item {
                 case FLUID_PACK -> makeFull(HbmItems.FLUID_PACK_FULL::get, fluid);
                 case DISPERSER -> makeFull(HbmItems.DISPERSER_CANISTER::get, fluid);
                 case GLYPHID_GLAND -> makeFull(HbmItems.GLYPHID_GLAND::get, fluid);
-                case CELL -> makeFull(HbmItems.CELL_TRITIUM::get, fluid);
+                case CELL -> legacyCellFor(fluid);
             };
+        }
+
+        /** Direct counterpart of 1.7.10 FluidContainerRegistry's cell map. */
+        private static ItemStack legacyCellFor(HbmFluidDefinition fluid) {
+            String itemId = switch (fluid.name()) {
+                case "deuterium" -> "cell_deuterium";
+                case "tritium" -> "cell_tritium";
+                case "uf6" -> "cell_uf6";
+                case "puf6" -> "cell_puf6";
+                case "amat" -> "cell_antimatter";
+                case "aschrab" -> "cell_anti_schrabidium";
+                case "sas3" -> "cell_sas3";
+                default -> "";
+            };
+            if (itemId.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            return BuiltInRegistries.ITEM.getOptional(ReinhardtsHBM.id(itemId))
+                    .map(ItemStack::new)
+                    .orElse(ItemStack.EMPTY);
         }
     }
 }

@@ -1,0 +1,45 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpt10solid",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 33,
+            "material": "dura_steel"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/tungsten"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_thruster_10_solid",
+    "count": 1
+  }
+}

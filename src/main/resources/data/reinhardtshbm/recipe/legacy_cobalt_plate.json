@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:crafting_shaped",
+  "category":"equipment",
+  "pattern":[" E ","ECE"," E "],
+  "key":{"E":{"item":"reinhardtshbm:billet_cobalt"},"C":{"item":"reinhardtshbm:steel_plate"}},
+  "result":{"id":"reinhardtshbm:cobalt_plate"}
+}

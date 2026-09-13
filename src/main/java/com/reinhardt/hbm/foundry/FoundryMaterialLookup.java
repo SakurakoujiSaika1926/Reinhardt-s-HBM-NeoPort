@@ -22,12 +22,18 @@ final class FoundryMaterialLookup {
             return List.of();
         }
 
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+
+        List<FoundryMaterialStack> exactVanillaOreMaterials = exactVanillaOreSmeltingMaterials(id);
+        if (!exactVanillaOreMaterials.isEmpty()) {
+            return exactVanillaOreMaterials;
+        }
+
         List<FoundryMaterialStack> oreMaterials = oreSmeltingMaterials(stack);
         if (!oreMaterials.isEmpty()) {
             return oreMaterials;
         }
 
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (id != null
                 && id.getNamespace().equals("reinhardtshbm")
                 && id.getPath().equals("chunk_ore_cryolite")) {
@@ -54,6 +60,19 @@ final class FoundryMaterialLookup {
         int amount = materialStack.amount() * materialStack.material().conversionOut()
                 / Math.max(1, materialStack.material().conversionIn());
         return List.of(new FoundryMaterialStack(target, amount));
+    }
+
+    private static List<FoundryMaterialStack> exactVanillaOreSmeltingMaterials(ResourceLocation id) {
+        if (id == null || !id.getNamespace().equals("minecraft")) {
+            return List.of();
+        }
+        // Minecraft did not have copper ore in 1.7.10.  The exact modern
+        // vanilla copper entries use HBM 1.7.10's oreCopper crucible
+        // distribution instead of relying on a broad fallback.
+        return switch (id.getPath()) {
+            case "copper_ore", "deepslate_copper_ore", "raw_copper" -> oreSmeltingMaterials("copper");
+            default -> List.of();
+        };
     }
 
     private static List<FoundryMaterialStack> oreSmeltingMaterials(ItemStack stack) {
@@ -229,6 +248,8 @@ final class FoundryMaterialLookup {
         return switch (path) {
             case "iron_ingot" -> stack("iron", FoundryShape.INGOT);
             case "gold_ingot" -> stack("gold", FoundryShape.INGOT);
+            case "copper_ingot" -> stack("copper", FoundryShape.INGOT);
+            case "copper_block" -> stack("copper", FoundryShape.BLOCK);
             case "iron_nugget" -> stack("iron", FoundryShape.NUGGET);
             case "gold_nugget" -> stack("gold", FoundryShape.NUGGET);
             case "redstone" -> stack("redstone", FoundryShape.NUGGET);

@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_gold"
+                       "tag":  "c:plates/gold"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_gold"

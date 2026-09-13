@@ -1,7 +1,5 @@
 # Blender v2.79 (sub 0) OBJ File: 'no9.blend'
 # www.blender.org
-mtllib no9.mtl
-usemtl default
 o Insignia
 v 5.099990 -6.000002 1.000000
 v 5.099990 -6.000002 -1.000000

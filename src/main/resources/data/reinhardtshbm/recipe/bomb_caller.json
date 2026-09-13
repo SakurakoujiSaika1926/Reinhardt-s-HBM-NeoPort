@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["TTT","TRT","TTT"],"key":{"T":{"item":"minecraft:tnt"},"R":{"item":"reinhardtshbm:rangefinder"}},"result":{"id":"reinhardtshbm:bomb_caller"}}

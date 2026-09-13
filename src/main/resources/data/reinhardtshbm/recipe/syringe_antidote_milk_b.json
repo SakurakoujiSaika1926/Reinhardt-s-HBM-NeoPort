@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["SPS","SMS","SPS"],"key":{"S":{"item":"reinhardtshbm:syringe_empty"},"P":{"item":"minecraft:pumpkin_seeds"},"M":{"item":"minecraft:milk_bucket"}},"result":{"id":"reinhardtshbm:syringe_antidote","count":6}}

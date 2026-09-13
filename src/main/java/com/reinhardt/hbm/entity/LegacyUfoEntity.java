@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.entity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.explosion.LegacyMukeExplosion;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.ReinhardtsHBM;
@@ -13,6 +14,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
@@ -77,6 +80,11 @@ public final class LegacyUfoEntity extends Monster {
                 .add(Attributes.MOVEMENT_SPEED, 0.0D);
     }
 
+    @Override
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
+        return false;
+    }
+
     public void setScanCooldown(int value) {
         this.scanCooldown = Math.max(0, value);
     }
@@ -108,6 +116,11 @@ public final class LegacyUfoEntity extends Monster {
 
     @Override
     public void tick() {
+        // EntityUFOBase clears its flight vector before running the
+        // waypoint/attack logic.  LivingEntity would otherwise apply the
+        // previous tick's vector once more before this port computes the
+        // current move.
+        setDeltaMovement(Vec3.ZERO);
         super.tick();
         setNoGravity(true);
         if (level().isClientSide || isDeadOrDying()) {
@@ -133,6 +146,11 @@ public final class LegacyUfoEntity extends Monster {
         if (target != null && courseChangeCooldown <= 0) {
             chooseWaypoint(target);
             courseChangeCooldown = 40 + random.nextInt(20);
+        } else if (target == null && courseChangeCooldown <= 0) {
+            // EntityUFOBase#setCourseWithoutTaget: when no player is
+            // available the UFO still receives a short random wander course.
+            chooseWanderWaypoint();
+            courseChangeCooldown = 60 + random.nextInt(20);
         }
         updateBeam(target);
         if (tickCount % 300 < 200) {
@@ -162,6 +180,11 @@ public final class LegacyUfoEntity extends Monster {
             }
         }
         Entity selected = closestPlayer;
+        if (selected != null) {
+            // EntityUFO's secondary scan explicitly excludes the primary
+            // target (entity != target).
+            secondaryTargets.remove(selected.getUUID());
+        }
         if (selected == null && !secondaryTargets.isEmpty() && level() instanceof ServerLevel serverLevel) {
             selected = serverLevel.getEntity(secondaryTargets.get(random.nextInt(secondaryTargets.size())));
         }
@@ -189,6 +212,15 @@ public final class LegacyUfoEntity extends Monster {
         int surface = level().getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
         entityData.set(WAYPOINT_X, x);
         entityData.set(WAYPOINT_Y, Math.max(surface + 20 + random.nextInt(15), Mth.floor(target.getY()) + 15));
+        entityData.set(WAYPOINT_Z, z);
+    }
+
+    private void chooseWanderWaypoint() {
+        int x = Mth.floor(getX() + random.nextGaussian() * 5.0D);
+        int z = Mth.floor(getZ() + random.nextGaussian() * 5.0D);
+        int y = level().getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + 2 + random.nextInt(3);
+        entityData.set(WAYPOINT_X, x);
+        entityData.set(WAYPOINT_Y, y);
         entityData.set(WAYPOINT_Z, z);
     }
 
@@ -238,7 +270,8 @@ public final class LegacyUfoEntity extends Monster {
             if (entity instanceof LegacyUfoEntity || entity instanceof LegacyBossProjectileEntity) continue;
             entity.hurt(damageSources().indirectMagic(this, this), 1000.0F);
             entity.igniteForSeconds(5.0F);
-            if (entity instanceof LivingEntity living) {
+            if (entity instanceof LivingEntity living
+                    && !com.reinhardt.hbm.radiation.RadiationEvents.isLegacyRadiationImmune(living)) {
                 HbmLivingRadiation radiation = HbmLivingRadiation.get(living);
                 radiation.addRadiation(5.0F);
                 HbmLivingRadiation.set(living, radiation);
@@ -247,12 +280,14 @@ public final class LegacyUfoEntity extends Monster {
     }
 
     private int findGroundY() {
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(Mth.floor(getX()), Mth.floor(getY()), Mth.floor(getZ()));
-        for (int y = Mth.floor(getY()); y >= level().getMinBuildHeight(); y--) {
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(Mth.floor(getX()), Mth.ceil(getY()), Mth.floor(getZ()));
+        // The old EntityUFO beam searched down to y=0, even in dimensions
+        // whose modern build height extends below zero.
+        for (int y = Mth.ceil(getY()); y >= 0; y--) {
             pos.setY(y);
             if (!level().getBlockState(pos).isAir()) return y;
         }
-        return level().getMinBuildHeight();
+        return 0;
     }
 
     private void fireLaser(Entity target) {
@@ -263,17 +298,22 @@ public final class LegacyUfoEntity extends Monster {
         horizontal = new Vec3(horizontal.x * Math.cos(angle) - horizontal.z * Math.sin(angle), 0.0D,
                 horizontal.x * Math.sin(angle) + horizontal.z * Math.cos(angle)).normalize();
         Vec3 origin = position().subtract(horizontal.scale(10.0D)).add(0.0D, 0.5D, 0.0D);
-        Vec3 direction = target.getEyePosition().subtract(origin).normalize();
+        Vec3 direction = new Vec3(target.getX() - origin.x,
+                target.getY() + target.getBbHeight() * 0.5D - origin.y,
+                target.getZ() - origin.z);
         level().addFreshEntity(new LegacyBossProjectileEntity(level(), this, origin, direction,
-                LegacyBossProjectileEntity.Type.WORM_LASER, target));
+                LegacyBossProjectileEntity.Type.UFO_LASER, target, 0.02F));
         level().playSound(null, blockPosition(), HbmSoundEvents.WEAPON_BALLS_LASER.get(), SoundSource.HOSTILE, 5.0F, 1.0F);
     }
 
     private void fireRocket(Entity target) {
         if (target == null || !target.isAlive()) return;
         Vec3 origin = position().add(0.0D, -0.5D, 0.0D);
+        Vec3 direction = new Vec3(target.getX() - getX(),
+                target.getY() + target.getBbHeight() * 0.5D - getY() - 0.5D,
+                target.getZ() - getZ());
         level().addFreshEntity(new LegacyBossProjectileEntity(level(), this, origin,
-                target.getEyePosition().subtract(origin).normalize(), LegacyBossProjectileEntity.Type.UFO_ROCKET, target));
+                direction, LegacyBossProjectileEntity.Type.UFO_ROCKET, target, 0.02F));
         level().playSound(null, blockPosition(), HbmSoundEvents.TURRET_RICHARD_FIRE.get(), SoundSource.HOSTILE, 5.0F, 1.0F);
     }
 
@@ -306,6 +346,10 @@ public final class LegacyUfoEntity extends Monster {
     protected void tickDeath() {
         setNoGravity(false);
         setDeltaMovement(getDeltaMovement().add(0.0D, -0.05D, 0.0D));
+        if (deathTime == -10) {
+            level().playSound(null, blockPosition(), HbmSoundEvents.ENTITY_CHOPPER_DAMAGE.get(),
+                    SoundSource.HOSTILE, 10.0F, 1.0F);
+        }
         if (deathTime == 19 && !crashResolved && level() instanceof ServerLevel serverLevel) {
             crashResolved = true;
             level().playSound(null, blockPosition(), HbmSoundEvents.ENTITY_UFO_BLAST.get(), SoundSource.HOSTILE, 10.0F, 1.0F);
@@ -313,11 +357,32 @@ public final class LegacyUfoEntity extends Monster {
             LegacyMukeExplosion.detonateMediumMiniNuke(serverLevel, this, position());
             for (Player player : serverLevel.players()) {
                 if (player.distanceToSqr(this) <= 40_000.0D) {
+                    HbmAdvancements.award(player, "boss_ufo");
                     player.addItem(new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("coin_ufo"))));
                 }
             }
         }
         super.tickDeath();
+    }
+
+    @Override
+    protected float getSoundVolume() {
+        return 10.0F;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return SoundEvents.BLAZE_HURT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return null;
+    }
+
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        return distance < 500000.0D;
     }
 
     @Override

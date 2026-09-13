@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "reinhardtshbm:cluster_iron",
+    "reinhardtshbm:cluster_deepslate_iron",
     "reinhardtshbm:cluster_depth_iron"
   ]
 }

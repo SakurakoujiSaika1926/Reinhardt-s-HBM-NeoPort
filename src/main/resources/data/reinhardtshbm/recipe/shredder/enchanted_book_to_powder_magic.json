@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "group": "shredder.magic",
+  "ingredient": {
+    "item": "minecraft:enchanted_book"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_magic",
+    "count": 1
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "TCT",
+    "MJM",
+    "B B"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "T": {
+      "item": "reinhardtshbm:tank_steel"
+    },
+    "J": {
+      "item": "reinhardtshbm:jetpack_break"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor"
+    },
+    "B": {
+      "item": "reinhardtshbm:bolt_dura_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:jetpack_vector"
+  }
+}

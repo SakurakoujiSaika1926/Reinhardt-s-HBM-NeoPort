@@ -1,9 +1,0 @@
-﻿{
-    "type":  "reinhardtshbm:shredder",
-    "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_cerium"
-                   },
-    "result":  {
-                   "id":  "reinhardtshbm:powder_cerium"
-               }
-}

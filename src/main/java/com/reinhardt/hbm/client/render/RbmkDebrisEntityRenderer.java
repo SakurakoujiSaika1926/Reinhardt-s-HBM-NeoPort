@@ -14,6 +14,11 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class RbmkDebrisEntityRenderer extends EntityRenderer<RbmkDebrisEntity> {
+    // OpenGL's legacy glRotatef(angle, 1, 1, 1) normalizes the axis internally.
+    // JOML's AxisAngle4f keeps the supplied axis, so use the exact normalized
+    // diagonal axis to preserve the old rotation without introducing scale.
+    private static final float LEGACY_DIAGONAL_AXIS = 0.5773502691896258F;
+
     private static final ModelResourceLocation BLANK = MachineModelRenderer.standalone("entity/rbmk_debris_blank");
     private static final ModelResourceLocation ELEMENT = MachineModelRenderer.standalone("entity/rbmk_debris_element");
     private static final ModelResourceLocation FUEL = MachineModelRenderer.standalone("entity/rbmk_debris_fuel");
@@ -41,7 +46,11 @@ public class RbmkDebrisEntityRenderer extends EntityRenderer<RbmkDebrisEntity> {
         poseStack.translate(0.0D, 0.125D, 0.0D);
         poseStack.mulPose(yaw(debris.getId() % 360));
         float rot = debris.lastRot + (debris.rot - debris.lastRot) * partialTick;
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rot), 1.0F, 1.0F, 1.0F)));
+        poseStack.mulPose(new Quaternionf(new AxisAngle4f(
+                (float) Math.toRadians(rot),
+                LEGACY_DIAGONAL_AXIS,
+                LEGACY_DIAGONAL_AXIS,
+                LEGACY_DIAGONAL_AXIS)));
         MachineModelRenderer.renderUnculled(
                 MachineModelRenderer.model(model(debris.debrisType())),
                 poseStack,

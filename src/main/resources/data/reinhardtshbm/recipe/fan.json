@@ -3,7 +3,7 @@
   "category": "redstone",
   "pattern": ["BPB", "PRP", "BPB"],
   "key": {
-    "B": { "tag": "c:bolts/steel" },
+    "B": { "type": "neoforge:components", "items": ["reinhardtshbm:bolt"], "components": { "minecraft:custom_data": { "material_id": 30, "material": "steel" } } },
     "P": { "tag": "c:plates/iron" },
     "R": { "item": "minecraft:redstone" }
   },

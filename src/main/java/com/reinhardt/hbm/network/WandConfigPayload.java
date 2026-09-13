@@ -44,21 +44,23 @@ public record WandConfigPayload(BlockPos pos, CompoundTag data, int action) impl
     }
 
     public static void handle(WandConfigPayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) {
-            return;
-        }
-        BlockEntity blockEntity = player.level().getBlockEntity(payload.pos());
-        if (blockEntity instanceof WandStructureBlockEntity structure) {
-            structure.applyConfig(payload.data());
-            if (payload.action() == ACTION_SAVE) {
-                structure.saveStructure(player);
-            } else if (payload.action() == ACTION_LOAD) {
-                structure.loadStructure(player);
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player)) {
+                return;
             }
-        } else if (blockEntity instanceof WandTandemBlockEntity tandem) {
-            tandem.applyConfig(payload.data());
-        } else if (blockEntity instanceof WandJigsawBlockEntity jigsaw) {
-            jigsaw.applyConfig(payload.data());
-        }
+            BlockEntity blockEntity = player.level().getBlockEntity(payload.pos());
+            if (blockEntity instanceof WandStructureBlockEntity structure) {
+                structure.applyConfig(payload.data());
+                if (payload.action() == ACTION_SAVE) {
+                    structure.saveStructure(player);
+                } else if (payload.action() == ACTION_LOAD) {
+                    structure.loadStructure(player);
+                }
+            } else if (blockEntity instanceof WandTandemBlockEntity tandem) {
+                tandem.applyConfig(payload.data());
+            } else if (blockEntity instanceof WandJigsawBlockEntity jigsaw) {
+                jigsaw.applyConfig(payload.data());
+            }
+        });
     }
 }

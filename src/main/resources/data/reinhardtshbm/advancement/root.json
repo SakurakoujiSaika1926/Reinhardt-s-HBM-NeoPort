@@ -1,0 +1,27 @@
+{
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:geiger_counter"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.root.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.root.description"
+    },
+    "background": "reinhardtshbm:textures/block/concrete.png",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "requirements": [
+    [
+      "tick"
+    ]
+  ]
+}

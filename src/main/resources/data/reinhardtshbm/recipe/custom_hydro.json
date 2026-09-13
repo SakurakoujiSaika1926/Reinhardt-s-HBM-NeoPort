@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" C ","LTL","LIL"],"key":{"C":{"tag":"c:plates/copper"},"L":{"tag":"c:plates/lead"},"I":{"tag":"c:plates/iron"},"T":{"item":"reinhardtshbm:cell_tritium"}},"result":{"id":"reinhardtshbm:custom_hydro"}}

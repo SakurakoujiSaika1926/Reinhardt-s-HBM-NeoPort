@@ -3,6 +3,7 @@
   "values": [
     "reinhardtshbm:ore_aluminium",
     "reinhardtshbm:ore_deepslate_aluminium",
-    "reinhardtshbm:cluster_aluminium"
+    "reinhardtshbm:cluster_aluminium",
+    "reinhardtshbm:cluster_deepslate_aluminium"
   ]
 }

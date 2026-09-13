@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CTC",
+    "TST",
+    "CTC"
+  ],
+  "key": {
+    "C": { "tag": "c:plates/combine_steel" },
+    "T": { "tag": "c:ingots/magnetized_tungsten" },
+    "S": { "item": "reinhardtshbm:singularity" }
+  },
+  "result": {
+    "id": "reinhardtshbm:singularity_counter_resonant",
+    "count": 1
+  }
+}

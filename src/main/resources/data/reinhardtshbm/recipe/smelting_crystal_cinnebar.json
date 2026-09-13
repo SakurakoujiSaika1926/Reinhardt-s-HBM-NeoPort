@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:crystal_cinnebar" },
+  "result": { "id": "reinhardtshbm:cinnebar", "count": 4 },
+  "experience": 2.0,
+  "cookingtime": 200
+}

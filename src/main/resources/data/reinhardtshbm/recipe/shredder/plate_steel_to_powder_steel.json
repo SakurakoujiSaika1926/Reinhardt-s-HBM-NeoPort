@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_steel"
+                       "tag":  "c:plates/steel"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_steel"

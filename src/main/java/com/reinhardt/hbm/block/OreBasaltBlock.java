@@ -7,9 +7,12 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 
@@ -38,6 +41,25 @@ public final class OreBasaltBlock extends LegacyVariantBlock {
         serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER,
                 pos.getX() + 0.5D, pos.getY() + 1.1D, pos.getZ() + 0.5D,
                 5, 0.5D, 0.0D, 0.5D, 0.0D);
+    }
+
+    /** The asbestos metadata used BlockOutgas's on-break replacement in 1.7.10. */
+    @Override
+    public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state,
+                              BlockEntity blockEntity, ItemStack tool) {
+        super.playerDestroy(level, player, pos, state, blockEntity, tool);
+        if (!level.isClientSide && state.getValue(VARIANT) == 2) {
+            level.setBlock(pos, HbmBlocks.GAS_ASBESTOS.get().defaultBlockState(), 3);
+        }
+    }
+
+    @Override
+    public void onBlockExploded(BlockState state, Level level, BlockPos pos, Explosion explosion) {
+        boolean asbestos = state.hasProperty(VARIANT) && state.getValue(VARIANT) == 2;
+        super.onBlockExploded(state, level, pos, explosion);
+        if (asbestos && !level.isClientSide) {
+            level.setBlock(pos, HbmBlocks.GAS_ASBESTOS.get().defaultBlockState(), 3);
+        }
     }
 
     @Override

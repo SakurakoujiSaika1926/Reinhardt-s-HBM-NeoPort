@@ -4,6 +4,8 @@
     "minecraft:iron_ore",
     "minecraft:deepslate_iron_ore",
     "reinhardtshbm:cluster_iron",
-    "reinhardtshbm:cluster_depth_iron"
+    "reinhardtshbm:cluster_deepslate_iron",
+    "reinhardtshbm:cluster_depth_iron",
+    "reinhardtshbm:ore_gneiss_iron"
   ]
 }

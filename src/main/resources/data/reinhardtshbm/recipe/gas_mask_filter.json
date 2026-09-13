@@ -7,7 +7,7 @@
   ],
   "key": {
     "I": {
-      "item": "reinhardtshbm:plate_iron"
+      "tag": "c:plates/iron"
     },
     "F": {
       "item": "reinhardtshbm:filter_coal"

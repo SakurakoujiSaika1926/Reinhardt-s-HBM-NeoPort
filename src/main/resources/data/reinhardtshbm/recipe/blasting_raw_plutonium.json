@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:raw_plutonium" },
+  "result": { "id": "reinhardtshbm:ingot_plutonium" },
+  "experience": 24.0,
+  "cookingtime": 100
+}

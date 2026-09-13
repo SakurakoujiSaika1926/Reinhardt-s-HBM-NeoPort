@@ -1,5 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
+import com.reinhardt.hbm.entity.LegacyBombletEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
@@ -27,6 +29,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -36,11 +39,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -147,6 +152,12 @@ public class RefineryBlockEntity extends BlockEntity implements PowerEndpoint, M
             RefineryClientSounds.tick(refinery);
         } else {
             refinery.tickServer(level);
+        }
+    }
+
+    public static void awardInfernoForBombletExplosion(Level level, BlockPos pos, Explosion explosion) {
+        if (level instanceof ServerLevel serverLevel && explosion.getDirectSourceEntity() instanceof LegacyBombletEntity) {
+            HbmAdvancements.awardNearby(serverLevel, new AABB(pos).inflate(100.0D), "inferno");
         }
     }
 

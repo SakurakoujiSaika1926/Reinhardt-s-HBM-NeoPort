@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" I ","IGI"," I "],"key":{"I":{"item":"reinhardtshbm:ingot_schrabidium_fuel"},"G":{"tag":"c:ingots/graphite"}},"result":{"id":"reinhardtshbm:watz_pellet","components":{"minecraft:custom_data":{"watz_type":"mes"},"minecraft:custom_model_data":2}}}

@@ -63,8 +63,30 @@ public class BlastDoorDummyBlock extends Block implements EntityBlock {
     }
 
     @Override
+    protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof BlastDoorDummyBlockEntity dummy) {
+            BlockPos corePos = dummy.corePos();
+            if (!corePos.equals(pos)) {
+                BlockState coreState = level.getBlockState(corePos);
+                if (!coreState.isAir()) {
+                    return coreState.getDestroyProgress(player, level, corePos);
+                }
+            }
+        }
+        return super.getDestroyProgress(state, player, level, pos);
+    }
+
+    @Override
     public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
         return new ItemStack(HbmBlocks.BLAST_DOOR.get());
+    }
+
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof BlastDoorDummyBlockEntity dummy) {
+            dummy.setDropCoreWhenRemoved(!player.isCreative());
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
@@ -97,7 +119,11 @@ public class BlastDoorDummyBlock extends Block implements EntityBlock {
                 && !state.is(newState.getBlock())
                 && !level.isClientSide
                 && level.getBlockEntity(pos) instanceof BlastDoorDummyBlockEntity dummy) {
-            level.destroyBlock(dummy.corePos(), true);
+            BlockPos corePos = dummy.corePos();
+            if (!corePos.equals(pos)
+                    && level.getBlockState(corePos).getBlock() instanceof BlastDoorBlock) {
+                level.destroyBlock(corePos, dummy.consumeDropCoreWhenRemoved());
+            }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

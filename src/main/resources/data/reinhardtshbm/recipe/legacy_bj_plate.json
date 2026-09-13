@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "N N",
+    "MSM",
+    "NCN"
+  ],
+  "key": {
+    "N": {
+      "tag": "c:plates/armor_lunar"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor_desh"
+    },
+    "S": {
+      "tag": "c:plates/starmetal"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bj_plate"
+  }
+}

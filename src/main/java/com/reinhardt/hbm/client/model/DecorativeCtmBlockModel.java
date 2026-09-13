@@ -79,7 +79,6 @@ public final class DecorativeCtmBlockModel implements IDynamicBakedModel {
             same("block_beryllium"),
             same("block_cobalt"),
             same("block_combine_steel"),
-            same("block_copper"),
             same("block_lanthanium"),
             same("block_lead"),
             same("block_polymer"),

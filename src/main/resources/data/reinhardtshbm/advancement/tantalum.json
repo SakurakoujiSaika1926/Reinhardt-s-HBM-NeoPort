@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:chemplant",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:gem_tantalium"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.tantalum.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.tantalum.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

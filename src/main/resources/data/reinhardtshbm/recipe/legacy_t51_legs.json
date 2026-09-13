@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MPM",
+    "PBP",
+    "P P"
+  ],
+  "key": {
+    "M": {
+      "item": "reinhardtshbm:motor"
+    },
+    "P": {
+      "tag": "c:plates/armor_titanium"
+    },
+    "B": {
+      "item": "reinhardtshbm:titanium_legs"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:t51_legs"
+  }
+}

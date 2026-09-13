@@ -45,19 +45,22 @@ public final class RadioTorchBlockEntityRenderer implements BlockEntityRenderer<
             case UP -> {
             }
             case NORTH -> {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+                // RenderRTTY's ObjUtil rotates vertices with the legacy
+                // Vec3.rotateAroundZ convention (the opposite sign of a
+                // positive modern PoseStack Z rotation).
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
                 poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
             }
             case SOUTH -> {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
                 poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
             }
             case WEST -> {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
                 poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             }
             case EAST -> {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
             }
         }
 

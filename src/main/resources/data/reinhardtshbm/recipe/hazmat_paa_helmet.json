@@ -7,7 +7,7 @@
     " P "
   ],
   "key": {
-    "E": { "item": "reinhardtshbm:plate_paa" },
+    "E": { "tag": "c:plates/paa" },
     "I": { "tag": "c:glass_panes" },
     "P": { "tag": "c:plates/iron" }
   },

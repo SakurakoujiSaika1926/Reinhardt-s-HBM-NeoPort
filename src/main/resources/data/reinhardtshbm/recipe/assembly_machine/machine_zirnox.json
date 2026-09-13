@@ -1,12 +1,10 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:not",
-      "value": {
-        "type": "reinhardtshbm:enable_528_mode"
-      }
+  "neoforge:conditions": {
+    "type": "neoforge:not",
+    "value": {
+      "type": "reinhardtshbm:enable_528_mode"
     }
-  ],
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.cirnox",
   "duration": 600,
@@ -15,9 +13,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
+        "items": "reinhardtshbm:shell",
         "components": {
           "minecraft:custom_data": {
             "material_id": 30,
@@ -29,7 +25,16 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/steel"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
       },
       "count": 8
     },

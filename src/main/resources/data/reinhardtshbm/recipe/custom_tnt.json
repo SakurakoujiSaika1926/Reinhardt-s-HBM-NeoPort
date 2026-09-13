@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" C ","TIT","TIT"],"key":{"C":{"tag":"c:plates/copper"},"I":{"tag":"c:plates/iron"},"T":{"tag":"c:ingots/high_explosive"}},"result":{"id":"reinhardtshbm:custom_tnt"}}

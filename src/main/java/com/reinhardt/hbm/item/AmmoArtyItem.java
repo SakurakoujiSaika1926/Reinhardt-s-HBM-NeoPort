@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.util.SavedItemStackPreview;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -95,7 +96,7 @@ public class AmmoArtyItem extends LegacyVariantItem {
                         .withStyle(ChatFormatting.RED));
             }
             case "ammo_arty_cargo" -> {
-                ItemStack cargo = cargo(stack, context.registries());
+                ItemStack cargo = cargoForTooltip(stack);
                 if (cargo.isEmpty()) {
                     tooltip.add(Component.translatable("tooltip.reinhardtshbm.ammo_arty.cargo.empty")
                             .withStyle(ChatFormatting.RED));
@@ -144,6 +145,10 @@ public class AmmoArtyItem extends LegacyVariantItem {
             return ItemStack.EMPTY;
         }
         return ItemStack.parseOptional(registries, tag.getCompound(CARGO_TAG));
+    }
+
+    public static ItemStack cargoForTooltip(ItemStack stack) {
+        return SavedItemStackPreview.fromCustomData(stack, CARGO_TAG);
     }
 
     public static ItemStack withCargo(ItemStack shell, ItemStack cargo, HolderLookup.Provider registries) {

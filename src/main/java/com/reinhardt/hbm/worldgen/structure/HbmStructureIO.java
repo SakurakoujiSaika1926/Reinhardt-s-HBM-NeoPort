@@ -1,8 +1,12 @@
 package com.reinhardt.hbm.worldgen.structure;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.block.LegacyTurretBlock;
+import com.reinhardt.hbm.block.MetalFenceBlock;
 import com.reinhardt.hbm.block.SteelWallBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
+import com.reinhardt.hbm.block.SteelBeamBlock;
+import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,6 +20,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -103,6 +108,9 @@ public final class HbmStructureIO {
         } catch (IOException exception) {
             ReinhardtsHBM.LOGGER.error("Failed to load HBM structure {}", name, exception);
             return StructureLoadResult.failed();
+        } catch (RuntimeException exception) {
+            ReinhardtsHBM.LOGGER.error("Failed to place HBM structure {}", name, exception);
+            return StructureLoadResult.failed();
         }
     }
 
@@ -121,6 +129,9 @@ public final class HbmStructureIO {
             placeStructure(level, loadResourceStructure(name), origin, rotation, debug, name);
             return true;
         } catch (IOException exception) {
+            ReinhardtsHBM.LOGGER.error("Failed to place resource HBM structure {}", name, exception);
+            return false;
+        } catch (RuntimeException exception) {
             ReinhardtsHBM.LOGGER.error("Failed to place resource HBM structure {}", name, exception);
             return false;
         }
@@ -156,41 +167,129 @@ public final class HbmStructureIO {
         }
 
         Map<BlockPos, PreparedPlacement> placementsByPos = new HashMap<>();
+        Map<BlockPos, LegacyStructureMultiblocks.Source> multiblockSources = new HashMap<>();
+        List<PreparedPlacement> uniquePlacements = new ArrayList<>(placements.size());
         for (PreparedPlacement placement : placements) {
-            placementsByPos.put(placement.pos(), placement);
+            if (placementsByPos.put(placement.pos(), placement) != null) {
+                ReinhardtsHBM.LOGGER.error(
+                        "Skipping duplicate block while placing legacy HBM structure {} at {}",
+                        structureName,
+                        placement.pos()
+                );
+                continue;
+            }
+            uniquePlacements.add(placement);
+            multiblockSources.put(
+                    placement.pos(),
+                    new LegacyStructureMultiblocks.Source(placement.entry().id(), placement.entry().meta())
+            );
+        }
+        Map<BlockPos, LegacyStructureMultiblocks.Part> multiblockParts;
+        try {
+            multiblockParts = LegacyStructureMultiblocks.index(multiblockSources);
+        } catch (RuntimeException exception) {
+            ReinhardtsHBM.LOGGER.error(
+                    "Skipping legacy HBM structure {} because its multiblock topology is invalid",
+                    structureName,
+                    exception
+            );
+            return;
         }
 
-        for (PreparedPlacement placement : placements) {
-            BlockState state = HbmLegacyNbtTemplate.stateFromLegacyId(placement.entry().id(), placement.entry().meta());
-            if (state.getBlock() instanceof DoorBlock) {
-                PreparedPlacement lower = (placement.entry().meta() & 8) != 0
-                        ? placementsByPos.get(placement.pos().below())
-                        : placement;
-                PreparedPlacement upper = lower == null ? null : placementsByPos.get(lower.pos().above());
-                if (lower != null
-                        && upper != null
-                        && lower.entry().id().equals(upper.entry().id())
-                        && (lower.entry().meta() & 8) == 0
-                        && (upper.entry().meta() & 8) != 0) {
-                    DoubleBlockHalf half = placement == upper ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER;
-                    state = HbmLegacyNbtTemplate.pairedLegacyDoorState(
-                            state, lower.entry().meta(), upper.entry().meta(), half
+        for (PreparedPlacement placement : uniquePlacements) {
+            LegacyStructureMultiblocks.Part multiblockPart = multiblockParts.get(placement.pos());
+            boolean isLegacyDummy = multiblockPart != null && !multiblockPart.isCoreAt(placement.pos());
+            BlockState state;
+            if (isLegacyDummy) {
+                state = HbmBlocks.MACHINE_DUMMY.get().defaultBlockState();
+            } else {
+                state = HbmLegacyNbtTemplate.stateFromLegacyId(placement.entry().id(), placement.entry().meta());
+                if (state.getBlock() instanceof DoorBlock) {
+                    PreparedPlacement lower = (placement.entry().meta() & 8) != 0
+                            ? placementsByPos.get(placement.pos().below())
+                            : placement;
+                    PreparedPlacement upper = lower == null ? null : placementsByPos.get(lower.pos().above());
+                    if (lower != null
+                            && upper != null
+                            && lower.entry().id().equals(upper.entry().id())
+                            && (lower.entry().meta() & 8) == 0
+                            && (upper.entry().meta() & 8) != 0) {
+                        DoubleBlockHalf half = placement == upper ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER;
+                        state = HbmLegacyNbtTemplate.pairedLegacyDoorState(
+                                state, lower.entry().meta(), upper.entry().meta(), half
+                        );
+                    }
+                }
+                // Legacy NBTStructure transforms rail coordinates but leaves
+                // RailGeneric metadata unchanged. Levers use the old complete
+                // EnumOrientation metadata transform, including face flips.
+                if (state.getBlock() == Blocks.LEVER) {
+                    state = HbmLegacyNbtTemplate.stateFromLegacyId(
+                            placement.entry().id(),
+                            HbmLegacyNbtTemplate.transformLegacyLeverMeta(placement.entry().meta(), rotation)
                     );
+                } else if (!(state.getBlock() instanceof RailBlock)) {
+                    state = state.rotate(toMcRotation(rotation));
                 }
             }
-            // Legacy NBTStructure transforms rail coordinates but leaves RailGeneric metadata unchanged.
-            if (!(state.getBlock() instanceof RailBlock)) {
-                state = state.rotate(toMcRotation(rotation));
-            }
-            level.setBlock(placement.pos(), state, state.getBlock() instanceof DoorBlock ? Block.UPDATE_CLIENTS : Block.UPDATE_ALL);
-            if (placement.nbt() != null && state.hasBlockEntity()) {
-                loadBlockEntity(level, placement.pos(), state, placement.nbt(), registries);
+
+            // Legacy NBTStructure always placed blocks with flag 2. UPDATE_ALL
+            // causes neighbor updates during a bulk structure pass and can
+            // make falling/attached blocks turn into drops immediately.
+            setStructureBlock(level, placement.pos(), state, Block.UPDATE_CLIENTS);
+            if (isLegacyDummy) {
+                linkStructureDummy(level, placement.pos(), multiblockPart.corePos());
+            } else {
+                CompoundTag nbt = placement.nbt();
+                if (multiblockPart != null) {
+                    if (nbt == null) {
+                        ReinhardtsHBM.LOGGER.error(
+                                "Skipping legacy {} core NBT load in structure {} at {} because the saved core has no block entity NBT",
+                                multiblockPart.kind(),
+                                structureName,
+                                placement.pos()
+                        );
+                        refreshPaneConnections(level, placement.pos());
+                        continue;
+                    }
+                    try {
+                        nbt = LegacyStructureMultiblocks.migrateCoreNbt(multiblockPart.kind(), nbt);
+                    } catch (RuntimeException exception) {
+                        ReinhardtsHBM.LOGGER.error(
+                                "Skipping legacy {} core NBT load in structure {} at {} because migration failed",
+                                multiblockPart.kind(),
+                                structureName,
+                                placement.pos(),
+                                exception
+                        );
+                        refreshPaneConnections(level, placement.pos());
+                        continue;
+                    }
+                }
+                if (nbt != null) {
+                    if (!state.hasBlockEntity()) {
+                        if (multiblockPart != null) {
+                            ReinhardtsHBM.LOGGER.error(
+                                    "Skipping legacy {} core NBT load in structure {} at {} because {} has no block entity state",
+                                    multiblockPart.kind(),
+                                    structureName,
+                                    placement.pos(),
+                                    state
+                            );
+                        }
+                    } else {
+                        loadBlockEntity(level, placement.pos(), state, nbt, registries);
+                    }
+                }
             }
             refreshPaneConnections(level, placement.pos());
         }
     }
 
     private static void refreshPaneConnections(ServerLevel level, BlockPos changedPos) {
+        // Saved structures use legacy flag 2 writes; explicitly refresh both
+        // iron-bar panes and HBM metal fences so their connection properties
+        // match the neighbours present after the bulk placement.
         refreshPane(level, changedPos);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             refreshPane(level, changedPos.relative(direction));
@@ -199,6 +298,10 @@ public final class HbmStructureIO {
 
     private static void refreshPane(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof MetalFenceBlock) {
+            MetalFenceBlock.refreshConnections(level, pos);
+            return;
+        }
         if (!(state.getBlock() instanceof IronBarsBlock)) {
             return;
         }
@@ -320,19 +423,21 @@ public final class HbmStructureIO {
     }
 
     private static Placement transformPlacement(PaletteEntry entry, CompoundTag nbt, int rotation, boolean debug, String structureName) {
+        if (entry.id().equals(ReinhardtsHBM.id("floodlight").toString()) && nbt != null) {
+            return new Placement(entry, HbmLegacyNbtTemplate.migrateLegacyFloodlightNbt(nbt));
+        }
         if (entry.id().equals(ReinhardtsHBM.id("wand_jigsaw").toString()) && nbt != null && !debug) {
             return new Placement(new PaletteEntry(normalizeId(nbt.getString("block")), nbt.getInt("meta")), null);
         }
         if (entry.id().equals(ReinhardtsHBM.id("wand_loot").toString()) && nbt != null) {
             CompoundTag copy = nbt.copy();
             copy.putBoolean("trigger", !debug);
-            copy.putFloat("rot", copy.getFloat("rot") + (rotation & 3) * 90.0F);
+            copy.putFloat("rot", Mth.wrapDegrees(copy.getFloat("rot") + (rotation & 3) * 90.0F));
             return new Placement(entry, copy);
         }
         if (entry.id().equals(ReinhardtsHBM.id("wand_logic").toString()) && nbt != null) {
             CompoundTag copy = nbt.copy();
             copy.putBoolean("trigger", !debug);
-            copy.putInt("rotation", rotateLegacyDirection(copy.getInt("rotation"), rotation));
             return new Placement(entry, copy);
         }
         if (entry.id().equals(ReinhardtsHBM.id("wand_tandem").toString()) && nbt != null) {
@@ -349,31 +454,47 @@ public final class HbmStructureIO {
         return new Placement(entry, nbt);
     }
 
-    private static int rotateLegacyDirection(int direction, int rotation) {
-        net.minecraft.core.Direction dir = net.minecraft.core.Direction.from3DDataValue(direction);
-        for (int i = 0; i < (rotation & 3); i++) {
-            if (dir.getAxis().isHorizontal()) {
-                dir = dir.getClockWise();
-            }
-        }
-        return dir.get3DDataValue();
-    }
-
     private static void loadBlockEntity(ServerLevel level, BlockPos pos, BlockState state, CompoundTag nbt, HolderLookup.Provider registries) {
         CompoundTag copy = nbt.copy();
         copy.putInt("x", pos.getX());
         copy.putInt("y", pos.getY());
         copy.putInt("z", pos.getZ());
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity != null) {
-            try {
-                blockEntity.loadWithComponents(copy, registries);
-                blockEntity.setChanged();
-                level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
-            } catch (RuntimeException exception) {
-                ReinhardtsHBM.LOGGER.warn("Failed to load HBM structure block entity {} at {}", state, pos, exception);
-            }
+        if (blockEntity == null) {
+            ReinhardtsHBM.LOGGER.error(
+                    "Skipping structure block entity NBT for {} at {} because no block entity was created",
+                    state,
+                    pos
+            );
+            return;
         }
+        try {
+            blockEntity.loadWithComponents(copy, registries);
+            blockEntity.setChanged();
+            level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+        } catch (RuntimeException exception) {
+            ReinhardtsHBM.LOGGER.error("Failed to load structure block entity NBT for {} at {}", state, pos, exception);
+        }
+    }
+
+    private static void setStructureBlock(ServerLevel level, BlockPos pos, BlockState state, int flags) {
+        if (state.getBlock() instanceof LegacyTurretBlock) {
+            LegacyTurretBlock.runWithoutAutomaticDummies(() -> level.setBlock(pos, state, flags));
+            return;
+        }
+        level.setBlock(pos, state, flags);
+    }
+
+    private static void linkStructureDummy(ServerLevel level, BlockPos pos, BlockPos corePos) {
+        if (!(level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy)) {
+            ReinhardtsHBM.LOGGER.error(
+                    "Skipping legacy structure dummy link at {} -> {} because no MachineDummyBlockEntity was created",
+                    pos,
+                    corePos
+            );
+            return;
+        }
+        dummy.setCorePos(corePos);
     }
 
     private static CompoundTag cleanBlockEntityNbt(CompoundTag tag, Map<Short, String> itemPalette) {
@@ -390,15 +511,22 @@ public final class HbmStructureIO {
             if (compound.contains("disguise", Tag.TAG_STRING)) {
                 compound.putString("disguise", normalizeId(compound.getString("disguise")));
             }
-            if (looksLikeItemStack(compound)) {
-                fixItemStack(compound, itemPalette);
+            if (looksLikeItemStack(compound) && !fixItemStack(compound, itemPalette)) {
+                clearCompound(compound);
+                return;
             }
             for (String key : Set.copyOf(compound.getAllKeys())) {
                 cleanLegacyNbt(compound.get(key), itemPalette);
             }
         } else if (tag instanceof ListTag list) {
-            for (int i = 0; i < list.size(); i++) {
-                cleanLegacyNbt(list.get(i), itemPalette);
+            for (int i = list.size() - 1; i >= 0; i--) {
+                Tag child = list.get(i);
+                if (child instanceof CompoundTag compound && looksLikeItemStack(compound)
+                        && !fixItemStack(compound, itemPalette)) {
+                    list.remove(i);
+                    continue;
+                }
+                cleanLegacyNbt(child, itemPalette);
             }
         }
     }
@@ -408,7 +536,7 @@ public final class HbmStructureIO {
                 && (tag.contains("Count") || tag.contains("count") || tag.contains("Slot") || tag.contains("slot") || tag.contains("Damage"));
     }
 
-    private static void fixItemStack(CompoundTag tag, Map<Short, String> itemPalette) {
+    private static boolean fixItemStack(CompoundTag tag, Map<Short, String> itemPalette) {
         if (tag.contains("id", Tag.TAG_STRING)) {
             tag.putString("id", normalizeId(tag.getString("id")));
         } else if (tag.contains("id", Tag.TAG_SHORT)) {
@@ -427,6 +555,13 @@ public final class HbmStructureIO {
         }
         if (tag.contains("Count", Tag.TAG_BYTE) && !tag.contains("count")) {
             tag.putInt("count", Math.max(1, tag.getByte("Count") & 255));
+        }
+        return !tag.contains("id", Tag.TAG_STRING) || !tag.getString("id").equals("minecraft:air");
+    }
+
+    private static void clearCompound(CompoundTag tag) {
+        for (String key : Set.copyOf(tag.getAllKeys())) {
+            tag.remove(key);
         }
     }
 
@@ -522,6 +657,9 @@ public final class HbmStructureIO {
         }
         if (state.getBlock() instanceof SteelPolesBlock && state.hasProperty(SteelPolesBlock.FACING)) {
             return SteelPolesBlock.toLegacyMeta(state.getValue(SteelPolesBlock.FACING));
+        }
+        if (state.getBlock() instanceof SteelBeamBlock && state.hasProperty(SteelBeamBlock.FACING)) {
+            return SteelBeamBlock.toLegacyMeta(state.getValue(SteelBeamBlock.FACING));
         }
         if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING)) {
             return state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING).get3DDataValue();

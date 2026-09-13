@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "FSF",
+    "   ",
+    "FSF"
+  ],
+  "key": {
+    "F": {
+      "item": "reinhardtshbm:rag"
+    },
+    "S": {
+      "item": "reinhardtshbm:ring_starmetal"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bismuth_legs"
+  }
+}

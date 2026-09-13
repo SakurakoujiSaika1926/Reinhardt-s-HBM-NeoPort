@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:hbm_legacy_nbt",
+  "biomes": "#reinhardtshbm:has_structure/hbm_legacy",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "legacy_structure": "ruin2"
+}

@@ -1,0 +1,45 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpt20kero",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_20"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/tungsten"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_thruster_20_kerosene",
+    "count": 1
+  }
+}

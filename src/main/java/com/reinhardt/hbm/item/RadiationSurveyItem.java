@@ -162,7 +162,7 @@ public class RadiationSurveyItem extends Item {
             received = 3.6D;
             limit = true;
         }
-        received = ((int) (1000.0D * received)) / 1000.0D;
+        received = truncateOldGeigerValue(received);
 
         player.sendSystemMessage(Component.literal("===== ")
                 .append(Component.translatable("dosimeter.title"))
@@ -180,15 +180,15 @@ public class RadiationSurveyItem extends Item {
     }
 
     private static String formatNumber(double value) {
-        double abs = Math.abs(value);
-        if (abs >= 1.0E6D || (abs > 0.0D && abs < 1.0E-3D)) {
-            return String.format(Locale.ROOT, "%.3e", value);
-        }
-        return String.format(Locale.ROOT, "%.3f", value);
+        return String.format(Locale.ROOT, "%.1f", truncateOldGeigerValue(value));
     }
 
     private static String formatFixed(double value) {
-        return String.format(Locale.ROOT, "%.3f", value);
+        return String.format(Locale.ROOT, "%.1f", truncateOldGeigerValue(value));
+    }
+
+    private static double truncateOldGeigerValue(double value) {
+        return ((int) (value * 10.0D)) / 10.0D;
     }
 
     private static ChatFormatting radColor(double rads) {

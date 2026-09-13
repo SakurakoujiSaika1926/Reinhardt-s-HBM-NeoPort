@@ -63,7 +63,9 @@ public class StandardAmmoItem extends LegacyVariantItem {
         TAU,
         ROCKET_ML,
         FLAME,
-        NUKE
+        NUKE,
+        LEGACY_BULLET,
+        FLARE
     }
 
     public enum StandardAmmoType {
@@ -93,7 +95,18 @@ public class StandardAmmoItem extends LegacyVariantItem {
         NUKE_HIGH("nuke_high", AmmoFamily.NUKE, 0.0F, 1.0F, false, true, 0.0F, 0.0F, 1.0F),
         NUKE_TOTS("nuke_tots", AmmoFamily.NUKE, 0.35F, 1.0F, false, true, 0.0F, 0.0F, 1.0F),
         NUKE_HIVE("nuke_hive", AmmoFamily.NUKE, 0.25F, 1.0F, false, true, 0.0F, 0.0F, 1.0F),
-        NUKE_BALEFIRE("nuke_balefire", AmmoFamily.NUKE, 2.5F, 1.0F, false, true, 0.0F, 0.0F, 1.0F);
+        NUKE_BALEFIRE("nuke_balefire", AmmoFamily.NUKE, 2.5F, 1.0F, false, true, 0.0F, 0.0F, 1.0F),
+        // Appended so the ids already stored by legacy_bullet entities retain
+        // their 1.21.1 ordinals.  These are precisely the first accepted
+        // magazine configurations used by the 1.7.10 skeleton gun pools.
+        STONE("stone", AmmoFamily.LEGACY_BULLET, 0.0F, 1.0F, false, true, 0.0F, 0.0F, 1.0F),
+        M357_BP("m357_bp", AmmoFamily.LEGACY_BULLET, 0.0F, 0.75F, false, true, 0.0F, 0.0F, 1.25F),
+        M44_BP("m44_bp", AmmoFamily.LEGACY_BULLET, 0.0F, 0.75F, false, true, 0.0F, 0.0F, 1.25F),
+        G12_BP("g12_bp", AmmoFamily.LEGACY_BULLET, 0.0F, 0.09375F, false, true, 0.0F, 0.0F, 1.25F),
+        G26_FLARE("g26_flare", AmmoFamily.FLARE, 0.0F, 1.0F, false, true, 0.0F, 0.0F, 1.25F),
+        P22_SP("p22_sp", AmmoFamily.LEGACY_BULLET, 0.0F, 1.0F, false, true, 0.0F, 0.0F, 1.25F),
+        R762_SP("r762_sp", AmmoFamily.LEGACY_BULLET, 0.0F, 1.0F, false, true, 0.0F, 0.0F, 1.25F),
+        R762_FMJ("r762_fmj", AmmoFamily.LEGACY_BULLET, 0.0F, 0.8F, false, true, 5.0F, 0.10F, 1.25F);
 
         private final String id;
         private final AmmoFamily family;
@@ -169,6 +182,49 @@ public class StandardAmmoItem extends LegacyVariantItem {
 
         public int maxRicochetCount() {
             return 2;
+        }
+
+        /** BulletConfig projectile count from the 1.7.10 first magazine entry. */
+        public int projectileCount() {
+            return this == G12_BP ? 8 : 1;
+        }
+
+        /** BulletConfig spread before the receiver's own spread terms. */
+        public float projectileSpread() {
+            return switch (this) {
+                case STONE -> 0.025F;
+                case G12_BP -> 0.035F;
+                default -> 0.0F;
+            };
+        }
+
+        public double projectileSpeed() {
+            return switch (family) {
+                case ROCKET_ML -> 0.0D;
+                case FLAME -> 1.0D;
+                case FLARE -> 2.0D;
+                default -> 10.0D;
+            };
+        }
+
+        public double projectileGravity() {
+            return switch (family) {
+                case FLAME -> 0.02D;
+                case FLARE -> 0.015D;
+                default -> 0.0D;
+            };
+        }
+
+        public int projectileLifetime() {
+            return switch (family) {
+                case FLAME, FLARE -> 100;
+                case ROCKET_ML -> 300;
+                default -> 30;
+            };
+        }
+
+        public int selfDamageDelay() {
+            return family == AmmoFamily.FLAME ? 20 : 2;
         }
 
         public static StandardAmmoType byId(String id) {

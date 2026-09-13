@@ -14,7 +14,16 @@
       "item": "reinhardtshbm:steel_scaffold"
     },
     "D": {
-      "tag": "c:pipes/steel"
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
     },
     "C": {
       "tag": "c:concretes"

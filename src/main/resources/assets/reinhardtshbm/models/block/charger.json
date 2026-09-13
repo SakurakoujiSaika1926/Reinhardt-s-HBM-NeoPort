@@ -6,6 +6,7 @@
   "shade_quads": true,
   "flip_v": true,
   "emissive_ambient": false,
+  "visibility": { "Base": true, "Light": false, "Left": true, "Right": true, "Slide": true },
   "textures": {
     "particle": "reinhardtshbm:models/machines/charger"
   }

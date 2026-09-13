@@ -1,0 +1,26 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:raw_materials/beryllium"
+                   },
+    "input_count":  4,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_beryllium",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_beryllium",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_emerald",
+                        "count":  3
+                    },
+                    {
+                        "id":  "minecraft:gravel",
+                        "count":  4
+                    }
+                ]
+}

@@ -2,8 +2,8 @@
   "type": "reinhardtshbm:crystallizer",
   "group": "crystallizer",
   "ingredient": { "tag": "c:raw_materials/tungsten" },
-  "input_count": 3,
+  "input_count": 4,
   "acid": { "fluid": "sulfuric_acid", "amount": 500 },
   "duration": 600,
-  "result": { "id": "reinhardtshbm:crystal_tungsten", "count": 2 }
+  "result": { "id": "reinhardtshbm:crystal_tungsten", "count": 3 }
 }

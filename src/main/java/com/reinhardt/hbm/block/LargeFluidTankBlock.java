@@ -293,6 +293,9 @@ public class LargeFluidTankBlock extends Block implements EntityBlock {
     }
 
     private static void removeDummies(Level level, BlockPos corePos, Direction facing) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         for (BlockPos occupied : occupiedPositions(corePos, facing)) {
             if (level.getBlockState(occupied).is(HbmBlocks.MACHINE_DUMMY.get())
                     && level.getBlockEntity(occupied) instanceof MachineDummyBlockEntity dummy

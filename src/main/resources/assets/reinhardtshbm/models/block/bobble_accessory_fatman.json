@@ -4,7 +4,7 @@
     "mtl_override":  "reinhardtshbm:models/obj/trinkets/bobble_accessory.mtl",
     "automatic_culling":  false,
     "shade_quads":  true,
-    "flip_v":  false,
+    "flip_v": true,
     "visibility":  {
                        "Piston":  false,
                        "Handle":  false,
@@ -13,7 +13,5 @@
                        "MiniNuke":  true,
                        "Launcher":  false
                    },
-    "textures":  {
-                     "particle":  "reinhardtshbm:models/thegadget3_"
-                 }
+    "textures": { "default": "reinhardtshbm:models/thegadget3_", "particle": "reinhardtshbm:models/thegadget3_" }
 }

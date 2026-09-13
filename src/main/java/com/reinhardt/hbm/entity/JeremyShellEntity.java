@@ -222,6 +222,6 @@ public class JeremyShellEntity extends Entity {
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 65536.0D;
+        return distance < 102400.0D;
     }
 }

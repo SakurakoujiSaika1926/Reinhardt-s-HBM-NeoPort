@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.block.GasTurbineBlock;
+import com.reinhardt.hbm.client.render.GasTurbineItemRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundSource;
@@ -13,10 +14,25 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+
+import java.util.function.Consumer;
 
 public class GasTurbineBlockItem extends BlockItem {
     public GasTurbineBlockItem(Block block, Item.Properties properties) {
         super(block, properties);
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private final GasTurbineItemRenderer renderer = new GasTurbineItemRenderer();
+
+            @Override
+            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                return this.renderer;
+            }
+        });
     }
 
     @Override

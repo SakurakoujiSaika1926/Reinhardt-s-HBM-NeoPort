@@ -2883,9 +2883,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 changed = true;
             }
         }
-        this.rtgHeat = (int) Math.min(HbmConfig.rtgDecay() ? 600L : 200L, heat);
-        if (heat > 0L && this.energy < profile().energyCapacity()) {
-            this.energy = Math.min(profile().energyCapacity(), this.energy + heat * 5L);
+        long cappedHeat = Math.min(HbmConfig.rtgDecay() ? 600L : 200L, heat);
+        this.rtgHeat = (int) cappedHeat;
+        if (cappedHeat > 0L && this.energy < profile().energyCapacity()) {
+            this.energy = Math.min(profile().energyCapacity(), this.energy + cappedHeat * 5L);
             this.completed++;
             changed = true;
         }

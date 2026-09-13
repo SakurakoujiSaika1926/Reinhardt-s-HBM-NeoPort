@@ -1,19 +1,89 @@
 {
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.arty",
-  "blueprint_pools": ["528.arty"],
+  "blueprint_pools": "528.arty",
   "duration": 1200,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:battery_pack"], "components": { "minecraft:custom_data": { "variant": "battery_lithium" }, "minecraft:custom_model_data": 2 } }, "count": 1 },
-    { "ingredient": { "tag": "c:ingots/steel" }, "count": 64 },
-    { "ingredient": { "tag": "c:ingots/steel" }, "count": 64 },
-    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 5 },
-    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 3 },
-    { "ingredient": { "tag": "c:pipes/steel" }, "count": 12 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:part_mechanism"], "components": { "minecraft:custom_data": { "material_id": 50, "material": "weaponsteel" } } }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:machine_radar" }, "count": 1 },
-    { "ingredient": { "item": "reinhardtshbm:crt_display" }, "count": 1 }
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:battery_pack",
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "battery_lithium"
+          },
+          "minecraft:custom_model_data": 2
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/steel"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/steel"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 5
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_advanced"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:part_mechanism",
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 50,
+            "material": "weaponsteel"
+          }
+        }
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:machine_radar"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:crt_display"
+      },
+      "count": 1
+    }
   ],
-  "result": { "id": "reinhardtshbm:turret_arty" }
+  "result": {
+    "id": "reinhardtshbm:turret_arty"
+  }
 }

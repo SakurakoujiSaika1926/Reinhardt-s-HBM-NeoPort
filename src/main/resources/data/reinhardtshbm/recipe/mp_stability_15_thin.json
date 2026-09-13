@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "A A",
+    "PSP",
+    "PSP"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:plates/aluminium"
+    },
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "S": {
+      "item": "reinhardtshbm:steel_scaffold"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mp_stability_15_thin",
+    "count": 1
+  }
+}
+

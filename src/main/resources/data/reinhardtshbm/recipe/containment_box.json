@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["LUL","UCU","LUL"],"key":{"L":{"tag":"c:plates/lead"},"U":{"tag":"c:ingots/ferrouranium"},"C":{"item":"reinhardtshbm:crate_steel"}},"result":{"id":"reinhardtshbm:containment_box"}}

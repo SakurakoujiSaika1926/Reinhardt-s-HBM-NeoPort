@@ -1,9 +1,7 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "reinhardtshbm:enable_528_mode"
-    }
-  ],
+  "neoforge:conditions": {
+    "type": "reinhardtshbm:enable_528_mode"
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.chemfac",
   "duration": 400,
@@ -12,9 +10,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
+        "items": "reinhardtshbm:item_expensive",
         "components": {
           "minecraft:custom_data": {
             "variant": "heavy_frame"
@@ -38,9 +34,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
+        "items": "reinhardtshbm:shell",
         "components": {
           "minecraft:custom_data": {
             "material_id": 30,
@@ -52,7 +46,16 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/copper"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
+        }
       },
       "count": 16
     },
@@ -65,9 +68,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
+        "items": "reinhardtshbm:item_expensive",
         "components": {
           "minecraft:custom_data": {
             "variant": "circuit"

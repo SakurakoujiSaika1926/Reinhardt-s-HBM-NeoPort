@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" N ","PSP","L L"],"key":{"N":{"item":"reinhardtshbm:bottle_nuka"},"P":{"tag":"c:plates/steel"},"S":{"item":"reinhardtshbm:syringe_metal_stimpak"},"L":{"item":"minecraft:leather"}},"result":{"id":"reinhardtshbm:syringe_metal_super"}}

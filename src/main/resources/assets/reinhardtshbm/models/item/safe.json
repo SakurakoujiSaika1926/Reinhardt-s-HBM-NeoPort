@@ -1,3 +1,12 @@
 {
-    "parent":  "reinhardtshbm:block/safe"
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "reinhardtshbm:block/safe_front",
+    "up": "reinhardtshbm:block/safe_side",
+    "north": "reinhardtshbm:block/safe_front",
+    "south": "reinhardtshbm:block/safe_side",
+    "west": "reinhardtshbm:block/safe_side",
+    "east": "reinhardtshbm:block/safe_side",
+    "particle": "reinhardtshbm:block/safe_side"
+  }
 }

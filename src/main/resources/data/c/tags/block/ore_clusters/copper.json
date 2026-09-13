@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:cluster_copper"
+    "reinhardtshbm:cluster_copper",
+    "reinhardtshbm:cluster_deepslate_copper"
   ]
 }

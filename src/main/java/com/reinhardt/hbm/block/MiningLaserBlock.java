@@ -157,6 +157,9 @@ public class MiningLaserBlock extends LegacyDirectionalBlock implements EntityBl
     }
 
     private static void removeDummies(Level level, BlockPos corePos) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos pos : MiningLaserBlockEntity.multiblockPositions(corePos)) {
                 if (pos.equals(corePos)) {

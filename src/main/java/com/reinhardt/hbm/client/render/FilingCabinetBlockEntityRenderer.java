@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public final class FilingCabinetBlockEntityRenderer implements BlockEntityRenderer<FilingCabinetBlockEntity> {
@@ -48,14 +49,33 @@ public final class FilingCabinetBlockEntityRenderer implements BlockEntityRender
         poseStack.pushPose();
         poseStack.translate(.5F, 0.0F, .5F);
         poseStack.mulPose(Axis.YP.rotationDegrees(rotation));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(base), poseStack, bufferSource, state,
+        MachineModelRenderer.renderUnculledCutoutNoCull(MachineModelRenderer.model(base), poseStack, bufferSource, state,
                 packedLight, packedOverlay);
+        poseStack.pushPose();
         poseStack.translate(0.0F, 0.0F, .6875F * cabinet.lower(partialTick));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(lower), poseStack, bufferSource, state,
-                packedLight, packedOverlay);
-        poseStack.translate(0.0F, 0.0F, .6875F * (cabinet.upper(partialTick) - cabinet.lower(partialTick)));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(upper), poseStack, bufferSource, state,
+        MachineModelRenderer.renderUnculledCutoutNoCull(MachineModelRenderer.model(lower), poseStack, bufferSource, state,
                 packedLight, packedOverlay);
         poseStack.popPose();
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 0.0F, .6875F * cabinet.upper(partialTick));
+        MachineModelRenderer.renderUnculledCutoutNoCull(MachineModelRenderer.model(upper), poseStack, bufferSource, state,
+                packedLight, packedOverlay);
+        poseStack.popPose();
+        poseStack.popPose();
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(FilingCabinetBlockEntity cabinet) {
+        // TileEntityFileCabinet#getRenderBoundingBox in 1.7.10: one block on
+        // each horizontal side, exactly covering the opened drawers.
+        var pos = cabinet.getBlockPos();
+        return new AABB(pos.getX() - 1.0D, pos.getY(), pos.getZ() - 1.0D,
+                pos.getX() + 1.0D, pos.getY() + 1.0D, pos.getZ() + 1.0D);
+    }
+
+    @Override
+    public int getViewDistance() {
+        // TileEntityFileCabinet#getMaxRenderDistanceSquared = 65,536.
+        return 256;
     }
 }

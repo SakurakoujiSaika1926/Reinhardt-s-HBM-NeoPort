@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.worldgen;
 
 import com.mojang.serialization.Codec;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -29,7 +30,8 @@ public class NetherDepthNeodymiumFeature extends Feature<NoneFeatureConfiguratio
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
-        if (context.level().getLevel() != null && context.level().getLevel().dimension() != Level.NETHER) {
+        if ((context.level().getLevel() != null && context.level().getLevel().dimension() != Level.NETHER)
+                || !HbmConfig.ENABLE_NETHER_ORES.get()) {
             return false;
         }
         WorldGenLevel level = context.level();

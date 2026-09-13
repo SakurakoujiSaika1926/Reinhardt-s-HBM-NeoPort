@@ -23,13 +23,13 @@ public final class OreBasaltBlockItem extends BlockItem {
 
     @Override
     public Component getName(ItemStack stack) {
-        return Component.translatable("block.reinhardtshbm.ore_basalt." + IDS[variant(stack)]);
+        return Component.translatable("block.reinhardtshbm.ore_basalt." + IDS[variantIndex(stack)]);
     }
 
     @Override
     protected BlockState getPlacementState(BlockPlaceContext context) {
         BlockState state = super.getPlacementState(context);
-        return state == null ? null : state.setValue(LegacyVariantBlock.VARIANT, variant(context.getItemInHand()));
+        return state == null ? null : state.setValue(LegacyVariantBlock.VARIANT, variantIndex(context.getItemInHand()));
     }
 
     public void addCreativeVariants(CreativeModeTab.Output output) {
@@ -48,12 +48,17 @@ public final class OreBasaltBlockItem extends BlockItem {
         return stack;
     }
 
-    private static int variant(ItemStack stack) {
+    /** Returns the clamped metadata variant carried by this legacy block item. */
+    public static int variantIndex(ItemStack stack) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if (tag.contains(VARIANT)) {
             return Math.max(0, Math.min(IDS.length - 1, tag.getInt(VARIANT)));
         }
         CustomModelData modelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
         return modelData == null ? 0 : Math.max(0, Math.min(IDS.length - 1, modelData.value()));
+    }
+
+    public static String variantName(ItemStack stack) {
+        return IDS[variantIndex(stack)];
     }
 }

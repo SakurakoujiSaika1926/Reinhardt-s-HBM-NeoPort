@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/nuke_n2"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

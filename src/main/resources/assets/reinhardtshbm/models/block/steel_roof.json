@@ -1,6 +1,43 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/steel_roof"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "ambientocclusion": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "reinhardtshbm:models/steel_roof",
+    "texture": "reinhardtshbm:models/steel_roof"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0], "to": [16, 1, 16],
+      "faces": {
+        "down": {"uv": [8, 0, 12, 8], "texture": "#texture"},
+        "up": {"uv": [4, 8, 8, 0], "texture": "#texture"},
+        "north": {"uv": [8, 8, 4, 8.5], "texture": "#texture"},
+        "south": {"uv": [16, 8, 12, 8.5], "texture": "#texture"},
+        "west": {"uv": [4, 8, 0, 8.5], "texture": "#texture"},
+        "east": {"uv": [12, 8, 8, 8.5], "texture": "#texture"}
+      }
+    },
+    {
+      "from": [10, 1, 0], "to": [11, 2, 16],
+      "faces": {
+        "down": {"uv": [11.75, 7.5, 12, 15.5], "texture": "#texture"},
+        "up": {"uv": [11.5, 15.5, 11.75, 7.5], "texture": "#texture"},
+        "north": {"uv": [11.75, 15.5, 11.5, 16], "texture": "#texture"},
+        "south": {"uv": [16, 15.5, 15.75, 16], "texture": "#texture"},
+        "west": {"uv": [11.5, 15.5, 7.5, 16], "texture": "#texture"},
+        "east": {"uv": [15.75, 15.5, 11.75, 16], "texture": "#texture"}
+      }
+    },
+    {
+      "from": [0, 1, 10], "to": [16, 3, 12],
+      "faces": {
+        "down": {"uv": [4.5, 8.5, 8.5, 9.5], "texture": "#texture"},
+        "up": {"uv": [0.5, 9.5, 4.5, 8.5], "texture": "#texture"},
+        "north": {"uv": [4.5, 9.5, 0.5, 10.5], "texture": "#texture"},
+        "south": {"uv": [9, 9.5, 5, 10.5], "texture": "#texture"},
+        "west": {"uv": [0.5, 9.5, 0, 10.5], "texture": "#texture"},
+        "east": {"uv": [5, 9.5, 4.5, 10.5], "texture": "#texture"}
+      }
+    }
+  ]
 }

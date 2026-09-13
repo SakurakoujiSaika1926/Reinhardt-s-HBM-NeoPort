@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PWP",
+    "PBP",
+    "FSF"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/armor_fau"
+    },
+    "W": {
+      "item": "minecraft:orange_wool"
+    },
+    "B": {
+      "item": "reinhardtshbm:starmetal_helmet"
+    },
+    "F": {
+      "item": "reinhardtshbm:gas_mask_filter"
+    },
+    "S": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:fau_helmet"
+  }
+}

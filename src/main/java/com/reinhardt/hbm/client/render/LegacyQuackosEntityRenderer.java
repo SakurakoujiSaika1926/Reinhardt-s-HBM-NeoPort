@@ -13,6 +13,10 @@ public final class LegacyQuackosEntityRenderer extends ChickenRenderer {
 
     public LegacyQuackosEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
+        // EntityQuackos#getShadowSize returned 7.5F in 1.7.10; the giant
+        // chicken must retain that exact footprint instead of ChickenRenderer's
+        // normal 0.3F shadow.
+        shadowRadius = 7.5F;
     }
 
     @Override

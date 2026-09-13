@@ -9,14 +9,18 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.Mth;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -57,10 +61,19 @@ public final class LegacyRubberBoatItem extends Item {
             return InteractionResultHolder.pass(stack);
         }
 
-        Vec3 position = hit.getLocation();
+        BlockPos hitPos = ((BlockHitResult) hit).getBlockPos();
+        // ItemBoatRubber lowered the placement block by one when the ray hit
+        // a snow layer, then spawned at the block centre one block above it.
+        if (level.getBlockState(hitPos).is(Blocks.SNOW)) {
+            hitPos = hitPos.below();
+        }
+        Vec3 position = Vec3.atBottomCenterOf(hitPos).add(0.0D, 1.3D, 0.0D);
         RubberBoatEntity boat = new RubberBoatEntity(level, position.x, position.y, position.z);
-        boat.setYRot(player.getYRot());
-        if (!level.noCollision(boat, boat.getBoundingBox())) {
+        // Legacy boat yaw was quantized to the four cardinal directions.
+        boat.setYRot(((Mth.floor(player.getYRot() * 4.0F / 360.0F + 0.5D) & 3) - 1) * 90.0F);
+        // The legacy item tested a bounding box contracted by 0.1 on every
+        // side, not the full boat box.
+        if (!level.noCollision(boat, boat.getBoundingBox().deflate(0.1D))) {
             return InteractionResultHolder.fail(stack);
         }
 

@@ -20,6 +20,7 @@ public final class HbmLegacyNbtPiece extends StructurePiece {
     private final int heightOffset;
     private final boolean conformToTerrain;
     private final String replacementProfile;
+    private final String tandemStructureName;
 
     public HbmLegacyNbtPiece(
             HbmLegacyStructureSelection.SelectedStructure selected,
@@ -39,6 +40,7 @@ public final class HbmLegacyNbtPiece extends StructurePiece {
         this.heightOffset = selected.heightOffset();
         this.conformToTerrain = selected.conformToTerrain();
         this.replacementProfile = "";
+        this.tandemStructureName = selected.jigsaw() ? selected.spawnName() : "";
         this.setOrientation(null);
     }
 
@@ -50,7 +52,8 @@ public final class HbmLegacyNbtPiece extends StructurePiece {
             int heightOffset,
             boolean conformToTerrain,
             BoundingBox boundingBox,
-            String replacementProfile
+            String replacementProfile,
+            String tandemStructureName
     ) {
         super(HbmWorldgenStructures.HBM_LEGACY_NBT_PIECE.get(), 0, boundingBox);
         this.spawnName = spawnName;
@@ -59,6 +62,7 @@ public final class HbmLegacyNbtPiece extends StructurePiece {
         this.heightOffset = heightOffset;
         this.conformToTerrain = conformToTerrain;
         this.replacementProfile = replacementProfile == null ? "" : replacementProfile;
+        this.tandemStructureName = tandemStructureName == null ? "" : tandemStructureName;
         this.setOrientation(null);
     }
 
@@ -70,6 +74,7 @@ public final class HbmLegacyNbtPiece extends StructurePiece {
         this.heightOffset = tag.getInt("HeightOffset");
         this.conformToTerrain = tag.getBoolean("ConformToTerrain");
         this.replacementProfile = tag.getString("ReplacementProfile");
+        this.tandemStructureName = tag.getString("TandemStructureName");
         this.setOrientation(null);
     }
 
@@ -97,6 +102,9 @@ public final class HbmLegacyNbtPiece extends StructurePiece {
         if (!this.replacementProfile.isEmpty()) {
             tag.putString("ReplacementProfile", this.replacementProfile);
         }
+        if (!this.tandemStructureName.isEmpty()) {
+            tag.putString("TandemStructureName", this.tandemStructureName);
+        }
     }
 
     @Override
@@ -118,7 +126,8 @@ public final class HbmLegacyNbtPiece extends StructurePiece {
                 this.conformToTerrain,
                 this.heightOffset,
                 random,
-                replacement
+                replacement,
+                this.tandemStructureName
         );
     }
 }

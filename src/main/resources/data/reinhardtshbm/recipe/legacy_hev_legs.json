@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MPM",
+    "IBI",
+    "P P"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/armor_hev"
+    },
+    "B": {
+      "item": "reinhardtshbm:titanium_legs"
+    },
+    "I": {
+      "tag": "c:ingots/plastic"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor_desh"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:hev_legs"
+  }
+}

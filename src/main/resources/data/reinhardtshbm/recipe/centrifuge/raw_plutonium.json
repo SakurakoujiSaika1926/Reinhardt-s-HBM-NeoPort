@@ -1,0 +1,26 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:raw_materials/plutonium"
+                   },
+    "input_count":  4,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_plutonium",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_plutonium",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:nugget_polonium",
+                        "count":  9
+                    },
+                    {
+                        "id":  "minecraft:gravel",
+                        "count":  4
+                    }
+                ]
+}

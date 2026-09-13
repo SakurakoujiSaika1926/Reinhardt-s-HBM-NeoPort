@@ -1,15 +1,21 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.core.Direction;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
-/** 3D item renderer for the legacy pole models; never falls back to a flat icon. */
+/** Direct item paths from ItemRenderPoleTop and ItemRenderSatelliteReceiver. */
 public final class PoleItemRenderer extends BlockEntityWithoutLevelRenderer {
+    private static final ModelResourceLocation SATELLITE_INVENTORY = ModelResourceLocation.standalone(
+            ReinhardtsHBM.id("item/pole_satellite_receiver_inventory"));
+
     private final boolean satellite;
     private LegacyPoleTopModel poleTop;
     private LegacyPoleSatelliteReceiverModel satelliteReceiver;
@@ -20,27 +26,35 @@ public final class PoleItemRenderer extends BlockEntityWithoutLevelRenderer {
         this.satellite = satellite;
     }
 
+    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(SATELLITE_INVENTORY);
+    }
+
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        if (!ensureModels()) {
+        if (satellite && context == ItemDisplayContext.GUI) {
+            MachineModelRenderer.renderUnculledCutoutNoCull(
+                    MachineModelRenderer.model(SATELLITE_INVENTORY), poseStack, bufferSource,
+                    HbmBlocks.POLE_SATELLITE_RECEIVER.get().defaultBlockState(),
+                    packedLight, packedOverlay);
             return;
         }
-        PoleBlockEntityRenderer.renderItem(satellite, Direction.SOUTH, poseStack, bufferSource,
+        ensureModels();
+        PoleBlockEntityRenderer.renderItem(satellite, context, poseStack, bufferSource,
                 packedLight, packedOverlay, poleTop, satelliteReceiver);
     }
 
-    private boolean ensureModels() {
+    private void ensureModels() {
         if (poleTop != null && satelliteReceiver != null) {
-            return true;
+            return;
         }
         var entityModels = Minecraft.getInstance().getEntityModels();
         if (entityModels == null) {
-            return false;
+            throw new IllegalStateException("Pole item renderer has no client entity model set");
         }
         poleTop = new LegacyPoleTopModel(entityModels.bakeLayer(LegacyPoleTopModel.LAYER));
         satelliteReceiver = new LegacyPoleSatelliteReceiverModel(
                 entityModels.bakeLayer(LegacyPoleSatelliteReceiverModel.LAYER));
-        return true;
     }
 }

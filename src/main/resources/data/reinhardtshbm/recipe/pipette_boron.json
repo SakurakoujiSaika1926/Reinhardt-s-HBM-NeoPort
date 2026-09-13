@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["  P"," B ","B  "],"key":{"P":{"tag":"c:ingots/rubber"},"B":{"item":"reinhardtshbm:glass_boron"}},"result":{"id":"reinhardtshbm:pipette_boron"}}

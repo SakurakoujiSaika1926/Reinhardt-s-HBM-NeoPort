@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.worldgen.structure;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmWorldgenStructures;
 import net.minecraft.core.BlockPos;
@@ -22,10 +24,19 @@ import java.util.Optional;
 import java.util.List;
 
 public final class HbmLegacyNbtStructure extends Structure {
-    public static final MapCodec<HbmLegacyNbtStructure> CODEC = Structure.simpleCodec(HbmLegacyNbtStructure::new);
+    public static final MapCodec<HbmLegacyNbtStructure> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            settingsCodec(instance),
+            Codec.STRING.fieldOf("legacy_structure").forGetter(HbmLegacyNbtStructure::legacyStructureName)
+    ).apply(instance, HbmLegacyNbtStructure::new));
 
-    public HbmLegacyNbtStructure(StructureSettings settings) {
+    private final String legacyStructureName;
+
+    public HbmLegacyNbtStructure(StructureSettings settings, String legacyStructureName) {
         super(settings);
+        if (!HbmLegacyStructureSelection.isKnownStructureName(legacyStructureName)) {
+            throw new IllegalArgumentException("Unknown legacy HBM structure: " + legacyStructureName);
+        }
+        this.legacyStructureName = legacyStructureName;
     }
 
     @Override
@@ -49,6 +60,9 @@ public final class HbmLegacyNbtStructure extends Structure {
         );
         HbmLegacyStructureSelection.SelectedStructure selected = HbmLegacyStructureSelection.select(biome, context.random());
         if (selected == null) {
+            return Optional.empty();
+        }
+        if (!this.legacyStructureName.equals(selected.spawnName())) {
             return Optional.empty();
         }
 
@@ -150,12 +164,18 @@ public final class HbmLegacyNbtStructure extends Structure {
         return HbmLegacyStructureSelection.listStructures();
     }
 
+    private String legacyStructureName() {
+        return this.legacyStructureName;
+    }
+
     private static int terrainAlignedY(GenerationContext context, int originX, int originZ, int sizeX, int sizeZ, HbmLegacyStructureSelection.SelectedStructure selected) {
         ChunkGenerator generator = context.chunkGenerator();
         int samples = 0;
         int total = 0;
-        for (int x = originX; x < originX + sizeX; x += Math.max(1, sizeX - 1)) {
-            for (int z = originZ; z < originZ + sizeZ; z += Math.max(1, sizeZ - 1)) {
+        // 1.7.10 Component.getAverageHeight samples every x/z column in the
+        // complete structure footprint, not just the four corners.
+        for (int x = originX; x < originX + sizeX; x++) {
+            for (int z = originZ; z < originZ + sizeZ; z++) {
                 total += generator.getFirstOccupiedHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
                 samples++;
             }

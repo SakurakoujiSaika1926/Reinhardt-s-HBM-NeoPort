@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "ingredient": {
+    "tag": "minecraft:logs"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_sawdust",
+    "count": 4
+  }
+}

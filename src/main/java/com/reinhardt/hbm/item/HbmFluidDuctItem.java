@@ -77,7 +77,7 @@ public class HbmFluidDuctItem extends Item {
         }
 
         if (!level.isClientSide) {
-            level.setBlock(pos, HbmBlocks.FLUID_DUCT_MK2.get().defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(pos, HbmBlocks.FLUID_DUCT_NEO.get().defaultBlockState(), Block.UPDATE_ALL);
             if (level.getBlockEntity(pos) instanceof com.reinhardt.hbm.blockentity.FluidPipeBlockEntity pipe) {
                 pipe.setType(fluid);
             }
@@ -104,7 +104,7 @@ public class HbmFluidDuctItem extends Item {
     }
 
     public static ItemStack forFluid(HbmFluidDefinition definition, int count) {
-        return ((HbmFluidDuctItem) com.reinhardt.hbm.registry.HbmItems.FF_FLUID_DUCT.get()).stackForFluid(definition, count);
+        return ((HbmFluidDuctItem) com.reinhardt.hbm.registry.HbmItems.FLUID_DUCT.get()).stackForFluid(definition, count);
     }
 
     public static HbmFluidDefinition fluid(ItemStack stack) {

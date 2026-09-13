@@ -1,6 +1,5 @@
 package com.reinhardt.hbm.blockentity;
 
-import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.GroundwaterPumpBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
@@ -14,19 +13,17 @@ import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -38,13 +35,16 @@ import java.util.List;
 
 public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndpoint {
     public static final int GROUND_HEIGHT = 70;
-    public static final int GROUND_DEPTH = 4;
     public static final int STEAM_SPEED = 1_000;
     public static final int ELECTRIC_SPEED = 10_000;
     public static final int STEAM_INPUT_PER_TICK = 100;
     public static final int SPENT_STEAM_PER_TICK = 1;
     public static final long ELECTRIC_POWER_PER_TICK = 1_000L;
     public static final long ELECTRIC_MAX_POWER = 10_000L;
+    /** The legacy-style intake column may extend at most eight blocks below the pump. */
+    public static final int MAX_INTAKE_PIPE_DEPTH = 8;
+    /** Oil-drill machines advance one drilling step on a 20-tick work cycle. */
+    public static final int INTAKE_PIPE_INTERVAL = 20;
 
     private static final int PUSH_PER_PORT = 16_000;
     private static final int STEAM_PULL_PER_PORT = 1_000;
@@ -56,10 +56,8 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
     private long power;
     private long lastInput;
     private boolean active;
-    private boolean onGround;
     private float rotor;
     private float lastRotor;
-    private int groundCheckDelay;
 
     public GroundwaterPumpBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.GROUNDWATER_PUMP.get(), pos, blockState);
@@ -106,8 +104,8 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         return this.active;
     }
 
-    public boolean onGround() {
-        return this.onGround;
+    public boolean hasValidWaterSource() {
+        return this.level != null && hasInfiniteWater(this.level);
     }
 
     public float rotor(float partialTick) {
@@ -182,7 +180,6 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         tag.putLong("Power", this.power);
         tag.putLong("LastInput", this.lastInput);
         tag.putBoolean("Active", this.active);
-        tag.putBoolean("OnGround", this.onGround);
     }
 
     @Override
@@ -195,7 +192,6 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         this.power = tag.getLong("Power");
         this.lastInput = tag.getLong("LastInput");
         this.active = tag.getBoolean("Active");
-        this.onGround = tag.getBoolean("OnGround");
         ensureTankTypes();
     }
 
@@ -224,23 +220,25 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         }
         pushTank(level, this.waterTank);
 
-        boolean oldGround = this.onGround;
-        if (this.groundCheckDelay > 0) {
-            this.groundCheckDelay--;
-        } else {
-            this.onGround = checkGround(level);
-            this.groundCheckDelay = 20;
-        }
-
         boolean oldActive = this.active;
         this.active = false;
-        if (canOperate() && this.worldPosition.getY() <= GROUND_HEIGHT && this.onGround) {
+        if (hasOperatingResources() && this.worldPosition.getY() <= GROUND_HEIGHT) {
             this.active = true;
-            operate();
+            // Match the fracking tower's legacy drilling cadence: one pipe
+            // section per 20-tick work interval, never the whole column at once.
+            if (level.getGameTime() % INTAKE_PIPE_INTERVAL == 0L) {
+                maintainIntakePipe(level);
+            }
+            // The old pump's rates and energy/steam costs are unchanged.  The
+            // new intake column only controls whether that output is available:
+            // a source water block must be at the end of the column.
+            if (hasInfiniteWater(level)) {
+                operate();
+            }
         }
 
         setChanged();
-        if (oldActive != this.active || oldGround != this.onGround || level.getGameTime() % 10L == 0L) {
+        if (oldActive != this.active || level.getGameTime() % 10L == 0L) {
             sync();
         }
     }
@@ -278,7 +276,7 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         }
     }
 
-    private boolean canOperate() {
+    private boolean hasOperatingResources() {
         if (this.waterTank.amount() >= this.waterTank.capacity()) {
             return false;
         }
@@ -287,6 +285,62 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         }
         return this.steamTank.amount() >= STEAM_INPUT_PER_TICK
                 && this.spentSteamTank.capacity() - this.spentSteamTank.amount() >= SPENT_STEAM_PER_TICK;
+    }
+
+    /**
+     * Extend the intake by one block per work interval, matching the incremental
+     * drilling used by the oil derrick/fracking tower. Water is checked before
+     * replacement so the drill stops at the first water block instead of
+     * replacing it.
+     */
+    private void maintainIntakePipe(Level level) {
+        int depth = intakePipeDepth(level);
+        if (depth >= MAX_INTAKE_PIPE_DEPTH) {
+            return;
+        }
+
+        BlockPos target = this.worldPosition.below(depth + 1);
+        if (target.getY() < level.getMinBuildHeight()) {
+            return;
+        }
+        if (isWater(level, target)) {
+            return;
+        }
+
+        BlockState state = level.getBlockState(target);
+        if (state.is(HbmBlocks.PUMP_PIPE.get())) {
+            return;
+        }
+        if (state.isAir() || state.getBlock().getExplosionResistance() < 1000.0F) {
+            // Use the dedicated groundwater intake block. Its copied model is
+            // visually compatible with the drilling pipe but has no oil-drill
+            // callbacks or state.
+            level.setBlock(target, HbmBlocks.PUMP_PIPE.get().defaultBlockState(), Block.UPDATE_ALL);
+        }
+    }
+
+    private int intakePipeDepth(Level level) {
+        int depth = 0;
+        while (depth < MAX_INTAKE_PIPE_DEPTH) {
+            BlockPos pipePos = this.worldPosition.below(depth + 1);
+            if (pipePos.getY() < level.getMinBuildHeight()
+                    || !level.getBlockState(pipePos).is(HbmBlocks.PUMP_PIPE.get())) {
+                break;
+            }
+            depth++;
+        }
+        return depth;
+    }
+
+    private boolean hasInfiniteWater(Level level) {
+        BlockPos waterPos = this.worldPosition.below(intakePipeDepth(level) + 1);
+        return waterPos.getY() >= level.getMinBuildHeight()
+                && level.getFluidState(waterPos).is(FluidTags.WATER)
+                && level.getFluidState(waterPos).isSource();
+    }
+
+    private static boolean isWater(Level level, BlockPos pos) {
+        return level.getFluidState(pos).is(FluidTags.WATER);
     }
 
     private void operate() {
@@ -346,54 +400,6 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
                 tank.drain(tank.type(), accepted, false);
             }
         }
-    }
-
-    private boolean checkGround(Level level) {
-        if (!level.dimensionType().hasSkyLight()) {
-            return false;
-        }
-
-        int valid = 0;
-        int invalid = 0;
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y >= -GROUND_DEPTH; y--) {
-                for (int z = -1; z <= 1; z++) {
-                    BlockPos pos = this.worldPosition.offset(x, y, z);
-                    BlockState state = level.getBlockState(pos);
-                    if (y == -1 && !state.isCollisionShapeFullBlock(level, pos)) {
-                        return false;
-                    }
-                    if (isValidGroundBlock(state)) {
-                        valid++;
-                    } else {
-                        invalid++;
-                    }
-                }
-            }
-        }
-        return valid >= invalid;
-    }
-
-    private boolean isValidGroundBlock(BlockState state) {
-        if (state.is(Blocks.GRASS_BLOCK)
-                || state.is(Blocks.DIRT)
-                || state.is(Blocks.COARSE_DIRT)
-                || state.is(Blocks.ROOTED_DIRT)
-                || state.is(Blocks.SAND)
-                || state.is(Blocks.RED_SAND)
-                || state.is(Blocks.MYCELIUM)) {
-            return true;
-        }
-
-        ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-        if (!ReinhardtsHBM.MOD_ID.equals(id.getNamespace())) {
-            return false;
-        }
-        return id.getPath().equals("waste_earth")
-                || id.getPath().equals("dirt_dead")
-                || id.getPath().equals("dirt_oily")
-                || id.getPath().equals("sand_dirty")
-                || id.getPath().equals("sand_dirty_red");
     }
 
     private void configureTankCapacities() {

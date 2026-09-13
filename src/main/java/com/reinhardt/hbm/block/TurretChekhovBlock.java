@@ -180,6 +180,9 @@ public class TurretChekhovBlock extends HorizontalDirectionalBlock implements En
     }
 
     private static void removeDummies(Level level, BlockPos corePos, Direction facing) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos pos : TurretChekhovBlockEntity.occupiedPositions(corePos, facing)) {
                 if (pos.equals(corePos)) {

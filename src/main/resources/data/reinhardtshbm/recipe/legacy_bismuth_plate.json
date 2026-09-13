@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "RWR",
+    "PCP",
+    "SFS"
+  ],
+  "key": {
+    "R": {
+      "item": "reinhardtshbm:crystal_rare"
+    },
+    "W": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 7900,
+          "material": "gold"
+        }
+      }
+    },
+    "P": {
+      "tag": "c:plates/bismuth"
+    },
+    "C": {
+      "item": "reinhardtshbm:laser_crystal_bismuth"
+    },
+    "S": {
+      "item": "reinhardtshbm:ring_starmetal"
+    },
+    "F": {
+      "item": "reinhardtshbm:rag"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bismuth_plate"
+  }
+}

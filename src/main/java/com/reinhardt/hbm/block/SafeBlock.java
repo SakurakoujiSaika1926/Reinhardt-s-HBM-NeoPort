@@ -86,6 +86,9 @@ public final class SafeBlock extends Block implements EntityBlock {
         }
         if (level.getBlockEntity(pos) instanceof MenuProvider provider && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(provider, buffer -> buffer.writeBlockPos(pos));
+            if (provider instanceof SafeBlockEntity safe) {
+                safe.releaseSpiders(player);
+            }
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

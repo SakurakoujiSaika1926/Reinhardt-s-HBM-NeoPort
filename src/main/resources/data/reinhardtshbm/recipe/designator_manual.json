@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["  A","#C#","#B#"],"key":{"#":{"tag":"c:ingots/plastic"},"A":{"tag":"c:plates/lead"},"B":{"item":"reinhardtshbm:circuit_advanced"},"C":{"item":"reinhardtshbm:designator"}},"result":{"id":"reinhardtshbm:designator_manual"}}

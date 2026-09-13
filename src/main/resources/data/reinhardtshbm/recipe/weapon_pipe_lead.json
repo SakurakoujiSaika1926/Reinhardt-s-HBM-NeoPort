@@ -7,7 +7,18 @@
     " I"
   ],
   "key": {
-    "I": { "item": "reinhardtshbm:pipe_lead" }
+    "I": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 8200,
+          "material": "lead"
+        }
+      }
+    }
   },
   "result": { "id": "reinhardtshbm:weapon_pipe_lead" }
 }

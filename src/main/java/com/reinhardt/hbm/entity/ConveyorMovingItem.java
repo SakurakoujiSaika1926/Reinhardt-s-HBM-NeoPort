@@ -75,23 +75,27 @@ public final class ConveyorMovingItem extends Entity {
             discard();
             player.inventoryMenu.broadcastChanges();
         }
-        return InteractionResult.sidedSuccess(level().isClientSide);
+        // EntityMovingItem#interactFirst returned false on both sides.
+        return InteractionResult.PASS;
     }
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (!level().isClientSide && !isRemoved()) {
-            ItemEntity item = new ItemEntity(level(), getX(), getY(), getZ(), getItemStack().copy());
-            item.setDeltaMovement(getDeltaMovement());
-            level().addFreshEntity(item);
             discard();
+            // EntityMovingItem#hitByEntity spawned the dropped stack at the
+            // entity position without applying conveyor motion.
+            level().addFreshEntity(new ItemEntity(level(), getX(), getY(), getZ(), getItemStack().copy()));
         }
         return true;
     }
 
+    @Override
+    public boolean canBeCollidedWith() { return isAlive(); }
+
     @Override public boolean isPickable() { return isAlive(); }
     @Override public float getPickRadius() { return 0.1875F; }
-    @Override public boolean shouldRenderAtSqrDistance(double distance) { return distance < 102400.0D; }
+    @Override public boolean shouldRenderAtSqrDistance(double distance) { return distance < 576.0D; }
 
     private void leaveConveyor() {
         Vec3 motion = getDeltaMovement();
@@ -110,5 +114,8 @@ public final class ConveyorMovingItem extends Entity {
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         setItemStack(ItemStack.parseOptional(registryAccess(), tag.getCompound("Item")));
+        if (getItemStack().isEmpty()) {
+            discard();
+        }
     }
 }

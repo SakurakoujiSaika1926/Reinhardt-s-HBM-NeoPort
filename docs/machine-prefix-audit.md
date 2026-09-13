@@ -137,7 +137,7 @@ Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1
 | `machine_uf6_tank` | MachineUF6Tank | TileEntityMachineUF6Tank -> tileentity_uf6_tank | Complete registration | `machine_uf6_tank` | registered |
 | `machine_vacuum_distill` | MachineVacuumDistill | TileEntityMachineVacuumDistill -> tileentity_vacuuum_distill | Complete registration | `machine_vacuum_distill` | registered |
 | `machine_waste_drum` | WasteDrum | TileEntityWasteDrum -> tileentity_waste_drum | Complete registration | `machine_waste_drum` | registered |
-| `machine_weapon_table` | BlockWeaponTable | - | Complete registration | `machine_weapon_table` | not required or custom |
+| `machine_weapon_table` | BlockWeaponTable | - | retired: HBM combat firearms removed in favour of TACZ | - | not registered |
 | `machine_well` | MachineOilWell | TileEntityMachineOilWell -> tileentity_derrick | Complete registration | `machine_well` | registered |
 | `machine_wood_burner` | MachineWoodBurner | TileEntityMachineWoodBurner -> tileentity_wood_burner | Complete registration | `machine_wood_burner` | registered |
 

@@ -7,6 +7,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -41,7 +43,7 @@ public class LaunchPadBlock extends LargeMachineBlock implements EntityBlock {
     public LaunchPadBlock(Properties properties, Kind kind) {
         super(properties,
                 kind == Kind.LARGE ? Footprint.centered(4, 1, 4) : Footprint.centered(1, 1, 1),
-                Shapes.empty(),
+                shapeForPart(kind, BlockPos.ZERO),
                 RotationBasis.MODERN_NORTH);
         this.kind = kind;
     }
@@ -80,6 +82,39 @@ public class LaunchPadBlock extends LargeMachineBlock implements EntityBlock {
     @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.ENTITYBLOCK_ANIMATED;
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && !level.isClientSide
+                && level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher) launcher.dropContents(level, pos);
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                                                    net.minecraft.world.entity.player.Player player,
+                                                                    net.minecraft.world.phys.BlockHitResult hit) {
+        if (level.isClientSide) return net.minecraft.world.InteractionResult.SUCCESS;
+        if (player.isShiftKeyDown()) return net.minecraft.world.InteractionResult.PASS;
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher
+                && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(launcher, buffer -> buffer.writeBlockPos(pos));
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (type != com.reinhardt.hbm.registry.HbmBlockEntities.LAUNCHER.get()) return null;
+        return (l, p, s, be) -> LauncherBlockEntity.tick(l, p, s, (LauncherBlockEntity) be);
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, net.minecraft.world.level.block.Block block,
+                                    BlockPos fromPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher) launcher.updateRedstonePower(pos);
     }
 
     private record Box(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {

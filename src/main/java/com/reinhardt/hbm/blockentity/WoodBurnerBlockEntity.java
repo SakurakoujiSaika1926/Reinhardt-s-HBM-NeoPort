@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.PowerMachineBlock;
-import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.BatteryPackItem;
@@ -16,6 +15,7 @@ import com.reinhardt.hbm.pollution.HbmPollutionType;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.util.LegacyFurnaceFuels;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -470,7 +470,10 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
             return false;
         }
         HbmFluidDefinition fluid = this.tank.type();
-        long heatEnergy = fluid.combustibleHeatEnergy();
+        // The 1.7.10 liquid burner accepts every flammable fluid, not only
+        // fluids carrying a combustible-grade trait.  Its source formula
+        // reads FT_Flammable#getHeatEnergy directly.
+        long heatEnergy = fluid.flammableHeatEnergy();
         if (heatEnergy <= 0L) {
             return false;
         }
@@ -547,58 +550,11 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
      * handler before ModuleBurnTime applies the wood/log multipliers.
      */
     private static int legacyRawFuelDuration(ItemStack stack) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (id != null && ReinhardtsHBM.MOD_ID.equals(id.getNamespace())) {
-            int legacyDuration = switch (id.getPath()) {
-                case "solid_fuel" -> 200 * 16;
-                case "solid_fuel_presto" -> 200 * 40;
-                case "solid_fuel_presto_triplet" -> 200 * 200;
-                case "solid_fuel_bf" -> 200 * 160;
-                case "solid_fuel_presto_bf" -> 200 * 400;
-                case "solid_fuel_presto_triplet_bf" -> 200 * 2_000;
-                case "rocket_fuel" -> 200 * 32;
-                case "biomass", "block_scrap" -> 200 * 2;
-                case "biomass_compressed" -> 200 * 4;
-                case "powder_coal" -> 200 * 8;
-                case "scrap" -> 200 / 4;
-                case "dust" -> 200 / 8;
-                case "powder_fire", "crystal_coal" -> 6_400;
-                case "lignite", "powder_lignite" -> 1_200;
-                case "coke" -> 200 * 16;
-                case "block_coke" -> 200 * 160;
-                case "book_guide" -> 200;
-                case "coal_infernal" -> 4_800;
-                case "powder_sawdust" -> 200 / 2;
-                case "briquette" -> briquetteBurnTime(stack);
-                case "powder_ash" -> ashBurnTime(stack);
-                default -> 0;
-            };
-            if (legacyDuration > 0) {
-                return legacyDuration;
-            }
+        int legacyDuration = LegacyFurnaceFuels.burnTime(stack);
+        if (legacyDuration > 0) {
+            return legacyDuration;
         }
         return stack.getBurnTime(null);
-    }
-
-    private static int briquetteBurnTime(ItemStack stack) {
-        return switch (variantId(stack)) {
-            case "coal" -> 200 * 10;
-            case "lignite" -> 200 * 8;
-            case "wood" -> 200 * 2;
-            default -> 0;
-        };
-    }
-
-    private static int ashBurnTime(ItemStack stack) {
-        return switch (variantId(stack)) {
-            case "wood", "misc", "soot" -> 200 / 2;
-            case "coal", "fly" -> 200;
-            default -> 0;
-        };
-    }
-
-    private static String variantId(ItemStack stack) {
-        return stack.getItem() instanceof LegacyVariantItem item ? item.variant(stack).id() : "";
     }
 
     private static double fuelTimeMultiplier(ItemStack stack) {

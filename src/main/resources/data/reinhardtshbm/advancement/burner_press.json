@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:root",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:machine_press"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.burner_press.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.burner_press.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

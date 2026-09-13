@@ -11,6 +11,7 @@
     { "predicate": { "custom_model_data": 4 }, "model": "reinhardtshbm:item/mold_wire" },
     { "predicate": { "custom_model_data": 5 }, "model": "reinhardtshbm:item/mold_blade" },
     { "predicate": { "custom_model_data": 6 }, "model": "reinhardtshbm:item/mold_blades" },
+    { "predicate": { "custom_model_data": 7 }, "model": "reinhardtshbm:item/mold_stamp" },
     { "predicate": { "custom_model_data": 8 }, "model": "reinhardtshbm:item/mold_shell" },
     { "predicate": { "custom_model_data": 9 }, "model": "reinhardtshbm:item/mold_pipe" },
     { "predicate": { "custom_model_data": 10 }, "model": "reinhardtshbm:item/mold_ingots" },

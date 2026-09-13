@@ -10,12 +10,15 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Mask Man's original eight-part OBJ and health-dependent head. */
 public final class LegacyMaskManEntityRenderer extends EntityRenderer<LegacyMaskManEntity> {
+    private static final ResourceLocation MASKMAN_TEXTURE = ReinhardtsHBM.id("textures/entity/maskman.png");
+    private static final ResourceLocation IOU_TEXTURE = ReinhardtsHBM.id("textures/entity/iou.png");
     private static final ModelResourceLocation TORSO = model("maskman_torso");
     private static final ModelResourceLocation L_ARM = model("maskman_larm");
     private static final ModelResourceLocation R_ARM = model("maskman_rarm");
@@ -28,7 +31,9 @@ public final class LegacyMaskManEntityRenderer extends EntityRenderer<LegacyMask
 
     public LegacyMaskManEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
-        shadowRadius = 0.0F;
+        // RenderMaskMan was constructed with a 1.0F shadow radius; only its
+        // opacity was zeroed in the legacy renderer.
+        shadowRadius = 1.0F;
     }
 
     private static ModelResourceLocation model(String name) {
@@ -52,25 +57,37 @@ public final class LegacyMaskManEntityRenderer extends EntityRenderer<LegacyMask
         float limbSwing = entity.walkAnimation.position(partialTick);
         float limbAmount = entity.walkAnimation.speed(partialTick);
         float swing = (float) Math.toDegrees(Math.cos(limbSwing / 2.0F + Math.PI) * 1.4F * limbAmount * 0.5F);
+        float bodyYaw = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot);
+        float headYaw = Mth.rotLerp(partialTick, entity.yHeadRotO, entity.yHeadRot);
         poseStack.pushPose();
+        // RenderLiving applies the entity yaw; ModelMaskMan then applies only
+        // the three model transforms below. The OBJ is already authored in
+        // legacy coordinates; only RenderLiving's fixed mirror is reproduced.
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - bodyYaw));
+        // RenderLiving's fixed biped mirror is part of the 1.7.10 render
+        // pipeline.  ModelMaskMan's 180-degree X rotation is authored on top
+        // of this mirror; omitting it leaves the OBJ upside down and below the
+        // entity origin.
+        poseStack.scale(-1.0F, -1.0F, 1.0F);
+        // Exact RenderLivingBase.prepareScale baseline from the local
+        // 1.7.10 source, applied before ModelMaskMan.render.
+        poseStack.translate(0.0F, -1.5078125F, 0.0F);
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
         poseStack.translate(0.0F, -1.5F, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TORSO), poseStack, bufferSource,
-                STATE, packedLight, OverlayTexture.NO_OVERLAY);
-        renderPart(L_LEG, poseStack, bufferSource, packedLight, -0.5F, 1.75F, -0.5F, swing, false);
-        renderPart(R_LEG, poseStack, bufferSource, packedLight, -0.5F, 1.75F, 0.5F, -swing, false);
-        renderPart(L_ARM, poseStack, bufferSource, packedLight, -0.5F, 3.75F, -1.5F, swing * 0.25F, false);
-        renderPart(R_ARM, poseStack, bufferSource, packedLight, -0.5F, 3.75F, 1.5F, -swing * 0.25F, false);
+        poseStack.mulPose(Axis.XP.rotationDegrees(swing * -0.1F));
+        renderPart(TORSO, poseStack, bufferSource, packedLight, MASKMAN_TEXTURE);
+        renderPart(L_LEG, poseStack, bufferSource, packedLight, -0.5F, 1.75F, -0.5F, swing, MASKMAN_TEXTURE);
+        renderPart(R_LEG, poseStack, bufferSource, packedLight, -0.5F, 1.75F, 0.5F, -swing, MASKMAN_TEXTURE);
+        renderPart(L_ARM, poseStack, bufferSource, packedLight, -0.5F, 3.75F, -1.5F, swing * 0.25F, MASKMAN_TEXTURE);
+        renderPart(R_ARM, poseStack, bufferSource, packedLight, -0.5F, 3.75F, 1.5F, -swing * 0.25F, MASKMAN_TEXTURE);
         poseStack.pushPose();
         poseStack.translate(0.5F, 4.0F, 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-entity.getYHeadRot()));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-Mth.wrapDegrees(headYaw - bodyYaw)));
         ModelResourceLocation head = entity.getHealth() >= entity.getMaxHealth() / 2.0F ? HEAD : SKULL;
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(head), poseStack, bufferSource,
-                STATE, packedLight, OverlayTexture.NO_OVERLAY);
+        renderPart(head, poseStack, bufferSource, packedLight, MASKMAN_TEXTURE);
         if (head == SKULL) {
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(IOU), poseStack, bufferSource,
-                    STATE, packedLight, OverlayTexture.NO_OVERLAY);
+            renderPart(IOU, poseStack, bufferSource, packedLight, IOU_TEXTURE);
         }
         poseStack.popPose();
         poseStack.popPose();
@@ -79,17 +96,22 @@ public final class LegacyMaskManEntityRenderer extends EntityRenderer<LegacyMask
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource bufferSource, int packedLight,
-                                   float x, float y, float z, float rotation, boolean unused) {
+                                   float x, float y, float z, float rotation, ResourceLocation texture) {
         poseStack.pushPose();
         poseStack.translate(x, y, z);
         poseStack.mulPose(Axis.ZP.rotationDegrees(rotation));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource,
-                STATE, packedLight, OverlayTexture.NO_OVERLAY);
+        renderPart(model, poseStack, bufferSource, packedLight, texture);
         poseStack.popPose();
+    }
+
+    private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
+                                   MultiBufferSource bufferSource, int packedLight, ResourceLocation texture) {
+        MachineModelRenderer.renderUnculledUv(MachineModelRenderer.model(model), poseStack, bufferSource,
+                STATE, packedLight, OverlayTexture.NO_OVERLAY, texture, 0.0F, 0.0F);
     }
 
     @Override
     public ResourceLocation getTextureLocation(LegacyMaskManEntity entity) {
-        return ReinhardtsHBM.id("textures/entity/maskman.png");
+        return MASKMAN_TEXTURE;
     }
 }

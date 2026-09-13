@@ -24,10 +24,8 @@ import java.util.Optional;
 /**
  * The 1.7.10 pedestal recipe table and its exact nine-position matcher.
  *
- * The old table contains a number of firearms which are intentionally retired
- * in 1.21.1. Those entries remain represented here for auditability, but an
- * entry is only executable when its output and every exact item input are
- * registered in the current game.
+ * Firearm entries from the old table are intentionally omitted because HBM's
+ * combat firearm system is retired in favour of TACZ.
  */
 public final class LegacyPedestalRecipes {
     private static final int SLOT_COUNT = 9;
@@ -97,59 +95,6 @@ public final class LegacyPedestalRecipes {
     private static List<Recipe> createRecipes() {
         List<Recipe> recipes = new ArrayList<>();
 
-        // Exact 1.7.10 PedestalRecipes.registerDefaults() entries.
-        recipes.add(recipe(item("gun_light_revolver_dani", 1),
-                empty(), tag("plates/lead", 1), empty(),
-                tag("plates/gold", 1), item("gun_light_revolver", 1), tag("plates/gold", 1),
-                empty(), tag("plates/lead", 1), empty(), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_maresleg_broken", 1),
-                item("barbed_wire", 1), tag("plates/weaponsteel", 1), item("barbed_wire", 1),
-                tag("plates/weaponsteel", 1), item("gun_maresleg", 1), tag("plates/weaponsteel", 1),
-                item("barbed_wire", 1), tag("plates/weaponsteel", 1), item("barbed_wire", 1), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_heavy_revolver_lilmac", 1),
-                empty(), variant("weapon_mod_special", "scope", 1), empty(),
-                item("powder_magic", 1), item("gun_heavy_revolver", 1), tag("plates/weaponsteel", 1),
-                empty(), shape("part_grip", FoundryShape.GRIP, "bone", 1), item("minecraft:apple", 3), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_heavy_revolver_protege", 1),
-                item("chain", 16), tag("crystals/cinnabar", 1), item("chain", 16),
-                item("scrap_nuclear", 1), item("gun_heavy_revolver", 1), item("scrap_nuclear", 1),
-                item("chain", 16), tag("crystals/cinnabar", 1), item("chain", 16), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_amat_subtlety", 1),
-                tag("ingots/starmetal", 1), shape("plate_cast", FoundryShape.CAST_PLATE, "aluminium", 1), tag("ingots/starmetal", 1),
-                shape("plate_cast", FoundryShape.CAST_PLATE, "aluminium", 1), item("gun_amat", 1), shape("plate_cast", FoundryShape.CAST_PLATE, "aluminium", 1),
-                tag("ingots/starmetal", 1), shape("plate_cast", FoundryShape.CAST_PLATE, "aluminium", 1), tag("ingots/starmetal", 1), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_amat_penance", 1),
-                tag("ingots/starmetal", 1), shape("plate_cast", FoundryShape.CAST_PLATE, "dura_steel", 1), tag("ingots/starmetal", 1),
-                variant("weapon_mod_special", "silencer", 1), item("gun_amat", 1), variant("weapon_mod_special", "furniture_black", 1),
-                tag("ingots/starmetal", 1), shape("plate_cast", FoundryShape.CAST_PLATE, "dura_steel", 1), tag("ingots/starmetal", 1), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_flamer_daybreaker", 1),
-                shape("plate_cast", FoundryShape.CAST_PLATE, "gold", 1), conserve("slime", 1), shape("plate_cast", FoundryShape.CAST_PLATE, "gold", 1),
-                tag("ingots/phosphorus", 1), item("gun_flamer", 1), tag("ingots/phosphorus", 1),
-                shape("plate_cast", FoundryShape.CAST_PLATE, "gold", 1), item("stick_dynamite", 1), shape("plate_cast", FoundryShape.CAST_PLATE, "gold", 1), Condition.SUN, 0));
-        recipes.add(recipe(item("gun_autoshotgun_sexy", 1),
-                item("bolt_spike", 16), item("wild_p", 1), item("bolt_spike", 16),
-                item("card_qos", 1), item("gun_autoshotgun", 1), item("card_aos", 1),
-                item("bolt_spike", 16), tag("ingots/starmetal", 1), item("bolt_spike", 16), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_minigun_lacunae", 1),
-                empty(), item("powder_magic", 4), empty(),
-                variant("item_secret", "selenium_steel", 4), item("gun_minigun", 1), variant("item_secret", "selenium_steel", 4),
-                empty(), item("powder_magic", 4), empty(), Condition.FULL_MOON, 0));
-        recipes.add(recipe(item("gun_laser_pistol_morning_glory", 1),
-                empty(), item("morning_glory", 1), empty(),
-                variant("item_secret", "selenium_steel", 2), item("gun_laser_pistol", 1), variant("item_secret", "selenium_steel", 2),
-                empty(), tag("gems/emerald", 16), empty(), Condition.NONE, 0));
-        recipes.add(recipe(item("gun_folly", 1),
-                variant("item_secret", "folly", 4), variant("item_secret", "controller", 2), variant("item_secret", "folly", 4),
-                tag("ingots/bscco", 16), tag("blocks/starmetal", 64), tag("ingots/bscco", 16),
-                variant("item_secret", "folly", 4), variant("item_secret", "controller", 2), variant("item_secret", "folly", 4), Condition.FULL_MOON, 1));
-        recipes.add(recipe(item("gun_aberrator", 1),
-                empty(), variant("item_secret", "aberrator", 1), empty(),
-                variant("item_secret", "aberrator", 1), shape("part_mechanism", FoundryShape.MECHANISM, "saturnite", 4), variant("item_secret", "aberrator", 1),
-                empty(), variant("item_secret", "aberrator", 1), empty(), Condition.NONE, 1));
-        recipes.add(recipe(item("gun_aberrator_eott", 1),
-                variant("item_secret", "aberrator", 1), variant("item_secret", "aberrator", 1), variant("item_secret", "aberrator", 1),
-                variant("item_secret", "aberrator", 1), shape("part_mechanism", FoundryShape.MECHANISM, "saturnite", 16), variant("item_secret", "aberrator", 1),
-                variant("item_secret", "aberrator", 1), variant("item_secret", "aberrator", 1), variant("item_secret", "aberrator", 1), Condition.GOOD_KARMA, 1));
         recipes.add(recipe(variant("ammo_secret", "folly_sm", 1),
                 tag("ingots/starmetal", 1), item("powder_magic", 1), tag("ingots/starmetal", 1),
                 item("powder_magic", 1), variant("chunk_ore", "moonstone", 1), item("powder_magic", 1),

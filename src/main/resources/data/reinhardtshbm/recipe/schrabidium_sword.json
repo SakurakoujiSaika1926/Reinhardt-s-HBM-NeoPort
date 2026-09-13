@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["I", "W", "S"],
+  "key": {
+    "I": { "item": "reinhardtshbm:block_schrabidium" },
+    "W": { "item": "reinhardtshbm:desh_sword" },
+    "S": { "tag": "c:ingots/plastic" }
+  },
+  "result": { "id": "reinhardtshbm:schrabidium_sword" }
+}

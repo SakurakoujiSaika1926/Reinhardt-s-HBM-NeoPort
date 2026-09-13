@@ -1,10 +1,10 @@
 package com.reinhardt.hbm.handler;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.item.LegacyBobmazonItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -17,8 +17,8 @@ public final class LegacyBobmazonOffers {
     public record Offer(ItemStack stack, Requirement requirement, int caps, int rating) { }
 
     public enum Requirement {
-        NONE(null), STEEL("bobmazon_steel"), ASSEMBLY("bobmazon_assembly"), CHEMICS("bobmazon_chemics"),
-        OIL("bobmazon_oil"), NUCLEAR("bobmazon_nuclear"), HIDDEN("bobmazon_hidden");
+        NONE(null), STEEL("blast_furnace"), ASSEMBLY("assembly"), CHEMICS("chemplant"),
+        OIL("desh"), NUCLEAR("technetium"), HIDDEN("hidden");
 
         private final String advancement;
 
@@ -30,12 +30,7 @@ public final class LegacyBobmazonOffers {
             if (this == NONE || player.getAbilities().instabuild) {
                 return true;
             }
-            MinecraftServer server = player.getServer();
-            if (server == null || advancement == null) {
-                return false;
-            }
-            var holder = server.getAdvancements().get(ReinhardtsHBM.id(advancement));
-            return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
+            return advancement != null && HbmAdvancements.has(player, advancement);
         }
     }
 

@@ -1,10 +1,14 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
+import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.AxeItem;
@@ -22,6 +26,17 @@ public class HbmAxeItem extends AxeItem {
     public HbmAxeItem(HbmToolProfile profile) {
         super(profile.tier(), HbmToolBehavior.properties(profile));
         this.profile = profile;
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean selected) {
+        super.inventoryTick(stack, level, entity, slotId, selected);
+        if (!level.isClientSide && selected
+                && this.profile.specialBehavior() == HbmToolBehavior.SpecialBehavior.SHIMMER_AXE
+                && entity instanceof Player player
+                && player.getItemBySlot(EquipmentSlot.CHEST).is(HbmItems.JACKT2.get())) {
+            HbmAdvancements.award(player, "fiend2");
+        }
     }
 
     @Override

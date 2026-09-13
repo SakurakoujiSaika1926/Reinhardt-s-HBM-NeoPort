@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:crystal_osmiridium" },
+  "result": { "id": "reinhardtshbm:ingot_osmiridium", "count": 1 },
+  "experience": 2.0,
+  "cookingtime": 200
+}

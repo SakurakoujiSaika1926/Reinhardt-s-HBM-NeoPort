@@ -61,7 +61,7 @@ public final class GasMaskAttachmentItem extends ArmorModItem implements Filtera
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.reinhardtshbm.gas_mask_attachment").withStyle(ChatFormatting.GREEN));
-        ItemStack filter = GasMaskItem.getInstalledFilter(stack, context.registries());
+        ItemStack filter = GasMaskItem.getInstalledFilterForTooltip(stack);
         if (filter.isEmpty()) {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.gas_mask.no_filter").withStyle(ChatFormatting.RED));
         } else {

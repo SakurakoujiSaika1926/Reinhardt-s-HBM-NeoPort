@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.MinerRocketEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -15,6 +16,8 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 public final class MinerRocketEntityRenderer extends EntityRenderer<MinerRocketEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("entity/miner_rocket");
     private static final BlockState RENDER_STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final ResourceLocation TEXTURE =
+            ReinhardtsHBM.id("textures/models/legacy/miner_rocket.png");
 
     public MinerRocketEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -29,8 +32,8 @@ public final class MinerRocketEntityRenderer extends EntityRenderer<MinerRocketE
     public void render(MinerRocketEntity rocket, float yaw, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                RENDER_STATE, packedLight, 0);
+        MachineModelRenderer.renderUnculledUv(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
+                RENDER_STATE, packedLight, 0, TEXTURE, 0.0F, 0.0F);
         poseStack.popPose();
         super.render(rocket, yaw, partialTick, poseStack, bufferSource, packedLight);
     }

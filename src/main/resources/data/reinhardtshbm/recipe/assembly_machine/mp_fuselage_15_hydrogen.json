@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpf15hydro",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_15"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/copper"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 12
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_fuselage_15_hydrogen",
+    "count": 1
+  }
+}

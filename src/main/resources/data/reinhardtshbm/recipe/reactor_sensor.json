@@ -13,7 +13,7 @@
         }
       }
     },
-    "P": { "item": "reinhardtshbm:plate_lead" },
+    "P": { "tag": "c:plates/lead" },
     "C": { "item": "reinhardtshbm:circuit_basic" },
     "M": { "item": "reinhardtshbm:magnetron" }
   },

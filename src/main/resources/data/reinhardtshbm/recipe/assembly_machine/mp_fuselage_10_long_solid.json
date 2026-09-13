@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpf10solidlong",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/titanium"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 6
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_fuselage_10_long_solid",
+    "count": 1
+  }
+}

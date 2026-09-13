@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:rbmk",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:debris_fuel"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.rbmk_boom.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.rbmk_boom.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "meltdown": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "meltdown"
+    ]
+  ]
+}

@@ -68,6 +68,12 @@ public final class LegacyTrainEntity extends Minecart {
         }
     }
 
+    /** EntityMinecartModBase/EntityMinecartDeobf#canTriggerWalking returned false. */
+    @Override
+    public boolean isIgnoringBlockTriggers() {
+        return true;
+    }
+
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (level().isClientSide) {

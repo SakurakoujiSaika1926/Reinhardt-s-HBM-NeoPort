@@ -29,6 +29,10 @@ public final class FanBlockEntityRenderer implements BlockEntityRenderer<FanBloc
                        int packedLight, int packedOverlay) {
         BlockState state = fan.getBlockState();
         poseStack.pushPose();
+        // The legacy renderer is invoked with (x + 0.5, y, z + 0.5).  OBJ
+        // vertices are centered around the block origin, so retain that
+        // center translation before applying the facing transform.
+        poseStack.translate(0.5F, 0.0F, 0.5F);
         poseStack.translate(0.0F, 0.5F, 0.0F);
         switch (state.getValue(FanBlock.FACING)) {
             case DOWN -> poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(180.0F));

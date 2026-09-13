@@ -34,6 +34,13 @@ public final class LegacyGlyphidVariantEntity extends GlyphidEntity {
     }
 
     @Override
+    public boolean isAtDestination() {
+        return fixedVariant != Variant.SCOUT
+                ? super.isAtDestination()
+                : getCurrentTask() == TASK_BUILD_HIVE && super.isAtDestination();
+    }
+
+    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
                                         MobSpawnType reason, @Nullable SpawnGroupData spawnData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);

@@ -7,6 +7,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -71,6 +72,33 @@ public class EnergyCableBlock extends Block {
         return state.setValue(propertyFor(direction), connected);
     }
 
+    /**
+     * Capability providers can become available just after the neighbour's
+     * block state is placed (the block entity is created during placement).
+     * Re-evaluate the complete mask on the follow-up neighbour notification so
+     * the client model cannot remain on the disconnected variant.
+     */
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos,
+                                   Block neighborBlock, BlockPos neighborPos,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        refreshConnections(level, pos);
+    }
+
+    /**
+     * NeoForge invokes this hook when a neighbour block entity is created or
+     * removed without changing its block state.  That is the normal placement
+     * path for capability-backed FE machines, so refresh the client-visible
+     * mask here as well as in {@link #neighborChanged}.
+     */
+    @Override
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighborPos) {
+        if (level instanceof Level actual) {
+            refreshConnections(actual, pos);
+        }
+    }
+
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
@@ -108,7 +136,8 @@ public class EnergyCableBlock extends Block {
         return getShape(state, level, pos, context);
     }
 
-    private BlockState withNeighborConnections(BlockState state, LevelAccessor level, BlockPos pos) {
+    /** Recalculates the six persisted connection properties for this cable. */
+    protected BlockState withNeighborConnections(BlockState state, LevelAccessor level, BlockPos pos) {
         BlockState updated = state;
         for (Direction direction : Direction.values()) {
             updated = updated.setValue(

@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["W","W","W"],"key":{"W":{"item":"reinhardtshbm:plant_flower"}},"result":{"id":"reinhardtshbm:plant_item","count":4,"components":{"minecraft:custom_data":{"variant":"rope"},"minecraft:custom_model_data":1}}}

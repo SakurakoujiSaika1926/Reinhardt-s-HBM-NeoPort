@@ -1,12 +1,10 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:not",
-      "value": {
-        "type": "reinhardtshbm:enable_528_mode"
-      }
+  "neoforge:conditions": {
+    "type": "neoforge:not",
+    "value": {
+      "type": "reinhardtshbm:enable_528_mode"
     }
-  ],
+  },
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.turbofan",
   "duration": 300,
@@ -15,7 +13,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:shell"],
+        "items": "reinhardtshbm:shell",
         "components": {
           "minecraft:custom_data": {
             "material_id": 2200,
@@ -27,7 +25,16 @@
     },
     {
       "ingredient": {
-        "tag": "c:pipes/dura_steel"
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 33,
+            "material": "dura_steel"
+          }
+        }
       },
       "count": 4
     },
@@ -46,7 +53,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:wire_dense"],
+        "items": "reinhardtshbm:wire_dense",
         "components": {
           "minecraft:custom_data": {
             "material_id": 7900,

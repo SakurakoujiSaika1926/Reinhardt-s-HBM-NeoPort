@@ -1,3 +1,6 @@
 {
-    "parent":  "reinhardtshbm:block/steel_roof"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:block/steel_roof"
+  }
 }

@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "CCH",
+    "BBP",
+    "CCE"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:dungeon_chain"
+    },
+    "H": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "material_id": 30,
+          "material": "steel"
+        }
+      }
+    },
+    "B": {
+      "item": "reinhardtshbm:blades_steel"
+    },
+    "P": {
+      "item": "reinhardtshbm:piston_selenium"
+    },
+    "E": {
+      "item": "reinhardtshbm:canister_empty"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:chainsaw"
+  }
+}

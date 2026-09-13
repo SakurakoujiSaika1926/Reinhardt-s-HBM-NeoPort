@@ -4,7 +4,7 @@
   "input": [
     {}, { "ingredient": { "item": "reinhardtshbm:nugget_pu239" }, "count": 2 }, {},
     {}, { "ingredient": { "item": "reinhardtshbm:ball_tatb" }, "count": 2 }, {},
-    {}, { "ingredient": { "item": "reinhardtshbm:plate_steel" }, "count": 4 }, {}
+    {}, { "ingredient": { "tag": "c:plates/steel" }, "count": 4 }, {}
   ],
   "result": {
     "id": "reinhardtshbm:ammo_standard",

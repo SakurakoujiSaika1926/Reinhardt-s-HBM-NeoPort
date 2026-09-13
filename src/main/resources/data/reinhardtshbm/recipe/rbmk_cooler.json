@@ -19,7 +19,7 @@
       "item": "reinhardtshbm:rbmk_blank"
     },
     "I": {
-      "item": "reinhardtshbm:plate_polymer"
+      "tag": "c:plates/polymer"
     },
     "G": {
       "item": "reinhardtshbm:steel_grate"

@@ -7,7 +7,7 @@
     " U "
   ],
   "key": {
-    "P": { "item": "reinhardtshbm:plate_iron" },
+    "P": { "tag": "c:plates/iron" },
     "U": { "item": "reinhardtshbm:billet_ra226be" }
   },
   "result": { "id": "reinhardtshbm:pile_rod_source" }

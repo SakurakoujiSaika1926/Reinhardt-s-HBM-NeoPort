@@ -1,0 +1,8 @@
+{
+  "feature": "reinhardtshbm:radiation_hotspot",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

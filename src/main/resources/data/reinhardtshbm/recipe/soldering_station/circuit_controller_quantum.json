@@ -1,0 +1,72 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.computer",
+  "duration": 600,
+  "consumption": 250000,
+  "fluid": {
+    "fluid": "perfluoromethyl_cold",
+    "amount": 6000
+  },
+  "toppings": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_quantum"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_bismoid"
+      },
+      "count": 48
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_atomic_clock"
+      },
+      "count": 8
+    }
+  ],
+  "pcb": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:upgrade_overdrive_1"
+      },
+      "count": 1
+    }
+  ],
+  "solder": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 8200,
+            "material": "lead"
+          }
+        }
+      },
+      "count": 32
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_controller_quantum"
+  }
+}

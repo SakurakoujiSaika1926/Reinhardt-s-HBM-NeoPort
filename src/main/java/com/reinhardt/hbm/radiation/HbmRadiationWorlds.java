@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -30,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class HbmRadiationWorlds {
+    private static final Direction[] ALL_DIRECTIONS = Direction.values();
     private static final Direction[] POSITIVE_DIRECTIONS = {Direction.UP, Direction.SOUTH, Direction.EAST};
     private static final double RESISTANCE_SCALE = 10_000.0D;
     private static final Map<BlockState, Float> BLOCK_RESISTANCE_CACHE = new ConcurrentHashMap<>();
@@ -376,14 +378,14 @@ public final class HbmRadiationWorlds {
 
         private void addResistanceDemand(long sourceSection) {
             changeResistanceDemand(sourceSection, 1);
-            for (Direction direction : Direction.values()) {
+            for (Direction direction : ALL_DIRECTIONS) {
                 changeResistanceDemand(SectionPos.offset(sourceSection, direction), 1);
             }
         }
 
         private void removeResistanceDemand(long sourceSection) {
             changeResistanceDemand(sourceSection, -1);
-            for (Direction direction : Direction.values()) {
+            for (Direction direction : ALL_DIRECTIONS) {
                 changeResistanceDemand(SectionPos.offset(sourceSection, direction), -1);
             }
         }
@@ -424,7 +426,7 @@ public final class HbmRadiationWorlds {
 
         private void addDemandWithoutQueue(long sourceSection) {
             addDemandWithoutQueueFor(sourceSection);
-            for (Direction direction : Direction.values()) {
+            for (Direction direction : ALL_DIRECTIONS) {
                 addDemandWithoutQueueFor(SectionPos.offset(sourceSection, direction));
             }
         }
@@ -448,8 +450,8 @@ public final class HbmRadiationWorlds {
             updated.addAll(workerState.radiation.keySet());
             updated.addAll(solved.keySet());
             workerState.radiation = new HashMap<>(solved);
-            workerState.publishedKeys = Set.copyOf(workerState.radiation.keySet());
-            return new SolvedSnapshot(revision, solved, Set.copyOf(updated), aggregateChunks(solved));
+            workerState.publishedKeys = new HashSet<>(workerState.radiation.keySet());
+            return new SolvedSnapshot(revision, solved, updated, aggregateChunks(solved));
         }
 
         private boolean isInLoadedChunk(long sectionKey) {
@@ -462,7 +464,7 @@ public final class HbmRadiationWorlds {
                 long chunkKey = chunkOf(key);
                 if (loadedChunks.contains(chunkKey)) {
                     loaded.add(key);
-                    for (Direction direction : Direction.values()) {
+                    for (Direction direction : ALL_DIRECTIONS) {
                         long neighbor = SectionPos.offset(key, direction);
                         long neighborChunk = net.minecraft.world.level.ChunkPos.asLong(
                                 SectionPos.x(neighbor), SectionPos.z(neighbor));
@@ -483,7 +485,7 @@ public final class HbmRadiationWorlds {
             for (Map.Entry<Long, Double> entry : sections.entrySet()) {
                 chunks.merge(chunkOf(entry.getKey()), entry.getValue(), Math::max);
             }
-            return Map.copyOf(chunks);
+            return chunks.isEmpty() ? Map.of() : Collections.unmodifiableMap(chunks);
         }
 
         private static Map<Long, Double> filterLoadedChunks(Map<Long, Double> radiation, Set<Long> loadedChunks) {
@@ -496,7 +498,7 @@ public final class HbmRadiationWorlds {
                     filtered.put(entry.getKey(), entry.getValue());
                 }
             }
-            return filtered.isEmpty() ? Map.of() : Map.copyOf(filtered);
+            return filtered.isEmpty() ? Map.of() : Collections.unmodifiableMap(filtered);
         }
 
         private static Map<Long, Double> filterLoadedSections(Map<Long, Double> radiation, Set<Long> loadedChunks) {
@@ -509,7 +511,7 @@ public final class HbmRadiationWorlds {
                     filtered.put(entry.getKey(), entry.getValue());
                 }
             }
-            return filtered.isEmpty() ? Map.of() : Map.copyOf(filtered);
+            return filtered.isEmpty() ? Map.of() : Collections.unmodifiableMap(filtered);
         }
 
         private static Set<Long> loadedSections(Set<Long> sections, Set<Long> loadedChunks) {
@@ -643,7 +645,7 @@ public final class HbmRadiationWorlds {
                     request.entityTick(), request.worldTime(), sourceRevision,
                     radiation.getOrDefault(request.sectionKey(), 0.0D)));
         }
-        return Map.copyOf(result);
+        return result.isEmpty() ? Map.of() : Collections.unmodifiableMap(result);
     }
 
     private static Map<Long, Double> solve(Map<Long, Double> snapshot, Map<Long, SectionResistance> resistance,
@@ -660,7 +662,7 @@ public final class HbmRadiationWorlds {
                 next.put(entry.getKey(), decayed);
                 keys.add(entry.getKey());
                 if (loadedSections.contains(entry.getKey())) {
-                    for (Direction direction : Direction.values()) {
+                    for (Direction direction : ALL_DIRECTIONS) {
                         long neighbor = SectionPos.offset(entry.getKey(), direction);
                         if (loadedSections.contains(neighbor)) {
                             keys.add(neighbor);
@@ -693,7 +695,7 @@ public final class HbmRadiationWorlds {
 
         next.entrySet().removeIf(entry -> entry.getValue() <= HbmRadiationConstants.RAD_EPSILON || !Double.isFinite(entry.getValue()));
         next.replaceAll((key, value) -> Math.min(value, HbmRadiationConstants.CHUNK_RADIATION_MAX));
-        return Map.copyOf(next);
+        return next.isEmpty() ? Map.of() : Collections.unmodifiableMap(next);
     }
 
     private static SectionResistance scanResistance(ServerLevel level, long sectionKey) {

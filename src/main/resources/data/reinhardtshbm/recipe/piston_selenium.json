@@ -13,7 +13,7 @@
       "tag": "c:ingots/tungsten"
     },
     "D": {
-      "tag": "c:bolts/dura_steel"
+      "item": "reinhardtshbm:bolt_dura_steel"
     }
   },
   "result": {

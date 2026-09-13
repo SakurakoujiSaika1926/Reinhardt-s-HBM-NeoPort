@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:powder_cobalt"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_cobalt_tiny",
+    "count": 9
+  }
+}

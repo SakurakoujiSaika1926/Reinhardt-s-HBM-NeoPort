@@ -13,7 +13,10 @@ public final class HbmNetwork {
         registrar.playToServer(AnnihilatorControlPayload.TYPE, AnnihilatorControlPayload.STREAM_CODEC, AnnihilatorControlPayload::handle);
         registrar.playToServer(SetFluidIdentifierPayload.TYPE, SetFluidIdentifierPayload.STREAM_CODEC, SetFluidIdentifierPayload::handle);
         registrar.playToServer(SettingsToolKeysPayload.TYPE, SettingsToolKeysPayload.STREAM_CODEC, SettingsToolKeysPayload::handle);
+        registrar.playToServer(LegacyDuckPayload.TYPE, LegacyDuckPayload.STREAM_CODEC, LegacyDuckPayload::handle);
         registrar.playToServer(ToggleMagnetPayload.TYPE, ToggleMagnetPayload.STREAM_CODEC, ToggleMagnetPayload::handle);
+        registrar.playToServer(JetpackControlPayload.TYPE, JetpackControlPayload.STREAM_CODEC, JetpackControlPayload::handle);
+        registrar.playToServer(ArmorDashPayload.TYPE, ArmorDashPayload.STREAM_CODEC, ArmorDashPayload::handle);
         registrar.playToServer(ToggleHeaterPayload.TYPE, ToggleHeaterPayload.STREAM_CODEC, ToggleHeaterPayload::handle);
         registrar.playToServer(HeatExchangerControlPayload.TYPE, HeatExchangerControlPayload.STREAM_CODEC, HeatExchangerControlPayload::handle);
         registrar.playToServer(GasTurbineControlPayload.TYPE, GasTurbineControlPayload.STREAM_CODEC, GasTurbineControlPayload::handle);

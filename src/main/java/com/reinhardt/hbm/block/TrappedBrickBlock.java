@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -8,10 +9,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.CaveSpider;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -116,7 +119,8 @@ public final class TrappedBrickBlock extends Block {
                 for (int x = 0; x < 3; x++) for (int z = 0; z < 3; z++) {
                     var rubble = new com.reinhardt.hbm.entity.MineRubbleEntity(level,
                             pos.getX() - 0.5D + x, pos.getY() - 0.5D, pos.getZ() - 0.5D + z,
-                            new Vec3(0.0D, -0.15D, 0.0D));
+                            new Vec3(0.0D, -0.15D, 0.0D),
+                            HbmBlocks.REINFORCED_STONE.get().defaultBlockState());
                     level.addFreshEntity(rubble);
                 }
             }
@@ -127,19 +131,22 @@ public final class TrappedBrickBlock extends Block {
                 }
             }
             case ZOMBIE -> {
-                Zombie zombie = EntityType.ZOMBIE.create(level);
-                if (zombie != null) {
-                    zombie.moveTo(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0.0F, 0.0F);
-                    level.addFreshEntity(zombie);
+                Zombie zombie = new Zombie(EntityType.ZOMBIE, level);
+                zombie.moveTo(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0.0F, 0.0F);
+                switch (level.random.nextInt(3)) {
+                    case 0 -> zombie.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(HbmItems.CHERNOBYLSIGN.get()));
+                    case 1 -> zombie.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(HbmItems.COBALT_SWORD.get()));
+                    case 2 -> zombie.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(HbmItems.CMB_HOE.get()));
+                    default -> throw new IllegalStateException("Unexpected three-way trap weapon roll");
                 }
+                zombie.setDropChance(EquipmentSlot.MAINHAND, 1.0F);
+                level.addFreshEntity(zombie);
             }
             case SPIDERS -> {
                 for (int i = 0; i < 3; i++) {
-                    CaveSpider spider = EntityType.CAVE_SPIDER.create(level);
-                    if (spider != null) {
-                        spider.moveTo(pos.getX() + 0.5D, pos.getY() - 1.0D, pos.getZ() + 0.5D, 0.0F, 0.0F);
-                        level.addFreshEntity(spider);
-                    }
+                    CaveSpider spider = new CaveSpider(EntityType.CAVE_SPIDER, level);
+                    spider.moveTo(pos.getX() + 0.5D, pos.getY() - 1.0D, pos.getZ() + 0.5D, 0.0F, 0.0F);
+                    level.addFreshEntity(spider);
                 }
             }
         }

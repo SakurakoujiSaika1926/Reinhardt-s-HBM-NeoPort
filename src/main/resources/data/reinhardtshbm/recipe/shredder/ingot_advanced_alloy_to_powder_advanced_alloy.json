@@ -1,9 +1,0 @@
-﻿{
-    "type":  "reinhardtshbm:shredder",
-    "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_advanced_alloy"
-                   },
-    "result":  {
-                   "id":  "reinhardtshbm:powder_advanced_alloy"
-               }
-}

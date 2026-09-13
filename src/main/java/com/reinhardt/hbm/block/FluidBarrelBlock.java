@@ -243,7 +243,10 @@ public class FluidBarrelBlock extends Block implements EntityBlock {
 
     public enum Kind {
         PLASTIC(12_000, true),
-        CORRODED(6_000, false),
+        // A corroded barrel is still a fluid container in the legacy mod.  It
+        // can leak/destroy itself over time, but it must retain a block entity
+        // so structure NBT and existing worlds can restore its tank contents.
+        CORRODED(6_000, true),
         STEEL(16_000, true),
         TCALLOY(24_000, true),
         ANTIMATTER(16_000, true);

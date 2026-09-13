@@ -3,7 +3,7 @@
     "group":  "press.flat",
     "stamp":  "flat",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_emerald"
+                       "tag":  "c:dusts/emerald"
                    },
     "result":  {
                    "id":  "minecraft:emerald"

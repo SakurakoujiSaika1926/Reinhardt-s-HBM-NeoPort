@@ -1,0 +1,26 @@
+{
+    "type":  "reinhardtshbm:centrifuge",
+    "group":  "centrifuge",
+    "ingredient":  {
+                       "tag":  "c:raw_materials/cobalt"
+                   },
+    "input_count":  4,
+    "results":  [
+                    {
+                        "id":  "reinhardtshbm:powder_cobalt",
+                        "count":  6
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_iron",
+                        "count":  3
+                    },
+                    {
+                        "id":  "reinhardtshbm:powder_copper",
+                        "count":  3
+                    },
+                    {
+                        "id":  "minecraft:gravel",
+                        "count":  4
+                    }
+                ]
+}

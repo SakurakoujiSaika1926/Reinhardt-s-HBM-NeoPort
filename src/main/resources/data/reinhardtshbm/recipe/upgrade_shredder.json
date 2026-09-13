@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["PHP","CUC","DTD"],"key":{"P":{"item":"reinhardtshbm:motor"},"H":{"item":"minecraft:hopper"},"C":{"item":"reinhardtshbm:blades_titanium"},"U":{"item":"reinhardtshbm:upgrade_smelter"},"D":{"tag":"c:plates/titanium"},"T":{"item":"reinhardtshbm:machine_transformer"}},"result":{"id":"reinhardtshbm:upgrade_shredder"}}

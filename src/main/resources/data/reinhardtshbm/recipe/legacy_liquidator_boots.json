@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ICI",
+    "IBI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/rubber"
+    },
+    "C": {
+      "item": "reinhardtshbm:cladding_lead"
+    },
+    "B": {
+      "item": "reinhardtshbm:hazmat_boots_grey"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:liquidator_boots"
+  }
+}

@@ -23,7 +23,6 @@ public final class LegacyBobmazonEntity extends Entity {
 
     public LegacyBobmazonEntity(EntityType<? extends LegacyBobmazonEntity> type, Level level) {
         super(type, level);
-        this.noPhysics = true;
         this.noCulling = true;
     }
 
@@ -49,6 +48,10 @@ public final class LegacyBobmazonEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        // EntityBobmazon forcibly replaced all three motion components before
+        // its four half-block descent steps; do not let external velocity or
+        // a modern entity tick alter the legacy vertical rate.
+        setDeltaMovement(0.0D, -0.5D, 0.0D);
         xo = getX();
         yo = getY();
         zo = getZ();

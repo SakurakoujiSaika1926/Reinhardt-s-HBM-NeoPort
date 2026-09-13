@@ -1,7 +1,7 @@
 ﻿{
     "variants":  {
                      "":  {
-                              "model":  "reinhardtshbm:block/skeleton_holder"
+                              "model":  "reinhardtshbm:block/empty"
                           }
                  }
 }

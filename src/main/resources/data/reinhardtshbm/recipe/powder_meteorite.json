@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/iron"
+    },
+    {
+      "tag": "c:dusts/copper"
+    },
+    {
+      "tag": "c:dusts/lithium"
+    },
+    {
+      "tag": "c:dusts/quartz"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_meteorite",
+    "count": 4
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EEE",
+    "EIE",
+    "EEE"
+  ],
+  "key": {
+    "E": { "item": "reinhardtshbm:powder_power" },
+    "I": { "tag": "c:ingots/euphemium" }
+  },
+  "result": {
+    "id": "reinhardtshbm:crystal_xen",
+    "count": 1
+  }
+}

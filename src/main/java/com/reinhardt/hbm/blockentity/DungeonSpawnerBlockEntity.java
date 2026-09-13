@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.event.EventHooks;
 
 /** Exact phase sequencing from 1.7.10 DungeonSpawner.EnumSpawnerType.ABERRATOR. */
 public final class DungeonSpawnerBlockEntity extends BlockEntity {
@@ -73,18 +74,18 @@ public final class DungeonSpawnerBlockEntity extends BlockEntity {
     }
 
     private boolean hasNearbyPlayer(ServerLevel level) {
-        AABB bounds = new AABB(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(),
-                worldPosition.getX() + 1.0D, worldPosition.getY() - 2.0D, worldPosition.getZ() + 1.0D)
-                .inflate(20.0D, 10.0D, 20.0D);
-        return !level.getEntitiesOfClass(net.minecraft.world.entity.player.Player.class, bounds,
-                player -> !player.isSpectator()).isEmpty();
+        // 1.7.10: getBoundingBox(x, y, z, x + 1, y - 2, z + 1).expand(20, 10, 20).
+        AABB bounds = new AABB(worldPosition.getX() - 20.0D, worldPosition.getY() - 10.0D,
+                worldPosition.getZ() - 20.0D, worldPosition.getX() + 21.0D,
+                worldPosition.getY() + 8.0D, worldPosition.getZ() + 21.0D);
+        return !level.getEntitiesOfClass(net.minecraft.world.entity.player.Player.class, bounds).isEmpty();
     }
 
     private boolean noSoldiersRemain(ServerLevel level) {
-        AABB bounds = new AABB(
-                worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(),
-                worldPosition.getX() - 2.0D, worldPosition.getY() + 1.0D, worldPosition.getZ() + 1.0D
-        ).inflate(50.0D, 20.0D, 50.0D);
+        // 1.7.10 retains the original reversed X extent before expanding it.
+        AABB bounds = new AABB(worldPosition.getX() - 50.0D, worldPosition.getY() - 20.0D,
+                worldPosition.getZ() - 20.0D, worldPosition.getX() + 48.0D,
+                worldPosition.getY() + 21.0D, worldPosition.getZ() + 21.0D);
         return level.getEntitiesOfClass(LegacyUndeadSoldierEntity.class, bounds).isEmpty();
     }
 
@@ -92,19 +93,17 @@ public final class DungeonSpawnerBlockEntity extends BlockEntity {
         for (int index = 0; index < 10; index++) {
             double angle = Math.toRadians(index * 36.0D);
             double x = worldPosition.getX() + 0.5D + Math.cos(angle) * 10.0D;
-            double z = worldPosition.getZ() + 0.5D + Math.sin(angle) * 10.0D;
+            // Vec3NT#rotateAroundYDeg(36): z' = z cos(a) - x sin(a).
+            double z = worldPosition.getZ() + 0.5D - Math.sin(angle) * 10.0D;
             for (int attempt = 0; attempt < 7; attempt++) {
-                LegacyUndeadSoldierEntity soldier = HbmEntityTypes.UNDEAD_SOLDIER.get().create(level);
-                if (soldier == null) {
-                    return;
-                }
+                LegacyUndeadSoldierEntity soldier = new LegacyUndeadSoldierEntity(HbmEntityTypes.UNDEAD_SOLDIER.get(), level);
                 soldier.moveTo(x, worldPosition.getY() - 5.0D, z, index * 36.0F, 0.0F);
                 if (!level.noCollision(soldier) || !level.getEntities(soldier, soldier.getBoundingBox()).isEmpty()
                         || level.containsAnyLiquid(soldier.getBoundingBox())) {
                     continue;
                 }
-                soldier.finalizeSpawn(level, level.getCurrentDifficultyAt(soldier.blockPosition()),
-                        MobSpawnType.EVENT, null);
+                EventHooks.finalizeMobSpawn(soldier, level,
+                        level.getCurrentDifficultyAt(soldier.blockPosition()), MobSpawnType.EVENT, null);
                 level.addFreshEntity(soldier);
                 break;
             }

@@ -1,12 +1,16 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.registry.HbmMobEffects;
+import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.player.Player;
@@ -48,6 +52,16 @@ public final class HbmSpecialWeaponItem extends SwordItem {
             properties.durability(profile.tier().getUses());
         }
         return properties;
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean selected) {
+        super.inventoryTick(stack, level, entity, slotId, selected);
+        if (!level.isClientSide && selected && this.kind == Kind.SHIMMER_SLEDGE
+                && entity instanceof Player player
+                && player.getItemBySlot(EquipmentSlot.CHEST).is(HbmItems.JACKT.get())) {
+            HbmAdvancements.award(player, "fiend");
+        }
     }
 
     @Override

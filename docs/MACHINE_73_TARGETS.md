@@ -6,9 +6,9 @@ from the active, unique modern IDs in `machine-prefix-audit.md`:
 - 112 unique active `machine_` IDs are registered.
 - 34 machine IDs are covered by the first OBJ item pass.
 - `machine_armor_table`, `machine_chungus`, `machine_siren`,
-  `machine_transformer`, and `machine_weapon_table` are excluded because they
-  are a table, storage block, signal block, transformer block, or weapon table,
-  rather than one of the 1.7.10 machines in this migration batch.
+  `machine_transformer` are excluded because they are a table, storage, signal,
+  or transformer block rather than one of the 1.7.10 machines in this migration
+  batch; `machine_weapon_table` is retired together with HBM's combat firearms.
 - Remaining target count: **72**. `machine_puf6_tank` was removed from the
   migration batch after source audit: in 1.7.10 it is a hidden, recipe-less
   renderer-only legacy block with an empty tile entity and no drops.

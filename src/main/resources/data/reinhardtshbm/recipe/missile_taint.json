@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:missile_assembly"
+    },
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:fluid_tank_full"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "fluid": "watz"
+        }
+      }
+    },
+    {
+      "item": "reinhardtshbm:powder_spark_mix"
+    },
+    {
+      "item": "reinhardtshbm:powder_magic"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_taint",
+    "count": 1
+  }
+}

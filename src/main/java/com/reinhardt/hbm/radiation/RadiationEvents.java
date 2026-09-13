@@ -1,5 +1,8 @@
 package com.reinhardt.hbm.radiation;
 
+import com.reinhardt.hbm.advancement.HbmAdvancements;
+import com.reinhardt.hbm.pollution.HbmArmorProtection;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.command.RhbmCommand;
 import com.reinhardt.hbm.item.ArmorFSBItem;
@@ -7,14 +10,21 @@ import com.reinhardt.hbm.item.ArmorModItem;
 import com.reinhardt.hbm.item.ArmorInsertItem;
 import com.reinhardt.hbm.item.LegacyReviveArmorModItem;
 import com.reinhardt.hbm.item.LegacyInjectorKnifeArmorModItem;
+import com.reinhardt.hbm.item.LegacyJetpackItem;
 import com.reinhardt.hbm.item.BlockBlastResistanceTooltip;
 import com.reinhardt.hbm.item.HbmPlayerShield;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmDataAttachments;
+import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmMobEffects;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.util.ArmorModHandler;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -26,31 +36,50 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.entity.animal.MushroomCow;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID)
 public final class RadiationEvents {
     private static final net.minecraft.resources.ResourceLocation ARMOR_HEALTH_MODIFIER = ReinhardtsHBM.id("armor_mod_health");
     private static final net.minecraft.resources.ResourceLocation ARMOR_INSERT_SPEED_MODIFIER = ReinhardtsHBM.id("armor_insert_speed");
     private static final net.minecraft.resources.ResourceLocation ARMOR_MOD_SPEED_MODIFIER = ReinhardtsHBM.id("armor_mod_speed");
+    private static final net.minecraft.resources.ResourceLocation ARMOR_STEP_HEIGHT_MODIFIER = ReinhardtsHBM.id("armor_step_height");
+    private static final net.minecraft.resources.ResourceLocation LEGACY_REACHER_ID = ReinhardtsHBM.id("reacher");
+    private static final Set<StratumXpDrop> STRATUM_XP_DROPS = ConcurrentHashMap.newKeySet();
     private RadiationEvents() {
     }
 
@@ -91,7 +120,60 @@ public final class RadiationEvents {
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (event.getLevel() instanceof ServerLevel level) {
             HbmRadiationWorlds.invalidateResistance(level, event.getPos());
+            if (event.getPlayer() instanceof ServerPlayer player
+                    && event.getState().is(com.reinhardt.hbm.registry.HbmBlocks.STONE_GNEISS.get())
+                    && !HbmAdvancements.has(player, "stratum")) {
+                HbmAdvancements.award(player, "stratum");
+                STRATUM_XP_DROPS.add(new StratumXpDrop(level.dimension(), event.getPos().immutable(), player.getUUID()));
+            }
+            emitLegacyCoalDust(level, event);
         }
+    }
+
+    @SubscribeEvent
+    public static void onBlockDrops(BlockDropsEvent event) {
+        if (event.getBreaker() instanceof ServerPlayer player
+                && event.getState().is(com.reinhardt.hbm.registry.HbmBlocks.STONE_GNEISS.get())
+                && STRATUM_XP_DROPS.remove(new StratumXpDrop(event.getLevel().dimension(), event.getPos().immutable(), player.getUUID()))) {
+            event.setDroppedExperience(500);
+        }
+    }
+
+    /**
+     * 1.7.10's block-break hook released coal dust when coal ore, a coal
+     * block, or lignite was mined.  This is intentionally separate from the
+     * inventory hazard (which only applies to dust items): the six adjacent
+     * air blocks each had an independent 1/2 roll for a temporary gas_coal
+     * cloud.
+     */
+    private static void emitLegacyCoalDust(ServerLevel level, BlockEvent.BreakEvent event) {
+        BlockState state = event.getState();
+        if (!isLegacyCoalDustSource(state)) {
+            return;
+        }
+
+        BlockPos origin = event.getPos();
+        for (Direction direction : Direction.values()) {
+            BlockPos target = origin.relative(direction);
+            if (level.isEmptyBlock(target) && level.random.nextBoolean()) {
+                level.setBlock(target, com.reinhardt.hbm.registry.HbmBlocks.GAS_COAL.get().defaultBlockState(), Block.UPDATE_ALL);
+            }
+        }
+    }
+
+    private static boolean isLegacyCoalDustSource(BlockState state) {
+        Block block = state.getBlock();
+        // Deepslate variants did not exist in 1.7.10, but are the modern
+        // equivalent of the same coal/lignite ores and must retain the
+        // legacy mining hazard.
+        return block == net.minecraft.world.level.block.Blocks.COAL_ORE
+                || block == net.minecraft.world.level.block.Blocks.DEEPSLATE_COAL_ORE
+                || block == net.minecraft.world.level.block.Blocks.COAL_BLOCK
+                || block == com.reinhardt.hbm.registry.HbmBlocks.ORE_LIGNITE.get()
+                || block == com.reinhardt.hbm.registry.HbmBlocks.ORE_DEEPSLATE_LIGNITE.get();
+    }
+
+    private record StratumXpDrop(ResourceKey<Level> dimension, BlockPos pos, UUID player) {
     }
 
     @SubscribeEvent
@@ -136,6 +218,24 @@ public final class RadiationEvents {
     public static void onItemTooltip(ItemTooltipEvent event) {
         BlockBlastResistanceTooltip.append(event.getItemStack(), event.getToolTip());
         HbmHazardSystem.appendTooltip(event.getItemStack(), event.getToolTip());
+        appendArmorRadiationTooltip(event);
+    }
+
+    private static void appendArmorRadiationTooltip(ItemTooltipEvent event) {
+        double resistance = HbmArmorProtection.itemRadiationTooltipResistance(event.getItemStack());
+        if (resistance <= 0.0D) {
+            return;
+        }
+        event.getToolTip().add(Component.translatable(
+                "tooltip.reinhardtshbm.armor.radiation_resistance",
+                formatResistance(resistance),
+                formatReductionPercent(HbmArmorProtection.multiplierForResistance(resistance))
+        ).withStyle(ChatFormatting.YELLOW));
+    }
+
+    @SubscribeEvent
+    public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
+        HbmAdvancements.awardForCraftedStack(event.getEntity(), event.getCrafting());
     }
 
     /**
@@ -145,6 +245,7 @@ public final class RadiationEvents {
     @SubscribeEvent
     public static void onItemSmelted(PlayerEvent.ItemSmeltedEvent event) {
         Player player = event.getEntity();
+        HbmAdvancements.awardForCraftedStack(player, event.getSmelting());
         if (player.level().isClientSide || !event.getSmelting().is(net.minecraft.world.item.Items.IRON_INGOT)
                 || player.getRandom().nextInt(64) != 0) {
             return;
@@ -157,12 +258,70 @@ public final class RadiationEvents {
     }
 
     @SubscribeEvent
+    public static void onItemPickup(ItemEntityPickupEvent.Post event) {
+        if (event.getOriginalStack().is(net.minecraft.world.item.Items.SLIME_BALL)) {
+            HbmAdvancements.award(event.getPlayer(), "slimeball");
+        }
+    }
+
+    @SubscribeEvent
     public static void onLivingHurt(LivingIncomingDamageEvent event) {
         if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Player player) {
             HbmPlayerShield.absorb(player, event);
             applyArmorModDamage(player, event);
             applyArmorInsertDamage(player, event);
+            applyLegacyArmorCombatHooks(player, event);
         }
+    }
+
+    /**
+     * ArmorDNT and ArmorTrenchmaster used LivingAttack/Hurt hooks in 1.7.10.
+     * NeoForge exposes the same point as LivingIncomingDamageEvent.
+     */
+    private static void applyLegacyArmorCombatHooks(Player player, LivingIncomingDamageEvent event) {
+        if (!ArmorFSBItem.hasFSBArmor(player)) {
+            return;
+        }
+        String group = ArmorFSBItem.fullSetGroup(player);
+        if ("dns".equals(group)) {
+            if (event.getSource().is(DamageTypeTags.IS_EXPLOSION)) {
+                event.setAmount(event.getAmount() * 0.001F);
+            } else {
+                event.setAmount(0.0F);
+            }
+        } else if ("trenchmaster".equals(group)
+                && !event.getSource().is(DamageTypeTags.IS_EXPLOSION)
+                && player.getRandom().nextInt(3) == 0) {
+            event.setCanceled(true);
+        }
+    }
+
+    /** Restores ArmorFSB's hard-landing shockwave without touching vanilla fall
+     * damage when the suit is unpowered or incomplete. */
+    @SubscribeEvent
+    public static void onLivingFall(LivingFallEvent event) {
+        if (!(event.getEntity() instanceof Player player)
+                || player.level().isClientSide
+                || !ArmorFSBItem.hasFSBArmor(player)
+                || !ArmorFSBItem.hasFeature(player, ArmorFSBItem.Feature.HARD_LANDING)
+                || event.getDistance() <= 10.0F) {
+            return;
+        }
+
+        var bounds = player.getBoundingBox().inflate(3.0D, 0.0D, 3.0D);
+        for (Entity target : player.level().getEntities(player, bounds,
+                candidate -> candidate instanceof LivingEntity living && living.isAlive())) {
+            double dx = player.getX() - target.getX();
+            double dz = player.getZ() - target.getZ();
+            double distance = Math.sqrt(dx * dx + dz * dz);
+            if (distance >= 3.0D) {
+                continue;
+            }
+            double intensity = 3.0D - distance;
+            target.push(-dx * intensity * 0.18D, 0.1D * intensity, -dz * intensity * 0.18D);
+            target.hurt(player.damageSources().playerAttack(player), (float) (intensity * 10.0D));
+        }
+        event.setDistance(0.0F);
     }
 
     /** Preserves ItemModRevive's pre-death armor-slot rescue behavior. */
@@ -175,16 +334,37 @@ public final class RadiationEvents {
         }
     }
 
+    /**
+     * Do not carry transient contamination through a real death.  The legacy
+     * 1.7.10 death hook reset radiation explicitly; doing the same for the
+     * attachment (including its environment/neutron/digamma fields) also
+     * prevents a dead entity or a freshly revived player from re-entering a
+     * lethal check every tick.
+     */
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST)
+    public static void onLivingDeathCleanup(LivingDeathEvent event) {
+        if (!event.getEntity().level().isClientSide) {
+            if (event.getEntity() instanceof com.reinhardt.hbm.entity.LegacyTaintedCreeperEntity
+                    && event.getSource().is(HbmDamageTypes.BOXCAR)
+                    && event.getEntity().level() instanceof ServerLevel level) {
+                HbmAdvancements.awardNearby(level, event.getEntity().getBoundingBox().inflate(50.0D), "hidden");
+            }
+            // Radiation was reset unconditionally by the 1.7.10 death hook;
+            // keep that guarantee even when another mod cancels the death.
+            HbmLivingRadiation.clear(event.getEntity());
+            // Clear respiratory hazards even when another handler cancels
+            // the death (totem/custom revival).  The lethal setter resets the
+            // value before hurt(), but a cancelled death can otherwise leave
+            // a stale asbestos/black-lung value that immediately kills the
+            // entity again on the next tick.
+            HbmLivingHazards.clear(event.getEntity());
+        }
+    }
+
     private static void clearReviveHazards(Player player) {
         player.removeEffect(MobEffects.BLINDNESS);
-
-        HbmLivingRadiation data = HbmLivingRadiation.get(player);
-        data.setRadiation(0.0F);
-        data.setEnvironmentRadiation(0.0F);
-        data.setRadiationBuffer(0.0F);
-        data.setNeutron(0.0F);
-        data.setDigamma(0.0F);
-        HbmLivingRadiation.set(player, data);
+        HbmLivingHazards.clear(player);
+        HbmLivingRadiation.clear(player);
     }
 
     private static void tickLiving(LivingEntity living) {
@@ -192,7 +372,36 @@ public final class RadiationEvents {
             return;
         }
 
+        // A few vanilla/compatibility paths can leave a zero-health entity in
+        // the tick list for a short death window.  The old handler returned as
+        // soon as the entity was dead; clear the attachment here as a second
+        // line of defence for deaths that did not go through LivingDeathEvent
+        // (for example a direct setHealth(0) fallback).
+        if (!living.isAlive()) {
+            HbmLivingRadiation.clear(living);
+            return;
+        }
+
         tickLegacyBurning(level, living);
+        // Fire/balefire damage can kill an entity during the legacy burn pass.
+        // Do not continue scanning its inventory after the death hook has
+        // cleared the transient attachments.
+        if (!living.isAlive()) {
+            HbmLivingRadiation.clear(living);
+            HbmLivingHazards.clear(living);
+            return;
+        }
+
+        // HazardSystem.updateLivingInventory ran for every non-player
+        // EntityLivingBase in 1.7.10.  Keep the respiratory (asbestos/coal)
+        // path at the same every-tick cadence for mobs as well as players.
+        applyRespiratoryInventoryHazards(living);
+        if (!living.isAlive()) {
+            HbmLivingRadiation.clear(living);
+            HbmLivingHazards.clear(living);
+            return;
+        }
+
         HbmLivingRadiation data = living.getExistingDataOrNull(HbmDataAttachments.LIVING_RADIATION);
         HbmRadiationWorlds.queueExposure(level, living);
         double chunkRadiation = HbmRadiationWorlds.getExposureRadiation(level, living);
@@ -208,24 +417,46 @@ public final class RadiationEvents {
             data.setNeutron(0.0F);
         }
 
-        data.setChunkRadiation((float) chunkRadiation);
-        if (chunkRadiation > 0.0D) {
+        boolean radiationImmune = isLegacyRadiationImmune(living);
+        data.setChunkRadiation(radiationImmune ? 0.0F : (float) chunkRadiation);
+        if (!radiationImmune && chunkRadiation > 0.0D) {
             contaminateRadiation(living, data, chunkRadiation / 20.0D);
         }
 
-        if (living instanceof Player player && living.tickCount % HbmRadiationConstants.HAZARD_RATE_TICKS == 0) {
-            applyInventoryHazards(player, data);
+        // ContaminationUtil.isRadImmune excluded the legacy immune classes
+        // from accumulated radiation and all radiation sickness effects.
+        // Keep the environmental/respiratory pass above, but never let the
+        // modern attachment turn those entities radioactive or apply digamma
+        // health modifiers.
+        if (radiationImmune) {
+            data.setRadiation(0.0F);
+            data.setDigamma(0.0F);
+            data.setNeutron(0.0F);
+            HbmLivingRadiation.set(living, data);
+            return;
+        }
+
+        if (living instanceof Player player) {
+            // 1.7.10 HazardSystem.updatePlayerInventory ran every tick. Keep
+            // respiratory hazards at that cadence; radiation/hot/etc. remain
+            // on the throttled five-tick path below.
+            if (living.tickCount % HbmRadiationConstants.HAZARD_RATE_TICKS == 0) {
+                applyInventoryHazards(player, data);
+            }
         }
         if (living instanceof Player player) {
             ArmorFSBItem.tickFullSet(player);
             applyArmorHealthModifier(player);
             tickArmorInsert(player, data);
             tickArmorMods(player);
+            tickArmorProfile(player, data);
             HbmPlayerShield.tick(player);
         }
 
         applyRadiationVomiting(living, data.getRadiation());
-        applyRadiationEffects(living, data);
+        if (!applyLegacyRadiationTransformations(living, data)) {
+            applyRadiationEffects(living, data);
+        }
         applyDigammaEffects(living, data);
         HbmLivingRadiation.set(living, data);
     }
@@ -289,6 +520,10 @@ public final class RadiationEvents {
         if (movement != null) {
             movement.removeModifier(ARMOR_MOD_SPEED_MODIFIER);
         }
+        AttributeInstance stepHeight = player.getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) {
+            stepHeight.removeModifier(ARMOR_STEP_HEIGHT_MODIFIER);
+        }
         AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
 
         double movementMultiplier = 1.0D;
@@ -314,6 +549,35 @@ public final class RadiationEvents {
                     movementMultiplier - 1.0D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             ));
+        }
+        ArmorFSBItem.FeatureProfile profile = ArmorFSBItem.features(player);
+        if (stepHeight != null && profile.stepHeight() > 0 && ArmorFSBItem.hasFSBArmor(player)) {
+            stepHeight.addOrUpdateTransientModifier(new AttributeModifier(
+                    ARMOR_STEP_HEIGHT_MODIFIER,
+                    profile.stepHeight(),
+                    AttributeModifier.Operation.ADD_VALUE
+            ));
+        }
+        ArmorFSBItem.tickDash(player);
+        LegacyJetpackItem.tickBuiltInJetpack(player);
+    }
+
+    private static void tickArmorProfile(Player player, HbmLivingRadiation data) {
+        if (!ArmorFSBItem.hasFSBArmor(player)) {
+            return;
+        }
+        ArmorFSBItem.FeatureProfile profile = ArmorFSBItem.features(player);
+        if (profile.geigerSound() && data.getRadiation() > 0.01F && player.tickCount % 5 == 0) {
+            int level = Math.min(6, Math.max(1, (int) Math.floor(Math.log10(data.getRadiation() + 1.0F)) + 1));
+            var sound = switch (level) {
+                case 1 -> HbmSoundEvents.GEIGER_1.get();
+                case 2 -> HbmSoundEvents.GEIGER_2.get();
+                case 3 -> HbmSoundEvents.GEIGER_3.get();
+                case 4 -> HbmSoundEvents.GEIGER_4.get();
+                case 5 -> HbmSoundEvents.GEIGER_5.get();
+                default -> HbmSoundEvents.GEIGER_6.get();
+            };
+            player.level().playSound(null, player.blockPosition(), sound, SoundSource.PLAYERS, 0.45F, 1.0F);
         }
     }
 
@@ -384,6 +648,18 @@ public final class RadiationEvents {
             }
             spawnAttachedFlame(level, living, HbmParticleTypes.FLAMETHROWER_BALEFIRE.get());
         }
+
+        if (hazards.getBlackFire() > 0) {
+            hazards.tickBlackFire();
+            if (phase % 10 == 0) {
+                level.playSound(null, living.getX(), living.getY() + living.getBbHeight() * 0.5D, living.getZ(),
+                        net.minecraft.sounds.SoundEvents.FIRE_EXTINGUISH, SoundSource.NEUTRAL,
+                        1.0F, 1.5F + living.getRandom().nextFloat() * 0.5F);
+                living.hurt(living.damageSources().onFire(), 10.0F);
+            }
+            HbmLivingRadiation.get(living).addRadiation(5.0F);
+            spawnAttachedFlame(level, living, HbmParticleTypes.FLAMETHROWER_BLACK.get());
+        }
     }
 
     private static void spawnAttachedFlame(ServerLevel level, LivingEntity living,
@@ -400,30 +676,114 @@ public final class RadiationEvents {
     }
 
     private static void applyInventoryHazards(Player player, HbmLivingRadiation data) {
+        boolean hasReacher = hasLegacyReacher(player);
         for (ItemStack stack : player.getInventory().items) {
-            applyStackHazards(player, data, stack);
+            applyStackHazards(player, data, stack, hasReacher);
         }
         for (ItemStack stack : player.getInventory().armor) {
-            applyStackHazards(player, data, stack);
+            applyStackHazards(player, data, stack, hasReacher);
         }
         for (ItemStack stack : player.getInventory().offhand) {
-            applyStackHazards(player, data, stack);
+            applyStackHazards(player, data, stack, hasReacher);
         }
     }
 
-    private static void applyStackHazards(Player player, HbmLivingRadiation data, ItemStack stack) {
+    /** Exact 1.7.10 HazardTypeAsbestos/HazardTypeCoal inventory behavior. */
+    private static void applyRespiratoryInventoryHazards(LivingEntity living) {
+        HbmLivingHazards hazards = HbmLivingHazards.get(living);
+        if (living instanceof Player player) {
+            for (ItemStack stack : player.getInventory().items) {
+                applyRespiratoryStackHazards(living, hazards, stack);
+                if (!living.isAlive()) {
+                    return;
+                }
+            }
+            for (ItemStack stack : player.getInventory().armor) {
+                applyRespiratoryStackHazards(living, hazards, stack);
+                if (!living.isAlive()) {
+                    return;
+                }
+            }
+            for (ItemStack stack : player.getInventory().offhand) {
+                applyRespiratoryStackHazards(living, hazards, stack);
+                if (!living.isAlive()) {
+                    return;
+                }
+            }
+        } else {
+            // The old getEquipmentInSlot(0..4) covered armor and the held
+            // equipment of mobs.  These modern iterables are its equivalent.
+            for (ItemStack stack : living.getArmorSlots()) {
+                applyRespiratoryStackHazards(living, hazards, stack);
+                if (!living.isAlive()) {
+                    return;
+                }
+            }
+            for (ItemStack stack : living.getHandSlots()) {
+                applyRespiratoryStackHazards(living, hazards, stack);
+                if (!living.isAlive()) {
+                    return;
+                }
+            }
+        }
+        HbmLivingHazards.set(living, hazards);
+    }
+
+    private static void applyRespiratoryStackHazards(LivingEntity living, HbmLivingHazards hazards, ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+
+        if (HbmConfig.ENABLE_ASBESTOS.get()) {
+            double level = HbmHazardSystem.asbestosLevel(stack);
+            if (level > 0.0D) {
+                int amount = (int) Math.min(level, 10.0D);
+                if (!HbmArmorProtection.hasHeadProtection(living,
+                        HbmArmorProtection.HazardClass.PARTICLE_FINE, amount)) {
+                    hazards.addAsbestos(living, amount);
+                    if (!living.isAlive()) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (HbmConfig.ENABLE_COAL_DUST.get()) {
+            double level = HbmHazardSystem.coalDustLevel(stack);
+            if (level > 0.0D) {
+                if (!HbmArmorProtection.hasHeadProtection(living,
+                        HbmArmorProtection.HazardClass.PARTICLE_COARSE)) {
+                    int amount = (int) Math.min(level * stack.getCount(), 10.0D);
+                    if (amount > 0) {
+                        hazards.addBlackLung(living, amount);
+                    }
+                } else if (living.getRandom().nextInt(Math.max(65 - stack.getCount(), 1)) == 0) {
+                    // HazardTypeCoal damages a protected filter only on this
+                    // per-tick random roll, using the unstacked hazard level.
+                    HbmArmorProtection.hasHeadProtection(living,
+                            HbmArmorProtection.HazardClass.PARTICLE_COARSE, (int) level);
+                }
+            }
+        }
+    }
+
+    private static void applyStackHazards(Player player, HbmLivingRadiation data, ItemStack stack, boolean hasReacher) {
         HbmHazardData hazards = HbmHazardSystem.hazards(stack);
         if (hazards.isEmpty()) {
             return;
         }
 
         if (hazards.radiation() > 0.0D) {
-            contaminateRadiation(player, data, hazards.radiation() / 20.0D * HbmRadiationConstants.HAZARD_RATE_TICKS);
+            double radiation = hazards.radiation() / 20.0D;
+            if (hasReacher) {
+                radiation = HbmConfig.ENABLE_528_MODE.get() ? radiation / 49.0D : squirt(radiation);
+            }
+            contaminateRadiation(player, data, radiation * HbmRadiationConstants.HAZARD_RATE_TICKS);
         }
         if (hazards.digamma() > 0.0D && canReceiveDose(player) && !player.hasEffect(HbmMobEffects.STABILITY)) {
             data.addDigamma((float) (hazards.digamma() / 20.0D * HbmRadiationConstants.HAZARD_RATE_TICKS));
         }
-        if (hazards.hot() > 0.0D && canReceiveDose(player) && !player.isInWaterOrRain()) {
+        if (hazards.hot() > 0.0D && canReceiveDose(player) && !hasLegacyReacherHotProtection(hasReacher) && !player.isInWaterOrRain()) {
             player.igniteForSeconds((float) Math.ceil(hazards.hot()) * HbmRadiationConstants.HAZARD_RATE_TICKS);
         }
         if (hazards.blinding() > 0.0D && canReceiveDose(player)) {
@@ -435,6 +795,61 @@ public final class RadiationEvents {
                     true
             ));
         }
+    }
+
+    private static boolean hasLegacyReacher(Player player) {
+        for (ItemStack stack : player.getInventory().items) {
+            if (isLegacyReacher(stack)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isLegacyReacher(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        return LEGACY_REACHER_ID.equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()));
+    }
+
+    private static boolean hasLegacyReacherHotProtection(boolean hasReacher) {
+        return hasReacher && !HbmConfig.ENABLE_528_MODE.get();
+    }
+
+    private static double squirt(double x) {
+        return Math.sqrt(x + 1.0D / ((x + 2.0D) * (x + 2.0D))) - 1.0D / (x + 2.0D);
+    }
+
+    private static String formatResistance(double resistance) {
+        String value = String.format(Locale.ROOT, "%.4f", resistance);
+        while (value.contains(".") && value.endsWith("0")) {
+            value = value.substring(0, value.length() - 1);
+        }
+        if (value.endsWith(".")) {
+            value = value.substring(0, value.length() - 1);
+        }
+        return value;
+    }
+
+    private static String formatReductionPercent(double multiplier) {
+        double percent = Math.max(0.0D, 100.0D - multiplier * 100.0D);
+        if (percent >= 99.999D) {
+            return String.format(Locale.ROOT, "%.5f%%", percent);
+        }
+        if (percent >= 99.9D) {
+            return String.format(Locale.ROOT, "%.3f%%", percent);
+        }
+        if (percent >= 99.0D) {
+            return String.format(Locale.ROOT, "%.2f%%", percent);
+        }
+        if (percent >= 10.0D) {
+            return String.format(Locale.ROOT, "%.1f%%", percent);
+        }
+        if (percent >= 1.0D) {
+            return String.format(Locale.ROOT, "%.1f%%", percent);
+        }
+        return String.format(Locale.ROOT, "%.3f%%", percent);
     }
 
     private static void tickItemEntity(ItemEntity itemEntity) {
@@ -455,6 +870,9 @@ public final class RadiationEvents {
     }
 
     private static void contaminateRadiation(LivingEntity living, HbmLivingRadiation data, double amount) {
+        // Apply the per-piece HazmatRegistry resistance restored by the armor
+        // port before updating both environment and accumulated dose.
+        amount *= HbmArmorProtection.radiationMultiplier(living);
         if (living.hasEffect(HbmMobEffects.RADX)) {
             // 1.7.10 Rad-X added 0.2 radiation resistance in HazmatRegistry.
             amount *= 0.8D;
@@ -467,6 +885,28 @@ public final class RadiationEvents {
 
     private static boolean canReceiveDose(LivingEntity living) {
         return !(living instanceof Player player && (player.isCreative() || player.isSpectator() || player.tickCount < 200));
+    }
+
+    /**
+     * Exact 1.7.10 ContaminationUtil.isRadImmune membership.  The old
+     * interface was marker-based; the modern port has no common interface, so
+     * the concrete legacy classes are enumerated explicitly.
+     */
+    public static boolean isLegacyRadiationImmune(LivingEntity living) {
+        return living instanceof com.reinhardt.hbm.entity.LegacyNuclearCreeperEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyTaintedCreeperEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyCyberCrabEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyMaskManEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyRadBeastEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyUfoEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyChopperEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyWormHeadEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyWormBodyEntity
+                || living instanceof com.reinhardt.hbm.entity.LegacyQuackosEntity
+                || living instanceof MushroomCow
+                || living instanceof Zombie
+                || living instanceof net.minecraft.world.entity.monster.Skeleton
+                || living instanceof net.minecraft.world.entity.animal.Ocelot;
     }
 
     private static void applyRadiationVomiting(LivingEntity living, float radiation) {
@@ -527,8 +967,53 @@ public final class RadiationEvents {
         return living.getType().getCategory() != MobCategory.WATER_CREATURE;
     }
 
+    /** The four entity substitutions at the start of 1.7.10 EntityEffectHandler.handleRadiationEffect. */
+    private static boolean applyLegacyRadiationTransformations(LivingEntity living, HbmLivingRadiation data) {
+        if (!living.isAlive() || living instanceof Player player && player.isCreative()) {
+            return false;
+        }
+
+        float radiation = data.getRadiation();
+        ServerLevel level = (ServerLevel) living.level();
+        if (living.getClass() == Creeper.class && radiation >= 200.0F && living.getHealth() > 0.0F) {
+            if (level.random.nextInt(3) == 0) {
+                com.reinhardt.hbm.entity.LegacyNuclearCreeperEntity nuclear =
+                        new com.reinhardt.hbm.entity.LegacyNuclearCreeperEntity(HbmEntityTypes.NUCLEAR_CREEPER.get(), level);
+                nuclear.moveTo(living.getX(), living.getY(), living.getZ(), living.getYRot(), living.getXRot());
+                level.addFreshEntity(nuclear);
+                living.discard();
+            } else {
+                living.hurt(living.damageSources().source(HbmDamageTypes.RADIATION), 100.0F);
+            }
+            return true;
+        }
+        if (living instanceof Cow && !(living instanceof MushroomCow) && radiation >= 50.0F) {
+            MushroomCow mooshroom = new MushroomCow(net.minecraft.world.entity.EntityType.MOOSHROOM, level);
+            mooshroom.moveTo(living.getX(), living.getY(), living.getZ(), living.getYRot(), living.getXRot());
+            level.addFreshEntity(mooshroom);
+            living.discard();
+            return true;
+        }
+        if (living instanceof Villager && radiation >= 500.0F) {
+            Zombie zombie = new Zombie(net.minecraft.world.entity.EntityType.ZOMBIE, level);
+            zombie.moveTo(living.getX(), living.getY(), living.getZ(), living.getYRot(), living.getXRot());
+            level.addFreshEntity(zombie);
+            living.discard();
+            return true;
+        }
+        if (living.getClass() == com.reinhardt.hbm.entity.LegacyDuckEntity.class && radiation >= 200.0F) {
+            com.reinhardt.hbm.entity.LegacyQuackosEntity quackos =
+                    new com.reinhardt.hbm.entity.LegacyQuackosEntity(HbmEntityTypes.QUACKOS.get(), level);
+            quackos.moveTo(living.getX(), living.getY(), living.getZ(), living.getYRot(), living.getXRot());
+            level.addFreshEntity(quackos);
+            living.discard();
+            return true;
+        }
+        return false;
+    }
+
     private static void applyRadiationEffects(LivingEntity living, HbmLivingRadiation data) {
-        if (!canReceiveDose(living)) {
+        if (!living.isAlive() || !canReceiveDose(living)) {
             return;
         }
 
@@ -543,10 +1028,13 @@ public final class RadiationEvents {
 
         int rng = living.level().random.nextInt(21_000);
         if (radiation >= 1000.0F) {
+            // Let the normal hurt/death pipeline decide the outcome.  A
+            // post-hurt setHealth(0) would incorrectly kill entities rescued
+            // by a totem or the legacy revive armor hook.
             living.hurt(living.damageSources().source(HbmDamageTypes.RADIATION), 1000.0F);
             data.setRadiation(0.0F);
-            if (living.isAlive()) {
-                living.setHealth(0.0F);
+            if (living instanceof Player player) {
+                HbmAdvancements.award(player, "rad_death");
             }
             return;
         }
@@ -620,11 +1108,14 @@ public final class RadiationEvents {
             if (rng % 800 == 0) {
                 living.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 4 * 20, 0));
             }
+            if (living instanceof Player player) {
+                HbmAdvancements.award(player, "rad_poison");
+            }
         }
     }
 
     private static void applyDigammaEffects(LivingEntity living, HbmLivingRadiation data) {
-        if (!canReceiveDose(living)) {
+        if (!living.isAlive() || !canReceiveDose(living)) {
             return;
         }
 
@@ -632,11 +1123,22 @@ public final class RadiationEvents {
         if (digamma < 0.01F) {
             return;
         }
-        if (digamma >= HbmLivingRadiation.MAX_DIGAMMA || living.getMaxHealth() <= 0.0F) {
-            living.hurt(living.damageSources().source(HbmDamageTypes.DIGAMMA), 5_000_000.0F);
-            if (living.isAlive()) {
-                living.setHealth(0.0F);
+        if (living instanceof Player player) {
+            HbmAdvancements.award(player, "digamma_see");
+            if (digamma >= 2.0F) {
+                HbmAdvancements.award(player, "digamma_feel");
             }
+            if (digamma >= 10.0F) {
+                HbmAdvancements.award(player, "digamma_know");
+            }
+        }
+        if (digamma >= HbmLivingRadiation.MAX_DIGAMMA || living.getMaxHealth() <= 0.0F) {
+            // Do not force a second death after hurt: the damage event may be
+            // canceled by a revive item or consumed by a totem.
+            living.hurt(living.damageSources().source(HbmDamageTypes.DIGAMMA), 5_000_000.0F);
+            // Clear the trigger even when a totem prevents death; otherwise
+            // the same entity would be killed again on the next tick.
+            data.setDigamma(0.0F);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.reinhardt.hbm.client.sound.BomberClientSounds;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.item.LegacyBombCallerItem;
 import com.reinhardt.hbm.registry.HbmChunkTickets;
+import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
@@ -45,7 +46,6 @@ public final class LegacyBomberEntity extends Entity {
     public LegacyBomberEntity(EntityType<? extends LegacyBomberEntity> type, Level level) {
         super(type, level);
         this.noCulling = true;
-        this.noPhysics = true;
     }
 
     public static LegacyBomberEntity create(Level level, BlockPos target, LegacyBombCallerItem.Type type) {
@@ -127,6 +127,10 @@ public final class LegacyBomberEntity extends Entity {
     public void tick() {
         super.tick();
         Vec3 motion = getDeltaMovement();
+        if (entityData.get(HEALTH) > 0.0F) {
+            motion = new Vec3(motion.x, 0.0D, motion.z);
+            setDeltaMovement(motion);
+        }
         setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);
         updateRotation(motion);
 
@@ -205,7 +209,7 @@ public final class LegacyBomberEntity extends Entity {
         BlockPos collision = new BlockPos((int) getX(), (int) getY(), (int) getZ());
         if (!level().getBlockState(collision).isAir() || getY() < 0.0D) {
             LegacyProjectileUtil.standardExplosion(this, position(), 15.0F, 1.0F, true, true);
-            level().playSound(null, getX(), getY(), getZ(), HbmSoundEvents.ENTITY_OLD_EXPLOSION.get(),
+            level().playSound(null, getX(), getY(), getZ(), HbmSoundEvents.ENTITY_PLANE_CRASH.get(),
                     SoundSource.HOSTILE, 25.0F, 1.0F);
             discard();
         }
@@ -260,13 +264,17 @@ public final class LegacyBomberEntity extends Entity {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (level().isClientSide || !isFlying()) {
+        if (level().isClientSide || !isFlying()
+                || source.is(HbmDamageTypes.NUCLEAR_BLAST)
+                || isInvulnerableTo(source)) {
             return false;
         }
         float health = entityData.get(HEALTH) - amount;
         entityData.set(HEALTH, health);
         if (health <= 0.0F) {
             LegacyProjectileUtil.sendSmallExplosionEffect(level(), position(), 25, 3.5F, 2.0F);
+            level().playSound(null, getX(), getY(), getZ(), HbmSoundEvents.ENTITY_PLANE_SHOT_DOWN.get(),
+                    SoundSource.HOSTILE, 25.0F, 1.0F);
         }
         return true;
     }

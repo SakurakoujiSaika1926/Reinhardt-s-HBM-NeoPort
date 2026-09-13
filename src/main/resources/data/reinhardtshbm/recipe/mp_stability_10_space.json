@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ASA",
+    "PSP"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:plates/aluminium"
+    },
+    "P": {
+      "tag": "c:ingots/steel"
+    },
+    "S": {
+      "item": "reinhardtshbm:steel_scaffold"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mp_stability_10_space",
+    "count": 1
+  }
+}
+

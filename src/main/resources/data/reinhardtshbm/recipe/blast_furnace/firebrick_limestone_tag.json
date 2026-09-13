@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "input_a": {
+    "tag": "c:stones/limestone"
+  },
+  "input_b": {
+    "item": "minecraft:clay_ball"
+  },
+  "input_b_count": 6,
+  "duration": 800,
+  "result": {
+    "id": "reinhardtshbm:ingot_firebrick",
+    "count": 8
+  }
+}

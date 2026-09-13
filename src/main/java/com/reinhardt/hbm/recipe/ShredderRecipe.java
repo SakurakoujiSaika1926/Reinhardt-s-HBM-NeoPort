@@ -17,14 +17,19 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 
-public record ShredderRecipe(String group, Ingredient ingredient, ItemStack result) implements Recipe<SingleRecipeInput> {
+public record ShredderRecipe(
+        String group,
+        Ingredient ingredient,
+        int inputCount,
+        ItemStack result
+) implements Recipe<SingleRecipeInput> {
     public ShredderRecipe(Ingredient ingredient, ItemStack result) {
-        this("", ingredient, result);
+        this("", ingredient, 1, result);
     }
 
     @Override
     public boolean matches(SingleRecipeInput input, Level level) {
-        return this.ingredient.test(input.item());
+        return input.item().getCount() >= this.inputCount && this.ingredient.test(input.item());
     }
 
     @Override
@@ -68,6 +73,7 @@ public record ShredderRecipe(String group, Ingredient ingredient, ItemStack resu
         private static final MapCodec<ShredderRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(ShredderRecipe::group),
                 Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(ShredderRecipe::ingredient),
+                Codec.intRange(1, 64).optionalFieldOf("input_count", 1).forGetter(ShredderRecipe::inputCount),
                 ItemStack.STRICT_CODEC.fieldOf("result").forGetter(ShredderRecipe::result)
         ).apply(instance, ShredderRecipe::new));
 
@@ -76,6 +82,8 @@ public record ShredderRecipe(String group, Ingredient ingredient, ItemStack resu
                 ShredderRecipe::group,
                 Ingredient.CONTENTS_STREAM_CODEC,
                 ShredderRecipe::ingredient,
+                ByteBufCodecs.VAR_INT,
+                ShredderRecipe::inputCount,
                 ItemStack.STREAM_CODEC,
                 ShredderRecipe::result,
                 ShredderRecipe::new

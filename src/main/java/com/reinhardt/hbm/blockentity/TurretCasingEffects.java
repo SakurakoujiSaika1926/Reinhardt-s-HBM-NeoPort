@@ -14,7 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-final class TurretCasingEffects {
+public final class TurretCasingEffects {
     enum CasingKind {
         FRIENDLY,
         BMG50,
@@ -134,7 +134,7 @@ final class TurretCasingEffects {
         }
     }
 
-    static void spawnMaxwellGib(Level level, LivingEntity target, boolean screm) {
+    public static void spawnMaxwellGib(Level level, LivingEntity target, boolean screm) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }

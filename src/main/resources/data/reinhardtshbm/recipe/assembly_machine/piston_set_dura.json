@@ -7,7 +7,7 @@
     { "ingredient": { "tag": "c:ingots/dura_steel" }, "count": 24 },
     { "ingredient": { "tag": "c:plates/titanium" }, "count": 8 },
     { "ingredient": { "tag": "c:ingots/tungsten" }, "count": 8 },
-    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 16 }
+    { "ingredient": { "item": "reinhardtshbm:bolt_dura_steel" }, "count": 16 }
   ],
   "result": {
     "id": "reinhardtshbm:piston_set",

@@ -15,7 +15,6 @@ public enum HbmDoorDecl {
     SLIDING_BLAST_DOOR("sliding_blast_door", 24, dims(3, 0, 0, 0, 3, 3), new int[][]{{-2, 0, 0, 4, 5, 1}}, 3, "block/doors/sliding_blast_door", "block/doors/sliding_blast_door", Animation.VERTICAL),
     SLIDING_BLAST_DOOR_2("sliding_blast_door_2", 24, dims(3, 0, 0, 0, 3, 3), new int[][]{{-2, 0, 0, 4, 5, 1}}, 3, "block/doors/sliding_blast_door", "block/doors/sliding_blast_door", Animation.VERTICAL),
     SLIDING_GATE_DOOR("sliding_gate_door", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
-    QE_SLIDING("qe_sliding", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
     QE_SLIDING_DOOR("qe_sliding_door", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
     QE_CONTAINMENT("qe_containment", 160, dims(2, 0, 0, 0, 1, 1), new int[][]{{-1, 0, 0, 3, 3, 1}}, 3, "block/doors/qe_containment_door", "block/doors/qe_containment_door", Animation.VERTICAL),
     SLIDING_SEAL_DOOR("sliding_seal_door", 20, dims(1, 0, 0, 0, 0, 0), new int[][]{{0, 0, 0, 1, 2, 2}}, 0, "block/doors/sliding_seal_door", "block/doors/sliding_seal_door", Animation.VERTICAL),
@@ -34,7 +33,7 @@ public enum HbmDoorDecl {
             SLIDING_BLAST_DOOR,
             SLIDING_BLAST_DOOR_2,
             SLIDING_GATE_DOOR,
-            QE_SLIDING,
+            QE_SLIDING_DOOR,
             QE_CONTAINMENT,
             SLIDING_SEAL_DOOR,
             SECURE_ACCESS_DOOR,
@@ -184,7 +183,7 @@ public enum HbmDoorDecl {
                 if (y == 0) yield Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, collision ? 0.0D : 0.0625D, 1.0D);
                 yield Shapes.empty();
             }
-            case SLIDING_GATE_DOOR -> collision
+            case SLIDING_GATE_DOOR, QE_SLIDING_DOOR -> collision
                     ? (z == 0 ? Shapes.box(0.875D, 0.0D, 0.8125D, 1.0D, 1.0D, 1.0D) : Shapes.box(0.0D, 0.0D, 0.8125D, 0.125D, 1.0D, 1.0D))
                     : Shapes.box(0.0D, 0.0D, 0.8125D, 1.0D, 1.0D, 1.0D);
             case QE_CONTAINMENT -> {

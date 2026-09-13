@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:missile_assembly"
+    },
+    {
+      "item": "reinhardtshbm:ducttape"
+    },
+    {
+      "item": "reinhardtshbm:cell_anti_schrabidium"
+    },
+    {
+      "item": "reinhardtshbm:circuit_quantum"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_schrabidium",
+    "count": 1
+  }
+}

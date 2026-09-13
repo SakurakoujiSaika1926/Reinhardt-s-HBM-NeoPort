@@ -3,8 +3,9 @@
     "ingredient":  {
                        "item":  "reinhardtshbm:raw_uranium"
                    },
+    "input_count":  2,
     "result":  {
                    "id":  "reinhardtshbm:powder_uranium",
-                   "count":  3
+                       "count": 3
                }
 }

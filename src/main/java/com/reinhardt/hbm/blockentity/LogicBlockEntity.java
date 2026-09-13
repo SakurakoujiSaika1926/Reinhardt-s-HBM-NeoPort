@@ -1,8 +1,13 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.power.PowerEndpoint;
+import com.reinhardt.hbm.entity.LegacyUndeadSoldierEntity;
+import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
+import com.reinhardt.hbm.entity.LegacyMobEquipment;
+import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.worldgen.structure.HbmStructureIO;
 import com.reinhardt.hbm.worldgen.structure.HbmLegacyNbtTemplate;
 import net.minecraft.core.BlockPos;
@@ -18,6 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.Zombie;
@@ -31,6 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -127,8 +134,11 @@ public class LogicBlockEntity extends BlockEntity {
             case "BOMB_TRAP" -> actionBombTrap(level, pos);
             case "BOMB_CRANE" -> actionBombCrane(level, pos);
             case "DEAD_GUY_CRANE" -> actionDeadGuyCrane(level, pos);
-            case "SKELETON_GUN_TIER_1", "SKELETON_GUN_TIER_2", "SKELETON_GUN_TIER_3" -> actionSkeletons(level, pos);
-            case "ZOMBIE_TIER_1", "ZOMBIE_TIER_2" -> actionZombies(level, pos);
+            case "SKELETON_GUN_TIER_1" -> actionSkeletons(level, pos, 1);
+            case "SKELETON_GUN_TIER_2" -> actionSkeletons(level, pos, 2);
+            case "SKELETON_GUN_TIER_3" -> actionSkeletons(level, pos, 3);
+            case "ZOMBIE_TIER_1" -> actionZombies(level, pos, false);
+            case "ZOMBIE_TIER_2" -> actionZombies(level, pos, true);
             case "ABERRATOR" -> actionAberrator(level, pos);
             case "PUZZLE_TEST" -> actionPuzzleTest(level, pos);
             case "MISSILE_STRIKE" -> actionMissileStrike(level, pos);
@@ -156,7 +166,7 @@ public class LogicBlockEntity extends BlockEntity {
         if (this.phase != 1) {
             return;
         }
-        spawnZombieRing(level, pos, 10, 5.0D);
+        spawnFodderWave(level, pos);
         setLegacyBlock(level, pos, "block_steel", 0);
     }
 
@@ -225,40 +235,49 @@ public class LogicBlockEntity extends BlockEntity {
         }
     }
 
-    private void actionSkeletons(Level level, BlockPos pos) {
+    private void actionSkeletons(Level level, BlockPos pos, int tier) {
         if (this.phase != 1) {
             return;
         }
         for (int i = 0; i < 3; i++) {
-            Skeleton skeleton = EntityType.SKELETON.create(level);
-            if (skeleton != null) {
-                skeleton.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
-                level.addFreshEntity(skeleton);
-            }
+            Skeleton skeleton = new Skeleton(EntityType.SKELETON, level);
+            skeleton.moveTo(pos.getX(), pos.getY(), pos.getZ(), 0.0F, 0.0F);
+            LegacyMobEquipment.assignLogicSkeletonTier(skeleton, tier);
+            level.addFreshEntity(skeleton);
+            // LogicBlockActions set the action block to air at the end of
+            // each loop iteration, after spawning that skeleton.
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         }
-        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
     }
 
-    private void actionZombies(Level level, BlockPos pos) {
+    private void actionZombies(Level level, BlockPos pos, boolean advanced) {
         if (this.phase != 1) {
             return;
         }
         for (int i = 0; i < 3; i++) {
-            Zombie zombie = EntityType.ZOMBIE.create(level);
-            if (zombie != null) {
-                zombie.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
-                level.addFreshEntity(zombie);
+            Zombie zombie = new Zombie(EntityType.ZOMBIE, level);
+            zombie.moveTo(pos.getX(), pos.getY(), pos.getZ(), 0.0F, 0.0F);
+            if (advanced) {
+                LegacyMobEquipment.assignAdvanced(zombie);
+            } else {
+                LegacyMobEquipment.assignCommon(zombie);
             }
+            level.addFreshEntity(zombie);
         }
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
     }
 
     private void actionAberrator(Level level, BlockPos pos) {
         if ((this.phase == 1 || this.phase == 2) && this.timer == 0) {
-            spawnZombieRing(level, pos, 10, 20.0D);
+            spawnAberratorWave(level, pos);
         }
         if (this.phase > 2) {
-            setLegacyBlock(level, pos.above(18), "skeleton_holder", 0);
+            BlockEntity target = level.getBlockEntity(pos.above(18));
+            if (target instanceof LegacyDisplayStandBlockEntity stand) {
+                stand.setDisplayedItem(level.random.nextInt(5) == 0
+                        ? LegacyVariantItem.stackFor(HbmItems.ITEM_SECRET.get(), "aberrator")
+                        : new ItemStack(HbmItems.CLAY_TABLET.get()));
+            }
             level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), 3);
         }
     }
@@ -266,10 +285,6 @@ public class LogicBlockEntity extends BlockEntity {
     private void actionPuzzleTest(Level level, BlockPos pos) {
         if (this.phase == 2) {
             setLegacyBlock(level, pos, "crate_steel", 0);
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof net.minecraft.world.Container container) {
-                itemById("gun_bolter").ifPresent(item -> container.setItem(Math.min(15, container.getContainerSize() - 1), new ItemStack(item)));
-            }
         }
     }
 
@@ -338,7 +353,8 @@ public class LogicBlockEntity extends BlockEntity {
             return level.getGameTime() % 20L == 0L && playerNear;
         }
         if (this.phase < 3) {
-            return level.getGameTime() % 20L == 0L && this.timer >= 60 && playerNear;
+            return level.getGameTime() % 20L == 0L && this.timer >= 60
+                    && noAberratorSoldiersRemain(level, pos) && playerNear;
         }
         return false;
     }
@@ -367,23 +383,79 @@ public class LogicBlockEntity extends BlockEntity {
     }
 
     private boolean hasPlayerCube(Level level, BlockPos pos, int radius) {
-        AABB box = new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1.0D, pos.getY() - 2.0D, pos.getZ() + 1.0D)
-                .inflate(radius, radius, radius);
-        return !level.getEntitiesOfClass(Player.class, box, player -> !player.isSpectator()).isEmpty();
+        // 1.7.10: getBoundingBox(x, y, z, x + 1, y - 2, z + 1).expand(radius, radius, radius).
+        AABB box = new AABB(pos.getX() - radius, pos.getY() - radius, pos.getZ() - radius,
+                pos.getX() + 1.0D + radius, pos.getY() - 2.0D + radius, pos.getZ() + 1.0D + radius);
+        return !level.getEntitiesOfClass(Player.class, box).isEmpty();
     }
 
-    private void spawnZombieRing(Level level, BlockPos pos, int count, double radius) {
-        for (int i = 0; i < count; i++) {
-            double angle = Math.toRadians(i * (360.0D / count));
-            Zombie zombie = EntityType.ZOMBIE.create(level);
-            if (zombie != null) {
-                int x = pos.getX() + (int) Math.round(Math.cos(angle) * radius);
-                int z = pos.getZ() + (int) Math.round(Math.sin(angle) * radius);
-                int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z);
-                zombie.moveTo(x + 0.5D, y, z + 0.5D, (float) (i * (360.0D / count)), 0.0F);
-                level.addFreshEntity(zombie);
-            }
+    /** LogicBlockActions.FODDER_WAVE, retaining its original single origin-height lookup. */
+    private void spawnFodderWave(Level level, BlockPos pos) {
+        double vectorX = 5.0D;
+        double vectorZ = 0.0D;
+        int surfaceY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING,
+                pos.getX(), pos.getZ());
+        double cosine = Math.cos(Math.toRadians(36.0D));
+        double sine = Math.sin(Math.toRadians(36.0D));
+        for (int index = 0; index < 10; index++) {
+            Zombie zombie = new Zombie(EntityType.ZOMBIE, level);
+            zombie.moveTo(pos.getX() + 0.5D + vectorX, surfaceY,
+                    pos.getZ() + 0.5D + vectorZ, index * 36.0F, 0.0F);
+            LegacyMobEquipment.assignAdvanced(zombie);
+            level.addFreshEntity(zombie);
+            double rotatedX = vectorX * cosine + vectorZ * sine;
+            vectorZ = vectorZ * cosine - vectorX * sine;
+            vectorX = rotatedX;
         }
+    }
+
+    /** LogicBlockActions.PHASE_ABERRATOR's separate 20-block soldier wave. */
+    private void spawnAberratorWave(Level level, BlockPos pos) {
+        Player target = level.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 25.0D, false);
+        double vectorX = 20.0D;
+        double vectorZ = 0.0D;
+        double cosine = Math.cos(Math.toRadians(36.0D));
+        double sine = Math.sin(Math.toRadians(36.0D));
+        for (int index = 0; index < 10; index++) {
+            if (vectorX > 8.0D) {
+                vectorX += level.random.nextInt(10) - 5;
+            }
+            double x = pos.getX() + 0.5D + vectorX;
+            double z = pos.getZ() + 0.5D + vectorZ;
+            int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING,
+                    (int) x, (int) z);
+            for (int attempt = 0; attempt < 7; attempt++) {
+                LegacyUndeadSoldierEntity soldier = new LegacyUndeadSoldierEntity(HbmEntityTypes.UNDEAD_SOLDIER.get(), level);
+                soldier.moveTo(x, y, z, index * 36.0F, 0.0F);
+                if (!canSpawnAberratorSoldier(level, soldier)) {
+                    continue;
+                }
+                EventHooks.finalizeMobSpawn(soldier, (ServerLevel) level,
+                        level.getCurrentDifficultyAt(soldier.blockPosition()), MobSpawnType.EVENT, null);
+                if (target != null) {
+                    soldier.setTarget(target);
+                }
+                level.addFreshEntity(soldier);
+                break;
+            }
+            double rotatedX = vectorX * cosine + vectorZ * sine;
+            vectorZ = vectorZ * cosine - vectorX * sine;
+            vectorX = rotatedX;
+        }
+    }
+
+    private static boolean canSpawnAberratorSoldier(Level level, LegacyUndeadSoldierEntity soldier) {
+        return level.getDifficulty() != net.minecraft.world.Difficulty.PEACEFUL
+                && level.noCollision(soldier)
+                && level.getEntities(soldier, soldier.getBoundingBox()).isEmpty()
+                && !level.containsAnyLiquid(soldier.getBoundingBox());
+    }
+
+    private static boolean noAberratorSoldiersRemain(Level level, BlockPos pos) {
+        // 1.7.10 starts with a reversed X extent, then expands it by (50, 20, 50).
+        AABB box = new AABB(pos.getX() - 50.0D, pos.getY() - 20.0D, pos.getZ() - 20.0D,
+                pos.getX() + 48.0D, pos.getY() + 21.0D, pos.getZ() + 21.0D);
+        return level.getEntitiesOfClass(LegacyUndeadSoldierEntity.class, box).isEmpty();
     }
 
     private void setLegacyBlock(Level level, BlockPos pos, String id, int meta) {

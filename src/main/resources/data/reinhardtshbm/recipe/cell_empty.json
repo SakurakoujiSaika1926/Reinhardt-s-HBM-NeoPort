@@ -7,7 +7,7 @@
     " S "
   ],
   "key": {
-    "S": { "item": "reinhardtshbm:plate_steel" },
+    "S": { "tag": "c:plates/steel" },
     "G": { "tag": "c:glass_panes" }
   },
   "result": {

@@ -9,11 +9,9 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class MineRubbleEntityRenderer extends EntityRenderer<MineRubbleEntity> {
-    private static final BlockState RENDER_STATE = Blocks.STONE.defaultBlockState();
     private static final Shape[] SHAPES = {
             new Shape(-7, 1, 2, 14, 6, 6, 0, 0, 0),
             new Shape(-7, -6, -5, 6, 13, 5, 0, 0, 0),
@@ -40,6 +38,7 @@ public final class MineRubbleEntityRenderer extends EntityRenderer<MineRubbleEnt
         float angle = ((rubble.tickCount + partialTick) % 360.0F) * 10.0F;
         poseStack.mulPose(new org.joml.Quaternionf(new org.joml.AxisAngle4f(
                 (float) Math.toRadians(angle), 1.0F, 1.0F, 1.0F)));
+        BlockState renderState = rubble.blockState();
         for (Shape shape : SHAPES) {
             poseStack.pushPose();
             poseStack.translate(shape.x / 16.0D, shape.y / 16.0D, shape.z / 16.0D);
@@ -47,8 +46,8 @@ public final class MineRubbleEntityRenderer extends EntityRenderer<MineRubbleEnt
             poseStack.mulPose(new org.joml.Quaternionf(new org.joml.AxisAngle4f(shape.rotZ, 0.0F, 0.0F, 1.0F)));
             poseStack.scale(shape.width / 16.0F, shape.height / 16.0F, shape.depth / 16.0F);
             MachineModelRenderer.renderUnculled(
-                    Minecraft.getInstance().getBlockRenderer().getBlockModel(RENDER_STATE),
-                    poseStack, bufferSource, RENDER_STATE, packedLight, OverlayTexture.NO_OVERLAY);
+                    Minecraft.getInstance().getBlockRenderer().getBlockModel(renderState),
+                    poseStack, bufferSource, renderState, packedLight, OverlayTexture.NO_OVERLAY);
             poseStack.popPose();
         }
         poseStack.popPose();

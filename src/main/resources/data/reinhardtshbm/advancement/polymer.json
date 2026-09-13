@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:chemplant",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:ingot_polymer"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.polymer.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.polymer.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

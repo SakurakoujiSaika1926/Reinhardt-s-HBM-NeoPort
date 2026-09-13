@@ -2,8 +2,10 @@ package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.block.FluidBarrelBlock;
 import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
+import com.reinhardt.hbm.client.render.FluidBarrelItemRenderer;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -27,8 +29,23 @@ public class FluidBarrelBlockItem extends BlockItem {
 
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        // Fluid barrel items need the complete OBJ barrel, not the fallback
-        // flat inventory model used by the blockstate's connection variants.
+        if (this.kind == FluidBarrelBlock.Kind.PLASTIC
+                || this.kind == FluidBarrelBlock.Kind.STEEL
+                || this.kind == FluidBarrelBlock.Kind.TCALLOY) {
+            consumer.accept(new IClientItemExtensions() {
+                private final BlockEntityWithoutLevelRenderer renderer = new FluidBarrelItemRenderer();
+
+                @Override
+                public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                    return this.renderer;
+                }
+            });
+            return;
+        }
+
+        // These two legacy variants were not part of RenderBarrel's three
+        // craftable barrel item set, so retain their explicitly registered OBJ
+        // item renderer.
         ObjMachineBlockItem.installRenderer(consumer);
     }
 

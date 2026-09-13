@@ -1,10 +1,12 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
+import com.reinhardt.hbm.util.SavedItemStackPreview;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -64,7 +66,7 @@ public class GasMaskItem extends ArmorItem implements FilterableGasMask {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        ItemStack filter = getInstalledFilter(stack, context.registries());
+        ItemStack filter = getInstalledFilterForTooltip(stack);
         if (filter.isEmpty()) {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.gas_mask.no_filter").withStyle(ChatFormatting.RED));
             return;
@@ -98,6 +100,9 @@ public class GasMaskItem extends ArmorItem implements FilterableGasMask {
     }
 
     public static ItemStack getInstalledFilter(ItemStack mask, net.minecraft.core.HolderLookup.Provider registries) {
+        if (registries == null) {
+            return getInstalledFilterForTooltip(mask);
+        }
         CustomData data = mask.get(DataComponents.CUSTOM_DATA);
         if (data == null) {
             return ItemStack.EMPTY;
@@ -107,6 +112,15 @@ public class GasMaskItem extends ArmorItem implements FilterableGasMask {
             return ItemStack.EMPTY;
         }
         return ItemStack.parseOptional(registries, root.getCompound(FILTER_KEY));
+    }
+
+    /**
+     * Tooltip-only path: do not parse a full saved ItemStack because tooltip
+     * rendering can run in client/JEI/reload contexts where registry-backed
+     * parsing is unsafe. The tooltip only needs the saved filter id and damage.
+     */
+    public static ItemStack getInstalledFilterForTooltip(ItemStack mask) {
+        return SavedItemStackPreview.fromCustomData(mask, FILTER_KEY);
     }
 
     public static void removeFilter(ItemStack mask) {

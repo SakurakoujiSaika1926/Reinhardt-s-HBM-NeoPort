@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:fluid_tank_full"],"components":{"minecraft:custom_data":{"fluid":"aromatics"}}},{"tag":"c:dusts/niter"},{"tag":"reinhardtshbm:chemistry_set"}],"result":{"id":"reinhardtshbm:ball_tnt","count":4}}

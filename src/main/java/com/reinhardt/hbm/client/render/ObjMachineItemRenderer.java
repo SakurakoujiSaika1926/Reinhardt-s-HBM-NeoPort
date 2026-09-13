@@ -9,6 +9,7 @@ import com.reinhardt.hbm.item.FilingCabinetBlockItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.VendingMachineBlockItem;
 import com.reinhardt.hbm.item.CrashedBombBlockItem;
+import com.reinhardt.hbm.block.DecoCrtBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -31,13 +32,27 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Renders the actual OBJ geometry for machine items and centers it from measured model bounds. */
+/**
+ * Renders complete OBJ machine items.  Legacy renderers with an explicit
+ * 1.7.10 inventory pose are dispatched before the measured-bounds fallback;
+ * those branches never receive a shared centering or offset.
+ */
 public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final RandomSource BOUNDS_RANDOM = RandomSource.create();
     private static final List<String> BATTERY_PACK_VARIANTS = List.of(
             "battery_redstone", "battery_lead", "battery_lithium", "battery_sodium",
             "battery_schrabidium", "battery_quantum", "capacitor_copper", "capacitor_gold",
             "capacitor_niobium", "capacitor_tantalum", "capacitor_bismuth", "capacitor_spark"
+    );
+    private static final List<String> DECORATIVE_PIPE_IDS = List.of(
+            "deco_pipe", "deco_pipe_rusted", "deco_pipe_green", "deco_pipe_green_rusted",
+            "deco_pipe_red", "deco_pipe_marked", "deco_pipe_rim", "deco_pipe_rim_rusted",
+            "deco_pipe_rim_green", "deco_pipe_rim_green_rusted", "deco_pipe_rim_red",
+            "deco_pipe_rim_marked", "deco_pipe_framed", "deco_pipe_framed_rusted",
+            "deco_pipe_framed_green", "deco_pipe_framed_green_rusted", "deco_pipe_framed_red",
+            "deco_pipe_framed_marked", "deco_pipe_quad", "deco_pipe_quad_rusted",
+            "deco_pipe_quad_green", "deco_pipe_quad_green_rusted", "deco_pipe_quad_red",
+            "deco_pipe_quad_marked"
     );
     private static final Map<String, Profile> PROFILES = createProfiles();
     private static final Map<String, LegacyPose> LEGACY_POSES = createLegacyPoses();
@@ -94,11 +109,19 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 : stack.getItem() instanceof BatteryPackItem
                 ? "battery_pack_" + BatteryPackItem.variantId(stack)
                 : stack.getItem() instanceof DecoCrtBlockItem crt
-                ? "deco_crt_" + crt.variantId(stack)
+                // DecoCrtBlockItem.variantId already returns "crt_clean",
+                // "crt_broken", etc.  Adding another "crt_" made every
+                // profile miss and left the old CRT item invisible.
+                ? "deco_" + crt.variantId(stack)
                 : stack.getItem() instanceof VendingMachineBlockItem vending
                 ? "vending_machine_" + (vending.variantIndex(stack) == 1 ? "snacks" : "soda")
                 : id;
         Profile profile = PROFILES.get(profileId);
+        if (LauncherBlockEntityRenderer.ITEM_IDS.contains(id)) {
+            BlockState launcherState = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
+            LauncherBlockEntityRenderer.renderItem(id, launcherState, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (profile == null) {
             return;
         }
@@ -106,11 +129,26 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         BlockState state = stack.getItem() instanceof BlockItem blockItem
                 ? blockItem.getBlock().defaultBlockState()
                 : Blocks.IRON_BLOCK.defaultBlockState();
+        if (stack.getItem() instanceof DecoCrtBlockItem crt) {
+            state = state.setValue(DecoCrtBlock.VARIANT, crt.variantIndex(stack));
+        }
         List<BakedModel> models = profile.models().stream()
                 .map(MachineModelRenderer::model)
                 .toList();
         logGeometryOnce(id, profileId, profile, models, state);
 
+        if (profileId.startsWith("deco_crt_")) {
+            renderCrtItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("deco_computer")) {
+            renderDecoComputerItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.startsWith("deco_pipe")) {
+            renderDecorativePipeItem(models, state, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
         if (profileId.startsWith("battery_pack_")) {
             renderBatteryPackItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
@@ -241,7 +279,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderLegacyPose(profileId, models, state, context, poseStack, bufferSource, packedLight, packedOverlay, legacyPose);
             return;
         }
-        Fit fit = FIT_CACHE.computeIfAbsent(profileId, ignored -> Fit.measure(models, state));
+        BlockState measuredState = state;
+        Fit fit = FIT_CACHE.computeIfAbsent(profileId, ignored -> Fit.measure(models, measuredState));
 
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
@@ -256,6 +295,96 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.scale(scale, scale, scale);
         poseStack.translate(-fit.centerX(), -fit.centerY(), -fit.centerZ());
         poseStack.translate(profile.offsetX(), profile.offsetY(), profile.offsetZ());
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact RenderCRT#renderInventoryBlock transform from 1.7.10. */
+    private static void renderCrtItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                      PoseStack poseStack,
+                                      MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyLegacyBlockItemDisplayPose(context, poseStack);
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        // The legacy renderer submitted the Monitor and Screen groups from the
+        // same OBJ in one inventory pass.  The modern model keeps those groups
+        // as two explicit baked models so neither group can disappear when the
+        // OBJ visibility filter is applied.
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact RenderBlockDecoModel#renderInventoryBlock transform from 1.7.10. */
+    private static void renderDecoComputerItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                               PoseStack poseStack,
+                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyLegacyBlockItemDisplayPose(context, poseStack);
+        // IBM 300PL was translated by +0.1 on Y and scaled by 1.2 in the
+        // legacy inventory renderer.  This is deliberately per-item, not a
+        // measured-bounds fit or a shared offset.
+        poseStack.translate(0.0F, 0.1F, 0.0F);
+        poseStack.scale(1.2F, 1.2F, 1.2F);
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /**
+     * Recreates the ordinary block-item display pose for the decorative OBJ
+     * renderers which bypass the baked-model camera transform.  ItemRenderer
+     * has already translated the pose by (-0.5, -0.5, -0.5) before entering
+     * BEWLR, so the first translation restores the origin expected by the
+     * legacy OBJ coordinates.  This is a display transform only; it does not
+     * center, fit, or otherwise offset shared geometry.
+     */
+    static void applyLegacyBlockItemDisplayPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            default -> {
+                // NONE is not normally sent to ItemRenderer.
+            }
+        }
+    }
+
+    /** Exact RenderPipe#renderInventoryBlock path for all 24 decorative pipes. */
+    private static void renderDecorativePipeItem(List<BakedModel> models, BlockState state, PoseStack poseStack,
+                                                 MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        // RenderPipe submitted its OBJ Top/Side (and Frame/Mesh) parts at the
+        // authored origin with no inventory translation, scale, or common
+        // machine pose.  Keep that identity transform for every pipe variant.
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
@@ -884,6 +1013,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
 
     private static Map<String, Profile> createProfiles() {
         Map<String, Profile> profiles = new LinkedHashMap<>();
+        // Registration only: these IDs take the explicit legacy renderer before all fitting code.
+        add(profiles, "launch_pad", 0F, 1F, "block/launch_pad_world");
+        add(profiles, "launch_pad_rusted", 0F, 1F, "block/launch_pad_rusted_world");
+        add(profiles, "launch_pad_large", 0F, 1F, "block/launcher_port/pad_base");
+        add(profiles, "compact_launcher", 0F, 1F, "block/compact_launcher_world");
+        add(profiles, "launch_table", 0F, 1F, "block/launch_table_base");
 
         // These are static item assemblies. Every path below points at a real
         // baked OBJ model; empty blockstates used by dummyable machines are
@@ -895,8 +1030,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_arc_furnace_electrode2", "block/machine_arc_furnace_electrode3",
                 "block/machine_arc_furnace_cable1", "block/machine_arc_furnace_cable2",
                 "block/machine_arc_furnace_cable3");
-        add(profiles, "machine_storage_drum", 0.0F, 0.90F,
-                "block/machine_storage_drum");
         // This animated 23x13 door has no compact block mesh.  Render the real
         // closed OBJ assembly in item space and fit it from its measured bounds.
         add(profiles, "transition_seal", 225.0F, 30.0F, 0.82F, 0.85F,
@@ -965,9 +1098,6 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "machine_combustion_engine", 90.0F, 0.54F, "block/machine_combustion_engine");
         add(profiles, "machine_battery_socket", 0.0F, 0.86F,
                 "block/machine_battery_socket_socket");
-        // ItemRenderLibrary renders only Base and Slide for the charger item.
-        add(profiles, "charger", 0.0F, 0.86F,
-                "block/charger_base", "block/charger_slide");
         add(profiles, "machine_battery_redd", -90.0F, 0.90F,
                 "block/machine_battery_redd_base", "block/machine_battery_redd_wheel",
                 "block/machine_battery_redd_lights");
@@ -1032,18 +1162,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/cargo_elevator_base", "block/cargo_elevator_piston",
                 "block/cargo_elevator_guides", "block/cargo_elevator_platform");
         add(profiles, "sat_dock", 0.0F, 0.90F, "block/sat_dock");
-        add(profiles, "refueler", 0.0F, 0.90F, "block/refueler_body");
         add(profiles, "radio_autocal", 0.0F, 0.90F, "block/radio_autocal");
         add(profiles, "radio_telex", 0.0F, 0.90F, "block/radio_telex_item");
         add(profiles, "vending_machine_soda", 0.0F, 0.90F, "block/vending_machine_soda");
         add(profiles, "vending_machine_snacks", 0.0F, 0.90F, "block/vending_machine_snacks");
         addThermalObj(profiles, "tape_recorder", "block/tape_recorder");
         add(profiles, "skeleton_holder", 90.0F, 0.88F, "block/skeleton_holder_world");
-        add(profiles, "filing_cabinet_green", 180.0F, 30.0F, 0.88F, 0.92F,
-                0.0F, -0.08F, 0.0F, "block/filing_cabinet_green_item");
-        add(profiles, "filing_cabinet_steel", 180.0F, 30.0F, 0.88F, 0.92F,
-                0.0F, -0.08F, 0.0F, "block/filing_cabinet_steel_item");
-
         // Thermal equipment uses world-scale OBJ files. Inventory rendering
         // must fit the baked geometry, rather than inherit world transforms.
         addThermalObj(profiles, "chimney_brick", "block/chimney_brick");
@@ -1073,13 +1197,10 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         add(profiles, "furnace_steel", 0.0F, 0.90F, "block/furnace_steel");
         add(profiles, "gear_large", 0.0F, 0.90F,
                 "block/gear_large_1710", "block/gear_large_steel_1710");
-        // RenderBarrel is a real inventory block renderer in 1.7.10, rather
-        // than a flat item sprite. Keep its five barrel variants on the same
-        // isometric inventory pose while retaining their original OBJ assets.
-        addInventoryBarrel(profiles, "barrel_plastic", "block/barrel_plastic");
+        // The three craftable barrels have their own direct RenderBarrel port
+        // in FluidBarrelItemRenderer. Only the two non-craftable variants
+        // remain on this older OBJ item path.
         addInventoryBarrel(profiles, "barrel_corroded", "block/barrel_corroded");
-        addInventoryBarrel(profiles, "barrel_steel", "block/barrel_steel");
-        addInventoryBarrel(profiles, "barrel_tcalloy", "block/barrel_tcalloy");
         addInventoryBarrel(profiles, "barrel_antimatter", "block/barrel_antimatter");
 
         // ItemRenderBatteryPack in 1.7.10 renders these exact BatterySocket
@@ -1107,10 +1228,17 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
 
         add(profiles, "deco_computer", 0.0F, 0.90F, "block/deco_computer");
         add(profiles, "boat", 0.0F, 0.92F, "block/boat");
-        add(profiles, "deco_crt_clean", 0.0F, 0.90F, "block/deco_crt_clean");
-        add(profiles, "deco_crt_broken", 0.0F, 0.90F, "block/deco_crt_broken");
-        add(profiles, "deco_crt_blinking", 0.0F, 0.90F, "block/deco_crt_blinking");
-        add(profiles, "deco_crt_bsod", 0.0F, 0.90F, "block/deco_crt_bsod");
+        add(profiles, "deco_crt_clean", 0.0F, 0.90F,
+                "block/deco_crt_clean_monitor", "block/deco_crt_clean_screen");
+        add(profiles, "deco_crt_broken", 0.0F, 0.90F,
+                "block/deco_crt_broken_monitor", "block/deco_crt_broken_screen");
+        add(profiles, "deco_crt_blinking", 0.0F, 0.90F,
+                "block/deco_crt_blinking_monitor", "block/deco_crt_blinking_screen");
+        add(profiles, "deco_crt_bsod", 0.0F, 0.90F,
+                "block/deco_crt_bsod_monitor", "block/deco_crt_bsod_screen");
+        for (String id : DECORATIVE_PIPE_IDS) {
+            add(profiles, id, 0.0F, 0.90F, "block/" + id);
+        }
 
         return Map.copyOf(profiles);
     }
@@ -1270,24 +1398,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         // RenderCrucible#getRenderer: translate(0,-1.5,0), scale(3.25).
         legacy(poses, "machine_crucible", 0.0F, -1.5F, 0.0F, 3.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // ItemRenderLibrary#machine_storage_drum: translate(0,-3,0),
-        // scale(5), then RenderStorageDrum's common scale(2).
-        legacy(poses, "machine_storage_drum", 0.0F, -3.0F, 0.0F, 5.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 2.0F);
         // RenderFurnaceCombination#getRenderer
         legacy(poses, "furnace_combination", 0.0F, -1.5F, 0.0F, 3.25F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
         // RenderStrandCaster#getRenderer: translate(2,0,2), scale(2).
         legacy(poses, "machine_strand_caster", 2.0F, 0.0F, 2.0F, 2.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // ItemRenderLibrary#charger: translate(0,-7,0), scale(10), then the
-        // common renderer scales the OBJ assembly by 2 and shifts it by .5 X.
-        legacy(poses, "charger", 0.0F, -7.0F, 0.0F, 10.0F,
-                0.5F, 0.0F, 0.0F, 0.0F, 2.0F);
-        // RenderRefueler#getRenderer: translate(0,-3,0), scale(6), then the
-        // common renderer shifts the OBJ assembly by .5 X and scales by 2.
-        legacy(poses, "refueler", 0.0F, -3.0F, 0.0F, 6.0F,
-                0.5F, 0.0F, 0.0F, 0.0F, 2.0F);
         legacy(poses, "pipe_anchor", 0.0F, -3.5F, 0.0F, 10.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
         legacy(poses, "piston_inserter", 0.0F, -2.5F, 0.0F, 5.0F,

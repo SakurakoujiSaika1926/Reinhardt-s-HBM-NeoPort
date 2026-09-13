@@ -101,6 +101,9 @@ public class StorageCrateBlock extends Block implements EntityBlock {
         }
         if (blockEntity instanceof MenuProvider menuProvider && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(menuProvider, buffer -> buffer.writeBlockPos(pos));
+            if (blockEntity instanceof StorageCrateBlockEntity crate) {
+                crate.releaseSpiders(player);
+            }
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

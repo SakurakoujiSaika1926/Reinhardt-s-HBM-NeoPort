@@ -10,7 +10,7 @@
       "item": "reinhardtshbm:steel_grate"
     },
     "P": {
-      "item": "reinhardtshbm:plate_steel"
+      "tag": "c:plates/steel"
     },
     "M": {
       "item": "reinhardtshbm:motor"

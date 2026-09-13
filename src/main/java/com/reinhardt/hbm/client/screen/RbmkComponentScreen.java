@@ -153,7 +153,8 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
                 levelUpper,
                 levelLower,
                 heatUpper,
-                heatLower
+                heatLower,
+                readFields
         ));
     }
 
@@ -251,11 +252,11 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
             return;
         }
         blit(graphics, texture, this.leftPos + 34, this.topPos + 21, 176, 0, 18, 67);
-        int depletion = clampPixels(Math.round(RbmkFuelRodItem.depletion(rod) * 67.0F), 67);
+        int depletion = clampPixels((int) Math.round(RbmkFuelRodItem.depletion(rod) * 67.0D), 67);
         if (depletion > 0) {
             blit(graphics, texture, this.leftPos + 34, this.topPos + 21, 194, 0, 18, depletion);
         }
-        int xenon = clampPixels(Math.round(RbmkFuelRodItem.xenon(rod) * 58.0F), 58);
+        int xenon = clampPixels((int) Math.round(RbmkFuelRodItem.xenon(rod) * 58.0D), 58);
         if (xenon > 0) {
             blit(graphics, texture, this.leftPos + 126, this.topPos + 82 - xenon, 212, 58 - xenon, 14, xenon);
         }
@@ -344,7 +345,7 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
             }
             if (kind.isControl()) {
                 int colorGroup = console.consoleColorGroup(index);
-                if (colorGroup >= 0 && colorGroup < CONTROL_GROUP_COLORS.length && kind == RbmkComponentBlock.Kind.CONTROL) {
+                if (colorGroup >= 0 && colorGroup < CONTROL_GROUP_COLORS.length && isManualControlKind(kind)) {
                     blit(guiGraphics, texture, x, y, colorGroup * 10, 202, 10, 10);
                 }
                 int rodHeight = 8 - clampPixels((int) Math.ceil(console.consoleControl(index) * 8.0D / 100.0D), 8);
@@ -352,11 +353,21 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
                     blit(guiGraphics, texture, x + 4, y + 1, 24, 183, 2, rodHeight);
                 }
             } else if (kind.acceptsFuel() && console.consoleFuelMaxHeat(index) > 0) {
-                int coreHeight = clampPixels((int) Math.ceil(console.consoleFuelCoreHeat(index) * 8.0D / Math.max(1, console.consoleFuelMaxHeat(index))), 8);
-                int depletion = clampPixels((int) Math.ceil(console.consoleFuelDepletion(index) * 8.0D / 1000.0D), 8);
-                int xenon = clampPixels((int) Math.ceil(console.consoleFuelXenon(index) * 8.0D / 100000.0D), 8);
+                // GUIRBMKConsole used the rod core's excess heat above the
+                // 20°C baseline, exactly like the column heat strip.  Using
+                // the raw core temperature makes a cold rod appear loaded.
+                int coreHeight = clampPixels((int) Math.ceil(
+                        (console.consoleFuelCoreHeat(index) - 20) * 8.0D
+                                / Math.max(1, console.consoleFuelMaxHeat(index))), 8);
+                // Legacy GUIRBMKConsole drew this strip from the rod's
+                // enrichment (remaining fuel), not from spent fraction.
+                int enrichment = 1000 - console.consoleFuelDepletion(index);
+                int fuelHeight = clampPixels((int) Math.ceil(enrichment * 8.0D / 1000.0D), 8);
+                // consoleFuelXenon is normalized xenon * 1000; old GUI used
+                // the legacy percentage (xenon * 8 / 100).
+                int xenon = clampPixels((int) Math.ceil(console.consoleFuelXenon(index) * 8.0D / 1000.0D), 8);
                 if (coreHeight > 0) blit(guiGraphics, texture, x + 1, y + 9 - coreHeight, 11, 191 - coreHeight, 2, coreHeight);
-                if (depletion > 0) blit(guiGraphics, texture, x + 4, y + 9 - depletion, 14, 191 - depletion, 2, depletion);
+                if (fuelHeight > 0) blit(guiGraphics, texture, x + 4, y + 9 - fuelHeight, 14, 191 - fuelHeight, 2, fuelHeight);
                 if (xenon > 0) blit(guiGraphics, texture, x + 7, y + 9 - xenon, 17, 191 - xenon, 2, xenon);
             } else if (kind == RbmkComponentBlock.Kind.BOILER) {
                 int water = clampPixels((int) Math.ceil(console.consoleWater(index) * 8.0D / Math.max(1, console.consoleMaxWater(index))), 8);
@@ -517,7 +528,7 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
         for (int i = 0; i < this.consoleSelection.length; i++) {
             int kindOrdinal = console.consoleKind(i);
             if (kindOrdinal >= 0 && kindOrdinal < RbmkComponentBlock.Kind.values().length
-                    && RbmkComponentBlock.Kind.values()[kindOrdinal].isControl()) {
+                    && isManualControlKind(RbmkComponentBlock.Kind.values()[kindOrdinal])) {
                 this.consoleSelection[i] = true;
             }
         }
@@ -532,7 +543,7 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
         for (int i = 0; i < this.consoleSelection.length; i++) {
             int kindOrdinal = console.consoleKind(i);
             if (kindOrdinal >= 0 && kindOrdinal < RbmkComponentBlock.Kind.values().length
-                    && RbmkComponentBlock.Kind.values()[kindOrdinal].isControl()
+                    && isManualControlKind(RbmkComponentBlock.Kind.values()[kindOrdinal])
                     && console.consoleColorGroup(i) == colorGroup) {
                 this.consoleSelection[i] = true;
             }
@@ -541,6 +552,12 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
 
     private void sendConsoleControl(int action, int value) {
         PacketDistributor.sendToServer(new RbmkConsoleControlPayload(this.menu.pos(), action, value, selectedIndices()));
+    }
+
+    private static boolean isManualControlKind(RbmkComponentBlock.Kind kind) {
+        return kind == RbmkComponentBlock.Kind.CONTROL
+                || kind == RbmkComponentBlock.Kind.CONTROL_MOD
+                || kind == RbmkComponentBlock.Kind.CONTROL_REASIM;
     }
 
     private int[] selectedIndices() {
@@ -635,7 +652,9 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
         if (kind.acceptsFuel()) {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.flux", console.consoleFlux(index)));
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.depletion", console.consoleFuelDepletion(index) / 10.0D));
-            tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.xenon", console.consoleFuelXenon(index) / 1000.0D));
+            // Legacy RBMKColumn stored xenon as a 0..100 percentage.  The
+            // modern scan stores the normalized item value at 1000 scale.
+            tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.xenon", console.consoleFuelXenon(index) / 10.0D));
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.core_temp", console.consoleFuelCoreHeat(index)));
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.skin_temp", console.consoleFuelHullHeat(index)));
         } else if (kind == RbmkComponentBlock.Kind.BOILER) {
@@ -647,7 +666,9 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
         }
         if (kind.isControl()) {
             tooltip.add(Component.translatable("rbmk.console.control", console.consoleControl(index)));
-            tooltip.add(Component.translatable("rbmk.console.color_group", console.consoleColorGroup(index) + 1));
+            if (isManualControlKind(kind)) {
+                tooltip.add(Component.translatable("rbmk.console.color_group", console.consoleColorGroup(index) + 1));
+            }
         }
         return tooltip;
     }
@@ -661,7 +682,7 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
             }
             if (isHovering(126, 24, 14, 58, mouseX, mouseY)) {
                 tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.xenon",
-                        Math.round(RbmkFuelRodItem.xenon(this.menu.getSlot(0).getItem()) * 1000.0F) / 1000.0F));
+                        Math.round(RbmkFuelRodItem.xenon(this.menu.getSlot(0).getItem()) * 100000.0F) / 1000.0F));
             }
         } else if (this.menu.kind() == RbmkComponentBlock.Kind.BOILER) {
             if (isHovering(126, 24, 16, 56, mouseX, mouseY)) {

@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:fluid_tank_full"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "fluid": "aromatics"
+        }
+      }
+    },
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:fluid_tank_full"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "fluid": "petroleum"
+        }
+      }
+    },
+    {
+      "tag": "reinhardtshbm:chemistry_set"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_bakelite",
+    "count": 2
+  }
+}

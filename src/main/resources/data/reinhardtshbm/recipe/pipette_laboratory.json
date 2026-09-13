@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["  C"," R ","P  "],"key":{"C":{"item":"reinhardtshbm:circuit_chip"},"R":{"tag":"c:ingots/rubber"},"P":{"item":"reinhardtshbm:pipette_boron"}},"result":{"id":"reinhardtshbm:pipette_laboratory"}}

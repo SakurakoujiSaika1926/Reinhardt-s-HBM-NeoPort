@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    "IPI",
+    " C "
+  ],
+  "key": {
+    "G": { "tag": "c:glass_panes" },
+    "I": { "tag": "c:plates/polymer" },
+    "P": { "tag": "c:dusts/quartz" },
+    "C": { "item": "reinhardtshbm:circuit_pcb" }
+  },
+  "result": {
+    "id": "reinhardtshbm:photo_panel",
+    "count": 1
+  }
+}

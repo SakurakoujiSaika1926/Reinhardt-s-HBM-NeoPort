@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["OOO", "PDP", "OOO"],
+  "key": {
+    "O": { "item": "minecraft:obsidian" },
+    "P": { "tag": "c:plates/steel" },
+    "D": { "item": "reinhardtshbm:ducttape" }
+  },
+  "result": { "id": "reinhardtshbm:cladding_obsidian" }
+}

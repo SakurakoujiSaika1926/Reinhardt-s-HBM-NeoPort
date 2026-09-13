@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I I",
+    "GPG"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/rubber"
+    },
+    "G": {
+      "item": "reinhardtshbm:glass_ash"
+    },
+    "P": {
+      "tag": "c:ingots/plastic"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:ashglasses"
+  }
+}

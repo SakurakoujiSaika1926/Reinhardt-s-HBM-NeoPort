@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:raw_lithium" },
+  "result": { "id": "reinhardtshbm:lithium" },
+  "experience": 5.0,
+  "cookingtime": 200
+}

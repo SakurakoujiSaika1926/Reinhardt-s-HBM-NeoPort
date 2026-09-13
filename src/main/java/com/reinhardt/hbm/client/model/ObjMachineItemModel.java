@@ -27,11 +27,23 @@ import java.util.Set;
 /** Routes complete OBJ machine items through the shared centered item renderer. */
 public final class ObjMachineItemModel implements IDynamicBakedModel {
     private static final ItemTransforms TRANSFORMS = identityTransforms();
+    /*
+     * RenderPipe is an ISBRH block renderer in 1.7.10, so its inventory pass
+     * was surrounded by the normal block-item isometric transform supplied by
+     * RenderDecoItem.  The OBJ machine routes otherwise use identity because
+     * their BEWLR applies ItemRenderBase itself; pipes are the one explicit
+     * exception and must retain the vanilla block-item pose.
+     */
+    private static final ItemTransforms DECORATIVE_PIPE_TRANSFORMS = decorativePipeTransforms();
 
     private final BakedModel delegate;
+    private final ItemTransforms transforms;
 
-    private ObjMachineItemModel(BakedModel delegate) {
+    private ObjMachineItemModel(BakedModel delegate, String itemId) {
         this.delegate = delegate;
+        this.transforms = itemId.startsWith("deco_pipe")
+                ? DECORATIVE_PIPE_TRANSFORMS
+                : TRANSFORMS;
     }
 
     public static void replaceModels(Map<ModelResourceLocation, BakedModel> models) {
@@ -75,7 +87,7 @@ public final class ObjMachineItemModel implements IDynamicBakedModel {
         );
         BakedModel model = models.get(location);
         if (model != null && !(model instanceof ObjMachineItemModel)) {
-            models.put(location, new ObjMachineItemModel(model));
+            models.put(location, new ObjMachineItemModel(model, id));
             return 1;
         }
         return 0;
@@ -114,7 +126,7 @@ public final class ObjMachineItemModel implements IDynamicBakedModel {
 
     @Override
     public ItemTransforms getTransforms() {
-        return TRANSFORMS;
+        return this.transforms;
     }
 
     @Override
@@ -128,6 +140,25 @@ public final class ObjMachineItemModel implements IDynamicBakedModel {
         // than its 1.7.10 inventory transform and pushed offsets out of sync.
         ItemTransform identity = transform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
         return new ItemTransforms(identity, identity, identity, identity, identity, identity, identity, identity);
+    }
+
+    private static ItemTransforms decorativePipeTransforms() {
+        // Exact modern equivalent of the ordinary 3D block-item display pose
+        // used around RenderPipe#renderInventoryBlock.  This is a per-profile
+        // transform, not a shared geometry offset or measured auto-fit.
+        ItemTransform gui = transform(30.0F, 225.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.625F);
+        ItemTransform thirdPerson = transform(75.0F, 45.0F, 0.0F,
+                0.0F, 2.5F / 16.0F, 0.0F, 0.375F);
+        ItemTransform firstPerson = transform(0.0F, 45.0F, 0.0F,
+                0.0F, 0.0F, 0.0F, 0.4F);
+        ItemTransform ground = transform(0.0F, 0.0F, 0.0F,
+                0.0F, 3.0F / 16.0F, 0.0F, 0.25F);
+        ItemTransform head = transform(0.0F, 0.0F, 0.0F,
+                0.0F, 0.0F, 0.0F, 1.0F);
+        ItemTransform fixed = transform(0.0F, 180.0F, 0.0F,
+                0.0F, 0.0F, 0.0F, 0.5F);
+        return new ItemTransforms(thirdPerson, thirdPerson, firstPerson, firstPerson,
+                head, gui, ground, fixed);
     }
 
     private static ItemTransform transform(float rotX, float rotY, float rotZ, float x, float y, float z, float scale) {

@@ -63,11 +63,13 @@ public final class SettingsToolClientEvents {
 
     private static void tickCraneControls(Minecraft minecraft, Player player) {
         BlockPos cranePos = findActiveCraneConsole(player);
-        boolean up = cranePos != null && minecraft.options.keyUp.isDown();
-        boolean down = cranePos != null && minecraft.options.keyDown.isDown();
-        boolean left = cranePos != null && minecraft.options.keyLeft.isDown();
-        boolean right = cranePos != null && minecraft.options.keyRight.isDown();
-        boolean load = cranePos != null && minecraft.options.keyJump.isDown();
+        // HBM 1.7.10 registered dedicated arrow/Enter bindings for the crane;
+        // vanilla movement/jump bindings (WASD/Space) are unrelated controls.
+        boolean up = cranePos != null && HbmKeyMappings.CRANE_UP.isDown();
+        boolean down = cranePos != null && HbmKeyMappings.CRANE_DOWN.isDown();
+        boolean left = cranePos != null && HbmKeyMappings.CRANE_LEFT.isDown();
+        boolean right = cranePos != null && HbmKeyMappings.CRANE_RIGHT.isDown();
+        boolean load = cranePos != null && HbmKeyMappings.CRANE_LOAD.isDown();
         boolean changed = !java.util.Objects.equals(cranePos, lastCranePos)
                 || up != lastCraneUp
                 || down != lastCraneDown
@@ -80,6 +82,14 @@ public final class SettingsToolClientEvents {
         } else if (cranePos == null && lastCranePos != null) {
             PacketDistributor.sendToServer(new RbmkCraneControlPayload(lastCranePos, false, false, false, false, false));
             craneResendTimer = 0;
+        }
+        if (cranePos != null) {
+            BlockEntity blockEntity = player.level().getBlockEntity(cranePos);
+            if (blockEntity instanceof RbmkComponentBlockEntity rbmk) {
+                // The old client read the local key bindings directly for
+                // tilt while the server packet only drove carriage movement.
+                rbmk.applyClientCraneVisualInput(up, down, left, right);
+            }
         }
         lastCranePos = cranePos;
         lastCraneUp = up;

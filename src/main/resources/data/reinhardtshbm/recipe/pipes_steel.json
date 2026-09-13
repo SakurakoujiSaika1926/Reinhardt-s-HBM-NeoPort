@@ -12,6 +12,12 @@
                       }
             },
     "result":  {
-                   "id":  "reinhardtshbm:pipes_steel"
+                   "id":  "reinhardtshbm:pipe",
+                   "components":  {
+                                      "minecraft:custom_data":  {
+                                                                   "material_id":  30,
+                                                                   "material":  "steel"
+                                                               }
+                                  }
                }
 }

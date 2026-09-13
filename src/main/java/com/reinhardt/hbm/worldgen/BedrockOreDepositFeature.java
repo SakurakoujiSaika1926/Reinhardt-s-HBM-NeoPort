@@ -40,15 +40,18 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
         if (!HbmConfig.GENERATE_BEDROCK_ORES.get()) {
             return false;
         }
+        WorldGenLevel level = context.level();
+        boolean nether = isNether(level);
+        if (nether && !HbmConfig.ENABLE_NETHER_ORES.get()) {
+            return false;
+        }
         RandomSource random = context.random();
         int spawnRate = Math.max(1, HbmConfig.BEDROCK_ORE_SPAWN_RATE.get());
         if (random.nextInt(spawnRate) != 0) {
             return false;
         }
 
-        WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
-        boolean nether = isNether(level);
         // 1.7.10 places deposits in the central two-by-two area of each generated chunk.
         int centerX = origin.getX() + random.nextInt(2) + 8;
         int centerZ = origin.getZ() + random.nextInt(2) + 8;

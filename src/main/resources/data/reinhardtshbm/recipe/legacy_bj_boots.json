@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "N N",
+    "BSB"
+  ],
+  "key": {
+    "N": {
+      "tag": "c:plates/armor_lunar"
+    },
+    "S": {
+      "tag": "c:plates/starmetal"
+    },
+    "B": {
+      "item": "reinhardtshbm:block_starmetal"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:bj_boots"
+  }
+}

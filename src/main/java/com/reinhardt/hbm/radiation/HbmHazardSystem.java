@@ -8,14 +8,19 @@ import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.item.FluidIconItem;
 import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
+import com.reinhardt.hbm.item.LegacyVariantBlockItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.item.OreBasaltBlockItem;
 import com.reinhardt.hbm.item.RbmkFuelRodItem;
 import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
@@ -25,7 +30,43 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class HbmHazardSystem {
+    private static final String IMMERSIVE_ENGINEERING_MOD_ID = "immersiveengineering";
     private static final Map<String, HbmHazardData> CACHE = new ConcurrentHashMap<>();
+    private static final Map<Item, HbmHazardData> EXTERNAL_URANIUM_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Double> ASBESTOS_LEVEL_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Double> COAL_DUST_LEVEL_CACHE = new ConcurrentHashMap<>();
+
+    /*
+     * 1.7.10 used OreDictionary keys for the respiratory hazards.  NeoForge's
+     * common item tags are the corresponding cross-mod contract in 1.21.1;
+     * keep the forge: aliases as well so older ports which still publish those
+     * names continue to behave like the original dictionary lookup.
+     */
+    private static final TagKey<Item>[] ASBESTOS_DUST_TAGS = tags("dusts/asbestos");
+    private static final TagKey<Item>[] ASBESTOS_INGOT_TAGS = tags("ingots/asbestos");
+    private static final TagKey<Item>[] ASBESTOS_ORE_TAGS = tags("ores/asbestos");
+    private static final TagKey<Item>[] ASBESTOS_BLOCK_TAGS = tags("storage_blocks/asbestos");
+    private static final TagKey<Item>[] COAL_DUST_TAGS = tags("dusts/coal");
+    private static final TagKey<Item>[] LIGNITE_DUST_TAGS = tags("dusts/lignite");
+    private static final TagKey<Item>[] COAL_TINY_DUST_TAGS = tags("tiny_dusts/coal");
+    private static final TagKey<Item>[] LIGNITE_TINY_DUST_TAGS = tags("tiny_dusts/lignite");
+
+    /*
+     * HBM's normal radiation inference is intentionally restricted to the
+     * reinhardtshbm namespace.  Uranium from other mods therefore needs an
+     * explicit cross-mod shape contract.  Immersive Engineering publishes
+     * these common tags for its uranium items, so this stays optional and does
+     * not create a hard dependency on IE.
+     */
+    private static final TagKey<Item>[] URANIUM_NUGGET_TAGS = tags("nuggets/uranium");
+    private static final TagKey<Item>[] URANIUM_INGOT_TAGS = tags("ingots/uranium");
+    private static final TagKey<Item>[] URANIUM_DUST_TAGS = tags("dusts/uranium");
+    private static final TagKey<Item>[] URANIUM_ORE_TAGS = tags("ores/uranium");
+    private static final TagKey<Item>[] URANIUM_RAW_TAGS = tags("raw_materials/uranium");
+    private static final TagKey<Item>[] URANIUM_PLATE_TAGS = tags("plates/uranium");
+    private static final TagKey<Item>[] URANIUM_SHEETMETAL_TAGS = tags("sheetmetals/uranium");
+    private static final TagKey<Item>[] URANIUM_STORAGE_BLOCK_TAGS = tags("storage_blocks/uranium");
+    private static final TagKey<Item>[] URANIUM_RAW_STORAGE_BLOCK_TAGS = tags("storage_blocks/raw_uranium");
 
     private HbmHazardSystem() {
     }
@@ -50,8 +91,11 @@ public final class HbmHazardSystem {
         }
 
         ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (key == null || !key.getNamespace().equals(ReinhardtsHBM.MOD_ID)) {
+        if (key == null) {
             return HbmHazardData.EMPTY;
+        }
+        if (!key.getNamespace().equals(ReinhardtsHBM.MOD_ID)) {
+            return externalUraniumHazards(stack);
         }
 
         HbmHazardData hazard = CACHE.computeIfAbsent(key.getPath(), HbmHazardSystem::inferHazards);
@@ -69,8 +113,101 @@ public final class HbmHazardSystem {
         return inferHazards(id).radiation();
     }
 
+    /**
+     * Returns the legacy 1.7.10 asbestos hazard level for an inventory stack.
+     * These hazards were registered through the old ore-dictionary system and
+     * therefore cannot be represented by the radiation-only hazard record.
+     */
+    public static double asbestosLevel(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return 0.0D;
+        }
+        String cacheKey = respiratoryCacheKey(stack);
+        if (!cacheKey.isEmpty()) {
+            return ASBESTOS_LEVEL_CACHE.computeIfAbsent(cacheKey, unused -> computeAsbestosLevel(stack));
+        }
+        return computeAsbestosLevel(stack);
+    }
+
+    private static double computeAsbestosLevel(ItemStack stack) {
+        String path = itemPath(stack);
+        if (!path.isEmpty()) {
+            if (path.equals("ore_basalt") && stack.getItem() instanceof OreBasaltBlockItem) {
+                if (OreBasaltBlockItem.variantName(stack).equals("asbestos")) {
+                    return 1.0D;
+                }
+            }
+            if (stack.getItem() instanceof LegacyVariantBlockItem variant) {
+                if (path.equals("stone_resource") && variant.variant(stack).equals("asbestos")) {
+                    return 1.0D;
+                }
+            }
+            double direct = switch (path) {
+                case "brick_asbestos", "tile_lab_broken", "ingot_asbestos", "ore_asbestos",
+                        "ore_gneiss_asbestos", "ore_deepslate_asbestos" -> 1.0D;
+                case "powder_asbestos", "powder_coltan_ore" -> 3.0D;
+                case "block_asbestos" -> 10.0D;
+                default -> 0.0D;
+            };
+            if (direct > 0.0D) {
+                return direct;
+            }
+        }
+
+        if (hasAnyTag(stack, ASBESTOS_DUST_TAGS)) {
+            return 3.0D;
+        }
+        if (hasAnyTag(stack, ASBESTOS_BLOCK_TAGS)) {
+            return 10.0D;
+        }
+        if (hasAnyTag(stack, ASBESTOS_INGOT_TAGS) || hasAnyTag(stack, ASBESTOS_ORE_TAGS)) {
+            return 1.0D;
+        }
+        return 0.0D;
+    }
+
+    /** Returns the legacy 1.7.10 coal-dust hazard level for an inventory stack. */
+    public static double coalDustLevel(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return 0.0D;
+        }
+        String cacheKey = respiratoryCacheKey(stack);
+        if (!cacheKey.isEmpty()) {
+            return COAL_DUST_LEVEL_CACHE.computeIfAbsent(cacheKey, unused -> computeCoalDustLevel(stack));
+        }
+        return computeCoalDustLevel(stack);
+    }
+
+    private static double computeCoalDustLevel(ItemStack stack) {
+        String path = itemPath(stack);
+        if (!path.isEmpty()) {
+            double direct = switch (path) {
+                case "powder_coal", "powder_lignite" -> 3.0D;
+                case "powder_coal_tiny", "powder_lignite_tiny" -> 0.3D;
+                default -> 0.0D;
+            };
+            if (direct > 0.0D) {
+                return direct;
+            }
+        }
+
+        if (hasAnyTag(stack, COAL_DUST_TAGS) || hasAnyTag(stack, LIGNITE_DUST_TAGS)) {
+            return 3.0D;
+        }
+        if (hasAnyTag(stack, COAL_TINY_DUST_TAGS) || hasAnyTag(stack, LIGNITE_TINY_DUST_TAGS)) {
+            return 0.3D;
+        }
+        return 0.0D;
+    }
+
     public static void appendTooltip(ItemStack stack, List<Component> tooltip) {
         HbmHazardData perItem = hazardsPerItem(stack);
+        if (asbestosLevel(stack) > 0.0D) {
+            tooltip.add(Component.translatable("trait.reinhardtshbm.asbestos").withStyle(ChatFormatting.WHITE));
+        }
+        if (coalDustLevel(stack) > 0.0D) {
+            tooltip.add(Component.translatable("trait.reinhardtshbm.coal").withStyle(ChatFormatting.DARK_GRAY));
+        }
         if (perItem.isEmpty()) {
             return;
         }
@@ -253,6 +390,76 @@ public final class HbmHazardSystem {
         Optional<HbmFluidDefinition> fluid = HbmFluids.byName(fluidName);
         double radiation = fluid.map(HbmHazardSystem::fluidRadiation).orElse(0.0D);
         return radiation <= 0.0D ? HbmHazardData.EMPTY : rad(radiation);
+    }
+
+    /**
+     * Applies the same uranium material/shape multipliers used by HBM to
+     * external items which publish the common uranium tags.  This is kept
+     * separate from {@link #inferHazards(String)} so an external item can
+     * never collide with HBM's path-only cache.
+     */
+    private static HbmHazardData externalUraniumHazards(ItemStack stack) {
+        return EXTERNAL_URANIUM_CACHE.computeIfAbsent(stack.getItem(), unused -> computeExternalUraniumHazards(stack));
+    }
+
+    private static HbmHazardData computeExternalUraniumHazards(ItemStack stack) {
+        ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (key != null && key.getNamespace().equals(IMMERSIVE_ENGINEERING_MOD_ID)) {
+            HbmHazardData direct = immersiveEngineeringUraniumHazards(key.getPath());
+            if (!direct.isEmpty()) {
+                return direct;
+            }
+        }
+
+        if (hasAnyTag(stack, URANIUM_NUGGET_TAGS)) {
+            return rad(HbmRadiationConstants.U * HbmRadiationConstants.NUGGET);
+        }
+        if (hasAnyTag(stack, URANIUM_INGOT_TAGS)) {
+            return rad(HbmRadiationConstants.U * HbmRadiationConstants.INGOT);
+        }
+        if (hasAnyTag(stack, URANIUM_DUST_TAGS)) {
+            return rad(HbmRadiationConstants.U * HbmRadiationConstants.POWDER);
+        }
+        if (hasAnyTag(stack, URANIUM_RAW_TAGS) || hasAnyTag(stack, URANIUM_ORE_TAGS)) {
+            return rad(HbmRadiationConstants.U * HbmRadiationConstants.ORE);
+        }
+        if (hasAnyTag(stack, URANIUM_PLATE_TAGS)) {
+            return rad(HbmRadiationConstants.U * HbmRadiationConstants.PLATE);
+        }
+        if (hasAnyTag(stack, URANIUM_SHEETMETAL_TAGS)) {
+            // Immersive Engineering sheetmetal is crafted from four plates.
+            return rad(HbmRadiationConstants.U * HbmRadiationConstants.PLATE * 4.0D);
+        }
+        if (hasAnyTag(stack, URANIUM_STORAGE_BLOCK_TAGS)
+                || hasAnyTag(stack, URANIUM_RAW_STORAGE_BLOCK_TAGS)) {
+            // Match HBM's block multiplier for both finished and raw uranium
+            // storage blocks.
+            return rad(HbmRadiationConstants.U * HbmRadiationConstants.BLOCK);
+        }
+        return HbmHazardData.EMPTY;
+    }
+
+    /**
+     * Keep the IE 1.21.1 IDs explicit as a fallback in case another data pack
+     * replaces a common uranium tag.  The tag path above remains the primary
+     * cross-mod contract for other mods and future IE additions.
+     */
+    private static HbmHazardData immersiveEngineeringUraniumHazards(String path) {
+        return switch (path) {
+            case "nugget_uranium" -> rad(HbmRadiationConstants.U * HbmRadiationConstants.NUGGET);
+            case "ingot_uranium" -> rad(HbmRadiationConstants.U * HbmRadiationConstants.INGOT);
+            case "dust_uranium" -> rad(HbmRadiationConstants.U * HbmRadiationConstants.POWDER);
+            case "ore_uranium", "deepslate_ore_uranium",
+                    "raw_uranium" -> rad(HbmRadiationConstants.U * HbmRadiationConstants.ORE);
+            case "plate_uranium" -> rad(HbmRadiationConstants.U * HbmRadiationConstants.PLATE);
+            case "sheetmetal_uranium" -> rad(
+                    HbmRadiationConstants.U * HbmRadiationConstants.PLATE * 4.0D
+            );
+            case "storage_uranium", "raw_block_uranium" -> rad(
+                    HbmRadiationConstants.U * HbmRadiationConstants.BLOCK
+            );
+            default -> HbmHazardData.EMPTY;
+        };
     }
 
     private static HbmHazardData inferHazards(String path) {
@@ -679,5 +886,49 @@ public final class HbmHazardSystem {
 
     private static String normalize(String id) {
         return id.toLowerCase(Locale.ROOT).replace('-', '_');
+    }
+
+    private static String itemPath(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return "";
+        }
+        ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return key == null || !key.getNamespace().equals(ReinhardtsHBM.MOD_ID) ? "" : key.getPath();
+    }
+
+    private static String respiratoryCacheKey(ItemStack stack) {
+        ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (key == null) {
+            return "";
+        }
+        StringBuilder result = new StringBuilder(key.toString());
+        if (stack.getItem() instanceof OreBasaltBlockItem) {
+            result.append("#ore_basalt=").append(OreBasaltBlockItem.variantName(stack));
+        } else if (stack.getItem() instanceof LegacyVariantBlockItem variant) {
+            result.append("#legacy_block=").append(variant.variant(stack));
+        } else if (stack.getItem() instanceof LegacyVariantItem variant) {
+            result.append("#legacy_item=").append(variant.variant(stack).id());
+        }
+        return result.toString();
+    }
+
+    private static TagKey<Item>[] tags(String path) {
+        @SuppressWarnings("unchecked")
+        TagKey<Item>[] result = new TagKey[2];
+        result[0] = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+        result[1] = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("forge", path));
+        return result;
+    }
+
+    private static boolean hasAnyTag(ItemStack stack, TagKey<Item>[] tags) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        for (TagKey<Item> tag : tags) {
+            if (stack.is(tag)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

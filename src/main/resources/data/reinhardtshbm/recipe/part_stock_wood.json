@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["WWW","  W"],"key":{"W":{"tag":"minecraft:planks"}},"result":{"id":"reinhardtshbm:part_stock","components":{"minecraft:custom_data":{"material_id":3,"material":"wood"}}}}

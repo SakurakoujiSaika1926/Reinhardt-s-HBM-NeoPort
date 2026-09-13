@@ -81,7 +81,15 @@ public final class LootCrateBlock extends FallingBlock {
         switch (this.kind) {
             case SUPPLY -> addSupplyPool(pool);
             case WEAPON -> {
-                // The old pool only contained the basic firearms intentionally removed from this port.
+                // The 1.7.10 pool contained firearms, which are retired in 1.21.1 in
+                // favour of TACZ. Keep the crate useful with the modern HBM weapons
+                // that are still registered locally; an empty pool would make the
+                // crowbar interaction silently remove the crate without any drops.
+                add(pool, "weapon_pipe_lead", 10);
+                add(pool, "reer_graar", 7);
+                add(pool, "boltgun", 5);
+                add(pool, "chainsaw", 5);
+                add(pool, "crucible", 2);
             }
             case LEAD -> addLeadPool(pool);
             case METAL -> addMetalPool(pool);

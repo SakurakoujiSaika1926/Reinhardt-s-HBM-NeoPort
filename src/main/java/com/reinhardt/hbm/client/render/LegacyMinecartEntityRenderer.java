@@ -24,7 +24,8 @@ public final class LegacyMinecartEntityRenderer extends EntityRenderer<LegacyMin
 
     public LegacyMinecartEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
-        shadowRadius = 0.7F;
+        // RenderNeoCart never overrides Render's default shadow size.
+        shadowRadius = 0.0F;
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {

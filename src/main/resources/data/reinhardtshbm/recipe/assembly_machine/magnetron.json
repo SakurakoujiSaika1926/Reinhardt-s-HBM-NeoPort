@@ -1,0 +1,29 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.magnetron",
+  "duration": 40,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": { "tag": "c:plates/copper" },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": ["reinhardtshbm:wire_fine"],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 7400,
+            "material": "tungsten"
+          }
+        }
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:magnetron",
+    "count": 1
+  }
+}

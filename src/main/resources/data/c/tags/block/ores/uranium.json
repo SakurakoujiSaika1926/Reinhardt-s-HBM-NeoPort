@@ -4,6 +4,10 @@
                    "reinhardtshbm:ore_uranium",
                    "reinhardtshbm:ore_uranium_scorched",
                    "reinhardtshbm:ore_deepslate_uranium",
-                   "reinhardtshbm:ore_deepslate_uranium_scorched"
+                   "reinhardtshbm:ore_deepslate_uranium_scorched",
+                   "reinhardtshbm:ore_gneiss_uranium",
+                   "reinhardtshbm:ore_gneiss_uranium_scorched",
+                   "reinhardtshbm:ore_nether_uranium",
+                   "reinhardtshbm:ore_nether_uranium_scorched"
                ]
 }

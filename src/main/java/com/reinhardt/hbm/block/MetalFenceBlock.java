@@ -9,7 +9,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -74,7 +74,7 @@ public class MetalFenceBlock extends Block {
             BlockPos neighborPos
     ) {
         if (direction.getAxis().isHorizontal()) {
-            state = state.setValue(PROPERTY_BY_DIRECTION.get(direction), connectsTo(neighborState, level, neighborPos, direction));
+            state = state.setValue(PROPERTY_BY_DIRECTION.get(direction), connectsTo(neighborState, level, neighborPos));
             return state.setValue(PILLAR, shouldShowPillar(state));
         }
         return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
@@ -107,17 +107,41 @@ public class MetalFenceBlock extends Block {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             state = state.setValue(
                     PROPERTY_BY_DIRECTION.get(direction),
-                    connectsTo(level.getBlockState(pos.relative(direction)), level, pos.relative(direction), direction)
+                    connectsTo(level.getBlockState(pos.relative(direction)), level, pos.relative(direction))
             );
         }
         return state.setValue(PILLAR, shouldShowPillar(state));
     }
 
-    private static boolean connectsTo(BlockState neighbor, LevelReader level, BlockPos neighborPos, Direction direction) {
-        if (neighbor.getBlock() instanceof MetalFenceBlock || neighbor.getBlock() instanceof IronBarsBlock) {
+    private static boolean connectsTo(BlockState neighbor, LevelReader level, BlockPos neighborPos) {
+        // Match 1.7.10 BlockFence#canConnectFenceTo exactly: the custom
+        // fence connects to another fence of the same block, to a fence gate,
+        // or to an opaque/full-cube block.  Iron bars are deliberately not a
+        // connection target in the old implementation.
+        if (neighbor.getBlock() instanceof MetalFenceBlock || neighbor.getBlock() instanceof FenceGateBlock) {
             return true;
         }
-        return neighbor.isFaceSturdy(level, neighborPos, direction.getOpposite());
+        return neighbor.isSolidRender(level, neighborPos);
+    }
+
+    /**
+     * Recalculate the four connection properties after a bulk structure write.
+     * Structure placement uses update flag 2 (as did 1.7.10 NBTStructure), so
+     * neighbour updates are intentionally suppressed during the pass.
+     */
+    public static void refreshConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof MetalFenceBlock)) {
+            return;
+        }
+        BlockState connected = state;
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            connected = connected.updateShape(direction, level.getBlockState(neighborPos), level, pos, neighborPos);
+        }
+        if (connected != state) {
+            level.setBlock(pos, connected, 2);
+        }
     }
 
     private static boolean shouldShowPillar(BlockState state) {

@@ -1,3 +1,6 @@
 {
-  "elements": []
+  "elements": [],
+  "textures": {
+    "particle": "reinhardtshbm:block/legacy_placeholder"
+  }
 }

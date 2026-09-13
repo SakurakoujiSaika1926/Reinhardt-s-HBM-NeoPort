@@ -1,0 +1,13 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/entity/blockspider.obj",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": {
+    "Leg1": false, "Leg2": true, "Leg3": false, "Leg4": true,
+    "Leg5": false, "Leg6": true, "Leg7": false, "Leg8": true,
+    "Cube_Cube.001": false
+  },
+  "textures": {"particle": "reinhardtshbm:entity/blockspider"}
+}

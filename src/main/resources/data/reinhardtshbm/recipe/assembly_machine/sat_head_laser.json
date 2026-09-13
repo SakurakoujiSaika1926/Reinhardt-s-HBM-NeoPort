@@ -1,0 +1,72 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.satellitelaser",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 2900,
+            "material": "copper"
+          }
+        }
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor_board"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:crystal_diamond"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:glass_quartz"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:sat_head_laser",
+    "count": 1
+  }
+}

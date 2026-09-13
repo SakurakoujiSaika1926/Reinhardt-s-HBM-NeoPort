@@ -1,0 +1,63 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.stealthmissile",
+  "duration": 1200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/titanium"
+      },
+      "count": 20
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/aluminium"
+      },
+      "count": 20
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/black"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_advanced"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:bolt"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 32
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:missile_stealth",
+    "count": 1
+  }
+}

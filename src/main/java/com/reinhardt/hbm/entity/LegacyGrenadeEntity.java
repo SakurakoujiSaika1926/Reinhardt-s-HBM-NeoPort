@@ -2,6 +2,7 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -14,7 +15,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -91,17 +91,28 @@ public final class LegacyGrenadeEntity extends Entity {
         zo = getZ();
 
         Vec3 motion = getDeltaMovement();
+        xRotO = getXRot();
+        setXRot(getXRot() - (float) (motion.length() * 25.0D));
         HitResult hit = level().clip(new ClipContext(position(), position().add(motion),
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        boolean bounce = false;
         if (hit instanceof BlockHitResult blockHit) {
-            setPos(blockHit.getLocation());
-            motion = reflect(motion, blockHit.getDirection()).scale(BOUNCE_MODIFIER);
+            Vec3 hitLocation = blockHit.getLocation();
+            setPos(
+                    getX() + (hitLocation.x - getX()) * 0.6D,
+                    getY() + (hitLocation.y - getY()) * 0.6D,
+                    getZ() + (hitLocation.z - getZ()) * 0.6D
+            );
+            motion = reflect(motion, blockHit.getDirection());
+            bounce = true;
             if (!level().isClientSide && motion.length() > 0.05D) {
-                level().playSound(null, blockPosition(), SoundEvents.SLIME_BLOCK_HIT,
-                        SoundSource.NEUTRAL, 2.0F, 1.0F);
+                level().playSound(null, blockPosition(), HbmSoundEvents.WEAPON_GRENADE_BOUNCE.get(),
+                        SoundSource.PLAYERS, 2.0F, 1.0F);
             }
-        } else {
-            move(MoverType.SELF, motion);
+            motion = motion.scale(BOUNCE_MODIFIER);
+        }
+        if (!bounce) {
+            setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);
         }
 
         updateRotation(motion);
@@ -179,11 +190,14 @@ public final class LegacyGrenadeEntity extends Entity {
     }
 
     private void updateRotation(Vec3 motion) {
-        if (motion.lengthSqr() < 1.0E-8D) {
-            return;
+        float rawYaw = (float) Math.toDegrees(Math.atan2(motion.x, motion.z));
+        while (rawYaw - yRotO < -180.0F) {
+            yRotO -= 360.0F;
         }
-        setYRot((float) Math.toDegrees(Math.atan2(motion.x, motion.z)));
-        setXRot(getXRot() - (float) (motion.length() * 25.0D));
+        while (rawYaw - yRotO >= 180.0F) {
+            yRotO += 360.0F;
+        }
+        setYRot(yRotO + (rawYaw - yRotO) * 0.2F);
     }
 
     @Override
@@ -204,7 +218,7 @@ public final class LegacyGrenadeEntity extends Entity {
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 65536.0D;
+        return distance < 4096.0D;
     }
 
     private int fuse() {

@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:root",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:stone_gneiss"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.stratum.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.stratum.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

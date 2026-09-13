@@ -1,8 +1,12 @@
 package com.reinhardt.hbm.satellite;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.item.SatelliteChipItem;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.explosion.NukeExplosionManager;
+import com.reinhardt.hbm.entity.LegacyShrapnelEntity;
+import com.reinhardt.hbm.entity.LegacyTomEntity;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -16,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,6 +73,8 @@ public final class SatelliteSavedData extends SavedData {
             setDirty();
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                     "message.reinhardtshbm.satellite.horizons"), false);
+            LegacyTomEntity.spawn(level, target.getX(), target.getZ());
+            HbmAdvancements.awardAll(level, "horizons_end");
             return true;
         }
         return false;
@@ -81,19 +88,31 @@ public final class SatelliteSavedData extends SavedData {
         record.lastOperation = System.currentTimeMillis();
         setDirty();
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, target.getX(), target.getZ());
-        level.explode(null, target.getX() + 0.5D, y, target.getZ() + 0.5D, 8.0F,
-                Level.ExplosionInteraction.BLOCK);
+        double x = target.getX() + 0.5D, z = target.getZ() + 0.5D;
+        // SatelliteLaser uses the dedicated EntityDeathBlast sequence in 1.7.10:
+        // delayed MK5 no-radiation core followed by a radial bolt burst.
+        NukeExplosionManager.scheduleMk5NoRadiation(level, x, y, z, 40);
+        for (int i = 0; i < 100; i++) {
+            double angle = Math.PI * 2.0D * i / 100.0D;
+            level.addFreshEntity(new LegacyShrapnelEntity(level, x, y + 2.0D, z,
+                    new Vec3(Math.cos(angle) * 0.2D, -0.01D, Math.sin(angle) * 0.2D), false));
+        }
         return true;
     }
 
     /** Satellite.orbit: a newly launched payload replaces an existing frequency. */
-    public boolean orbit(ItemStack payload) {
+    public boolean orbit(ServerLevel level, ItemStack payload) {
         SatelliteKind kind = SatelliteKind.fromItem(payload);
         if (kind == null) {
             return false;
         }
         this.satellites.put(SatelliteChipItem.frequency(payload), new SatelliteRecord(kind));
         setDirty();
+        if (kind == SatelliteKind.RELAY) {
+            HbmAdvancements.awardAll(level, "foeq");
+        } else if (kind == SatelliteKind.HORIZONS) {
+            HbmAdvancements.awardAll(level, "horizons_start");
+        }
         return true;
     }
 

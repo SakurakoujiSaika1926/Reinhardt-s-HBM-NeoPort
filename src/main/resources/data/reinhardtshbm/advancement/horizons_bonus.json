@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:horizons_end",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:sat_gerald"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.horizons_bonus.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.horizons_bonus.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

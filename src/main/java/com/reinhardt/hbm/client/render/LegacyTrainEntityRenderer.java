@@ -23,7 +23,8 @@ public final class LegacyTrainEntityRenderer extends EntityRenderer<LegacyTrainE
 
     public LegacyTrainEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
-        shadowRadius = 2.5F;
+        // RenderTrainCargoTram/RenderTrainTrailer never override Render's default shadow size.
+        shadowRadius = 0.0F;
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {

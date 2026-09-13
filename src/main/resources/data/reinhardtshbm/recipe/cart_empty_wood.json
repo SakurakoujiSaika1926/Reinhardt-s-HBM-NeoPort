@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["P P","WPW"],"key":{"P":{"tag":"minecraft:wooden_slabs"},"W":{"tag":"minecraft:planks"}},"result":{"id":"reinhardtshbm:cart","components":{"minecraft:custom_data":{"cartBase":1,"cartType":0}}}}

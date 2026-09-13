@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "DCD",
+    "CXC",
+    " F "
+  ],
+  "key": {
+    "D": {
+      "tag": "c:ingots/desh"
+    },
+    "C": {
+      "tag": "c:plates/copper"
+    },
+    "X": {
+      "item": "reinhardtshbm:steel_helmet"
+    },
+    "F": {
+      "item": "reinhardtshbm:gas_mask_filter"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:steamsuit_helmet"
+  }
+}

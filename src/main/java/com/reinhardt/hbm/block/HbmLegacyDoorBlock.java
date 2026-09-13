@@ -62,7 +62,32 @@ public class HbmLegacyDoorBlock extends DoorBlock {
 
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, net.minecraft.world.level.block.Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        if (level.isClientSide || state.getValue(HALF) != DoubleBlockHalf.LOWER || neighborBlock == this) {
+        if (level.isClientSide) {
+            return;
+        }
+
+        DoubleBlockHalf half = state.getValue(HALF);
+        if (half == DoubleBlockHalf.UPPER) {
+            // Match BlockModDoor: an upper half without its lower half is an
+            // orphan and must disappear without producing a second item.
+            if (level.getBlockState(pos.below()).getBlock() != this) {
+                level.removeBlock(pos, false);
+            }
+            return;
+        }
+
+        // The legacy lower half was also removed when either its support or
+        // upper half disappeared. The lower half alone is the drop source.
+        if (level.getBlockState(pos.above()).getBlock() != this
+                || !state.canSurvive(level, pos)) {
+            if (level.getBlockState(pos.above()).getBlock() == this) {
+                level.removeBlock(pos.above(), false);
+            }
+            level.destroyBlock(pos, true);
+            return;
+        }
+
+        if (neighborBlock == this) {
             return;
         }
         DoorPair pair = findPair(state, level, pos);

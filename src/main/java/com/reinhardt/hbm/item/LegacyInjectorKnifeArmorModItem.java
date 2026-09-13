@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -39,6 +40,9 @@ public final class LegacyInjectorKnifeArmorModItem extends ArmorModItem {
                 -(unmodifiedMaximum - previousMaximum + 2.0D),
                 AttributeModifier.Operation.ADD_VALUE
         ));
+        if (player.getMaxHealth() <= 2.0F) {
+            HbmAdvancements.award(player, "some_wounds");
+        }
     }
 
     @Override

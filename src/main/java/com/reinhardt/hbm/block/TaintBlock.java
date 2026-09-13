@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.registry.HbmMobEffects;
+import com.reinhardt.hbm.registry.HbmEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -8,6 +9,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -68,6 +70,20 @@ public class TaintBlock extends Block {
         if (!level.isClientSide && entity instanceof LivingEntity living && level.random.nextInt(50) == 0) {
             int amplifier = 15 - state.getValue(AGE);
             living.addEffect(new MobEffectInstance(HbmMobEffects.TAINT, 15 * 20, amplifier));
+        }
+        if (!level.isClientSide && entity.getClass() == Creeper.class) {
+            com.reinhardt.hbm.entity.LegacyTaintedCreeperEntity creeper =
+                    new com.reinhardt.hbm.entity.LegacyTaintedCreeperEntity(HbmEntityTypes.TAINTED_CREEPER.get(), level);
+            creeper.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+            entity.discard();
+            level.addFreshEntity(creeper);
+        }
+        if (!level.isClientSide && entity instanceof com.reinhardt.hbm.entity.LegacyTeslaCrabEntity) {
+            com.reinhardt.hbm.entity.LegacyTaintCrabEntity crab =
+                    new com.reinhardt.hbm.entity.LegacyTaintCrabEntity(HbmEntityTypes.TAINT_CRAB.get(), level);
+            crab.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+            entity.discard();
+            level.addFreshEntity(crab);
         }
     }
 

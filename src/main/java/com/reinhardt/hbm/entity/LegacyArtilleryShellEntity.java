@@ -133,6 +133,9 @@ public class LegacyArtilleryShellEntity extends Entity implements LegacyRadarDet
         if (isInWater()) {
             motion = motion.scale(0.8D);
         }
+        // EntityThrowableNT applies its air drag every tick (the legacy
+        // default is 0.99), including artillery shells that are not in water.
+        motion = motion.scale(0.99D);
         setDeltaMovement(motion.add(0.0D, -GRAVITY, 0.0D));
         maybeWhistle();
         updateForcedChunk();
@@ -389,6 +392,11 @@ public class LegacyArtilleryShellEntity extends Entity implements LegacyRadarDet
     @Override
     public boolean isPickable() {
         return true;
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return isAlive();
     }
 
     @Override

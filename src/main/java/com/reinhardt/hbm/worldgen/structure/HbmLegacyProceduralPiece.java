@@ -1,14 +1,27 @@
 package com.reinhardt.hbm.worldgen.structure;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.BobbleheadBlock;
 import com.reinhardt.hbm.block.BobbleheadType;
+import com.reinhardt.hbm.block.HbmHeavyDoorBlock;
+import com.reinhardt.hbm.block.HbmHeavyDoorPartBlock;
+import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.LegacyTurretBlock;
+import com.reinhardt.hbm.block.MetalFenceBlock;
 import com.reinhardt.hbm.blockentity.BobbleheadBlockEntity;
+import com.reinhardt.hbm.blockentity.HbmHeavyDoorPartBlockEntity;
+import com.reinhardt.hbm.blockentity.HbmStructureLoot;
+import com.reinhardt.hbm.blockentity.LauncherBlockEntity;
+import com.reinhardt.hbm.blockentity.LegacyTurretType;
+import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmWorldgenStructures;
+import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
@@ -16,6 +29,10 @@ import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.Container;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.AttachFace;
@@ -34,6 +51,38 @@ import java.util.List;
 public final class HbmLegacyProceduralPiece extends StructurePiece {
     private static final int MAX_SURFACE_SIZE = 64;
     private static final int MAX_BUNKER_SIZE = 96;
+
+    /**
+     * 1.7.10 panes/fences queried their neighbours while rendering, even
+     * though structure writes used update flag 2.  Modern iron bars and the
+     * ported metal fence store those connections as block-state booleans, so
+     * reproduce the old dynamic result after each procedural structure write.
+     */
+    private static void refreshPaneConnections(WorldGenLevel level, BlockPos changedPos) {
+        refreshPane(level, changedPos);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            refreshPane(level, changedPos.relative(direction));
+        }
+    }
+
+    private static void refreshPane(WorldGenLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof MetalFenceBlock) {
+            MetalFenceBlock.refreshConnections(level, pos);
+            return;
+        }
+        if (!(state.getBlock() instanceof IronBarsBlock)) {
+            return;
+        }
+        BlockState connected = state;
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            connected = connected.updateShape(direction, level.getBlockState(neighborPos), level, pos, neighborPos);
+        }
+        if (connected != state) {
+            level.setBlock(pos, connected, 2);
+        }
+    }
 
     public enum Kind {
         FEATURES,
@@ -211,7 +260,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.set(level, chunkBox, 4, 0, 4, "reinhardtshbm:reinforced_sand", 0);
 
             p.set(level, chunkBox, 1, 0, 1, "reinhardtshbm:crate_weapon", 0);
-            p.set(level, chunkBox, 3, 0, 1, "minecraft:chest", 0);
+            p.setLoot(level, chunkBox, 3, 0, 1, "minecraft:chest", 0, "POOL_GENERIC", 8, 10);
             p.fill(level, chunkBox, 5, 0, 1, 6, 0, 1, "reinhardtshbm:crate", 0);
             p.set(level, chunkBox, 7, 0, 1, "minecraft:sand", 0);
             if (random.nextFloat() <= 0.25F) {
@@ -279,12 +328,12 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.set(level, chunkBox, 15, 1, 8, "minecraft:sandstone_slab", 0);
             p.fill(level, chunkBox, 10, 0, 1, 14, 0, 8, "minecraft:sandstone", 0);
 
-            p.set(level, chunkBox, 1, 1, 1, "reinhardtshbm:machine_boiler", 4);
+            p.set(level, chunkBox, 1, 1, 1, "reinhardtshbm:machine_boiler_off", 4);
             p.fill(level, chunkBox, 1, 2, 1, 1, 3, 1, "reinhardtshbm:deco_pipe_quad_rusted", 0);
             p.set(level, chunkBox, 1, 5, 1, "reinhardtshbm:deco_pipe_rim_rusted", 0);
             p.set(level, chunkBox, 2, 1, 3, "reinhardtshbm:crate", 0);
             p.set(level, chunkBox, 1, 1, 5, "reinhardtshbm:crate_can", 0);
-            p.set(level, chunkBox, 1, 1, 7, "minecraft:chest", 0);
+            p.setLoot(level, chunkBox, 1, 1, 7, "minecraft:chest", 0, "POOL_GENERIC", 8, 8);
             p.fill(level, chunkBox, 4, 1, 8, 5, 1, 8, "reinhardtshbm:crate", 0);
             int eastMeta = p.getDecoMeta(4);
             p.fillDirect(level, chunkBox, 5, 1, 4, 5, 3, 4, "reinhardtshbm:steel_scaffold", eastMeta < 4 ? 0 : 8);
@@ -292,7 +341,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.setDirect(level, chunkBox, 5, 1, 5, "reinhardtshbm:steel_grate", 7);
             p.set(level, chunkBox, 5, 2, 5, "reinhardtshbm:crate_weapon", 0);
 
-            p.set(level, chunkBox, 10, 1, 1, "minecraft:chest", 0);
+            p.setLoot(level, chunkBox, 10, 1, 1, "minecraft:chest", 0, "POOL_GENERIC", 8, 8);
             p.placeRandomBobble(level, chunkBox, random, 10, 1, 4);
             p.fillRandom(level, chunkBox, random, 0.25F, 11, 1, 1, 14, 1, 8, "minecraft:sand", 0);
         }
@@ -602,8 +651,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.placeDoor(level, chunkBox, random, "reinhardtshbm:door_office", 3, false, 2, 1, 7);
             p.placeDoor(level, chunkBox, random, "reinhardtshbm:door_office", 3, true, 3, 1, 7);
             p.placeDoor(level, chunkBox, random, "reinhardtshbm:door_office", 0, false, 5, 1, 6);
-            p.setDirect(level, chunkBox, 10, 1, 11, "reinhardtshbm:filing_cabinet", p.getDecoModelMeta(0));
-            p.setDirect(level, chunkBox, 6, 1, 1, "reinhardtshbm:safe", p.getDecoMeta(3));
+            p.setDirectLoot(level, chunkBox, 10, 1, 11, "reinhardtshbm:filing_cabinet", p.getDecoModelMeta(0), "POOL_OFFICE_TRASH", 8, 8);
+            p.setDirectLoot(level, chunkBox, 6, 1, 1, "reinhardtshbm:safe", p.getDecoMeta(3), "POOL_MACHINE_PARTS", 10, 10);
         }
 
         private static void placeLargeOfficeCorner(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
@@ -829,6 +878,13 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.setDirect(level, chunkBox, 10, 5, 6, "minecraft:dark_oak_stairs", northUp);
             p.setDirect(level, chunkBox, 8, 5, 6, "minecraft:oak_stairs", north);
             p.setDirect(level, chunkBox, 10, 6, 6, "reinhardtshbm:deco_computer", p.getDecoModelMeta(2));
+            p.setDirect(level, chunkBox, 8, 5, 11, "minecraft:dark_oak_stairs", northUp);
+            p.setDirect(level, chunkBox, 8, 5, 10, "minecraft:dark_oak_slab", 8);
+            p.setDirect(level, chunkBox, 8, 5, 9, "minecraft:dark_oak_stairs", eastUp);
+            p.setDirect(level, chunkBox, 9, 5, 9, "minecraft:dark_oak_stairs", southUp);
+            p.setDirect(level, chunkBox, 10, 5, 9, "minecraft:dark_oak_stairs", westUp);
+            p.setDirect(level, chunkBox, 10, 5, 10, "minecraft:oak_stairs", west);
+            p.setDirect(level, chunkBox, 9, 6, 9, "reinhardtshbm:deco_computer", p.getDecoModelMeta(1));
             p.setDirect(level, chunkBox, 1, 6, 11, "reinhardtshbm:machine_microwave", p.getDecoMeta(5));
 
             p.setDirect(level, chunkBox, 8, 9, 4, "minecraft:dark_oak_stairs", westUp);
@@ -1182,8 +1238,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                 p.setDirect(level, chunkBox, 7, 5, 9, "reinhardtshbm:machine_diesel", metaE);
             }
             p.set(level, chunkBox, 6, 5, 12, random.nextBoolean() ? "reinhardtshbm:crate_weapon" : "reinhardtshbm:crate", 0);
-            p.setDirect(level, chunkBox, 7, 1, 10, "reinhardtshbm:filing_cabinet", p.getDecoModelMeta(2));
-            p.setDirect(level, chunkBox, 7, 5, 5, "minecraft:chest", metaE);
+            p.setDirectLoot(level, chunkBox, 7, 1, 10, "reinhardtshbm:filing_cabinet", p.getDecoModelMeta(2), "POOL_OFFICE_TRASH", 4, 4);
+            p.setDirectLoot(level, chunkBox, 7, 5, 5, "minecraft:chest", metaE, "POOL_GENERIC", 8, 8);
             p.set(level, chunkBox, 3, 2, 12, "reinhardtshbm:deco_loot", 0);
             p.set(level, chunkBox, 5, 6, 5, "reinhardtshbm:deco_loot", 0);
             p.placeRandomBobble(level, chunkBox, random, 5, 5, 12);
@@ -1277,7 +1333,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.fill(level, chunkBox, 27, 27, 14, 27, 27, 17, "reinhardtshbm:concrete_slab", 1);
             p.fill(level, chunkBox, 27, 27, 18, 32, 27, 18, "reinhardtshbm:concrete_slab", 1);
             p.fill(level, chunkBox, 32, 27, 14, 32, 27, 17, "reinhardtshbm:concrete_slab", 1);
-            p.set(level, chunkBox, 29, 27, 15, "reinhardtshbm:turret_howard_damaged", 0);
+            p.placeLegacyHowardDamaged(level, chunkBox, 29, 27, 15, Direction.SOUTH);
 
             p.set(level, chunkBox, 34, 26, 13, "reinhardtshbm:concrete_pillar", 0);
             p.set(level, chunkBox, 39, 26, 13, "reinhardtshbm:concrete_pillar", 0);
@@ -1318,12 +1374,12 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                 p.set(level, chunkBox, 20, 26, j, "reinhardtshbm:steel_beam", 2);
                 p.fill(level, chunkBox, 16, 26, j, 16, 27, j, "reinhardtshbm:steel_beam", 3);
             }
-            p.fill(level, chunkBox, 16, 28, 4, 17, 28, 8, "reinhardtshbm:brick_concrete_slab", 0);
-            p.fill(level, chunkBox, 18, 27, 4, 19, 27, 8, "reinhardtshbm:brick_concrete_slab", 8);
-            p.fill(level, chunkBox, 20, 27, 4, 20, 27, 8, "reinhardtshbm:brick_concrete_slab", 0);
-            p.fill(level, chunkBox, 16, 28, 6, 17, 28, 6, "reinhardtshbm:brick_concrete_slab", 5);
-            p.fill(level, chunkBox, 18, 27, 6, 19, 27, 6, "reinhardtshbm:brick_concrete_slab", 13);
-            p.set(level, chunkBox, 20, 27, 6, "reinhardtshbm:brick_concrete_slab", 5);
+            p.fill(level, chunkBox, 16, 28, 4, 17, 28, 8, "reinhardtshbm:concrete_brick_slab", 0);
+            p.fill(level, chunkBox, 18, 27, 4, 19, 27, 8, "reinhardtshbm:concrete_brick_slab", 8);
+            p.fill(level, chunkBox, 20, 27, 4, 20, 27, 8, "reinhardtshbm:concrete_brick_slab", 0);
+            p.fill(level, chunkBox, 16, 28, 6, 17, 28, 6, "reinhardtshbm:concrete_brick_slab", 5);
+            p.fill(level, chunkBox, 18, 27, 6, 19, 27, 6, "reinhardtshbm:concrete_brick_slab", 13);
+            p.set(level, chunkBox, 20, 27, 6, "reinhardtshbm:concrete_brick_slab", 5);
 
             p.fillSiloSupplies(level, chunkBox, random, 27, 26, 7, 29, 26, 9);
             p.fillSiloSupplies(level, chunkBox, random, 17, 26, 4, 19, 26, 8);
@@ -1335,9 +1391,9 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.fillDestroyedBricks(level, chunkBox, random, 41, 26, 17, 41, 26, 17);
             p.set(level, chunkBox, 37, 26, 19, "reinhardtshbm:concrete_slab", 1);
 
-            p.set(level, chunkBox, 19, 26, 14, "reinhardtshbm:silo_hatch_large", 2);
+            p.placeLegacySiloHatchLarge(level, chunkBox, 19, 26, 14, Direction.SOUTH);
             p.set(level, chunkBox, 16, 25, 17, "reinhardtshbm:radio_torch_receiver", 1);
-            p.setDirect(level, chunkBox, 36, 26, 17, "minecraft:chest", 2);
+            p.setDirectLoot(level, chunkBox, 36, 26, 17, "minecraft:chest", 2, "POOL_VERTIBIRD", 5, 5);
 
             p.fill(level, chunkBox, 37, 26, 9, 37, 27, 10, "minecraft:air", 0);
             p.set(level, chunkBox, 37, 25, 10, "minecraft:air", 0);
@@ -1477,7 +1533,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.setDirect(level, chunkBox, 33, 23, 18, "reinhardtshbm:tape_recorder", decoW);
             p.fillDirect(level, chunkBox, 33, 21, 16, 33, 23, 16, "reinhardtshbm:tape_recorder", decoW);
             p.setDirect(level, chunkBox, 34, 21, 19, "reinhardtshbm:reinforced_stone_stairs", stairE | 4);
-            p.setDirect(level, chunkBox, 34, 21, 18, "reinhardtshbm:brick_concrete_slab", 8);
+            p.setDirect(level, chunkBox, 34, 21, 18, "reinhardtshbm:concrete_brick_slab", 8);
             p.set(level, chunkBox, 34, 22, 18, "minecraft:heavy_weighted_pressure_plate", 0);
             p.setDirect(level, chunkBox, 36, 21, 16, "reinhardtshbm:capacitor_copper", decoE);
             p.set(level, chunkBox, 36, 21, 17, "reinhardtshbm:deco_steel", 0);
@@ -1505,7 +1561,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.setDirect(level, chunkBox, 30, 21, 5, "reinhardtshbm:tape_recorder", decoE);
             p.set(level, chunkBox, 27, 21, 3, "minecraft:flower_pot", 0);
             p.set(level, chunkBox, 25, 22, 2, "minecraft:flower_pot", 0);
-            p.setDirect(level, chunkBox, 25, 21, 5, "reinhardtshbm:radio_telex", decoW);
+            p.placeLegacyRadioTelex(level, chunkBox, 25, 21, 5, Direction.WEST);
             p.set(level, chunkBox, 26, 20, 8, "reinhardtshbm:radio_torch_sender", 0);
             p.set(level, chunkBox, 25, 20, 7, "reinhardtshbm:radio_torch_sender", 0);
 
@@ -1525,18 +1581,18 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.set(level, chunkBox, 16, 22, 3, "minecraft:flower_pot", 0);
             p.placeRandomBobble(level, chunkBox, random, 16, 22, 4);
 
-            p.setDirect(level, chunkBox, 31, 21, 17, "reinhardtshbm:filing_cabinet", decoModelW);
-            p.setDirect(level, chunkBox, 31, 21, 18, "reinhardtshbm:filing_cabinet", decoModelW);
-            p.setDirect(level, chunkBox, 31, 21, 19, "reinhardtshbm:filing_cabinet", decoModelW);
-            p.setDirect(level, chunkBox, 31, 22, 17, "reinhardtshbm:filing_cabinet", decoModelW);
-            p.setDirect(level, chunkBox, 31, 22, 19, "reinhardtshbm:filing_cabinet", decoModelW);
-            p.setDirect(level, chunkBox, 29, 21, 19, "reinhardtshbm:crate_steel", 2);
-            p.setDirect(level, chunkBox, 29, 21, 18, "reinhardtshbm:filing_cabinet", decoModelE);
-            p.setDirect(level, chunkBox, 29, 21, 17, "reinhardtshbm:filing_cabinet", decoModelE);
-            p.setDirect(level, chunkBox, 31, 21, 8, "reinhardtshbm:filing_cabinet", decoModelW);
-            p.setDirect(level, chunkBox, 25, 21, 2, "reinhardtshbm:crate_steel", 3);
-            p.setDirect(level, chunkBox, 23, 21, 5, "reinhardtshbm:filing_cabinet", decoModelN);
-            p.setDirect(level, chunkBox, 16, 21, 4, "reinhardtshbm:safe", decoW);
+            p.setDirectLoot(level, chunkBox, 31, 21, 17, "reinhardtshbm:filing_cabinet", decoModelW, "POOL_FILING_CABINET", 4, 4);
+            p.setDirectLoot(level, chunkBox, 31, 21, 18, "reinhardtshbm:filing_cabinet", decoModelW, "POOL_VAULT_LAB", 6, 6);
+            p.setDirectLoot(level, chunkBox, 31, 21, 19, "reinhardtshbm:filing_cabinet", decoModelW, "POOL_FILING_CABINET", 4, 4);
+            p.setDirectLoot(level, chunkBox, 31, 22, 17, "reinhardtshbm:filing_cabinet", decoModelW, "POOL_FILING_CABINET", 4, 4);
+            p.setDirectLoot(level, chunkBox, 31, 22, 19, "reinhardtshbm:filing_cabinet", decoModelW, "POOL_FILING_CABINET", 4, 4);
+            p.setDirectLoot(level, chunkBox, 29, 21, 19, "reinhardtshbm:crate_steel", 2, "POOL_OFFICE_TRASH", 8, 8);
+            p.setDirectLoot(level, chunkBox, 29, 21, 18, "reinhardtshbm:filing_cabinet", decoModelE, "POOL_FILING_CABINET", 4, 4);
+            p.setDirectLoot(level, chunkBox, 29, 21, 17, "reinhardtshbm:filing_cabinet", decoModelE, "POOL_FILING_CABINET", 4, 4);
+            p.setDirectLoot(level, chunkBox, 31, 21, 8, "reinhardtshbm:filing_cabinet", decoModelW, "POOL_FILING_CABINET", 5, 5);
+            p.setDirectLoot(level, chunkBox, 25, 21, 2, "reinhardtshbm:crate_steel", 3, "POOL_MACHINE_PARTS", 4, 4);
+            p.setDirectLoot(level, chunkBox, 23, 21, 5, "reinhardtshbm:filing_cabinet", decoModelN, "POOL_FILING_CABINET", 5, 5);
+            p.setDirectLoot(level, chunkBox, 16, 21, 4, "reinhardtshbm:safe", decoW, "POOL_VAULT_RUSTY", 3, 3);
 
             placeSiloMainShaft(level, chunkBox, random, p, stairW, stairE, stairN, stairS);
         }
@@ -1828,7 +1884,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.fillDirect(level, chunkBox, 17, 2, 12, 17, 4, 12, "reinhardtshbm:ladder_steel", decoN);
             p.fillDirect(level, chunkBox, 21, 2, 16, 21, 4, 16, "reinhardtshbm:ladder_steel", decoS);
 
-            p.fill(level, chunkBox, 18, 1, 13, 20, 1, 15, "reinhardtshbm:launch_pad_rusted", 0);
+            p.placeLegacyRustedLaunchPad(level, chunkBox, 19, 1, 14, Direction.SOUTH);
             p.set(level, chunkBox, 19, 0, 14, "reinhardtshbm:radio_torch_receiver", 3);
 
             p.fill(level, chunkBox, 18, 1, 8, 20, 3, 10, "minecraft:air", 0);
@@ -2417,7 +2473,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                 switch (type) {
                     case START -> {
                         p.set(level, chunkBox, 3, 1, depth - 2, "reinhardtshbm:deco_tungsten", 0);
-                        p.set(level, chunkBox, 4, 1, depth - 2, "minecraft:chest", 3);
+                        p.setLoot(level, chunkBox, 4, 1, depth - 2, "minecraft:chest", 3, "POOL_ANTENNA", 5, 5);
                         p.set(level, chunkBox, 5, 1, depth - 2, "reinhardtshbm:deco_tungsten", 0);
                         p.set(level, chunkBox, 4, 2, 4, "reinhardtshbm:deco_computer", 1);
                     }
@@ -2431,8 +2487,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                         p.set(level, chunkBox, 3, 1, 6, "minecraft:red_bed", 2);
                         p.set(level, chunkBox, 1, 1, 6, "minecraft:red_bed", 2);
                         p.set(level, chunkBox, 8, 1, 5, "minecraft:note_block", 0);
-                        p.set(level, chunkBox, 8, 1, 7, "minecraft:chest", 4);
-                        p.set(level, chunkBox, 3, 1, 9, "reinhardtshbm:filing_cabinet", 0);
+                        p.setLoot(level, chunkBox, 8, 1, 7, "minecraft:chest", 4, "POOL_VAULT_LOCKERS", 3, 3);
+                        p.setLoot(level, chunkBox, 3, 1, 9, "reinhardtshbm:filing_cabinet", 0, "POOL_FILING_CABINET", 5, 5);
                     }
                     case FUN_JUNCTION -> {
                         p.fill(level, chunkBox, 1, 1, 1, 3, 1, 1, "minecraft:oak_stairs", 0);
@@ -2453,8 +2509,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                     case LABORATORY -> {
                         p.fill(level, chunkBox, 1, 1, 5, 1, 3, 5, "reinhardtshbm:deco_tungsten", 0);
                         p.set(level, chunkBox, 1, 2, 6, "reinhardtshbm:deco_computer", 3);
-                        p.set(level, chunkBox, 3, 1, 4, "minecraft:chest", 2);
-                        p.set(level, chunkBox, 7, 1, 10, "minecraft:chest", 4);
+                        p.setLoot(level, chunkBox, 3, 1, 4, "minecraft:chest", 2, "POOL_MACHINE_PARTS", 6, 6);
+                        p.setLoot(level, chunkBox, 7, 1, 10, "minecraft:chest", 4, "POOL_VAULT_LAB", 8, 8);
                         p.set(level, chunkBox, 7, 2, 3, "reinhardtshbm:deco_red_copper", 0);
                     }
                     case POWER_ROOM -> {
@@ -2464,7 +2520,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                         p.set(level, chunkBox, 8, 3, 1, "reinhardtshbm:deco_red_copper", 0);
                         p.set(level, chunkBox, 1, 2, 1, "reinhardtshbm:machine_transformer", 0);
                         p.set(level, chunkBox, 1, 2, 3, "reinhardtshbm:machine_battery", 4);
-                        p.set(level, chunkBox, 1, 1, 7, "minecraft:chest", 4);
+                        p.setLoot(level, chunkBox, 1, 1, 7, "minecraft:chest", 4, "POOL_NUKE_FUEL", 8, 8);
                     }
                 }
             }
@@ -2608,6 +2664,19 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             }
             BlockState state = state(blockId, meta).rotate(rotation());
             level.setBlock(pos, state, 2);
+            refreshPaneConnections(level, pos);
+            populateGeneratedContainer(level, pos, blockId);
+        }
+
+        void setLoot(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, String blockId, int meta,
+                     String pool, int minStacks, int maxStacks) {
+            BlockPos pos = pos(x, y, z);
+            if (!chunkBox.isInside(pos) || pos.getY() < level.getMinBuildHeight() || pos.getY() >= level.getMaxBuildHeight()) {
+                return;
+            }
+            level.setBlock(pos, state(blockId, meta).rotate(rotation()), 2);
+            refreshPaneConnections(level, pos);
+            populateGeneratedContainer(level, pos, blockId, pool, minStacks, maxStacks);
         }
 
         void setIfReplaceableOrAir(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, String blockId, int meta) {
@@ -2618,11 +2687,65 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             BlockState existing = level.getBlockState(pos);
             if (existing.isAir() || !existing.getFluidState().isEmpty() || !existing.isSolidRender(level, pos)) {
                 level.setBlock(pos, state(blockId, meta).rotate(rotation()), 2);
+                refreshPaneConnections(level, pos);
             }
         }
 
         void setDirect(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, String blockId, int meta) {
             setState(level, chunkBox, x, y, z, state(blockId, meta));
+            BlockPos pos = pos(x, y, z);
+            if (chunkBox.isInside(pos) && pos.getY() >= level.getMinBuildHeight() && pos.getY() < level.getMaxBuildHeight()) {
+                populateGeneratedContainer(level, pos, blockId);
+            }
+        }
+
+        void setDirectLoot(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, String blockId, int meta,
+                           String pool, int minStacks, int maxStacks) {
+            setState(level, chunkBox, x, y, z, state(blockId, meta));
+            BlockPos pos = pos(x, y, z);
+            if (chunkBox.isInside(pos) && pos.getY() >= level.getMinBuildHeight() && pos.getY() < level.getMaxBuildHeight()) {
+                populateGeneratedContainer(level, pos, blockId, pool, minStacks, maxStacks);
+            }
+        }
+
+        /**
+         * The 1.7.10 procedural components populated every generated chest and
+         * storage cabinet immediately after placing it.  The modern direct
+         * writer used to place only the block, leaving these inventories empty.
+         * Keep the population tied to the exact legacy container block IDs and
+         * only fill a newly-created, empty inventory once.
+         */
+        private static void populateGeneratedContainer(WorldGenLevel level, BlockPos pos, String blockId) {
+            populateGeneratedContainer(level, pos, blockId, null, 8, 8);
+        }
+
+        private static void populateGeneratedContainer(WorldGenLevel level, BlockPos pos, String blockId,
+                                                        String pool, int minStacks, int maxStacks) {
+            String normalized = HbmStructureIO.normalizeId(blockId);
+            if (!normalized.equals("minecraft:chest")
+                    && !normalized.equals("reinhardtshbm:crate_iron")
+                    && !normalized.equals("reinhardtshbm:crate_steel")
+                    && !normalized.equals("reinhardtshbm:filing_cabinet")
+                    && !normalized.equals("reinhardtshbm:safe")) {
+                return;
+            }
+
+            BlockEntity blockEntity = getOrCreateStructureBlockEntity(level, pos, level.getBlockState(pos));
+            if (!(blockEntity instanceof Container container)) {
+                return;
+            }
+            for (int slot = 0; slot < container.getContainerSize(); slot++) {
+                if (!container.getItem(slot).isEmpty()) {
+                    return;
+                }
+            }
+
+            String selectedPool = pool != null ? pool : normalized.equals("reinhardtshbm:filing_cabinet")
+                    ? "POOL_FILING_CABINET"
+                    : normalized.equals("reinhardtshbm:crate_steel") || normalized.equals("reinhardtshbm:safe")
+                    ? "POOL_MACHINE_PARTS"
+                    : "POOL_GENERIC";
+            HbmStructureLoot.fillContainer(container, selectedPool, minStacks, maxStacks, level.getRandom());
         }
 
         void setState(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, BlockState state) {
@@ -2631,6 +2754,163 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                 return;
             }
             level.setBlock(pos, state, 2);
+            refreshPaneConnections(level, pos);
+        }
+
+        /**
+         * SiloComponent in 1.7.10 explicitly called placeCore/fillSpace for
+         * these four machines.  Keep their saved player-facing directions
+         * separate from normal block-state rotation: placeCore always wrote
+         * getDirection(playerFacing.getOpposite()).
+         */
+        void placeLegacyHowardDamaged(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, Direction playerFacing) {
+            BlockPos corePos = pos(x, y, z);
+            Direction facing = legacyCoreFacing(playerFacing);
+            BlockState coreState = HbmBlocks.TURRET_HOWARD_DAMAGED.get().defaultBlockState()
+                    .setValue(LegacyTurretBlock.FACING, facing);
+            writeExactStructureState(level, chunkBox, corePos, coreState);
+
+            for (BlockPos partPos : LegacyTurretBlock.occupiedPositions(corePos, facing, LegacyTurretType.HOWARD_DAMAGED)) {
+                if (!partPos.equals(corePos)) {
+                    placeLegacyMachineDummy(level, chunkBox, partPos, corePos);
+                }
+            }
+        }
+
+        void placeLegacySiloHatchLarge(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, Direction playerFacing) {
+            BlockPos corePos = pos(x, y, z);
+            Direction facing = legacyCoreFacing(playerFacing);
+            BlockState coreState = HbmBlocks.SILO_HATCH_LARGE.get().defaultBlockState()
+                    .setValue(HbmHeavyDoorBlock.FACING, facing);
+            writeExactStructureState(level, chunkBox, corePos, coreState);
+            if (!(coreState.getBlock() instanceof HbmHeavyDoorBlock door)) {
+                ReinhardtsHBM.LOGGER.error("Skipping legacy silo hatch at {} because silo_hatch_large is not an HbmHeavyDoorBlock", corePos);
+                return;
+            }
+
+            // The old fillSpace dimensions were {0, 0, 3, 3, 3, 3};
+            // HbmDoorDecl.SILO_HATCH_LARGE holds exactly that same layout.
+            for (var entry : HbmHeavyDoorBlock.worldOffsets(door.decl(), facing, corePos).entrySet()) {
+                BlockPos partPos = entry.getKey();
+                if (partPos.equals(corePos) || !writeExactStructureState(level, chunkBox, partPos,
+                        HbmBlocks.HEAVY_DOOR_PART.get().defaultBlockState().setValue(HbmHeavyDoorPartBlock.EXTRA, false))) {
+                    continue;
+                }
+                BlockEntity blockEntity = getOrCreateStructureBlockEntity(level, partPos, level.getBlockState(partPos));
+                if (!(blockEntity instanceof HbmHeavyDoorPartBlockEntity part)) {
+                    ReinhardtsHBM.LOGGER.error(
+                            "Skipping legacy silo hatch part link at {} -> {} because no HbmHeavyDoorPartBlockEntity was created",
+                            partPos,
+                            corePos
+                    );
+                    continue;
+                }
+                part.configure(corePos, entry.getValue());
+            }
+        }
+
+        void placeLegacyRadioTelex(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, Direction playerFacing) {
+            BlockPos corePos = pos(x, y, z);
+            Direction facing = legacyCoreFacing(playerFacing);
+            BlockState coreState = HbmBlocks.RADIO_TELEX.get().defaultBlockState()
+                    .setValue(LargeMachineBlock.FACING, facing);
+            writeExactStructureState(level, chunkBox, corePos, coreState);
+            if (!(coreState.getBlock() instanceof LargeMachineBlock telex)) {
+                ReinhardtsHBM.LOGGER.error("Skipping legacy radio telex at {} because radio_telex is not a LargeMachineBlock", corePos);
+                return;
+            }
+
+            // RadioTelexBlock declares the original {0, 0, 0, 0, 1, 0}
+            // HBM-legacy footprint, so no inferred box or offset is used.
+            for (BlockPos offset : telex.machineFootprint().offsets()) {
+                BlockPos partPos = corePos.offset(LegacyMachineGeometry.rotate(offset, facing, telex.machineRotationBasis()));
+                if (!partPos.equals(corePos)) {
+                    placeLegacyMachineDummy(level, chunkBox, partPos, corePos);
+                }
+            }
+        }
+
+        void placeLegacyRustedLaunchPad(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, Direction playerFacing) {
+            BlockPos corePos = pos(x, y, z);
+            Direction facing = legacyCoreFacing(playerFacing);
+            BlockState coreState = HbmBlocks.LAUNCH_PAD_RUSTED.get().defaultBlockState()
+                    .setValue(LargeMachineBlock.FACING, facing);
+            boolean coreWritten = writeExactStructureState(level, chunkBox, corePos, coreState);
+            if (!(coreState.getBlock() instanceof LargeMachineBlock launchPad)) {
+                ReinhardtsHBM.LOGGER.error("Skipping legacy rusted launch pad at {} because launch_pad_rusted is not a LargeMachineBlock", corePos);
+                return;
+            }
+            if (coreWritten) {
+                BlockEntity blockEntity = getOrCreateStructureBlockEntity(level, corePos, coreState);
+                if (!(blockEntity instanceof LauncherBlockEntity launcher)) {
+                    ReinhardtsHBM.LOGGER.error(
+                            "Skipping legacy rusted launch pad missile state at {} because no LauncherBlockEntity was created",
+                            corePos
+                    );
+                } else {
+                    // placeCoreLaunchpad set TileEntityLaunchPadRusted.missileLoaded = true.
+                    launcher.setMissileLoadedFromStructure(true);
+                }
+            }
+
+            // Old fillSpace covered this exact 3x3 plane.  Its four corner
+            // makeExtra calls only marked old dummy metadata; the modern pad
+            // represents every non-core cell by its precise linked dummy.
+            for (BlockPos offset : launchPad.machineFootprint().offsets()) {
+                BlockPos partPos = corePos.offset(LegacyMachineGeometry.rotate(offset, facing, launchPad.machineRotationBasis()));
+                if (!partPos.equals(corePos)) {
+                    placeLegacyMachineDummy(level, chunkBox, partPos, corePos);
+                }
+            }
+        }
+
+        private Direction legacyCoreFacing(Direction playerFacing) {
+            return rotation().rotate(playerFacing.getOpposite());
+        }
+
+        private void placeLegacyMachineDummy(WorldGenLevel level, BoundingBox chunkBox, BlockPos partPos, BlockPos corePos) {
+            BlockState state = HbmBlocks.MACHINE_DUMMY.get().defaultBlockState();
+            if (!writeExactStructureState(level, chunkBox, partPos, state)) {
+                return;
+            }
+            BlockEntity blockEntity = getOrCreateStructureBlockEntity(level, partPos, state);
+            if (!(blockEntity instanceof MachineDummyBlockEntity dummy)) {
+                ReinhardtsHBM.LOGGER.error(
+                        "Skipping legacy procedural structure dummy link at {} -> {} because no MachineDummyBlockEntity was created",
+                        partPos,
+                        corePos
+                );
+                return;
+            }
+            dummy.setCorePos(corePos);
+        }
+
+        private boolean writeExactStructureState(WorldGenLevel level, BoundingBox chunkBox, BlockPos worldPos, BlockState state) {
+            if (!chunkBox.isInside(worldPos)
+                    || worldPos.getY() < level.getMinBuildHeight()
+                    || worldPos.getY() >= level.getMaxBuildHeight()) {
+                return false;
+            }
+            // The old NBT/procedural writers supplied turret parts themselves;
+            // do not let the normal modern onPlace path add a second layout.
+            if (state.getBlock() instanceof LegacyTurretBlock) {
+                LegacyTurretBlock.runWithoutAutomaticDummies(() -> level.setBlock(worldPos, state, 2));
+            } else {
+                level.setBlock(worldPos, state, 2);
+            }
+            refreshPaneConnections(level, worldPos);
+            return true;
+        }
+
+        private static BlockEntity getOrCreateStructureBlockEntity(WorldGenLevel level, BlockPos pos, BlockState state) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity == null && level instanceof WorldGenRegion region && state.getBlock() instanceof EntityBlock entityBlock) {
+                blockEntity = entityBlock.newBlockEntity(pos, state);
+                if (blockEntity != null) {
+                    region.getChunk(pos.getX() >> 4, pos.getZ() >> 4).setBlockEntity(blockEntity);
+                }
+            }
+            return blockEntity;
         }
 
         void fill(WorldGenLevel level, BoundingBox chunkBox, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, String blockId, int meta) {
@@ -2749,6 +3029,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                         }
                         if (level.getBlockState(pos).isAir() && !level.getBlockState(pos.below()).isAir()) {
                             level.setBlock(pos, mine, 2);
+                            refreshPaneConnections(level, pos);
                             if (level.getBlockEntity(pos) instanceof com.reinhardt.hbm.blockentity.LandmineBlockEntity landmine) {
                                 landmine.setWaitingForPlayer(true);
                             }
@@ -2850,6 +3131,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
                             break;
                         }
                         level.setBlock(current, state(blockId, meta).rotate(rotation()), 2);
+                        refreshPaneConnections(level, current);
                     }
                 }
             }
@@ -3000,6 +3282,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             BlockState state = HbmBlocks.BOBBLEHEAD.get().defaultBlockState()
                     .setValue(BobbleheadBlock.ROTATION, random.nextInt(16));
             level.setBlock(pos, state, 2);
+            refreshPaneConnections(level, pos);
             if (level.getBlockEntity(pos) instanceof BobbleheadBlockEntity bobble) {
                 bobble.setType(BobbleheadType.byOrdinal(random.nextInt(24) + 1));
             }
@@ -3199,7 +3482,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
         private static BlockState destroyedBricks(RandomSource random) {
             float chance = random.nextFloat();
             if (chance < 0.3F) {
-                return state("reinhardtshbm:brick_concrete_slab", concreteSlabVariant(random));
+                return state("reinhardtshbm:concrete_brick_slab", concreteSlabVariant(random));
             }
             if (chance < 0.6F) {
                 return concreteStairs(random, random.nextInt(4));

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ASA",
+    " S ",
+    "PSP"
+  ],
+  "key": {
+    "A": {
+      "tag": "c:plates/titanium"
+    },
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "S": {
+      "item": "reinhardtshbm:steel_scaffold"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mp_stability_10_cruise",
+    "count": 1
+  }
+}
+

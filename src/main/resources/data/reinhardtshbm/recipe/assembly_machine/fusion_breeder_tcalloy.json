@@ -1,53 +1,57 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "neoforge:not",
-                                    "value":  {
-                                                  "type":  "reinhardtshbm:enable_528_mode"
-                                              }
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.fusionbreeder",
-    "duration":  300,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:plate_cast"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  36,
-                                                                                                "material":  "tcalloy"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  4
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:pipes/steel"
-                                           },
-                            "count":  4
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/boron"
-                                           },
-                            "count":  16
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/hard_plastic"
-                                           },
-                            "count":  16
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:fusion_breeder"
-               }
+{
+  "neoforge:conditions": {
+    "type": "neoforge:not",
+    "value": {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  },
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fusionbreeder",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:plate_cast",
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 36,
+            "material": "tcalloy"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:pipe"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "material_id": 30,
+            "material": "steel"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/boron"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fusion_breeder"
+  }
 }
-

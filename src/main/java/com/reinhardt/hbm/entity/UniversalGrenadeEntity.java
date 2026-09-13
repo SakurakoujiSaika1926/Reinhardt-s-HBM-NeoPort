@@ -4,6 +4,7 @@ import com.reinhardt.hbm.item.UniversalGrenadeItem;
 import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -25,6 +26,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -43,9 +45,15 @@ public final class UniversalGrenadeEntity extends Entity {
             SynchedEntityData.defineId(UniversalGrenadeEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> STUCK =
             SynchedEntityData.defineId(UniversalGrenadeEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> TRAIL =
+            SynchedEntityData.defineId(UniversalGrenadeEntity.class, EntityDataSerializers.INT);
 
     @Nullable
     private UUID ownerId;
+    @Nullable
+    private BlockPos stuckBlockPos;
+    @Nullable
+    private Block stuckBlock;
 
     public UniversalGrenadeEntity(EntityType<? extends UniversalGrenadeEntity> type, Level level) {
         super(type, level);
@@ -63,7 +71,7 @@ public final class UniversalGrenadeEntity extends Entity {
         updateRotation(getDeltaMovement());
     }
 
-    private UniversalGrenadeEntity(Level level, ItemStack stack, @Nullable UUID ownerId, Vec3 motion) {
+    public UniversalGrenadeEntity(Level level, ItemStack stack, @Nullable UUID ownerId, Vec3 motion) {
         this(HbmEntityTypes.UNIVERSAL_GRENADE.get(), level);
         setGrenade(stack);
         this.ownerId = ownerId;
@@ -71,11 +79,20 @@ public final class UniversalGrenadeEntity extends Entity {
         updateRotation(motion);
     }
 
+    /** Entity-owned throw used by the legacy FBI drone (EntityFBIDrone). */
+    public UniversalGrenadeEntity(Level level, Entity owner, ItemStack stack, Vec3 motion) {
+        this(level, stack, owner == null ? null : owner.getUUID(), motion);
+        if (owner != null) {
+            setPos(owner.getX(), owner.getEyeY() - 0.25D, owner.getZ());
+        }
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(GRENADE, ItemStack.EMPTY);
         builder.define(TIMER, 0);
         builder.define(STUCK, false);
+        builder.define(TRAIL, 0);
     }
 
     public ItemStack grenadeStack() {
@@ -90,7 +107,21 @@ public final class UniversalGrenadeEntity extends Entity {
             return;
         }
 
-        if (!entityData.get(STUCK)) {
+        boolean detachedFromBlock = false;
+        if (entityData.get(STUCK)) {
+            if (!isStuckInSameBlock()) {
+                Vec3 motion = getDeltaMovement();
+                setDeltaMovement(new Vec3(
+                        motion.x * random.nextFloat() * 0.2D,
+                        motion.y * random.nextFloat() * 0.2D,
+                        motion.z * random.nextFloat() * 0.2D));
+                entityData.set(STUCK, false);
+                stuckBlockPos = null;
+                stuckBlock = null;
+                detachedFromBlock = true;
+            }
+        }
+        if (!entityData.get(STUCK) && !detachedFromBlock) {
             moveGrenade();
         }
         if (!level().isClientSide) {
@@ -100,7 +131,7 @@ public final class UniversalGrenadeEntity extends Entity {
                 detonate();
                 return;
             }
-        } else if (extra() == UniversalGrenadeItem.Extra.TRIPLEX) {
+        } else if (entityData.get(TRAIL) == 1) {
             level().addParticle(ParticleTypes.FLAME, getX(), getY(), getZ(), 0.0D, 0.01D, 0.0D);
         }
     }
@@ -127,17 +158,20 @@ public final class UniversalGrenadeEntity extends Entity {
                 return;
             }
             if (extra() == UniversalGrenadeItem.Extra.GLUE) {
-                setPos(blockHit.getLocation().add(Vec3.atLowerCornerOf(blockHit.getDirection().getNormal()).scale(0.05D)));
+                setPos(blockHit.getLocation());
                 entityData.set(STUCK, true);
+                stuckBlockPos = blockHit.getBlockPos();
+                stuckBlock = level().getBlockState(stuckBlockPos).getBlock();
                 setDeltaMovement(Vec3.ZERO);
                 return;
             }
             Direction side = blockHit.getDirection();
             setPos(blockHit.getLocation().add(Vec3.atLowerCornerOf(side.getNormal()).scale(0.05D)));
             if (motion.length() > 0.2D && !level().isClientSide) {
-                level().playSound(null, blockPosition(), SoundEvents.SLIME_BLOCK_HIT, SoundSource.NEUTRAL, 1.0F, 1.0F);
+                level().playSound(null, blockPosition(), HbmSoundEvents.WEAPON_GRENADE_BOUNCE.get(),
+                        SoundSource.NEUTRAL, 1.0F, 1.0F);
             }
-            motion = reflect(motion, side).scale(shell().bounce());
+            motion = bounce(motion, side, shell().bounce());
         } else {
             move(MoverType.SELF, motion);
         }
@@ -227,7 +261,7 @@ public final class UniversalGrenadeEntity extends Entity {
             }
         }
         if (extra() == UniversalGrenadeItem.Extra.FRAG_SLEEVE) {
-            spawnFragments(shell() == UniversalGrenadeItem.Shell.FRAG ? 37 : 25, 1.0D, 1.0D);
+                spawnFragments(shell() == UniversalGrenadeItem.Shell.FRAG ? 38 : 25, 1.0D, 1.0D);
         } else if (extra() == UniversalGrenadeItem.Extra.TRIPLEX) {
             spawnTriplex();
         }
@@ -296,6 +330,7 @@ public final class UniversalGrenadeEntity extends Entity {
             Vec3 motion = new Vec3(Math.cos(angle) * 0.25D, 0.75D, Math.sin(angle) * 0.25D);
             UniversalGrenadeEntity child = new UniversalGrenadeEntity(level(), fragment, ownerId, motion);
             child.setPos(position());
+            child.entityData.set(TRAIL, 1);
             level().addFreshEntity(child);
             angle += Math.PI * 2.0D / 3.0D;
         }
@@ -342,11 +377,11 @@ public final class UniversalGrenadeEntity extends Entity {
         return closest == null ? null : new EntityHitResult(closest, closestPoint);
     }
 
-    private static Vec3 reflect(Vec3 motion, Direction side) {
+    private static Vec3 bounce(Vec3 motion, Direction side, double bounce) {
         return switch (side.getAxis()) {
-            case X -> new Vec3(-motion.x, motion.y, motion.z);
-            case Y -> new Vec3(motion.x, -motion.y, motion.z);
-            case Z -> new Vec3(motion.x, motion.y, -motion.z);
+            case X -> new Vec3(-motion.x * bounce, motion.y * 0.8D, motion.z * 0.8D);
+            case Y -> new Vec3(motion.x * 0.8D, -motion.y * bounce, motion.z * 0.8D);
+            case Z -> new Vec3(motion.x * 0.8D, motion.y * 0.8D, -motion.z * bounce);
         };
     }
 
@@ -359,6 +394,12 @@ public final class UniversalGrenadeEntity extends Entity {
 
     private void setGrenade(ItemStack stack) {
         entityData.set(GRENADE, stack.copyWithCount(1));
+    }
+
+    private boolean isStuckInSameBlock() {
+        return stuckBlockPos != null
+                && stuckBlock != null
+                && level().getBlockState(stuckBlockPos).getBlock() == stuckBlock;
     }
 
     private int timer() { return entityData.get(TIMER); }
@@ -378,6 +419,9 @@ public final class UniversalGrenadeEntity extends Entity {
         tag.put("grenade", grenadeStack().save(registryAccess()));
         tag.putInt("timer", timer());
         tag.putBoolean("stuck", entityData.get(STUCK));
+        if (stuckBlockPos != null) {
+            tag.putLong("stuck_pos", stuckBlockPos.asLong());
+        }
         if (ownerId != null) tag.putUUID("owner", ownerId);
     }
 
@@ -386,8 +430,15 @@ public final class UniversalGrenadeEntity extends Entity {
         setGrenade(ItemStack.parseOptional(registryAccess(), tag.getCompound("grenade")));
         entityData.set(TIMER, tag.getInt("timer"));
         entityData.set(STUCK, tag.getBoolean("stuck"));
+        if (tag.contains("stuck_pos")) {
+            stuckBlockPos = BlockPos.of(tag.getLong("stuck_pos"));
+            stuckBlock = level().getBlockState(stuckBlockPos).getBlock();
+        } else {
+            stuckBlockPos = null;
+            stuckBlock = null;
+        }
         ownerId = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
     }
 
-    @Override public boolean shouldRenderAtSqrDistance(double distance) { return distance < 65536.0D; }
+    @Override public boolean shouldRenderAtSqrDistance(double distance) { return distance < 4096.0D; }
 }

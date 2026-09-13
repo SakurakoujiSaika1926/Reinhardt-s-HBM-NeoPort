@@ -237,6 +237,9 @@ public class PowerPylonBlock extends Block implements EntityBlock {
     }
 
     private void removeDummies(Level level, BlockPos corePos, BlockState state) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         Direction facing = state.getValue(FACING);
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : this.kind.footprintOffsets()) {

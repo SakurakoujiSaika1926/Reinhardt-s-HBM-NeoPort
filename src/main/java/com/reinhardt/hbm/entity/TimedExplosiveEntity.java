@@ -2,7 +2,9 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.block.DetonatableBlock;
+import com.reinhardt.hbm.block.LegacyBarrelBlock;
 import com.reinhardt.hbm.blockentity.WallChargeExplosions;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -79,17 +81,20 @@ public final class TimedExplosiveEntity extends Entity {
         setDeltaMovement(motion);
 
         int fuse = fuse();
-        if (fuse <= 0) {
+        Kind currentKind = kind();
+        if (fuse <= 0 || (currentKind.detonatesOnCollision() && (horizontalCollision || verticalCollision))) {
             discard();
             if (!level().isClientSide) {
-                if (level() instanceof net.minecraft.server.level.ServerLevel server
-                        && isDetonatableKind(kind())) {
+                if (level() instanceof ServerLevel server
+                        && isDetonatableKind(currentKind)) {
                     DetonatableBlock.detonatePrimed(server,
-                            net.minecraft.core.BlockPos.containing(getX(), getY(), getZ()), kind(), owner);
-                } else if (kind() == Kind.FISSURE && level() instanceof net.minecraft.server.level.ServerLevel server) {
+                            net.minecraft.core.BlockPos.containing(getX(), getY(), getZ()), currentKind, owner);
+                } else if (currentKind == Kind.FISSURE && level() instanceof ServerLevel server) {
                     com.reinhardt.hbm.block.FissureBombBehavior.detonate(server, this, new Vec3(getX(), getY(), getZ()));
+                } else if (currentKind.isLegacyBarrel() && level() instanceof ServerLevel server) {
+                    LegacyBarrelBlock.detonatePrimed(server, new Vec3(getX(), getY(), getZ()), currentKind, this);
                 } else {
-                    level().explode(this, getX(), getY(), getZ(), kind().explosionRadius(), true, Level.ExplosionInteraction.TNT);
+                    level().explode(this, getX(), getY(), getZ(), currentKind.explosionRadius(), true, Level.ExplosionInteraction.TNT);
                 }
             }
             return;
@@ -110,6 +115,17 @@ public final class TimedExplosiveEntity extends Entity {
     @Override
     public boolean isPickable() {
         return isAlive();
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return isAlive();
+    }
+
+    /** Direct modern equivalent of EntityTNTPrimedBase#canTriggerWalking() == false. */
+    @Override
+    public boolean isIgnoringBlockTriggers() {
+        return true;
     }
 
     @Override
@@ -138,18 +154,40 @@ public final class TimedExplosiveEntity extends Entity {
         DET_CORD("det_cord", 0.0F),
         DET_CHARGE("det_charge", 0.0F),
         DET_NUKE("det_nuke", 0.0F),
-        DET_MINER("det_miner", 0.0F);
+        DET_MINER("det_miner", 0.0F),
+        RED_BARREL("red_barrel", 0.0F, true),
+        PINK_BARREL("pink_barrel", 0.0F, true),
+        LOX_BARREL("lox_barrel", 0.0F, true),
+        TAINT_BARREL("taint_barrel", 0.0F, true),
+        YELLOW_BARREL("yellow_barrel", 0.0F, true);
 
         private final String id;
         private final float explosionRadius;
+        private final boolean detonatesOnCollision;
 
         Kind(String id, float explosionRadius) {
+            this(id, explosionRadius, false);
+        }
+
+        Kind(String id, float explosionRadius, boolean detonatesOnCollision) {
             this.id = id;
             this.explosionRadius = explosionRadius;
+            this.detonatesOnCollision = detonatesOnCollision;
         }
 
         public float explosionRadius() {
             return explosionRadius;
+        }
+
+        public boolean detonatesOnCollision() {
+            return this.detonatesOnCollision;
+        }
+
+        public boolean isLegacyBarrel() {
+            return switch (this) {
+                case RED_BARREL, PINK_BARREL, LOX_BARREL, TAINT_BARREL, YELLOW_BARREL -> true;
+                default -> false;
+            };
         }
 
         @Override

@@ -234,6 +234,9 @@ public class GasTurbineBlock extends Block implements EntityBlock {
     }
 
     private static void removeOldTurbineDummies(Level level, BlockPos corePos, Direction facing) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos pos : oldTurbinePositions(corePos, facing)) {
                 if (pos.equals(corePos)) {

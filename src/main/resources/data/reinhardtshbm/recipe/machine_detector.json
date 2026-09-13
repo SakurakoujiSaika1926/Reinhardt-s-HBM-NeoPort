@@ -3,7 +3,7 @@
   "category": "redstone",
   "pattern": ["IRI", "CTC", "IRI"],
   "key": {
-    "I": { "item": "reinhardtshbm:plate_polymer" },
+    "I": { "tag": "c:plates/polymer" },
     "R": { "item": "minecraft:redstone" },
     "C": {
       "type": "neoforge:components",

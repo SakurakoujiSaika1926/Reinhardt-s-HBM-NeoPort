@@ -1,7 +1,9 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.registry.HbmEntityTypes;
-import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.explosion.LegacyMukeExplosion;
+import com.reinhardt.hbm.explosion.NukeExplosionManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -23,7 +25,6 @@ public final class LegacyBombletEntity extends Entity {
     public LegacyBombletEntity(EntityType<? extends LegacyBombletEntity> type, Level level) {
         super(type, level);
         this.noCulling = true;
-        this.noPhysics = true;
     }
 
     public LegacyBombletEntity(Level level, Vec3 position, Vec3 motion, int type) {
@@ -59,20 +60,33 @@ public final class LegacyBombletEntity extends Entity {
     private void impact() {
         Vec3 position = position();
         switch (entityData.get(TYPE)) {
-            case 0 -> LegacyProjectileUtil.standardExplosion(this, position, 4.0F, 1.0F, true, true);
+            case 0 -> LegacyProjectileUtil.standardExplosion(this, position.add(0.5D, 1.5D, 0.5D), 4.0F, 1.0F, true, true);
             case 1 -> {
-                LegacyProjectileUtil.standardExplosion(this, position, 4.0F, 1.0F, true, true);
+                LegacyProjectileUtil.standardExplosion(this, position.add(0.5D, 1.5D, 0.5D), 4.0F, 1.0F, true, true);
                 LegacyProjectileUtil.igniteArea(level(), legacyBlockPos(), 4);
             }
             case 2 -> {
-                level().playSound(null, getX(), getY(), getZ(), SoundEvents.FIRE_EXTINGUISH,
+                level().playSound(null, getX() + 0.5D, getY() + 0.5D, getZ() + 0.5D, SoundEvents.FIRE_EXTINGUISH,
                         SoundSource.HOSTILE, 5.0F, 2.6F + (random.nextFloat() - random.nextFloat()) * 0.8F);
-                LegacyProjectileUtil.gas(this, position, LegacyMistEntity.MistType.CHLORINE);
+                Vec3 motion = getDeltaMovement();
+                level().addFreshEntity(new LegacyMistEntity(
+                        level(),
+                        getX() - motion.x,
+                        getY() - motion.y,
+                        getZ() - motion.z,
+                        LegacyMistEntity.MistType.CHLORINE,
+                        15.0F,
+                        7.5F,
+                        150
+                ));
             }
             case 4 -> {
-                LegacyProjectileUtil.promptNuke(this, position, false);
-                level().playSound(null, getX(), getY(), getZ(), HbmSoundEvents.WEAPON_MUKE_EXPLOSION.get(),
-                        SoundSource.HOSTILE, 15.0F, 1.0F);
+                int radius = (int) (HbmConfig.FATMAN_RADIUS.get() * 1.5D);
+                if (level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    NukeExplosionManager.scheduleMk5Nuclear(serverLevel,
+                            position.x, position.y, position.z, radius);
+                    LegacyMukeExplosion.sendMukeEffect(serverLevel, position);
+                }
             }
             default -> {
                 // The old entity has no payload behavior for its unused type values.

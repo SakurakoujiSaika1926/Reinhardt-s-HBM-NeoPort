@@ -148,7 +148,9 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
     }
 
     public long hePerTick() {
-        return Math.round((this.throttle * 0.2D) * this.fuelTank.type().combustibleHeatEnergy() / 1_000.0D * currentEfficiency());
+        // Old compound-assignment semantics truncate the calculated double
+        // toward zero; they do not round to nearest.
+        return (long) ((this.throttle * 0.2D) * this.fuelTank.type().combustibleHeatEnergy() / 1_000.0D * currentEfficiency());
     }
 
     public double currentEfficiency() {
@@ -462,7 +464,9 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
         if (this.enabled && this.throttle > 0 && fillTenths > 0 && acceptsFuel(this.fuelTank.type()) && currentEfficiency() > 0.0D) {
             int toBurn = Math.min(fillTenths, this.throttle * 2);
             HbmFluidDefinition burnedFuel = this.fuelTank.type();
-            this.power = Math.min(MAX_POWER, this.power + Math.round(toBurn * (this.fuelTank.type().combustibleHeatEnergy() / 10_000.0D) * currentEfficiency()));
+            // TileEntityMachineCombustionEngine used a long += double.  Keep
+            // the exact truncation order instead of Math.round().
+            this.power = Math.min(MAX_POWER, this.power + (long) (toBurn * (this.fuelTank.type().combustibleHeatEnergy() / 10_000.0D) * currentEfficiency()));
             fillTenths -= toBurn;
             this.fuelTank.setAmount(fillTenths / 10);
             this.tenthMilliBucket = fillTenths % 10;

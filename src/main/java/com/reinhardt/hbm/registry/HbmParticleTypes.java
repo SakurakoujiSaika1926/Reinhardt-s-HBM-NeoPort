@@ -14,6 +14,10 @@ public final class HbmParticleTypes {
 
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> COOLING_TOWER =
             PARTICLES.register("cooling_tower", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> LAUNCHER_PLUME =
+            PARTICLES.register("launcher_plume", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> LAUNCHER_EX_SMOKE =
+            PARTICLES.register("launcher_ex_smoke", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> GAS_FLARE_SMOKE =
             PARTICLES.register("gas_flare_smoke", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> GAS_FLARE_FLAME =
@@ -46,6 +50,12 @@ public final class HbmParticleTypes {
             PARTICLES.register("meteor_tail", () -> new SimpleParticleType(true));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> KEROSENE_ROCKET_FLAME =
             PARTICLES.register("kerosene_rocket_flame", () -> new SimpleParticleType(true));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> HYDROGEN_ROCKET_FLAME =
+            PARTICLES.register("hydrogen_rocket_flame", () -> new SimpleParticleType(true));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> BALEFIRE_ROCKET_FLAME =
+            PARTICLES.register("balefire_rocket_flame", () -> new SimpleParticleType(true));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SOLID_ROCKET_FLAME =
+            PARTICLES.register("solid_rocket_flame", () -> new SimpleParticleType(true));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> TAU_SPARK =
             PARTICLES.register("tau_spark", () -> new SimpleParticleType(true));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> TAU_HADRON =
@@ -74,6 +84,8 @@ public final class HbmParticleTypes {
             PARTICLES.register("flamethrower_fire", () -> new SimpleParticleType(true));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> FLAMETHROWER_BALEFIRE =
             PARTICLES.register("flamethrower_balefire", () -> new SimpleParticleType(true));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> FLAMETHROWER_BLACK =
+            PARTICLES.register("flamethrower_black", () -> new SimpleParticleType(true));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> GIBLET_MEAT =
             PARTICLES.register("giblet_meat", () -> new SimpleParticleType(true));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> GIBLET_SLIME =

@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "P P",
+    "MLM",
+    "PKP"
+  ],
+  "key": {
+    "L": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:parts_legendary"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "variant": "tier2"
+        }
+      }
+    },
+    "K": {
+      "tag": "c:plates/kevlar"
+    },
+    "P": {
+      "tag": "c:plates/armor_ajr"
+    },
+    "M": {
+      "item": "reinhardtshbm:motor_desh"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rpa_plate"
+  }
+}

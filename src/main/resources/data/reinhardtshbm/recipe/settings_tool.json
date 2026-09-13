@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" P ","PCP","III"],"key":{"P":{"tag":"c:plates/iron"},"C":{"item":"reinhardtshbm:circuit_analog"},"I":{"tag":"c:plates/polymer"}},"result":{"id":"reinhardtshbm:settings_tool"}}

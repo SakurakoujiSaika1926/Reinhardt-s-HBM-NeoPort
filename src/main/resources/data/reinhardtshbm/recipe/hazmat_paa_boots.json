@@ -6,7 +6,7 @@
     "E E"
   ],
   "key": {
-    "E": { "item": "reinhardtshbm:plate_paa" }
+    "E": { "tag": "c:plates/paa" }
   },
   "result": { "id": "reinhardtshbm:hazmat_paa_boots" }
 }

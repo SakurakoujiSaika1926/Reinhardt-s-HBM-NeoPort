@@ -3,6 +3,13 @@
     "values":  [
                    "reinhardtshbm:cluster_aluminium",
                    "reinhardtshbm:cluster_copper",
+                   "reinhardtshbm:cluster_deepslate_aluminium",
+                   "reinhardtshbm:cluster_deepslate_copper",
+                   "reinhardtshbm:cluster_deepslate_iron",
+                   "reinhardtshbm:cluster_deepslate_titanium",
+                   "reinhardtshbm:cluster_depth_iron",
+                   "reinhardtshbm:cluster_depth_titanium",
+                   "reinhardtshbm:cluster_depth_tungsten",
                    "reinhardtshbm:cluster_iron",
                    "reinhardtshbm:cluster_titanium",
                    "reinhardtshbm:ore_sulfur",
@@ -16,6 +23,9 @@
                    "reinhardtshbm:ore_asbestos",
                    "reinhardtshbm:ore_deepslate_asbestos",
                    "reinhardtshbm:ore_cinnabar",
-                   "reinhardtshbm:ore_deepslate_cinnabar"
+                   "reinhardtshbm:ore_cinnebar",
+                   "reinhardtshbm:ore_deepslate_cinnabar",
+                   "reinhardtshbm:ore_deepslate_cinnebar",
+                   "reinhardtshbm:stone_resource"
                ]
 }

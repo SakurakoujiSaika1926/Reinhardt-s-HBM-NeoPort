@@ -1,0 +1,42 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mpw10taint",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:seg_10"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:det_cord"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_magic"
+      },
+      "count": 12
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:mp_warhead_10_taint",
+    "count": 1
+  },
+  "input_fluids": [
+    {
+      "fluid": "watz",
+      "amount": 1000
+    }
+  ]
+}

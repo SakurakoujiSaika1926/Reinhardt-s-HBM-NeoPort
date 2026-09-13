@@ -15,8 +15,20 @@ public record RbmkAutoControlPayload(
         int levelUpper,
         int levelLower,
         int heatUpper,
-        int heatLower
+        int heatLower,
+        boolean updateParameters
 ) implements CustomPacketPayload {
+    /**
+     * Keep the old six-argument construction form for callers outside the
+     * screen while making the packet's update mode explicit.  The legacy
+     * packet had two mutually exclusive shapes: a function-only packet and a
+     * threshold-only packet.
+     */
+    public RbmkAutoControlPayload(BlockPos pos, int function, int levelUpper, int levelLower,
+                                  int heatUpper, int heatLower) {
+        this(pos, function, levelUpper, levelLower, heatUpper, heatLower, false);
+    }
+
     public static final Type<RbmkAutoControlPayload> TYPE = new Type<>(ReinhardtsHBM.id("rbmk_auto_control"));
     public static final StreamCodec<RegistryFriendlyByteBuf, RbmkAutoControlPayload> STREAM_CODEC = new StreamCodec<>() {
         @Override
@@ -27,7 +39,8 @@ public record RbmkAutoControlPayload(
                     buffer.readVarInt(),
                     buffer.readVarInt(),
                     buffer.readVarInt(),
-                    buffer.readVarInt()
+                    buffer.readVarInt(),
+                    buffer.readBoolean()
             );
         }
 
@@ -39,6 +52,7 @@ public record RbmkAutoControlPayload(
             buffer.writeVarInt(payload.levelLower);
             buffer.writeVarInt(payload.heatUpper);
             buffer.writeVarInt(payload.heatLower);
+            buffer.writeBoolean(payload.updateParameters);
         }
     };
 
@@ -49,13 +63,19 @@ public record RbmkAutoControlPayload(
 
     public static void handle(RbmkAutoControlPayload payload, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player
-                && player.level().getBlockEntity(payload.pos) instanceof RbmkComponentBlockEntity rbmk) {
+                && player.level().getBlockEntity(payload.pos) instanceof RbmkComponentBlockEntity rbmk
+                // TileEntityRBMKControlAuto.hasPermission used a strict
+                // 20-block radius in 1.7.10.
+                // TileEntityRBMKControlAuto.hasPermission used the integer
+                // block origin for its strict <20-block test.
+                && player.distanceToSqr(payload.pos.getX(), payload.pos.getY(), payload.pos.getZ()) < 400.0D) {
             rbmk.applyAutoControl(
                     payload.function,
                     payload.levelUpper,
                     payload.levelLower,
                     payload.heatUpper,
-                    payload.heatLower
+                    payload.heatLower,
+                    payload.updateParameters
             );
         }
     }

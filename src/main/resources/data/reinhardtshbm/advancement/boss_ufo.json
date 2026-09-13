@@ -1,0 +1,28 @@
+{
+  "parent": "reinhardtshbm:boss_worm",
+  "display": {
+    "icon": {
+      "id": "reinhardtshbm:coin_ufo"
+    },
+    "title": {
+      "translate": "advancements.reinhardtshbm.boss_ufo.title"
+    },
+    "description": {
+      "translate": "advancements.reinhardtshbm.boss_ufo.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ]
+}

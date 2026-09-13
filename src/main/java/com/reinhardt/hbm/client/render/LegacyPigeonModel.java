@@ -13,6 +13,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.util.Mth;
 
 /** Direct LayerDefinition conversion of the old ModelPigeon. */
 public final class LegacyPigeonModel extends EntityModel<LegacyPigeonEntity> {
@@ -70,7 +71,10 @@ public final class LegacyPigeonModel extends EntityModel<LegacyPigeonEntity> {
         root.addOrReplaceChild("feathers", cube(16, 24, -1, -.5F, -2, 2, 1, 4), PartPose.offset(0, 21.5F, 7.5F));
         root.addOrReplaceChild("left_leg", cube(20, 0, -1, 0, 0, 2, 4, 2), PartPose.offset(1, 20, -1));
         root.addOrReplaceChild("right_leg", cube(20, 0, -1, 0, 0, 2, 4, 2), PartPose.offset(-1, 20, -1));
-        return LayerDefinition.create(mesh, 32, 32);
+        // ModelPigeon inherits ModelBase's 64x32 texture canvas in 1.7.10.
+        // Keeping that canvas is required for the authored UVs; 32x32 causes
+        // the wing/body coordinates to wrap and visually tangle.
+        return LayerDefinition.create(mesh, 64, 32);
     }
 
     private static CubeListBuilder cube(int u, int v, float x, float y, float z,
@@ -91,7 +95,10 @@ public final class LegacyPigeonModel extends EntityModel<LegacyPigeonEntity> {
         boolean fat = entity.isFat();
         body.visible = !fat;
         bodyFat.visible = fat;
-        float wingRotation = (float) ((Math.sin(entity.fallTime) + 1.0F) * entity.dest);
+        float partialTick = ageInTicks - entity.tickCount;
+        float interpolatedFallTime = Mth.lerp(partialTick, entity.prevFallTime, entity.fallTime);
+        float interpolatedDest = Mth.lerp(partialTick, entity.prevDest, entity.dest);
+        float wingRotation = (Mth.sin(interpolatedFallTime) + 1.0F) * interpolatedDest;
         ModelPart leftWing = fat ? fatLeftWing : bodyLeftWing;
         ModelPart rightWing = fat ? fatRightWing : bodyRightWing;
         rightWing.zRot = wingRotation;

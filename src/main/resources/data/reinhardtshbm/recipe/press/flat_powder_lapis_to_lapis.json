@@ -3,7 +3,7 @@
     "group":  "press.flat",
     "stamp":  "flat",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_lapis"
+                       "tag":  "c:dusts/lapis"
                    },
     "result":  {
                    "id":  "minecraft:lapis_lazuli"

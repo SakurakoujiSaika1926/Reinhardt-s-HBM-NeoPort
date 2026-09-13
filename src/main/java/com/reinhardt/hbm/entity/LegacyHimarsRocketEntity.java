@@ -145,6 +145,10 @@ public class LegacyHimarsRocketEntity extends Entity implements LegacyRadarDetec
         if (isInWater()) {
             motion = motion.scale(0.8D);
         }
+        // EntityThrowableNT's unoverridden air drag is 0.99 in 1.7.10.
+        // Apply it before the steering logic so the momentum used to
+        // re-aim the rocket is the same as the old projectile.
+        motion = motion.scale(0.99D);
         boolean steeringAtTickStart = this.steeringActive;
         if (!steeringAtTickStart) {
             motion = motion.add(0.0D, -0.01D, 0.0D);

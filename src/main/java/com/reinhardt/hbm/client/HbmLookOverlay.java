@@ -12,7 +12,6 @@ import com.reinhardt.hbm.blockentity.CoolingTowerBlockEntity;
 import com.reinhardt.hbm.blockentity.ConveyorPressBlockEntity;
 import com.reinhardt.hbm.blockentity.DeuteriumExtractorBlockEntity;
 import com.reinhardt.hbm.blockentity.DrainBlockEntity;
-import com.reinhardt.hbm.blockentity.EnergyConverterBlockEntity;
 import com.reinhardt.hbm.blockentity.FractionTowerBlockEntity;
 import com.reinhardt.hbm.blockentity.HeatBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
@@ -145,7 +144,6 @@ public final class HbmLookOverlay {
                 || entity instanceof CapacitorBlockEntity
                 || entity instanceof GroundwaterPumpBlockEntity
                 || entity instanceof PowerGaugeBlockEntity
-                || entity instanceof EnergyConverterBlockEntity
                 || entity instanceof GeothermalHeatExchangerBlockEntity
                 || entity instanceof StrandCasterBlockEntity
                 || entity instanceof ConveyorPressBlockEntity
@@ -221,9 +219,6 @@ public final class HbmLookOverlay {
         if (entity instanceof PowerGaugeBlockEntity gauge) {
             return powerGaugeOverlay(state, gauge);
         }
-        if (entity instanceof EnergyConverterBlockEntity converter) {
-            return energyConverterOverlay(state, converter);
-        }
         if (entity instanceof GeothermalHeatExchangerBlockEntity exchanger) {
             return geothermalHeatExchangerOverlay(state, exchanger);
         }
@@ -236,7 +231,7 @@ public final class HbmLookOverlay {
         if (entity instanceof LegacyMachineBlockEntity machine) {
             return legacyMachineOverlay(state, machine);
         }
-        if (entity instanceof RbmkComponentBlockEntity rbmk) {
+        if (entity instanceof RbmkComponentBlockEntity rbmk && rbmk.kind().isColumn()) {
             return rbmkDoddOverlay(state, rbmk);
         }
         if (entity instanceof WandStructureBlockEntity structure) {
@@ -390,16 +385,18 @@ public final class HbmLookOverlay {
             lines.add(fluidLine("<- ", pump.spentSteamTank()));
             lines.add(fluidLine("<- ", pump.waterTank()));
         } else {
-            lines.add(flueOrSmokeLine());
+            lines.add(new OverlayLine(
+                    "-> " + String.format("%,d / %,d HE", pump.power(), GroundwaterPumpBlockEntity.ELECTRIC_MAX_POWER),
+                    0x00FF00
+            ));
             lines.add(fluidLine("<- ", pump.waterTank()));
         }
 
         int warningColor = System.currentTimeMillis() % 1000L < 500L ? 0xFF0000 : 0xFFFF00;
         if (pump.getBlockPos().getY() > GroundwaterPumpBlockEntity.GROUND_HEIGHT) {
-            lines.add(new OverlayLine("! ! ! ALTITUDE ! ! !", warningColor));
-        }
-        if (!pump.onGround()) {
-            lines.add(new OverlayLine("! ! ! NO VALID GROUND ! ! !", warningColor));
+            lines.add(new OverlayLine(Component.translatable("overlay.reinhardtshbm.pump.invalid_altitude").getString(), warningColor));
+        } else if (!pump.hasValidWaterSource()) {
+            lines.add(new OverlayLine(Component.translatable("overlay.reinhardtshbm.pump.no_water_source").getString(), warningColor));
         }
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
@@ -430,18 +427,6 @@ public final class HbmLookOverlay {
         List<OverlayLine> lines = new ArrayList<>();
         lines.add(OverlayLine.white(String.format("%,d HE/t", gauge.deltaTick())));
         lines.add(OverlayLine.white(String.format("%,d HE/s", gauge.deltaLastSecond())));
-        return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
-    }
-
-    private static OverlayData energyConverterOverlay(BlockState state, EnergyConverterBlockEntity converter) {
-        List<OverlayLine> lines = new ArrayList<>();
-        if (converter.kind() == com.reinhardt.hbm.block.EnergyConverterBlock.Kind.HE_TO_FE) {
-            lines.add(new OverlayLine("-> " + String.format("%,d HE", converter.he()), 0x00FF00));
-            lines.add(new OverlayLine("<- " + String.format("%,d FE", converter.fe()), 0xFF5555));
-        } else {
-            lines.add(new OverlayLine("-> " + String.format("%,d FE", converter.fe()), 0x00FF00));
-            lines.add(new OverlayLine("<- " + String.format("%,d HE", converter.he()), 0xFF5555));
-        }
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
 

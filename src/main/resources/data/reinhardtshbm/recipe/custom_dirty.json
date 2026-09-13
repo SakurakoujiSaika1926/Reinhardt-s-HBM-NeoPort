@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" C ","WLW","WLW"],"key":{"C":{"tag":"c:plates/copper"},"L":{"tag":"c:plates/lead"},"W":{"item":"reinhardtshbm:nuclear_waste"}},"result":{"id":"reinhardtshbm:custom_dirty"}}

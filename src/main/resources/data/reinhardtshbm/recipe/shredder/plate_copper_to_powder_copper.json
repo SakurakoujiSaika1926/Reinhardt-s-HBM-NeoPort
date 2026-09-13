@@ -1,7 +1,7 @@
 ﻿{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:plate_copper"
+                       "tag":  "c:plates/copper"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_copper"

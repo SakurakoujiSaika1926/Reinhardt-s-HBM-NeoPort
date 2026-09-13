@@ -35,7 +35,7 @@
         ],
         "components": {
           "minecraft:custom_data": {
-            "material_id": 10,
+            "material_id": 2900,
             "material": "copper"
           }
         }

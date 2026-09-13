@@ -36,7 +36,12 @@ public record RbmkControlRodPayload(BlockPos pos, int action, int value) impleme
     public static void handle(RbmkControlRodPayload payload, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player
                 && player.level().getBlockEntity(payload.pos) instanceof RbmkComponentBlockEntity rbmk
-                && player.distanceToSqr(payload.pos.getX() + 0.5D, payload.pos.getY() + 0.5D, payload.pos.getZ() + 0.5D) <= 400.0D) {
+                // TileEntityRBMKControlManual.hasPermission used a strict
+                // 20-block radius in 1.7.10.
+                // The legacy TileEntityRBMKControlManual.hasPermission used
+                // the integer block origin (xCoord/yCoord/zCoord), not the
+                // block centre used by menu validity checks.
+                && player.distanceToSqr(payload.pos.getX(), payload.pos.getY(), payload.pos.getZ()) < 400.0D) {
             if (payload.action == ACTION_SET_LEVEL) {
                 rbmk.applyManualControlLevel(payload.value);
             } else if (payload.action == ACTION_ASSIGN_COLOR) {

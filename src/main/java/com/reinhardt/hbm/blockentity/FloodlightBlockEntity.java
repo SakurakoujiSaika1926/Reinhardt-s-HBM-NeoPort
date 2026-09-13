@@ -156,7 +156,11 @@ public final class FloodlightBlockEntity extends BlockEntity implements PowerEnd
             int y = (int) Math.floor(worldPosition.getY() + 0.5D + direction.y * distance);
             int z = (int) Math.floor(worldPosition.getZ() + 0.5D + direction.z * distance);
             BlockPos current = new BlockPos(x, y, z);
-            if (current.equals(worldPosition) || level.getBlockState(current).getLightBlock(level, current) < 127) {
+            // 1.7.10 compared the old 0..255 light-opacity value with 127.
+            // Modern getLightBlock() is a 0..15 value, so the equivalent
+            // opaque-stop test is 15; using 127 made every ray miss and no
+            // floodlight beam light source was ever created.
+            if (current.equals(worldPosition) || level.getBlockState(current).getLightBlock(level, current) < 15) {
                 continue;
             }
             if (distance > 1) {

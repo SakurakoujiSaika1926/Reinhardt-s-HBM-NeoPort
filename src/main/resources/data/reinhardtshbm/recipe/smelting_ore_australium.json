@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": { "item": "reinhardtshbm:ore_australium" },
+  "result": { "id": "reinhardtshbm:nugget_australium" },
+  "experience": 2.5,
+  "cookingtime": 200
+}

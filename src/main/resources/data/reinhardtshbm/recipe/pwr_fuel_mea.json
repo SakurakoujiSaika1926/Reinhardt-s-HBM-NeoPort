@@ -4,7 +4,7 @@
   "pattern": ["F", "I", "F"],
   "key": {
     "F": { "item": "reinhardtshbm:billet_am_mix" },
-    "I": { "item": "reinhardtshbm:plate_polymer" }
+    "I": { "tag": "c:plates/polymer" }
   },
   "result": { "id": "reinhardtshbm:pwr_fuel", "components": { "minecraft:custom_data": { "variant": "mea" }, "minecraft:custom_model_data": 9 } }
 }

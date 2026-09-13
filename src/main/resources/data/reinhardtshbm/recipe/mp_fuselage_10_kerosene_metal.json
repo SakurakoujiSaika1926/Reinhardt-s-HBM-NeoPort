@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ICI",
+    "CTC",
+    "ICI"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:plates/steel"
+    },
+    "I": {
+      "tag": "c:plates/iron"
+    },
+    "T": {
+      "item": "reinhardtshbm:mp_fuselage_10_kerosene"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mp_fuselage_10_kerosene_metal",
+    "count": 1
+  }
+}
+

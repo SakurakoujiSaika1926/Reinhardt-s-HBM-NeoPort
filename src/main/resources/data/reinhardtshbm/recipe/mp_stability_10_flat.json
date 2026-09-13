@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PSP",
+    "P P"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "S": {
+      "item": "reinhardtshbm:steel_scaffold"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:mp_stability_10_flat",
+    "count": 1
+  }
+}
+

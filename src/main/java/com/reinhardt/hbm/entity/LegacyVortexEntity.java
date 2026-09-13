@@ -48,6 +48,11 @@ public final class LegacyVortexEntity extends Entity {
         level.addFreshEntity(vortex);
     }
 
+    /** EntityBlackHole's fixed-size launcher variant (no shrink and block intake). */
+    public static void spawnBlackHole(Level level, Vec3 position) {
+        spawn(level, position, 1.5F, 0.0F, false);
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(SIZE, 0.5F);

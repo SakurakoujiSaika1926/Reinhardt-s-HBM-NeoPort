@@ -83,6 +83,12 @@ public final class EntityWaypoint extends Entity {
         additionalUuid = waypoint == null ? null : waypoint.getUUID();
     }
 
+    @Override
+    public boolean fireImmune() {
+        // EntityWaypoint set isImmuneToFire=true in 1.7.10.
+        return true;
+    }
+
     public EntityWaypoint getAdditionalWaypoint() {
         return additional;
     }
@@ -92,7 +98,6 @@ public final class EntityWaypoint extends Entity {
         super.tick();
         if (tickCount >= maxAge) {
             discard();
-            return;
         }
 
         AABB area = new AABB(getX(), getY(), getZ(), getX(), getY(), getZ())
@@ -123,7 +128,6 @@ public final class EntityWaypoint extends Entity {
                         || glyphid.getVariant() == GlyphidEntity.Variant.SCOUT) {
                     discard();
                 }
-                break;
             }
             return;
         }

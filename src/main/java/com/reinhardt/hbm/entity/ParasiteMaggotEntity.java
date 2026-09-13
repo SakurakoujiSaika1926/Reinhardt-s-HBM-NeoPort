@@ -23,7 +23,10 @@ public final class ParasiteMaggotEntity extends Monster {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 8.0D)
                 .add(Attributes.MOVEMENT_SPEED, 1.0D)
-                .add(Attributes.ATTACK_DAMAGE, 2.0D);
+                .add(Attributes.ATTACK_DAMAGE, 2.0D)
+                // EntityParasiteMaggot used getClosestVulnerablePlayer(..., 16)
+                // rather than EntityMob's default follow range.
+                .add(Attributes.FOLLOW_RANGE, 16.0D);
     }
 
     @Override
@@ -36,7 +39,9 @@ public final class ParasiteMaggotEntity extends Monster {
     }
 
     @Override
-    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
-        return false;
+    public boolean isIgnoringBlockTriggers() {
+        // EntityParasiteMaggot#canTriggerWalking returned false in 1.7.10.
+        return true;
     }
+
 }

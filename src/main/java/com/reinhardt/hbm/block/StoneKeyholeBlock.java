@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.blockentity.DecoLootBlockEntity;
 import com.reinhardt.hbm.blockentity.HbmStructureLoot;
 import com.reinhardt.hbm.blockentity.LegacyDisplayStandBlockEntity;
@@ -76,6 +77,7 @@ public final class StoneKeyholeBlock extends Block {
             level.playSound(null, pos, HbmSoundEvents.LOCK_OPEN.get(),
                     SoundSource.BLOCKS, 1.0F, 1.0F);
             clearLooseItems(level, center);
+            HbmAdvancements.award(player, "red_room");
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }

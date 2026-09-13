@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SCS",
+    "SSS"
+  ],
+  "key": {
+    "S": { "item": "reinhardtshbm:crystal_xen" },
+    "C": { "item": "reinhardtshbm:singularity" }
+  },
+  "result": {
+    "id": "reinhardtshbm:black_hole",
+    "count": 1
+  }
+}

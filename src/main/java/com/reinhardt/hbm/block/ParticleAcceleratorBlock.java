@@ -148,6 +148,9 @@ public class ParticleAcceleratorBlock extends LargeMachineBlock implements Entit
     }
 
     private void removeLegacyDummies(Level level, BlockPos corePos, Direction facing) {
+        if (level.getBlockEntity(corePos) == null) {
+            return;
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos pos : positions(corePos, facing, this.kind)) {
                 if (pos.equals(corePos)) {

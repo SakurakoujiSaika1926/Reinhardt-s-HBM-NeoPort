@@ -6,7 +6,7 @@
       "item": "reinhardtshbm:foundry_channel"
     },
     {
-      "item": "reinhardtshbm:plate_steel"
+      "tag": "c:plates/steel"
     }
   ],
   "result": {

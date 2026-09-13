@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "CC ",
+    " I ",
+    "CCC"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:plates/copper"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:blowtorch",
+    "components": {
+      "minecraft:custom_data": {
+        "blowtorch_gas": 0
+      }
+    }
+  }
+}

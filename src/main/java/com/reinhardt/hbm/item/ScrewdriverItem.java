@@ -165,7 +165,12 @@ public class ScrewdriverItem extends Item {
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (!rbmk.hasLid()) {
+        // TileEntityRBMKBase.hasLid() is also true for the fixed-lid control
+        // rods, but TileEntityRBMKBase.onScrew() only accepted removable
+        // lids.  Keep a click on a control rod unhandled, just like 1.7.10,
+        // instead of consuming the screwdriver action without changing any
+        // state.
+        if (!rbmk.canUseLid() || !rbmk.hasLid()) {
             return InteractionResult.PASS;
         }
 

@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["LUL","LTL","LUL"],"key":{"L":{"tag":"c:plates/lead"},"U":{"tag":"c:billets/u238"},"T":{"item":"reinhardtshbm:fluid_tank_empty"}},"result":{"id":"reinhardtshbm:fluid_tank_lead_empty","count":4}}
