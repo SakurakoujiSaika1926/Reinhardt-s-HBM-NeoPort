@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_tantalium"
+                       "tag":  "c:ingots/tantalium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_tantalium"

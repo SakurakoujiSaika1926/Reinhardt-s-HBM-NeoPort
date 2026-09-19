@@ -22,7 +22,7 @@ import org.joml.Quaternionf;
 
 import java.util.Random;
 
-public class MiningLaserBlockEntityRenderer implements BlockEntityRenderer<MiningLaserBlockEntity> {
+public class MiningLaserBlockEntityRenderer implements LongRangeBlockEntityRenderer<MiningLaserBlockEntity> {
     static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_mining_laser_base");
     static final ModelResourceLocation PIVOT = MachineModelRenderer.standalone("block/machine_mining_laser_pivot");
     static final ModelResourceLocation LASER = MachineModelRenderer.standalone("block/machine_mining_laser_laser");

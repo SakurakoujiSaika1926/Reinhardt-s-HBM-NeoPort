@@ -1,10 +1,12 @@
 {
-  "neoforge:conditions": {
-    "type": "neoforge:not",
-    "value": {
-      "type": "reinhardtshbm:enable_528_mode"
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
-  },
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
@@ -14,26 +16,20 @@
   ],
   "key": {
     "C": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:pipe"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 2900,
-          "material": "copper"
-        }
-      }
+      "shape": "pipe",
+      "material": "copper"
     },
     "P": {
-      "type": "neoforge:components",
-      "items": "reinhardtshbm:shell",
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 2900,
-          "material": "copper"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "shape": "shell",
+      "material": "copper"
     },
     "R": {
       "item": "reinhardtshbm:rbmk_blank"

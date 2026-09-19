@@ -1,26 +1,28 @@
 {
-  "neoforge:conditions": {
-    "type": "neoforge:not",
-    "value": {
-      "type": "reinhardtshbm:enable_528_mode"
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
-  },
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pyrooven",
-  "blueprint_pools": "528.hardplastic",
+  "blueprint_pools": [
+    "528.hardplastic"
+  ],
   "duration": 300,
   "power": 100,
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:plate_welded",
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "steel"
       },
       "count": 16
     },
@@ -32,22 +34,18 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:ingot_cft"
+        "tag": "c:ingots/cft"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2900,
-            "material": "copper"
-          }
-        }
+        "shape": "pipe",
+        "material": "copper"
       },
       "count": 12
     },

@@ -1,1 +1,1 @@
-{"type":"reinhardtshbm:arc_furnace","group":"arc_furnace","input":{"item":"reinhardtshbm:block_asbestos"},"solid":{"id":"reinhardtshbm:nugget_silicon","count":40},"liquid":[{"material":"silicon","amount":324}]}
+{"type":"reinhardtshbm:arc_furnace","group":"arc_furnace","input":{"tag":"c:storage_blocks/asbestos"},"solid":{"id":"reinhardtshbm:nugget_silicon","count":40},"liquid":[{"material":"silicon","amount":324}]}

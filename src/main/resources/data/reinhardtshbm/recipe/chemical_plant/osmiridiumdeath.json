@@ -6,7 +6,7 @@
   "input_items": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_paleogenite"
+        "tag": "c:dusts/paleogenite"
       },
       "count": 1
     },
@@ -18,7 +18,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:nugget_bismuth"
+        "tag": "c:nuggets/bismuth"
       },
       "count": 4
     }

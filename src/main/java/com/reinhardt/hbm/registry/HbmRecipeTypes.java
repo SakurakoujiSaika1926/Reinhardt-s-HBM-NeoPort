@@ -27,6 +27,7 @@ import com.reinhardt.hbm.recipe.FractionTowerRecipe;
 import com.reinhardt.hbm.recipe.FluidDuctRetypeRecipe;
 import com.reinhardt.hbm.recipe.FuelPoolRecipe;
 import com.reinhardt.hbm.recipe.FusionBreederFluidRecipe;
+import com.reinhardt.hbm.recipe.FusionBreederItemRecipe;
 import com.reinhardt.hbm.recipe.FusionRecipe;
 import com.reinhardt.hbm.recipe.GasCentrifugeRecipe;
 import com.reinhardt.hbm.recipe.LiquefactionRecipe;
@@ -50,18 +51,26 @@ import com.reinhardt.hbm.recipe.SolidificationRecipe;
 import com.reinhardt.hbm.recipe.StorageCrateUpgradeRecipe;
 import com.reinhardt.hbm.recipe.VacuumDistillRecipe;
 import com.reinhardt.hbm.recipe.UniversalGrenadeRecipe;
+import com.reinhardt.hbm.recipe.ingredient.FoundryMaterialIngredient;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public final class HbmRecipeTypes {
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES =
             DeferredRegister.create(BuiltInRegistries.RECIPE_TYPE, ReinhardtsHBM.MOD_ID);
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, ReinhardtsHBM.MOD_ID);
+    public static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPES =
+            DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, ReinhardtsHBM.MOD_ID);
+
+    public static final DeferredHolder<IngredientType<?>, IngredientType<FoundryMaterialIngredient>> FOUNDRY_MATERIAL_INGREDIENT =
+            INGREDIENT_TYPES.register("foundry_material", () -> new IngredientType<>(FoundryMaterialIngredient.CODEC));
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<ShredderRecipe>> SHREDDER =
             RECIPE_TYPES.register("shredder", () -> RecipeType.simple(ReinhardtsHBM.id("shredder")));
@@ -176,6 +185,9 @@ public final class HbmRecipeTypes {
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<FusionBreederFluidRecipe>> FUSION_BREEDER_FLUID =
             RECIPE_TYPES.register("fusion_breeder_fluid", () -> RecipeType.simple(ReinhardtsHBM.id("fusion_breeder_fluid")));
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<FusionBreederItemRecipe>> FUSION_BREEDER_ITEM =
+            RECIPE_TYPES.register("fusion_breeder_item", () -> RecipeType.simple(ReinhardtsHBM.id("fusion_breeder_item")));
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<RbmkOutgasserRecipe>> RBMK_OUTGASSER =
             RECIPE_TYPES.register("rbmk_outgasser", () -> RecipeType.simple(ReinhardtsHBM.id("rbmk_outgasser")));
@@ -306,6 +318,9 @@ public final class HbmRecipeTypes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<FusionBreederFluidRecipe>> FUSION_BREEDER_FLUID_SERIALIZER =
             RECIPE_SERIALIZERS.register("fusion_breeder_fluid", FusionBreederFluidRecipe.Serializer::new);
 
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<FusionBreederItemRecipe>> FUSION_BREEDER_ITEM_SERIALIZER =
+            RECIPE_SERIALIZERS.register("fusion_breeder_item", FusionBreederItemRecipe.Serializer::new);
+
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<RbmkOutgasserRecipe>> RBMK_OUTGASSER_SERIALIZER =
             RECIPE_SERIALIZERS.register("rbmk_outgasser", RbmkOutgasserRecipe.Serializer::new);
 
@@ -357,5 +372,6 @@ public final class HbmRecipeTypes {
     public static void register(IEventBus eventBus) {
         RECIPE_TYPES.register(eventBus);
         RECIPE_SERIALIZERS.register(eventBus);
+        INGREDIENT_TYPES.register(eventBus);
     }
 }

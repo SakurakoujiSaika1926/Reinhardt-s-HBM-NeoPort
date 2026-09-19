@@ -4,6 +4,7 @@ import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.config.HbmClientConfig;
 import com.reinhardt.hbm.integration.create.HbmCreateAdditionCompat;
 import com.reinhardt.hbm.integration.create.HbmCreateMultiblockCompat;
+import com.reinhardt.hbm.integration.createbigcannons.HbmCreateBigCannonsCompat;
 import com.reinhardt.hbm.integration.immersiveengineering.HbmImmersiveEngineeringCompat;
 import com.reinhardt.hbm.item.LegacyItemComponents;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -52,6 +53,10 @@ public class ReinhardtsHBM {
         if (ModList.get().isLoaded("createaddition")) {
             modEventBus.addListener((FMLCommonSetupEvent event) ->
                     event.enqueueWork(HbmCreateAdditionCompat::applyMotorBalanceDefaults));
+        }
+        if (ModList.get().isLoaded("createbigcannons")) {
+            modEventBus.addListener((FMLCommonSetupEvent event) ->
+                    event.enqueueWork(HbmCreateBigCannonsCompat::registerMustardGasFluidShellEffects));
         }
         if (ModList.get().isLoaded("immersiveengineering")) {
             modEventBus.addListener((FMLCommonSetupEvent event) ->

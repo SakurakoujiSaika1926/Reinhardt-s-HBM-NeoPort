@@ -1,19 +1,76 @@
 {
   "neoforge:conditions": [
-    { "type": "reinhardtshbm:enable_528_mode" }
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
   ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.detector",
-  "blueprint_pools": ["528.chip_quantum"],
+  "blueprint_pools": [
+    "528.chip_quantum"
+  ],
   "duration": 400,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "item": "reinhardtshbm:pa_beamline" }, "count": 3 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "lead_plating" } } }, "count": 32 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:wire_dense"], "components": { "minecraft:custom_data": { "material_id": 7900, "material": "gold" } } }, "count": 64 },
-    { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:circuit_quantum" }, "count": 4 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "computer" } } }, "count": 8 }
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:pa_beamline"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "lead_plating"
+          }
+        }
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "gold"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_quantum"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "computer"
+          }
+        }
+      },
+      "count": 8
+    }
   ],
-  "result": { "id": "reinhardtshbm:pa_detector" }
+  "result": {
+    "id": "reinhardtshbm:pa_detector"
+  }
 }

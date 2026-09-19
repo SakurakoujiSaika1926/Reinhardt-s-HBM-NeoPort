@@ -364,13 +364,13 @@ public final class HbmItems {
 
     private static final Set<String> RETIRED_LEGACY_CATALOG_ITEM_IDS = Set.of(
             "ammo_bag", "ammo_bag_infinite", "ammo_container", "ammo_debug", "ammo_fireext", "ammo_secret",
-            "battery_advanced", "cell", "coin_siege",
+            "battery_advanced", "cell", "circuit", "coin_siege",
             "fluid_barrel_v2", "fluid_tank_lead_v2", "fluid_tank_v2", "gun_egon", "gun_vortex",
             "jetpack_glider", "mechanism_launcher_1", "mechanism_launcher_2", "mechanism_revolver_1",
             "mechanism_revolver_2", "mechanism_rifle_1", "mechanism_rifle_2", "mechanism_special",
             "multitool_beam", "multitool_decon", "multitool_dig", "multitool_ext", "multitool_hit",
             "multitool_joule", "multitool_mega", "multitool_miner", "multitool_silk", "multitool_sky",
-            "pellet_canister", "pellet_chlorophyte", "pellet_claws", "pellet_flechette", "pellet_meteorite",
+            "part_grip", "pellet_canister", "pellet_chlorophyte", "pellet_claws", "pellet_flechette", "pellet_meteorite",
             "sliding_blast_door_skin0", "sliding_blast_door_skin1", "sliding_blast_door_skin2",
             "weapon_mod_caliber", "weapon_mod_generic", "weapon_mod_special", "weapon_mod_test",
             "weaponized_starblaster_cell", "weapon_bat", "weapon_bat_nail", "weapon_golf_club",
@@ -562,15 +562,6 @@ public final class HbmItems {
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER = material(MISC_MATERIALS, "circuit_controller");
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER_ADVANCED = material(MISC_MATERIALS, "circuit_controller_advanced");
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER_QUANTUM = material(MISC_MATERIALS, "circuit_controller_quantum");
-    public static final DeferredItem<Item> CIRCUIT = machineComponent(
-            "circuit",
-            () -> new LegacyVariantItem(new Item.Properties(), "circuit", LegacyVariantItem.variants(
-                    "vacuum_tube", "capacitor", "capacitor_tantalium", "pcb", "silicon",
-                    "chip", "chip_bismoid", "analog", "basic", "advanced", "capacitor_board",
-                    "bismoid", "controller_chassis", "controller", "controller_advanced", "quantum",
-                    "chip_quantum", "controller_quantum", "atomic_clock", "numitron"
-            ))
-    );
     public static final DeferredItem<Item> CRT_DISPLAY = material(MISC_MATERIALS, "crt_display");
     public static final DeferredItem<Item> MOTOR = material(MISC_MATERIALS, "motor");
     public static final DeferredItem<Item> MOTOR_BISMUTH = material(MISC_MATERIALS, "motor_bismuth");
@@ -626,11 +617,6 @@ public final class HbmItems {
             MISC_MATERIALS,
             "part_stock",
             () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.STOCK)
-    );
-    public static final DeferredItem<Item> PART_GRIP = material(
-            MISC_MATERIALS,
-            "part_grip",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.GRIP)
     );
     public static final DeferredItem<Item> CANISTER_LUBRICANT = material(MISC_MATERIALS, "canister_lubricant");
     public static final DeferredItem<Item> BIOMASS = material(MISC_MATERIALS, "biomass");
@@ -850,10 +836,6 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> TURRET_CHIP = turretItem(
             "turret_chip",
-            () -> new TurretBiometryItem(new Item.Properties().stacksTo(1))
-    );
-    public static final DeferredItem<Item> TURRET_BIOMETRY = turretItem(
-            "turret_biometry",
             () -> new TurretBiometryItem(new Item.Properties().stacksTo(1))
     );
     public static final DeferredItem<Item> AMMO_SHELL = turretItem(
@@ -1194,15 +1176,15 @@ public final class HbmItems {
     public static final DeferredItem<Item> ROD_ZIRNOX_TRITIUM = fuelRodItem("rod_zirnox_tritium");
     public static final DeferredItem<Item> PWR_FUEL = fuelRodItem(
             "pwr_fuel",
-            () -> new PwrFuelItem(new Item.Properties())
+            () -> new PwrFuelItem(new Item.Properties(), "pwr_fuel")
     );
     public static final DeferredItem<Item> PWR_FUEL_HOT = fuelRodItem(
             "pwr_fuel_hot",
-            () -> new PwrFuelItem(new Item.Properties())
+            () -> new PwrFuelItem(new Item.Properties(), "pwr_fuel_hot")
     );
     public static final DeferredItem<Item> PWR_FUEL_DEPLETED = fuelRodItem(
             "pwr_fuel_depleted",
-            () -> new PwrFuelItem(new Item.Properties())
+            () -> new PwrFuelItem(new Item.Properties(), "pwr_fuel_depleted")
     );
     public static final DeferredItem<Item> PWR_PRINTER = reactorItem(
             "pwr_printer",

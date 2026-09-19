@@ -1,48 +1,40 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "C",
-                    "M",
-                    "S"
-                ],
-    "key":  {
-                "C":  {
-                          "item":  "reinhardtshbm:circuit_basic"
-                      },
-                "M":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:part_mechanism"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  50,
-                                                                           "material":  "weaponsteel"
-                                                                       }
-                                         }
-                      },
-                "S":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:shell"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  50,
-                                                                           "material":  "weaponsteel"
-                                                                       }
-                                         }
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:grenade_shell",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "tech"
-                                                                },
-                                      "minecraft:custom_model_data":  2
-                                  },
-                   "count":  4
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "C",
+    "M",
+    "S"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:circuit_basic"
+    },
+    "M": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:part_mechanism"
+      ],
+      "shape": "mechanism",
+      "material": "weaponsteel"
+    },
+    "S": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "shape": "shell",
+      "material": "weaponsteel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:grenade_shell",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "tech"
+      },
+      "minecraft:custom_model_data": 2
+    },
+    "count": 4
+  }
 }

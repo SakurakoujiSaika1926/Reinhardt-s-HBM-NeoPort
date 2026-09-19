@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_plutonium"
+                       "tag":  "c:ingots/plutonium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_plutonium"

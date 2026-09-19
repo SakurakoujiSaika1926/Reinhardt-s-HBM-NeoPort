@@ -48,31 +48,23 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 3
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:part_mechanism"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 50,
-            "material": "weaponsteel"
-          }
-        }
+        "shape": "mechanism",
+        "material": "weaponsteel"
       },
       "count": 3
     },

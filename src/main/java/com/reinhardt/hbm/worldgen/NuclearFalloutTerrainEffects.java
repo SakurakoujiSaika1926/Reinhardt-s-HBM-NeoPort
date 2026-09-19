@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -83,6 +84,10 @@ public final class NuclearFalloutTerrainEffects {
     private static void processChunk(ServerLevel level, FalloutTask task, long chunkKey, boolean outer) {
         int chunkX = unpackX(chunkKey);
         int chunkZ = unpackZ(chunkKey);
+        LevelChunk chunk = level.getChunkSource().getChunkNow(chunkX, chunkZ);
+        if (chunk == null) {
+            return;
+        }
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
         for (int x = minX; x < minX + 16; x++) {
@@ -91,15 +96,15 @@ public final class NuclearFalloutTerrainEffects {
                 if (outer && distance > task.scale) {
                     continue;
                 }
-                stomp(level, task, x, z, distance * 100.0D / task.scale);
+                stomp(level, chunk, task, x, z, distance * 100.0D / task.scale);
             }
         }
     }
 
-    private static void stomp(ServerLevel level, FalloutTask task, int x, int z, double distancePercent) {
+    private static void stomp(ServerLevel level, LevelChunk chunk, FalloutTask task, int x, int z, double distancePercent) {
         int depth = 0;
         int minY = level.getMinBuildHeight();
-        int maxY = Math.min(level.getMaxBuildHeight() - 2, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + 1);
+        int maxY = Math.min(level.getMaxBuildHeight() - 2, chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x & 15, z & 15) + 1);
         if (maxY < minY) {
             return;
         }
@@ -131,7 +136,7 @@ public final class NuclearFalloutTerrainEffects {
 
             if (distancePercent < WOOD_EFFECT_RANGE_PERCENT && state.ignitedByLava()) {
                 if (random.nextInt(5) == 0 && aboveState.isAir()) {
-                    level.setBlock(above, Blocks.FIRE.defaultBlockState(), 3);
+                    level.setBlock(above, Blocks.FIRE.defaultBlockState(), Block.UPDATE_CLIENTS);
                 }
             }
 
@@ -158,10 +163,10 @@ public final class NuclearFalloutTerrainEffects {
                 return setIfPresent(level, pos, "waste_planks");
             }
             if (state.is(BlockTags.LEAVES) || state.getBlock() instanceof LeavesBlock || state.is(BlockTags.FLOWERS)
-                    || state.is(BlockTags.SAPLINGS) || state.is(BlockTags.REPLACEABLE_BY_TREES)
+                || state.is(BlockTags.SAPLINGS) || state.is(BlockTags.REPLACEABLE_BY_TREES)
                     || state.is(Blocks.VINE) || state.is(Blocks.SNOW) || state.is(Blocks.SHORT_GRASS)
                     || state.is(Blocks.TALL_GRASS) || state.is(Blocks.FERN) || state.is(Blocks.LARGE_FERN)) {
-                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
                 return true;
             }
         } else if (state.is(BlockTags.LEAVES) || state.getBlock() instanceof LeavesBlock) {
@@ -181,7 +186,7 @@ public final class NuclearFalloutTerrainEffects {
             return setIfPresent(level, pos, "waste_trinitite_red");
         }
         if (state.is(Blocks.CLAY)) {
-            level.setBlock(pos, Blocks.TERRACOTTA.defaultBlockState(), 3);
+            level.setBlock(pos, Blocks.TERRACOTTA.defaultBlockState(), Block.UPDATE_CLIENTS);
             return true;
         }
 
@@ -254,7 +259,7 @@ public final class NuclearFalloutTerrainEffects {
         if (block == Blocks.AIR) {
             return false;
         }
-        level.setBlock(pos, block.defaultBlockState(), 3);
+        level.setBlock(pos, block.defaultBlockState(), Block.UPDATE_CLIENTS);
         return true;
     }
 

@@ -2,6 +2,6 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": ["##"],
-  "key": {"#": {"item": "reinhardtshbm:ingot_au198"}},
+  "key": {"#": {"tag": "c:ingots/au198"}},
   "result": {"id": "reinhardtshbm:billet_au198", "count": 3}
 }

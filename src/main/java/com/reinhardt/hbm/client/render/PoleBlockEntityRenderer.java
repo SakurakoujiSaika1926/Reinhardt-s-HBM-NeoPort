@@ -65,29 +65,32 @@ public final class PoleBlockEntityRenderer implements BlockEntityRenderer<PoleBl
     }
 
     private static void applySatelliteItemTransform(ItemDisplayContext context, PoseStack poseStack) {
-        switch (context) {
-            case GROUND -> {
-                // ItemRenderSatelliteReceiver: ENTITY.
-                poseStack.scale(0.5F, 0.5F, 0.5F);
-                poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-                poseStack.translate(0.0F, -1.0F, 0.0F);
-            }
-            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
-                // ItemRenderSatelliteReceiver: EQUIPPED.
-                poseStack.scale(0.5F, 0.5F, 0.5F);
-                poseStack.translate(0.8F, -0.3F, 0.2F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
-            }
-            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
-                // ItemRenderSatelliteReceiver: EQUIPPED_FIRST_PERSON.
-                poseStack.mulPose(Axis.ZP.rotationDegrees(-135.0F));
-                poseStack.translate(-0.6F, -0.6F, -0.1F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-                poseStack.scale(0.5F, 0.5F, 0.5F);
-            }
-            case GUI, NONE, HEAD, FIXED -> throw new IllegalArgumentException(
-                    "ItemRenderSatelliteReceiver had no 1.7.10 3D render type for " + context);
+        if (context == ItemDisplayContext.GROUND) {
+            // ItemRenderSatelliteReceiver: ENTITY.
+            poseStack.scale(0.5F, 0.5F, 0.5F);
+            poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            return;
         }
+        if (context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                || context == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+            // ItemRenderSatelliteReceiver: EQUIPPED.
+            poseStack.scale(0.5F, 0.5F, 0.5F);
+            poseStack.translate(0.8F, -0.3F, 0.2F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+            return;
+        }
+        if (context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND
+                || context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) {
+            // ItemRenderSatelliteReceiver: EQUIPPED_FIRST_PERSON.
+            poseStack.mulPose(Axis.ZP.rotationDegrees(-135.0F));
+            poseStack.translate(-0.6F, -0.6F, -0.1F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            poseStack.scale(0.5F, 0.5F, 0.5F);
+            return;
+        }
+        throw new IllegalArgumentException(
+                "ItemRenderSatelliteReceiver had no 1.7.10 3D render type for " + context);
     }
 
     @Override
@@ -115,11 +118,15 @@ public final class PoleBlockEntityRenderer implements BlockEntityRenderer<PoleBl
     }
 
     private static float satelliteYaw(Direction facing) {
-        return switch (facing) {
-            case WEST -> 90.0F;
-            case NORTH -> 180.0F;
-            case EAST -> 270.0F;
-            default -> 0.0F;
-        };
+        if (facing == Direction.WEST) {
+            return 90.0F;
+        }
+        if (facing == Direction.NORTH) {
+            return 180.0F;
+        }
+        if (facing == Direction.EAST) {
+            return 270.0F;
+        }
+        return 0.0F;
     }
 }

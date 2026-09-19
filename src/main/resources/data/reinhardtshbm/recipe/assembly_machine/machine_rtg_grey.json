@@ -4,17 +4,37 @@
   "duration": 200,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "item": "reinhardtshbm:rtg_unit" }, "count": 3 },
-    { "ingredient": { "tag": "c:plates/steel" }, "count": 4 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:wire_fine"],
-        "components": { "minecraft:custom_data": { "material_id": 31, "material": "red_copper" } }
+        "item": "reinhardtshbm:rtg_unit"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "red_copper"
       },
       "count": 16
     },
-    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 4 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 4
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_rtg_grey" }
+  "result": {
+    "id": "reinhardtshbm:machine_rtg_grey"
+  }
 }

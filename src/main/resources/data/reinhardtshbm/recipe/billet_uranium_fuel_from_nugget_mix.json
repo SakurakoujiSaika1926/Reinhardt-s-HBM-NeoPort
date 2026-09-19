@@ -3,22 +3,22 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:nugget_u238"
+      "tag": "c:nuggets/u238"
     },
     {
-      "item": "reinhardtshbm:nugget_u238"
+      "tag": "c:nuggets/u238"
     },
     {
-      "item": "reinhardtshbm:nugget_u238"
+      "tag": "c:nuggets/u238"
     },
     {
-      "item": "reinhardtshbm:nugget_u238"
+      "tag": "c:nuggets/u238"
     },
     {
-      "item": "reinhardtshbm:nugget_u238"
+      "tag": "c:nuggets/u238"
     },
     {
-      "item": "reinhardtshbm:nugget_u235"
+      "tag": "c:nuggets/u235"
     }
   ],
   "result": {

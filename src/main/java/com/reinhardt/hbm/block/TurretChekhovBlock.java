@@ -42,7 +42,7 @@ public class TurretChekhovBlock extends HorizontalDirectionalBlock implements En
     private static final VoxelShape HALF_SHAPE = Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, 0.5D, 1.0D);
 
     public TurretChekhovBlock(Properties properties) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
         registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 

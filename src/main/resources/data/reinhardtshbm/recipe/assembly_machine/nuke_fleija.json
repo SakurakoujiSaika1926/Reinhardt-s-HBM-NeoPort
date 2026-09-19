@@ -1,0 +1,43 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fleija",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "aluminium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:fins_quad_titanium"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/white"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuke_fleija"
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

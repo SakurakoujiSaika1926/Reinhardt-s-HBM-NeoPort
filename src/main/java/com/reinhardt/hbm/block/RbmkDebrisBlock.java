@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
+import com.reinhardt.hbm.radiation.RadiationShielding;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import net.minecraft.core.BlockPos;
@@ -133,8 +134,11 @@ public class RbmkDebrisBlock extends Block {
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, area)) {
             Vec3 eye = entity.position().add(0.0D, entity.getEyeHeight(), 0.0D);
             double distance = Math.max(1.0D, eye.distanceTo(center));
-            double resistance = Math.max(1.0D, shieldingResistance(level, center, eye, distance));
-            float dose = (float) (1_000_000.0D / resistance / (distance * distance));
+            float dose = (float) (1_000_000.0D / (distance * distance));
+            dose = RadiationShielding.attenuateDirectDose(level, center, eye, dose);
+            if (dose <= 0.0F) {
+                continue;
+            }
             HbmLivingRadiation data = HbmLivingRadiation.get(entity);
             data.addEnvironmentRadiation(dose);
             if (!(entity instanceof Player player && (player.isCreative() || player.isSpectator()))) {
@@ -145,23 +149,6 @@ public class RbmkDebrisBlock extends Block {
                 entity.hurt(damageSources.inFire(), 100.0F);
             }
         }
-    }
-
-    private static double shieldingResistance(ServerLevel level, Vec3 center, Vec3 eye, double distance) {
-        Vec3 direction = eye.subtract(center).normalize();
-        double resistance = 0.0D;
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (int i = 1; i < distance; i++) {
-            int x = (int) Math.floor(center.x + direction.x * i);
-            int y = (int) Math.floor(center.y + direction.y * i);
-            int z = (int) Math.floor(center.z + direction.z * i);
-            cursor.set(x, y, z);
-            BlockState state = level.getBlockState(cursor);
-            if (!state.isAir()) {
-                resistance += state.getBlock().getExplosionResistance();
-            }
-        }
-        return resistance;
     }
 
     private static void flame(Level level, BlockPos pos, RandomSource random, boolean sound) {

@@ -44,6 +44,13 @@ public final class LegacyCrucibleItem extends Item {
         return !stack.isEmpty() && stack.getDamageValue() < stack.getMaxDamage();
     }
 
+    private static void consumeCharge(ItemStack stack) {
+        if (!isCharged(stack)) {
+            return;
+        }
+        stack.setDamageValue(Math.min(stack.getMaxDamage(), stack.getDamageValue() + 1));
+    }
+
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
@@ -71,7 +78,7 @@ public final class LegacyCrucibleItem extends Item {
                     target.getX(), target.getY() + target.getBbHeight() * 0.5D, target.getZ(), count,
                     0.0D, 0.0D, 0.0D, 0.1D);
         }
-        stack.hurtAndBreak(1, attacker, attacker.getEquipmentSlotForItem(stack));
+        consumeCharge(stack);
     }
 
     @Override

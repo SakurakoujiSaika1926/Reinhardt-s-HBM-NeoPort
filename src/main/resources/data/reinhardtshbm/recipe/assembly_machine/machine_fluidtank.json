@@ -1,32 +1,28 @@
-﻿{
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.tank",
-    "duration":  200,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:plates/steel"
-                                           },
-                            "count":  8
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:shell"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  30,
-                                                                                                "material":  "steel"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  4
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:machine_fluidtank"
-               }
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.tank",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_fluidtank"
+  }
 }

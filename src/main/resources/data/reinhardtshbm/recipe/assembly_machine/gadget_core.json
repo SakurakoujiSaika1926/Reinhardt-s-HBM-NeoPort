@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.core1",
+  "duration": 1200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:nuggets/pu239" }, "count": 7 },
+    { "ingredient": { "tag": "c:nuggets/u238" }, "count": 3 }
+  ],
+  "result": { "id": "reinhardtshbm:gadget_core" }
+}

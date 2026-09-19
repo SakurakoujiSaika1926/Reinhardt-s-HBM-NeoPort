@@ -23,24 +23,20 @@
         "type": "neoforge:compound",
         "children": [
           {
-            "type": "neoforge:components",
-            "items": ["reinhardtshbm:plate_welded"],
-            "components": {
-              "minecraft:custom_data": {
-                "material_id": 36,
-                "material": "tcalloy"
-              }
-            }
+            "type": "reinhardtshbm:foundry_material",
+            "items": [
+              "reinhardtshbm:plate_welded"
+            ],
+            "shape": "plate_welded",
+            "material": "tcalloy"
           },
           {
-            "type": "neoforge:components",
-            "items": ["reinhardtshbm:plate_welded"],
-            "components": {
-              "minecraft:custom_data": {
-                "material_id": 43,
-                "material": "cdalloy"
-              }
-            }
+            "type": "reinhardtshbm:foundry_material",
+            "items": [
+              "reinhardtshbm:plate_welded"
+            ],
+            "shape": "plate_welded",
+            "material": "cdalloy"
           }
         ]
       },

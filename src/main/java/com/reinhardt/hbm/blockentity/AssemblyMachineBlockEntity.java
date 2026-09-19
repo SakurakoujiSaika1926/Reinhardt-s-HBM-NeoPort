@@ -41,6 +41,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -155,7 +156,11 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     };
 
     public AssemblyMachineBlockEntity(BlockPos pos, BlockState blockState) {
-        super(HbmBlockEntities.ASSEMBLY_MACHINE.get(), pos, blockState);
+        this(HbmBlockEntities.ASSEMBLY_MACHINE.get(), pos, blockState);
+    }
+
+    protected AssemblyMachineBlockEntity(BlockEntityType<? extends AssemblyMachineBlockEntity> type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, AssemblyMachineBlockEntity blockEntity) {
@@ -385,11 +390,13 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         }
 
         int inputIndex = slot - INPUT_START;
-        List<AssemblyMachineRecipe.CountedIngredient> ingredients = selectedRecipe.get().value().ingredients();
-        if (inputIndex < 0 || inputIndex >= ingredients.size()) {
-            return false;
+        for (RecipeHolder<AssemblyMachineRecipe> holder : selectedChoiceVariants(this.level, selectedRecipe.get())) {
+            List<AssemblyMachineRecipe.CountedIngredient> ingredients = holder.value().ingredients();
+            if (inputIndex >= 0 && inputIndex < ingredients.size() && ingredients.get(inputIndex).ingredient().test(stack)) {
+                return true;
+            }
         }
-        return ingredients.get(inputIndex).ingredient().test(stack);
+        return false;
     }
 
     public ContainerData getMenuData() {
@@ -469,7 +476,10 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             return;
         }
 
-        AssemblyMachineRecipe recipe = recipeHolder.get().value();
+        RecipeHolder<AssemblyMachineRecipe> selectedHolder = recipeHolder.get();
+        AssemblyMachineRecipe recipe = selectedRecipeForInputs(level, selectedHolder)
+                .orElse(selectedHolder)
+                .value();
         setupTanks(recipe);
         this.workTime = currentWorkTime(recipe);
         this.currentDemand = currentDemand(recipe);
@@ -509,6 +519,10 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
                 setChanged();
                 return Optional.empty();
             }
+            if (!selectedRecipe.get().id().equals(this.selectedRecipeId)) {
+                this.selectedRecipeId = selectedRecipe.get().id();
+                setChanged();
+            }
             return selectedRecipe;
         }
         return Optional.empty();
@@ -519,14 +533,9 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     }
 
     public void setSelectedRecipe(@Nullable ResourceLocation recipeId) {
-        if (recipeId != null && this.level != null && findRecipe(this.level, recipeId).isEmpty()) {
-            recipeId = null;
-        }
         if (recipeId != null && this.level != null) {
             Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(this.level, recipeId);
-            if (recipe.isEmpty() || !recipe.get().value().isVisibleForPool(installedBlueprintPool())) {
-                recipeId = null;
-            }
+            recipeId = recipe.map(RecipeHolder::id).orElse(null);
         }
         if (this.selectedRecipeId == recipeId || (this.selectedRecipeId != null && this.selectedRecipeId.equals(recipeId))) {
             return;
@@ -551,9 +560,20 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     }
 
     private Optional<RecipeHolder<AssemblyMachineRecipe>> findRecipe(Level level, ResourceLocation recipeId) {
-        for (RecipeHolder<AssemblyMachineRecipe> holder : availableRecipes(level)) {
+        List<RecipeHolder<AssemblyMachineRecipe>> displayRecipes = availableRecipes(level);
+        for (RecipeHolder<AssemblyMachineRecipe> holder : displayRecipes) {
             if (holder.id().equals(recipeId)) {
                 return Optional.of(holder);
+            }
+        }
+        Optional<RecipeHolder<AssemblyMachineRecipe>> rawRecipe = activeVisibleRecipes(level).stream()
+                .filter(holder -> holder.id().equals(recipeId))
+                .findFirst();
+        if (rawRecipe.isPresent()) {
+            for (RecipeHolder<AssemblyMachineRecipe> holder : displayRecipes) {
+                if (AssemblyMachineRecipe.sameDisplayChoice(holder, rawRecipe.get())) {
+                    return Optional.of(holder);
+                }
             }
         }
         return Optional.empty();
@@ -564,8 +584,11 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             return 0;
         }
         List<RecipeHolder<AssemblyMachineRecipe>> recipes = availableRecipes(this.level);
+        ResourceLocation displayRecipeId = findRecipe(this.level, this.selectedRecipeId)
+                .map(RecipeHolder::id)
+                .orElse(this.selectedRecipeId);
         for (int index = 0; index < recipes.size(); index++) {
-            if (recipes.get(index).id().equals(this.selectedRecipeId)) {
+            if (recipes.get(index).id().equals(displayRecipeId)) {
                 return index + 1;
             }
         }
@@ -583,12 +606,31 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     }
 
     public List<RecipeHolder<AssemblyMachineRecipe>> availableRecipes(Level level) {
+        return AssemblyMachineRecipe.collapseDisplayChoices(activeVisibleRecipes(level));
+    }
+
+    private List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level) {
         List<RecipeHolder<AssemblyMachineRecipe>> visibleRecipes = level.getRecipeManager()
                 .getAllRecipesFor(HbmRecipeTypes.ASSEMBLY_MACHINE.get())
                 .stream()
                 .filter(holder -> holder.value().isVisibleForPool(installedBlueprintPool()))
                 .toList();
         return AssemblyMachineRecipe.activeVariants(visibleRecipes);
+    }
+
+    private List<RecipeHolder<AssemblyMachineRecipe>> selectedChoiceVariants(Level level, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
+        return activeVisibleRecipes(level).stream()
+                .filter(holder -> AssemblyMachineRecipe.sameDisplayChoice(selectedRecipe, holder))
+                .toList();
+    }
+
+    private Optional<RecipeHolder<AssemblyMachineRecipe>> selectedRecipeForInputs(Level level, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
+        AssemblyMachineRecipe.Input input = new AssemblyMachineRecipe.Input(inputStacks(), inputFluidStacks());
+        return selectedChoiceVariants(level, selectedRecipe).stream()
+                .filter(holder -> holder.value().matches(input, level))
+                .filter(holder -> canOutput(holder.value().result()))
+                .filter(holder -> canFitFluidOutput(holder.value()))
+                .findFirst();
     }
 
     private Optional<String> installedBlueprintPool() {

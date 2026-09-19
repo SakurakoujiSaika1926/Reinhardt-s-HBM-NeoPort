@@ -7,7 +7,7 @@
   ],
   "key": {
     "B": {
-      "item": "reinhardtshbm:ingot_boron"
+      "tag": "c:ingots/boron"
     },
     "D": {
       "item": "reinhardtshbm:concrete_asbestos"

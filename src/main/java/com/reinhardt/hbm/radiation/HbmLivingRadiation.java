@@ -110,6 +110,23 @@ public class HbmLivingRadiation {
         setRadiation(this.radiation + amount);
     }
 
+    /**
+     * Adds body dose and records the same positive amount in the short-lived
+     * received-dose buffer used by Geiger/dosimeter readouts.
+     *
+     * <p>Some legacy contact sources directly mutate body radiation instead of
+     * going through the central contamination helper.  Keep {@link
+     * #addRadiation(float)} raw for command/cleanup/internal callers, and use
+     * this method only for actual incoming dose so the UI cannot report
+     * 0 RAD/s while the body counter is still rising.</p>
+     */
+    public void addRadiationWithReadout(float amount) {
+        if (amount > 0.0F) {
+            addEnvironmentRadiation(amount);
+        }
+        addRadiation(amount);
+    }
+
     public float getEnvironmentRadiation() {
         return environmentRadiation;
     }

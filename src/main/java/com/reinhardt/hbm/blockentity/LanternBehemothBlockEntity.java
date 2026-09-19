@@ -2,7 +2,6 @@ package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.item.BlowtorchItem;
-import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
@@ -71,9 +70,9 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
     }
 
     private void deliverSupplies(Level level) {
-        ItemStack basic = LegacyVariantItem.stackFor(HbmItems.CIRCUIT.get(), "basic");
+        ItemStack basic = new ItemStack(HbmItems.CIRCUIT_BASIC.get());
         basic.setCount(4 + level.random.nextInt(4));
-        ItemStack advanced = LegacyVariantItem.stackFor(HbmItems.CIRCUIT.get(), "advanced");
+        ItemStack advanced = new ItemStack(HbmItems.CIRCUIT_ADVANCED.get());
         advanced.setCount(4 + level.random.nextInt(2));
 
         ItemStack kit = new ItemStack(HbmItems.KIT_CUSTOM.get());
@@ -124,9 +123,7 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
     }
 
     private static boolean isBasicCircuit(ItemStack stack) {
-        return stack.is(HbmItems.CIRCUIT.get())
-                && stack.getItem() instanceof LegacyVariantItem circuit
-                && circuit.variant(stack).id().equals("basic");
+        return stack.is(HbmItems.CIRCUIT_BASIC.get());
     }
 
     private static void consume(Player player, net.minecraft.tags.TagKey<net.minecraft.world.item.Item> tag, int count) {

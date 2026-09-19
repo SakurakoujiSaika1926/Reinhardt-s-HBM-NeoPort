@@ -1,11 +1,11 @@
-﻿{
+{
     "type":  "reinhardtshbm:cyclotron",
     "group":  "cyclotron",
     "particle":  {
                      "item":  "reinhardtshbm:part_beryllium"
                  },
     "input":  {
-                  "item":  "reinhardtshbm:powder_cerium"
+                  "tag":  "c:dusts/cerium"
               },
     "output":  {
                    "id":  "reinhardtshbm:powder_neodymium"

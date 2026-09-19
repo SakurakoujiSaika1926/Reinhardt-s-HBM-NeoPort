@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_bakelite"
+                       "tag":  "c:dusts/bakelite"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_bakelite"

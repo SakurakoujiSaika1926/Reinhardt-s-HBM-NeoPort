@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "pattern": [
@@ -8,7 +8,7 @@
   ],
   "key": {
     "B": { "item": "reinhardtshbm:barbed_wire" },
-    "I": { "item": "reinhardtshbm:powder_fire" }
+    "I": { "tag": "c:dusts/fire" }
   },
   "result": { "id": "reinhardtshbm:barbed_wire_fire", "count": 8 }
 }

@@ -42,7 +42,7 @@ public class TurretJeremyBlock extends HorizontalDirectionalBlock implements Ent
     private static final VoxelShape HALF_SHAPE = Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, 0.5D, 1.0D);
 
     public TurretJeremyBlock(Properties properties) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
         registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 

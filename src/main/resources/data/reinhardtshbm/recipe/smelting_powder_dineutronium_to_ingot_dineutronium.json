@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_dineutronium"
+                       "tag":  "c:dusts/dineutronium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_dineutronium"

@@ -1,7 +1,7 @@
 {
   "type": "reinhardtshbm:blast_furnace",
   "input_a": { "tag": "reinhardtshbm:blast_furnace/steel_equivalent" },
-  "input_b": { "item": "reinhardtshbm:nugget_technetium" },
+  "input_b": { "tag": "c:nuggets/technetium" },
   "duration": 400,
   "result": { "id": "reinhardtshbm:ingot_tcalloy" }
 }

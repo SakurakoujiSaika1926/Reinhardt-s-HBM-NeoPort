@@ -1,4 +1,4 @@
-﻿{
+{
     "type":  "reinhardtshbm:mixer",
     "group":  "mixer.nitan",
     "output":  {
@@ -16,7 +16,7 @@
                },
     "solid_input":  {
                         "ingredient":  {
-                                           "item":  "reinhardtshbm:powder_nitan_mix"
+                                           "tag":  "c:dusts/nitan_mix"
                                        },
                         "count":  1
                     }

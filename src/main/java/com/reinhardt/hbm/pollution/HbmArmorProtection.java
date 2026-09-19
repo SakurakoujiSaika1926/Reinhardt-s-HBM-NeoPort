@@ -1,9 +1,11 @@
 package com.reinhardt.hbm.pollution;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.integration.curios.CuriosIntegration;
 import com.reinhardt.hbm.item.GasMaskItem;
 import com.reinhardt.hbm.item.FilterableGasMask;
 import com.reinhardt.hbm.item.ArmorModItem;
+import com.reinhardt.hbm.registry.HbmMobEffects;
 import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -96,8 +98,21 @@ public final class HbmArmorProtection {
             "electrum", "t45", "t51", "bj", "starmetal", "hazmat", "rubber", "hev", "ajr", "rpa",
             "spacesuit"
     );
+    private static final List<List<String>> LEGACY_HAZMAT_ARMOR_SETS = List.of(
+            List.of("hazmat_helmet", "hazmat_plate", "hazmat_legs", "hazmat_boots"),
+            List.of("hazmat_helmet_red", "hazmat_plate_red", "hazmat_legs_red", "hazmat_boots_red"),
+            List.of("hazmat_helmet_grey", "hazmat_plate_grey", "hazmat_legs_grey", "hazmat_boots_grey"),
+            List.of("schrabidium_helmet", "schrabidium_plate", "schrabidium_legs", "schrabidium_boots"),
+            List.of("hazmat_paa_helmet", "hazmat_paa_plate", "hazmat_paa_legs", "hazmat_paa_boots"),
+            List.of("liquidator_helmet", "liquidator_plate", "liquidator_legs", "liquidator_boots"),
+            List.of("euphemium_helmet", "euphemium_plate", "euphemium_legs", "euphemium_boots"),
+            List.of("rpa_helmet", "rpa_plate", "rpa_legs", "rpa_boots"),
+            List.of("fau_helmet", "fau_plate", "fau_legs", "fau_boots"),
+            List.of("dns_helmet", "dns_plate", "dns_legs", "dns_boots")
+    );
     private static final Map<LivingEntity, RadiationMultiplierCache> RADIATION_MULTIPLIER_CACHE =
             Collections.synchronizedMap(new WeakHashMap<>());
+    private static final int RADIATION_MULTIPLIER_FALLBACK_CHECK_TICKS = 20;
 
     private HbmArmorProtection() {
     }
@@ -124,14 +139,23 @@ public final class HbmArmorProtection {
 
     private static boolean hasHeadProtectionInternal(LivingEntity entity, HazardClass hazardClass) {
         ItemStack head = entity.getItemBySlot(EquipmentSlot.HEAD);
+        if (hasHeadSlotProtection(head, entity, hazardClass)) {
+            return true;
+        }
+
+        for (ItemStack curio : CuriosIntegration.findEquipped(entity, HbmArmorProtection::isCurioHeadProtectionCandidate)) {
+            if (hasStandaloneHeadProtection(curio, entity, hazardClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasHeadSlotProtection(ItemStack head, LivingEntity entity, HazardClass hazardClass) {
         if (head.isEmpty()) {
             return false;
         }
         String path = itemPath(head.getItem());
-        Set<HazardClass> direct = HEAD_PROTECTION.get(path);
-        if (direct != null && direct.contains(hazardClass)) {
-            return true;
-        }
 
         // ArmorFSB registers hazard classes on the helmet item itself in
         // 1.7.10. ArmorRegistry did not add an extra full-set gate, so keep
@@ -145,19 +169,32 @@ public final class HbmArmorProtection {
             }
         }
 
-        if (hasDirectProtectionRecursive(head, entity, hazardClass)) {
+        return hasStandaloneHeadProtection(head, entity, hazardClass);
+    }
+
+    private static boolean hasStandaloneHeadProtection(ItemStack stack, LivingEntity entity, HazardClass hazardClass) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        if (hasDirectProtectionRecursive(stack, entity, hazardClass)) {
             return true;
         }
-        if (hasFilterProtection(head, entity, hazardClass)) {
+        if (hasFilterProtection(stack, entity, hazardClass)) {
             return true;
         }
-        for (ItemStack attachment : ArmorModHandler.pryMods(head, entity.registryAccess())) {
+        for (ItemStack attachment : ArmorModHandler.pryMods(stack, entity.registryAccess())) {
             if (hasDirectProtectionRecursive(attachment, entity, hazardClass)
                     || hasFilterProtection(attachment, entity, hazardClass)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean isCurioHeadProtectionCandidate(ItemStack stack) {
+        return !stack.isEmpty()
+                && (stack.getItem() instanceof FilterableGasMask
+                || HEAD_PROTECTION.containsKey(itemPath(stack.getItem())));
     }
 
     /**
@@ -172,19 +209,46 @@ public final class HbmArmorProtection {
             return;
         }
 
-        ItemStack mask = entity.getItemBySlot(EquipmentSlot.HEAD);
-        if (mask.isEmpty()) {
+        ItemStack head = entity.getItemBySlot(EquipmentSlot.HEAD);
+        if (head.getItem() instanceof FilterableGasMask) {
+            GasMaskItem.damageInstalledFilter(head, entity, damage);
             return;
         }
-        if (!(mask.getItem() instanceof FilterableGasMask)) {
-            ItemStack[] mods = ArmorModHandler.pryMods(mask, entity.registryAccess());
-            ItemStack helmetOnly = mods[ArmorModHandler.HELMET_ONLY];
-            if (helmetOnly.isEmpty() || !(helmetOnly.getItem() instanceof FilterableGasMask)) {
-                return;
-            }
-            mask = helmetOnly;
+
+        ItemStack helmetAttachment = helmetOnlyFilterableMask(head, entity);
+        if (!helmetAttachment.isEmpty()) {
+            GasMaskItem.damageInstalledFilter(helmetAttachment, entity, damage);
+            ArmorModHandler.applyMod(head, helmetAttachment, entity.registryAccess());
+            return;
         }
-        GasMaskItem.damageInstalledFilter(mask, entity, damage);
+
+        ItemStack curioMask = CuriosIntegration.findFirstEquipped(entity,
+                stack -> stack.getItem() instanceof FilterableGasMask);
+        if (!curioMask.isEmpty()) {
+            GasMaskItem.damageInstalledFilter(curioMask, entity, damage);
+        }
+    }
+
+    private static ItemStack helmetOnlyFilterableMask(ItemStack helmet, LivingEntity entity) {
+        if (helmet.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack[] mods = ArmorModHandler.pryMods(helmet, entity.registryAccess());
+        ItemStack helmetOnly = mods[ArmorModHandler.HELMET_ONLY];
+        return helmetOnly.getItem() instanceof FilterableGasMask ? helmetOnly : ItemStack.EMPTY;
+    }
+
+    /**
+     * Exact 1.7.10 ArmorUtil.checkForHazmat check used by full-body toxin
+     * entries such as mustard gas blistering effects.
+     */
+    public static boolean hasLegacyHazmatProtection(LivingEntity entity) {
+        for (List<String> armorSet : LEGACY_HAZMAT_ARMOR_SETS) {
+            if (isWearingExactSet(entity, armorSet)) {
+                return true;
+            }
+        }
+        return entity.hasEffect(HbmMobEffects.MUTATION);
     }
 
     /** Exact 1.7.10 all-four-slots Faraday check used by Tesla damage. */
@@ -214,10 +278,19 @@ public final class HbmArmorProtection {
         }
 
         long gameTime = player.level().getGameTime();
-        int armorHash = armorHash(player);
         RadiationMultiplierCache cached = RADIATION_MULTIPLIER_CACHE.get(player);
-        if (cached != null && cached.gameTime == gameTime && cached.armorHash == armorHash) {
+        if (cached != null && gameTime < cached.nextFallbackCheckTick()) {
             return cached.multiplier;
+        }
+
+        int armorHash = armorHash(player);
+        if (cached != null && cached.armorHash() == armorHash) {
+            RADIATION_MULTIPLIER_CACHE.put(player, new RadiationMultiplierCache(
+                    armorHash,
+                    cached.multiplier(),
+                    nextRadiationMultiplierFallbackTick(player, gameTime)
+            ));
+            return cached.multiplier();
         }
 
         double resistance = 0.0D;
@@ -227,8 +300,18 @@ public final class HbmArmorProtection {
             resistance += pieceResistance(armor, slot, player.registryAccess());
         }
         double multiplier = multiplierForResistance(resistance);
-        RADIATION_MULTIPLIER_CACHE.put(player, new RadiationMultiplierCache(gameTime, armorHash, multiplier));
+        RADIATION_MULTIPLIER_CACHE.put(player, new RadiationMultiplierCache(
+                armorHash,
+                multiplier,
+                nextRadiationMultiplierFallbackTick(player, gameTime)
+        ));
         return multiplier;
+    }
+
+    public static void invalidateRadiationMultiplier(LivingEntity entity) {
+        if (entity instanceof Player) {
+            RADIATION_MULTIPLIER_CACHE.remove(entity);
+        }
     }
 
     /**
@@ -411,7 +494,12 @@ public final class HbmArmorProtection {
         return hash;
     }
 
-    private record RadiationMultiplierCache(long gameTime, int armorHash, double multiplier) {
+    private static long nextRadiationMultiplierFallbackTick(Player player, long gameTime) {
+        return gameTime + RADIATION_MULTIPLIER_FALLBACK_CHECK_TICKS
+                + Math.floorMod(player.getId(), RADIATION_MULTIPLIER_FALLBACK_CHECK_TICKS);
+    }
+
+    private record RadiationMultiplierCache(int armorHash, double multiplier, long nextFallbackCheckTick) {
     }
 
     private static double vanillaResistance(Item item) {
@@ -450,6 +538,13 @@ public final class HbmArmorProtection {
             }
         }
         return false;
+    }
+
+    private static boolean isWearingExactSet(LivingEntity entity, List<String> armorSet) {
+        return itemPath(entity.getItemBySlot(EquipmentSlot.HEAD).getItem()).equals(armorSet.get(0))
+                && itemPath(entity.getItemBySlot(EquipmentSlot.CHEST).getItem()).equals(armorSet.get(1))
+                && itemPath(entity.getItemBySlot(EquipmentSlot.LEGS).getItem()).equals(armorSet.get(2))
+                && itemPath(entity.getItemBySlot(EquipmentSlot.FEET).getItem()).equals(armorSet.get(3));
     }
 
     private static boolean hasFilterProtection(ItemStack mask, LivingEntity entity, HazardClass hazardClass) {

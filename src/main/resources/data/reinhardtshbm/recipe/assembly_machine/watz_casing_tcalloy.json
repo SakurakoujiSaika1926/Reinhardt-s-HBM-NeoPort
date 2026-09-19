@@ -14,16 +14,12 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:plate_welded"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 36,
-            "material": "tcalloy"
-          }
-        }
+        "shape": "plate_welded",
+        "material": "tcalloy"
       },
       "count": 1
     },
@@ -35,22 +31,18 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:plate_welded"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "plate_welded",
+        "material": "steel"
       },
       "count": 2
     }
   ],
   "result": {
-    "id": "reinhardtshbm:watz_casing",
+    "id": "reinhardtshbm:watz_end",
     "count": 3
   }
 }

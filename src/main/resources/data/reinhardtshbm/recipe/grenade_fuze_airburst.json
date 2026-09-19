@@ -1,39 +1,35 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "C",
-                    "S",
-                    "F"
-                ],
-    "key":  {
-                "C":  {
-                          "item":  "reinhardtshbm:circuit_vacuum_tube"
-                      },
-                "S":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:bolt"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      },
-                "F":  {
-                          "item":  "reinhardtshbm:safety_fuse"
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:grenade_fuze",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "airburst"
-                                                                },
-                                      "minecraft:custom_model_data":  4
-                                  },
-                   "count":  4
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "C",
+    "S",
+    "F"
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:circuit_vacuum_tube"
+    },
+    "S": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    },
+    "F": {
+      "item": "reinhardtshbm:safety_fuse"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:grenade_fuze",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "airburst"
+      },
+      "minecraft:custom_model_data": 4
+    },
+    "count": 4
+  }
 }

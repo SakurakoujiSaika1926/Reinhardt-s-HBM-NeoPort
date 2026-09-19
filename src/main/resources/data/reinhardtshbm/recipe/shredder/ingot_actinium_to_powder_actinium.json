@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_actinium"
+                       "tag":  "c:ingots/actinium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_actinium"

@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["DPD","PSP","DPD"],"key":{"D":{"item":"reinhardtshbm:ducttape"},"P":{"tag":"c:plates/iron"},"S":{"item":"reinhardtshbm:block_steel"}},"result":{"id":"reinhardtshbm:insert_steel"}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["DPD","PSP","DPD"],"key":{"D":{"item":"reinhardtshbm:ducttape"},"P":{"tag":"c:plates/iron"},"S":{"tag":"c:storage_blocks/steel"}},"result":{"id":"reinhardtshbm:insert_steel"}}

@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public final class HydrotreaterBlockEntityRenderer implements BlockEntityRenderer<HydrotreaterBlockEntity> {
+public final class HydrotreaterBlockEntityRenderer implements LongRangeBlockEntityRenderer<HydrotreaterBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_hydrotreater");
 
     public HydrotreaterBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

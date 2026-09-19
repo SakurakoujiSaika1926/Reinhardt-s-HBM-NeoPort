@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_lithium"
+      "tag": "c:storage_blocks/lithium"
     }
   ],
   "result": {

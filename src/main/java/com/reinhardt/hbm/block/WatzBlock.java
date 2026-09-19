@@ -3,6 +3,7 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.blockentity.WatzBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,17 +21,20 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class WatzBlock extends Block implements EntityBlock {
     private static final int LEGACY_CORE_OFFSET = 3;
 
     public WatzBlock(Properties properties) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
     }
 
     @Nullable
@@ -100,6 +104,19 @@ public class WatzBlock extends Block implements EntityBlock {
             WatzBlockEntity.removeDummies(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        return List.of(
+                new ItemStack(HbmBlocks.WATZ_END.get(), 48),
+                new ItemStack(HbmItems.BOLT_DURA_STEEL.get(), 64),
+                new ItemStack(HbmItems.BOLT_DURA_STEEL.get(), 64),
+                new ItemStack(HbmItems.BOLT_DURA_STEEL.get(), 64),
+                new ItemStack(HbmBlocks.WATZ_ELEMENT.get(), 36),
+                new ItemStack(HbmBlocks.WATZ_COOLER.get(), 26),
+                new ItemStack(HbmBlocks.STRUCT_WATZ_CORE.get())
+        );
     }
 
     @Override

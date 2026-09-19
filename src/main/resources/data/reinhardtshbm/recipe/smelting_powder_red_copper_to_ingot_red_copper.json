@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_red_copper"
+                       "tag":  "c:dusts/red_copper"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_red_copper"

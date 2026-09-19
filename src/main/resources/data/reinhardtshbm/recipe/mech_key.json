@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["MCM","MKM","MMM"],"key":{"M":{"item":"reinhardtshbm:ingot_meteorite_forged"},"C":{"item":"reinhardtshbm:coin_maskman"},"K":{"item":"reinhardtshbm:key"}},"result":{"id":"reinhardtshbm:mech_key"}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["MCM","MKM","MMM"],"key":{"M":{"tag":"c:ingots/meteorite_forged"},"C":{"item":"reinhardtshbm:coin_maskman"},"K":{"item":"reinhardtshbm:key"}},"result":{"id":"reinhardtshbm:mech_key"}}

@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.scrap_oil",
+  "ingredient": {
+    "item": "reinhardtshbm:scrap_oil"
+  },
+  "input_count": 16,
+  "acid": {
+    "fluid": "radiosolvent",
+    "amount": 100
+  },
+  "duration": 100,
+  "result": {
+    "id": "reinhardtshbm:nugget_arsenic"
+  }
+}

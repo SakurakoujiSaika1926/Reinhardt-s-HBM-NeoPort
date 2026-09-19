@@ -4,6 +4,7 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
+import com.reinhardt.hbm.radiation.RadiationShielding;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
@@ -13,6 +14,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -101,12 +103,32 @@ public class RbmkDebrisEntity extends Entity {
         this.zo = getZ();
 
         Vec3 motion = getDeltaMovement().add(0.0D, -0.04D, 0.0D);
-        setDeltaMovement(motion);
+        Vec3 before = position();
         move(net.minecraft.world.entity.MoverType.SELF, motion);
+        Vec3 actual = position().subtract(before);
+
+        double motionX = motion.x;
+        double motionY = motion.y;
+        double motionZ = motion.z;
+        // Match 1.7.10 EntityDebrisBase#moveEntity: horizontal impacts rebound,
+        // vertical impacts zero the vertical speed before the onGround damping
+        // below.  Vanilla Entity#move keeps the requested delta vector, which
+        // made RBMK scrap keep bouncing and rolling on top of corium.
+        if (collided(motion.x, actual.x)) {
+            motionX *= -0.75D;
+        }
+        if (collided(motion.y, actual.y)) {
+            motionY = 0.0D;
+        }
+        if (collided(motion.z, actual.z)) {
+            motionZ *= -0.75D;
+        }
 
         this.lastRot = this.rot;
         if (onGround()) {
-            setDeltaMovement(getDeltaMovement().multiply(0.85D, -0.5D, 0.85D));
+            motionX *= 0.85D;
+            motionZ *= 0.85D;
+            motionY *= -0.5D;
         } else {
             this.rot += 10.0F;
             if (this.rot >= 360.0F) {
@@ -114,6 +136,11 @@ public class RbmkDebrisEntity extends Entity {
                 this.lastRot -= 360.0F;
             }
         }
+        setDeltaMovement(motionX, motionY, motionZ);
+    }
+
+    private static boolean collided(double requested, double actual) {
+        return Math.abs(requested - actual) > 1.0E-7D;
     }
 
     private void breakLidImpact() {
@@ -143,12 +170,18 @@ public class RbmkDebrisEntity extends Entity {
     private void irradiateNearby(float dose) {
         AABB area = getBoundingBox().inflate(2.5D);
         for (LivingEntity entity : level().getEntitiesOfClass(LivingEntity.class, area)) {
+            float attenuatedDose = level() instanceof ServerLevel serverLevel
+                    ? RadiationShielding.attenuateDirectDose(serverLevel, blockPosition(), entity, dose)
+                    : dose;
+            if (attenuatedDose <= 0.0F) {
+                continue;
+            }
             HbmLivingRadiation data = HbmLivingRadiation.get(entity);
-            data.addEnvironmentRadiation(dose);
+            data.addEnvironmentRadiation(attenuatedDose);
             if (!isLegacyRadiationImmune(entity)
                     && !(entity instanceof Player player
                     && (player.isCreative() || player.isSpectator() || player.tickCount < 200))) {
-                data.addRadiation((float) (dose * HbmArmorProtection.radiationMultiplier(entity)));
+                data.addRadiation((float) (attenuatedDose * HbmArmorProtection.radiationMultiplier(entity)));
             }
             HbmLivingRadiation.set(entity, data);
         }

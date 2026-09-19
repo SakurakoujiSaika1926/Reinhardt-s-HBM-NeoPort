@@ -1,35 +1,31 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "F",
-                    "I",
-                    "F"
-                ],
-    "key":  {
-                "F":  {
-                          "item":  "reinhardtshbm:pellet_cluster"
-                      },
-                "I":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:plate_cast"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  50,
-                                                                           "material":  "weaponsteel"
-                                                                       }
-                                         }
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:grenade_filling",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "cluster_heavy"
-                                                                },
-                                      "minecraft:custom_model_data":  9
-                                  }
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "F",
+    "I",
+    "F"
+  ],
+  "key": {
+    "F": {
+      "item": "reinhardtshbm:pellet_cluster"
+    },
+    "I": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "shape": "plate_cast",
+      "material": "weaponsteel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:grenade_filling",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "cluster_heavy"
+      },
+      "minecraft:custom_model_data": 9
+    }
+  }
 }

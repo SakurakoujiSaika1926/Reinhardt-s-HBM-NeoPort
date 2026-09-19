@@ -1,4 +1,4 @@
-﻿{
+{
     "type":  "reinhardtshbm:mixer",
     "group":  "mixer.chlorocalcite_mix",
     "output":  {
@@ -16,7 +16,7 @@
                },
     "solid_input":  {
                         "ingredient":  {
-                                           "item":  "reinhardtshbm:powder_flux"
+                                           "tag":  "c:dusts/flux"
                                        },
                         "count":  1
                     }

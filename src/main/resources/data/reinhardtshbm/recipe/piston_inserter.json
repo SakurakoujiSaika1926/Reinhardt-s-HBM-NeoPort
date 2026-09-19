@@ -7,22 +7,26 @@
     "ITI"
   ],
   "key": {
-    "I": { "tag": "c:plates/iron" },
+    "I": {
+      "tag": "c:plates/iron"
+    },
     "T": {
-      "type": "neoforge:components",
-      "items": [ "reinhardtshbm:bolt" ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
     },
     "P": {
       "type": "neoforge:components",
-      "items": [ "reinhardtshbm:part_generic" ],
+      "items": [
+        "reinhardtshbm:part_generic"
+      ],
       "components": {
-        "minecraft:custom_data": { "variant": "piston_pneumatic" },
+        "minecraft:custom_data": {
+          "variant": "piston_pneumatic"
+        },
         "minecraft:custom_model_data": 0
       }
     }

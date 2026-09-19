@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_meteorite"
+      "tag": "c:dusts/meteorite"
     }
   ],
   "result": {

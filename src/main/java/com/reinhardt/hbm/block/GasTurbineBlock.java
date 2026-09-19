@@ -48,7 +48,7 @@ public class GasTurbineBlock extends Block implements EntityBlock {
     private final VoxelShape shape;
 
     public GasTurbineBlock(Properties properties, VoxelShape shape) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
         this.shape = shape;
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }

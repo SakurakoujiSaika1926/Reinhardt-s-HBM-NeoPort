@@ -1,6 +1,8 @@
 {
   "neoforge:conditions": [
-    { "type": "reinhardtshbm:enable_528_mode" }
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
   ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.radiolysis",
@@ -10,29 +12,56 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "heavy_frame" } }
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "heavy_frame"
+          }
+        }
       },
       "count": 2
     },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "lead_plating" } }
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "lead_plating"
+          }
+        }
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_cast"],
-        "components": { "minecraft:custom_data": { "material_id": 2900, "material": "copper" } }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "copper"
       },
       "count": 4
     },
-    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:thermo_element" }, "count": 8 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thermo_element"
+      },
+      "count": 8
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_radiolysis" }
+  "result": {
+    "id": "reinhardtshbm:machine_radiolysis"
+  }
 }

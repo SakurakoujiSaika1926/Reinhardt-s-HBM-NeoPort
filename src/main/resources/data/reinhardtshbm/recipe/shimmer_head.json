@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["SSS","DTD","SSS"],"key":{"S":{"tag":"c:ingots/steel"},"D":{"item":"reinhardtshbm:block_desh"},"T":{"item":"reinhardtshbm:block_tungsten"}},"result":{"id":"reinhardtshbm:shimmer_head"}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["SSS","DTD","SSS"],"key":{"S":{"tag":"c:ingots/steel"},"D":{"tag":"c:storage_blocks/desh"},"T":{"tag":"c:storage_blocks/tungsten"}},"result":{"id":"reinhardtshbm:shimmer_head"}}

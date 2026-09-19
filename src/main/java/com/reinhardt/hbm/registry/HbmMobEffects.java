@@ -39,6 +39,10 @@ public final class HbmMobEffects {
             "taint",
             TaintEffect::new
     );
+    public static final DeferredHolder<MobEffect, MobEffect> MUTATION = MOB_EFFECTS.register(
+            "mutation",
+            () -> new LegacyStatusEffect(MobEffectCategory.BENEFICIAL, 0x800080)
+    );
     public static final DeferredHolder<MobEffect, MobEffect> RADX = MOB_EFFECTS.register(
             "radx",
             () -> new LegacyStatusEffect(MobEffectCategory.BENEFICIAL, 0xBB4B00)

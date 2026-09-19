@@ -36,7 +36,7 @@ public class MiningLaserBlock extends LegacyDirectionalBlock implements EntityBl
     private static final VoxelShape CORE_SHAPE = Shapes.block();
 
     public MiningLaserBlock(Properties properties) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
         registerDefaultState(defaultBlockState().setValue(LIT, false));
     }
 

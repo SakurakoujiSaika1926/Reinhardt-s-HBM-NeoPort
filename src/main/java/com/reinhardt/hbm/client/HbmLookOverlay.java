@@ -393,9 +393,7 @@ public final class HbmLookOverlay {
         }
 
         int warningColor = System.currentTimeMillis() % 1000L < 500L ? 0xFF0000 : 0xFFFF00;
-        if (pump.getBlockPos().getY() > GroundwaterPumpBlockEntity.GROUND_HEIGHT) {
-            lines.add(new OverlayLine(Component.translatable("overlay.reinhardtshbm.pump.invalid_altitude").getString(), warningColor));
-        } else if (!pump.hasValidWaterSource()) {
+        if (!pump.hasValidWaterSource()) {
             lines.add(new OverlayLine(Component.translatable("overlay.reinhardtshbm.pump.no_water_source").getString(), warningColor));
         }
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);

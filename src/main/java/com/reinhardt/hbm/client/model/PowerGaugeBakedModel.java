@@ -56,25 +56,27 @@ public final class PowerGaugeBakedModel implements IDynamicBakedModel {
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource random, ModelData data,
                                     @Nullable RenderType renderType) {
-        List<BakedQuad> quads = new ArrayList<>(fallback.getQuads(state, side, random, ModelData.EMPTY, renderType));
-        if (state == null && side == null) {
-            quads.add(CableModelGeometry.face(Direction.NORTH, 0.0F, 0.0F, -0.0005F, 1.0F, 1.0F, -0.0005F, gauge));
-        } else if (state != null && side == state.getValue(PowerGaugeBlock.FACING)) {
-            quads.add(overlay(side));
+        if (state == null) {
+            return side == null ? fullCube(Direction.NORTH) : List.of();
+        }
+
+        Direction facing = state.getValue(PowerGaugeBlock.FACING);
+        if (side == null) {
+            return List.of();
+        }
+        return List.of(face(side, side == facing ? gauge : base));
+    }
+
+    private List<BakedQuad> fullCube(Direction facing) {
+        List<BakedQuad> quads = new ArrayList<>(6);
+        for (Direction direction : Direction.values()) {
+            quads.add(face(direction, direction == facing ? gauge : base));
         }
         return List.copyOf(quads);
     }
 
-    private BakedQuad overlay(Direction side) {
-        float epsilon = 0.0005F;
-        return switch (side) {
-            case DOWN -> CableModelGeometry.face(side, 0.0F, -epsilon, 0.0F, 1.0F, -epsilon, 1.0F, gauge);
-            case UP -> CableModelGeometry.face(side, 0.0F, 1.0F + epsilon, 0.0F, 1.0F, 1.0F + epsilon, 1.0F, gauge);
-            case NORTH -> CableModelGeometry.face(side, 0.0F, 0.0F, -epsilon, 1.0F, 1.0F, -epsilon, gauge);
-            case SOUTH -> CableModelGeometry.face(side, 0.0F, 0.0F, 1.0F + epsilon, 1.0F, 1.0F, 1.0F + epsilon, gauge);
-            case WEST -> CableModelGeometry.face(side, -epsilon, 0.0F, 0.0F, -epsilon, 1.0F, 1.0F, gauge);
-            case EAST -> CableModelGeometry.face(side, 1.0F + epsilon, 0.0F, 0.0F, 1.0F + epsilon, 1.0F, 1.0F, gauge);
-        };
+    private BakedQuad face(Direction side, TextureAtlasSprite sprite) {
+        return CableModelGeometry.face(side, 0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, sprite);
     }
 
     @Override public ChunkRenderTypeSet getRenderTypes(BlockState state, RandomSource random, ModelData data) { return RENDER_TYPES; }

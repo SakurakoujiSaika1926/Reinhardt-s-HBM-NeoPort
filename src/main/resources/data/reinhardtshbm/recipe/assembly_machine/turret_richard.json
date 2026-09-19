@@ -1,19 +1,87 @@
 {
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.turretrichard",
-  "blueprint_pools": ["528.bmg"],
+  "blueprint_pools": [
+    "528.bmg"
+  ],
   "duration": 200,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:battery_pack"], "components": { "minecraft:custom_data": { "variant": "battery_lead" }, "minecraft:custom_model_data": 1 } }, "count": 1 },
-    { "ingredient": { "tag": "c:ingots/steel" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 },
-    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 1 },
-    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 2 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:shell"], "components": { "minecraft:custom_data": { "material_id": 30, "material": "steel" } } }, "count": 8 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:part_mechanism"], "components": { "minecraft:custom_data": { "material_id": 50, "material": "weaponsteel" } } }, "count": 3 },
-    { "ingredient": { "item": "reinhardtshbm:crate_steel" }, "count": 1 },
-    { "ingredient": { "item": "reinhardtshbm:crt_display" }, "count": 1 }
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:battery_pack"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "battery_lead"
+          },
+          "minecraft:custom_model_data": 1
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/steel"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_advanced"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:part_mechanism"
+        ],
+        "shape": "mechanism",
+        "material": "weaponsteel"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:crate_steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:crt_display"
+      },
+      "count": 1
+    }
   ],
-  "result": { "id": "reinhardtshbm:turret_richard" }
+  "result": {
+    "id": "reinhardtshbm:turret_richard"
+  }
 }

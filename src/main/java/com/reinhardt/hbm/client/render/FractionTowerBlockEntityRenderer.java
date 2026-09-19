@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class FractionTowerBlockEntityRenderer implements BlockEntityRenderer<FractionTowerBlockEntity> {
+public class FractionTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<FractionTowerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fraction_tower");
 
     public FractionTowerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:oil",
+    "reinhardtshbm:flowing_oil",
+    "reinhardtshbm:oil_ds",
+    "reinhardtshbm:flowing_oil_ds",
+    "reinhardtshbm:hotoil",
+    "reinhardtshbm:flowing_hotoil",
+    "reinhardtshbm:hotoil_ds",
+    "reinhardtshbm:flowing_hotoil_ds"
+  ]
+}

@@ -13,7 +13,7 @@
       "tag": "c:plates/starmetal"
     },
     "B": {
-      "item": "reinhardtshbm:block_starmetal"
+      "tag": "c:storage_blocks/starmetal"
     }
   },
   "result": {

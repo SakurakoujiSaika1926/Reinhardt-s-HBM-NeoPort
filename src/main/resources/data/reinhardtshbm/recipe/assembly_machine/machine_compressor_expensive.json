@@ -12,7 +12,9 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
         "components": {
           "minecraft:custom_data": {
             "variant": "steel_plating"
@@ -23,14 +25,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:shell"],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 4
     },

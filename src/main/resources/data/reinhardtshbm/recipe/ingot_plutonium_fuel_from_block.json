@@ -1,9 +1,9 @@
-﻿{
+{
     "type":  "minecraft:crafting_shapeless",
     "category":  "misc",
     "ingredients":  [
                         {
-                            "item":  "reinhardtshbm:block_plutonium_fuel"
+                            "tag":  "c:storage_blocks/plutonium_fuel"
                         }
                     ],
     "result":  {

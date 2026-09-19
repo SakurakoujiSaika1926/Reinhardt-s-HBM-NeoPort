@@ -53,7 +53,7 @@ public class LargeFluidTankBlock extends Block implements EntityBlock {
     private static final ThreadLocal<Boolean> RELOCATING = ThreadLocal.withInitial(() -> false);
 
     public LargeFluidTankBlock(Properties properties) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.SOUTH));
     }
 

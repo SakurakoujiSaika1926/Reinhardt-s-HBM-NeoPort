@@ -1,69 +1,64 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.fusionmhdt",
-    "blueprint_pools":  [
-                            "528.chlorophyte"
-                        ],
-    "duration":  1200,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "ferro_plating"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  16
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "plastic"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  16
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:plate_cast"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  47,
-                                                                                                "material":  "arsenic_bronze"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  32
-                        },
-                        {
-                            "ingredient":  {
-                                               "item":  "reinhardtshbm:circuit_quantum"
-                                           },
-                            "count":  8
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:fusion_mhdt"
-               }
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fusionmhdt",
+  "blueprint_pools": [
+    "528.chlorophyte"
+  ],
+  "duration": 1200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "ferro_plating"
+          }
+        }
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "plastic"
+          }
+        }
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "arsenic_bronze"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_quantum"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fusion_mhdt"
+  }
 }
-

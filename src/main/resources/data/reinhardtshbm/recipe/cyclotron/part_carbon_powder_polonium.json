@@ -1,11 +1,11 @@
-﻿{
+{
     "type":  "reinhardtshbm:cyclotron",
     "group":  "cyclotron",
     "particle":  {
                      "item":  "reinhardtshbm:part_carbon"
                  },
     "input":  {
-                  "item":  "reinhardtshbm:nugget_mercury"
+                  "tag":  "c:nuggets/mercury"
               },
     "output":  {
                    "id":  "reinhardtshbm:powder_polonium"

@@ -1,12 +1,42 @@
 {
-  "neoforge:conditions": [{ "type": "reinhardtshbm:enable_528_mode" }],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pwrfuel",
   "duration": 200,
   "power": 500,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "lead_plating" } } }, "count": 1 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_welded"], "components": { "minecraft:custom_data": { "material_id": 4000, "material": "zirconium" } } }, "count": 2 }
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "lead_plating"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "zirconium"
+      },
+      "count": 2
+    }
   ],
-  "result": { "id": "reinhardtshbm:pwr_fuelrod", "count": 4 }
+  "result": {
+    "id": "reinhardtshbm:pwr_fuelrod",
+    "count": 4
+  }
 }

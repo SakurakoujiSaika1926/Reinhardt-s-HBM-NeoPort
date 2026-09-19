@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["QDQ","NCN","QDQ"],"key":{"Q":{"item":"reinhardtshbm:glass_quartz"},"D":{"tag":"c:ingots/desh"},"N":{"tag":"c:ingots/niobium"},"C":{"item":"reinhardtshbm:fluid_tank_full"}},"result":{"id":"reinhardtshbm:laser_crystal_co2"}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["QDQ","NCN","QDQ"],"key":{"Q":{"tag": "c:glass_blocks/quartz"},"D":{"tag":"c:ingots/desh"},"N":{"tag":"c:ingots/niobium"},"C":{"item":"reinhardtshbm:fluid_tank_full"}},"result":{"id":"reinhardtshbm:laser_crystal_co2"}}

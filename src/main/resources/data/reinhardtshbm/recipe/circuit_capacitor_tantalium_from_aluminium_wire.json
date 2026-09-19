@@ -14,16 +14,12 @@
       "tag": "c:nuggets/tantalium"
     },
     "W": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:wire_fine"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 1300,
-          "material": "aluminium"
-        }
-      }
+      "shape": "wire",
+      "material": "aluminium"
     }
   },
   "result": {

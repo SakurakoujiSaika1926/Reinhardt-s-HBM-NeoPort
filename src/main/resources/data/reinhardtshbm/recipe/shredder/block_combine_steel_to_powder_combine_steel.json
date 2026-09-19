@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_combine_steel"
+                       "tag":  "c:storage_blocks/combine_steel"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_combine_steel",

@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class ChimneyBlockEntityRenderer implements BlockEntityRenderer<ChimneyBlockEntity> {
+public class ChimneyBlockEntityRenderer implements LongRangeBlockEntityRenderer<ChimneyBlockEntity> {
     private static final ModelResourceLocation BRICK = MachineModelRenderer.standalone("block/chimney_brick");
     private static final ModelResourceLocation INDUSTRIAL = MachineModelRenderer.standalone("block/chimney_industrial");
 

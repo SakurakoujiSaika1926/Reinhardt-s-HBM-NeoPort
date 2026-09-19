@@ -6,7 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_coal"
+        "tag": "c:dusts/coal"
       },
       "count": 4
     },

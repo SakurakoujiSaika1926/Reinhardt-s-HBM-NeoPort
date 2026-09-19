@@ -6,14 +6,29 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_cast"],
-        "components": { "minecraft:custom_data": { "material_id": 8200, "material": "lead" } }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "lead"
       },
       "count": 2
     },
-    { "ingredient": { "tag": "c:plates/copper" }, "count": 4 },
-    { "ingredient": { "item": "reinhardtshbm:thermo_element" }, "count": 2 }
+    {
+      "ingredient": {
+        "tag": "c:plates/copper"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thermo_element"
+      },
+      "count": 2
+    }
   ],
-  "result": { "id": "reinhardtshbm:rtg_unit" }
+  "result": {
+    "id": "reinhardtshbm:rtg_unit"
+  }
 }

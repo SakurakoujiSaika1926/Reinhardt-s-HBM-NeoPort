@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_asbestos"
+                       "tag":  "c:ingots/asbestos"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_asbestos"

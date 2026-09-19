@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_neodymium"
+      "tag": "c:dusts/neodymium"
     }
   ],
   "result": {

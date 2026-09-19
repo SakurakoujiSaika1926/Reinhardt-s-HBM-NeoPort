@@ -17,16 +17,12 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 4
     },

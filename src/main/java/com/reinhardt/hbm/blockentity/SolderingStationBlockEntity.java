@@ -13,13 +13,16 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.recipe.SolderingStationRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -31,6 +34,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -118,6 +122,10 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SolderingStationBlockEntity blockEntity) {
+        if (level.isClientSide) {
+            blockEntity.tickClient(level, state);
+            return;
+        }
         PowerNetworkManager.tickFromEndpoint(level, blockEntity);
         blockEntity.tickWork(level);
     }
@@ -125,6 +133,21 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
     @Override
     public BlockPos getPowerPos() {
         return this.worldPosition;
+    }
+
+    @Override
+    public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
+        return connectorPositions().stream().map(Port::pos).toList();
+    }
+
+    @Override
+    public boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
+        for (Port port : connectorPositions()) {
+            if (port.pos().equals(connectorPos)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -221,9 +244,17 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         if (!isValidSlot(slot)) {
             return;
         }
+        ItemStack oldStack = this.items.get(slot).copy();
         this.items.set(slot, stack);
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize(stack)) {
             stack.setCount(this.getMaxStackSize(stack));
+        }
+        if (slot >= UPGRADE_START && slot < UPGRADE_END
+                && MachineUpgradeItem.isMachineUpgrade(stack)
+                && (oldStack.isEmpty() || !ItemStack.isSameItemSameComponents(oldStack, stack))
+                && this.level != null
+                && !this.level.isClientSide) {
+            this.level.playSound(null, this.worldPosition, HbmSoundEvents.UPGRADE_PLUG.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         }
         if (isRecipeSlot(slot)) {
             this.progress = 0;
@@ -304,6 +335,20 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         return new SolderingStationFluidHandler();
     }
 
+    @Nullable
+    public IFluidHandler fluidHandler(BlockPos queryPos, @Nullable Direction side) {
+        return allowsAutomationPort(queryPos) ? new SolderingStationFluidHandler() : null;
+    }
+
+    public boolean allowsAutomationPort(BlockPos queryPos) {
+        for (BlockPos bodyPos : bodyPositions()) {
+            if (bodyPos.equals(queryPos)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean canAcceptInput(ItemStack stack, Group group) {
         return !stack.isEmpty() && isIngredientForGroup(stack, group);
     }
@@ -346,6 +391,37 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         this.processTime = Math.max(1, tag.getInt("ProcessTime"));
         this.completedCycles = tag.getInt("CompletedCycles");
         this.tank.load(tag.getCompound("Tank"));
+    }
+
+    private void tickClient(Level level, BlockState state) {
+        if (!(state.getBlock() instanceof SolderingStationBlock)
+                || !state.hasProperty(SolderingStationBlock.LIT)
+                || !state.getValue(SolderingStationBlock.LIT)
+                || level.getGameTime() % 20L != 0L) {
+            return;
+        }
+
+        Direction facing = state.hasProperty(SolderingStationBlock.FACING)
+                ? state.getValue(SolderingStationBlock.FACING)
+                : Direction.NORTH;
+        Direction right = facing.getClockWise();
+        double x = this.worldPosition.getX() + 0.5D - facing.getStepX() * 0.5D + right.getStepX() * 0.5D;
+        double y = this.worldPosition.getY() + 1.125D;
+        double z = this.worldPosition.getZ() + 0.5D - facing.getStepZ() * 0.5D + right.getStepZ() * 0.5D;
+
+        for (int count = 0; count < 3; count++) {
+            level.addParticle(
+                    HbmParticleTypes.TAU_SPARK.get(),
+                    x + (level.random.nextDouble() - 0.5D) * 0.08D,
+                    y + level.random.nextDouble() * 0.05D,
+                    z + (level.random.nextDouble() - 0.5D) * 0.08D,
+                    (level.random.nextDouble() - 0.5D) * 0.12D,
+                    0.08D + level.random.nextDouble() * 0.06D,
+                    (level.random.nextDouble() - 0.5D) * 0.12D
+            );
+        }
+        level.playLocalSound(x, y, z, HbmSoundEvents.WEAPON_SPARK_SHOOT.get(), SoundSource.BLOCKS,
+                0.18F, 1.65F + level.random.nextFloat() * 0.25F, false);
     }
 
     private void tickWork(Level level) {
@@ -561,6 +637,42 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         if (this.level != null) {
             this.level.invalidateCapabilities(this.worldPosition);
         }
+    }
+
+    private List<BlockPos> bodyPositions() {
+        Direction facing = this.getBlockState().hasProperty(SolderingStationBlock.FACING)
+                ? this.getBlockState().getValue(SolderingStationBlock.FACING)
+                : Direction.NORTH;
+        Direction right = facing.getClockWise();
+        Direction back = facing.getOpposite();
+        return List.of(
+                this.worldPosition,
+                this.worldPosition.relative(right),
+                this.worldPosition.relative(back),
+                this.worldPosition.relative(back).relative(right)
+        );
+    }
+
+    private List<Port> connectorPositions() {
+        Direction facing = this.getBlockState().hasProperty(SolderingStationBlock.FACING)
+                ? this.getBlockState().getValue(SolderingStationBlock.FACING)
+                : Direction.NORTH;
+        Direction right = facing.getClockWise();
+        Direction back = facing.getOpposite();
+        Direction left = right.getOpposite();
+        return List.of(
+                new Port(this.worldPosition.relative(facing), facing),
+                new Port(this.worldPosition.relative(right).relative(facing), facing),
+                new Port(this.worldPosition.relative(back, 2), back),
+                new Port(this.worldPosition.relative(right).relative(back, 2), back),
+                new Port(this.worldPosition.relative(left), left),
+                new Port(this.worldPosition.relative(back).relative(left), left),
+                new Port(this.worldPosition.relative(right, 2), right),
+                new Port(this.worldPosition.relative(back).relative(right, 2), right)
+        );
+    }
+
+    private record Port(BlockPos pos, Direction direction) {
     }
 
     private final class SolderingStationFluidHandler implements IFluidHandler {

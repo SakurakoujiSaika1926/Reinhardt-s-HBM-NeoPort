@@ -1,11 +1,11 @@
-﻿{
+{
     "type":  "reinhardtshbm:cyclotron",
     "group":  "cyclotron",
     "particle":  {
                      "item":  "reinhardtshbm:part_lithium"
                  },
     "input":  {
-                  "item":  "reinhardtshbm:powder_strontium"
+                  "tag":  "c:dusts/strontium"
               },
     "output":  {
                    "id":  "reinhardtshbm:powder_zirconium"

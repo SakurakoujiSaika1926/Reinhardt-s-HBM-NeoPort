@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_lithium"
+                       "tag":  "c:dusts/lithium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:lithium"

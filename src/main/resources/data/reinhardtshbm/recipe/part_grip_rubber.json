@@ -1,1 +1,0 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["W "," W"," W"],"key":{"W":{"tag":"c:ingots/rubber"}},"result":{"id":"reinhardtshbm:part_grip","components":{"minecraft:custom_data":{"material_id":20003,"material":"rubber"}}}}

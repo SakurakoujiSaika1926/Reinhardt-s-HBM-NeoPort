@@ -15,6 +15,7 @@ public final class FloodlightBlockEntityRenderer implements BlockEntityRenderer<
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/floodlight_base");
     private static final ModelResourceLocation LIGHTS = MachineModelRenderer.standalone("block/floodlight_lights");
     private static final ModelResourceLocation LAMPS = MachineModelRenderer.standalone("block/floodlight_lamps");
+    private static final int LAMP_GLOW = 0xB0FFF2C0;
 
     public FloodlightBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -69,6 +70,8 @@ public final class FloodlightBlockEntityRenderer implements BlockEntityRenderer<
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LIGHTS), poseStack, bufferSource, state, packedLight, packedOverlay);
         if (light.isOn()) {
             MachineModelRenderer.renderUnculledFullBright(MachineModelRenderer.model(LAMPS), poseStack, bufferSource, state, packedOverlay);
+            MachineModelRenderer.renderUnculledTintedUvEyes(MachineModelRenderer.model(LAMPS), poseStack, bufferSource,
+                    state, packedOverlay, LAMP_GLOW, 0.0F, 0.0F);
         } else {
             MachineModelRenderer.renderUnculledTinted(MachineModelRenderer.model(LAMPS), poseStack, bufferSource, state, packedLight, packedOverlay, 0xFF404040);
         }

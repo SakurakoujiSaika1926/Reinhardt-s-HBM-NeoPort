@@ -1,0 +1,24 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    },
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "appeng"
+    }
+  ],
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "tag": "ae2:all_fluix"
+    }
+  ],
+  "processing_time": 100,
+  "results": [
+    {
+      "id": "ae2:fluix_dust"
+    }
+  ]
+}

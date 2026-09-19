@@ -8,7 +8,7 @@
   ],
   "key": {
     "B": {
-      "item": "reinhardtshbm:ingot_firebrick"
+      "tag": "c:ingots/firebrick"
     },
     "I": {
       "tag": "c:ingots/steel"

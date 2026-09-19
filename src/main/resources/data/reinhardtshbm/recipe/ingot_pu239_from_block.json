@@ -1,9 +1,9 @@
-﻿{
+{
     "type":  "minecraft:crafting_shapeless",
     "category":  "misc",
     "ingredients":  [
                         {
-                            "item":  "reinhardtshbm:block_pu239"
+                            "tag":  "c:storage_blocks/pu239"
                         }
                     ],
     "result":  {

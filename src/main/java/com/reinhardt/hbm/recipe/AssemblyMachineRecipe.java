@@ -128,31 +128,95 @@ public record AssemblyMachineRecipe(
      * Resource conditions are evaluated during recipe loading, but older packs may still contain
      * both sides of a 528 pair after a reload. Keep the machine UI and its server-side selection
      * on the same configured variant without collapsing normal material alternatives.
+     *
+     * If the datapack condition pass has already removed one side of a pair, the remaining recipe
+     * is the active one. Do not apply the config filter a second time to singleton groups, otherwise
+     * client/server config timing or reload order can hide legitimate assembly recipes entirely.
      */
     public static List<RecipeHolder<AssemblyMachineRecipe>> activeVariants(Collection<RecipeHolder<AssemblyMachineRecipe>> recipes) {
+        Set<String> normalGroups = new HashSet<>();
         Set<String> expensiveGroups = new HashSet<>();
         for (RecipeHolder<AssemblyMachineRecipe> holder : recipes) {
-            if (isExpensiveVariant(holder) && !holder.value().group().isBlank()) {
-                expensiveGroups.add(holder.value().group());
+            String group = holder.value().group();
+            if (group.isBlank()) {
+                continue;
+            }
+            if (isExpensiveVariant(holder)) {
+                expensiveGroups.add(group);
+            } else {
+                normalGroups.add(group);
             }
         }
 
-        boolean enable528Mode = HbmConfig.ENABLE_528_MODE.get();
+        boolean enable528Mode = is528ModeEnabledSafely();
         return recipes.stream()
                 .filter(holder -> {
                     boolean expensive = isExpensiveVariant(holder);
                     String group = holder.value().group();
-                    if (enable528Mode) {
-                        return group.isBlank() || !expensiveGroups.contains(group) || expensive;
+                    if (group.isBlank()) {
+                        return true;
                     }
-                    return !expensive;
+                    boolean hasNormal = normalGroups.contains(group);
+                    boolean hasExpensive = expensiveGroups.contains(group);
+                    if (!hasNormal || !hasExpensive) {
+                        return true;
+                    }
+                    return enable528Mode == expensive;
                 })
                 .sorted((left, right) -> left.id().toString().compareTo(right.id().toString()))
                 .toList();
     }
 
+    /**
+     * The legacy assembly machine presents material alternatives as a single
+     * selectable entry. Keep all concrete recipe holders for matching and
+     * crafting, but collapse equivalent choices for machine/GUI recipe lists so
+     * CD alloy vs TC alloy (or bronze alternates) do not show as duplicated
+     * output icons.
+     */
+    public static List<RecipeHolder<AssemblyMachineRecipe>> displayVariants(Collection<RecipeHolder<AssemblyMachineRecipe>> recipes) {
+        return collapseDisplayChoices(activeVariants(recipes));
+    }
+
+    public static List<RecipeHolder<AssemblyMachineRecipe>> collapseDisplayChoices(Collection<RecipeHolder<AssemblyMachineRecipe>> activeRecipes) {
+        List<RecipeHolder<AssemblyMachineRecipe>> choices = new ArrayList<>();
+        for (RecipeHolder<AssemblyMachineRecipe> holder : activeRecipes) {
+            if (choices.stream().noneMatch(choice -> sameDisplayChoice(choice, holder))) {
+                choices.add(holder);
+            }
+        }
+        return choices;
+    }
+
+    public static boolean sameDisplayChoice(RecipeHolder<AssemblyMachineRecipe> left, RecipeHolder<AssemblyMachineRecipe> right) {
+        AssemblyMachineRecipe leftRecipe = left.value();
+        AssemblyMachineRecipe rightRecipe = right.value();
+        if (leftRecipe.group().isBlank() || rightRecipe.group().isBlank()) {
+            return left.id().equals(right.id());
+        }
+        return leftRecipe.group().equals(rightRecipe.group())
+                && leftRecipe.duration() == rightRecipe.duration()
+                && leftRecipe.power() == rightRecipe.power()
+                && leftRecipe.blueprintPools().equals(rightRecipe.blueprintPools())
+                && leftRecipe.inputFluids().equals(rightRecipe.inputFluids())
+                && leftRecipe.outputFluids().equals(rightRecipe.outputFluids())
+                && sameResult(leftRecipe.result(), rightRecipe.result());
+    }
+
+    private static boolean sameResult(ItemStack left, ItemStack right) {
+        return left.getCount() == right.getCount() && ItemStack.isSameItemSameComponents(left, right);
+    }
+
     private static boolean isExpensiveVariant(RecipeHolder<AssemblyMachineRecipe> holder) {
         return holder.id().getPath().endsWith("_expensive");
+    }
+
+    private static boolean is528ModeEnabledSafely() {
+        try {
+            return HbmConfig.ENABLE_528_MODE.get();
+        } catch (IllegalStateException ignored) {
+            return false;
+        }
     }
 
     public record CountedIngredient(Ingredient ingredient, int count) {

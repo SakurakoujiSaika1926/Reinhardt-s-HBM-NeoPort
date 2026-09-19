@@ -112,6 +112,18 @@ public final class LegacyProjectileUtil {
         }
     }
 
+    /** Exact BlockCrashedBomb conventional dud branch: VNT size 35,
+     * BlockAllocatorStandard(24), BlockProcessorStandard.setNoDrop(),
+     * EntityProcessorCross(5D).withRangeMod(1.5F), and composeEffectLarge. */
+    public static void crashedBombConventionalExplosion(ServerLevel level, Vec3 pos) {
+        Set<BlockPos> affected = allocateLegacyMissileStandardBlocks(level, pos, 35.0F, 24);
+        applyLegacyCrossDamage(level, null, pos, 35.0F, 1.5F, 5.0D);
+        processLegacyMissileStandardBlocks(level, pos, 35.0F, affected, false);
+        composeExplosionEffect(level, pos,
+                30, 6.5F, 2.0F, 65.0F,
+                25, 16, 50, 1.25F, 3.0F, -2.0F, 350.0F);
+    }
+
     /** Dedicated port of EntityMissileCustom's ExplosionLarge warhead path. */
     public static void legacyLargeMissileWarheadExplosion(
             Entity source, Vec3 pos, float strength, boolean fire) {
@@ -830,9 +842,14 @@ public final class LegacyProjectileUtil {
     }
 
     private static void applyLegacyCrossDamage(Level level, @Nullable Entity source, Vec3 pos, float radius, float rangeMod) {
+        applyLegacyCrossDamage(level, source, pos, radius, rangeMod, 7.5D);
+    }
+
+    private static void applyLegacyCrossDamage(Level level, @Nullable Entity source, Vec3 pos,
+                                               float radius, float rangeMod, double nodeDist) {
         double size = radius * 2.0D * rangeMod;
         AABB area = new AABB(pos, pos).inflate(size + 1.0D);
-        Vec3[] nodes = legacyCrossNodes(pos, 7.5D);
+        Vec3[] nodes = legacyCrossNodes(pos, nodeDist);
         for (Entity entity : level.getEntities(source, area, entity -> entity.isAlive() && entity != source)) {
             double distanceScaled = legacyBoxDistance(entity, pos) / size;
             if (distanceScaled > 1.0D) {

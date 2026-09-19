@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "group": "shredder.oil_field_scrap",
+  "ingredient": {
+    "item": "reinhardtshbm:dirt_dead"
+  },
+  "result": {
+    "id": "reinhardtshbm:scrap_oil"
+  }
+}

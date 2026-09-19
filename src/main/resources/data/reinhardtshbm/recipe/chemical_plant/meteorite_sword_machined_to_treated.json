@@ -1,0 +1,21 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.meteorite_sword",
+  "duration": 100,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:meteorite_sword_machined"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:meteorite_sword_treated"
+    }
+  ],
+  "output_fluids": []
+}

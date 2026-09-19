@@ -8,17 +8,21 @@
   ],
   "key": {
     "W": {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 31,
-          "material": "red_copper"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "red_copper"
     },
-    "C": { "item": "reinhardtshbm:circuit_advanced" },
-    "I": { "tag": "c:ingots/plastic" }
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "I": {
+      "tag": "c:ingots/plastic"
+    }
   },
-  "result": { "id": "reinhardtshbm:sat_chip" }
+  "result": {
+    "id": "reinhardtshbm:sat_chip"
+  }
 }

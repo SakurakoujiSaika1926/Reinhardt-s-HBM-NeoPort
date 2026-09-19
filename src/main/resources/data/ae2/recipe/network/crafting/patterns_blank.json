@@ -1,0 +1,36 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "a": {
+      "tag": "c:glass_blocks/quartz"
+    },
+    "b": {
+      "tag": "c:dusts/glowstone"
+    },
+    "c": {
+      "tag": "ae2:all_certus_quartz"
+    },
+    "d": {
+      "tag": "c:ingots/iron"
+    },
+    "e": {
+      "tag": "c:ingots/copper"
+    }
+  },
+  "pattern": [
+    "aba",
+    "bcb",
+    "ded"
+  ],
+  "result": {
+    "count": 2,
+    "id": "ae2:blank_pattern"
+  }
+}

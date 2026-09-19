@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_bismuth"
+                       "tag":  "c:storage_blocks/bismuth"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_bismuth",

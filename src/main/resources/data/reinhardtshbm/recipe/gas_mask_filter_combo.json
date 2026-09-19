@@ -8,7 +8,7 @@
   ],
   "key": {
     "Z": {
-      "item": "reinhardtshbm:ingot_zirconium"
+      "tag": "c:ingots/zirconium"
     },
     "C": {
       "item": "reinhardtshbm:catalyst_clay"

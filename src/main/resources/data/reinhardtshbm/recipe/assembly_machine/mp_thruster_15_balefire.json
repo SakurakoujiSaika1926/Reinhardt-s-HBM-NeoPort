@@ -12,29 +12,23 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 33,
-            "material": "dura_steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "dura_steel"
       },
       "count": 5
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:plate_cast",
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 7400,
-            "material": "tungsten"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "tungsten"
       },
       "count": 16
     },

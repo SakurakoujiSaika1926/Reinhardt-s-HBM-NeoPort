@@ -324,7 +324,7 @@ public class LogicBlockEntity extends BlockEntity {
             resistance = Math.max(1.0F, resistance);
             float dose = (float) (100.0D / resistance / (len * len));
             HbmLivingRadiation data = HbmLivingRadiation.get(entity);
-            data.addRadiation(dose);
+            data.addRadiationWithReadout(dose);
             HbmLivingRadiation.set(entity, data);
         }
         if (this.phase == 2 && this.timer > 40) {

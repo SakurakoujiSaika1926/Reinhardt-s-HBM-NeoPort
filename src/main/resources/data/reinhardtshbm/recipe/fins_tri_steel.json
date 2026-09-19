@@ -14,7 +14,7 @@
       "tag": "c:ingots/steel"
     },
     "B": {
-      "item": "reinhardtshbm:block_steel"
+      "tag": "c:storage_blocks/steel"
     }
   },
   "result": {

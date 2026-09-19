@@ -6,7 +6,7 @@
   "input_items": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_coltan"
+        "tag": "c:dusts/coltan"
       },
       "count": 1
     },

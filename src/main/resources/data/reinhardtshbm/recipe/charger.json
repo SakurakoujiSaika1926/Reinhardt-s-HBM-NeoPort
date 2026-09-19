@@ -8,7 +8,7 @@
   ],
   "key": {
     "G": { "item": "minecraft:glowstone_dust" },
-    "S": { "item": "reinhardtshbm:ingot_steel" },
+    "S": { "tag": "c:ingots/steel" },
     "C": { "item": "reinhardtshbm:coil_copper" }
   },
   "result": {

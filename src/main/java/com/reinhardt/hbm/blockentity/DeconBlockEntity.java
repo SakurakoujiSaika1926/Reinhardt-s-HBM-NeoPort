@@ -38,9 +38,9 @@ public final class DeconBlockEntity extends BlockEntity {
         int red = (int) (0.8F * color * 255.0F);
         int green = (int) (0.9F * color * 255.0F);
         int blue = (int) (color * 255.0F);
-        int rgb = (red << 16) | (green << 8) | blue;
+        int argb = 0xFF000000 | (red << 16) | (green << 8) | blue;
         level.addParticle(
-                ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, rgb),
+                ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, argb),
                 pos.getX() + 0.125D + level.random.nextDouble() * 0.75D,
                 pos.getY() + 1.1D,
                 pos.getZ() + 0.125D + level.random.nextDouble() * 0.75D,

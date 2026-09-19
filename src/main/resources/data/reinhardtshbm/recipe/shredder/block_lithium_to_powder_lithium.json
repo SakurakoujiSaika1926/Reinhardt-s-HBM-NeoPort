@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_lithium"
+                       "tag":  "c:storage_blocks/lithium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_lithium",

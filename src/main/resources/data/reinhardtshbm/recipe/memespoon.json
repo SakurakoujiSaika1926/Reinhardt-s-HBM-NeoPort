@@ -3,12 +3,12 @@
   "category": "equipment",
   "pattern": ["CGC", "PSP", "IAI"],
   "key": {
-    "C": { "item": "reinhardtshbm:powder_yellowcake" },
-    "G": { "item": "reinhardtshbm:block_thorium" },
+    "C": { "tag": "c:dusts/yellowcake" },
+    "G": { "tag": "c:storage_blocks/thorium" },
     "P": { "item": "reinhardtshbm:photo_panel" },
     "S": { "item": "reinhardtshbm:steel_shovel" },
     "I": { "tag": "c:plates/polymer" },
-    "A": { "item": "reinhardtshbm:ingot_australium" }
+    "A": { "tag": "c:ingots/australium" }
   },
   "result": { "id": "reinhardtshbm:memespoon" }
 }

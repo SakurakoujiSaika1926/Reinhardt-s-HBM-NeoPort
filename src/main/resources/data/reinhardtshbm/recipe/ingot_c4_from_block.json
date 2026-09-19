@@ -1,9 +1,9 @@
-﻿{
+{
     "type":  "minecraft:crafting_shapeless",
     "category":  "misc",
     "ingredients":  [
                         {
-                            "item":  "reinhardtshbm:block_c4"
+                            "tag":  "c:storage_blocks/c4"
                         }
                     ],
     "result":  {

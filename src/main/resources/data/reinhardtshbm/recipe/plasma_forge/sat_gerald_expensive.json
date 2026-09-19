@@ -10,31 +10,23 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:plate_cast"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 12600,
-            "material": "schrabidate"
-          }
-        }
+        "shape": "plate_cast",
+        "material": "schrabidate"
       },
       "count": 1
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 48,
-            "material": "bscco"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "bscco"
       },
       "count": 1
     },

@@ -1,10 +1,14 @@
 {
-  "neoforge:conditions": {
-    "type": "reinhardtshbm:enable_528_mode"
-  },
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.fusionpipes",
-  "blueprint_pools": "528.tcalloy",
+  "blueprint_pools": [
+    "528.tcalloy"
+  ],
   "duration": 100,
   "power": 100,
   "ingredients": [
@@ -22,16 +26,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2900,
-            "material": "copper"
-          }
-        }
+        "shape": "pipe",
+        "material": "copper"
       },
       "count": 4
     },

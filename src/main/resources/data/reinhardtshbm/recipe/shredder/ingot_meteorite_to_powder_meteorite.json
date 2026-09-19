@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_meteorite"
+                       "tag":  "c:ingots/meteorite"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_meteorite"

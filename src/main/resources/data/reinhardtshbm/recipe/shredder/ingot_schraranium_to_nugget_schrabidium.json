@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_schraranium"
+                       "tag":  "c:ingots/schraranium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:nugget_schrabidium",

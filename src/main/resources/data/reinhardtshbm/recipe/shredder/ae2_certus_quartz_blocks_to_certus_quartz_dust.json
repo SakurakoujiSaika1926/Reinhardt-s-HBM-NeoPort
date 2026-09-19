@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "appeng"
+    }
+  ],
+  "ingredient": {
+    "tag": "reinhardtshbm:ae2_certus_quartz_blocks"
+  },
+  "result": {
+    "id": "ae2:certus_quartz_dust",
+    "count": 4
+  }
+}

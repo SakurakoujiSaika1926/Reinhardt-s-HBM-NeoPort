@@ -1,10 +1,12 @@
 {
-  "neoforge:conditions": {
-    "type": "neoforge:not",
-    "value": {
-      "type": "reinhardtshbm:enable_528_mode"
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
-  },
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.fusionpipes",
   "duration": 100,
@@ -18,16 +20,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2900,
-            "material": "copper"
-          }
-        }
+        "shape": "pipe",
+        "material": "copper"
       },
       "count": 2
     },

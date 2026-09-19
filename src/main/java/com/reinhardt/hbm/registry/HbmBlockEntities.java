@@ -10,6 +10,7 @@ import com.reinhardt.hbm.blockentity.ArcFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.AutocalBlockEntity;
 import com.reinhardt.hbm.blockentity.StorageDrumBlockEntity;
 import com.reinhardt.hbm.blockentity.SupplyCrateBlockEntity;
+import com.reinhardt.hbm.blockentity.TaczAmmoAssemblerBlockEntity;
 import com.reinhardt.hbm.blockentity.VendingMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.AshpitBlockEntity;
 import com.reinhardt.hbm.blockentity.BatteryReddBlockEntity;
@@ -501,8 +502,11 @@ public final class HbmBlockEntities {
             BLOCK_ENTITIES.register(
                     "machine_assembly_machine",
                     () -> BlockEntityType.Builder.of(
-                            AssemblyMachineBlockEntity::new,
-                            HbmBlocks.MACHINE_ASSEMBLY_MACHINE.get()
+                            (pos, state) -> state.is(HbmBlocks.MACHINE_TACZ_AMMO_ASSEMBLER.get())
+                                    ? new TaczAmmoAssemblerBlockEntity(pos, state)
+                                    : new AssemblyMachineBlockEntity(pos, state),
+                            HbmBlocks.MACHINE_ASSEMBLY_MACHINE.get(),
+                            HbmBlocks.MACHINE_TACZ_AMMO_ASSEMBLER.get()
                     ).build(null)
             );
 

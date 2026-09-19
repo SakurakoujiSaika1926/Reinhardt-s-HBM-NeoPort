@@ -1,11 +1,11 @@
 {
   "multipart": [
-    { "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_center" } },
-    { "when": { "north": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_arm" } },
-    { "when": { "south": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_arm", "y": 180 } },
-    { "when": { "east": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_arm", "y": 90 } },
-    { "when": { "west": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_arm", "y": 270 } },
-    { "when": { "up": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_arm", "x": 270 } },
-    { "when": { "down": "true" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_arm", "x": 90 } }
+    { "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge" } },
+    { "when": { "facing": "north" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_face" } },
+    { "when": { "facing": "south" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_face", "y": 180 } },
+    { "when": { "facing": "east" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_face", "y": 90 } },
+    { "when": { "facing": "west" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_face", "y": 270 } },
+    { "when": { "facing": "up" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_face", "x": 270 } },
+    { "when": { "facing": "down" }, "apply": { "model": "reinhardtshbm:block/fluid_duct_gauge_face", "x": 90 } }
   ]
 }

@@ -12,6 +12,7 @@ import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.FloodlightDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.SatelliteDockDummyBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
+import com.reinhardt.hbm.registry.HbmBlocks;
 import com.simibubi.create.api.contraption.BlockMovementChecks;
 import com.simibubi.create.api.contraption.transformable.MovedBlockTransformerRegistries;
 import com.simibubi.create.content.contraptions.StructureTransform;
@@ -43,6 +44,7 @@ public final class HbmCreateMultiblockCompat {
         installed = true;
 
         BlockMovementChecks.registerMovementNecessaryCheck(HbmCreateMultiblockCompat::isLegacyDummyNecessary);
+        BlockMovementChecks.registerMovementAllowedCheck(HbmCreateMultiblockCompat::isCrashedBombMovementAllowed);
         BlockMovementChecks.registerAttachedCheck(HbmCreateMultiblockCompat::isLegacyDummyAttached);
         MovedBlockTransformerRegistries.BLOCK_ENTITY_TRANSFORMERS.register(
                 HbmBlockEntities.MACHINE_DUMMY.get(),
@@ -64,7 +66,20 @@ public final class HbmCreateMultiblockCompat {
                 HbmBlockEntities.FLOODLIGHT_DUMMY.get(),
                 HbmCreateMultiblockCompat::transformDummyCoreLink
         );
-        ReinhardtsHBM.LOGGER.info("Installed Create support for HBM BlockDummyable proxy chains");
+        ReinhardtsHBM.LOGGER.info("Installed Create support for HBM BlockDummyable proxy chains and movable dud bombs");
+    }
+
+    /**
+     * High-version gameplay exception: crashed bombs stay unbreakable in the
+     * world, but Create-style movers should still be able to capture and place
+     * them.  The block itself clamps player mining progress to zero; this
+     * callback keeps Create from treating the legacy dud as a hard blacklist.
+     */
+    private static BlockMovementChecks.CheckResult isCrashedBombMovementAllowed(
+            BlockState state, Level level, BlockPos pos) {
+        return state.is(HbmBlocks.CRASHED_BOMB.get())
+                ? BlockMovementChecks.CheckResult.SUCCESS
+                : BlockMovementChecks.CheckResult.PASS;
     }
 
     /**

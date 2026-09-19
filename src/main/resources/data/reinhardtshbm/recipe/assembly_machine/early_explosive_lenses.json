@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.explosivelenses1",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/aluminium" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:det_cord" }, "count": 8 },
+    { "ingredient": { "tag": "c:plates/saturnite" }, "count": 2 },
+    { "ingredient": { "tag": "c:ingots/high_explosive" }, "count": 20 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:early_explosive_lenses" }
+}

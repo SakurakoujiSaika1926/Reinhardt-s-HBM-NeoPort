@@ -1,4 +1,4 @@
-﻿{
+{
     "type":  "reinhardtshbm:mixer",
     "group":  "mixer.cryogel",
     "output":  {
@@ -12,7 +12,7 @@
                },
     "solid_input":  {
                         "ingredient":  {
-                                           "item":  "reinhardtshbm:powder_ice"
+                                           "tag":  "c:dusts/ice"
                                        },
                         "count":  1
                     }

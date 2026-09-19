@@ -6,7 +6,7 @@
   "input_items": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_cement"
+        "tag": "c:dusts/cement"
       },
       "count": 4
     },

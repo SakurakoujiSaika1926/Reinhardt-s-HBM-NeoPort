@@ -14,14 +14,12 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_cast"],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "steel"
       },
       "count": 8
     },
@@ -33,14 +31,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:shell"],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 2
     },

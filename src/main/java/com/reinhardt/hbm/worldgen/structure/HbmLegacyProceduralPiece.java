@@ -107,6 +107,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
     private final boolean flatBiome;
     private final boolean hotDryBiome;
     private final boolean badlandsBiome;
+    private boolean surfacePlacementResolved;
+    private int surfacePlacementOriginY;
 
     public HbmLegacyProceduralPiece(
             HbmLegacyStructureSelection.SelectedStructure selected,
@@ -133,6 +135,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
         this.flatBiome = flatBiome;
         this.hotDryBiome = hotDryBiome;
         this.badlandsBiome = badlandsBiome;
+        this.surfacePlacementResolved = false;
+        this.surfacePlacementOriginY = origin.getY();
         this.setOrientation(null);
     }
 
@@ -147,6 +151,10 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
         this.flatBiome = tag.getBoolean("FlatBiome");
         this.hotDryBiome = tag.getBoolean("HotDryBiome");
         this.badlandsBiome = tag.getBoolean("BadlandsBiome");
+        this.surfacePlacementResolved = tag.getBoolean("SurfacePlacementResolved");
+        this.surfacePlacementOriginY = tag.contains("SurfacePlacementOriginY")
+                ? tag.getInt("SurfacePlacementOriginY")
+                : 64;
         this.setOrientation(null);
     }
 
@@ -188,6 +196,10 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
         tag.putBoolean("FlatBiome", this.flatBiome);
         tag.putBoolean("HotDryBiome", this.hotDryBiome);
         tag.putBoolean("BadlandsBiome", this.badlandsBiome);
+        tag.putBoolean("SurfacePlacementResolved", this.surfacePlacementResolved);
+        if (this.surfacePlacementResolved) {
+            tag.putInt("SurfacePlacementOriginY", this.surfacePlacementOriginY);
+        }
     }
 
     @Override
@@ -205,38 +217,58 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             BunkerGenerator.generate(level, chunkBox, random, this.originX, this.originZ, this.rotation);
             return;
         }
-        FeatureGenerator.generate(level, chunkBox, random, this.originX, this.originZ, this.rotation, this.flatBiome, this.hotDryBiome, this.badlandsBiome);
+        FeatureGenerator.generate(this, level, chunkBox, random, this.originX, this.originZ, this.rotation, this.flatBiome, this.hotDryBiome, this.badlandsBiome);
+    }
+
+    private Placement surfacePlacement(WorldGenLevel level, int originX, int originZ, int rotation, int sizeX, int sizeY, int sizeZ) {
+        int originY = resolveSurfacePlacementY(Placement.averageHeight(level, originX, originZ, sizeX, sizeZ, rotation) - 1);
+        return new Placement(originX, originY, originZ, rotation, sizeX, sizeZ);
+    }
+
+    private Placement surfaceAreaPlacement(WorldGenLevel level, int originX, int originZ, int rotation, int sizeX, int sizeY, int sizeZ,
+                                           int areaMinX, int areaMinZ, int areaSizeX, int areaSizeZ, int localSurfaceY) {
+        int originY = resolveSurfacePlacementY(Placement.averageHeightArea(level, originX, originZ, sizeX, sizeZ, rotation,
+                areaMinX, areaMinZ, areaSizeX, areaSizeZ) - 1 - localSurfaceY);
+        return new Placement(originX, originY, originZ, rotation, sizeX, sizeZ);
+    }
+
+    private int resolveSurfacePlacementY(int computedOriginY) {
+        if (!this.surfacePlacementResolved) {
+            this.surfacePlacementOriginY = computedOriginY;
+            this.surfacePlacementResolved = true;
+        }
+        return this.surfacePlacementOriginY;
     }
 
     private static final class FeatureGenerator {
         private FeatureGenerator() {
         }
 
-        static void generate(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation, boolean flatBiome, boolean hotDryBiome, boolean badlandsBiome) {
+        static void generate(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation, boolean flatBiome, boolean hotDryBiome, boolean badlandsBiome) {
             if (flatBiome && random.nextInt(10) == 0) {
-                placeSiloSurfaceMarker(level, chunkBox, random, originX, originZ, rotation);
+                placeSiloSurfaceMarker(piece, level, chunkBox, random, originX, originZ, rotation);
                 return;
             }
             if (hotDryBiome && !badlandsBiome) {
                 if (random.nextBoolean()) {
-                    placeDesertHouseOne(level, chunkBox, random, originX, originZ, rotation);
+                    placeDesertHouseOne(piece, level, chunkBox, random, originX, originZ, rotation);
                 } else {
-                    placeDesertHouseTwo(level, chunkBox, random, originX, originZ, rotation);
+                    placeDesertHouseTwo(piece, level, chunkBox, random, originX, originZ, rotation);
                 }
                 return;
             }
 
             switch (random.nextInt(6)) {
-                case 0 -> placeLabTwo(level, chunkBox, random, originX, originZ, rotation);
-                case 1 -> placeLabOne(level, chunkBox, random, originX, originZ, rotation);
-                case 2 -> placeOffice(level, chunkBox, random, originX, originZ, rotation, false);
-                case 3 -> placeOffice(level, chunkBox, random, originX, originZ, rotation, true);
-                default -> placeRuralHouse(level, chunkBox, random, originX, originZ, rotation);
+                case 0 -> placeLabTwo(piece, level, chunkBox, random, originX, originZ, rotation);
+                case 1 -> placeLabOne(piece, level, chunkBox, random, originX, originZ, rotation);
+                case 2 -> placeOffice(piece, level, chunkBox, random, originX, originZ, rotation, false);
+                case 3 -> placeOffice(piece, level, chunkBox, random, originX, originZ, rotation, true);
+                default -> placeRuralHouse(piece, level, chunkBox, random, originX, originZ, rotation);
             }
         }
 
-        private static void placeDesertHouseOne(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surface(level, originX, originZ, rotation, 10, 5, 7);
+        private static void placeDesertHouseOne(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfacePlacement(level, originX, originZ, rotation, 10, 5, 7);
             p.foundation(level, chunkBox, "minecraft:sandstone", 0, 0, 0, 9, 6, -1);
             p.fillSandstone(level, chunkBox, random, 0, 0, 0, 9, 0, 0);
             p.fillSandstone(level, chunkBox, random, 0, 1, 0, 1, 1, 0);
@@ -270,8 +302,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.fillRandom(level, chunkBox, random, 0.25F, 5, 0, 2, 8, 0, 5, "minecraft:sand", 0);
         }
 
-        private static void placeDesertHouseTwo(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surface(level, originX, originZ, rotation, 16, 6, 10);
+        private static void placeDesertHouseTwo(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfacePlacement(level, originX, originZ, rotation, 16, 6, 10);
             p.foundation(level, chunkBox, "minecraft:sandstone", 0, 0, 0, 6, 9, -1);
             p.foundation(level, chunkBox, "minecraft:sandstone", 0, 9, 0, 15, 9, -1);
             p.fill(level, chunkBox, 1, 1, 1, 5, 3, 8, "minecraft:air", 0);
@@ -346,8 +378,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.fillRandom(level, chunkBox, random, 0.25F, 11, 1, 1, 14, 1, 8, "minecraft:sand", 0);
         }
 
-        private static void placeLabOne(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surface(level, originX, originZ, rotation, 10, 5, 8);
+        private static void placeLabOne(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfacePlacement(level, originX, originZ, rotation, 10, 5, 8);
             p.foundation(level, chunkBox, "minecraft:stone_bricks", 0, 0, 0, 9, 6, -1);
             p.foundation(level, chunkBox, "minecraft:stone_bricks", 0, 3, 6, 9, 7, -1);
             p.setIfReplaceableOrAir(level, chunkBox, 2, 0, 6, "minecraft:stone_brick_stairs", p.getStairMeta(0));
@@ -410,8 +442,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.set(level, chunkBox, 8, 1, 6, "reinhardtshbm:crate_iron", 0);
         }
 
-        private static void placeLabTwo(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surface(level, originX, originZ, rotation, 13, 12, 9).shiftedY(-7);
+        private static void placeLabTwo(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfacePlacement(level, originX, originZ, rotation, 13, 12, 9).shiftedY(-7);
             p.foundation(level, chunkBox, "minecraft:stone_bricks", 0, 0, 0, 12, 6, 6);
             p.foundation(level, chunkBox, "minecraft:stone_bricks", 0, 0, 7, 6, 8, 6);
             p.setIfReplaceableOrAir(level, chunkBox, 9, 7, 7, "minecraft:stone_brick_stairs", p.getStairMeta(2));
@@ -518,16 +550,16 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.set(level, chunkBox, 10, 1, 3, "reinhardtshbm:crate_iron", 0);
         }
 
-        private static void placeOffice(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation, boolean corner) {
+        private static void placeOffice(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation, boolean corner) {
             if (corner) {
-                placeLargeOfficeCorner(level, chunkBox, random, originX, originZ, rotation);
+                placeLargeOfficeCorner(piece, level, chunkBox, random, originX, originZ, rotation);
             } else {
-                placeLargeOffice(level, chunkBox, random, originX, originZ, rotation);
+                placeLargeOffice(piece, level, chunkBox, random, originX, originZ, rotation);
             }
         }
 
-        private static void placeLargeOffice(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surface(level, originX, originZ, rotation, 15, 6, 13);
+        private static void placeLargeOffice(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfacePlacement(level, originX, originZ, rotation, 15, 6, 13);
 
             p.foundation(level, chunkBox, "minecraft:stone_bricks", 0, 5, 0, 14, 1, -1);
             p.foundation(level, chunkBox, "minecraft:stone_bricks", 0, 0, 2, 14, 7, -1);
@@ -655,8 +687,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.setDirectLoot(level, chunkBox, 6, 1, 1, "reinhardtshbm:safe", p.getDecoMeta(3), "POOL_MACHINE_PARTS", 10, 10);
         }
 
-        private static void placeLargeOfficeCorner(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surface(level, originX, originZ, rotation, 12, 16, 15);
+        private static void placeLargeOfficeCorner(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfacePlacement(level, originX, originZ, rotation, 12, 16, 15);
             int pillarMetaWE = p.getPillarMeta(4);
             int pillarMetaNS = p.getPillarMeta(8);
 
@@ -914,8 +946,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.set(level, chunkBox, 7, 13, 11, "minecraft:flower_pot", 0);
         }
 
-        private static void placeRuralHouse(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surface(level, originX, originZ, rotation, 15, 9, 15);
+        private static void placeRuralHouse(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfacePlacement(level, originX, originZ, rotation, 15, 9, 15);
             p.fill(level, chunkBox, 9, 1, 3, 12, 4, 8, "minecraft:air", 0);
             p.fill(level, chunkBox, 5, 1, 2, 8, 3, 8, "minecraft:air", 0);
             p.fill(level, chunkBox, 2, 1, 5, 4, 3, 8, "minecraft:air", 0);
@@ -1245,8 +1277,8 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             p.placeRandomBobble(level, chunkBox, random, 5, 5, 12);
         }
 
-        private static void placeSiloSurfaceMarker(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
-            Placement p = Placement.surfaceArea(level, originX, originZ, rotation, 43, 30, 27, 13, 2, 29, 18, 25);
+        private static void placeSiloSurfaceMarker(HbmLegacyProceduralPiece piece, WorldGenLevel level, BoundingBox chunkBox, RandomSource random, int originX, int originZ, int rotation) {
+            Placement p = piece.surfaceAreaPlacement(level, originX, originZ, rotation, 43, 30, 27, 13, 2, 29, 18, 25);
             int stairW = p.getStairMeta(0);
             int stairE = p.getStairMeta(1);
             int stairN = p.getStairMeta(2);

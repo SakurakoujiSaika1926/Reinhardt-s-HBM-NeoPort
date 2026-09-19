@@ -32,7 +32,11 @@ public class PwrFuelItem extends LegacyVariantItem {
     );
 
     public PwrFuelItem(Properties properties) {
-        super(properties.stacksTo(1), "pwr_fuel", LegacyVariantItem.variants(FUELS.stream().map(Fuel::id).toArray(String[]::new)));
+        this(properties, "pwr_fuel");
+    }
+
+    public PwrFuelItem(Properties properties, String baseId) {
+        super(properties.stacksTo(1), baseId, LegacyVariantItem.variants(FUELS.stream().map(Fuel::id).toArray(String[]::new)));
     }
 
     public Fuel fuel(ItemStack stack) {

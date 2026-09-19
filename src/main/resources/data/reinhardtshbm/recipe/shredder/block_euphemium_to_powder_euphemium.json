@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_euphemium"
+                       "tag":  "c:storage_blocks/euphemium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_euphemium",

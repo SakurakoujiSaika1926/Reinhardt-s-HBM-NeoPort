@@ -24,44 +24,34 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:wire_fine",
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 7900,
-            "material": "gold"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "gold"
       },
       "count": 6
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 33,
-            "material": "dura_steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "dura_steel"
       },
       "count": 3
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "steel"
       },
       "count": 4
     },

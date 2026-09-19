@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "appeng"
+    }
+  ],
+  "ingredient": {
+    "item": "ae2:fluix_slab"
+  },
+  "result": {
+    "id": "ae2:fluix_dust",
+    "count": 2
+  }
+}

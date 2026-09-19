@@ -6,31 +6,23 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 1300,
-            "material": "aluminium"
-          }
-        }
+        "shape": "shell",
+        "material": "aluminium"
       },
       "count": 2
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2200,
-            "material": "titanium"
-          }
-        }
+        "shape": "shell",
+        "material": "titanium"
       },
       "count": 4
     },

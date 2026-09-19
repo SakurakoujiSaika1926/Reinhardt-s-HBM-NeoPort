@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:gasoline",
+    "reinhardtshbm:flowing_gasoline",
+    "reinhardtshbm:gasoline_leaded",
+    "reinhardtshbm:flowing_gasoline_leaded"
+  ]
+}

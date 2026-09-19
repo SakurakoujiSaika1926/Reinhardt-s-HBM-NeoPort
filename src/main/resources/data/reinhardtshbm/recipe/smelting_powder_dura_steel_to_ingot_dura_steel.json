@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_dura_steel"
+                       "tag":  "c:dusts/dura_steel"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_dura_steel"

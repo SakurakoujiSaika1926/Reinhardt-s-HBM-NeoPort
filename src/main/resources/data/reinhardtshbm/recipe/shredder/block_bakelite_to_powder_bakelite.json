@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_bakelite"
+                       "tag":  "c:storage_blocks/bakelite"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_bakelite",

@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class FrackingTowerBlockEntityRenderer implements BlockEntityRenderer<FrackingTowerBlockEntity> {
+public class FrackingTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<FrackingTowerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fracking_tower");
     private static final ModelResourceLocation PORTS_MODEL = MachineModelRenderer.standalone("block/machine_fracking_tower_ports");
 

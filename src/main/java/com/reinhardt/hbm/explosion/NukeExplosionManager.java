@@ -6,6 +6,7 @@ import com.reinhardt.hbm.entity.NukeTorexEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.radiation.HbmRadiationWorlds;
 import com.reinhardt.hbm.worldgen.NuclearFalloutTerrainEffects;
@@ -40,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,9 +51,11 @@ import java.util.concurrent.Executors;
 public final class NukeExplosionManager {
     private static final int BOY_RADIUS = 120;
     private static final int MISSILE_RADIUS = 100;
-    private static final int MK5_RAY_STEPS_PER_TICK = 3_072;
-    private static final int MK5_BLOCK_UPDATES_PER_TICK = 256;
-    private static final int MK5_DESTROY_BATCH_SIZE = 2_048;
+    private static final int MK5_RAY_STEPS_PER_TICK = 1_536;
+    private static final int MK5_BLOCK_UPDATES_PER_TICK = 64;
+    private static final int MK5_DESTROY_BATCH_SIZE = 512;
+    private static final int MK5_RAY_DIRECTION_BATCH_SIZE = 4_096;
+    private static final int MK5_RAY_DIRECTION_BATCHES_AHEAD = 8;
     private static final long MK5_RAY_NANOS_PER_TICK = 500_000L;
     private static final long MK5_BLOCK_UPDATE_NANOS_PER_TICK = 500_000L;
     private static final int DAMAGE_TICKS = 1;
@@ -67,6 +72,11 @@ public final class NukeExplosionManager {
                 return thread;
             }
     );
+    private static final ExecutorService RAY_PLANNER = Executors.newSingleThreadExecutor(task -> {
+        Thread thread = new Thread(task, "RHbm-NukeRayPlanner");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private NukeExplosionManager() {
     }
@@ -80,63 +90,64 @@ public final class NukeExplosionManager {
     }
 
     public static void scheduleLegacyNuke(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius, true, true, true);
+        scheduleInternal(level, x, y, z, radius, true, true, true, 0);
+    }
+
+    public static void scheduleLegacyNukeMoreFallout(ServerLevel level, double x, double y, double z,
+                                                     int radius, int falloutAdd) {
+        scheduleInternal(level, x, y, z, radius, true, true, true, falloutAdd);
     }
 
     /** 1.7.10 EntityMissileMicro: PARAMS_HIGH delegates to MK5 directly and
      * does not create the ordinary missile Torex. MK5 still creates fallout. */
     public static void scheduleMicroNuke(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius, false, true, true);
+        scheduleInternal(level, x, y, z, radius, false, true, true, 0);
     }
 
     /** 1.7.10 EntityMissileSchrabidium: MK3 Fleija explosion.  The Fleija
      * cloud is emitted explicitly; no standard Torex is substituted. */
     public static void scheduleFleijaNuke(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius, false, false, false);
+        scheduleInternal(level, x, y, z, radius, false, false, false, 0);
         sendFleijaCloud(level, x, y, z, radius);
     }
 
     /** EntityNukeExplosionMK5.statFac (ordinary nuclear/TX warheads). */
     public static void scheduleMk5Nuclear(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius, true, true, true);
+        scheduleInternal(level, x, y, z, radius, true, true, true, 0);
     }
 
     /** EntityNukeExplosionMK5.statFacNoRad used by custom N2. */
     public static void scheduleMk5NoRadiation(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius, true, false, false);
+        scheduleInternal(level, x, y, z, radius, true, false, false, 0);
     }
 
     /** EntityMissileMirv doubles missileRadius and uses the normal MK5/Torex pair. */
     public static void scheduleMirv(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius * 2, true, true, true);
+        scheduleInternal(level, x, y, z, radius * 2, true, true, true, 0);
     }
 
     /** EntityMissileDoomsday: MK5.moreFallout(100). */
     public static void scheduleDoomsday(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius, true, true, true);
-        NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), 100, 20 * 20);
+        scheduleInternal(level, x, y, z, radius, true, true, true, 100);
     }
 
     /** EntityMissileDoomsdayRusted uses missileRadius (not doubled) and the
      * same extra fallout modifier. */
     public static void scheduleRustedDoomsday(ServerLevel level, double x, double y, double z, int radius) {
-        scheduleInternal(level, x, y, z, radius, true, true, true);
-        NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), 100, 20 * 20);
+        scheduleInternal(level, x, y, z, radius, true, true, true, 100);
     }
 
     private static void scheduleInternal(ServerLevel level, double x, double y, double z, int radius,
-                                          boolean spawnTorex, boolean deferredFallout, boolean radiation) {
+                                          boolean spawnTorex, boolean fallout, boolean radiation, int falloutAdd) {
         HbmAdvancements.awardAll(level, "manhattan");
+        int falloutScale = fallout ? Math.max(1, (int) (radius * 2.5D + Math.max(0, falloutAdd))) : 0;
         TASKS.computeIfAbsent(level.dimension().location(), unused -> new ArrayDeque<>())
-                .add(new NukeTask(new Vec3(x, y, z), radius * 2, radius, radiation));
+                .add(new NukeTask(new Vec3(x, y, z), radius * 2, radius, radiation, falloutScale));
         playInitialSound(level, x, y, z);
         if (spawnTorex) {
             spawnTorex(level, x, y + 0.5D, z, radius);
         }
         sendInitialParticles(level, x, y, z);
-        if (deferredFallout) {
-            NuclearFalloutTerrainEffects.scheduleDeferred(level, BlockPos.containing(x, y, z), (int) (radius * 2.5D), 20 * 20);
-        }
     }
 
     private static void sendFleijaCloud(ServerLevel level, double x, double y, double z, int radius) {
@@ -262,26 +273,32 @@ public final class NukeExplosionManager {
         private final int strength;
         private final int length;
         private final boolean radiationEnabled;
+        private final int falloutScale;
         private final Long2LongOpenHashMap blockSampleCache = new Long2LongOpenHashMap();
         private final Queue<Long> pendingDestroy = new ArrayDeque<>();
         private final LongOpenHashSet queuedDestroy = new LongOpenHashSet();
         private final Map<Long, ShortOpenHashSet> sectionUpdates = new HashMap<>();
-        private final Map<Long, Long> sectionLightSamples = new HashMap<>();
-        private final CompletableFuture<List<RayDirection>> directions;
+        private final BlockingQueue<RayBatch> directionBatches =
+                new ArrayBlockingQueue<>(MK5_RAY_DIRECTION_BATCHES_AHEAD);
+        private final CompletableFuture<Void> directionPlanner;
         private CompletableFuture<List<Long>> sortFuture;
-        private List<RayDirection> loadedDirections = List.of();
+        private RayBatch activeBatch;
+        private int activeBatchIndex;
         private RayScan activeRay;
-        private int nextRay;
         private int damageTicks = DAMAGE_TICKS;
         private boolean raysDone;
+        private boolean falloutScheduled;
 
-        private NukeTask(Vec3 center, int strength, int length, boolean radiationEnabled) {
+        private NukeTask(Vec3 center, int strength, int length, boolean radiationEnabled, int falloutScale) {
             this.center = center;
             this.strength = strength;
             this.length = length;
             this.radiationEnabled = radiationEnabled;
+            this.falloutScale = falloutScale;
             this.blockSampleCache.defaultReturnValue(CACHE_MISS);
-            this.directions = CompletableFuture.supplyAsync(() -> createDirections(length), PLANNER);
+            this.directionPlanner = CompletableFuture.runAsync(
+                    () -> createDirectionBatches(length, this.directionBatches),
+                    RAY_PLANNER);
         }
 
         private boolean tick(ServerLevel level) {
@@ -292,7 +309,39 @@ public final class NukeExplosionManager {
             collectSortedDestroyBatch();
             applyPendingDestroy(level, MK5_BLOCK_UPDATES_PER_TICK);
             flushSectionUpdates(level);
-            return this.raysDone && this.pendingDestroy.isEmpty() && this.sortFuture == null && this.damageTicks <= 0;
+            boolean complete = this.raysDone && this.pendingDestroy.isEmpty() && this.sortFuture == null && this.damageTicks <= 0;
+            if (complete) {
+                scheduleFallout(level);
+            }
+            return complete;
+        }
+
+        private void scheduleFallout(ServerLevel level) {
+            if (this.falloutScheduled || this.falloutScale <= 0) {
+                return;
+            }
+            this.falloutScheduled = true;
+            BlockPos centerPos = BlockPos.containing(this.center);
+            seedFalloutRadiation(level, centerPos, this.falloutScale);
+            NuclearFalloutTerrainEffects.schedule(level, centerPos, this.falloutScale);
+        }
+
+        private static void seedFalloutRadiation(ServerLevel level, BlockPos center, int scale) {
+            ChunkRadiationData radiation = ChunkRadiationData.get(level);
+            int chunkRadius = Math.max(2, Math.min(8, (int) Math.ceil(scale / 32.0D)));
+            double scaleMultiplier = Math.max(1.0D, scale / 88.0D);
+            for (int xOffset = -chunkRadius; xOffset <= chunkRadius; xOffset++) {
+                for (int zOffset = -chunkRadius; zOffset <= chunkRadius; zOffset++) {
+                    double distance = Math.hypot(xOffset * 16.0D, zOffset * 16.0D);
+                    if (distance > scale) {
+                        continue;
+                    }
+                    int manhattan = Math.abs(xOffset) + Math.abs(zOffset);
+                    double falloff = 1.0D - distance / Math.max(1.0D, scale);
+                    double amount = 50.0D / (manhattan + 1.0D) * scaleMultiplier * Math.max(0.25D, falloff);
+                    radiation.incrementRadiation(center.offset(xOffset * 16, 0, zOffset * 16), amount, 10_000.0D);
+                }
+            }
         }
 
         private void dealDamage(ServerLevel level) {
@@ -358,10 +407,7 @@ public final class NukeExplosionManager {
         }
 
         private void scanRays(ServerLevel level, int maxSteps) {
-            if (!this.directions.isDone()) {
-                return;
-            }
-            if (this.directions.isCompletedExceptionally() || this.directions.isCancelled()) {
+            if (this.directionPlanner.isCompletedExceptionally() || this.directionPlanner.isCancelled()) {
                 ReinhardtsHBM.LOGGER.error("Nuke ray planner failed; cancelling terrain destruction at {}", this.center);
                 this.raysDone = true;
                 this.blockSampleCache.clear();
@@ -370,23 +416,21 @@ public final class NukeExplosionManager {
                 this.sortFuture = null;
                 return;
             }
-            if (this.loadedDirections.isEmpty()) {
-                this.loadedDirections = this.directions.join();
-            }
             long deadline = System.nanoTime() + MK5_RAY_NANOS_PER_TICK;
             int steps = 0;
             while (steps < maxSteps) {
-                if ((steps & 255) == 0 && System.nanoTime() >= deadline) {
+                if ((steps & 63) == 0 && System.nanoTime() >= deadline) {
                     return;
                 }
                 if (this.activeRay == null) {
-                    if (this.nextRay >= this.loadedDirections.size()) {
-                        this.raysDone = true;
-                        this.blockSampleCache.clear();
-                        flushDestroySort();
+                    if (!startNextRay()) {
+                        if (allRayDirectionsConsumed()) {
+                            this.raysDone = true;
+                            this.blockSampleCache.clear();
+                            flushDestroySort();
+                        }
                         return;
                     }
-                    this.activeRay = new RayScan(this.loadedDirections.get(this.nextRay++), this.strength, this.length);
                 }
                 steps += this.activeRay.step(level, this.center, this.blockSampleCache);
                 if (this.activeRay.done()) {
@@ -398,11 +442,37 @@ public final class NukeExplosionManager {
             }
         }
 
+        private boolean startNextRay() {
+            while (true) {
+                if (this.activeBatch != null && this.activeBatchIndex < this.activeBatch.count()) {
+                    int index = this.activeBatchIndex++;
+                    this.activeRay = new RayScan(
+                            this.activeBatch.xs()[index],
+                            this.activeBatch.ys()[index],
+                            this.activeBatch.zs()[index],
+                            this.strength,
+                            this.length);
+                    return true;
+                }
+                this.activeBatch = this.directionBatches.poll();
+                this.activeBatchIndex = 0;
+                if (this.activeBatch == null) {
+                    return false;
+                }
+            }
+        }
+
+        private boolean allRayDirectionsConsumed() {
+            return this.directionPlanner.isDone()
+                    && this.activeBatch == null
+                    && this.directionBatches.isEmpty();
+        }
+
         private void applyPendingDestroy(ServerLevel level, int maxUpdates) {
             int checked = 0;
             long deadline = System.nanoTime() + MK5_BLOCK_UPDATE_NANOS_PER_TICK;
             while (checked < maxUpdates && !this.pendingDestroy.isEmpty()) {
-                if ((checked & 63) == 0 && System.nanoTime() >= deadline) {
+                if ((checked & 7) == 0 && System.nanoTime() >= deadline) {
                     return;
                 }
                 long pos = this.pendingDestroy.remove();
@@ -421,7 +491,6 @@ public final class NukeExplosionManager {
                 ShortSet positions = entry.getValue();
                 if (positions.isEmpty()) {
                     this.sectionUpdates.remove(sectionKey);
-                    this.sectionLightSamples.remove(sectionKey);
                     continue;
                 }
                 SectionPos sectionPos = SectionPos.of(sectionKey);
@@ -432,7 +501,6 @@ public final class NukeExplosionManager {
                 int sectionIndex = level.getSectionIndex(sectionPos.minBlockY());
                 if (sectionIndex < 0 || sectionIndex >= level.getSectionsCount()) {
                     this.sectionUpdates.remove(sectionKey);
-                    this.sectionLightSamples.remove(sectionKey);
                     continue;
                 }
                 LevelChunkSection section = chunk.getSection(sectionIndex);
@@ -440,12 +508,7 @@ public final class NukeExplosionManager {
                 for (ServerPlayer player : level.getChunkSource().chunkMap.getPlayers(sectionPos.chunk(), false)) {
                     player.connection.send(packet);
                 }
-                Long sample = this.sectionLightSamples.get(sectionKey);
-                if (sample != null) {
-                    level.getChunkSource().getLightEngine().checkBlock(BlockPos.of(sample));
-                }
                 this.sectionUpdates.remove(sectionKey);
-                this.sectionLightSamples.remove(sectionKey);
             }
         }
 
@@ -521,9 +584,6 @@ public final class NukeExplosionManager {
             if (state.getBlock().getExplosionResistance() >= 3_600_000.0F) {
                 return false;
             }
-            if (state.hasBlockEntity()) {
-                chunk.removeBlockEntity(pos);
-            }
             section.setBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15, Blocks.AIR.defaultBlockState(), false);
             chunk.setUnsaved(true);
             long sectionKey = SectionPos.asLong(
@@ -532,7 +592,6 @@ public final class NukeExplosionManager {
                     SectionPos.blockToSectionCoord(pos.getZ())
             );
             this.sectionUpdates.computeIfAbsent(sectionKey, unused -> new ShortOpenHashSet()).add(SectionPos.sectionRelativePos(pos));
-            this.sectionLightSamples.putIfAbsent(sectionKey, pos.asLong());
             HbmRadiationWorlds.invalidateResistanceSection(level, sectionKey);
             return true;
         }
@@ -583,40 +642,65 @@ public final class NukeExplosionManager {
         private record BlockSample(float resistance, boolean air, boolean fluidEmpty) {
         }
 
-        private static List<RayDirection> createDirections(int radius) {
+        private static void createDirectionBatches(int radius, BlockingQueue<RayBatch> batches) {
             int max = (int) (2.5D * Math.PI * Math.pow(radius, 2.0D));
-            List<RayDirection> rays = new ArrayList<>(max);
+            double[] xs = new double[Math.min(MK5_RAY_DIRECTION_BATCH_SIZE, Math.max(1, max))];
+            double[] ys = new double[xs.length];
+            double[] zs = new double[xs.length];
+            int count = 0;
             double gspX = Math.PI;
             double gspY = 0.0D;
             for (int gspNum = 1; gspNum <= max; gspNum++) {
-                double dx = Math.sin(gspX) * Math.cos(gspY);
-                double dz = Math.sin(gspX) * Math.sin(gspY);
-                double dy = Math.cos(gspX);
-                rays.add(new RayDirection(dx, dy, dz));
+                xs[count] = Math.sin(gspX) * Math.cos(gspY);
+                zs[count] = Math.sin(gspX) * Math.sin(gspY);
+                ys[count] = Math.cos(gspX);
+                count++;
+                if (count >= xs.length) {
+                    putRayBatch(batches, new RayBatch(xs, ys, zs, count));
+                    xs = new double[Math.min(MK5_RAY_DIRECTION_BATCH_SIZE, Math.max(1, max - gspNum))];
+                    ys = new double[xs.length];
+                    zs = new double[xs.length];
+                    count = 0;
+                }
                 if (gspNum < max) {
                     int k = gspNum + 1;
                     double hk = -1.0D + 2.0D * (k - 1.0D) / (max - 1.0D);
                     gspX = Math.acos(hk);
-                    double longitude = gspY + 3.6D / Math.sqrt(max) / Math.sqrt(1.0D - hk * hk);
+                    double longitude = gspY + 3.6D / Math.sqrt(max) / Math.sqrt(Math.max(1.0E-12D, 1.0D - hk * hk));
                     gspY = longitude % (Math.PI * 2.0D);
                 }
             }
-            return rays;
+            if (count > 0) {
+                putRayBatch(batches, new RayBatch(xs, ys, zs, count));
+            }
         }
 
-        private record RayDirection(double x, double y, double z) {
+        private static void putRayBatch(BlockingQueue<RayBatch> batches, RayBatch batch) {
+            try {
+                batches.put(batch);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Nuke ray planner interrupted", exception);
+            }
+        }
+
+        private record RayBatch(double[] xs, double[] ys, double[] zs, int count) {
         }
 
         private final class RayScan {
-            private final RayDirection ray;
+            private final double rayX;
+            private final double rayY;
+            private final double rayZ;
             private final int rayLength;
             private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
             private float resistanceBudget;
             private int step;
             private boolean done;
 
-            private RayScan(RayDirection ray, int strength, int length) {
-                this.ray = ray;
+            private RayScan(double rayX, double rayY, double rayZ, int strength, int length) {
+                this.rayX = rayX;
+                this.rayY = rayY;
+                this.rayZ = rayZ;
                 this.rayLength = (int) Math.ceil(strength);
                 this.resistanceBudget = strength;
             }
@@ -629,9 +713,9 @@ public final class NukeExplosionManager {
                     this.done = true;
                     return 0;
                 }
-                double x = center.x + this.ray.x * this.step;
-                double y = center.y + this.ray.y * this.step;
-                double z = center.z + this.ray.z * this.step;
+                double x = center.x + this.rayX * this.step;
+                double y = center.y + this.rayY * this.step;
+                double z = center.z + this.rayZ * this.step;
                 int ix = (int) Math.floor(x);
                 int iy = (int) Math.floor(y);
                 int iz = (int) Math.floor(z);

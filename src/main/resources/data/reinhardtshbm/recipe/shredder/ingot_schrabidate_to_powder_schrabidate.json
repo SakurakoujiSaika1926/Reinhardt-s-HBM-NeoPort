@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_schrabidate"
+                       "tag":  "c:ingots/schrabidate"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_schrabidate"

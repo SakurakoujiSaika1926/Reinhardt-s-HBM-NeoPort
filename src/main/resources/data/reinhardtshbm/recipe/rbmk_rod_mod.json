@@ -1,4 +1,4 @@
-﻿{
+{
   "neoforge:conditions": [
     {
       "type": "neoforge:not",
@@ -16,13 +16,13 @@
   ],
   "key": {
     "G": {
-      "item": "reinhardtshbm:block_graphite"
+      "tag": "c:storage_blocks/graphite"
     },
     "R": {
       "item": "reinhardtshbm:rbmk_rod"
     },
     "B": {
-      "item": "reinhardtshbm:nugget_bismuth"
+      "tag": "c:nuggets/bismuth"
     }
   },
   "result": {

@@ -6,37 +6,29 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2900,
-            "material": "copper"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "copper"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2900,
-            "material": "copper"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "copper"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_chlorophyte"
+        "tag": "c:dusts/chlorophyte"
       },
       "count": 16
     }

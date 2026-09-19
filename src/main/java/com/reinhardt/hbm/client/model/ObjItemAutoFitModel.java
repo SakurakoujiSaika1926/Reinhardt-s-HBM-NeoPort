@@ -38,6 +38,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
             "foundry_outlet", "foundry_slagtap", "furnace_combination", "machine_boiler",
             "heater_electric", "heater_firebox", "heater_heatex", "heater_oilburner",
             "heater_oven", "machine_ammo_press", "machine_ashpit", "machine_assembly_machine",
+            "machine_tacz_ammo_assembler",
             "machine_battery_redd", "machine_centrifuge", "machine_chemical_plant",
             "battery_pack_battery_lead", "battery_pack_battery_lithium",
             "battery_pack_battery_quantum", "battery_pack_battery_redstone",
@@ -254,6 +255,7 @@ public final class ObjItemAutoFitModel implements IDynamicBakedModel {
                 || path.equals("fusion_coupler")
                 || path.equals("fusion_plasma_forge")
                 || path.equals("machine_assembly_machine")
+                || path.equals("machine_tacz_ammo_assembler")
                 || path.equals("machine_chemical_plant")
                 || path.equals("machine_soldering_station")
                 || path.equals("machine_arc_furnace")

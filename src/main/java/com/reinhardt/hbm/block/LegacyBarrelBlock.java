@@ -8,16 +8,27 @@ import com.reinhardt.hbm.worldgen.NuclearFalloutTerrainEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,12 +36,14 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /** Legacy 1.7.10 explosive, cryogenic, tainted, and radioactive barrel behavior. */
 public class LegacyBarrelBlock extends Block {
@@ -57,6 +70,34 @@ public class LegacyBarrelBlock extends Block {
         }
         level.removeBlock(pos, false);
         detonateAt(level, Vec3.atLowerCornerOf(pos), pos, null);
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(
+            ItemStack stack,
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hitResult
+    ) {
+        if (!stack.is(Items.FLINT_AND_STEEL) && !stack.is(Items.FIRE_CHARGE)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!this.kind.flammable()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!level.isClientSide) {
+            level.removeBlock(pos, false);
+            primeFromBlock((ServerLevel) level, pos, player);
+            if (stack.is(Items.FLINT_AND_STEEL)) {
+                damageFlintAndSteel(stack, level, player, hand);
+            } else if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
+            }
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
@@ -101,6 +142,24 @@ public class LegacyBarrelBlock extends Block {
         if (state.getValue(IGNITED)) {
             level.removeBlock(pos, false);
             primeFromBlock(level, pos, null);
+        }
+    }
+
+    @Override
+    protected void onProjectileHit(Level level, BlockState state, BlockHitResult hit, Projectile projectile) {
+        super.onProjectileHit(level, state, hit, projectile);
+        if (!(level instanceof ServerLevel server)) {
+            return;
+        }
+        if (this.detonatesWhenShot() && isGunLikeProjectile(projectile)) {
+            detonateOnShot(server, hit.getBlockPos(), projectile);
+            projectile.discard();
+            return;
+        }
+        if (this.kind.flammable() && isIgnitingProjectile(projectile)) {
+            level.removeBlock(hit.getBlockPos(), false);
+            primeFromBlock(server, hit.getBlockPos(), projectile.getOwner());
+            projectile.discard();
         }
     }
 
@@ -165,11 +224,46 @@ public class LegacyBarrelBlock extends Block {
 
     private static boolean touchesFire(Level level, BlockPos pos) {
         for (Direction direction : Direction.values()) {
-            if (level.getBlockState(pos.relative(direction)).is(Blocks.FIRE)) {
+            if (level.getBlockState(pos.relative(direction)).getBlock() instanceof BaseFireBlock) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean isIgnitingProjectile(Projectile projectile) {
+        return projectile.isOnFire() || projectile instanceof AbstractArrow arrow && arrow.isOnFire();
+    }
+
+    private static boolean isGunLikeProjectile(Projectile projectile) {
+        ResourceLocation typeId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(projectile.getType());
+        String namespace = typeId.getNamespace().toLowerCase(Locale.ROOT);
+        String path = typeId.getPath().toLowerCase(Locale.ROOT);
+        String className = projectile.getClass().getName().toLowerCase(Locale.ROOT);
+
+        if (namespace.equals("reinhardtshbm") && (path.contains("bullet") || path.contains("shell"))) {
+            return true;
+        }
+        if (namespace.equals("tacz") || className.startsWith("com.tacz.") || className.contains(".tacz.")) {
+            return containsBallisticKeyword(path) || containsBallisticKeyword(className);
+        }
+        return false;
+    }
+
+    private static boolean containsBallisticKeyword(String value) {
+        return value.contains("bullet")
+                || value.contains("kinetic")
+                || value.contains("ammo")
+                || value.contains("shell")
+                || value.contains("projectile");
+    }
+
+    private static void damageFlintAndSteel(ItemStack stack, Level level, Player player, InteractionHand hand) {
+        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer) || player.getAbilities().instabuild) {
+            return;
+        }
+        EquipmentSlot slot = hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+        stack.hurtAndBreak(1, serverLevel, serverPlayer, item -> serverPlayer.onEquippedItemBroken(item, slot));
     }
 
     private void primeFromBlock(ServerLevel level, BlockPos pos, @Nullable Entity owner) {

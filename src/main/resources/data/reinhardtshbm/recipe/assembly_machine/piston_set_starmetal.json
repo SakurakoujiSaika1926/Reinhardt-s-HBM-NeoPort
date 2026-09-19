@@ -30,16 +30,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 33,
-            "material": "dura_steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "dura_steel"
       },
       "count": 4
     }

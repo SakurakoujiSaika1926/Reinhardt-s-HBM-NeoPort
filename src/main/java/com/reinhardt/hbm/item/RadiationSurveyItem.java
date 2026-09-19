@@ -53,11 +53,11 @@ public class RadiationSurveyItem extends Item {
             return;
         }
 
-        double received = receivedRadiation(player);
         if ("dosimeter".equals(this.descriptionKey)) {
+            double received = receivedRadiation(player);
             playDosimeter(level, player, received);
         } else {
-            playGeiger(level, player, received);
+            playGeiger(level, player, geigerAudibleRadiation(player));
         }
     }
 
@@ -131,7 +131,7 @@ public class RadiationSurveyItem extends Item {
         double chunkRadiation = level instanceof ServerLevel serverLevel
                 ? ChunkRadiationData.get(serverLevel).getRadiation(player.blockPosition())
                 : data.getChunkRadiation();
-        double environment = data.getRadiationBuffer();
+        double environment = bufferedReceivedRadiation(data);
         double received = receivedRadiation(player);
 
         player.sendSystemMessage(Component.literal("===== ")
@@ -162,7 +162,6 @@ public class RadiationSurveyItem extends Item {
             received = 3.6D;
             limit = true;
         }
-        received = truncateOldGeigerValue(received);
 
         player.sendSystemMessage(Component.literal("===== ")
                 .append(Component.translatable("dosimeter.title"))
@@ -176,19 +175,36 @@ public class RadiationSurveyItem extends Item {
 
     private static double receivedRadiation(Player player) {
         HbmLivingRadiation data = HbmLivingRadiation.get(player);
-        return data.getRadiationBuffer() + data.getNeutron() * 20.0D;
+        return bufferedReceivedRadiation(data) + data.getNeutron() * 20.0D;
+    }
+
+    private static double bufferedReceivedRadiation(HbmLivingRadiation data) {
+        return Math.max(data.getRadiationBuffer(), data.getEnvironmentRadiation());
+    }
+
+    /**
+     * High-version gameplay adaptation: the handheld Geiger counter should warn
+     * about dangerous body contamination as well as live exposure.  Keep the
+     * readout physically split between RAD/s and accumulated RAD, but feed the
+     * louder of the two values into the old Geiger click threshold table so a
+     * heavily irradiated player no longer sounds identical to a clean player in
+     * a clean chunk.
+     */
+    private static double geigerAudibleRadiation(Player player) {
+        HbmLivingRadiation data = HbmLivingRadiation.get(player);
+        double received = receivedRadiation(player);
+        return Math.max(received, data.getRadiation());
     }
 
     private static String formatNumber(double value) {
-        return String.format(Locale.ROOT, "%.1f", truncateOldGeigerValue(value));
+        if (value > 0.0D && value < 0.001D) {
+            return "<0.001";
+        }
+        return String.format(Locale.ROOT, "%.3f", value);
     }
 
     private static String formatFixed(double value) {
-        return String.format(Locale.ROOT, "%.1f", truncateOldGeigerValue(value));
-    }
-
-    private static double truncateOldGeigerValue(double value) {
-        return ((int) (value * 10.0D)) / 10.0D;
+        return formatNumber(value);
     }
 
     private static ChatFormatting radColor(double rads) {

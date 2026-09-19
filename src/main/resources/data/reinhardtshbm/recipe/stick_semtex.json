@@ -5,7 +5,7 @@
   "key": {
     "S": { "item": "reinhardtshbm:det_cord" },
     "P": { "item": "minecraft:paper" },
-    "D": { "item": "reinhardtshbm:ingot_semtex" }
+    "D": { "tag": "c:ingots/semtex" }
   },
   "result": { "id": "reinhardtshbm:stick_semtex", "count": 4 }
 }

@@ -11,29 +11,23 @@
       "item": "reinhardtshbm:motor_desh"
     },
     "P": {
-      "type": "neoforge:components",
-      "items": "reinhardtshbm:plate_cast",
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 43,
-          "material": "cdalloy"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "shape": "plate_cast",
+      "material": "cdalloy"
     },
     "C": {
       "item": "reinhardtshbm:circuit_bismoid"
     },
     "S": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:pipe"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 33,
-          "material": "dura_steel"
-        }
-      }
+      "shape": "pipe",
+      "material": "dura_steel"
     }
   },
   "result": {

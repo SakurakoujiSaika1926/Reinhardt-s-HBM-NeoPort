@@ -1,1 +1,31 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" W","SC","CE"],"key":{"S":{"tag":"c:plates/steel"},"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":12626,"material":"schrabidium"}}},"C":{"item":"reinhardtshbm:circuit_advanced"},"E":{"tag":"c:ingots/euphemium"}},"result":{"id":"reinhardtshbm:igniter"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " W",
+    "SC",
+    "CE"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:plates/steel"
+    },
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "schrabidium"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "E": {
+      "tag": "c:ingots/euphemium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:igniter"
+  }
+}

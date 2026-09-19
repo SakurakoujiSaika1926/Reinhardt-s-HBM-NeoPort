@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_ra226"
+                       "tag":  "c:ingots/ra226"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_ra226"

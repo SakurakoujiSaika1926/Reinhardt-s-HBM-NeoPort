@@ -36,6 +36,12 @@ public final class T51ArmorLayer<T extends LivingEntity, M extends HumanoidModel
             ReinhardtsHBM.id("textures/armor/t51_arm.png");
     private static final ResourceLocation LEG_TEXTURE =
             ReinhardtsHBM.id("textures/armor/t51_leg.png");
+    private static final Origin HEAD_ORIGIN = new Origin(0.0F, 0.0F, 0.0F);
+    private static final Origin BODY_ORIGIN = new Origin(0.0F, 0.0F, 0.0F);
+    private static final Origin LEFT_ARM_ORIGIN = new Origin(5.0F, 2.0F, 0.0F);
+    private static final Origin RIGHT_ARM_ORIGIN = new Origin(-5.0F, 2.0F, 0.0F);
+    private static final Origin LEFT_LEG_ORIGIN = new Origin(1.9F, 12.0F, 0.0F);
+    private static final Origin RIGHT_LEG_ORIGIN = new Origin(-1.9F, 12.0F, 0.0F);
 
     public T51ArmorLayer(RenderLayerParent<T, M> parent) {
         super(parent);
@@ -57,28 +63,28 @@ public final class T51ArmorLayer<T extends LivingEntity, M extends HumanoidModel
         M parentModel = this.getParentModel();
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.HEAD),
-                EquipmentSlot.HEAD, parentModel.head, "Helmet", HELMET_TEXTURE);
+                EquipmentSlot.HEAD, parentModel.head, HEAD_ORIGIN, "Helmet", HELMET_TEXTURE);
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.CHEST),
-                EquipmentSlot.CHEST, parentModel.body, "Chest", CHEST_TEXTURE);
+                EquipmentSlot.CHEST, parentModel.body, BODY_ORIGIN, "Chest", CHEST_TEXTURE);
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.CHEST),
-                EquipmentSlot.CHEST, parentModel.leftArm, "LeftArm", ARM_TEXTURE);
+                EquipmentSlot.CHEST, parentModel.leftArm, LEFT_ARM_ORIGIN, "LeftArm", ARM_TEXTURE);
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.CHEST),
-                EquipmentSlot.CHEST, parentModel.rightArm, "RightArm", ARM_TEXTURE);
+                EquipmentSlot.CHEST, parentModel.rightArm, RIGHT_ARM_ORIGIN, "RightArm", ARM_TEXTURE);
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.LEGS),
-                EquipmentSlot.LEGS, parentModel.leftLeg, "LeftLeg", LEG_TEXTURE);
+                EquipmentSlot.LEGS, parentModel.leftLeg, LEFT_LEG_ORIGIN, "LeftLeg", LEG_TEXTURE);
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.LEGS),
-                EquipmentSlot.LEGS, parentModel.rightLeg, "RightLeg", LEG_TEXTURE);
+                EquipmentSlot.LEGS, parentModel.rightLeg, RIGHT_LEG_ORIGIN, "RightLeg", LEG_TEXTURE);
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.FEET),
-                EquipmentSlot.FEET, parentModel.leftLeg, "LeftBoot", LEG_TEXTURE);
+                EquipmentSlot.FEET, parentModel.leftLeg, LEFT_LEG_ORIGIN, "LeftBoot", LEG_TEXTURE);
         renderIfT51(poseStack, bufferSource, packedLight,
                 livingEntity.getItemBySlot(EquipmentSlot.FEET),
-                EquipmentSlot.FEET, parentModel.rightLeg, "RightBoot", LEG_TEXTURE);
+                EquipmentSlot.FEET, parentModel.rightLeg, RIGHT_LEG_ORIGIN, "RightBoot", LEG_TEXTURE);
     }
 
     private static void renderIfT51(
@@ -88,6 +94,7 @@ public final class T51ArmorLayer<T extends LivingEntity, M extends HumanoidModel
             ItemStack stack,
             EquipmentSlot slot,
             ModelPart anchor,
+            Origin origin,
             String group,
             ResourceLocation texture
     ) {
@@ -97,10 +104,13 @@ public final class T51ArmorLayer<T extends LivingEntity, M extends HumanoidModel
 
         poseStack.pushPose();
         // The OBJ is authored in the old ModelRenderer pixel coordinate
-        // system.  Reproduce ModelRendererObj's pivot transform before
-        // converting pixels to modern model units.
+        // system.  The legacy renderer copied the animated biped pivot to
+        // each part, but subtracted the OBJ part's original 1.7.10 pivot
+        // afterwards.  Using the animated pivot for both sides makes arms and
+        // legs shear/twist when their current model pivot differs from the
+        // authored origin.
         anchor.translateAndRotate(poseStack);
-        poseStack.translate(-anchor.x / 16.0F, -anchor.y / 16.0F, -anchor.z / 16.0F);
+        poseStack.translate(-origin.x() / 16.0F, -origin.y() / 16.0F, -origin.z() / 16.0F);
         poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
         MODEL.renderGroup(
                 group,
@@ -121,5 +131,8 @@ public final class T51ArmorLayer<T extends LivingEntity, M extends HumanoidModel
             case FEET -> stack.is(HbmItems.T51_BOOTS.get());
             default -> false;
         };
+    }
+
+    private record Origin(float x, float y, float z) {
     }
 }

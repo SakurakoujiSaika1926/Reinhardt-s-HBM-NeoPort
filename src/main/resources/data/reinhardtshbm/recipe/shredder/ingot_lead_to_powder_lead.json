@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_lead"
+                       "tag":  "c:ingots/lead"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_lead"

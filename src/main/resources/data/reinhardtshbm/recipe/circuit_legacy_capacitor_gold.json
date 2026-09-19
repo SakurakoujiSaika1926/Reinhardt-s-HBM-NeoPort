@@ -1,1 +1,28 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["I","N","W"],"key":{"I":{"tag":"c:plates/polymer"},"N":{"tag":"c:nuggets/niobium"},"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":7900,"material":"gold"}}}},"result":{"id":"reinhardtshbm:circuit","components":{"minecraft:custom_data":{"variant":"capacitor"},"minecraft:custom_model_data":1}}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "I",
+    "N",
+    "W"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:plates/polymer"
+    },
+    "N": {
+      "tag": "c:nuggets/niobium"
+    },
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "gold"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:circuit_capacitor"
+  }
+}

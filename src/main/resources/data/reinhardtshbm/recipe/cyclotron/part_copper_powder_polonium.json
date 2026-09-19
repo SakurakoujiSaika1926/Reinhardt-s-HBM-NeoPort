@@ -1,11 +1,11 @@
-﻿{
+{
     "type":  "reinhardtshbm:cyclotron",
     "group":  "cyclotron",
     "particle":  {
                      "item":  "reinhardtshbm:part_copper"
                  },
     "input":  {
-                  "item":  "reinhardtshbm:powder_iodine"
+                  "tag":  "c:dusts/iodine"
               },
     "output":  {
                    "id":  "reinhardtshbm:powder_polonium"

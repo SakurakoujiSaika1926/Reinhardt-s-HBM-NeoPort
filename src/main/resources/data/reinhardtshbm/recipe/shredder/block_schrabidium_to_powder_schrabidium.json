@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_schrabidium"
+                       "tag":  "c:storage_blocks/schrabidium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_schrabidium",

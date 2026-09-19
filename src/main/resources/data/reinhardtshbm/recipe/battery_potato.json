@@ -2,17 +2,27 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    { "item": "minecraft:potato" },
     {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": { "minecraft:custom_data": { "material_id": 1300, "material": "aluminium" } }
+      "item": "minecraft:potato"
     },
     {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": { "minecraft:custom_data": { "material_id": 2900, "material": "copper" } }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "aluminium"
+    },
+    {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "copper"
     }
   ],
-  "result": { "id": "reinhardtshbm:battery_potato" }
+  "result": {
+    "id": "reinhardtshbm:battery_potato"
+  }
 }

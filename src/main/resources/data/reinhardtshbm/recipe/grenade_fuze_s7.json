@@ -1,36 +1,32 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "S",
-                    "F",
-                    "F"
-                ],
-    "key":  {
-                "S":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:bolt"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      },
-                "F":  {
-                          "item":  "reinhardtshbm:safety_fuse"
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:grenade_fuze",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "s7"
-                                                                },
-                                      "minecraft:custom_model_data":  1
-                                  },
-                   "count":  4
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S",
+    "F",
+    "F"
+  ],
+  "key": {
+    "S": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    },
+    "F": {
+      "item": "reinhardtshbm:safety_fuse"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:grenade_fuze",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "s7"
+      },
+      "minecraft:custom_model_data": 1
+    },
+    "count": 4
+  }
 }

@@ -15,7 +15,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class IndustrialTurbineBlockEntityRenderer implements BlockEntityRenderer<IndustrialTurbineBlockEntity> {
+public class IndustrialTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<IndustrialTurbineBlockEntity> {
     static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_industrial_turbine_world");
     static final ModelResourceLocation GAUGE = MachineModelRenderer.standalone("block/machine_industrial_turbine_gauge");
     static final ModelResourceLocation FLYWHEEL = MachineModelRenderer.standalone("block/machine_industrial_turbine_flywheel");

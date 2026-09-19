@@ -4,7 +4,7 @@
   "pattern": ["STS", "THT", "STS"],
   "key": {
     "S": { "item": "reinhardtshbm:particle_strange" },
-    "T": { "item": "reinhardtshbm:powder_tungsten" },
+    "T": { "tag": "c:dusts/tungsten" },
     "H": { "item": "reinhardtshbm:crystal_horn" }
   },
   "result": { "id": "reinhardtshbm:crystal_virus" }

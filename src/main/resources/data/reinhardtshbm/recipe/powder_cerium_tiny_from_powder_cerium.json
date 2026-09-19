@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_cerium"
+      "tag": "c:dusts/cerium"
     }
   ],
   "result": {

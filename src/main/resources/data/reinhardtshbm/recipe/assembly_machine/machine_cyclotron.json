@@ -1,74 +1,66 @@
-﻿{
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "machine_cyclotron",
-    "duration":  600,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:battery_pack"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "battery_lithium"
-                                                                                            },
-                                                                  "minecraft:custom_model_data":  2
-                                                              }
-                                           },
-                            "count":  1
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:wire_dense"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  6000,
-                                                                                                "material":  "neodymium"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  32
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:plate_cast"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  30,
-                                                                                                "material":  "steel"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  16
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/plastic"
-                                           },
-                            "count":  24
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/rubber"
-                                           },
-                            "count":  24
-                        },
-                        {
-                            "ingredient":  {
-                                               "item":  "reinhardtshbm:circuit_basic"
-                                           },
-                            "count":  16
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:machine_cyclotron"
-               }
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "machine_cyclotron",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:battery_pack"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "battery_lithium"
+          },
+          "minecraft:custom_model_data": 2
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "neodymium"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "steel"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_cyclotron"
+  }
 }

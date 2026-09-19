@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_uranium"
+                       "tag":  "c:dusts/uranium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_uranium"

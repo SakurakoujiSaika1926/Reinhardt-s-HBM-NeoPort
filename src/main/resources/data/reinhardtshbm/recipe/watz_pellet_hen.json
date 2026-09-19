@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "IGI",
+    " I "
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/neptunium"
+    },
+    "G": {
+      "tag": "c:ingots/graphite"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:watz_pellet",
+    "components": {
+      "minecraft:custom_data": {
+        "watz_type": "hen"
+      },
+      "minecraft:custom_model_data": 4
+    }
+  }
+}

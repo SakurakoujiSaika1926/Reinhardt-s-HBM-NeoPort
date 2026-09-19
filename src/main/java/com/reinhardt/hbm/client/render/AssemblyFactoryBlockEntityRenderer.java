@@ -26,7 +26,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class AssemblyFactoryBlockEntityRenderer implements BlockEntityRenderer<AssemblyFactoryBlockEntity> {
+public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityRenderer<AssemblyFactoryBlockEntity> {
     private static final ResourceLocation SPARKS = ReinhardtsHBM.id("textures/models/machines/assembly_factory_sparks.png");
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_assembly_factory_base");
     private static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_assembly_factory_frame");

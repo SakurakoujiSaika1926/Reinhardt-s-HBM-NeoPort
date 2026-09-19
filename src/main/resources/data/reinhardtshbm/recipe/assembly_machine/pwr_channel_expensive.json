@@ -1,7 +1,9 @@
 {
-  "neoforge:conditions": {
-    "type": "reinhardtshbm:enable_528_mode"
-  },
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pwrchannel",
   "duration": 200,
@@ -21,16 +23,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "steel"
       },
       "count": 4
     }

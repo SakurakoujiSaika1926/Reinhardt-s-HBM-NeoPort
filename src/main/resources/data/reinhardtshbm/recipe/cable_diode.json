@@ -3,9 +3,9 @@
     "category": "redstone",
     "pattern": [" Q ", "CAC", " Q "],
     "key": {
-        "Q": { "item": "reinhardtshbm:nugget_silicon" },
+        "Q": { "tag": "c:nuggets/silicon" },
         "C": { "item": "reinhardtshbm:red_cable" },
-        "A": { "item": "reinhardtshbm:ingot_aluminium" }
+        "A": { "tag": "c:ingots/aluminium" }
     },
     "result": { "id": "reinhardtshbm:cable_diode" }
 }

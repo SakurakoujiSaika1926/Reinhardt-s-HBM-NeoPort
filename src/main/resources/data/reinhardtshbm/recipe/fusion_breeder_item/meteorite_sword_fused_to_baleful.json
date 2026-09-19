@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:fusion_breeder_item",
+  "group": "fusion_breeder.weapon",
+  "ingredient": {
+    "item": "reinhardtshbm:meteorite_sword_fused"
+  },
+  "result": {
+    "id": "reinhardtshbm:meteorite_sword_baleful"
+  },
+  "flux": 4000
+}

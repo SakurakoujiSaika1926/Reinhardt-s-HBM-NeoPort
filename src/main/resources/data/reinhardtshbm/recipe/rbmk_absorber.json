@@ -8,7 +8,7 @@
   ],
   "key": {
     "G": {
-      "item": "reinhardtshbm:ingot_boron"
+      "tag": "c:ingots/boron"
     },
     "R": {
       "item": "reinhardtshbm:rbmk_blank"

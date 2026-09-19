@@ -11,7 +11,7 @@
       "item": "reinhardtshbm:blades_steel"
     },
     "D": {
-      "item": "reinhardtshbm:powder_chlorophyte"
+      "tag": "c:dusts/chlorophyte"
     },
     "A": {
       "tag": "c:ingots/fiberglass"

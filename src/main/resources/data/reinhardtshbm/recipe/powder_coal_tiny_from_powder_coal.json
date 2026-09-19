@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_coal"
+      "tag": "c:dusts/coal"
     }
   ],
   "result": {

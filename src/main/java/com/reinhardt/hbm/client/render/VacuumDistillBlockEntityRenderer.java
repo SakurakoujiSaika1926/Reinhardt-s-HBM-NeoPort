@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class VacuumDistillBlockEntityRenderer implements BlockEntityRenderer<VacuumDistillBlockEntity> {
+public class VacuumDistillBlockEntityRenderer implements LongRangeBlockEntityRenderer<VacuumDistillBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_vacuum_distill");
 
     public VacuumDistillBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

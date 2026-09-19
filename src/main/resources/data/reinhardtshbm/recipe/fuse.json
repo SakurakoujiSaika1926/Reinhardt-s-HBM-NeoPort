@@ -2,18 +2,22 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    { "tag": "c:plates/steel" },
-    { "tag": "c:plates/polymer" },
     {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 7400,
-          "material": "tungsten"
-        }
-      }
+      "tag": "c:plates/steel"
+    },
+    {
+      "tag": "c:plates/polymer"
+    },
+    {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "tungsten"
     }
   ],
-  "result": { "id": "reinhardtshbm:fuse" }
+  "result": {
+    "id": "reinhardtshbm:fuse"
+  }
 }

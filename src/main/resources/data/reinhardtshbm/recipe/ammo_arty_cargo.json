@@ -7,9 +7,28 @@
     "CCC"
   ],
   "key": {
-    "C": { "item": "reinhardtshbm:cordite" },
-    "I": { "item": "reinhardtshbm:sphere_steel" },
-    "S": { "type": "neoforge:components", "items": ["reinhardtshbm:shell"], "components": { "minecraft:custom_data": { "material_id": 2900, "material": "copper" } } }
+    "C": {
+      "item": "reinhardtshbm:cordite"
+    },
+    "I": {
+      "item": "reinhardtshbm:sphere_steel"
+    },
+    "S": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "shape": "shell",
+      "material": "copper"
+    }
   },
-  "result": { "id": "reinhardtshbm:ammo_arty", "components": { "minecraft:custom_data": { "variant": "ammo_arty_cargo" }, "minecraft:custom_model_data": 8 } }
+  "result": {
+    "id": "reinhardtshbm:ammo_arty",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "ammo_arty_cargo"
+      },
+      "minecraft:custom_model_data": 8
+    }
+  }
 }

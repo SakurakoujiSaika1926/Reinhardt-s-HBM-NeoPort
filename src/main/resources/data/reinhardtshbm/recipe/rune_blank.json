@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["PSP","SDS","PSP"],"key":{"P":{"item":"reinhardtshbm:powder_magic"},"S":{"tag":"c:ingots/starmetal"},"D":{"item":"reinhardtshbm:circuit_bismoid"}},"result":{"id":"reinhardtshbm:rune_blank"}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["PSP","SDS","PSP"],"key":{"P":{"tag":"c:dusts/magic"},"S":{"tag":"c:ingots/starmetal"},"D":{"item":"reinhardtshbm:circuit_bismoid"}},"result":{"id":"reinhardtshbm:rune_blank"}}

@@ -1,0 +1,22 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.wiring",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "gold"
+      },
+      "count": 24
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:gadget_wireing"
+  }
+}

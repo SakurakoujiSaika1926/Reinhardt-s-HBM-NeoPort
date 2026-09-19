@@ -8,6 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
@@ -31,6 +32,12 @@ public class LargeMachineBlock extends Block {
     private final VoxelShape shape;
     private final RotationBasis rotationBasis;
 
+    public static Properties nonOccludingMachineProperties(Properties properties) {
+        return properties.noOcclusion()
+                .isSuffocating((state, level, pos) -> false)
+                .isViewBlocking((state, level, pos) -> false);
+    }
+
     public LargeMachineBlock(Properties properties, Footprint footprint) {
         this(properties, footprint, Shapes.block());
     }
@@ -44,7 +51,7 @@ public class LargeMachineBlock extends Block {
     }
 
     public LargeMachineBlock(Properties properties, Footprint footprint, VoxelShape shape, RotationBasis rotationBasis) {
-        super(properties);
+        super(nonOccludingMachineProperties(properties));
         this.footprint = footprint;
         this.shape = shape;
         this.rotationBasis = rotationBasis;
@@ -95,6 +102,31 @@ public class LargeMachineBlock extends Block {
     @Override
     protected VoxelShape getCollisionShape(BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos, CollisionContext context) {
         return this.shape;
+    }
+
+    @Override
+    protected VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+        return Shapes.empty();
+    }
+
+    @Override
+    protected VoxelShape getVisualShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return Shapes.empty();
+    }
+
+    @Override
+    public int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+        return 0;
+    }
+
+    @Override
+    protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        return 1.0F;
+    }
+
+    @Override
+    public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+        return true;
     }
 
     @Override

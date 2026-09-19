@@ -1,9 +1,9 @@
-﻿{
+{
     "type":  "minecraft:crafting_shapeless",
     "category":  "misc",
     "ingredients":  [
                         {
-                            "item":  "reinhardtshbm:block_semtex"
+                            "tag":  "c:storage_blocks/semtex"
                         }
                     ],
     "result":  {

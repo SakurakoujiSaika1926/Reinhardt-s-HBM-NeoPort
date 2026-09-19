@@ -14,16 +14,12 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:plate_cast"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "plate_cast",
+        "material": "steel"
       },
       "count": 8
     },
@@ -35,16 +31,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2200,
-            "material": "titanium"
-          }
-        }
+        "shape": "shell",
+        "material": "titanium"
       },
       "count": 3
     },
@@ -56,7 +48,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:ingot_firebrick"
+        "tag": "c:ingots/firebrick"
       },
       "count": 16
     },

@@ -1,17 +1,29 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "pattern": ["WRW", "RIR", "WRW"],
+  "pattern": [
+    "WRW",
+    "RIR",
+    "WRW"
+  ],
   "key": {
-    "W": { "tag": "c:plates/steel" },
-    "I": { "tag": "c:ingots/red_copper" },
+    "W": {
+      "tag": "c:plates/steel"
+    },
+    "I": {
+      "tag": "c:ingots/red_copper"
+    },
     "R": {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": {
-        "minecraft:custom_data": { "material_id": 31, "material": "red_copper" }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "red_copper"
     }
   },
-  "result": { "id": "reinhardtshbm:red_cable_paintable", "count": 16 }
+  "result": {
+    "id": "reinhardtshbm:red_cable_paintable",
+    "count": 16
+  }
 }

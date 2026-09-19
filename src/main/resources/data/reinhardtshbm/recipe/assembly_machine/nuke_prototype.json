@@ -1,0 +1,43 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.ninadidnothingwrong",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:dysfunctional_reactor"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/euphemium"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuke_prototype"
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

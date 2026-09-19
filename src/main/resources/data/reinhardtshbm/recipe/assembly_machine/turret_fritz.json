@@ -1,7 +1,9 @@
 {
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.fritz",
-  "blueprint_pools": "528.bmg",
+  "blueprint_pools": [
+    "528.bmg"
+  ],
   "duration": 200,
   "power": 100,
   "ingredients": [
@@ -38,29 +40,23 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "steel"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:part_mechanism",
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 49,
-            "material": "gunmetal"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:part_mechanism"
+        ],
+        "shape": "mechanism",
+        "material": "gunmetal"
       },
       "count": 3
     },

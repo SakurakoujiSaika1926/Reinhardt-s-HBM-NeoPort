@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_zirconium"
+                       "tag":  "c:storage_blocks/zirconium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_zirconium",

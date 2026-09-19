@@ -1,6 +1,5 @@
 package com.reinhardt.hbm.entity;
 
-import com.reinhardt.hbm.item.ArmorFSBItem;
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
@@ -134,8 +133,7 @@ public final class LegacyMistEntity extends Entity {
                 HbmArmorProtection.HazardClass.GAS_BLISTERING,
                 1
         );
-        String armorGroup = ArmorFSBItem.fullSetGroup(living);
-        boolean hazmatProtected = armorGroup.startsWith("hazmat") || armorGroup.equals("schrabidium");
+        boolean hazmatProtected = HbmArmorProtection.hasLegacyHazmatProtection(living);
         if (!maskProtected || !hazmatProtected) {
             living.addEffect(new MobEffectInstance(MobEffects.WITHER, (int) (100.0D * intensity), 1));
             living.addEffect(new MobEffectInstance(MobEffects.CONFUSION, (int) (100.0D * intensity), 0));
@@ -162,14 +160,17 @@ public final class LegacyMistEntity extends Entity {
     private AABB effectBounds() {
         double width = this.entityData.get(AREA_WIDTH);
         double height = this.entityData.get(AREA_HEIGHT);
-        double halfWidth = width * 0.5D;
+        // 1.7.10 EntityMist applied its queried AABB half a width toward
+        // negative X/Z after setSize(width, height).  This makes the mist's
+        // visible and damaging volume occupy [pos - width, pos] on X/Z rather
+        // than a centered box.
         return new AABB(
-                getX() - halfWidth,
+                getX() - width,
                 getY(),
-                getZ() - halfWidth,
-                getX() + halfWidth,
+                getZ() - width,
+                getX(),
                 getY() + height,
-                getZ() + halfWidth
+                getZ()
         );
     }
 

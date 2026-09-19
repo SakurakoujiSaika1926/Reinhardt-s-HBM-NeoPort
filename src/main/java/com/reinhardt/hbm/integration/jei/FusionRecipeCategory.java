@@ -11,6 +11,7 @@ import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
@@ -23,13 +24,18 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public class FusionRecipeCategory implements IRecipeCategory<RecipeHolder<FusionRecipe>> {
-    private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/nei/gui_nei_fusion.png");
+    private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/nei/gui_nei.png");
     private static final int TANK_CAPACITY = 1_000;
 
     private final IDrawable background;
     private final IDrawable icon;
 
     public FusionRecipeCategory(IGuiHelper helper) {
+        // 1.7.10's FusionRecipeHandler inherits NEIGenericRecipeHandler and
+        // therefore uses the generic NEI panel with dynamic slot and machine
+        // frames.  The standalone gui_nei_fusion.png only has one baked input
+        // and output slot, so using it for multi-fluid recipes visibly offsets
+        // JEI slots.
         this.background = helper.createDrawable(TEXTURE, 5, 11, 166, 65);
         this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.FUSION_TORUS.get()));
     }
@@ -74,17 +80,31 @@ public class FusionRecipeCategory implements IRecipeCategory<RecipeHolder<Fusion
             addFluid(builder.addOutputSlot(outputPos[index][0], outputPos[index][1]), stack.fluid(), stack.amount());
             index++;
         }
+        builder.addSlot(RecipeIngredientRole.CATALYST, 75, 31)
+                .addItemStack(new ItemStack(HbmBlocks.FUSION_TORUS.get()));
     }
 
     @Override
     public void draw(RecipeHolder<FusionRecipe> holder, mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
         FusionRecipe recipe = holder.value();
         var font = Minecraft.getInstance().font;
-        ItemStack torus = new ItemStack(HbmBlocks.FUSION_TORUS.get());
-        graphics.renderItem(torus, 75, 31);
-        graphics.drawString(font, "KyU " + HbmFluidTooltip.shortNumber(recipe.ignitionTemp()), 72, 8, 0x404040, false);
-        graphics.drawString(font, "TU " + HbmFluidTooltip.shortNumber(recipe.outputTemp()), 72, 51, 0x404040, false);
-        graphics.drawString(font, recipe.power() + " HE/t", 71, 20, 0x404040, false);
+        int[][] inputPos = inputPositions(recipe.inputFluids().size());
+        for (int[] pos : inputPos) {
+            drawSlotFrame(graphics, pos[0], pos[1]);
+        }
+
+        int outputCount = recipe.outputFluids().size() + (recipe.outputItem().isPresent() ? 1 : 0);
+        int[][] outputPos = outputPositions(outputCount);
+        for (int[] pos : outputPos) {
+            drawSlotFrame(graphics, pos[0], pos[1]);
+        }
+        graphics.blit(TEXTURE, 74, 14, 59, 87, 18, 36, 256, 256);
+
+        drawRightAligned(graphics, font, HbmFluidTooltip.shortNumber(recipe.duration()) + " ticks", 164, 45, 0x404040);
+        String status = System.currentTimeMillis() % 2_000L < 1_000L
+                ? recipe.power() + " HE/t"
+                : HbmFluidTooltip.shortNumber(recipe.ignitionTemp()) + "Ky/t";
+        drawRightAligned(graphics, font, status, 164, 57, System.currentTimeMillis() % 2_000L < 1_000L ? 0x404040 : 0xA000A0);
     }
 
     private static void addFluid(IRecipeSlotBuilder slot, HbmFluidDefinition definition, int amount) {
@@ -102,6 +122,9 @@ public class FusionRecipeCategory implements IRecipeCategory<RecipeHolder<Fusion
             case 1 -> new int[][]{{48, 24}};
             case 2 -> new int[][]{{30, 24}, {48, 24}};
             case 3 -> new int[][]{{12, 24}, {30, 24}, {48, 24}};
+            case 4 -> new int[][]{{30, 15}, {48, 15}, {30, 33}, {48, 33}};
+            case 5 -> new int[][]{{12, 15}, {30, 15}, {48, 15}, {12, 33}, {30, 33}};
+            case 6 -> new int[][]{{12, 15}, {30, 15}, {48, 15}, {12, 33}, {30, 33}, {48, 33}};
             default -> new int[0][0];
         };
     }
@@ -111,7 +134,20 @@ public class FusionRecipeCategory implements IRecipeCategory<RecipeHolder<Fusion
             case 1 -> new int[][]{{102, 24}};
             case 2 -> new int[][]{{102, 24}, {120, 24}};
             case 3 -> new int[][]{{102, 24}, {120, 24}, {138, 24}};
+            case 4 -> new int[][]{{102, 15}, {120, 15}, {102, 33}, {120, 33}};
+            case 5 -> new int[][]{{102, 15}, {120, 15}, {102, 33}, {120, 33}, {138, 24}};
+            case 6 -> new int[][]{{102, 6}, {120, 6}, {102, 24}, {120, 24}, {102, 42}, {120, 42}};
+            case 7 -> new int[][]{{102, 6}, {120, 6}, {102, 24}, {120, 24}, {102, 42}, {120, 42}, {138, 24}};
+            case 8 -> new int[][]{{102, 6}, {120, 6}, {102, 24}, {120, 24}, {102, 42}, {120, 42}, {138, 24}, {138, 42}};
             default -> new int[0][0];
         };
+    }
+
+    private static void drawSlotFrame(GuiGraphics graphics, int x, int y) {
+        graphics.blit(TEXTURE, x - 1, y - 1, 5, 87, 18, 18, 256, 256);
+    }
+
+    private static void drawRightAligned(GuiGraphics graphics, net.minecraft.client.gui.Font font, String text, int right, int y, int color) {
+        graphics.drawString(font, text, right - font.width(text), y, color, false);
     }
 }

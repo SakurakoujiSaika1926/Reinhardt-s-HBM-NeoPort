@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_magnetized_tungsten"
+                       "tag":  "c:dusts/magnetized_tungsten"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_magnetized_tungsten"

@@ -1,17 +1,29 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "decorations",
-  "pattern": ["G", "T", "I"],
+  "pattern": [
+    "G",
+    "T",
+    "I"
+  ],
   "key": {
-    "G": { "tag": "c:glass_panes" },
-    "T": {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": {
-        "minecraft:custom_data": { "material_id": 7400, "material": "tungsten" }
-      }
+    "G": {
+      "tag": "c:glass_panes"
     },
-    "I": { "tag": "c:ingots/iron" }
+    "T": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "tungsten"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
   },
-  "result": { "id": "reinhardtshbm:spotlight_incandescent", "count": 8 }
+  "result": {
+    "id": "reinhardtshbm:spotlight_incandescent",
+    "count": 8
+  }
 }

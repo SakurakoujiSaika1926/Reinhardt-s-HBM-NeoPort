@@ -15,7 +15,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class CompressorBlockEntityRenderer implements BlockEntityRenderer<CompressorBlockEntity> {
+public class CompressorBlockEntityRenderer implements LongRangeBlockEntityRenderer<CompressorBlockEntity> {
     private static final ModelResourceLocation NORMAL_BODY = MachineModelRenderer.standalone("block/machine_compressor_world");
     private static final ModelResourceLocation NORMAL_PUMP = MachineModelRenderer.standalone("block/machine_compressor_pump");
     private static final ModelResourceLocation NORMAL_FAN = MachineModelRenderer.standalone("block/machine_compressor_fan");

@@ -2,7 +2,7 @@
   "type": "reinhardtshbm:ammo_press",
   "group": "ammo_press.nuke_high",
   "input": [
-    {}, { "ingredient": { "item": "reinhardtshbm:nugget_pu239" }, "count": 4 }, {},
+    {}, { "ingredient": { "tag": "c:nuggets/pu239" }, "count": 4 }, {},
     {}, { "ingredient": { "item": "reinhardtshbm:assembly_nuke" } }, {},
     {}, {}, {}
   ],

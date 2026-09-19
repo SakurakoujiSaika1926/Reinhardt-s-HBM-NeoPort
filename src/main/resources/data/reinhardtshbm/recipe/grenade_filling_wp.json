@@ -1,4 +1,4 @@
-﻿{
+{
     "type":  "minecraft:crafting_shaped",
     "category":  "misc",
     "pattern":  [
@@ -8,7 +8,7 @@
                 ],
     "key":  {
                 "F":  {
-                          "item":  "reinhardtshbm:ingot_phosphorus"
+                          "tag":  "c:ingots/phosphorus"
                       },
                 "I":  {
                           "tag":  "c:plates/polymer"

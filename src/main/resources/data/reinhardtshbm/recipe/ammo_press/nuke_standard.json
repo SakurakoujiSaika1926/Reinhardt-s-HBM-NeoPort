@@ -2,7 +2,7 @@
   "type": "reinhardtshbm:ammo_press",
   "group": "ammo_press.nuke_standard",
   "input": [
-    {}, { "ingredient": { "item": "reinhardtshbm:nugget_pu239" } }, {},
+    {}, { "ingredient": { "tag": "c:nuggets/pu239" } }, {},
     {}, { "ingredient": { "item": "reinhardtshbm:assembly_nuke" } }, {},
     {}, {}, {}
   ],

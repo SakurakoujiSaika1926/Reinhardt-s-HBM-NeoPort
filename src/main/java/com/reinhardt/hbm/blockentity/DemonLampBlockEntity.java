@@ -44,7 +44,7 @@ public final class DemonLampBlockEntity extends BlockEntity {
             resistance = Math.max(1.0F, resistance);
 
             HbmLivingRadiation radiation = HbmLivingRadiation.get(entity);
-            radiation.addRadiation((float) (RADIATION_PER_TICK / resistance / (distance * distance)));
+            radiation.addRadiationWithReadout((float) (RADIATION_PER_TICK / resistance / (distance * distance)));
             HbmLivingRadiation.set(entity, radiation);
             if (distance < 2.0D) {
                 entity.hurt(entity.damageSources().inFire(), 100.0F);

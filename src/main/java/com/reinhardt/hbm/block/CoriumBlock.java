@@ -1,8 +1,10 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
+import com.reinhardt.hbm.radiation.RadiationShielding;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.Entity;
@@ -34,17 +36,17 @@ public class CoriumBlock extends LiquidBlock {
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
         super.stepOn(level, pos, state, entity);
-        burnAndIrradiate(level, entity);
+        burnAndIrradiate(level, pos, entity);
     }
 
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         super.entityInside(state, level, pos, entity);
         entity.makeStuckInBlock(state, new Vec3(0.25D, 0.05D, 0.25D));
-        burnAndIrradiate(level, entity);
+        burnAndIrradiate(level, pos, entity);
     }
 
-    private static void burnAndIrradiate(Level level, Entity entity) {
+    private static void burnAndIrradiate(Level level, BlockPos pos, Entity entity) {
         if (level.isClientSide) {
             return;
         }
@@ -52,10 +54,13 @@ public class CoriumBlock extends LiquidBlock {
         DamageSources damageSources = level.damageSources();
         entity.hurt(damageSources.onFire(), 2.0F);
         if (entity instanceof LivingEntity living) {
+            float dose = level instanceof ServerLevel serverLevel
+                    ? RadiationShielding.attenuateDirectDose(serverLevel, pos, living, 1.0F)
+                    : 1.0F;
             HbmLivingRadiation data = HbmLivingRadiation.get(living);
-            data.addEnvironmentRadiation(1.0F);
+            data.addEnvironmentRadiation(dose);
             if (!(living instanceof Player player && (player.isCreative() || player.isSpectator()))) {
-                data.addRadiation(1.0F);
+                data.addRadiation(dose);
             }
             HbmLivingRadiation.set(living, data);
         }

@@ -3,22 +3,22 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:nugget_pu_mix"
+      "tag": "c:nuggets/pu_mix"
     },
     {
-      "item": "reinhardtshbm:nugget_pu_mix"
+      "tag": "c:nuggets/pu_mix"
     },
     {
-      "item": "reinhardtshbm:nugget_uranium_fuel"
+      "tag": "c:nuggets/uranium_fuel"
     },
     {
-      "item": "reinhardtshbm:nugget_uranium_fuel"
+      "tag": "c:nuggets/uranium_fuel"
     },
     {
-      "item": "reinhardtshbm:nugget_uranium_fuel"
+      "tag": "c:nuggets/uranium_fuel"
     },
     {
-      "item": "reinhardtshbm:nugget_uranium_fuel"
+      "tag": "c:nuggets/uranium_fuel"
     }
   ],
   "result": {

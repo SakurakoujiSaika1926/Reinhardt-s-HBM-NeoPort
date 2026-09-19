@@ -1,16 +1,50 @@
 {
   "neoforge:conditions": [
-    { "type": "reinhardtshbm:enable_528_mode" }
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
   ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.beamline",
-  "blueprint_pools": ["528.chip_quantum"],
+  "blueprint_pools": [
+    "528.chip_quantum"
+  ],
   "duration": 200,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "steel_plating" } } }, "count": 4 },
-    { "ingredient": { "tag": "c:plates/copper" }, "count": 16 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:wire_dense"], "components": { "minecraft:custom_data": { "material_id": 7900, "material": "gold" } } }, "count": 4 }
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "steel_plating"
+          }
+        }
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/copper"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "gold"
+      },
+      "count": 4
+    }
   ],
-  "result": { "id": "reinhardtshbm:pa_beamline" }
+  "result": {
+    "id": "reinhardtshbm:pa_beamline"
+  }
 }

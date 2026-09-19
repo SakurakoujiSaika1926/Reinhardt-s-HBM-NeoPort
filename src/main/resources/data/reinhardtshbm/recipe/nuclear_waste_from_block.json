@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_waste"
+      "tag": "c:storage_blocks/waste"
     }
   ],
   "result": {

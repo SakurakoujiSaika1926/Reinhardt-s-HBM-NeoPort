@@ -7,9 +7,12 @@ import com.reinhardt.hbm.fluid.HbmFluidTrait;
 import com.reinhardt.hbm.fluid.HbmNeoFluidType;
 import com.reinhardt.hbm.fluid.CoriumFlowingFluid;
 import com.reinhardt.hbm.fluid.LegacyHazardFlowingFluid;
+import com.reinhardt.hbm.fluid.MustardGasFlowingFluid;
 import com.reinhardt.hbm.fluid.VolcanicFlowingFluid;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -51,6 +54,14 @@ public final class HbmFluids {
     private static final Map<String, HbmFluidDefinition> BY_NAME = new LinkedHashMap<>();
     private static final Map<String, HbmFluidEntry> ENTRIES = new LinkedHashMap<>();
     private static final Map<Fluid, HbmFluidDefinition> VANILLA_FLUIDS = new IdentityHashMap<>();
+    private static final List<InteropFluidAlias> INTEROP_FLUID_ALIASES = List.of(
+            interopFluidAlias("crude_oil", "oil"),
+            interopFluidAlias("diesel", "diesel"),
+            interopFluidAlias("biodiesel", "biofuel"),
+            interopFluidAlias("gasoline", "gasoline"),
+            interopFluidAlias("ethanol", "ethanol"),
+            interopFluidAlias("plantoil", "sunfloweroil")
+    );
     private static boolean bootstrapped;
     private static DeferredHolder<Fluid, FlowingFluid> coriumSource;
     private static DeferredHolder<Fluid, FlowingFluid> coriumFlowing;
@@ -130,7 +141,26 @@ public final class HbmFluids {
                 return Optional.of(entry.definition());
             }
         }
+        return fromInteropFluidTag(fluid);
+    }
+
+    private static Optional<HbmFluidDefinition> fromInteropFluidTag(Fluid fluid) {
+        for (InteropFluidAlias alias : INTEROP_FLUID_ALIASES) {
+            if (fluid.is(alias.tag())) {
+                HbmFluidDefinition target = BY_NAME.get(alias.hbmFluidName());
+                if (target != null && !target.isNone()) {
+                    return Optional.of(target);
+                }
+            }
+        }
         return Optional.empty();
+    }
+
+    private static InteropFluidAlias interopFluidAlias(String commonTagPath, String hbmFluidName) {
+        return new InteropFluidAlias(
+                TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath("c", commonTagPath)),
+                hbmFluidName
+        );
     }
 
     public static Fluid toNeoFluid(HbmFluidDefinition definition) {
@@ -220,6 +250,9 @@ public final class HbmFluids {
             } else if (definition.name().equals("volcanic_lava_fluid")) {
                 source[0] = FLUIDS.register(path, () -> new VolcanicFlowingFluid.Source(properties[0]));
                 flowing[0] = FLUIDS.register("flowing_" + path, () -> new VolcanicFlowingFluid.Flowing(properties[0]));
+            } else if (definition.name().equals("mustardgas")) {
+                source[0] = FLUIDS.register(path, () -> new MustardGasFlowingFluid.Source(properties[0]));
+                flowing[0] = FLUIDS.register("flowing_" + path, () -> new MustardGasFlowingFluid.Flowing(properties[0]));
             } else if (isLegacyHazardFluid(path)) {
                 source[0] = FLUIDS.register(path, () -> new LegacyHazardFlowingFluid.Source(properties[0]));
                 flowing[0] = FLUIDS.register("flowing_" + path, () -> new LegacyHazardFlowingFluid.Flowing(properties[0]));
@@ -335,6 +368,9 @@ public final class HbmFluids {
             case "sulfuric_acid" -> "bucket_sulfuric_acid";
             default -> name + "_bucket";
         };
+    }
+
+    private record InteropFluidAlias(TagKey<Fluid> tag, String hbmFluidName) {
     }
 
     public record HbmFluidEntry(

@@ -5,12 +5,42 @@
   "power": 10000000,
   "ignition_temp": 50000000,
   "input_items": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_welded"], "components": { "minecraft:custom_data": { "material_id": 7699, "material": "osmiridium" } } }, "count": 16 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:wire_dense"], "components": { "minecraft:custom_data": { "material_id": 12626, "material": "schrabidium" } } }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:circuit_controller_quantum" }, "count": 8 }
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "osmiridium"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "schrabidium"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_quantum"
+      },
+      "count": 8
+    }
   ],
   "input_fluids": [
-    { "fluid": "stellar_flux", "amount": 4000 }
+    {
+      "fluid": "stellar_flux",
+      "amount": 4000
+    }
   ],
-  "result": { "id": "reinhardtshbm:dfc_stabilizer" }
+  "result": {
+    "id": "reinhardtshbm:dfc_stabilizer"
+  }
 }

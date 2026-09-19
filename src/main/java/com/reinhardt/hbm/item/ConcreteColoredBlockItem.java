@@ -56,7 +56,15 @@ public class ConcreteColoredBlockItem extends BlockItem {
 
     @Override
     public Component getName(ItemStack stack) {
-        return Component.translatable(this.baseTranslationKey + "." + this.variants[clampMeta(ConcreteColoredBlock.meta(stack))]);
+        return variantName(ConcreteColoredBlock.meta(stack));
+    }
+
+    public Component variantName(int meta) {
+        return Component.translatable(variantTranslationKey(meta));
+    }
+
+    public String variantTranslationKey(int meta) {
+        return this.baseTranslationKey + "." + this.variants[clampMeta(meta)];
     }
 
     public void addCreativeVariants(CreativeModeTab.Output output) {

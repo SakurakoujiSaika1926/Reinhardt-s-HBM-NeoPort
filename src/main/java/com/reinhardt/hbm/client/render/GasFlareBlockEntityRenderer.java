@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class GasFlareBlockEntityRenderer implements BlockEntityRenderer<GasFlareBlockEntity> {
+public class GasFlareBlockEntityRenderer implements LongRangeBlockEntityRenderer<GasFlareBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_flare_world");
 
     public GasFlareBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

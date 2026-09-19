@@ -14,7 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class CrystallizerBlockEntityRenderer implements BlockEntityRenderer<CrystallizerBlockEntity> {
+public class CrystallizerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CrystallizerBlockEntity> {
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_crystallizer_body");
     private static final ModelResourceLocation SPINNER = MachineModelRenderer.standalone("block/machine_crystallizer_spinner");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_crystallizer_fluid");

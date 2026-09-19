@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"item":"reinhardtshbm:iv_empty"},{"item":"reinhardtshbm:powder_magic"}],"result":{"id":"reinhardtshbm:iv_xp_empty"}}
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"item":"reinhardtshbm:iv_empty"},{"tag":"c:dusts/magic"}],"result":{"id":"reinhardtshbm:iv_xp_empty"}}

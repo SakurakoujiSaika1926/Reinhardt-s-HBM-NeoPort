@@ -1,4 +1,4 @@
-﻿{
+{
   "neoforge:conditions": [
     {
       "type": "reinhardtshbm:enable_528_mode"
@@ -13,7 +13,7 @@
   ],
   "key": {
     "G": {
-      "item": "reinhardtshbm:ingot_graphite"
+      "tag": "c:ingots/graphite"
     },
     "B": {
       "item": "reinhardtshbm:motor"

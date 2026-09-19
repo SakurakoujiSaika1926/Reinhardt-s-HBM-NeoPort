@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_polymer"
+                       "tag":  "c:storage_blocks/polymer"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_polymer",

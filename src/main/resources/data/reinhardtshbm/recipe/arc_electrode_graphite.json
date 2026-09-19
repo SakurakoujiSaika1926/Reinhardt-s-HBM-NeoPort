@@ -1,10 +1,31 @@
 {
-  "type":"minecraft:crafting_shaped",
-  "category":"misc",
-  "pattern":["C","T","C"],
-  "key":{
-    "C":{"tag":"c:ingots/graphite"},
-    "T":{"type":"neoforge:components","items":["reinhardtshbm:bolt"],"components":{"minecraft:custom_data":{"material_id":30,"material":"steel"}}}
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "C",
+    "T",
+    "C"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:ingots/graphite"
+    },
+    "T": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    }
   },
-  "result":{"id":"reinhardtshbm:arc_electrode","components":{"minecraft:custom_data":{"variant":"graphite"},"minecraft:custom_model_data":0}}
+  "result": {
+    "id": "reinhardtshbm:arc_electrode",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "graphite"
+      },
+      "minecraft:custom_model_data": 0
+    }
+  }
 }

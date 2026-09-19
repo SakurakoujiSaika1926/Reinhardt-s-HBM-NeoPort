@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class BigAssTankBlockEntityRenderer implements BlockEntityRenderer<BigAssTankBlockEntity> {
+public class BigAssTankBlockEntityRenderer implements LongRangeBlockEntityRenderer<BigAssTankBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_bat9000");
     private static final ResourceLocation DANGER_DIAMOND =
             ReinhardtsHBM.id("textures/models/misc/danger_diamond.png");

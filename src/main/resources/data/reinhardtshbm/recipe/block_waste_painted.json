@@ -6,7 +6,7 @@
       "tag": "c:dyes/yellow"
     },
     {
-      "item": "reinhardtshbm:block_waste"
+      "tag": "c:storage_blocks/waste"
     }
   ],
   "result": {

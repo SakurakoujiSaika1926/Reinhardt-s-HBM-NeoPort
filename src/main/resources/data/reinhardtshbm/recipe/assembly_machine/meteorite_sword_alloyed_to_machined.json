@@ -1,0 +1,17 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.meteorite_sword",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:meteorite_sword_alloyed"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:meteorite_sword_machined"
+  }
+}

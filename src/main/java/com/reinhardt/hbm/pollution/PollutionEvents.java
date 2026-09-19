@@ -212,7 +212,11 @@ public final class PollutionEvents {
     }
 
     private static void handleLungDisease(ServerLevel level, LivingEntity living, BlockPos eyePos) {
-        if (living instanceof ServerPlayer player && player.isCreative()) {
+        if (!(living instanceof ServerPlayer player)) {
+            return;
+        }
+
+        if (player.isCreative()) {
             HbmLivingHazards.clear(living);
             return;
         }
@@ -226,7 +230,7 @@ public final class PollutionEvents {
 
         double blackLungRatio = Math.min(hazards.getBlackLung(), HbmLivingHazards.MAX_BLACK_LUNG) / (double) HbmLivingHazards.MAX_BLACK_LUNG;
         double asbestosRatio = Math.min(hazards.getAsbestos(), HbmLivingHazards.MAX_ASBESTOS) / (double) HbmLivingHazards.MAX_ASBESTOS;
-        double soot = living instanceof ServerPlayer && HbmConfig.ENABLE_POLLUTION.get()
+        double soot = HbmConfig.ENABLE_POLLUTION.get()
                 ? HbmPollutionWorlds.get(level, eyePos, HbmPollutionType.SOOT)
                 : 0.0D;
         if (soot > 0.0D && HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_COARSE)) {

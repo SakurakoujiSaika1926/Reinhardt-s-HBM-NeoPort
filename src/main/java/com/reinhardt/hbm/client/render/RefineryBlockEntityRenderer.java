@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class RefineryBlockEntityRenderer implements BlockEntityRenderer<RefineryBlockEntity> {
+public class RefineryBlockEntityRenderer implements LongRangeBlockEntityRenderer<RefineryBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_refinery");
 
     public RefineryBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

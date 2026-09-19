@@ -24,7 +24,7 @@ import org.joml.Quaternionf;
 
 import java.util.Random;
 
-public class ExposureChamberBlockEntityRenderer implements BlockEntityRenderer<ExposureChamberBlockEntity> {
+public class ExposureChamberBlockEntityRenderer implements LongRangeBlockEntityRenderer<ExposureChamberBlockEntity> {
     private static final ModelResourceLocation CHAMBER = MachineModelRenderer.standalone("block/machine_exposure_chamber_chamber");
     private static final ModelResourceLocation MAGNETS = MachineModelRenderer.standalone("block/machine_exposure_chamber_magnets");
     private static final ModelResourceLocation CORE = MachineModelRenderer.standalone("block/machine_exposure_chamber_core");

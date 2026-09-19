@@ -1,9 +1,11 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.block.CrashedBombBlock;
 import com.reinhardt.hbm.block.LandmineBlock;
 import com.reinhardt.hbm.block.TimedExplosiveBlock;
 import com.reinhardt.hbm.block.ThermalBombBlock;
 import com.reinhardt.hbm.block.WallChargeBlock;
+import com.reinhardt.hbm.blockentity.LegacyNukeBlockEntity;
 import com.reinhardt.hbm.blockentity.NukeBoyBlockEntity;
 import com.reinhardt.hbm.blockentity.WallChargeExplosions;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
@@ -195,6 +197,10 @@ public class LegacyDetonatorItem extends Item {
             nukeBoy.detonate();
             return true;
         }
+        if (entity instanceof LegacyNukeBlockEntity nuke && nuke.isReady()) {
+            nuke.detonate();
+            return true;
+        }
         if (level.getBlockState(pos).getBlock() instanceof TimedExplosiveBlock explosive) {
             explosive.detonate(server, pos, player);
             return true;
@@ -210,6 +216,10 @@ public class LegacyDetonatorItem extends Item {
         }
         if (level.getBlockState(pos).getBlock() instanceof LandmineBlock mine) {
             mine.detonate(server, pos);
+            return true;
+        }
+        if (level.getBlockState(pos).getBlock() instanceof CrashedBombBlock) {
+            CrashedBombBlock.detonate(server, pos, level.getBlockState(pos));
             return true;
         }
         return false;

@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class RotaryFurnaceBlockEntityRenderer implements BlockEntityRenderer<RotaryFurnaceBlockEntity> {
+public class RotaryFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<RotaryFurnaceBlockEntity> {
     private static final ModelResourceLocation FURNACE_MODEL = MachineModelRenderer.standalone("block/machine_rotary_furnace_furnace");
     private static final ModelResourceLocation PISTON_MODEL = MachineModelRenderer.standalone("block/machine_rotary_furnace_piston");
 

@@ -8,7 +8,7 @@
   "ingredients": [
     { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "bronze_tubes" } } }, "count": 6 },
     { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 32 },
-    { "ingredient": { "item": "reinhardtshbm:ingot_cft" }, "count": 4 },
+    { "ingredient": { "tag": "c:ingots/cft" }, "count": 4 },
     { "ingredient": { "item": "reinhardtshbm:motor_bismuth" }, "count": 4 },
     { "ingredient": { "item": "reinhardtshbm:circuit_bismoid" }, "count": 4 },
     { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "computer" } } }, "count": 2 }

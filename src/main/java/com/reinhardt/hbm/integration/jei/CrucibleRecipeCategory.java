@@ -64,8 +64,11 @@ public class CrucibleRecipeCategory implements IRecipeCategory<RecipeHolder<Cruc
         for (int index = 0; index < value.output().size(); index++) {
             int x = 101 + (index % 3) * 18;
             int y = 5 + (index / 3) * 18;
-            builder.addOutputSlot(x, y)
+            var slot = builder.addOutputSlot(x, y)
                     .addItemStack(ScrapsItem.create(value.output().get(index).stack(), true));
+            if (index == 0 && !value.icon().isEmpty()) {
+                slot.addItemStack(value.icon().copy());
+            }
         }
     }
 }

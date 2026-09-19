@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class WatzPumpBlock extends Block implements EntityBlock {
     public WatzPumpBlock(Properties properties) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
     }
 
     @Nullable

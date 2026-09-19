@@ -1,0 +1,49 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fatman",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:sphere_steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:fins_big_steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/yellow"
+      },
+      "count": 6
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuke_man"
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

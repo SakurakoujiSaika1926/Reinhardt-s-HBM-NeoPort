@@ -101,7 +101,7 @@ public class BarbedWireBlock extends Block {
                 entity.hurt(sources.source(HbmDamageTypes.RADIATION), 5.0F);
                 if (entity instanceof LivingEntity living) {
                     HbmLivingRadiation data = HbmLivingRadiation.get(living);
-                    data.addRadiation(10.0F);
+                    data.addRadiationWithReadout(10.0F);
                     HbmLivingRadiation.set(living, data);
                 }
             }

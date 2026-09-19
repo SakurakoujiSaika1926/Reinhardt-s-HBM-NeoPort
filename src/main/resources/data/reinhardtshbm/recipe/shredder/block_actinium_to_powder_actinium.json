@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_actinium"
+                       "tag":  "c:storage_blocks/actinium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_actinium",

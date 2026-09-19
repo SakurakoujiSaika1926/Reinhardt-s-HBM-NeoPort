@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "pattern": [
@@ -8,16 +8,12 @@
   ],
   "key": {
     "A": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:wire_fine"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "shape": "wire",
+      "material": "steel"
     },
     "I": {
       "item": "minecraft:iron_ingot"

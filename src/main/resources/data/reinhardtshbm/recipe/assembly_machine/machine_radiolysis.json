@@ -2,7 +2,9 @@
   "neoforge:conditions": [
     {
       "type": "neoforge:not",
-      "value": { "type": "reinhardtshbm:enable_528_mode" }
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
   ],
   "type": "reinhardtshbm:assembly_machine",
@@ -12,24 +14,52 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:shell"],
-        "components": { "minecraft:custom_data": { "material_id": 30, "material": "steel" } }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 4
     },
-    { "ingredient": { "tag": "c:ingots/resistant_alloy" }, "count": 4 },
-    { "ingredient": { "tag": "c:plates/lead" }, "count": 12 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_cast"],
-        "components": { "minecraft:custom_data": { "material_id": 2900, "material": "copper" } }
+        "tag": "c:ingots/resistant_alloy"
       },
       "count": 4
     },
-    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 8 },
-    { "ingredient": { "item": "reinhardtshbm:thermo_element" }, "count": 8 }
+    {
+      "ingredient": {
+        "tag": "c:plates/lead"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "copper"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:thermo_element"
+      },
+      "count": 8
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_radiolysis" }
+  "result": {
+    "id": "reinhardtshbm:machine_radiolysis"
+  }
 }

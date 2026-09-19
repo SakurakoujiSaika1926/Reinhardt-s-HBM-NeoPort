@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class IndustrialBoilerBlockEntityRenderer implements BlockEntityRenderer<IndustrialBoilerBlockEntity> {
+public class IndustrialBoilerBlockEntityRenderer implements LongRangeBlockEntityRenderer<IndustrialBoilerBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_industrial_boiler_world");
 
     public IndustrialBoilerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

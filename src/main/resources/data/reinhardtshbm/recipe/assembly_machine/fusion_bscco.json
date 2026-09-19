@@ -1,10 +1,12 @@
 {
-  "neoforge:conditions": {
-    "type": "neoforge:not",
-    "value": {
-      "type": "reinhardtshbm:enable_528_mode"
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
-  },
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.fusionbscco",
   "duration": 100,
@@ -12,29 +14,23 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:wire_dense",
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 48,
-            "material": "bscco"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "bscco"
       },
       "count": 1
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2900,
-            "material": "copper"
-          }
-        }
+        "shape": "pipe",
+        "material": "copper"
       },
       "count": 1
     },

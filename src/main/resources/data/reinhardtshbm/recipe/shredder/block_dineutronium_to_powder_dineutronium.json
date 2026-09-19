@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_dineutronium"
+                       "tag":  "c:storage_blocks/dineutronium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_dineutronium",

@@ -526,11 +526,13 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             return false;
         }
         int inputIndex = slot - inputSlotStart(module);
-        List<AssemblyMachineRecipe.CountedIngredient> ingredients = selectedRecipe.get().value().ingredients();
-        if (inputIndex < 0 || inputIndex >= ingredients.size()) {
-            return false;
+        for (RecipeHolder<AssemblyMachineRecipe> holder : selectedChoiceVariants(this.level, module, selectedRecipe.get())) {
+            List<AssemblyMachineRecipe.CountedIngredient> ingredients = holder.value().ingredients();
+            if (inputIndex >= 0 && inputIndex < ingredients.size() && ingredients.get(inputIndex).ingredient().test(stack)) {
+                return true;
+            }
         }
-        return ingredients.get(inputIndex).ingredient().test(stack);
+        return false;
     }
 
     public Optional<ResourceLocation> selectedRecipeId(int module) {
@@ -542,10 +544,8 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             return;
         }
         if (recipeId != null && this.level != null) {
-            Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(this.level, recipeId);
-            if (recipe.isEmpty() || !recipe.get().value().isVisibleForPool(installedBlueprintPool(module))) {
-                recipeId = null;
-            }
+            Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(this.level, module, recipeId);
+            recipeId = recipe.map(RecipeHolder::id).orElse(null);
         }
         if (this.selectedRecipeIds[module] == recipeId || (this.selectedRecipeIds[module] != null && this.selectedRecipeIds[module].equals(recipeId))) {
             return;
@@ -559,18 +559,40 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         if (!isValidModule(module) || this.selectedRecipeIds[module] == null) {
             return Optional.empty();
         }
-        return findRecipe(level, this.selectedRecipeIds[module])
+        return findRecipe(level, module, this.selectedRecipeIds[module])
                 .filter(holder -> holder.value().isVisibleForPool(installedBlueprintPool(module)));
     }
 
     public List<RecipeHolder<AssemblyMachineRecipe>> availableRecipes(Level level, int module) {
-        Optional<String> pool = isValidModule(module) ? installedBlueprintPool(module) : Optional.empty();
+        return AssemblyMachineRecipe.collapseDisplayChoices(activeVisibleRecipes(level, module));
+    }
+
+    private List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level, int module) {
+        if (!isValidModule(module)) {
+            return List.of();
+        }
+        Optional<String> pool = installedBlueprintPool(module);
         List<RecipeHolder<AssemblyMachineRecipe>> visibleRecipes = level.getRecipeManager()
                 .getAllRecipesFor(HbmRecipeTypes.ASSEMBLY_MACHINE.get())
                 .stream()
                 .filter(holder -> holder.value().isVisibleForPool(pool))
                 .toList();
         return AssemblyMachineRecipe.activeVariants(visibleRecipes);
+    }
+
+    private List<RecipeHolder<AssemblyMachineRecipe>> selectedChoiceVariants(Level level, int module, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
+        return activeVisibleRecipes(level, module).stream()
+                .filter(holder -> AssemblyMachineRecipe.sameDisplayChoice(selectedRecipe, holder))
+                .toList();
+    }
+
+    private Optional<RecipeHolder<AssemblyMachineRecipe>> selectedRecipeForInputs(Level level, int module, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
+        AssemblyMachineRecipe.Input input = new AssemblyMachineRecipe.Input(inputStacks(module), inputFluidStacks(module));
+        return selectedChoiceVariants(level, module, selectedRecipe).stream()
+                .filter(holder -> holder.value().matches(input, level))
+                .filter(holder -> canOutput(module, holder.value().result()))
+                .filter(holder -> canFitFluidOutput(module, holder.value()))
+                .findFirst();
     }
 
     public void updateClientAnimation() {
@@ -631,7 +653,10 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
                 continue;
             }
 
-            AssemblyMachineRecipe recipe = recipeHolder.get().value();
+            RecipeHolder<AssemblyMachineRecipe> selectedHolder = recipeHolder.get();
+            AssemblyMachineRecipe recipe = selectedRecipeForInputs(level, module, selectedHolder)
+                    .orElse(selectedHolder)
+                    .value();
             nextCapacity += recipe.power() * 100L;
             setupTanks(module, recipe);
             this.workTime[module] = currentWorkTime(recipe);
@@ -669,20 +694,32 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         if (!isValidModule(module) || this.selectedRecipeIds[module] == null) {
             return Optional.empty();
         }
-        Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(level, this.selectedRecipeIds[module]);
+        Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(level, module, this.selectedRecipeIds[module]);
         if (recipe.isEmpty() || !recipe.get().value().isVisibleForPool(installedBlueprintPool(module))) {
             this.selectedRecipeIds[module] = null;
             return Optional.empty();
         }
+        if (!recipe.get().id().equals(this.selectedRecipeIds[module])) {
+            this.selectedRecipeIds[module] = recipe.get().id();
+        }
         return recipe;
     }
 
-    private Optional<RecipeHolder<AssemblyMachineRecipe>> findRecipe(Level level, ResourceLocation recipeId) {
-        for (RecipeHolder<AssemblyMachineRecipe> holder : AssemblyMachineRecipe.activeVariants(
-                level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.ASSEMBLY_MACHINE.get())
-        )) {
+    private Optional<RecipeHolder<AssemblyMachineRecipe>> findRecipe(Level level, int module, ResourceLocation recipeId) {
+        List<RecipeHolder<AssemblyMachineRecipe>> displayRecipes = availableRecipes(level, module);
+        for (RecipeHolder<AssemblyMachineRecipe> holder : displayRecipes) {
             if (holder.id().equals(recipeId)) {
                 return Optional.of(holder);
+            }
+        }
+        Optional<RecipeHolder<AssemblyMachineRecipe>> rawRecipe = activeVisibleRecipes(level, module).stream()
+                .filter(holder -> holder.id().equals(recipeId))
+                .findFirst();
+        if (rawRecipe.isPresent()) {
+            for (RecipeHolder<AssemblyMachineRecipe> holder : displayRecipes) {
+                if (AssemblyMachineRecipe.sameDisplayChoice(holder, rawRecipe.get())) {
+                    return Optional.of(holder);
+                }
             }
         }
         return Optional.empty();
@@ -693,8 +730,11 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             return 0;
         }
         List<RecipeHolder<AssemblyMachineRecipe>> recipes = availableRecipes(this.level, module);
+        ResourceLocation displayRecipeId = findRecipe(this.level, module, this.selectedRecipeIds[module])
+                .map(RecipeHolder::id)
+                .orElse(this.selectedRecipeIds[module]);
         for (int index = 0; index < recipes.size(); index++) {
-            if (recipes.get(index).id().equals(this.selectedRecipeIds[module])) {
+            if (recipes.get(index).id().equals(displayRecipeId)) {
                 return index + 1;
             }
         }
@@ -722,7 +762,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         if (this.level == null || !isValidModule(module) || this.selectedRecipeIds[module] == null) {
             return;
         }
-        Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(this.level, this.selectedRecipeIds[module]);
+        Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(this.level, module, this.selectedRecipeIds[module]);
         if (recipe.isEmpty() || !recipe.get().value().isVisibleForPool(installedBlueprintPool(module))) {
             this.selectedRecipeIds[module] = null;
         }

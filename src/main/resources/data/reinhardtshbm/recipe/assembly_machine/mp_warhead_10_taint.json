@@ -24,7 +24,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_magic"
+        "tag": "c:dusts/magic"
       },
       "count": 12
     }

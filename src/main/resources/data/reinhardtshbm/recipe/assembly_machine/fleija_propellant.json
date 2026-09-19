@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fleijacharge",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:ingots/high_explosive" }, "count": 3 },
+    { "ingredient": { "tag": "c:plates/schrabidium" }, "count": 8 }
+  ],
+  "result": { "id": "reinhardtshbm:fleija_propellant" }
+}

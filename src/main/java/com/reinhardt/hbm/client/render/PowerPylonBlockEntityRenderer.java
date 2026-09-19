@@ -140,6 +140,9 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
 
     private int adjustedOtherMountIndex(PowerPylonBlockEntity first, PowerPylonBlockEntity second, int line, int lineCount) {
         int index = line % second.mountPositions().length;
+        if (lineCount == 4 && (first.kind() == PowerPylonBlock.Kind.SUBSTATION || second.kind() == PowerPylonBlock.Kind.SUBSTATION)) {
+            return matchedOtherMountIndex(first, second, line, lineCount);
+        }
         if (lineCount == 4 && first.kind() == PowerPylonBlock.Kind.RED_PYLON_LARGE && second.kind() == PowerPylonBlock.Kind.RED_PYLON_LARGE) {
             Direction a = first.getBlockState().getValue(PowerPylonBlock.FACING);
             Direction b = second.getBlockState().getValue(PowerPylonBlock.FACING);
@@ -148,6 +151,140 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
             }
         }
         return index;
+    }
+
+    private int matchedOtherMountIndex(PowerPylonBlockEntity first, PowerPylonBlockEntity second, int line, int lineCount) {
+        boolean firstIsCanonical = compareBlockPos(first.getBlockPos(), second.getBlockPos()) <= 0;
+        PowerPylonBlockEntity canonicalFirst = firstIsCanonical ? first : second;
+        PowerPylonBlockEntity canonicalSecond = firstIsCanonical ? second : first;
+        int[] mapping = bestMountMapping(canonicalFirst, canonicalSecond, lineCount);
+        int normalizedLine = line % lineCount;
+
+        if (firstIsCanonical) {
+            return mapping[normalizedLine];
+        }
+
+        for (int i = 0; i < mapping.length; i++) {
+            if (mapping[i] == normalizedLine) {
+                return i;
+            }
+        }
+        return normalizedLine % second.mountPositions().length;
+    }
+
+    private int[] bestMountMapping(PowerPylonBlockEntity first, PowerPylonBlockEntity second, int lineCount) {
+        Vec3[] firstMounts = absoluteMounts(first, lineCount);
+        Vec3[] secondMounts = absoluteMounts(second, lineCount);
+        int[] current = new int[lineCount];
+        int[] best = new int[lineCount];
+        boolean[] used = new boolean[lineCount];
+        double[] bestScore = {Double.POSITIVE_INFINITY};
+        chooseMountMapping(0, current, best, used, firstMounts, secondMounts, bestScore);
+        return best;
+    }
+
+    private void chooseMountMapping(int depth, int[] current, int[] best, boolean[] used,
+                                    Vec3[] firstMounts, Vec3[] secondMounts, double[] bestScore) {
+        if (depth == current.length) {
+            double score = mountMappingScore(firstMounts, secondMounts, current);
+            if (score + 1.0E-6D < bestScore[0]) {
+                bestScore[0] = score;
+                System.arraycopy(current, 0, best, 0, current.length);
+            }
+            return;
+        }
+
+        for (int i = 0; i < current.length; i++) {
+            if (!used[i]) {
+                used[i] = true;
+                current[depth] = i;
+                chooseMountMapping(depth + 1, current, best, used, firstMounts, secondMounts, bestScore);
+                used[i] = false;
+            }
+        }
+    }
+
+    private double mountMappingScore(Vec3[] firstMounts, Vec3[] secondMounts, int[] mapping) {
+        double score = 0.0D;
+        for (int i = 0; i < mapping.length; i++) {
+            score += firstMounts[i].distanceToSqr(secondMounts[mapping[i]]);
+        }
+        return score + projectedCrossings(firstMounts, secondMounts, mapping) * 1_000_000.0D;
+    }
+
+    private int projectedCrossings(Vec3[] firstMounts, Vec3[] secondMounts, int[] mapping) {
+        Vec3 firstCenter = average(firstMounts);
+        Vec3 secondCenter = average(secondMounts);
+        Vec3 span = secondCenter.subtract(firstCenter);
+        Vec3 horizontal = new Vec3(span.x, 0.0D, span.z);
+        if (horizontal.lengthSqr() < 1.0E-6D) {
+            horizontal = new Vec3(1.0D, 0.0D, 0.0D);
+        }
+        Vec3 sideAxis = new Vec3(-horizontal.z, 0.0D, horizontal.x).normalize();
+
+        int crossings = 0;
+        for (int i = 0; i < mapping.length; i++) {
+            for (int j = i + 1; j < mapping.length; j++) {
+                Vec3 a = firstMounts[i];
+                Vec3 b = secondMounts[mapping[i]];
+                Vec3 c = firstMounts[j];
+                Vec3 d = secondMounts[mapping[j]];
+                if (projectedSegmentsCross(
+                        a.dot(sideAxis), a.y, b.dot(sideAxis), b.y,
+                        c.dot(sideAxis), c.y, d.dot(sideAxis), d.y)) {
+                    crossings++;
+                }
+            }
+        }
+        return crossings;
+    }
+
+    private boolean projectedSegmentsCross(double ax, double ay, double bx, double by,
+                                           double cx, double cy, double dx, double dy) {
+        double o1 = orientation(ax, ay, bx, by, cx, cy);
+        double o2 = orientation(ax, ay, bx, by, dx, dy);
+        double o3 = orientation(cx, cy, dx, dy, ax, ay);
+        double o4 = orientation(cx, cy, dx, dy, bx, by);
+        return o1 * o2 < -1.0E-7D && o3 * o4 < -1.0E-7D;
+    }
+
+    private double orientation(double ax, double ay, double bx, double by, double cx, double cy) {
+        return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    }
+
+    private Vec3 average(Vec3[] points) {
+        double x = 0.0D;
+        double y = 0.0D;
+        double z = 0.0D;
+        for (Vec3 point : points) {
+            x += point.x;
+            y += point.y;
+            z += point.z;
+        }
+        double count = Math.max(1, points.length);
+        return new Vec3(x / count, y / count, z / count);
+    }
+
+    private Vec3[] absoluteMounts(PowerPylonBlockEntity pylon, int lineCount) {
+        Vec3[] mounts = pylon.mountPositions();
+        Vec3[] result = new Vec3[lineCount];
+        BlockPos pos = pylon.getBlockPos();
+        for (int i = 0; i < lineCount; i++) {
+            result[i] = mounts[i % mounts.length].add(pos.getX(), pos.getY(), pos.getZ());
+        }
+        return result;
+    }
+
+    private int compareBlockPos(BlockPos first, BlockPos second) {
+        int x = Integer.compare(first.getX(), second.getX());
+        if (x != 0) {
+            return x;
+        }
+        int y = Integer.compare(first.getY(), second.getY());
+        if (y != 0) {
+            return y;
+        }
+        return Integer.compare(first.getZ(), second.getZ());
     }
 
     private void renderSaggingWire(PowerPylonBlockEntity pylon, PoseStack poseStack, VertexConsumer consumer, Vec3 start, Vec3 end, int packedOverlay) {

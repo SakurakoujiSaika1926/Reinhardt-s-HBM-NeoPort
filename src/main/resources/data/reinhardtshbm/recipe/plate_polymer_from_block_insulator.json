@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_insulator"
+      "tag": "c:storage_blocks/insulator"
     }
   ],
   "result": {

@@ -1,92 +1,84 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.bronzetubes",
-    "duration":  3000,
-    "power":  250000,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "heavy_frame"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  3
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "ferro_plating"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  1
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:plate_cast"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  46,
-                                                                                                "material":  "bismuth_bronze"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  4
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:plate_welded"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  4000,
-                                                                                                "material":  "zirconium"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  1
-                        }
-                    ],
-    "input_fluids":  [
-                         {
-                             "fluid":  "perfluoromethyl_cold",
-                             "amount":  4000
-                         }
-                     ],
-    "output_fluids":  [
-                          {
-                              "fluid":  "perfluoromethyl",
-                              "amount":  4000
-                          }
-                      ],
-    "result":  {
-                   "id":  "reinhardtshbm:item_expensive",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "bronze_tubes"
-                                                                },
-                                      "minecraft:custom_model_data":  6
-                                  }
-               }
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.bronzetubes",
+  "duration": 3000,
+  "power": 250000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "heavy_frame"
+          }
+        }
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "ferro_plating"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "bismuth_bronze"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "zirconium"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "perfluoromethyl_cold",
+      "amount": 4000
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "perfluoromethyl",
+      "amount": 4000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:item_expensive",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "bronze_tubes"
+      },
+      "minecraft:custom_model_data": 6
+    }
+  }
 }

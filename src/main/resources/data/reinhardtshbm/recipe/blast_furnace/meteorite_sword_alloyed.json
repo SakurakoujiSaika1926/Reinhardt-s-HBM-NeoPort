@@ -3,6 +3,5 @@
   "input_a": { "item": "reinhardtshbm:meteorite_sword_hardened" },
   "input_b": { "tag": "reinhardtshbm:blast_furnace/cobalt_equivalent" },
   "duration": 1200,
-  "result": { "id": "reinhardtshbm:meteorite_sword_alloyed" },
-  "hidden": true
+  "result": { "id": "reinhardtshbm:meteorite_sword_alloyed" }
 }

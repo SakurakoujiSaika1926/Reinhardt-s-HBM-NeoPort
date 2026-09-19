@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_magnetized_tungsten"
+                       "tag":  "c:storage_blocks/magnetized_tungsten"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_magnetized_tungsten",

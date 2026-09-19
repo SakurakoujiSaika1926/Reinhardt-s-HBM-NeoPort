@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_trinitite"
+      "tag": "c:storage_blocks/trinitite"
     }
   ],
   "result": {

@@ -21,7 +21,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class OilDerrickBlockEntityRenderer implements BlockEntityRenderer<OilDerrickBlockEntity> {
+public class OilDerrickBlockEntityRenderer implements LongRangeBlockEntityRenderer<OilDerrickBlockEntity> {
     static final ModelResourceLocation DERRICK_MODEL = MachineModelRenderer.standalone("block/machine_well_world");
     static final ModelResourceLocation PUMPJACK_BASE = MachineModelRenderer.standalone("block/machine_pumpjack_base");
     static final ModelResourceLocation PUMPJACK_ROTOR = MachineModelRenderer.standalone("block/machine_pumpjack_rotor");

@@ -6,51 +6,45 @@
   "result": {
     "id": "reinhardtshbm:machine_purex"
   },
-  "neoforge:conditions": {
-    "type": "neoforge:not",
-    "value": {
-      "type": "reinhardtshbm:enable_528_mode"
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
-  },
+  ],
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:shell",
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 20003,
-            "material": "rubber"
-          }
-        }
+        "shape": "pipe",
+        "material": "rubber"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:plate_cast",
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 8200,
-            "material": "lead"
-          }
-        }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "lead"
       },
       "count": 4
     },

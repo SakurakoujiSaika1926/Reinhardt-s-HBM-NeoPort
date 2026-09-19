@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_plutonium"
+                       "tag":  "c:storage_blocks/plutonium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_plutonium",

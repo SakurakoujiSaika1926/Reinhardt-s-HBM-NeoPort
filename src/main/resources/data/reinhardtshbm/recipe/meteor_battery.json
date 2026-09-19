@@ -11,19 +11,15 @@
       "item": "reinhardtshbm:meteor_polished"
     },
     "S": {
-      "item": "reinhardtshbm:block_starmetal"
+      "tag": "c:storage_blocks/starmetal"
     },
     "W": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:wire_fine"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 12626,
-          "material": "schrabidium"
-        }
-      }
+      "shape": "wire",
+      "material": "schrabidium"
     }
   },
   "result": {

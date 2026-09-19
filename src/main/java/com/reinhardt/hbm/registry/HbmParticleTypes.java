@@ -112,6 +112,10 @@ public final class HbmParticleTypes {
             PARTICLES.register("landmine_foam", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> DRAIN_TOWER =
             PARTICLES.register("drain_tower", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> MUSTARD_GAS_DRAIN =
+            PARTICLES.register("mustard_gas_drain", () -> new SimpleParticleType(false));
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> MUSTARD_GAS_CLOUD =
+            PARTICLES.register("mustard_gas_cloud", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> PYRO_OVEN_TOWER =
             PARTICLES.register("pyro_oven_tower", () -> new SimpleParticleType(false));
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROTARY_FURNACE_TOWER =

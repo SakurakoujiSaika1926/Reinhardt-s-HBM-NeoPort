@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_titanium"
+                       "tag":  "c:dusts/titanium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_titanium"

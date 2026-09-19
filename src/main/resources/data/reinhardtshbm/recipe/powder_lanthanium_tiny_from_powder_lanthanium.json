@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_lanthanium"
+      "tag": "c:dusts/lanthanium"
     }
   ],
   "result": {

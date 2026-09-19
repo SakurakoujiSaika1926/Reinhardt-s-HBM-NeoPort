@@ -17,16 +17,12 @@
       "tag": "c:nuggets/bismoid"
     },
     "W": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:wire_fine"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 31,
-          "material": "red_copper"
-        }
-      }
+      "shape": "wire",
+      "material": "red_copper"
     }
   },
   "result": {

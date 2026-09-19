@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_boron"
+                       "tag":  "c:ingots/boron"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_boron"

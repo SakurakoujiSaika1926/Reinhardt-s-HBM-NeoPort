@@ -1,33 +1,29 @@
-﻿{
-    "type":  "reinhardtshbm:arc_welder",
-    "group":  "arc_welder.wire_dense",
-    "duration":  100,
-    "consumption":  10000,
-    "inputs":  [
-                   {
-                       "ingredient":  {
-                                          "type":  "neoforge:components",
-                                          "items":  [
-                                                        "reinhardtshbm:wire_fine"
-                                                    ],
-                                          "components":  {
-                                                             "minecraft:custom_data":  {
-                                                                                           "material_id":  2900,
-                                                                                           "material":  "copper"
-                                                                                       }
-                                                         }
-                                      },
-                       "count":  8
-                   }
-               ],
-    "result":  {
-                   "id":  "reinhardtshbm:wire_dense",
-                   "count":  1,
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "material_id":  2900,
-                                                                    "material":  "copper"
-                                                                }
-                                  }
-               }
+{
+  "type": "reinhardtshbm:arc_welder",
+  "group": "arc_welder.wire_dense",
+  "duration": 100,
+  "consumption": 10000,
+  "inputs": [
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "copper"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:wire_dense",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": {
+        "material_id": 2900,
+        "material": "copper"
+      }
+    }
+  }
 }

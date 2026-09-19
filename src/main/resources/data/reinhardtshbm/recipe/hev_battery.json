@@ -1,1 +1,32 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" W ","IEI","ICI"],"key":{"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":7900,"material":"gold"}}},"I":{"tag":"c:plates/polymer"},"E":{"tag":"c:dusts/redstone"},"C":{"tag":"c:dusts/cobalt"}},"result":{"id":"reinhardtshbm:hev_battery","count":4}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " W ",
+    "IEI",
+    "ICI"
+  ],
+  "key": {
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "gold"
+    },
+    "I": {
+      "tag": "c:plates/polymer"
+    },
+    "E": {
+      "tag": "c:dusts/redstone"
+    },
+    "C": {
+      "tag": "c:dusts/cobalt"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:hev_battery",
+    "count": 4
+  }
+}

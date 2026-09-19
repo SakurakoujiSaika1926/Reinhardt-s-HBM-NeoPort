@@ -14,7 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class LargeTurbineBlockEntityRenderer implements BlockEntityRenderer<LargeTurbineBlockEntity> {
+public class LargeTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<LargeTurbineBlockEntity> {
     static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_large_turbine_body");
     static final ModelResourceLocation BLADES = MachineModelRenderer.standalone("block/machine_large_turbine_blades");
 

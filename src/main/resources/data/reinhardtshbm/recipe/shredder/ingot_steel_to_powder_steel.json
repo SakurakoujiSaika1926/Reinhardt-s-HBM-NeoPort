@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_steel"
+                       "tag":  "c:ingots/steel"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_steel"

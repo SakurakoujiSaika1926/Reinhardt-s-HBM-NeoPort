@@ -6,7 +6,7 @@
   "ignition_temp": 1000000,
   "input_items": [
     { "ingredient": { "tag": "c:ingots/dineutronium" }, "count": 4 },
-    { "ingredient": { "item": "reinhardtshbm:powder_spark_mix" }, "count": 2 },
+    { "ingredient": { "tag": "c:dusts/spark_mix" }, "count": 2 },
     { "ingredient": { "tag": "c:ingots/desh" }, "count": 1 }
   ],
   "result": { "id": "reinhardtshbm:plate_dineutronium", "count": 4 }

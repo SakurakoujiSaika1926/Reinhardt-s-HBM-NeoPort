@@ -1,0 +1,15 @@
+{
+  "textures": {
+    "particle": "reinhardtshbm:block/deco_steel",
+    "gauge": "reinhardtshbm:block/pipe_gauge"
+  },
+  "elements": [
+    {
+      "from": [0, 0, -0.03],
+      "to": [16, 16, -0.02],
+      "faces": {
+        "north": { "texture": "#gauge" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mikedeut",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/weaponsteel" }, "count": 16 },
+    { "ingredient": { "tag": "c:plates/titanium" }, "count": 16 }
+  ],
+  "input_fluids": [
+    { "fluid": "deuterium", "amount": 10000 }
+  ],
+  "result": { "id": "reinhardtshbm:mike_deut" }
+}

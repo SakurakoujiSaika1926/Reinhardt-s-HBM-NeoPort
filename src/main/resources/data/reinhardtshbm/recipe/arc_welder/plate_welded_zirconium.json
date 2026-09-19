@@ -4,7 +4,25 @@
   "duration": 600,
   "consumption": 10000,
   "inputs": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 4000, "material": "zirconium" } } }, "count": 2 }
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "zirconium"
+      },
+      "count": 2
+    }
   ],
-  "result": { "id": "reinhardtshbm:plate_welded", "components": { "minecraft:custom_data": { "material_id": 4000, "material": "zirconium" } } }
+  "result": {
+    "id": "reinhardtshbm:plate_welded",
+    "components": {
+      "minecraft:custom_data": {
+        "material_id": 4000,
+        "material": "zirconium"
+      }
+    }
+  }
 }

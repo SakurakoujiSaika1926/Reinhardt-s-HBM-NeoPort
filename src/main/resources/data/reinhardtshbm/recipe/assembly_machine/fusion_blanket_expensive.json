@@ -1,62 +1,57 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.fusionblanket",
-    "blueprint_pools":  [
-                            "528.tcalloy"
-                        ],
-    "duration":  100,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:plate_welded"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  7400,
-                                                                                                "material":  "tungsten"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  4
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "heavy_frame"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  1
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/beryllium"
-                                           },
-                            "count":  4
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:fusion_component",
-                   "count":  4,
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "blanket"
-                                                                },
-                                      "minecraft:custom_model_data":  2
-                                  }
-               }
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fusionblanket",
+  "blueprint_pools": [
+    "528.tcalloy"
+  ],
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "tungsten"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "heavy_frame"
+          }
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/beryllium"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fusion_component",
+    "count": 4,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "blanket"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  }
 }
-

@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_uranium"
+                       "tag":  "c:ingots/uranium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_uranium"

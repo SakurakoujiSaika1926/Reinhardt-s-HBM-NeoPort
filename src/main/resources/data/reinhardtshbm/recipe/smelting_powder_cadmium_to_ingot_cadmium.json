@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_cadmium"
+                       "tag":  "c:dusts/cadmium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_cadmium"

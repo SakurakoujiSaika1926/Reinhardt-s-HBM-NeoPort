@@ -6,7 +6,7 @@
   "input_items": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_yellowcake"
+        "tag": "c:dusts/yellowcake"
       },
       "count": 1
     },

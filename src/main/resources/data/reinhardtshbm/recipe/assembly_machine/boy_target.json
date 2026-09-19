@@ -6,7 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:nugget_u235"
+        "tag": "c:nuggets/u235"
       },
       "count": 18
     }

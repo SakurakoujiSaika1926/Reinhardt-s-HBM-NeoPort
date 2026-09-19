@@ -4,7 +4,7 @@
   "pattern": ["STS", "THT", "STS"],
   "key": {
     "S": { "item": "reinhardtshbm:cell_uf6" },
-    "T": { "item": "reinhardtshbm:powder_aluminium" },
+    "T": { "tag": "c:dusts/aluminium" },
     "H": { "item": "reinhardtshbm:crystal_charred" }
   },
   "result": { "id": "reinhardtshbm:crystal_pulsar", "count": 32 }

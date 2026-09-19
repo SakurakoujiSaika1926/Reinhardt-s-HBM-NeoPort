@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:nugget_au198"
+                       "tag":  "c:nuggets/au198"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_au198_tiny"

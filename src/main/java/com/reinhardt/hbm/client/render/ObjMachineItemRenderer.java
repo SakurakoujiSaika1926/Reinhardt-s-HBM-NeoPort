@@ -1074,6 +1074,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 "block/machine_soldering_station_world");
         add(profiles, "machine_assembly_machine", 90.0F, 0.61F,
                 "block/machine_assembly_machine");
+        add(profiles, "machine_tacz_ammo_assembler", 90.0F, 0.61F,
+                "block/machine_assembly_machine");
         add(profiles, "machine_cyclotron", 0.0F, 0.90F,
                 "block/machine_cyclotron_body", "block/machine_cyclotron_b1",
                 "block/machine_cyclotron_b2", "block/machine_cyclotron_b3", "block/machine_cyclotron_b4");
@@ -1299,6 +1301,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         legacy(poses, "machine_soldering_station", 0.0F, -1.0F, 0.0F, 5.0F,
                 0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
         legacy(poses, "machine_assembly_machine", 0.0F, -2.75F, 0.0F, 4.5F,
+                0.0F, 0.0F, 0.0F, 90.0F, 0.75F);
+        legacy(poses, "machine_tacz_ammo_assembler", 0.0F, -2.75F, 0.0F, 4.5F,
                 0.0F, 0.0F, 0.0F, 90.0F, 0.75F);
         // RenderAshpit#getRenderer
         legacy(poses, "machine_ashpit", 0.0F, -1.0F, 0.0F, 3.25F,

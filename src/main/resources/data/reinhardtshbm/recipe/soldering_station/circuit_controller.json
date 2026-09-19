@@ -52,16 +52,12 @@
   "solder": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_fine"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 8200,
-            "material": "lead"
-          }
-        }
+        "shape": "wire",
+        "material": "lead"
       },
       "count": 16
     }

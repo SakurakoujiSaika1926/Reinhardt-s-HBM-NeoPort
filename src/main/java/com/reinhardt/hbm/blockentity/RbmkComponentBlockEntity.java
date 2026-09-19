@@ -1,11 +1,8 @@
 package com.reinhardt.hbm.blockentity;
 
-import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.RbmkComponentBlock;
 import com.reinhardt.hbm.block.MachineDummyBlock;
 import com.reinhardt.hbm.config.HbmConfig;
-import com.reinhardt.hbm.entity.DigammaSpearEntity;
-import com.reinhardt.hbm.entity.RbmkDebrisEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
@@ -16,7 +13,6 @@ import com.reinhardt.hbm.menu.RbmkComponentMenu;
 import com.reinhardt.hbm.recipe.RbmkOutgasserRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
@@ -28,13 +24,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -54,15 +48,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -299,6 +294,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             return;
         }
         RbmkComponentBlock.Kind kind = rbmk.kind();
+        if (rbmk.meltingDown && kind.isColumn()) {
+            return;
+        }
         /*
          * 1.7.10 ordering is deliberate: each specialised tile performs its
          * own work first, then calls TileEntityRBMKBase.updateEntity, which
@@ -812,10 +810,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private static String stripNumber(double value) {
-        if (Math.rint(value) == value) {
-            return Long.toString((long) value);
-        }
-        return Double.toString(value);
+        return String.format(Locale.ROOT, "%.3f", value);
     }
 
     public void applyAutoControl(int function, int levelUpper, int levelLower, int heatUpper, int heatLower,
@@ -1789,7 +1784,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private void meltdown(Level level, BlockPos pos) {
-        if (level.isClientSide || meltingDown) {
+        if (level.isClientSide || meltingDown || !(level instanceof ServerLevel serverLevel)) {
             return;
         }
         meltingDown = true;
@@ -1797,13 +1792,19 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         if (columns.isEmpty()) {
             columns.add(this);
         }
-        Set<BlockPos> boilerBases = new HashSet<>();
+        List<RbmkComponentBlockEntity> orderedColumns = new ArrayList<>(columns);
+        orderedColumns.sort(Comparator
+                .comparingInt((RbmkComponentBlockEntity rbmk) -> rbmk.getBlockPos().getX())
+                .thenComparingInt(rbmk -> rbmk.getBlockPos().getZ())
+                .thenComparingInt(rbmk -> rbmk.getBlockPos().getY()));
+        List<BlockPos> boilerOutputs = new ArrayList<>();
         int minX = pos.getX();
         int maxX = pos.getX();
         int minZ = pos.getZ();
         int maxZ = pos.getZ();
         boolean digamma = false;
-        for (RbmkComponentBlockEntity rbmk : columns) {
+        int height = RbmkComponentBlock.columnHeight(level);
+        for (RbmkComponentBlockEntity rbmk : orderedColumns) {
             BlockPos columnPos = rbmk.getBlockPos();
             minX = Math.min(minX, columnPos.getX());
             maxX = Math.max(maxX, columnPos.getX());
@@ -1817,94 +1818,35 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 // TileEntityRBMKBoiler collected its fluid networks before
                 // replacing its own block in onMelt(). Preserve that order;
                 // after melting, kind() is no longer BOILER.
-                boilerBases.add(columnPos);
+                boilerOutputs.addAll(rbmkBoilerOutputPositions(level, columnPos, height));
             }
         }
 
-        List<BlockPos> coriumCores = new ArrayList<>();
-        for (RbmkComponentBlockEntity rbmk : columns) {
+        List<RbmkMeltdownManager.ColumnSnapshot> snapshots = new ArrayList<>();
+        for (RbmkComponentBlockEntity rbmk : orderedColumns) {
             BlockPos columnPos = rbmk.getBlockPos();
             int minDist = Math.min(
                     columnPos.getX() - minX,
                     Math.min(maxX - columnPos.getX(), Math.min(columnPos.getZ() - minZ, maxZ - columnPos.getZ()))
             );
-            if (rbmk.meltColumn(level, columnPos, minDist + 1)) {
-                coriumCores.add(columnPos);
-            }
+            snapshots.add(rbmk.prepareMeltdownSnapshot(level, columnPos, minDist + 1, height));
         }
-
-        for (BlockPos core : coriumCores) {
-            for (int x = -1; x <= 1; x++) {
-                for (int y = -1; y <= 1; y++) {
-                    for (int z = -1; z <= 1; z++) {
-                        BlockPos target = core.offset(x, y, z);
-                        BlockState targetState = level.getBlockState(target);
-                        if (level.random.nextInt(3) == 0
-                                && (targetState.is(HbmBlocks.PRIBRIS.get()) || targetState.is(HbmBlocks.PRIBRIS_BURNING.get()))) {
-                            level.setBlock(target, digamma
-                                    ? HbmBlocks.PRIBRIS_DIGAMMA.get().defaultBlockState()
-                                    : HbmBlocks.PRIBRIS_RADIATING.get().defaultBlockState(), 3);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (HbmConfig.RBMK_OVERPRESSURE.get()) {
-            overpressureFluidPipes(level, boilerBases);
-        }
-
         int smallDim = Math.min(maxX - minX, maxZ - minZ);
         int avgX = minX + (maxX - minX) / 2;
         int avgZ = minZ + (maxZ - minZ) / 2;
-        if (level instanceof ServerLevel serverLevel) {
-            // Old TileEntityRBMKBase sent one rbmkmush packet to a
-            // TargetPoint with a 250-block radius.  The ordinary
-            // sendParticles overload is limited to the vanilla tracking
-            // radius, so address each nearby player explicitly.  The
-            // footprint's small dimension is passed verbatim; a single
-            // column deliberately has scale 0.
-            double particleX = avgX + 0.5D;
-            double particleY = pos.getY() + 1.0D;
-            double particleZ = avgZ + 0.5D;
-            for (ServerPlayer player : serverLevel.players()) {
-                if (player.distanceToSqr(particleX, particleY, particleZ) <= 250.0D * 250.0D) {
-                    serverLevel.sendParticles(player, HbmParticleTypes.RBMK_MUSH.get(), true,
-                            particleX, particleY, particleZ, 0,
-                            smallDim, 0.0D, 0.0D, 1.0D);
-                }
-            }
-        }
-        level.playSound(null, avgX + 0.5D, pos.getY() + 1.0D, avgZ + 0.5D,
-                HbmSoundEvents.RBMK_EXPLOSION.get(), SoundSource.BLOCKS, 50.0F, 1.0F);
-        if (level instanceof ServerLevel serverLevel) {
-            // Legacy MainRegistry.achRBMKBoom was awarded to every player
-            // within 50 blocks of the initiating column (not the footprint
-            // midpoint). The modern advancement uses the same boundary.
-            AdvancementHolder boom = serverLevel.getServer().getAdvancements().get(ReinhardtsHBM.id("rbmk_boom"));
-            if (boom != null) {
-                AABB area = new AABB(
-                        pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
-                        pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D
-                ).inflate(50.0D);
-                for (ServerPlayer player : serverLevel.getEntitiesOfClass(ServerPlayer.class, area)) {
-                    player.getAdvancements().award(boom, "meltdown");
-                }
-            }
-        }
-        if (digamma) {
-            DigammaSpearEntity spear = new DigammaSpearEntity(HbmEntityTypes.DIGAMMA_SPEAR.get(), level);
-            spear.setPos(avgX + 0.5D, pos.getY() + 100.0D, avgZ + 0.5D);
-            level.addFreshEntity(spear);
-        }
-        for (RbmkComponentBlockEntity rbmk : columns) {
-            rbmk.meltingDown = false;
-        }
-        meltingDown = false;
+        RbmkMeltdownManager.schedule(serverLevel, new RbmkMeltdownManager.Request(
+                pos,
+                avgX,
+                avgZ,
+                smallDim,
+                digamma,
+                level.random.nextLong(),
+                snapshots,
+                boilerOutputs
+        ));
     }
 
-    private boolean meltColumn(Level level, BlockPos pos, int reduce) {
-        int height = RbmkComponentBlock.columnHeight(level);
+    private RbmkMeltdownManager.ColumnSnapshot prepareMeltdownSnapshot(Level level, BlockPos pos, int reduce, int height) {
         RbmkComponentBlock.Kind meltKind = kind();
         boolean hasFuel = meltKind.acceptsFuel() && items.get(SLOT_FUEL).getItem() instanceof RbmkFuelRodItem;
         boolean hadNormalLid = lidType == LidType.NORMAL;
@@ -1917,116 +1859,15 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         emittedFlux = 0.0D;
         emittedFastRatio = 0.0D;
         reasimRayOffset = 0;
-
-        if (meltKind.acceptsFuel()) {
-            meltFuelRodColumn(level, pos, reduce, height, meltKind, hasFuel, hadNormalLid);
-            return hasFuel;
-        }
-
-        if (meltKind.isControl()) {
-            meltControlColumn(level, pos, reduce, height, meltKind);
-            return false;
-        }
-
-        switch (meltKind) {
-            case BLANK, ABSORBER, REFLECTOR, BOILER, HEATER -> {
-                spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.BLANK, 1 + level.random.nextInt(2));
-                standardMeltColumn(level, pos, reduce, height);
-                spawnLidIfNormal(level, pos, hadNormalLid);
-            }
-            case OUTGASSER -> {
-                spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.BLANK, 4 + level.random.nextInt(2));
-                standardMeltColumn(level, pos, reduce, height);
-                spawnLidIfNormal(level, pos, hadNormalLid);
-            }
-            case MODERATOR -> {
-                spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.GRAPHITE, 2 + level.random.nextInt(2));
-                standardMeltColumn(level, pos, reduce, height);
-                spawnLidIfNormal(level, pos, hadNormalLid);
-            }
-            default -> {
-                standardMeltColumn(level, pos, reduce, height);
-                spawnLidIfNormal(level, pos, hadNormalLid);
-            }
-        }
-        return false;
+        redstoneLevel = 0;
+        meltingDown = true;
+        setChangedAndSync();
+        return new RbmkMeltdownManager.ColumnSnapshot(pos, meltKind, hasFuel, hadNormalLid, reduce, height);
     }
 
-    private void meltFuelRodColumn(Level level, BlockPos pos, int reduce, int height, RbmkComponentBlock.Kind meltKind, boolean hasFuel, boolean hadNormalLid) {
-        if (hasFuel) {
-            for (int y = height - 1; y >= 0; y--) {
-                level.setBlock(pos.above(y), HbmBlocks.CORIUM_BLOCK.get().defaultBlockState(), 3);
-            }
-            // Legacy RBMKDials#getColumnHeight() is the top-block offset;
-            // the merged block helper exposes total occupied height.
-            spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.FUEL,
-                    1 + level.random.nextInt(Math.max(1, height - 1)));
-        } else {
-            standardMeltColumn(level, pos, reduce, height);
-        }
-        if (meltKind == RbmkComponentBlock.Kind.FUEL_ROD_MOD || meltKind == RbmkComponentBlock.Kind.FUEL_ROD_REASIM_MOD) {
-            spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.GRAPHITE, 2 + level.random.nextInt(2));
-        }
-        spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.ELEMENT);
-        spawnLidIfNormal(level, pos, hadNormalLid);
-    }
-
-    private void meltControlColumn(Level level, BlockPos pos, int reduce, int height, RbmkComponentBlock.Kind meltKind) {
-        if (meltKind == RbmkComponentBlock.Kind.CONTROL_MOD) {
-            spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.GRAPHITE, 2 + level.random.nextInt(2));
-        }
-        spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.ROD, 2 + level.random.nextInt(2));
-        standardMeltColumn(level, pos, reduce, height);
-    }
-
-    private static void standardMeltColumn(Level level, BlockPos pos, int reduce, int height) {
-        // 1.7.10 clamps against h (the top offset), then applies the random
-        // +1 before writing h+1 blocks.  Modern height is h+1.
-        int clampedReduce = Math.max(1, Math.min(Math.max(1, height - 1), reduce));
-        if (level.random.nextInt(3) == 0) {
-            clampedReduce++;
-        }
-        for (int y = height - 1; y >= 0; y--) {
-            BlockPos target = pos.above(y);
-            if (y <= height - clampedReduce) {
-                if (clampedReduce > 1 && y == height - clampedReduce) {
-                    level.setBlock(target, HbmBlocks.PRIBRIS_BURNING.get().defaultBlockState(), 3);
-                } else {
-                    level.setBlock(target, HbmBlocks.PRIBRIS.get().defaultBlockState(), 3);
-                }
-            } else {
-                level.removeBlock(target, false);
-            }
-        }
-    }
-
-    private static void spawnLidIfNormal(Level level, BlockPos pos, boolean hadNormalLid) {
-        if (hadNormalLid) {
-            spawnDebris(level, pos, RbmkDebrisEntity.DebrisType.LID);
-        }
-    }
-
-    private static void spawnDebris(Level level, BlockPos pos, RbmkDebrisEntity.DebrisType type, int count) {
-        for (int i = 0; i < count; i++) {
-            spawnDebris(level, pos, type);
-        }
-    }
-
-    private static void spawnDebris(Level level, BlockPos pos, RbmkDebrisEntity.DebrisType type) {
-        if (level.isClientSide) {
-            return;
-        }
-        RbmkDebrisEntity debris = new RbmkDebrisEntity(level, pos.getX() + 0.5D, pos.getY() + 4.0D, pos.getZ() + 0.5D, type);
-        double motionX = level.random.nextGaussian() * 0.25D;
-        double motionZ = level.random.nextGaussian() * 0.25D;
-        double motionY = 0.25D + level.random.nextDouble() * 1.25D;
-        if (type == RbmkDebrisEntity.DebrisType.LID) {
-            motionX *= 0.5D;
-            motionY += 0.5D;
-            motionZ *= 0.5D;
-        }
-        debris.setDeltaMovement(motionX, motionY, motionZ);
-        level.addFreshEntity(debris);
+    void finishAsyncMeltdown() {
+        meltingDown = false;
+        setChangedAndSync();
     }
 
     private static Set<RbmkComponentBlockEntity> connectedColumns(Level level, BlockPos start) {
@@ -2049,75 +1890,6 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             }
         }
         return result;
-    }
-
-    private static void overpressureFluidPipes(Level level, Set<BlockPos> boilerBases) {
-        Set<BlockPos> pipes = new HashSet<>();
-        Set<BlockPos> receivers = new HashSet<>();
-        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-        int height = RbmkComponentBlock.columnHeight(level);
-        for (BlockPos base : boilerBases) {
-            for (BlockPos output : rbmkBoilerOutputPositions(level, base, height)) {
-                if (level.getBlockState(output).getBlock() instanceof com.reinhardt.hbm.block.FluidDuctBlock) {
-                    queue.add(output);
-                }
-            }
-        }
-        while (!queue.isEmpty() && pipes.size() < 4096) {
-            BlockPos pipe = queue.removeFirst();
-            if (!pipes.add(pipe)) {
-                continue;
-            }
-            for (Direction direction : Direction.values()) {
-                BlockPos neighbor = pipe.relative(direction);
-                if (level.getBlockState(neighbor).getBlock() instanceof com.reinhardt.hbm.block.FluidDuctBlock && !pipes.contains(neighbor)) {
-                    queue.add(neighbor);
-                }
-            }
-        }
-
-        // FluidNetMK2 kept receiver entries separately from its pipe links.
-        // Reconstruct that exact boundary before deleting any duct: every
-        // adjacent capability that the duct accepts for its configured fluid
-        // is one legacy receiver, while another duct remains part of the
-        // pipe set.  This also handles receivers on machine-dummy faces.
-        for (BlockPos pipePos : pipes) {
-            BlockEntity entity = level.getBlockEntity(pipePos);
-            if (!(entity instanceof FluidPipeBlockEntity pipe)) {
-                continue;
-            }
-            for (HbmFluidDefinition type : pipe.connectableFluidTypes()) {
-                for (Direction direction : Direction.values()) {
-                    BlockPos target = pipePos.relative(direction);
-                    if (pipes.contains(target)
-                            || !HbmFluidNetworks.canPipeConnect(level, pipePos, direction, type)) {
-                        continue;
-                    }
-                    if (level.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite()) != null) {
-                        receivers.add(target.immutable());
-                    }
-                }
-            }
-        }
-        int max = Math.min(pipes.size() / 5, 100);
-        int count = 0;
-        for (BlockPos pipe : pipes) {
-            if (count++ >= max) {
-                break;
-            }
-            // The legacy network removed the selected FluidNode blocks
-            // without creating a separate explosion at every pipe.
-            level.removeBlock(pipe, false);
-        }
-        // IOverpressurable receivers in 1.7.10 supplied their own explosion;
-        // no modern HBM receiver exposes that legacy interface, so use the
-        // old generic branch: remove the receiver first, then apply a
-        // non-block-damaging strength-5 blast at its centre.
-        for (BlockPos receiver : receivers) {
-            level.removeBlock(receiver, false);
-            level.explode(null, receiver.getX() + 0.5D, receiver.getY() + 0.5D,
-                    receiver.getZ() + 0.5D, 5.0F, false, Level.ExplosionInteraction.NONE);
-        }
     }
 
     private static List<BlockPos> rbmkBoilerOutputPositions(Level level, BlockPos base, int height) {

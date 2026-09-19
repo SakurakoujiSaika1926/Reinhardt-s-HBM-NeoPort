@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_boron"
+      "tag": "c:dusts/boron"
     }
   ],
   "result": {

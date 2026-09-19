@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.block.LegacyVariantBlock;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
@@ -43,7 +44,7 @@ public class WatzStructBlockEntity extends BlockEntity {
                 }
             }
             for (int[] offset : WatzBlockEntity.CASING_OFFSETS) {
-                if (!has(level, core, HbmBlocks.WATZ_END.get(), offset[0], y, offset[1])) {
+                if (!hasVariant(level, core, HbmBlocks.WATZ_END.get(), 1, offset[0], y, offset[1])) {
                     return false;
                 }
             }
@@ -53,6 +54,13 @@ public class WatzStructBlockEntity extends BlockEntity {
 
     private static boolean has(Level level, BlockPos core, Block block, int x, int y, int z) {
         return level.getBlockState(core.offset(x, y, z)).is(block);
+    }
+
+    private static boolean hasVariant(Level level, BlockPos core, Block block, int variant, int x, int y, int z) {
+        BlockState state = level.getBlockState(core.offset(x, y, z));
+        return state.is(block)
+                && state.hasProperty(LegacyVariantBlock.VARIANT)
+                && state.getValue(LegacyVariantBlock.VARIANT) == variant;
     }
 
 }

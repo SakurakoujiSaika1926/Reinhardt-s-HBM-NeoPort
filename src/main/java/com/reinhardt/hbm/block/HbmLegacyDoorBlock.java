@@ -73,6 +73,16 @@ public class HbmLegacyDoorBlock extends DoorBlock {
             if (level.getBlockState(pos.below()).getBlock() != this) {
                 level.removeBlock(pos, false);
             }
+            // Legacy BlockModDoor forwards non-door neighbor updates from the
+            // upper half to the lower half.  Without this, redstone attached to
+            // the upper half (or updating beside it) never drives the door.
+            if (neighborBlock != this) {
+                BlockPos lowerPos = pos.below();
+                BlockState lowerState = level.getBlockState(lowerPos);
+                if (lowerState.getBlock() == this && lowerState.getValue(HALF) == DoubleBlockHalf.LOWER) {
+                    neighborChanged(lowerState, level, lowerPos, neighborBlock, neighborPos, movedByPiston);
+                }
+            }
             return;
         }
 
@@ -95,10 +105,16 @@ public class HbmLegacyDoorBlock extends DoorBlock {
             return;
         }
         boolean powered = level.hasNeighborSignal(pair.lowerPos()) || level.hasNeighborSignal(pair.upperPos());
-        if ((powered || level.getBlockState(neighborPos).isSignalSource())
-                && powered != pair.lowerState().getValue(OPEN)) {
+        boolean wasPowered = pair.lowerState().getValue(POWERED);
+        boolean open = pair.lowerState().getValue(OPEN);
+        boolean neighborCanSignal = level.getBlockState(neighborPos).isSignalSource()
+                || neighborBlock.defaultBlockState().isSignalSource();
+        if ((powered || wasPowered || neighborCanSignal)
+                && (powered != open || powered != wasPowered)) {
             setPair(level, pair, powered, powered);
-            level.playSound(null, pair.lowerPos(), (powered ? HbmSoundEvents.OPEN_DOOR : HbmSoundEvents.CLOSE_DOOR).get(), SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F);
+            if (powered != open) {
+                level.playSound(null, pair.lowerPos(), (powered ? HbmSoundEvents.OPEN_DOOR : HbmSoundEvents.CLOSE_DOOR).get(), SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F);
+            }
         }
     }
 

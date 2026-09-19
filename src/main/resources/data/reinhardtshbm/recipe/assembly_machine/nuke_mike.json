@@ -1,0 +1,43 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.ivymike",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:sphere_steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "aluminium"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/light_gray"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuke_mike"
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

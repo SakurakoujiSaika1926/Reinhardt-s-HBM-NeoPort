@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "#c:gems/quartz",
+    {
+      "id": "ae2:purified_nether_quartz_crystal",
+      "required": false
+    }
+  ]
+}

@@ -1,11 +1,11 @@
-﻿{
+{
     "type":  "reinhardtshbm:cyclotron",
     "group":  "cyclotron",
     "particle":  {
                      "item":  "reinhardtshbm:part_plutonium"
                  },
     "input":  {
-                  "item":  "reinhardtshbm:powder_tennessine"
+                  "tag":  "c:dusts/tennessine"
               },
     "output":  {
                    "id":  "reinhardtshbm:powder_australium"

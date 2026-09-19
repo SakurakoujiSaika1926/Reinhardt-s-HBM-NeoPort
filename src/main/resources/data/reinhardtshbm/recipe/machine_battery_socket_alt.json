@@ -6,7 +6,7 @@
   ],
   "key": {
     "P": { "tag": "c:plates/steel" },
-    "R": { "item": "reinhardtshbm:ingot_red_copper" }
+    "R": { "tag": "c:ingots/red_copper" }
   },
   "result": {
     "id": "reinhardtshbm:machine_battery_socket"

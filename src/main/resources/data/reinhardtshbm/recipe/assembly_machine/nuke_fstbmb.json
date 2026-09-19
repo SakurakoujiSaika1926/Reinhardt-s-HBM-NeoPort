@@ -1,0 +1,55 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.balefirebomb",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:sphere_steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "titanium"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:fins_big_steel"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/magic"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/gray"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuke_fstbmb"
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

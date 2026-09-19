@@ -48,7 +48,7 @@ public class LegacyTurretBlock extends HorizontalDirectionalBlock implements Ent
     private final LegacyTurretType type;
 
     public LegacyTurretBlock(Properties properties, LegacyTurretType type) {
-        super(properties);
+        super(LargeMachineBlock.nonOccludingMachineProperties(properties));
         this.type = type;
         registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }

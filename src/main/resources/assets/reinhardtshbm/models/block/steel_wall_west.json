@@ -1,6 +1,7 @@
 {
   "textures": {
-    "all": "reinhardtshbm:block/steel_wall"
+    "all": "reinhardtshbm:block/steel_wall",
+    "particle": "reinhardtshbm:block/steel_wall"
   },
   "elements": [
     {

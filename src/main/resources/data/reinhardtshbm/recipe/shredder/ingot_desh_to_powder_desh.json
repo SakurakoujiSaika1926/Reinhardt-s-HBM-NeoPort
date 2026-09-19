@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_desh"
+                       "tag":  "c:ingots/desh"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_desh"

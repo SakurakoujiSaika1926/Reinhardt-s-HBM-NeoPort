@@ -1,12 +1,42 @@
 {
-  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pwrheatsink",
   "duration": 200,
   "power": 500,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 34, "material": "saturnite" } } }, "count": 4 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 2900, "material": "copper" } } }, "count": 4 }
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "saturnite"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "copper"
+      },
+      "count": 4
+    }
   ],
-  "result": { "id": "reinhardtshbm:pwr_heatsink", "count": 4 }
+  "result": {
+    "id": "reinhardtshbm:pwr_heatsink",
+    "count": 4
+  }
 }

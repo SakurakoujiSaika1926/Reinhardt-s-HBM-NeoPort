@@ -1,32 +1,28 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "IAI",
-                    "W W"
-                ],
-    "key":  {
-                "I":  {
-                          "tag":  "c:plates/polymer"
-                      },
-                "A":  {
-                          "tag":  "c:dusts/aluminium"
-                      },
-                "W":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:wire_fine"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  31,
-                                                                           "material":  "red_copper"
-                                                                       }
-                                         }
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:circuit_capacitor",
-                   "count":  2
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IAI",
+    "W W"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:plates/polymer"
+    },
+    "A": {
+      "tag": "c:dusts/aluminium"
+    },
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "red_copper"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:circuit_capacitor",
+    "count": 2
+  }
 }

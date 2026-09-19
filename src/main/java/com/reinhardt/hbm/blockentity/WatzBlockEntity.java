@@ -6,6 +6,7 @@ import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.HbmThermalConversions;
+import com.reinhardt.hbm.block.LegacyVariantBlock;
 import com.reinhardt.hbm.block.MachineDummyBlock;
 import com.reinhardt.hbm.item.WatzPelletItem;
 import com.reinhardt.hbm.menu.WatzMenu;
@@ -263,7 +264,9 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
     private boolean hasPumpAndRedstone(Level level) {
         BlockPos pumpPos = this.worldPosition.above(3);
         return level.getBlockState(pumpPos).is(HbmBlocks.WATZ_PUMP.get())
-                && level.hasNeighborSignal(this.worldPosition.above(5));
+                && (level.hasNeighborSignal(this.worldPosition.above(5))
+                || level.hasNeighborSignal(pumpPos)
+                || level.hasNeighborSignal(pumpPos.above()));
     }
 
     private void setupCoolant() {
@@ -425,7 +428,7 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
             setBrokenColumn(level, 0, HbmBlocks.WATZ_COOLER.get().defaultBlockState(), offset[0], offset[1]);
         }
         for (int[] offset : CASING_OFFSETS) {
-            setBrokenColumn(level, 1, HbmBlocks.WATZ_END.get().defaultBlockState(), offset[0], offset[1]);
+            setBrokenColumn(level, 1, boltedWatzEndState(), offset[0], offset[1]);
         }
     }
 
@@ -679,6 +682,13 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
 
     private static HbmFluidDefinition fluid(String name) {
         return HbmFluids.byName(name).orElse(HbmFluids.none());
+    }
+
+    private static BlockState boltedWatzEndState() {
+        BlockState state = HbmBlocks.WATZ_END.get().defaultBlockState();
+        return state.hasProperty(LegacyVariantBlock.VARIANT)
+                ? state.setValue(LegacyVariantBlock.VARIANT, 1)
+                : state;
     }
 
     private static int[][] buildCasingOffsets() {

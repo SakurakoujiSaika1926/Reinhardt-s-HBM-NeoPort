@@ -47,6 +47,11 @@ import java.util.Map;
 import java.util.Set;
 
 public final class HbmStructureIO {
+    private static final Map<String, String> LEGACY_ID_ALIASES = Map.of(
+            "reinhardtshbm:ore_coal_oil", "minecraft:coal_ore",
+            "reinhardtshbm:ore_coal_oil_burning", "minecraft:coal_ore"
+    );
+
     private HbmStructureIO() {
     }
 
@@ -689,13 +694,15 @@ public final class HbmStructureIO {
             return "minecraft:air";
         }
         String lower = name.toLowerCase(Locale.ROOT);
+        String normalized;
         if (lower.startsWith("hbm:tile.")) {
-            return ReinhardtsHBM.MOD_ID + ":" + lower.substring("hbm:tile.".length());
+            normalized = ReinhardtsHBM.MOD_ID + ":" + lower.substring("hbm:tile.".length());
+        } else if (lower.startsWith("hbm:")) {
+            normalized = ReinhardtsHBM.MOD_ID + ":" + lower.substring("hbm:".length());
+        } else {
+            normalized = lower;
         }
-        if (lower.startsWith("hbm:")) {
-            return ReinhardtsHBM.MOD_ID + ":" + lower.substring("hbm:".length());
-        }
-        return lower;
+        return LEGACY_ID_ALIASES.getOrDefault(normalized, normalized);
     }
 
     private static net.minecraft.world.level.block.Rotation toMcRotation(int rotation) {

@@ -1,4 +1,4 @@
-﻿{
+{
     "type":  "minecraft:crafting_shaped",
     "category":  "misc",
     "pattern":  [
@@ -8,7 +8,7 @@
                 ],
     "key":  {
                 "B":  {
-                          "item":  "reinhardtshbm:block_steel"
+                          "tag":  "c:storage_blocks/steel"
                       }
             },
     "result":  {

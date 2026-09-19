@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_australium"
+                       "tag":  "c:storage_blocks/australium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_australium",

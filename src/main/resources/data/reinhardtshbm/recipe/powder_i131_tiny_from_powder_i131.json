@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_i131"
+      "tag": "c:dusts/i131"
     }
   ],
   "result": {

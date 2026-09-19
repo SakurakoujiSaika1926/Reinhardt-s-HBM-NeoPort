@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"tag":"c:dusts/coal"},{"tag":"c:dusts/niter"},{"tag":"c:dusts/quartz"}],"result":{"id":"reinhardtshbm:xanax"}}
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"tag":"c:dusts/coal"},{"tag":"c:dusts/niter"},{"tag":"ae2:all_quartz_dust"}],"result":{"id":"reinhardtshbm:xanax"}}

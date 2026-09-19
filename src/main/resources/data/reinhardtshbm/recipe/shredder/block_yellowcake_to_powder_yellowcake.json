@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_yellowcake"
+                       "tag":  "c:storage_blocks/yellowcake"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_yellowcake",

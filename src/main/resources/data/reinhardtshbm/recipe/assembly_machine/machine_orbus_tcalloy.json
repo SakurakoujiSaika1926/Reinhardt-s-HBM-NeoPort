@@ -1,14 +1,67 @@
 {
-  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.orbus",
   "duration": 300,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_welded"], "components": { "minecraft:custom_data": { "material_id": 36, "material": "tcalloy" } } }, "count": 8 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:plate_cast"], "components": { "minecraft:custom_data": { "material_id": 34, "material": "saturnite" } } }, "count": 4 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:wire_dense"], "components": { "minecraft:custom_data": { "material_id": 48, "material": "bscco" } } }, "count": 8 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:battery_sc"], "components": { "minecraft:custom_data": { "variant": "po210" }, "minecraft:custom_model_data": 6 } }, "count": 1 }
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "tcalloy"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "saturnite"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "bscco"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:battery_sc"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "po210"
+          },
+          "minecraft:custom_model_data": 6
+        }
+      },
+      "count": 1
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_orbus" }
+  "result": {
+    "id": "reinhardtshbm:machine_orbus"
+  }
 }

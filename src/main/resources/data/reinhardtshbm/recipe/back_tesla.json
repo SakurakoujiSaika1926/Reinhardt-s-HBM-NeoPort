@@ -1,1 +1,28 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["DGD","GTG","DGD"],"key":{"D":{"item":"reinhardtshbm:ducttape"},"G":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":7900,"material":"gold"}}},"T":{"item":"reinhardtshbm:tesla"}},"result":{"id":"reinhardtshbm:back_tesla"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DGD",
+    "GTG",
+    "DGD"
+  ],
+  "key": {
+    "D": {
+      "item": "reinhardtshbm:ducttape"
+    },
+    "G": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "gold"
+    },
+    "T": {
+      "item": "reinhardtshbm:tesla"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:back_tesla"
+  }
+}

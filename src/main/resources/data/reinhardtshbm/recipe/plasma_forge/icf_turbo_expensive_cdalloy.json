@@ -1,1 +1,59 @@
-{"neoforge:conditions":[{"type":"reinhardtshbm:enable_528_mode"}],"type":"reinhardtshbm:plasma_forge","group":"plsm.icfturbo","blueprint_pools":["528.chlorophyte"],"duration":800,"power":1000000,"ignition_temp":10000000,"input_items":[{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:plate_welded"],"components":{"minecraft:custom_data":{"material_id":43,"material":"cdalloy"}}},"count":8},{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:wire_dense"],"components":{"minecraft:custom_data":{"material_id":45,"material":"dineutronium"}}},"count":8},{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:wire_dense"],"components":{"minecraft:custom_data":{"material_id":12600,"material":"schrabidate"}}},"count":4}],"result":{"id":"reinhardtshbm:icf_laser_component","components":{"minecraft:custom_data":{"variant":"turbo"},"minecraft:custom_model_data":5}}}
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.icfturbo",
+  "blueprint_pools": [
+    "528.chlorophyte"
+  ],
+  "duration": 800,
+  "power": 1000000,
+  "ignition_temp": 10000000,
+  "input_items": [
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "cdalloy"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "dineutronium"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "schrabidate"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:icf_laser_component",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "turbo"
+      },
+      "minecraft:custom_model_data": 5
+    }
+  }
+}

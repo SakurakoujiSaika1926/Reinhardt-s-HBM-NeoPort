@@ -2,32 +2,34 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    { "tag": "c:dusts/redstone" },
-    { "tag": "c:dusts/emerald" },
-    { "item": "minecraft:wheat" },
     {
-      "type": "neoforge:components",
-      "items": [ "reinhardtshbm:bolt" ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "tag": "c:dusts/redstone"
     },
     {
-      "type": "neoforge:components",
+      "tag": "c:dusts/emerald"
+    },
+    {
+      "item": "minecraft:wheat"
+    },
+    {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    },
+    {
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:wire_fine"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 2900,
-          "material": "copper"
-        }
-      }
+      "shape": "wire",
+      "material": "copper"
     },
-    { "tag": "c:plates/steel" }
+    {
+      "tag": "c:plates/steel"
+    }
   ],
   "result": {
     "id": "reinhardtshbm:pancake"

@@ -57,6 +57,8 @@ import com.reinhardt.hbm.client.particle.LegacyMistParticle;
 import com.reinhardt.hbm.client.particle.LegacyPlasmaBlastParticle;
 import com.reinhardt.hbm.client.particle.LegacySmallExplosionParticle;
 import com.reinhardt.hbm.client.particle.MeteorTailParticle;
+import com.reinhardt.hbm.client.particle.MustardGasCloudParticle;
+import com.reinhardt.hbm.client.particle.MustardGasDrainParticle;
 import com.reinhardt.hbm.client.particle.MukeCloudParticle;
 import com.reinhardt.hbm.client.particle.MukeFlashParticle;
 import com.reinhardt.hbm.client.particle.MukeWaveParticle;
@@ -91,6 +93,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.entity.ArmorStandRenderer;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
@@ -190,7 +193,8 @@ public final class HbmClientRenderers {
                 EntityType.WITHER_SKELETON,
                 EntityType.PIGLIN,
                 EntityType.PIGLIN_BRUTE,
-                EntityType.ZOMBIFIED_PIGLIN
+                EntityType.ZOMBIFIED_PIGLIN,
+                EntityType.ARMOR_STAND
         }) {
             addT51Layer(event, entityType);
         }
@@ -202,6 +206,9 @@ public final class HbmClientRenderers {
         if (renderer instanceof HumanoidMobRenderer humanoidRenderer) {
             humanoidRenderer.addLayer(new T51ArmorLayer(humanoidRenderer));
             humanoidRenderer.addLayer(new LegacyFsbArmorLayer(humanoidRenderer));
+        } else if (renderer instanceof ArmorStandRenderer armorStandRenderer) {
+            armorStandRenderer.addLayer(new T51ArmorLayer(armorStandRenderer));
+            armorStandRenderer.addLayer(new LegacyFsbArmorLayer(armorStandRenderer));
         }
     }
 
@@ -505,6 +512,8 @@ public final class HbmClientRenderers {
         event.registerSpriteSet(HbmParticleTypes.LANDMINE_SMOKE.get(), LandmineSmokeParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.LANDMINE_FOAM.get(), LandmineFoamParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.DRAIN_TOWER.get(), DrainTowerParticle.Provider::new);
+        event.registerSpriteSet(HbmParticleTypes.MUSTARD_GAS_DRAIN.get(), MustardGasDrainParticle.Provider::new);
+        event.registerSpriteSet(HbmParticleTypes.MUSTARD_GAS_CLOUD.get(), MustardGasCloudParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.PYRO_OVEN_TOWER.get(), PyroOvenTowerParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.ROTARY_FURNACE_TOWER.get(), RotaryFurnaceTowerParticle.Provider::new);
         event.registerSpriteSet(HbmParticleTypes.DRAIN_SPLASH.get(), DrainSplashParticle.Provider::new);
@@ -823,8 +832,7 @@ public final class HbmClientRenderers {
                 HbmItems.PART_BARREL_HEAVY.get(),
                 HbmItems.PART_RECEIVER_LIGHT.get(),
                 HbmItems.PART_RECEIVER_HEAVY.get(),
-                HbmItems.PART_STOCK.get(),
-                HbmItems.PART_GRIP.get()
+                HbmItems.PART_STOCK.get()
         );
         event.register(
                 (stack, tintIndex) -> {
@@ -934,7 +942,8 @@ public final class HbmClientRenderers {
      * rotated, and animated OBJ parts that extend beyond the legacy AABB.
      */
     private static final class SafeBlockEntityRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
-        private static final double OBJ_MARGIN = 16.0D;
+        private static final double OBJ_MARGIN = 32.0D;
+        private static final int OBJ_VIEW_DISTANCE = 256;
 
         private final BlockEntityRenderer<T> delegate;
 
@@ -970,12 +979,39 @@ public final class HbmClientRenderers {
 
         @Override
         public int getViewDistance() {
-            return this.delegate.getViewDistance();
+            return Math.max(this.delegate.getViewDistance(), OBJ_VIEW_DISTANCE);
         }
 
         @Override
         public boolean shouldRender(T blockEntity, Vec3 cameraPosition) {
-            return this.delegate.shouldRender(blockEntity, cameraPosition);
+            if (this.delegate.shouldRender(blockEntity, cameraPosition)) {
+                return true;
+            }
+            AABB bounds = getRenderBoundingBox(blockEntity);
+            if (bounds == null) {
+                return false;
+            }
+            if (bounds == AABB.INFINITE) {
+                return true;
+            }
+            return closerThan(bounds, cameraPosition, getViewDistance());
+        }
+
+        private static boolean closerThan(AABB bounds, Vec3 point, double distance) {
+            double dx = axisDistance(point.x, bounds.minX, bounds.maxX);
+            double dy = axisDistance(point.y, bounds.minY, bounds.maxY);
+            double dz = axisDistance(point.z, bounds.minZ, bounds.maxZ);
+            return dx * dx + dy * dy + dz * dz < distance * distance;
+        }
+
+        private static double axisDistance(double value, double min, double max) {
+            if (value < min) {
+                return min - value;
+            }
+            if (value > max) {
+                return value - max;
+            }
+            return 0.0D;
         }
     }
 }

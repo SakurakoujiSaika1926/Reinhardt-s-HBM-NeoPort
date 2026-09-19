@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:cracking",
+  "group": "cracking",
+  "input": {
+    "fluid": "biogas",
+    "amount": 100
+  },
+  "output1": {
+    "fluid": "petroleum",
+    "amount": 20
+  },
+  "output2": {
+    "fluid": "aromatics",
+    "amount": 20
+  }
+}

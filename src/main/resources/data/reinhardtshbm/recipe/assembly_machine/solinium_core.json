@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.soliniumcore",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:nuggets/solinium" }, "count": 9 },
+    { "ingredient": { "tag": "c:nuggets/euphemium" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:solinium_core" }
+}

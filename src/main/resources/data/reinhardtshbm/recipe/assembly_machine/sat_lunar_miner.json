@@ -6,7 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:ingot_meteorite"
+        "tag": "c:ingots/meteorite"
       },
       "count": 4
     },

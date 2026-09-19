@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_bakelite"
+                       "tag":  "c:ingots/bakelite"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_bakelite"

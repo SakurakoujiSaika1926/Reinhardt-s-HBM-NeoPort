@@ -398,7 +398,7 @@ public class FelBlockEntity extends BlockEntity implements PowerEndpoint, Machin
                 case IR, UV -> living.igniteForSeconds(10.0F);
                 case GAMMA -> {
                     HbmLivingRadiation data = HbmLivingRadiation.get(living);
-                    data.addRadiation(25.0F);
+                    data.addRadiationWithReadout(25.0F);
                     HbmLivingRadiation.set(living, data);
                 }
                 case DRX -> {

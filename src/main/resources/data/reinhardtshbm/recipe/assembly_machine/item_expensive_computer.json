@@ -1,4 +1,4 @@
-﻿{
+{
     "neoforge:conditions":  [
                                 {
                                     "type":  "reinhardtshbm:enable_528_mode"
@@ -37,7 +37,7 @@
                         },
                         {
                             "ingredient":  {
-                                               "item":  "reinhardtshbm:glass_quartz"
+                                               "tag": "c:glass_blocks/quartz"
                                            },
                             "count":  8
                         }

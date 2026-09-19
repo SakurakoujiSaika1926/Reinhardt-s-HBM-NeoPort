@@ -13,7 +13,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public final class GeothermalHeatExchangerBlockEntityRenderer
-        implements BlockEntityRenderer<GeothermalHeatExchangerBlockEntity> {
+        implements LongRangeBlockEntityRenderer<GeothermalHeatExchangerBlockEntity> {
     private static final ModelResourceLocation MAIN = MachineModelRenderer.standalone("block/machine_hephaestus_main");
     private static final ModelResourceLocation ROTOR = MachineModelRenderer.standalone("block/machine_hephaestus_rotor");
     private static final ModelResourceLocation CORE_COBBLESTONE =
@@ -81,6 +81,11 @@ public final class GeothermalHeatExchangerBlockEntityRenderer
     @Override
     public int getViewDistance() {
         return 256;
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen(GeothermalHeatExchangerBlockEntity exchanger) {
+        return true;
     }
 
     private static Quaternionf yaw(float degrees) {

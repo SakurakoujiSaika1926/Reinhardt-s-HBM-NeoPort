@@ -1,4 +1,4 @@
-﻿{
+{
   "neoforge:conditions": [
     {
       "type": "neoforge:not",
@@ -15,7 +15,7 @@
   ],
   "key": {
     "B": {
-      "item": "reinhardtshbm:ingot_boron"
+      "tag": "c:ingots/boron"
     },
     "D": {
       "item": "reinhardtshbm:deco_rbmk"

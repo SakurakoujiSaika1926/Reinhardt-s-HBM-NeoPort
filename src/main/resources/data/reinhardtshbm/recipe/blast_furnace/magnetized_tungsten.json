@@ -1,7 +1,7 @@
 {
   "type": "reinhardtshbm:blast_furnace",
   "input_a": { "tag": "reinhardtshbm:blast_furnace/tungsten_equivalent" },
-  "input_b": { "item": "reinhardtshbm:nugget_schrabidium" },
+  "input_b": { "tag": "c:nuggets/schrabidium" },
   "duration": 400,
   "result": { "id": "reinhardtshbm:ingot_magnetized_tungsten" }
 }

@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class ElectrolyzerBlockEntityRenderer implements BlockEntityRenderer<ElectrolyzerBlockEntity> {
+public class ElectrolyzerBlockEntityRenderer implements LongRangeBlockEntityRenderer<ElectrolyzerBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_electrolyser_world");
 
     public ElectrolyzerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

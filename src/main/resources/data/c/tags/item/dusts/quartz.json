@@ -1,6 +1,10 @@
 {
     "replace": false,
     "values": [
-        "reinhardtshbm:powder_quartz"
+        "reinhardtshbm:powder_quartz",
+        {
+            "id": "#ae2:all_quartz_dust",
+            "required": false
+        }
     ]
 }

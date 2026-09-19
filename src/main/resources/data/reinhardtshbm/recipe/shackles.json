@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["CIC","C C","I I"],"key":{"I":{"item":"reinhardtshbm:ingot_chainsteel"},"C":{"item":"reinhardtshbm:chain"}},"result":{"id":"reinhardtshbm:shackles"}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["CIC","C C","I I"],"key":{"I":{"tag":"c:ingots/chainsteel"},"C":{"item":"reinhardtshbm:chain"}},"result":{"id":"reinhardtshbm:shackles"}}

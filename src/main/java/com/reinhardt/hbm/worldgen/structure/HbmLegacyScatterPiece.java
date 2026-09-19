@@ -18,12 +18,18 @@ public final class HbmLegacyScatterPiece extends StructurePiece {
     private final String kindName;
     private final BlockPos origin;
     private final long seed;
+    private boolean placementResolved;
+    private boolean placementValid;
+    private int resolvedOriginY;
 
     public HbmLegacyScatterPiece(HbmLegacyScatterStructure.Kind kind, BlockPos origin, long seed, int minBuildHeight, int maxBuildHeight) {
         super(HbmWorldgenStructures.HBM_LEGACY_SCATTER_PIECE.get(), 0, makeBoundingBox(kind, origin, minBuildHeight, maxBuildHeight));
         this.kindName = kind.serializedName();
         this.origin = origin;
         this.seed = seed;
+        this.placementResolved = false;
+        this.placementValid = false;
+        this.resolvedOriginY = origin.getY();
         this.setOrientation(null);
     }
 
@@ -32,6 +38,9 @@ public final class HbmLegacyScatterPiece extends StructurePiece {
         this.kindName = tag.getString("Kind");
         this.origin = new BlockPos(tag.getInt("OriginX"), tag.getInt("OriginY"), tag.getInt("OriginZ"));
         this.seed = tag.getLong("Seed");
+        this.placementResolved = tag.getBoolean("PlacementResolved");
+        this.placementValid = tag.getBoolean("PlacementValid");
+        this.resolvedOriginY = tag.contains("ResolvedOriginY") ? tag.getInt("ResolvedOriginY") : this.origin.getY();
         this.setOrientation(null);
     }
 
@@ -57,6 +66,9 @@ public final class HbmLegacyScatterPiece extends StructurePiece {
         tag.putInt("OriginY", this.origin.getY());
         tag.putInt("OriginZ", this.origin.getZ());
         tag.putLong("Seed", this.seed);
+        tag.putBoolean("PlacementResolved", this.placementResolved);
+        tag.putBoolean("PlacementValid", this.placementValid);
+        tag.putInt("ResolvedOriginY", this.resolvedOriginY);
     }
 
     @Override
@@ -74,16 +86,26 @@ public final class HbmLegacyScatterPiece extends StructurePiece {
             throw new IllegalStateException("Unknown legacy scatter structure kind: " + this.kindName);
         }
 
-        BlockPos validationOrigin = validationOrigin(level, kind, this.origin);
-        if (!kind.validPlacement(level, validationOrigin)) {
+        if (!resolvePlacement(level, kind)) {
             return;
         }
+        BlockPos validationOrigin = new BlockPos(this.origin.getX(), this.resolvedOriginY, this.origin.getZ());
         BlockPos placementOrigin = validationOrigin.offset(0, kind.surfaceYOffset(), 0);
         if (kind == HbmLegacyScatterStructure.Kind.JUNGLE_DUNGEON) {
             HbmLegacyJungleDungeonGenerator.generate(level, box, this.seed, validationOrigin);
             return;
         }
         HbmLegacyScatterTemplate.get(kind.templateName()).place(level, placementOrigin, box, this.seed);
+    }
+
+    private boolean resolvePlacement(WorldGenLevel level, HbmLegacyScatterStructure.Kind kind) {
+        if (!this.placementResolved) {
+            BlockPos validationOrigin = validationOrigin(level, kind, this.origin);
+            this.resolvedOriginY = validationOrigin.getY();
+            this.placementValid = kind.validPlacement(level, validationOrigin);
+            this.placementResolved = true;
+        }
+        return this.placementValid;
     }
 
     private static BlockPos validationOrigin(WorldGenLevel level, HbmLegacyScatterStructure.Kind kind, BlockPos startOrigin) {

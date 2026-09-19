@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_cadmium"
+                       "tag":  "c:ingots/cadmium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_cadmium"

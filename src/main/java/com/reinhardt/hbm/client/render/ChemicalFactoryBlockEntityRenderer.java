@@ -14,7 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class ChemicalFactoryBlockEntityRenderer implements BlockEntityRenderer<ChemicalFactoryBlockEntity> {
+public class ChemicalFactoryBlockEntityRenderer implements LongRangeBlockEntityRenderer<ChemicalFactoryBlockEntity> {
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_chemical_factory_base");
     private static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_chemical_factory_frame");
     private static final ModelResourceLocation FAN_1 = MachineModelRenderer.standalone("block/machine_chemical_factory_fan1");

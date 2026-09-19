@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_sulfur"
+      "tag": "c:storage_blocks/sulfur"
     }
   ],
   "result": {

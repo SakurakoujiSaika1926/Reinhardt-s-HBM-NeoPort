@@ -8,22 +8,18 @@
   ],
   "key": {
     "C": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:shell"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "shape": "shell",
+      "material": "steel"
     },
     "R": {
       "item": "reinhardtshbm:rbmk_blank"
     },
     "Z": {
-      "item": "reinhardtshbm:ingot_zirconium"
+      "tag": "c:ingots/zirconium"
     }
   },
   "result": {

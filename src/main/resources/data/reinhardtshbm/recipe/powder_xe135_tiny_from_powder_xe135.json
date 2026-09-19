@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_xe135"
+      "tag": "c:dusts/xe135"
     }
   ],
   "result": {

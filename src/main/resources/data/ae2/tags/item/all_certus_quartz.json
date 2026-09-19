@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "#c:gems/certus_quartz",
+    {
+      "id": "ae2:charged_certus_quartz_crystal",
+      "required": false
+    },
+    {
+      "id": "ae2:purified_certus_quartz_crystal",
+      "required": false
+    }
+  ]
+}

@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_polymer"
+                       "tag":  "c:ingots/polymer"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_polymer"

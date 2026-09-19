@@ -1,10 +1,14 @@
 {
-  "neoforge:conditions": {
-    "type": "reinhardtshbm:enable_528_mode"
-  },
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.reformer",
-  "blueprint_pools": "528.hardplastic",
+  "blueprint_pools": [
+    "528.hardplastic"
+  ],
   "duration": 200,
   "power": 100,
   "ingredients": [
@@ -34,16 +38,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 33,
-            "material": "dura_steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "dura_steel"
       },
       "count": 16
     },

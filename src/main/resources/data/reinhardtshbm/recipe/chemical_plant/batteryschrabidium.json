@@ -15,28 +15,20 @@
         "type": "neoforge:compound",
         "ingredients": [
           {
-            "type": "neoforge:components",
+            "type": "reinhardtshbm:foundry_material",
             "items": [
               "reinhardtshbm:plate_cast"
             ],
-            "components": {
-              "minecraft:custom_data": {
-                "material_id": 46,
-                "material": "bismuth_bronze"
-              }
-            }
+            "shape": "plate_cast",
+            "material": "bismuth_bronze"
           },
           {
-            "type": "neoforge:components",
+            "type": "reinhardtshbm:foundry_material",
             "items": [
               "reinhardtshbm:plate_cast"
             ],
-            "components": {
-              "minecraft:custom_data": {
-                "material_id": 47,
-                "material": "arsenic_bronze"
-              }
-            }
+            "shape": "plate_cast",
+            "material": "arsenic_bronze"
           }
         ]
       },

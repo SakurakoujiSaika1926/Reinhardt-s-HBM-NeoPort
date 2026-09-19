@@ -30,7 +30,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:ingot_cft"
+        "tag": "c:ingots/cft"
       },
       "count": 16
     },

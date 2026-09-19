@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_actinium"
+      "tag": "c:dusts/actinium"
     }
   ],
   "result": {

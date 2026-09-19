@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_tantalium"
+                       "tag":  "c:storage_blocks/tantalium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_tantalium",

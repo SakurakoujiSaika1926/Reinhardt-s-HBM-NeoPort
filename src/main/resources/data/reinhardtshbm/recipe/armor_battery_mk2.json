@@ -1,1 +1,28 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["PWP","PCP","PWP"],"key":{"P":{"tag":"c:ingots/plastic"},"C":{"item":"reinhardtshbm:battery_pack"},"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_dense"],"components":{"minecraft:custom_data":{"material_id":31,"material":"red_copper"}}}},"result":{"id":"reinhardtshbm:armor_battery_mk2"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PWP",
+    "PCP",
+    "PWP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:ingots/plastic"
+    },
+    "C": {
+      "item": "reinhardtshbm:battery_pack"
+    },
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_dense"
+      ],
+      "shape": "wire_dense",
+      "material": "red_copper"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:armor_battery_mk2"
+  }
+}

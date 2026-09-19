@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_boron"
+                       "tag":  "c:storage_blocks/boron"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_boron",

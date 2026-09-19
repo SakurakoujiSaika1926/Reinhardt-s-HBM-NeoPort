@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.gadget",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:sphere_steel" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:fins_flat" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:pedestal_steel" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_controller" }, "count": 3 },
+    { "ingredient": { "tag": "c:dyes/gray" }, "count": 8 }
+  ],
+  "result": { "id": "reinhardtshbm:nuke_gadget" },
+  "blueprint_pools": [ "528.controller" ]
+}

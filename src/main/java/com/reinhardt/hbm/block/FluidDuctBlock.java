@@ -27,7 +27,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -396,7 +395,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         MK2(false, true),
         BOX(false, true),
         EXHAUST(false, true),
-        GAUGE(false, true),
+        GAUGE(true, true),
         PAINTABLE(false, true),
         PAINTABLE_EXHAUST(true, true),
         SOLID(true, true),

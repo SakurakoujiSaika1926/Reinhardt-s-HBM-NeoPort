@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fleijacore",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:nuggets/u235" }, "count": 8 },
+    { "ingredient": { "tag": "c:nuggets/neptunium" }, "count": 2 },
+    { "ingredient": { "tag": "c:nuggets/beryllium" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:coil_copper" }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:fleija_core" }
+}

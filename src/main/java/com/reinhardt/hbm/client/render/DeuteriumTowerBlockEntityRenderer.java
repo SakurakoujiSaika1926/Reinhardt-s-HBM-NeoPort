@@ -16,7 +16,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class DeuteriumTowerBlockEntityRenderer implements BlockEntityRenderer<DeuteriumTowerBlockEntity> {
+public class DeuteriumTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<DeuteriumTowerBlockEntity> {
     private static final ModelResourceLocation TOWER = MachineModelRenderer.standalone("block/machine_deuterium_tower_world");
 
     public DeuteriumTowerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

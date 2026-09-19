@@ -31,10 +31,28 @@ public class AssemblyMachineRecipeCategory implements IRecipeCategory<RecipeHold
     private final IDrawable icon;
     private final IDrawableAnimated powerBar;
     private final IDrawableAnimated progressBar;
+    private final RecipeType<RecipeHolder<AssemblyMachineRecipe>> recipeType;
+    private final Component title;
 
     public AssemblyMachineRecipeCategory(IGuiHelper helper) {
+        this(
+                helper,
+                HbmJeiPlugin.ASSEMBLY_MACHINE,
+                Component.translatable("container.reinhardtshbm.assembly_machine"),
+                new ItemStack(HbmBlocks.MACHINE_ASSEMBLY_MACHINE.get())
+        );
+    }
+
+    public AssemblyMachineRecipeCategory(
+            IGuiHelper helper,
+            RecipeType<RecipeHolder<AssemblyMachineRecipe>> recipeType,
+            Component title,
+            ItemStack iconStack
+    ) {
         this.background = helper.createDrawable(TEXTURE, 0, 0, 176, 145);
-        this.icon = helper.createDrawableItemStack(new ItemStack(HbmBlocks.MACHINE_ASSEMBLY_MACHINE.get()));
+        this.icon = helper.createDrawableItemStack(iconStack);
+        this.recipeType = recipeType;
+        this.title = title;
 
         IDrawableStatic power = helper.createDrawable(TEXTURE, 176, 0, 16, 61);
         this.powerBar = helper.createAnimatedDrawable(power, 100, IDrawableAnimated.StartDirection.TOP, true);
@@ -45,12 +63,12 @@ public class AssemblyMachineRecipeCategory implements IRecipeCategory<RecipeHold
 
     @Override
     public RecipeType<RecipeHolder<AssemblyMachineRecipe>> getRecipeType() {
-        return HbmJeiPlugin.ASSEMBLY_MACHINE;
+        return this.recipeType;
     }
 
     @Override
     public Component getTitle() {
-        return Component.translatable("container.reinhardtshbm.assembly_machine");
+        return this.title;
     }
 
     @Override

@@ -85,4 +85,14 @@ public class SoyuzLauncherBlockEntityRenderer implements BlockEntityRenderer<Soy
     public AABB getRenderBoundingBox(SoyuzLauncherBlockEntity blockEntity) {
         return new AABB(blockEntity.getBlockPos()).inflate(8.0D, 54.0D, 10.0D);
     }
+
+    @Override
+    public boolean shouldRenderOffScreen(SoyuzLauncherBlockEntity blockEntity) {
+        return true;
+    }
+
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
 }

@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_tcalloy"
+                       "tag":  "c:ingots/tcalloy"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_tcalloy"

@@ -25,7 +25,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:glass_quartz"
+        "tag": "c:glass_blocks/quartz"
       },
       "count": 16
     },

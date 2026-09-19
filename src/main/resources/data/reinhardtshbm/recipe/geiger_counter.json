@@ -1,1 +1,37 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["GPP","WCS","WBB"],"key":{"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":7900,"material":"gold"}}},"P":{"tag":"c:ingots/rubber"},"C":{"item":"reinhardtshbm:circuit_basic"},"G":{"tag":"c:ingots/gold"},"S":{"tag":"c:plates/steel"},"B":{"item":"reinhardtshbm:ingot_beryllium"}},"result":{"id":"reinhardtshbm:geiger_counter"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GPP",
+    "WCS",
+    "WBB"
+  ],
+  "key": {
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "gold"
+    },
+    "P": {
+      "tag": "c:ingots/rubber"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_basic"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "S": {
+      "tag": "c:plates/steel"
+    },
+    "B": {
+      "tag": "c:ingots/beryllium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:geiger_counter"
+  }
+}

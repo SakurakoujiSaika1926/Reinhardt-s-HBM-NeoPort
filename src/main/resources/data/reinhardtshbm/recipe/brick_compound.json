@@ -1,33 +1,29 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "building",
-    "pattern":  [
-                    "FBF",
-                    "BTB",
-                    "FBF"
-                ],
-    "key":  {
-                "F":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:bolt"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      },
-                "B":  {
-                          "item":  "reinhardtshbm:reinforced_brick"
-                      },
-                "T":  {
-                          "tag":  "c:tars"
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:brick_compound",
-                   "count":  4
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "FBF",
+    "BTB",
+    "FBF"
+  ],
+  "key": {
+    "F": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    },
+    "B": {
+      "item": "reinhardtshbm:reinforced_brick"
+    },
+    "T": {
+      "tag": "c:tars"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:brick_compound",
+    "count": 4
+  }
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "pattern": [
@@ -8,7 +8,7 @@
   ],
   "key": {
     "B": { "item": "reinhardtshbm:barbed_wire" },
-    "C": { "item": "reinhardtshbm:powder_yellowcake" },
+    "C": { "tag": "c:dusts/yellowcake" },
     "I": { "item": "reinhardtshbm:nuclear_waste" }
   },
   "result": { "id": "reinhardtshbm:barbed_wire_ultradeath", "count": 4 }

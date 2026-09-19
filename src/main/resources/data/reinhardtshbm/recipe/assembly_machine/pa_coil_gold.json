@@ -6,31 +6,23 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 7900,
-            "material": "gold"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "gold"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 7900,
-            "material": "gold"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "gold"
       },
       "count": 64
     }

@@ -3,22 +3,22 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:nugget_ra226"
+      "tag": "c:nuggets/ra226"
     },
     {
-      "item": "reinhardtshbm:nugget_ra226"
+      "tag": "c:nuggets/ra226"
     },
     {
-      "item": "reinhardtshbm:nugget_ra226"
+      "tag": "c:nuggets/ra226"
     },
     {
-      "item": "reinhardtshbm:nugget_beryllium"
+      "tag": "c:nuggets/beryllium"
     },
     {
-      "item": "reinhardtshbm:nugget_beryllium"
+      "tag": "c:nuggets/beryllium"
     },
     {
-      "item": "reinhardtshbm:nugget_beryllium"
+      "tag": "c:nuggets/beryllium"
     }
   ],
   "result": {

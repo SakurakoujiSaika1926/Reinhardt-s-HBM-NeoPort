@@ -1,57 +1,45 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "B",
-                    "P",
-                    "S"
-                ],
-    "key":  {
-                "B":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:bolt"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      },
-                "P":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:plate_cast"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  1300,
-                                                                           "material":  "aluminium"
-                                                                       }
-                                         }
-                      },
-                "S":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:shell"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:grenade_shell",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "frag"
-                                                                },
-                                      "minecraft:custom_model_data":  0
-                                  },
-                   "count":  4
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "B",
+    "P",
+    "S"
+  ],
+  "key": {
+    "B": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    },
+    "P": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "shape": "plate_cast",
+      "material": "aluminium"
+    },
+    "S": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "shape": "shell",
+      "material": "steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:grenade_shell",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "frag"
+      },
+      "minecraft:custom_model_data": 0
+    },
+    "count": 4
+  }
 }

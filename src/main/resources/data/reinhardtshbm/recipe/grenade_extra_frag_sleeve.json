@@ -1,35 +1,31 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "BBB",
-                    " T ",
-                    "BBB"
-                ],
-    "key":  {
-                "B":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:bolt"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  30,
-                                                                           "material":  "steel"
-                                                                       }
-                                         }
-                      },
-                "T":  {
-                          "item":  "reinhardtshbm:ducttape"
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:grenade_extra",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "frag_sleeve"
-                                                                },
-                                      "minecraft:custom_model_data":  2
-                                  }
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    " T ",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    },
+    "T": {
+      "item": "reinhardtshbm:ducttape"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:grenade_extra",
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "frag_sleeve"
+      },
+      "minecraft:custom_model_data": 2
+    }
+  }
 }

@@ -6,31 +6,23 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 6
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:plate_cast"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2900,
-            "material": "copper"
-          }
-        }
+        "shape": "plate_cast",
+        "material": "copper"
       },
       "count": 24
     },
@@ -60,7 +52,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:glass_quartz"
+        "tag": "c:glass_blocks/quartz"
       },
       "count": 8
     }

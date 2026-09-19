@@ -3,7 +3,7 @@
   "category": "equipment",
   "pattern": ["I", "W", "S"],
   "key": {
-    "I": { "item": "reinhardtshbm:block_schrabidium" },
+    "I": { "tag": "c:storage_blocks/schrabidium" },
     "W": { "item": "reinhardtshbm:desh_sword" },
     "S": { "tag": "c:ingots/plastic" }
   },

@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_red_copper"
+                       "tag":  "c:ingots/red_copper"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_red_copper"

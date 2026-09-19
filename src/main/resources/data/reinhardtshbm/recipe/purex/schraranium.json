@@ -5,7 +5,7 @@
   "input_items": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:ingot_schraranium"
+        "tag": "c:ingots/schraranium"
       },
       "count": 1
     }

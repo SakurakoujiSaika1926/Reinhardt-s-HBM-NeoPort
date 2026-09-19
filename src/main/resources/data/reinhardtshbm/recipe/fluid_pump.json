@@ -8,26 +8,20 @@
   ],
   "key": {
     "S": {
-      "type": "neoforge:components",
-      "items": "reinhardtshbm:shell",
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "shape": "shell",
+      "material": "steel"
     },
     "P": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:pipe"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "shape": "pipe",
+      "material": "steel"
     },
     "G": {
       "tag": "c:ingots/graphite"

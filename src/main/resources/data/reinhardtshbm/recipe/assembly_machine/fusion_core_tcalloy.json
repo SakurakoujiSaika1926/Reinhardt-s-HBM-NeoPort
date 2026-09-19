@@ -1,47 +1,42 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "neoforge:not",
-                                    "value":  {
-                                                  "type":  "reinhardtshbm:enable_528_mode"
-                                              }
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.fusioncore",
-    "duration":  600,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:plate_welded"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "material_id":  36,
-                                                                                                "material":  "tcalloy"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  8
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/hard_plastic"
-                                           },
-                            "count":  32
-                        },
-                        {
-                            "ingredient":  {
-                                               "item":  "reinhardtshbm:circuit_bismoid"
-                                           },
-                            "count":  8
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:struct_torus_core"
-               }
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fusioncore",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "tcalloy"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_bismoid"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:struct_torus_core"
+  }
 }
-

@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_tungsten"
+                       "tag":  "c:ingots/tungsten"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_tungsten"

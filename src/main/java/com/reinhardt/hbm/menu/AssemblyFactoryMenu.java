@@ -222,7 +222,7 @@ public class AssemblyFactoryMenu extends AbstractContainerMenu {
                 .stream()
                 .filter(holder -> holder.value().isVisibleForPool(Optional.empty()))
                 .toList();
-        return AssemblyMachineRecipe.activeVariants(visibleRecipes);
+        return AssemblyMachineRecipe.displayVariants(visibleRecipes);
     }
 
     public int buttonIdForRecipe(int module, ResourceLocation recipeId) {

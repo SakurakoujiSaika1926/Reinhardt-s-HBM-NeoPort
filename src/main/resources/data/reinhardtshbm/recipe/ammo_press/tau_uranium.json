@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:ammo_press","group":"ammo_press.tau_uranium","input":[{},{"ingredient":{"tag":"c:plates/lead"}},{},{},{"ingredient":{"tag":"c:ingots/u238"}},{},{},{"ingredient":{"tag":"c:plates/lead"}},{}],"result":{"id":"reinhardtshbm:ammo_standard","count":16,"components":{"minecraft:custom_data":{"variant":"tau_uranium"},"minecraft:custom_model_data":13}}}

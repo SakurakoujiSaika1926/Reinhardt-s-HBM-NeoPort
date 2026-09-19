@@ -51,9 +51,6 @@ public class SolderingStationBlock extends LargeMachineBlock implements EntityBl
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide) {
-            return null;
-        }
         return (tickerLevel, pos, tickerState, blockEntity) -> {
             if (blockEntity instanceof SolderingStationBlockEntity solderingStation) {
                 SolderingStationBlockEntity.tick(tickerLevel, pos, tickerState, solderingStation);

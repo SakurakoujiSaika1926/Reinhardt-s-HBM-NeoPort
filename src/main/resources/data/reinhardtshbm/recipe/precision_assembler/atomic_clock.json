@@ -18,16 +18,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_fine"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 4000,
-            "material": "zirconium"
-          }
-        }
+        "shape": "wire",
+        "material": "zirconium"
       },
       "count": 8
     },

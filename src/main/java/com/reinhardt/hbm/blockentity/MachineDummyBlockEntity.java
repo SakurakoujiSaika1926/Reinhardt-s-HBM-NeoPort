@@ -156,6 +156,9 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ChemicalFactoryBlockEntity factory) {
             return factory.allowsAutomationPort(this.worldPosition, side) ? factory.getSlotsForFace(side) : NO_SLOTS;
         }
+        if (core instanceof SolderingStationBlockEntity solderingStation) {
+            return solderingStation.allowsAutomationPort(this.worldPosition) ? solderingStation.getSlotsForFace(side) : NO_SLOTS;
+        }
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return accelerator.getSlotsForAccessor(this.worldPosition, side);
         }
@@ -184,6 +187,11 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ChemicalFactoryBlockEntity factory) {
             return factory.allowsAutomationPort(this.worldPosition, side)
                     && factory.canPlaceItemThroughFace(slot, stack, side);
+        }
+        if (core instanceof SolderingStationBlockEntity solderingStation) {
+            return solderingStation.allowsAutomationPort(this.worldPosition)
+                    && containsSlot(solderingStation.getSlotsForFace(side), slot)
+                    && solderingStation.canPlaceItemThroughFace(slot, stack, side);
         }
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return containsSlot(accelerator.getSlotsForAccessor(this.worldPosition, side), slot)
@@ -217,6 +225,11 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ChemicalFactoryBlockEntity factory) {
             return factory.allowsAutomationPort(this.worldPosition, side)
                     && factory.canTakeItemThroughFace(slot, stack, side);
+        }
+        if (core instanceof SolderingStationBlockEntity solderingStation) {
+            return solderingStation.allowsAutomationPort(this.worldPosition)
+                    && containsSlot(solderingStation.getSlotsForFace(side), slot)
+                    && solderingStation.canTakeItemThroughFace(slot, stack, side);
         }
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return containsSlot(accelerator.getSlotsForAccessor(this.worldPosition, side), slot)

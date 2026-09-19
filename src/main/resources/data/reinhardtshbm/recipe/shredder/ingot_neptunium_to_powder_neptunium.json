@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_neptunium"
+                       "tag":  "c:ingots/neptunium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_neptunium"

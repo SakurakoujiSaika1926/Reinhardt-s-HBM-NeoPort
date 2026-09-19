@@ -35,6 +35,7 @@ public class FusionMachineScreen extends AbstractContainerScreen<FusionMachineMe
     private static final int TEX_W = 256;
     private static final int TEX_H = 256;
     private static final float GHOST_ALPHA = 0.20F;
+    private static final int LABEL_COLOR = 0x404040;
 
     @Nullable
     private EditBox klystronTarget;
@@ -262,8 +263,8 @@ public class FusionMachineScreen extends AbstractContainerScreen<FusionMachineMe
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
-        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
+        drawFittedTitle(graphics);
+        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, LABEL_COLOR, false);
         if (this.menu.kind() == FusionMachineBlock.Kind.TORUS) {
             int heat = this.menu.temperature();
             int color = heat > 123 ? 0xAA0000 : 0x00AAAA;
@@ -277,6 +278,33 @@ public class FusionMachineScreen extends AbstractContainerScreen<FusionMachineMe
             }
             graphics.drawString(this.font, result, 183 - this.font.width(result), 40, 0x00FF00, false);
         }
+    }
+
+    private void drawFittedTitle(GuiGraphics graphics) {
+        int centerX = switch (this.menu.kind()) {
+            case TORUS -> 106;
+            case KLYSTRON -> 115;
+            case PLASMA_FORGE -> 70;
+            default -> this.imageWidth / 2;
+        };
+        int maxWidth = switch (this.menu.kind()) {
+            case TORUS -> 130;
+            case KLYSTRON -> 150;
+            case PLASMA_FORGE -> 126;
+            default -> 136;
+        };
+        int width = this.font.width(this.title);
+        if (width <= maxWidth) {
+            graphics.drawString(this.font, this.title, centerX - width / 2, this.titleLabelY, LABEL_COLOR, false);
+            return;
+        }
+
+        float scale = maxWidth / (float) width;
+        graphics.pose().pushPose();
+        graphics.pose().translate(centerX, this.titleLabelY, 0.0F);
+        graphics.pose().scale(scale, scale, 1.0F);
+        graphics.drawString(this.font, this.title, -width / 2, 0, LABEL_COLOR, false);
+        graphics.pose().popPose();
     }
 
     private void renderHoverTooltips(GuiGraphics graphics, int mouseX, int mouseY) {

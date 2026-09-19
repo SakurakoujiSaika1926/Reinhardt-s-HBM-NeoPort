@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:diesel",
+    "reinhardtshbm:flowing_diesel",
+    "reinhardtshbm:diesel_crack",
+    "reinhardtshbm:flowing_diesel_crack",
+    "reinhardtshbm:diesel_reform",
+    "reinhardtshbm:flowing_diesel_reform",
+    "reinhardtshbm:diesel_crack_reform",
+    "reinhardtshbm:flowing_diesel_crack_reform",
+    "reinhardtshbm:biofuel",
+    "reinhardtshbm:flowing_biofuel"
+  ]
+}

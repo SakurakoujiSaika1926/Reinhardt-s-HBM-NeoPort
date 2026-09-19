@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class MachineBlastFurnaceBlockEntityRenderer implements BlockEntityRenderer<MachineBlastFurnaceBlockEntity> {
+public class MachineBlastFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<MachineBlastFurnaceBlockEntity> {
     private static final ModelResourceLocation OFF = MachineModelRenderer.standalone("block/machine_blast_furnace");
     private static final ModelResourceLocation ON = MachineModelRenderer.standalone("block/machine_blast_furnace");
 

@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_asbestos"
+                       "tag":  "c:dusts/asbestos"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_asbestos"

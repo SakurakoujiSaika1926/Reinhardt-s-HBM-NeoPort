@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class CokerBlockEntityRenderer implements BlockEntityRenderer<CokerBlockEntity> {
+public class CokerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CokerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_coker");
 
     public CokerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

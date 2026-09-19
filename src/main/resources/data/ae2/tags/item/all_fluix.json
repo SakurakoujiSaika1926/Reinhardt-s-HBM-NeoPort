@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "#c:gems/fluix",
+    {
+      "id": "ae2:purified_fluix_crystal",
+      "required": false
+    }
+  ]
+}

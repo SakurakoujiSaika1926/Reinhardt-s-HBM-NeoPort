@@ -62,7 +62,7 @@ public class FalloutBlock extends Block {
         super.attack(state, level, pos, player);
         if (!level.isClientSide && !player.isCreative()) {
             HbmLivingRadiation data = HbmLivingRadiation.get(player);
-            data.addRadiation(1.0F);
+            data.addRadiationWithReadout(1.0F);
             HbmLivingRadiation.set(player, data);
         }
     }

@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_sr90"
+      "tag": "c:dusts/sr90"
     }
   ],
   "result": {

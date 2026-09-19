@@ -43,7 +43,6 @@ public class ArmorTableScreen extends AbstractContainerScreen<ArmorTableMenu> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderSlotHint(guiGraphics, mouseX, mouseY);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
@@ -68,17 +67,25 @@ public class ArmorTableScreen extends AbstractContainerScreen<ArmorTableMenu> {
         }
     }
 
-    private void renderSlotHint(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        if (this.minecraft == null || !this.minecraft.player.containerMenu.getCarried().isEmpty()) {
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        if (this.minecraft != null
+                && this.menu.getCarried().isEmpty()
+                && this.hoveredSlot != null
+                && !this.hoveredSlot.hasItem()
+                && this.hoveredSlot.index >= 0
+                && this.hoveredSlot.index < SLOT_HINTS.length) {
+            ChatFormatting color = this.hoveredSlot.index < ArmorModHandler.MOD_SLOTS
+                    ? ChatFormatting.LIGHT_PURPLE
+                    : ChatFormatting.YELLOW;
+            guiGraphics.renderTooltip(
+                    this.font,
+                    Component.translatable(SLOT_HINTS[this.hoveredSlot.index]).withStyle(color),
+                    mouseX,
+                    mouseY
+            );
             return;
         }
-        for (int slot = 0; slot < ArmorModHandler.MOD_SLOTS + 1; slot++) {
-            if (isHovering(this.menu.getSlot(slot).x, this.menu.getSlot(slot).y, 16, 16, mouseX, mouseY)
-                    && !this.menu.getSlot(slot).hasItem()) {
-                ChatFormatting color = slot < ArmorModHandler.MOD_SLOTS ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.YELLOW;
-                guiGraphics.renderTooltip(this.font, Component.translatable(SLOT_HINTS[slot]).withStyle(color), mouseX, mouseY);
-                return;
-            }
-        }
+        super.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 }

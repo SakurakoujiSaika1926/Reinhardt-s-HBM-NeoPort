@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.integration.curios.CuriosIntegration;
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
 import com.reinhardt.hbm.util.SavedItemStackPreview;
 import net.minecraft.ChatFormatting;
@@ -151,7 +152,8 @@ public class GasMaskItem extends ArmorItem implements FilterableGasMask {
     }
 
     public static boolean isWornBy(LivingEntity entity) {
-        return entity.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof GasMaskItem;
+        return entity.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof GasMaskItem
+                || !CuriosIntegration.findFirstEquipped(entity, stack -> stack.getItem() instanceof GasMaskItem).isEmpty();
     }
 
     public enum Kind {

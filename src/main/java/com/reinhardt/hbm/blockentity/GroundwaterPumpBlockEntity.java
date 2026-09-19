@@ -34,15 +34,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndpoint {
-    public static final int GROUND_HEIGHT = 70;
     public static final int STEAM_SPEED = 1_000;
     public static final int ELECTRIC_SPEED = 10_000;
     public static final int STEAM_INPUT_PER_TICK = 100;
     public static final int SPENT_STEAM_PER_TICK = 1;
     public static final long ELECTRIC_POWER_PER_TICK = 1_000L;
     public static final long ELECTRIC_MAX_POWER = 10_000L;
-    /** The legacy-style intake column may extend at most eight blocks below the pump. */
-    public static final int MAX_INTAKE_PIPE_DEPTH = 8;
     /** Oil-drill machines advance one drilling step on a 20-tick work cycle. */
     public static final int INTAKE_PIPE_INTERVAL = 20;
 
@@ -222,10 +219,10 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
 
         boolean oldActive = this.active;
         this.active = false;
-        if (hasOperatingResources() && this.worldPosition.getY() <= GROUND_HEIGHT) {
+        if (hasOperatingResources()) {
             this.active = true;
-            // Match the fracking tower's legacy drilling cadence: one pipe
-            // section per 20-tick work interval, never the whole column at once.
+            // Match the fracking tower's drilling cadence: one pipe section
+            // per 20-tick work interval, never the whole column at once.
             if (level.getGameTime() % INTAKE_PIPE_INTERVAL == 0L) {
                 maintainIntakePipe(level);
             }
@@ -288,17 +285,14 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
     }
 
     /**
-     * Extend the intake by one block per work interval, matching the incremental
-     * drilling used by the oil derrick/fracking tower. Water is checked before
-     * replacement so the drill stops at the first water block instead of
-     * replacing it.
+     * Extend the intake by one block per work interval. There is intentionally
+     * no fixed height/depth cap: modern worlds can have much taller terrain,
+     * and the pump simply drills until it reaches the first water block or the
+     * world's minimum build height. Water is checked before replacement so the
+     * drill stops at the source block instead of replacing it.
      */
     private void maintainIntakePipe(Level level) {
         int depth = intakePipeDepth(level);
-        if (depth >= MAX_INTAKE_PIPE_DEPTH) {
-            return;
-        }
-
         BlockPos target = this.worldPosition.below(depth + 1);
         if (target.getY() < level.getMinBuildHeight()) {
             return;
@@ -321,7 +315,7 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
 
     private int intakePipeDepth(Level level) {
         int depth = 0;
-        while (depth < MAX_INTAKE_PIPE_DEPTH) {
+        while (true) {
             BlockPos pipePos = this.worldPosition.below(depth + 1);
             if (pipePos.getY() < level.getMinBuildHeight()
                     || !level.getBlockState(pipePos).is(HbmBlocks.PUMP_PIPE.get())) {

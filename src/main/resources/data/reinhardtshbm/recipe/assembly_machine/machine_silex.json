@@ -6,28 +6,24 @@
   "ingredients": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:glass_quartz"
+        "tag": "c:glass_blocks/quartz"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:plate_cast"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "plate_cast",
+        "material": "steel"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:ingot_desh"
+        "tag": "c:ingots/desh"
       },
       "count": 4
     },
@@ -39,16 +35,12 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:pipe"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "pipe",
+        "material": "steel"
       },
       "count": 8
     }

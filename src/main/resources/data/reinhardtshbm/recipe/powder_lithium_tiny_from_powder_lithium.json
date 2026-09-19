@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_lithium"
+      "tag": "c:dusts/lithium"
     }
   ],
   "result": {

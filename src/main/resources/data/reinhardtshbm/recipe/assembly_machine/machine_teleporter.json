@@ -4,28 +4,52 @@
   "duration": 100,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "tag": "c:plates/titanium" }, "count": 12 },
-    { "ingredient": { "tag": "c:plates/dura_steel" }, "count": 12 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:wire_fine"],
-        "components": { "minecraft:custom_data": { "material_id": 7900, "material": "gold" } }
+        "tag": "c:plates/titanium"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/dura_steel"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "gold"
       },
       "count": 32
     },
-    { "ingredient": { "item": "reinhardtshbm:entanglement_kit" }, "count": 1 },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:entanglement_kit"
+      },
+      "count": 1
+    },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": ["reinhardtshbm:battery_pack"],
+        "items": [
+          "reinhardtshbm:battery_pack"
+        ],
         "components": {
-          "minecraft:custom_data": { "variant": "battery_lithium" },
+          "minecraft:custom_data": {
+            "variant": "battery_lithium"
+          },
           "minecraft:custom_model_data": 2
         }
       },
       "count": 1
     }
   ],
-  "result": { "id": "reinhardtshbm:machine_teleporter" }
+  "result": {
+    "id": "reinhardtshbm:machine_teleporter"
+  }
 }

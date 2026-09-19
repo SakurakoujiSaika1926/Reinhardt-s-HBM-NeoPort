@@ -6,23 +6,46 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_cast"],
-        "components": { "minecraft:custom_data": { "material_id": 39, "material": "combine_steel" } }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "combine_steel"
       },
       "count": 24
     },
-    { "ingredient": { "tag": "c:plates/steel" }, "count": 32 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:wire_fine"],
-        "components": { "minecraft:custom_data": { "material_id": 38, "material": "magnetized_tungsten" } }
+        "tag": "c:plates/steel"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "magnetized_tungsten"
       },
       "count": 48
     },
-    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 5 },
-    { "ingredient": { "item": "reinhardtshbm:circuit_controller_advanced" }, "count": 1 }
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 5
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 1
+    }
   ],
-  "result": { "id": "reinhardtshbm:chopper" }
+  "result": {
+    "id": "reinhardtshbm:chopper"
+  }
 }

@@ -1,0 +1,129 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "ass.fensusan",
+  "duration": 6000,
+  "power": 50000000,
+  "ignition_temp": 50000000,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/electronium"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:battery_pack"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "battery_quantum"
+          },
+          "minecraft:custom_model_data": 5
+        }
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "bronze_tubes"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:item_expensive"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "variant": "ferro_plating"
+          }
+        }
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "osmiridium"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "osmiridium"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "arsenic_bronze"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_cast"
+        ],
+        "shape": "plate_cast",
+        "material": "combine_steel"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ingot_u238m2"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/cft"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/cft"
+      },
+      "count": 64
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_battery_redd",
+    "count": 1
+  }
+}

@@ -2,7 +2,7 @@
     "type":  "minecraft:smelting",
     "category":  "misc",
     "ingredient":  {
-                       "item":  "reinhardtshbm:powder_sr90"
+                       "tag":  "c:dusts/sr90"
                    },
     "result":  {
                    "id":  "reinhardtshbm:ingot_sr90"

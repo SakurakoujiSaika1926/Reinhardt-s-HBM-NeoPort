@@ -4,7 +4,7 @@
   "input_items":[
     {"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:item_expensive"],"components":{"minecraft:custom_data":{"variant":"bronze_tubes"}}},"count":2},
     {"ingredient":{"tag":"c:ingots/cft"},"count":8},
-    {"ingredient":{"item":"reinhardtshbm:glass_quartz"},"count":16}
+    {"ingredient":{"tag": "c:glass_blocks/quartz"},"count":16}
   ],
   "result":{"id":"reinhardtshbm:icf_laser_component","components":{"minecraft:custom_data":{"variant":"cell"},"minecraft:custom_model_data":2}}
 }

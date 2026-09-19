@@ -24,7 +24,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class FusionMachineBlockEntityRenderer implements BlockEntityRenderer<FusionMachineBlockEntity> {
+public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRenderer<FusionMachineBlockEntity> {
     private static final ModelResourceLocation TORUS_TORUS = MachineModelRenderer.standalone("block/fusion_torus_torus");
     private static final ModelResourceLocation TORUS_MAGNET = MachineModelRenderer.standalone("block/fusion_torus_magnet");
     private static final ModelResourceLocation TORUS_BOLTS1 = MachineModelRenderer.standalone("block/fusion_torus_bolts1");

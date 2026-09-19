@@ -9,7 +9,7 @@
   "key": {
     "O": { "item": "minecraft:obsidian" },
     "D": { "item": "minecraft:diamond" },
-    "E": { "item": "reinhardtshbm:powder_magic" },
+    "E": { "tag": "c:dusts/magic" },
     "A": { "item": "reinhardtshbm:gem_alexandrite" }
   },
   "result": { "id": "reinhardtshbm:teleanchor" }

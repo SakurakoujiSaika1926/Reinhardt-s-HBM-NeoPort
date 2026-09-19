@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_titanium"
+                       "tag":  "c:storage_blocks/titanium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_titanium",

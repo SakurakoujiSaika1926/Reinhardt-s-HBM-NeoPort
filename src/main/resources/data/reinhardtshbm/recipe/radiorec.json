@@ -1,18 +1,31 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "pattern": ["  W", "PCP", "PIP"],
+  "pattern": [
+    "  W",
+    "PCP",
+    "PIP"
+  ],
   "key": {
     "W": {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": {
-        "minecraft:custom_data": { "material_id": 2900, "material": "copper" }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "copper"
     },
-    "P": { "tag": "c:plates/steel" },
-    "C": { "item": "reinhardtshbm:circuit_vacuum_tube" },
-    "I": { "tag": "c:ingots/plastic" }
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_vacuum_tube"
+    },
+    "I": {
+      "tag": "c:ingots/plastic"
+    }
   },
-  "result": { "id": "reinhardtshbm:radiorec" }
+  "result": {
+    "id": "reinhardtshbm:radiorec"
+  }
 }

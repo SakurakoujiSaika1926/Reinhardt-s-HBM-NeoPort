@@ -15,7 +15,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import java.util.List;
 
 /** Renders the 1.7.10 arc furnace as one OBJ with the original object visibility and animations. */
-public final class ArcFurnaceBlockEntityRenderer implements BlockEntityRenderer<ArcFurnaceBlockEntity> {
+public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<ArcFurnaceBlockEntity> {
     private static final ModelResourceLocation FURNACE = part("machine_arc_furnace");
     private static final ModelResourceLocation CONTENTS_HOT = part("machine_arc_furnace_contents_hot");
     private static final ModelResourceLocation CONTENTS_COLD = part("machine_arc_furnace_contents_cold");

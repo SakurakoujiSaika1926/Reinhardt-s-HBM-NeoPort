@@ -14,7 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class LeviathanTurbineBlockEntityRenderer implements BlockEntityRenderer<LeviathanTurbineBlockEntity> {
+public class LeviathanTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<LeviathanTurbineBlockEntity> {
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_chungus_body");
     private static final ModelResourceLocation LEVER = MachineModelRenderer.standalone("block/machine_chungus_lever");
     private static final ModelResourceLocation BLADES = MachineModelRenderer.standalone("block/machine_chungus_blades");

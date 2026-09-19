@@ -1,0 +1,41 @@
+{
+  "textures": {
+    "particle": "reinhardtshbm:block/deco_steel",
+    "base": "reinhardtshbm:block/deco_steel",
+    "overlay": "reinhardtshbm:block/fluid_duct_paintable_overlay",
+    "gauge": "reinhardtshbm:block/pipe_gauge"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#base" },
+        "up": { "texture": "#base" },
+        "north": { "texture": "#base" },
+        "south": { "texture": "#base" },
+        "west": { "texture": "#base" },
+        "east": { "texture": "#base" }
+      }
+    },
+    {
+      "from": [-0.01, -0.01, -0.01],
+      "to": [16.01, 16.01, 16.01],
+      "faces": {
+        "down": { "texture": "#overlay" },
+        "up": { "texture": "#overlay" },
+        "north": { "texture": "#overlay" },
+        "south": { "texture": "#overlay" },
+        "west": { "texture": "#overlay" },
+        "east": { "texture": "#overlay" }
+      }
+    },
+    {
+      "from": [0, 0, -0.03],
+      "to": [16, 16, -0.02],
+      "faces": {
+        "north": { "texture": "#gauge" }
+      }
+    }
+  ]
+}

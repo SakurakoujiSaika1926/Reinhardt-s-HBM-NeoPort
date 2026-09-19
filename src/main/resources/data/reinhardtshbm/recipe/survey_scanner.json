@@ -1,1 +1,34 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["SWS"," G ","PCP"],"key":{"W":{"type":"neoforge:components","items":["reinhardtshbm:wire_fine"],"components":{"minecraft:custom_data":{"material_id":7900,"material":"gold"}}},"P":{"tag":"c:ingots/plastic"},"C":{"item":"reinhardtshbm:circuit_advanced"},"S":{"tag":"c:plates/steel"},"G":{"tag":"c:ingots/gold"}},"result":{"id":"reinhardtshbm:survey_scanner"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SWS",
+    " G ",
+    "PCP"
+  ],
+  "key": {
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "gold"
+    },
+    "P": {
+      "tag": "c:ingots/plastic"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_advanced"
+    },
+    "S": {
+      "tag": "c:plates/steel"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:survey_scanner"
+  }
+}

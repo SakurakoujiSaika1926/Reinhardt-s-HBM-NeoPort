@@ -2,30 +2,74 @@
   "neoforge:conditions": [
     {
       "type": "neoforge:not",
-      "value": { "type": "reinhardtshbm:enable_528_mode" }
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
   ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.radgen",
-  "blueprint_pools": ["discover.radgen"],
+  "blueprint_pools": [
+    "discover.radgen"
+  ],
   "duration": 400,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "tag": "c:ingots/steel" }, "count": 8 },
-    { "ingredient": { "tag": "c:plates/steel" }, "count": 32 },
-    { "ingredient": { "item": "reinhardtshbm:coil_magnetized_tungsten" }, "count": 6 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:wire_fine"],
-        "components": { "minecraft:custom_data": { "material_id": 38, "material": "magnetized_tungsten" } }
+        "tag": "c:ingots/steel"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:coil_magnetized_tungsten"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "magnetized_tungsten"
       },
       "count": 24
     },
-    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:reactor_core" }, "count": 3 },
-    { "ingredient": { "tag": "c:ingots/starmetal" }, "count": 1 },
-    { "ingredient": { "tag": "c:dyes/red" }, "count": 1 }
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_basic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:reactor_core"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/starmetal"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/red"
+      },
+      "count": 1
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_radgen" }
+  "result": {
+    "id": "reinhardtshbm:machine_radgen"
+  }
 }

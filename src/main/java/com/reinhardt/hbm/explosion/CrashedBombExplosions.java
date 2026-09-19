@@ -2,6 +2,8 @@ package com.reinhardt.hbm.explosion;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.CrashedBombBlock;
+import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.entity.LegacyProjectileUtil;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
@@ -14,7 +16,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import com.reinhardt.hbm.worldgen.NuclearFalloutTerrainEffects;
 
 /** Explosion and defusal dispatch copied from BlockCrashedBomb. */
 public final class CrashedBombExplosions {
@@ -41,20 +42,18 @@ public final class CrashedBombExplosions {
         Vec3 center = Vec3.atCenterOf(pos);
         switch (type) {
             case BALEFIRE -> {
-                BalefireExplosionManager.schedule(level, pos, 43);
+                BalefireExplosionManager.schedule(level, pos, (int) (HbmConfig.FATMAN_RADIUS.get() * 1.25D));
                 spawnMushroom(level, center, true);
             }
             case CONVENTIONAL -> {
-                level.explode(null, center.x, center.y, center.z, 35.0F, false, Level.ExplosionInteraction.BLOCK);
-                spawnMushroom(level, center, false);
+                LegacyProjectileUtil.crashedBombConventionalExplosion(level, center);
             }
             case NUKE -> {
                 NukeExplosionManager.scheduleLegacyNuke(level, center.x, center.y, center.z, 35);
                 spawnMushroom(level, center, level.random.nextInt(100) == 0);
             }
             case SALTED -> {
-                NukeExplosionManager.scheduleLegacyNuke(level, center.x, center.y, center.z, 25);
-                NuclearFalloutTerrainEffects.schedule(level, pos, 25);
+                NukeExplosionManager.scheduleLegacyNukeMoreFallout(level, center.x, center.y, center.z, 25, 25);
                 spawnMushroom(level, center, level.random.nextInt(100) == 0);
             }
         }

@@ -7,8 +7,8 @@
     " P "
   ],
   "key": {
-    "S": { "item": "reinhardtshbm:block_steel" },
-    "T": { "item": "reinhardtshbm:block_tungsten" },
+    "S": { "tag": "c:storage_blocks/steel" },
+    "T": { "tag": "c:storage_blocks/tungsten" },
     "P": { "tag": "c:ingots/plastic" }
   },
   "result": { "id": "reinhardtshbm:smashing_hammer" }

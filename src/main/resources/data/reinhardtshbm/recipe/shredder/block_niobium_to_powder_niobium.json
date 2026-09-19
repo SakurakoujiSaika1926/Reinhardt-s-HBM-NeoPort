@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_niobium"
+                       "tag":  "c:storage_blocks/niobium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_niobium",

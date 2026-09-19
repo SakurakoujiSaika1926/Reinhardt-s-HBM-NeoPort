@@ -28,7 +28,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -43,6 +42,7 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -51,12 +51,17 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.CustomModelData;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
+import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
@@ -67,10 +72,17 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID)
 public final class RadiationEvents {
@@ -80,6 +92,14 @@ public final class RadiationEvents {
     private static final net.minecraft.resources.ResourceLocation ARMOR_STEP_HEIGHT_MODIFIER = ReinhardtsHBM.id("armor_step_height");
     private static final net.minecraft.resources.ResourceLocation LEGACY_REACHER_ID = ReinhardtsHBM.id("reacher");
     private static final Set<StratumXpDrop> STRATUM_XP_DROPS = ConcurrentHashMap.newKeySet();
+    private static final int UNKNOWN_INVENTORY_HAZARD_HASH = Integer.MIN_VALUE;
+    private static final int INVENTORY_HAZARD_FALLBACK_CHECK_TICKS = 20;
+    private static final ExecutorService INVENTORY_HAZARD_SOLVER = Executors.newSingleThreadExecutor(task -> {
+        Thread thread = new Thread(task, "RHbm-InventoryHazards");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private static final java.util.Map<UUID, InventoryHazardState> INVENTORY_HAZARD_STATES = new ConcurrentHashMap<>();
     private RadiationEvents() {
     }
 
@@ -113,6 +133,49 @@ public final class RadiationEvents {
     public static void onLevelUnload(LevelEvent.Unload event) {
         if (event.getLevel() instanceof ServerLevel level) {
             HbmRadiationWorlds.unload(level);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        markPlayerRadiationInputsDirty(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        clearPlayerRadiationInputs(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerClone(PlayerEvent.Clone event) {
+        clearPlayerRadiationInputs(event.getOriginal());
+        markPlayerRadiationInputsDirty(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        markPlayerRadiationInputsDirty(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        markPlayerRadiationInputsDirty(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerContainerClose(PlayerContainerEvent.Close event) {
+        markPlayerRadiationInputsDirty(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onItemToss(ItemTossEvent event) {
+        markPlayerRadiationInputsDirty(event.getPlayer());
+    }
+
+    @SubscribeEvent
+    public static void onLivingEquipmentChange(LivingEquipmentChangeEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            markPlayerRadiationInputsDirty(player);
         }
     }
 
@@ -235,6 +298,7 @@ public final class RadiationEvents {
 
     @SubscribeEvent
     public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
+        markPlayerRadiationInputsDirty(event.getEntity());
         HbmAdvancements.awardForCraftedStack(event.getEntity(), event.getCrafting());
     }
 
@@ -245,6 +309,7 @@ public final class RadiationEvents {
     @SubscribeEvent
     public static void onItemSmelted(PlayerEvent.ItemSmeltedEvent event) {
         Player player = event.getEntity();
+        markPlayerRadiationInputsDirty(player);
         HbmAdvancements.awardForCraftedStack(player, event.getSmelting());
         if (player.level().isClientSide || !event.getSmelting().is(net.minecraft.world.item.Items.IRON_INGOT)
                 || player.getRandom().nextInt(64) != 0) {
@@ -259,6 +324,7 @@ public final class RadiationEvents {
 
     @SubscribeEvent
     public static void onItemPickup(ItemEntityPickupEvent.Post event) {
+        markPlayerRadiationInputsDirty(event.getPlayer());
         if (event.getOriginalStack().is(net.minecraft.world.item.Items.SLIME_BALL)) {
             HbmAdvancements.award(event.getPlayer(), "slimeball");
         }
@@ -365,6 +431,29 @@ public final class RadiationEvents {
         player.removeEffect(MobEffects.BLINDNESS);
         HbmLivingHazards.clear(player);
         HbmLivingRadiation.clear(player);
+        markPlayerRadiationInputsDirty(player);
+    }
+
+    private static void markPlayerRadiationInputsDirty(Player player) {
+        if (player == null || player.level().isClientSide) {
+            return;
+        }
+        InventoryHazardState state = INVENTORY_HAZARD_STATES.computeIfAbsent(player.getUUID(),
+                unused -> new InventoryHazardState());
+        state.dirty = true;
+        state.cached = InventoryHazardResult.EMPTY;
+        HbmArmorProtection.invalidateRadiationMultiplier(player);
+    }
+
+    private static void clearPlayerRadiationInputs(Player player) {
+        if (player == null) {
+            return;
+        }
+        InventoryHazardState state = INVENTORY_HAZARD_STATES.remove(player.getUUID());
+        if (state != null && state.inFlight != null) {
+            state.inFlight.cancel(false);
+        }
+        HbmArmorProtection.invalidateRadiationMultiplier(player);
     }
 
     private static void tickLiving(LivingEntity living) {
@@ -403,8 +492,12 @@ public final class RadiationEvents {
         }
 
         HbmLivingRadiation data = living.getExistingDataOrNull(HbmDataAttachments.LIVING_RADIATION);
-        HbmRadiationWorlds.queueExposure(level, living);
-        double chunkRadiation = HbmRadiationWorlds.getExposureRadiation(level, living);
+        boolean radiationImmune = isLegacyRadiationImmune(living);
+        double chunkRadiation = 0.0D;
+        if (!radiationImmune) {
+            HbmRadiationWorlds.queueExposure(level, living);
+            chunkRadiation = HbmRadiationWorlds.getExposureRadiation(level, living);
+        }
         if (data == null && chunkRadiation <= 0.0D && !(living instanceof Player)) {
             return;
         }
@@ -417,7 +510,6 @@ public final class RadiationEvents {
             data.setNeutron(0.0F);
         }
 
-        boolean radiationImmune = isLegacyRadiationImmune(living);
         data.setChunkRadiation(radiationImmune ? 0.0F : (float) chunkRadiation);
         if (!radiationImmune && chunkRadiation > 0.0D) {
             contaminateRadiation(living, data, chunkRadiation / 20.0D);
@@ -597,7 +689,7 @@ public final class RadiationEvents {
         }
 
         if (armorInsert.radioactive()) {
-            data.addRadiation(100.0F);
+            data.addRadiationWithReadout(100.0F);
         }
         if (movement != null && armorInsert.speedMultiplier() != 1.0F) {
             movement.addOrUpdateTransientModifier(new AttributeModifier(
@@ -642,7 +734,7 @@ public final class RadiationEvents {
                         net.minecraft.sounds.SoundEvents.FIRE_EXTINGUISH, SoundSource.NEUTRAL,
                         1.0F, 1.5F + living.getRandom().nextFloat() * 0.5F);
             }
-            HbmLivingRadiation.get(living).addRadiation(5.0F);
+            HbmLivingRadiation.get(living).addRadiationWithReadout(5.0F);
             if (phase % 20 == 0) {
                 living.hurt(living.damageSources().onFire(), 5.0F);
             }
@@ -657,7 +749,7 @@ public final class RadiationEvents {
                         1.0F, 1.5F + living.getRandom().nextFloat() * 0.5F);
                 living.hurt(living.damageSources().onFire(), 10.0F);
             }
-            HbmLivingRadiation.get(living).addRadiation(5.0F);
+            HbmLivingRadiation.get(living).addRadiationWithReadout(5.0F);
             spawnAttachedFlame(level, living, HbmParticleTypes.FLAMETHROWER_BLACK.get());
         }
     }
@@ -676,40 +768,270 @@ public final class RadiationEvents {
     }
 
     private static void applyInventoryHazards(Player player, HbmLivingRadiation data) {
-        boolean hasReacher = hasLegacyReacher(player);
-        for (ItemStack stack : player.getInventory().items) {
-            applyStackHazards(player, data, stack, hasReacher);
+        InventoryHazardState state = updateInventoryHazardState(player);
+        applyInventoryHazardResult(player, data, state.cached);
+    }
+
+    private static InventoryHazardState updateInventoryHazardState(Player player) {
+        InventoryHazardState state = INVENTORY_HAZARD_STATES.computeIfAbsent(player.getUUID(),
+                unused -> new InventoryHazardState());
+        if (state.lastUpdateTick == player.tickCount) {
+            return state;
         }
-        for (ItemStack stack : player.getInventory().armor) {
-            applyStackHazards(player, data, stack, hasReacher);
+        state.lastUpdateTick = player.tickCount;
+
+        CompletableFuture<InventoryHazardResult> inFlight = state.inFlight;
+        if (inFlight != null && inFlight.isDone()) {
+            state.inFlight = null;
+            InventoryHazardResult result = joinInventoryHazards(inFlight);
+            int currentHash = inventoryHazardHash(player);
+            state.observedHash = currentHash;
+            state.nextFallbackCheckTick = nextInventoryHazardFallbackTick(player);
+            if (result != null && result.inventoryHash() == currentHash) {
+                state.cached = result;
+                state.dirty = false;
+            } else {
+                state.cached = InventoryHazardResult.EMPTY;
+                state.dirty = true;
+            }
+        } else if (inFlight != null) {
+            return state;
+        } else if (!state.dirty && player.tickCount >= state.nextFallbackCheckTick) {
+            int currentHash = inventoryHazardHash(player);
+            state.nextFallbackCheckTick = nextInventoryHazardFallbackTick(player);
+            if (state.observedHash != UNKNOWN_INVENTORY_HAZARD_HASH && state.observedHash != currentHash) {
+                state.cached = InventoryHazardResult.EMPTY;
+                state.dirty = true;
+            }
+            state.observedHash = currentHash;
         }
-        for (ItemStack stack : player.getInventory().offhand) {
-            applyStackHazards(player, data, stack, hasReacher);
+
+        if (state.dirty) {
+            InventoryHazardSnapshot snapshot = snapshotInventoryHazards(player);
+            state.observedHash = snapshot.inventoryHash();
+            state.nextFallbackCheckTick = nextInventoryHazardFallbackTick(player);
+            state.dirty = false;
+            state.inFlight = CompletableFuture.supplyAsync(
+                    () -> summarizeInventoryHazards(snapshot),
+                    INVENTORY_HAZARD_SOLVER);
+            return state;
         }
+
+        return state;
+    }
+
+    private static InventoryHazardResult joinInventoryHazards(CompletableFuture<InventoryHazardResult> future) {
+        try {
+            return future.join();
+        } catch (CancellationException exception) {
+            return null;
+        } catch (CompletionException exception) {
+            ReinhardtsHBM.LOGGER.warn("Asynchronous inventory radiation hazard calculation failed", exception);
+            return null;
+        }
+    }
+
+    private static InventoryHazardSnapshot snapshotInventoryHazards(Player player) {
+        List<ItemStack> stacks = new ArrayList<>();
+        int hash = inventoryHazardInitialHash();
+        hash = appendInventoryStacks(player.getInventory().items, stacks, hash);
+        hash = appendInventoryStacks(player.getInventory().armor, stacks, hash);
+        hash = appendInventoryStacks(player.getInventory().offhand, stacks, hash);
+        return new InventoryHazardSnapshot(
+                player.tickCount,
+                hash,
+                HbmConfig.ENABLE_528_MODE.get(),
+                HbmConfig.ENABLE_ASBESTOS.get(),
+                HbmConfig.ENABLE_COAL_DUST.get(),
+                List.copyOf(stacks));
+    }
+
+    private static int inventoryHazardHash(Player player) {
+        int hash = inventoryHazardInitialHash();
+        hash = appendInventoryHash(player.getInventory().items, hash);
+        hash = appendInventoryHash(player.getInventory().armor, hash);
+        return appendInventoryHash(player.getInventory().offhand, hash);
+    }
+
+    private static int inventoryHazardInitialHash() {
+        int hash = 31 + (HbmConfig.ENABLE_528_MODE.get() ? 1 : 0);
+        hash = 31 * hash + (HbmConfig.ENABLE_ASBESTOS.get() ? 1 : 0);
+        return 31 * hash + (HbmConfig.ENABLE_COAL_DUST.get() ? 1 : 0);
+    }
+
+    private static int nextInventoryHazardFallbackTick(Player player) {
+        return player.tickCount + INVENTORY_HAZARD_FALLBACK_CHECK_TICKS
+                + Math.floorMod(player.getId(), INVENTORY_HAZARD_FALLBACK_CHECK_TICKS);
+    }
+
+    private static int appendInventoryHash(Iterable<ItemStack> source, int hash) {
+        for (ItemStack stack : source) {
+            hash = 31 * hash + inventoryHazardStackHash(stack);
+        }
+        return hash;
+    }
+
+    private static int appendInventoryStacks(Iterable<ItemStack> source, List<ItemStack> target, int hash) {
+        for (ItemStack stack : source) {
+            hash = 31 * hash + inventoryHazardStackHash(stack);
+            if (stack != null && !stack.isEmpty()) {
+                target.add(stack.copy());
+            }
+        }
+        return hash;
+    }
+
+    private static int inventoryHazardStackHash(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return 0;
+        }
+        int hash = System.identityHashCode(stack.getItem());
+        hash = 31 * hash + stack.getCount();
+        hash = 31 * hash + stack.getDamageValue();
+        hash = 31 * hash + stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).hashCode();
+        CustomModelData modelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
+        hash = 31 * hash + (modelData == null ? 0 : modelData.hashCode());
+        return hash;
+    }
+
+    private static InventoryHazardResult summarizeInventoryHazards(InventoryHazardSnapshot snapshot) {
+        if (snapshot.stacks().isEmpty()) {
+            return new InventoryHazardResult(snapshot.entityTick(), snapshot.inventoryHash(),
+                    0.0D, 0.0D, 0, 0, List.of());
+        }
+        boolean hasReacher = false;
+        for (ItemStack stack : snapshot.stacks()) {
+            if (isLegacyReacher(stack)) {
+                hasReacher = true;
+                break;
+            }
+        }
+
+        double radiationDose = 0.0D;
+        double digammaDose = 0.0D;
+        int burnSeconds = 0;
+        int blindnessTicks = 0;
+        List<RespiratoryHazardEntry> respiratoryHazards = new ArrayList<>();
+        boolean reacherHotProtection = hasLegacyReacherHotProtection(hasReacher, snapshot.enable528Mode());
+        for (ItemStack stack : snapshot.stacks()) {
+            HbmHazardData hazards = HbmHazardSystem.hazards(stack);
+            if (!hazards.isEmpty()) {
+                if (hazards.radiation() > 0.0D) {
+                    double radiation = hazards.radiation() / 20.0D;
+                    if (hasReacher) {
+                        radiation = snapshot.enable528Mode() ? radiation / 49.0D : squirt(radiation);
+                    }
+                    radiationDose += radiation * HbmRadiationConstants.HAZARD_RATE_TICKS;
+                }
+                if (hazards.digamma() > 0.0D) {
+                    digammaDose += hazards.digamma() / 20.0D * HbmRadiationConstants.HAZARD_RATE_TICKS;
+                }
+                if (hazards.hot() > 0.0D && !reacherHotProtection) {
+                    burnSeconds = Math.max(burnSeconds,
+                            (int) Math.ceil(hazards.hot()) * HbmRadiationConstants.HAZARD_RATE_TICKS);
+                }
+                if (hazards.blinding() > 0.0D) {
+                    blindnessTicks = Math.max(blindnessTicks,
+                            Math.max(1, (int) Math.ceil(hazards.blinding()) * HbmRadiationConstants.HAZARD_RATE_TICKS));
+                }
+            }
+
+            int asbestosAmount = 0;
+            if (snapshot.enableAsbestos()) {
+                double level = HbmHazardSystem.asbestosLevel(stack);
+                if (level > 0.0D) {
+                    asbestosAmount = (int) Math.min(level, 10.0D);
+                }
+            }
+
+            int coalAmount = 0;
+            int coalFilterRollBound = 0;
+            int coalFilterDamage = 0;
+            if (snapshot.enableCoalDust()) {
+                double level = HbmHazardSystem.coalDustLevel(stack);
+                if (level > 0.0D) {
+                    coalAmount = (int) Math.min(level * stack.getCount(), 10.0D);
+                    coalFilterRollBound = Math.max(65 - stack.getCount(), 1);
+                    coalFilterDamage = (int) level;
+                }
+            }
+
+            if (asbestosAmount > 0 || coalAmount > 0 || coalFilterDamage > 0) {
+                respiratoryHazards.add(new RespiratoryHazardEntry(
+                        asbestosAmount,
+                        coalAmount,
+                        coalFilterRollBound,
+                        coalFilterDamage));
+            }
+        }
+        return new InventoryHazardResult(snapshot.entityTick(), snapshot.inventoryHash(),
+                radiationDose, digammaDose, burnSeconds, blindnessTicks, List.copyOf(respiratoryHazards));
+    }
+
+    private static void applyInventoryHazardResult(Player player, HbmLivingRadiation data,
+                                                   InventoryHazardResult result) {
+        if (result == null || result.isEmpty()) {
+            return;
+        }
+        if (result.radiationDose() > 0.0D) {
+            contaminateRadiation(player, data, result.radiationDose());
+        }
+        if (result.digammaDose() > 0.0D && canReceiveDose(player) && !player.hasEffect(HbmMobEffects.STABILITY)) {
+            data.addDigamma((float) result.digammaDose());
+        }
+        if (result.burnSeconds() > 0 && canReceiveDose(player) && !player.isInWaterOrRain()) {
+            player.igniteForSeconds(result.burnSeconds());
+        }
+        if (result.blindnessTicks() > 0 && canReceiveDose(player)) {
+            player.addEffect(new MobEffectInstance(
+                    MobEffects.BLINDNESS,
+                    result.blindnessTicks(),
+                    0,
+                    false,
+                    true
+            ));
+        }
+    }
+
+    private record InventoryHazardSnapshot(int entityTick, int inventoryHash, boolean enable528Mode,
+                                           boolean enableAsbestos, boolean enableCoalDust,
+                                           List<ItemStack> stacks) {
+    }
+
+    private record InventoryHazardResult(int entityTick, int inventoryHash, double radiationDose,
+                                         double digammaDose, int burnSeconds, int blindnessTicks,
+                                         List<RespiratoryHazardEntry> respiratoryHazards) {
+        private static final InventoryHazardResult EMPTY =
+                new InventoryHazardResult(0, UNKNOWN_INVENTORY_HAZARD_HASH, 0.0D, 0.0D, 0, 0, List.of());
+
+        boolean isEmpty() {
+            return radiationDose <= 0.0D
+                    && digammaDose <= 0.0D
+                    && burnSeconds <= 0
+                    && blindnessTicks <= 0
+                    && respiratoryHazards.isEmpty();
+        }
+    }
+
+    private record RespiratoryHazardEntry(int asbestosAmount, int coalAmount,
+                                          int coalFilterRollBound, int coalFilterDamage) {
+    }
+
+    private static final class InventoryHazardState {
+        private CompletableFuture<InventoryHazardResult> inFlight;
+        private InventoryHazardResult cached = InventoryHazardResult.EMPTY;
+        private int observedHash = UNKNOWN_INVENTORY_HAZARD_HASH;
+        private int nextFallbackCheckTick;
+        private int lastUpdateTick = Integer.MIN_VALUE;
+        private boolean dirty = true;
     }
 
     /** Exact 1.7.10 HazardTypeAsbestos/HazardTypeCoal inventory behavior. */
     private static void applyRespiratoryInventoryHazards(LivingEntity living) {
         HbmLivingHazards hazards = HbmLivingHazards.get(living);
         if (living instanceof Player player) {
-            for (ItemStack stack : player.getInventory().items) {
-                applyRespiratoryStackHazards(living, hazards, stack);
-                if (!living.isAlive()) {
-                    return;
-                }
-            }
-            for (ItemStack stack : player.getInventory().armor) {
-                applyRespiratoryStackHazards(living, hazards, stack);
-                if (!living.isAlive()) {
-                    return;
-                }
-            }
-            for (ItemStack stack : player.getInventory().offhand) {
-                applyRespiratoryStackHazards(living, hazards, stack);
-                if (!living.isAlive()) {
-                    return;
-                }
-            }
+            InventoryHazardState state = updateInventoryHazardState(player);
+            applyRespiratoryHazardEntries(living, hazards, state.cached.respiratoryHazards());
         } else {
             // The old getEquipmentInSlot(0..4) covered armor and the held
             // equipment of mobs.  These modern iterables are its equivalent.
@@ -727,6 +1049,35 @@ public final class RadiationEvents {
             }
         }
         HbmLivingHazards.set(living, hazards);
+    }
+
+    private static void applyRespiratoryHazardEntries(LivingEntity living, HbmLivingHazards hazards,
+                                                      List<RespiratoryHazardEntry> entries) {
+        for (RespiratoryHazardEntry entry : entries) {
+            if (entry.asbestosAmount() > 0
+                    && !HbmArmorProtection.hasHeadProtection(living,
+                    HbmArmorProtection.HazardClass.PARTICLE_FINE, entry.asbestosAmount())) {
+                hazards.addAsbestos(living, entry.asbestosAmount());
+                if (!living.isAlive()) {
+                    return;
+                }
+            }
+
+            if (entry.coalAmount() > 0 || entry.coalFilterDamage() > 0) {
+                if (!HbmArmorProtection.hasHeadProtection(living,
+                        HbmArmorProtection.HazardClass.PARTICLE_COARSE)) {
+                    if (entry.coalAmount() > 0) {
+                        hazards.addBlackLung(living, entry.coalAmount());
+                    }
+                } else if (entry.coalFilterDamage() > 0
+                        && living.getRandom().nextInt(entry.coalFilterRollBound()) == 0) {
+                    // HazardTypeCoal damages a protected filter only on this
+                    // per-tick random roll, using the unstacked hazard level.
+                    HbmArmorProtection.hasHeadProtection(living,
+                            HbmArmorProtection.HazardClass.PARTICLE_COARSE, entry.coalFilterDamage());
+                }
+            }
+        }
     }
 
     private static void applyRespiratoryStackHazards(LivingEntity living, HbmLivingHazards hazards, ItemStack stack) {
@@ -767,45 +1118,6 @@ public final class RadiationEvents {
         }
     }
 
-    private static void applyStackHazards(Player player, HbmLivingRadiation data, ItemStack stack, boolean hasReacher) {
-        HbmHazardData hazards = HbmHazardSystem.hazards(stack);
-        if (hazards.isEmpty()) {
-            return;
-        }
-
-        if (hazards.radiation() > 0.0D) {
-            double radiation = hazards.radiation() / 20.0D;
-            if (hasReacher) {
-                radiation = HbmConfig.ENABLE_528_MODE.get() ? radiation / 49.0D : squirt(radiation);
-            }
-            contaminateRadiation(player, data, radiation * HbmRadiationConstants.HAZARD_RATE_TICKS);
-        }
-        if (hazards.digamma() > 0.0D && canReceiveDose(player) && !player.hasEffect(HbmMobEffects.STABILITY)) {
-            data.addDigamma((float) (hazards.digamma() / 20.0D * HbmRadiationConstants.HAZARD_RATE_TICKS));
-        }
-        if (hazards.hot() > 0.0D && canReceiveDose(player) && !hasLegacyReacherHotProtection(hasReacher) && !player.isInWaterOrRain()) {
-            player.igniteForSeconds((float) Math.ceil(hazards.hot()) * HbmRadiationConstants.HAZARD_RATE_TICKS);
-        }
-        if (hazards.blinding() > 0.0D && canReceiveDose(player)) {
-            player.addEffect(new MobEffectInstance(
-                    MobEffects.BLINDNESS,
-                    Math.max(1, (int) Math.ceil(hazards.blinding()) * HbmRadiationConstants.HAZARD_RATE_TICKS),
-                    0,
-                    false,
-                    true
-            ));
-        }
-    }
-
-    private static boolean hasLegacyReacher(Player player) {
-        for (ItemStack stack : player.getInventory().items) {
-            if (isLegacyReacher(stack)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static boolean isLegacyReacher(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return false;
@@ -813,8 +1125,8 @@ public final class RadiationEvents {
         return LEGACY_REACHER_ID.equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()));
     }
 
-    private static boolean hasLegacyReacherHotProtection(boolean hasReacher) {
-        return hasReacher && !HbmConfig.ENABLE_528_MODE.get();
+    private static boolean hasLegacyReacherHotProtection(boolean hasReacher, boolean enable528Mode) {
+        return hasReacher && !enable528Mode;
     }
 
     private static double squirt(double x) {
@@ -964,7 +1276,7 @@ public final class RadiationEvents {
     }
 
     private static boolean canVomit(LivingEntity living) {
-        return living.getType().getCategory() != MobCategory.WATER_CREATURE;
+        return living instanceof ServerPlayer;
     }
 
     /** The four entity substitutions at the start of 1.7.10 EntityEffectHandler.handleRadiationEffect. */

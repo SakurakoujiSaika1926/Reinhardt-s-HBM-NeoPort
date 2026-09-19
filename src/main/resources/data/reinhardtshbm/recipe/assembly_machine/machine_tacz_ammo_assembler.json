@@ -1,0 +1,49 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "tacz"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.assembler",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/steel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/copper"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "tacz:workbench_a"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "BlockId": "tacz:ammo_workbench"
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_tacz_ammo_assembler"
+  }
+}

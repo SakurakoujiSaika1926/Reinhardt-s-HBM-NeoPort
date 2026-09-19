@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:shredder",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "appeng"
+    }
+  ],
+  "ingredient": {
+    "item": "ae2:purified_nether_quartz_crystal"
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_quartz"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "P P",
+    "SSS"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:ingots/steel"
+    },
+    "P": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:pipe"
+      ],
+      "shape": "pipe",
+      "material": "steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:oil_pipe",
+    "count": 8
+  }
+}

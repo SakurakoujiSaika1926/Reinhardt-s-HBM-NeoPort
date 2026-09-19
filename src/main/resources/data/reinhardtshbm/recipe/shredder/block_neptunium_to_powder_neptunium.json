@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_neptunium"
+                       "tag":  "c:storage_blocks/neptunium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_neptunium",

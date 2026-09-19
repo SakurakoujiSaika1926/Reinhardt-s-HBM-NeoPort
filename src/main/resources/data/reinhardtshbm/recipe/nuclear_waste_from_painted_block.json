@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_waste_painted"
+      "tag": "c:storage_blocks/waste_painted"
     }
   ],
   "result": {

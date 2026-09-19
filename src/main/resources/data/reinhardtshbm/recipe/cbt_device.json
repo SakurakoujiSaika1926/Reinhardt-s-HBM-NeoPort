@@ -1,1 +1,20 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:bolt"],"components":{"minecraft:custom_data":{"material_id":30,"material":"steel"}}},{"item":"reinhardtshbm:wrench"}],"result":{"id":"reinhardtshbm:cbt_device"}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:bolt"
+      ],
+      "shape": "bolt",
+      "material": "steel"
+    },
+    {
+      "item": "reinhardtshbm:wrench"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:cbt_device"
+  }
+}

@@ -2,11 +2,18 @@ package com.reinhardt.hbm.integration.immersiveengineering;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.config.HbmConfig;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Runtime balance glue for Immersive Engineering.
@@ -20,6 +27,7 @@ import java.util.Map;
 public final class HbmImmersiveEngineeringCompat {
     private static final String IE_SERVER_CONFIG_CLASS = "blusunrize.immersiveengineering.common.config.IEServerConfig";
     private static final String IE_WIRE_TYPE_CLASS = "blusunrize.immersiveengineering.common.wires.IEWireTypes$IEWireType";
+    private static final String IE_SERVER_CONFIG_FILE = "immersiveengineering-server.toml";
     private static boolean applied;
 
     private HbmImmersiveEngineeringCompat() {
@@ -40,7 +48,8 @@ public final class HbmImmersiveEngineeringCompat {
             boolean changed = false;
 
             Object machines = staticField(serverConfig, "MACHINES");
-            changed |= setIntValue(machines, "dieselGen_output", HbmConfig.IMMERSIVE_ENGINEERING_DIESEL_GENERATOR_OUTPUT.get());
+            int dieselGeneratorOutput = HbmConfig.IMMERSIVE_ENGINEERING_DIESEL_GENERATOR_OUTPUT.get();
+            changed |= setIntValue(machines, "dieselGen_output", dieselGeneratorOutput);
 
             Object wires = staticField(serverConfig, "WIRES");
             Object hvWireConfig = hvEnergyWireConfig(wires);
@@ -52,6 +61,7 @@ public final class HbmImmersiveEngineeringCompat {
             if (hvConnectorRate > 0) {
                 changed |= setIntValue(hvWireConfig, "connectorRate", hvConnectorRate);
             }
+            changed |= patchServerConfigFile(dieselGeneratorOutput, hvWireTransferRate, hvConnectorRate);
 
             if (changed) {
                 refresh(serverConfig);
@@ -67,6 +77,79 @@ public final class HbmImmersiveEngineeringCompat {
         } catch (ReflectiveOperationException | RuntimeException ex) {
             ReinhardtsHBM.LOGGER.warn("Could not apply HBM Immersive Engineering diesel generator balance", ex);
         }
+    }
+
+    private static boolean patchServerConfigFile(int dieselGeneratorOutput, int hvWireTransferRate, int hvConnectorRate) {
+        Path configFile = FMLPaths.CONFIGDIR.get().resolve(IE_SERVER_CONFIG_FILE);
+        if (!Files.isRegularFile(configFile)) {
+            return false;
+        }
+
+        try {
+            String original = Files.readString(configFile, StandardCharsets.UTF_8);
+            String patched = replaceIntInSection(original, "machines", "dieselGen_output", dieselGeneratorOutput);
+            if (hvWireTransferRate > 0) {
+                patched = replaceIntInSection(patched, "wires.hv", "transferRate", hvWireTransferRate);
+            }
+            if (hvConnectorRate > 0) {
+                patched = replaceIntInSection(patched, "wires.hv", "wireConnectorInput", hvConnectorRate);
+            }
+
+            if (original.equals(patched)) {
+                return false;
+            }
+
+            Files.writeString(configFile, patched, StandardCharsets.UTF_8);
+            return true;
+        } catch (IOException | RuntimeException ex) {
+            ReinhardtsHBM.LOGGER.warn("Could not persist HBM Immersive Engineering diesel balance to {}", configFile, ex);
+            return false;
+        }
+    }
+
+    private static String replaceIntInSection(String config, String section, String key, int value) {
+        Matcher sectionMatcher = Pattern.compile("(?m)^\\s*\\[" + Pattern.quote(section) + "\\]\\s*$").matcher(config);
+        if (!sectionMatcher.find()) {
+            return appendSection(config, section, key, value);
+        }
+
+        int sectionStart = sectionMatcher.end();
+        int sectionEnd = config.length();
+        Matcher nextSectionMatcher = Pattern.compile("(?m)^\\s*\\[[^\\]]+\\]\\s*$").matcher(config);
+        if (nextSectionMatcher.find(sectionStart)) {
+            sectionEnd = nextSectionMatcher.start();
+        }
+
+        String body = config.substring(sectionStart, sectionEnd);
+        Matcher keyMatcher = Pattern.compile(
+                "(?m)^(\\s*" + Pattern.quote(key) + "\\s*=\\s*)-?\\d+(\\s*(?:#.*)?(?:\\r?\\n|$))"
+        ).matcher(body);
+        if (!keyMatcher.find()) {
+            String lineSeparator = lineSeparator(config);
+            String insertion = (body.endsWith("\n") || body.endsWith("\r") ? "" : lineSeparator)
+                    + "\t\t" + key + " = " + value + lineSeparator;
+            return config.substring(0, sectionEnd) + insertion + config.substring(sectionEnd);
+        }
+
+        String replacement = Matcher.quoteReplacement(keyMatcher.group(1) + value + keyMatcher.group(2));
+        String patchedBody = keyMatcher.replaceFirst(replacement);
+        return config.substring(0, sectionStart) + patchedBody + config.substring(sectionEnd);
+    }
+
+    private static String appendSection(String config, String section, String key, int value) {
+        String lineSeparator = lineSeparator(config);
+        String prefix = config.endsWith("\n") || config.endsWith("\r") ? "" : lineSeparator;
+        return config
+                + prefix
+                + lineSeparator
+                + "[" + section + "]"
+                + lineSeparator
+                + "\t\t" + key + " = " + value
+                + lineSeparator;
+    }
+
+    private static String lineSeparator(String config) {
+        return config.contains("\r\n") ? "\r\n" : "\n";
     }
 
     private static Object staticField(Class<?> owner, String fieldName) throws ReflectiveOperationException {

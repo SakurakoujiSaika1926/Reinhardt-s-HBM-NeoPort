@@ -7,7 +7,7 @@
     " B "
   ],
   "key": {
-    "B": { "item": "reinhardtshbm:ingot_boron" },
+    "B": { "tag": "c:ingots/boron" },
     "W": { "tag": "minecraft:planks" }
   },
   "result": { "id": "reinhardtshbm:pile_rod_boron" }

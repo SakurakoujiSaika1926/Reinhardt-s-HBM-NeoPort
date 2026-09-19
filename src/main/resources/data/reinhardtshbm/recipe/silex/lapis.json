@@ -2,7 +2,7 @@
   "type": "reinhardtshbm:silex",
   "group": "silex.lapis",
   "ingredient": {
-    "item": "reinhardtshbm:powder_lapis"
+    "tag": "c:dusts/lapis"
   },
   "fluid_produced": 100,
   "fluid_consumed": 100,

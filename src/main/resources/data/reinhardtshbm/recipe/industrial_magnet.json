@@ -7,18 +7,22 @@
     "SMS"
   ],
   "key": {
-    "S": { "tag": "c:ingots/steel" },
-    "M": { "item": "reinhardtshbm:horseshoe_magnet" },
+    "S": {
+      "tag": "c:ingots/steel"
+    },
+    "M": {
+      "item": "reinhardtshbm:horseshoe_magnet"
+    },
     "B": {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_dense"],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 31,
-          "material": "red_copper"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_dense"
+      ],
+      "shape": "wire_dense",
+      "material": "red_copper"
     }
   },
-  "result": { "id": "reinhardtshbm:industrial_magnet" }
+  "result": {
+    "id": "reinhardtshbm:industrial_magnet"
+  }
 }

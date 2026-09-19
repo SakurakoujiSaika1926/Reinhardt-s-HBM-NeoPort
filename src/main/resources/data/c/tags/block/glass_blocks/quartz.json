@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:glass_quartz",
+    {
+      "id": "ae2:quartz_glass",
+      "required": false
+    }
+  ]
+}

@@ -1,32 +1,28 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "I",
-                    "S",
-                    "W"
-                ],
-    "key":  {
-                "I":  {
-                          "tag":  "c:plates/polymer"
-                      },
-                "S":  {
-                          "item":  "reinhardtshbm:circuit_silicon"
-                      },
-                "W":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:wire_fine"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  31,
-                                                                           "material":  "red_copper"
-                                                                       }
-                                         }
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:circuit_chip"
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "I",
+    "S",
+    "W"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:plates/polymer"
+    },
+    "S": {
+      "item": "reinhardtshbm:circuit_silicon"
+    },
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "red_copper"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:circuit_chip"
+  }
 }

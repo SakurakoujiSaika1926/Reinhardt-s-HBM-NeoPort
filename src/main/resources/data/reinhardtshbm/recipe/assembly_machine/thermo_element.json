@@ -12,22 +12,18 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_fine"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 31,
-            "material": "red_copper"
-          }
-        }
+        "shape": "wire",
+        "material": "red_copper"
       },
       "count": 2
     },
     {
       "ingredient": {
-        "tag": "c:dusts/quartz"
+        "tag": "ae2:all_quartz_dust"
       },
       "count": 2
     }

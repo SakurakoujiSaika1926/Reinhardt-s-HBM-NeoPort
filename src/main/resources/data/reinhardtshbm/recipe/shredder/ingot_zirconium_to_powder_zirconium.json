@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_zirconium"
+                       "tag":  "c:ingots/zirconium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_zirconium"

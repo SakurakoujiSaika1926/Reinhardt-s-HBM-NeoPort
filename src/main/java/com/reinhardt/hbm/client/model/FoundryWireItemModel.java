@@ -141,7 +141,6 @@ public final class FoundryWireItemModel implements IDynamicBakedModel {
         addFoundryTarget(targets, "part_receiver_light", FoundryShape.LIGHT_RECEIVER);
         addFoundryTarget(targets, "part_receiver_heavy", FoundryShape.HEAVY_RECEIVER);
         addFoundryTarget(targets, "part_stock", FoundryShape.STOCK);
-        addFoundryTarget(targets, "part_grip", FoundryShape.GRIP);
         targets.put("ingot_raw", new VariantTarget("ingot_raw", MaterialSource.RAW_INGOT, rawIngotOverrides()));
         targets.put("scraps", new VariantTarget("scraps", MaterialSource.SCRAPS, scrapsOverrides()));
         return Map.copyOf(targets);

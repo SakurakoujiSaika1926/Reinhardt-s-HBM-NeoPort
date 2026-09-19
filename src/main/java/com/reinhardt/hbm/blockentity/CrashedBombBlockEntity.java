@@ -45,7 +45,7 @@ public final class CrashedBombBlockEntity extends BlockEntity {
                 continue;
             }
             HbmLivingRadiation radiation = HbmLivingRadiation.get(entity);
-            radiation.addRadiation((float) ((1.0D - distance / range) * multiplier));
+            radiation.addRadiationWithReadout((float) ((1.0D - distance / range) * multiplier));
             HbmLivingRadiation.set(entity, radiation);
         }
     }

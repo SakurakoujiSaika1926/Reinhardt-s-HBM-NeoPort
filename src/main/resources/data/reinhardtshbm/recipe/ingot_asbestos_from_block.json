@@ -1,9 +1,9 @@
-﻿{
+{
     "type":  "minecraft:crafting_shapeless",
     "category":  "misc",
     "ingredients":  [
                         {
-                            "item":  "reinhardtshbm:block_asbestos"
+                            "tag":  "c:storage_blocks/asbestos"
                         }
                     ],
     "result":  {

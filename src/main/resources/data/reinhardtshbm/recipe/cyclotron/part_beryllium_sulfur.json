@@ -5,7 +5,7 @@
                      "item":  "reinhardtshbm:part_beryllium"
                  },
     "input":  {
-                  "tag":  "c:dusts/quartz"
+                  "tag":  "ae2:all_quartz_dust"
               },
     "output":  {
                    "id":  "reinhardtshbm:sulfur"

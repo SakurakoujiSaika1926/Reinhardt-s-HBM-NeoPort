@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_australium"
+                       "tag":  "c:ingots/australium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_australium"

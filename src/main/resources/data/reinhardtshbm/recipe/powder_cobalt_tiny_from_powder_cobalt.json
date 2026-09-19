@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_cobalt"
+      "tag": "c:dusts/cobalt"
     }
   ],
   "result": {

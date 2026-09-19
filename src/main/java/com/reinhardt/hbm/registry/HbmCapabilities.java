@@ -1217,6 +1217,9 @@ public final class HbmCapabilities {
         if (core instanceof MachineBlastFurnaceBlockEntity furnace) {
             return furnace.allowsAutomationPort(dummy.getBlockPos(), side) ? new SidedInvWrapper(dummy, side) : null;
         }
+        if (core instanceof SolderingStationBlockEntity solderingStation) {
+            return solderingStation.allowsAutomationPort(dummy.getBlockPos()) ? new SidedInvWrapper(dummy, side) : null;
+        }
         if (core instanceof LegacyMachineBlockEntity machine) {
             return machine.slotCount() == 0 || !machine.allowsItemAutomationPort(dummy.getBlockPos())
                     ? null
@@ -1833,7 +1836,7 @@ public final class HbmCapabilities {
             return factory.fluidHandler(dummy.getBlockPos(), side);
         }
         if (core instanceof SolderingStationBlockEntity solderingStation) {
-            return solderingStation.fluidHandler(side);
+            return solderingStation.fluidHandler(dummy.getBlockPos(), side);
         }
         if (core instanceof HeaterBlockEntity heater) {
             return heater.fluidHandler(dummy.getBlockPos(), side);

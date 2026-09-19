@@ -1,29 +1,25 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "WWW",
-                    "WIW",
-                    "WWW"
-                ],
-    "key":  {
-                "W":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:wire_fine"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  7400,
-                                                                           "material":  "tungsten"
-                                                                       }
-                                         }
-                      },
-                "I":  {
-                          "item":  "minecraft:iron_ingot"
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:coil_tungsten"
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WWW",
+    "WIW",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "tungsten"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:coil_tungsten"
+  }
 }

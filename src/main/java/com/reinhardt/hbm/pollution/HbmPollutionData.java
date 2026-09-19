@@ -109,6 +109,26 @@ public class HbmPollutionData extends SavedData {
         }
     }
 
+    public int clearAround(BlockPos center, int radiusRegions) {
+        int radius = Math.max(0, radiusRegions);
+        long centerKey = regionKey(center);
+        int centerX = regionX(centerKey);
+        int centerZ = regionZ(centerKey);
+        int removed = 0;
+        for (int x = centerX - radius; x <= centerX + radius; x++) {
+            for (int z = centerZ - radius; z <= centerZ + radius; z++) {
+                if (regions.remove(key(x, z)) != null) {
+                    removed++;
+                }
+            }
+        }
+        if (removed > 0) {
+            revision++;
+            setDirty();
+        }
+        return removed;
+    }
+
     Map<Long, PollutionValues> snapshot() {
         Map<Long, PollutionValues> copy = new HashMap<>();
         for (Map.Entry<Long, PollutionValues> entry : regions.entrySet()) {

@@ -10,7 +10,7 @@
     "P": { "tag": "c:plates/steel" },
     "T": { "tag": "c:ingots/tungsten" },
     "C": { "item": "minecraft:crafting_table" },
-    "S": { "item": "reinhardtshbm:block_steel" }
+    "S": { "tag": "c:storage_blocks/steel" }
   },
   "result": { "id": "reinhardtshbm:machine_armor_table" }
 }

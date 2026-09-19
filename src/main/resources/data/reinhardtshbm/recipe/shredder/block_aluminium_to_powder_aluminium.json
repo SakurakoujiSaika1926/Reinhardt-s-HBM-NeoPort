@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_aluminium"
+                       "tag":  "c:storage_blocks/aluminium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_aluminium",

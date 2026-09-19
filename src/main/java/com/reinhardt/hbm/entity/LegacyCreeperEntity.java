@@ -95,7 +95,7 @@ public class LegacyCreeperEntity extends Creeper {
                         && !(target instanceof Player player
                         && (player.isCreative() || player.isSpectator() || player.tickCount < 200))) {
                     float dose = (float) (0.25D * HbmArmorProtection.radiationMultiplier(target));
-                    data.addRadiation(dose);
+                    data.addRadiationWithReadout(dose);
                 }
                 HbmLivingRadiation.set(target, data);
             }

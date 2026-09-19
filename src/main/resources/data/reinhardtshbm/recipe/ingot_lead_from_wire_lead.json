@@ -1,26 +1,22 @@
-﻿{
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "###",
-                    "###",
-                    "###"
-                ],
-    "key":  {
-                "#":  {
-                          "type":  "neoforge:components",
-                          "items":  [
-                                        "reinhardtshbm:wire_fine"
-                                    ],
-                          "components":  {
-                                             "minecraft:custom_data":  {
-                                                                           "material_id":  8200,
-                                                                           "material":  "lead"
-                                                                       }
-                                         }
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:ingot_lead"
-               }
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "lead"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:ingot_lead"
+  }
 }

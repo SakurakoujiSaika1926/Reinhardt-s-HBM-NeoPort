@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_au198"
+                       "tag":  "c:storage_blocks/au198"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_au198",

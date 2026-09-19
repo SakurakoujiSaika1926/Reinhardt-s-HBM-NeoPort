@@ -2,6 +2,7 @@ package com.reinhardt.hbm.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -91,7 +92,13 @@ public final class RhbmCommand {
                                 .then(Commands.literal("clear")
                                         .requires(source -> source.hasPermission(2))
                                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
-                                                .executes(RhbmCommand::clearPollution))))
+                                                .executes(RhbmCommand::clearPollution)))
+                                .then(Commands.literal("clear_radius")
+                                        .requires(source -> source.hasPermission(2))
+                                        .then(Commands.argument("radiusRegions", IntegerArgumentType.integer(0, 32))
+                                                .executes(RhbmCommand::clearPollutionRadiusHere)
+                                                .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                                        .executes(RhbmCommand::clearPollutionRadius)))))
         );
     }
 
@@ -156,6 +163,26 @@ public final class RhbmCommand {
                 true
         );
         return 1;
+    }
+
+    private static int clearPollutionRadiusHere(CommandContext<CommandSourceStack> context) {
+        BlockPos pos = BlockPos.containing(context.getSource().getPosition());
+        return clearPollutionRadius(context, pos);
+    }
+
+    private static int clearPollutionRadius(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        return clearPollutionRadius(context, BlockPosArgument.getLoadedBlockPos(context, "pos"));
+    }
+
+    private static int clearPollutionRadius(CommandContext<CommandSourceStack> context, BlockPos pos) {
+        int radius = IntegerArgumentType.getInteger(context, "radiusRegions");
+        int removed = HbmPollutionData.get(context.getSource().getLevel()).clearAround(pos, radius);
+        context.getSource().sendSuccess(
+                () -> Component.literal("Cleared pollution in " + removed + " region(s) within radius " + radius
+                        + " around " + pos.getX() + " " + pos.getY() + " " + pos.getZ()),
+                true
+        );
+        return Math.max(removed, 1);
     }
 
     private static HbmPollutionType pollutionType(CommandContext<CommandSourceStack> context) {

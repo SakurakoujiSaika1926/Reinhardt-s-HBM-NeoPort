@@ -6,31 +6,23 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 4100,
-            "material": "niobium"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "niobium"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2200,
-            "material": "titanium"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "titanium"
       },
       "count": 64
     }

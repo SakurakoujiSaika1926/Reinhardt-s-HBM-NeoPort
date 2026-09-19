@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_beryllium"
+                       "tag":  "c:storage_blocks/beryllium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_beryllium",

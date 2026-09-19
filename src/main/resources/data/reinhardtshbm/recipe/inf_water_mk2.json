@@ -1,7 +1,9 @@
 {
-  "neoforge:conditions": {
-    "type": "reinhardtshbm:enable_infinite_water_tank_recipes"
-  },
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_infinite_water_tank_recipes"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
@@ -14,26 +16,20 @@
       "item": "reinhardtshbm:inf_water"
     },
     "P": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:pipe"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "shape": "pipe",
+      "material": "steel"
     },
     "T": {
-      "type": "neoforge:components",
-      "items": "reinhardtshbm:shell",
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "shape": "shell",
+      "material": "steel"
     }
   },
   "result": {

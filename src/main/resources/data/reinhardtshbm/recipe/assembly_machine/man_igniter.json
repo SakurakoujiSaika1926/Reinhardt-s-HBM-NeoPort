@@ -1,0 +1,28 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.manigniter",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_advanced"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "gold"
+      },
+      "count": 24
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:man_igniter"
+  }
+}

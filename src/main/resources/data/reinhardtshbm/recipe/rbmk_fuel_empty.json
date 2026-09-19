@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
@@ -8,7 +8,7 @@
   ],
   "key": {
     "Z": {
-      "item": "reinhardtshbm:ingot_zirconium"
+      "tag": "c:ingots/zirconium"
     },
     "R": {
       "item": "reinhardtshbm:rod_quad_empty"

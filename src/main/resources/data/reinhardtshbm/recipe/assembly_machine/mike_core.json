@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.mikecore",
+  "duration": 1200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:nuggets/u238" }, "count": 24 },
+    { "ingredient": { "tag": "c:plates/lead" }, "count": 6 }
+  ],
+  "result": { "id": "reinhardtshbm:mike_core" }
+}

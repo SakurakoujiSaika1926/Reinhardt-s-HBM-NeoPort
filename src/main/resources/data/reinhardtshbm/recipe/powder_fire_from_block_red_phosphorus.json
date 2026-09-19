@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_red_phosphorus"
+      "tag": "c:storage_blocks/red_phosphorus"
     }
   ],
   "result": {

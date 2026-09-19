@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["QUQ","UEU","QUQ"],"key":{"Q":{"item":"reinhardtshbm:glass_quartz"},"U":{"item":"reinhardtshbm:undefined"},"E":{"item":"reinhardtshbm:ingot_electronium"}},"result":{"id":"reinhardtshbm:laser_crystal_digamma"}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["QUQ","UEU","QUQ"],"key":{"Q":{"tag": "c:glass_blocks/quartz"},"U":{"item":"reinhardtshbm:undefined"},"E":{"tag":"c:ingots/electronium"}},"result":{"id":"reinhardtshbm:laser_crystal_digamma"}}

@@ -1,0 +1,24 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    },
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "appeng"
+    }
+  ],
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "item": "ae2:purified_nether_quartz_crystal"
+    }
+  ],
+  "processing_time": 100,
+  "results": [
+    {
+      "id": "reinhardtshbm:powder_quartz"
+    }
+  ]
+}

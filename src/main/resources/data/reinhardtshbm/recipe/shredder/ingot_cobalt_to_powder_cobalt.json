@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_cobalt"
+                       "tag":  "c:ingots/cobalt"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_cobalt"

@@ -131,7 +131,7 @@ public final class HbmAnvilRecipes {
         addHotSmithing(3, item("cobalt_decorated_axe", 1), ingredient("cobalt_axe", 1), ingredient("ingot_meteorite", 1));
         addHotSmithing(3, item("cobalt_decorated_shovel", 1), ingredient("cobalt_shovel", 1), ingredient("ingot_meteorite", 1));
         addHotSmithing(3, item("cobalt_decorated_hoe", 1), ingredient("cobalt_hoe", 1), ingredient("ingot_meteorite", 1));
-        addSmithing(1, item("ingot_gunmetal", 1), ingredient(mc("copper_ingot"), 1), ingredient("ingot_aluminium", 1));
+        addSmithing(1, item("ingot_gunmetal", 1), ingotIngredient("copper", 1, mc("copper_ingot")), ingotIngredient("aluminium", 1));
         registerMoldSmithingRecipes();
     }
 
@@ -150,8 +150,8 @@ public final class HbmAnvilRecipes {
                 List.of(
                         tagIngredient(ItemTags.PLANKS, 16, mc("oak_planks")),
                         plateIngredient("steel", 6),
-                        ingredient(mc("copper_ingot"), 8),
-                        ingredient("ingot_iron", 4, mc("iron_ingot")),
+                        ingotIngredient("copper", 8, mc("copper_ingot")),
+                        ingotIngredient("iron", 4, mc("iron_ingot")),
                         ingredient("sawblade", 1)
                 ),
                 blockItem("machine_sawmill", 1),
@@ -189,14 +189,14 @@ public final class HbmAnvilRecipes {
         addFuelPlateRecipe("billet_ra226be", "plate_fuel_ra226be");
         addFuelPlateRecipe("billet_pu238be", "plate_fuel_pu238be");
 
-        addConstruction(List.of(ingredient("ingot_aluminium", 1)), blockItem("deco_aluminium", 4), 1);
-        addConstruction(List.of(ingredient("ingot_beryllium", 1)), blockItem("deco_beryllium", 4), 1);
-        addConstruction(List.of(ingredient("ingot_lead", 1)), blockItem("deco_lead", 4), 1);
-        addConstruction(List.of(ingredient("ingot_red_copper", 1)), blockItem("deco_red_copper", 4), 1);
-        addConstruction(List.of(ingredient("ingot_steel", 1)), blockItem("deco_steel", 4), 1);
-        addConstruction(List.of(ingredient("ingot_titanium", 1)), blockItem("deco_titanium", 4), 1);
-        addConstruction(List.of(ingredient("ingot_tungsten", 1)), blockItem("deco_tungsten", 4), 1);
-        addConstruction(List.of(ingredient("ingot_asbestos", 1)), blockItem("deco_asbestos", 4), 1);
+        addConstruction(List.of(ingotIngredient("aluminium", 1)), blockItem("deco_aluminium", 4), 1);
+        addConstruction(List.of(ingotIngredient("beryllium", 1)), blockItem("deco_beryllium", 4), 1);
+        addConstruction(List.of(ingotIngredient("lead", 1)), blockItem("deco_lead", 4), 1);
+        addConstruction(List.of(ingotIngredient("red_copper", 1)), blockItem("deco_red_copper", 4), 1);
+        addConstruction(List.of(ingotIngredient("steel", 1)), blockItem("deco_steel", 4), 1);
+        addConstruction(List.of(ingotIngredient("titanium", 1)), blockItem("deco_titanium", 4), 1);
+        addConstruction(List.of(ingotIngredient("tungsten", 1)), blockItem("deco_tungsten", 4), 1);
+        addConstruction(List.of(ingotIngredient("asbestos", 1)), blockItem("deco_asbestos", 4), 1);
 
         addConstruction(List.of(ingredient("coil_copper", 2)), item("coil_copper_torus", 1), 1);
         addShellRecipe("titanium", 1);
@@ -205,7 +205,13 @@ public final class HbmAnvilRecipes {
         addShellRecipe("steel", 1);
         addShellRecipe("weaponsteel", 1);
         addShellRecipe("saturnite", 1);
-        addConstruction(List.of(plateIngredient("copper", 3)), item("pipe", 1), 1);
+        addPipeRecipe("iron", true, 1);
+        addPipeRecipe("copper", true, 1);
+        addPipeRecipe("aluminium", true, 1);
+        addPipeRecipe("lead", true, 1);
+        addPipeRecipe("steel", true, 1);
+        addPipeRecipe("dura_steel", true, 1);
+        addPipeRecipe("rubber", false, 1);
         addConstruction(List.of(ingredient("coil_advanced_alloy", 2)), item("coil_advanced_torus", 1), 1);
         addConstruction(List.of(ingredient("coil_gold", 2)), item("coil_gold_torus", 1), 1);
         addConstruction(
@@ -219,7 +225,7 @@ public final class HbmAnvilRecipes {
                 1
         );
         addConstruction(
-                List.of(ingredient("motor", 1), ingredient("ingot_polymer", 2), ingredient("ingot_desh", 2), ingredient("coil_gold_torus", 1)),
+                List.of(ingredient("motor", 1), ingotIngredient("polymer", 2), ingotIngredient("desh", 2), ingredient("coil_gold_torus", 1)),
                 item("motor_desh", 1),
                 3
         );
@@ -268,17 +274,29 @@ public final class HbmAnvilRecipes {
         );
         addConstruction(
                 List.of(
-                        ingredient("ingot_firebrick", 20),
-                        ingredient(mc("copper_ingot"), 8),
+                        ingotIngredient("firebrick", 20),
+                        ingotIngredient("copper", 8, mc("copper_ingot")),
                         plateIngredient("steel", 8)
                 ),
                 blockItem("machine_crucible", 1),
                 2
         );
         registerPileRecipes();
+        // HBM 1.7.10 AnvilRecipes: repair the damaged doomsday missile into
+        // the launchable doomsday missile on a tier 5 anvil.
         addConstruction(
                 List.of(
-                        ingredient("ingot_steel", 4),
+                        ingredient("missile_doomsday_rusted", 1),
+                        tagIngredient(commonTag("ingots/hard_plastic"), 8, hbm("ingot_pc")),
+                        foundryShapeIngredient(FoundryShape.WELDED_PLATE, "aluminium", 2, HbmItems.PLATE_WELDED.get()),
+                        ingredient("billet_pu239", 3)
+                ),
+                item("missile_doomsday", 1),
+                5
+        );
+        addConstruction(
+                List.of(
+                        ingotIngredient("steel", 4),
                         foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 16, HbmItems.PLATE_CAST.get()),
                         plateIngredient("polymer", 8)
                 ),
@@ -288,8 +306,8 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 8, HbmItems.PLATE_CAST.get()),
-                        ingredient(mc("copper_ingot"), 8),
-                        ingredient("ingot_polymer", 4)
+                        ingotIngredient("copper", 8, mc("copper_ingot")),
+                        ingotIngredient("polymer", 4)
                 ),
                 blockItem("machine_industrial_boiler", 1),
                 3
@@ -298,7 +316,7 @@ public final class HbmAnvilRecipes {
                 List.of(
                         tagIngredient(ItemTags.PLANKS, 16, mc("oak_planks")),
                         plateIngredient("steel", 6),
-                        ingredient(mc("copper_ingot"), 8),
+                        ingotIngredient("copper", 8, mc("copper_ingot")),
                         ingredient("coil_copper", 4),
                         ingredient("gear_large", 1)
                 ),
@@ -308,8 +326,8 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         plateIngredient("steel", 16),
-                        ingredient("ingot_beryllium", 6),
-                        ingredient(mc("copper_ingot"), 8),
+                        ingotIngredient("beryllium", 6),
+                        ingotIngredient("copper", 8, mc("copper_ingot")),
                         ingredient("coil_gold", 16),
                         ingredient("gear_large", 1)
                 ),
@@ -338,14 +356,14 @@ public final class HbmAnvilRecipes {
         );
         registerStampConstructionRecipes();
         addConstruction(
-                List.of(ingredient(mc("stone_bricks"), 4), ingredient("ingot_firebrick", 32), plateIngredient("copper", 8)),
+                List.of(ingredient(mc("stone_bricks"), 4), ingotIngredient("firebrick", 32), plateIngredient("copper", 8)),
                 blockItem("machine_blast_furnace", 1),
                 1
         );
         addConstruction(
                 List.of(
                         ingredient(mc("stone_bricks"), 8),
-                        ingredient("ingot_firebrick", 16),
+                        ingotIngredient("firebrick", 16),
                         tagIngredient(commonTag("ingots/iron"), 4, mc("iron_ingot")),
                         plateIngredient("copper", 8)
                 ),
@@ -364,7 +382,7 @@ public final class HbmAnvilRecipes {
                 2
         );
         addConstruction(
-                List.of(ingredient("ingot_steel", 8), plateIngredient("copper", 4), ingredient("motor", 2), ingredient("circuit_vacuum_tube", 4)),
+                List.of(ingotIngredient("steel", 8), plateIngredient("copper", 4), ingredient("motor", 2), ingredient("circuit_vacuum_tube", 4)),
                 blockItem("machine_assembly_machine", 1),
                 2
         );
@@ -402,7 +420,7 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         plateIngredient("titanium", 2),
-                        ingredient("ingot_steel", 1),
+                        ingotIngredient("steel", 1),
                         foundryShapeIngredient(FoundryShape.BOLT, "steel", 4, HbmItems.BOLT.get())
                 ),
                 item("plate_armor_titanium", 1),
@@ -411,7 +429,7 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 4, HbmItems.PLATE_CAST.get()),
-                        ingredient("ingot_tungsten", 8),
+                        ingotIngredient("tungsten", 8),
                         ingredient("machine_transformer", 1),
                         ingredient("arc_electrode", 2)
                 ),
@@ -460,7 +478,7 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         tagIngredient(commonTag("concretes"), 8, hbm("brick_concrete")),
-                        ingredient("ingot_steel", 8),
+                        ingotIngredient("steel", 8),
                         plateIngredient("polymer", 12),
                         ingredient("coil_copper", 8)
                 ),
@@ -468,20 +486,20 @@ public final class HbmAnvilRecipes {
                 2
         );
         addConstruction(
-                List.of(ingredient(mc("furnace"), 1), plateIngredient("steel", 8), ingredient(mc("copper_ingot"), 8)),
+                List.of(ingredient(mc("furnace"), 1), plateIngredient("steel", 8), ingotIngredient("copper", 8, mc("copper_ingot"))),
                 blockItem("heater_firebox", 1),
                 2
         );
         addConstruction(
-                List.of(ingredient("ingot_firebrick", 16), plateIngredient("steel", 4), ingredient(mc("copper_ingot"), 8)),
+                List.of(ingotIngredient("firebrick", 16), plateIngredient("steel", 4), ingotIngredient("copper", 8, mc("copper_ingot"))),
                 blockItem("heater_oven", 1),
                 2
         );
         addConstruction(
                 List.of(
                         plateIngredient("steel", 8),
-                        ingredient("ingot_iron", 12),
-                        ingredient(mc("copper_ingot"), 2),
+                        ingotIngredient("iron", 12, mc("iron_ingot")),
+                        ingotIngredient("copper", 2, mc("copper_ingot")),
                         ingredient("circuit_vacuum_tube", 1)
                 ),
                 blockItem("machine_thresher", 1),
@@ -490,8 +508,8 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         plateIngredient("steel", 4),
-                        ingredient("ingot_iron", 12),
-                        ingredient(mc("copper_ingot"), 2),
+                        ingotIngredient("iron", 12, mc("iron_ingot")),
+                        ingotIngredient("copper", 2, mc("copper_ingot")),
                         ingredient("circuit_vacuum_tube", 2),
                         ingredient("sawblade", 1)
                 ),
@@ -499,17 +517,17 @@ public final class HbmAnvilRecipes {
                 2
         );
         addConstruction(
-                List.of(ingredient("tank_steel", 4), ingredient("pipe_steel", 3), ingredient("ingot_titanium", 12), ingredient(mc("copper_ingot"), 8)),
+                List.of(ingredient("tank_steel", 4), ingredient("pipe_steel", 3), ingotIngredient("titanium", 12), ingotIngredient("copper", 8, mc("copper_ingot"))),
                 blockItem("heater_oilburner", 1),
                 2
         );
         addConstruction(
-                List.of(ingredient("ingot_polymer", 4), ingredient(mc("copper_ingot"), 8), plateIngredient("steel", 8), ingredient("coil_tungsten", 8), ingredient("circuit", 1)),
+                List.of(ingotIngredient("polymer", 4), ingotIngredient("copper", 8, mc("copper_ingot")), plateIngredient("steel", 8), ingredient("coil_tungsten", 8), ingredient("circuit_basic", 1)),
                 blockItem("heater_electric", 1),
                 3
         );
         addConstruction(
-                List.of(ingredient("ingot_rubber", 4), ingredient(mc("copper_ingot"), 16), plateIngredient("steel", 16), ingredient("pipe_steel", 3)),
+                List.of(ingotIngredient("rubber", 4), ingotIngredient("copper", 16, mc("copper_ingot")), plateIngredient("steel", 16), ingredient("pipe_steel", 3)),
                 blockItem("heater_heatex", 1),
                 3
         );
@@ -517,7 +535,7 @@ public final class HbmAnvilRecipes {
                 List.of(
                         ingredient(mc("stone"), 8),
                         plateIngredient("steel", 2),
-                        ingredient("ingot_iron", 4, mc("iron_ingot"))
+                        ingotIngredient("iron", 4, mc("iron_ingot"))
                 ),
                 blockItem("machine_ashpit", 1),
                 2
@@ -557,7 +575,7 @@ public final class HbmAnvilRecipes {
                         ingredient(mc("stone_bricks"), 16),
                         tagIngredient(commonTag("ingots/iron"), 4, mc("iron_ingot")),
                         plateIngredient("steel", 16),
-                        ingredient(mc("copper_ingot"), 8),
+                        ingotIngredient("copper", 8, mc("copper_ingot")),
                         ingredient("steel_grate", 16)
                 ),
                 blockItem("furnace_steel", 1),
@@ -577,12 +595,12 @@ public final class HbmAnvilRecipes {
                 2
         );
         addConstruction(
-                List.of(ingredient("ingot_boron", 2), ingredient(mc("stick"), 2)),
+                List.of(ingotIngredient("boron", 2), ingredient(mc("stick"), 2)),
                 item("pile_rod_boron", 1),
                 2
         );
         addConstruction(
-                List.of(ingredient("ingot_boron", 2), ingredient("motor", 1), ingredient("circuit_vacuum_tube", 1)),
+                List.of(ingotIngredient("boron", 2), ingredient("motor", 1), ingredient("circuit_vacuum_tube", 1)),
                 item("pile_rod_detector", 1),
                 2
         );
@@ -649,22 +667,22 @@ public final class HbmAnvilRecipes {
         addStampFamily("desh", 3);
 
         addConstruction(
-                List.of(ingredient("stamp_iron_flat", 1), ingredient("ingot_gunmetal", 2)),
+                List.of(ingredient("stamp_iron_flat", 1), ingotIngredient("gunmetal", 2)),
                 item("stamp_9", 1),
                 2
         );
         addConstruction(
-                List.of(ingredient("stamp_iron_flat", 1), ingredient("ingot_gunmetal", 2)),
+                List.of(ingredient("stamp_iron_flat", 1), ingotIngredient("gunmetal", 2)),
                 item("stamp_50", 1),
                 2
         );
         addConstruction(
-                List.of(ingredient("stamp_desh_flat", 1), ingredient("ingot_weaponsteel", 4)),
+                List.of(ingredient("stamp_desh_flat", 1), ingotIngredient("weaponsteel", 4)),
                 item("stamp_desh_9", 1),
                 4
         );
         addConstruction(
-                List.of(ingredient("stamp_desh_flat", 1), ingredient("ingot_weaponsteel", 4)),
+                List.of(ingredient("stamp_desh_flat", 1), ingotIngredient("weaponsteel", 4)),
                 item("stamp_desh_50", 1),
                 4
         );
@@ -681,6 +699,17 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(plateIngredient(material, 4)),
                 foundryShapeStack(FoundryShape.SHELL, material, 1, HbmItems.SHELL.get()),
+                tier
+        );
+    }
+
+    private static void addPipeRecipe(String material, boolean usesPlate, int tier) {
+        Optional<AnvilIngredient> input = usesPlate
+                ? plateIngredient(material, 3)
+                : ingotIngredient(material, 3);
+        addConstruction(
+                List.of(input),
+                foundryShapeStack(FoundryShape.PIPE, material, 1, HbmItems.PIPE.get()),
                 tier
         );
     }
@@ -1093,7 +1122,7 @@ public final class HbmAnvilRecipes {
         if (!(HbmBlocks.RED_CABLE_BOX.get().asItem() instanceof PowerCableBoxBlockItem boxCable)) {
             return;
         }
-        Optional<AnvilIngredient> redCopper = ingredient("ingot_red_copper", 1);
+        Optional<AnvilIngredient> redCopper = ingotIngredient("red_copper", 1);
         Optional<AnvilIngredient> polymerPlate = plateIngredient("polymer", 1);
         Optional<ItemStack> redCopperOutput = stack(hbm("ingot_red_copper"), 1);
         Optional<ItemStack> polymerPlateOutput = stack(hbm("plate_polymer"), 1);
@@ -1209,6 +1238,14 @@ public final class HbmAnvilRecipes {
 
     private static Optional<AnvilIngredient> plateIngredient(String material, int count) {
         return tagIngredient(commonTag("plates/" + material), count, hbm("plate_" + material));
+    }
+
+    private static Optional<AnvilIngredient> ingotIngredient(String material, int count) {
+        return ingotIngredient(material, count, hbm("ingot_" + material));
+    }
+
+    private static Optional<AnvilIngredient> ingotIngredient(String material, int count, ResourceLocation displayItemId) {
+        return tagIngredient(commonTag("ingots/" + material), count, displayItemId);
     }
 
     private static Optional<AnvilIngredient> foundryShapeIngredient(FoundryShape shape, String materialName, int count, Item item) {

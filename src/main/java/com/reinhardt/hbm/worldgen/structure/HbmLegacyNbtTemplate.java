@@ -69,7 +69,9 @@ public final class HbmLegacyNbtTemplate {
     private static final Map<String, HbmLegacyNbtTemplate> CACHE = new ConcurrentHashMap<>();
     private static final Set<String> LOGGED_MISSING_BLOCKS = ConcurrentHashMap.newKeySet();
     private static final Map<String, String> LEGACY_ID_ALIASES = Map.of(
-            "reinhardtshbm:brick_concrete_slab", "reinhardtshbm:concrete_brick_slab"
+            "reinhardtshbm:brick_concrete_slab", "reinhardtshbm:concrete_brick_slab",
+            "reinhardtshbm:ore_coal_oil", "minecraft:coal_ore",
+            "reinhardtshbm:ore_coal_oil_burning", "minecraft:coal_ore"
     );
 
     private final String name;

@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_lead"
+                       "tag":  "c:storage_blocks/lead"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_lead",

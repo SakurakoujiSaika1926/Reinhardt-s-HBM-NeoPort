@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_coltan"
+      "tag": "c:storage_blocks/coltan"
     }
   ],
   "result": {

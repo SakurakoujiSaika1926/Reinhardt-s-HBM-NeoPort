@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_thorium"
+                       "tag":  "c:storage_blocks/thorium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_thorium",

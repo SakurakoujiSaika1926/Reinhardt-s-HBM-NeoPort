@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.registry;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.integration.createbigcannons.HbmCreateBigCannonsCompat;
 import com.reinhardt.hbm.item.BedrockOreFragmentItem;
 import com.reinhardt.hbm.item.BedrockOreItem;
 import com.reinhardt.hbm.item.BlueprintItem;
@@ -463,6 +464,23 @@ public final class HbmCreativeTabs {
                             } else {
                                 output.accept(item);
                             }
+                        }
+                    })
+                    .build()
+    );
+
+    public static final Supplier<CreativeModeTab> CREATE_ARTILLERY_INTEGRATION = TABS.register(
+            "create_artillery_integration",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("creative_tab.reinhardtshbm.create_artillery_integration"))
+                    .icon(() -> {
+                        ItemStack mustardShell = HbmCreateBigCannonsCompat.mustardGasFluidShellStack();
+                        return mustardShell.isEmpty() ? new ItemStack(HbmBlocks.TURRET_ARTY.get()) : mustardShell;
+                    })
+                    .displayItems((parameters, output) -> {
+                        ItemStack mustardShell = HbmCreateBigCannonsCompat.mustardGasFluidShellStack(parameters.holders());
+                        if (!mustardShell.isEmpty()) {
+                            output.accept(mustardShell);
                         }
                     })
                     .build()

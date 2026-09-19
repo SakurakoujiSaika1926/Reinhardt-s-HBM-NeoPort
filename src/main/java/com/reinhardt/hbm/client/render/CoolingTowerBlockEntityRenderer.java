@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class CoolingTowerBlockEntityRenderer implements BlockEntityRenderer<CoolingTowerBlockEntity> {
+public class CoolingTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CoolingTowerBlockEntity> {
     private static final ModelResourceLocation SMALL_WORLD = MachineModelRenderer.standalone("block/machine_tower_small_world");
     private static final ModelResourceLocation LARGE_WORLD = MachineModelRenderer.standalone("block/machine_tower_large_world");
 

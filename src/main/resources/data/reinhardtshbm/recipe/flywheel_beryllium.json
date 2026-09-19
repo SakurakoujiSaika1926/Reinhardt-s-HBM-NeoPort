@@ -8,29 +8,23 @@
   ],
   "key": {
     "B": {
-      "item": "reinhardtshbm:block_beryllium"
+      "tag": "c:storage_blocks/beryllium"
     },
     "I": {
-      "type": "neoforge:components",
-      "items": "reinhardtshbm:plate_cast",
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 2600,
-          "material": "iron"
-        }
-      }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:plate_cast"
+      ],
+      "shape": "plate_cast",
+      "material": "iron"
     },
     "T": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:pipe"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 33,
-          "material": "dura_steel"
-        }
-      }
+      "shape": "pipe",
+      "material": "dura_steel"
     }
   },
   "result": {

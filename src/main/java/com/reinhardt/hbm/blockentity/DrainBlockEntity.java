@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.MustardGasBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -18,6 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -32,6 +34,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class DrainBlockEntity extends BlockEntity implements FluidCopiable {
     private static final int CAPACITY = 2_000;
+    private static final String MUSTARD_GAS_FLUID = "mustardgas";
+    private static final double LEGACY_DRAIN_PARTICLE_OFFSET = 2.5D;
+    private static final double LEGACY_DRAIN_BLOCK_OUTLET_OFFSET = 3.0D;
     private final HbmFluidTank tank = new HbmFluidTank(CAPACITY);
 
     public DrainBlockEntity(BlockPos pos, BlockState blockState) {
@@ -56,7 +61,10 @@ public class DrainBlockEntity extends BlockEntity implements FluidCopiable {
         if (spilled.isEmpty()) {
             return;
         }
-        HbmPollution.polluteFluid(level, pos, fluid, HbmPollution.ReleaseType.SPILL, spilled.amount());
+        if (!MUSTARD_GAS_FLUID.equals(fluid.name())) {
+            HbmPollution.polluteFluid(level, pos, fluid, HbmPollution.ReleaseType.SPILL, spilled.amount());
+        }
+        drain.tryReleaseMustardGas(level, state, fluid);
         drain.tryPlaceOilSpill(level, state, spilled.amount(), fluid);
         drain.sync();
     }
@@ -130,13 +138,15 @@ public class DrainBlockEntity extends BlockEntity implements FluidCopiable {
         double red = ((color >> 16) & 0xFF) / 255.0D;
         double green = ((color >> 8) & 0xFF) / 255.0D;
         double blue = (color & 0xFF) / 255.0D;
-        double x = pos.getX() + 0.5D - facing.getStepX() * 2.5D;
+        double x = pos.getX() + 0.5D - facing.getStepX() * LEGACY_DRAIN_PARTICLE_OFFSET;
         double y = pos.getY() + 0.5D;
-        double z = pos.getZ() + 0.5D - facing.getStepZ() * 2.5D;
-        level.addParticle(fluid.hasTrait(HbmFluidTrait.GASEOUS)
-                        ? HbmParticleTypes.DRAIN_TOWER.get()
-                        : HbmParticleTypes.DRAIN_SPLASH.get(),
-                x, y, z, red, green, blue);
+        double z = pos.getZ() + 0.5D - facing.getStepZ() * LEGACY_DRAIN_PARTICLE_OFFSET;
+        SimpleParticleType particle = !fluid.hasTrait(HbmFluidTrait.GASEOUS)
+                ? HbmParticleTypes.DRAIN_SPLASH.get()
+                : MUSTARD_GAS_FLUID.equals(fluid.name())
+                ? HbmParticleTypes.MUSTARD_GAS_DRAIN.get()
+                : HbmParticleTypes.DRAIN_TOWER.get();
+        level.addParticle(particle, x, y, z, red, green, blue);
     }
 
     private void tryPlaceOilSpill(Level level, BlockState state, int amount, HbmFluidDefinition fluid) {
@@ -167,6 +177,43 @@ public class DrainBlockEntity extends BlockEntity implements FluidCopiable {
                 && HbmBlocks.OIL_SPILL.get().defaultBlockState().canSurvive(level, target)) {
             level.setBlock(target, HbmBlocks.OIL_SPILL.get().defaultBlockState(), Block.UPDATE_ALL);
         }
+    }
+
+    private void tryReleaseMustardGas(Level level, BlockState state, HbmFluidDefinition fluid) {
+        if (!MUSTARD_GAS_FLUID.equals(fluid.name())) {
+            return;
+        }
+        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        Vec3 outlet = Vec3.atCenterOf(this.worldPosition).subtract(
+                facing.getStepX() * LEGACY_DRAIN_BLOCK_OUTLET_OFFSET,
+                0.0D,
+                facing.getStepZ() * LEGACY_DRAIN_BLOCK_OUTLET_OFFSET
+        );
+        BlockPos target = BlockPos.containing(outlet);
+        if (!level.getWorldBorder().isWithinBounds(target) || !level.hasChunkAt(target)) {
+            return;
+        }
+
+        BlockState targetState = level.getBlockState(target);
+        if (targetState.is(HbmBlocks.MUSTARD_GAS.get())) {
+            if (targetState.getValue(MustardGasBlock.AGE) != 0) {
+                level.setBlock(target, targetState.setValue(MustardGasBlock.AGE, 0), Block.UPDATE_CLIENTS);
+            }
+            pulseMustardGasSource(level, target);
+            return;
+        }
+        if (!targetState.getFluidState().isEmpty() || !targetState.canBeReplaced()) {
+            return;
+        }
+        level.setBlock(target, HbmBlocks.MUSTARD_GAS.get().defaultBlockState().setValue(MustardGasBlock.AGE, 0), Block.UPDATE_ALL);
+        pulseMustardGasSource(level, target);
+    }
+
+    private static void pulseMustardGasSource(Level level, BlockPos target) {
+        if (level.getGameTime() % MustardGasBlock.TICK_INTERVAL != 0L) {
+            return;
+        }
+        MustardGasBlock.applyCloudExposure(level, target);
     }
 
     private final class DrainFluidHandler implements IFluidHandler {

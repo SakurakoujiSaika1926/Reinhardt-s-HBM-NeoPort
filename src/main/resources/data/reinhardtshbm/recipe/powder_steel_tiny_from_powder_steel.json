@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_steel"
+      "tag": "c:dusts/steel"
     }
   ],
   "result": {

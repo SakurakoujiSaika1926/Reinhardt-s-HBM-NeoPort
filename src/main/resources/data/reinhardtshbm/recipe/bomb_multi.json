@@ -1,21 +1,39 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "pattern": ["AAD", "CHF", "AAD"],
+  "pattern": [
+    "AAD",
+    "CHF",
+    "AAD"
+  ],
   "key": {
     "A": {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:wire_fine"],
-      "components": { "minecraft:custom_data": { "material_id": 1300, "material": "aluminium" } }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "aluminium"
     },
-    "C": { "item": "reinhardtshbm:circuit_basic" },
+    "C": {
+      "item": "reinhardtshbm:circuit_basic"
+    },
     "H": {
-      "type": "neoforge:components",
-      "items": ["reinhardtshbm:shell"],
-      "components": { "minecraft:custom_data": { "material_id": 1300, "material": "aluminium" } }
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:shell"
+      ],
+      "shape": "shell",
+      "material": "aluminium"
     },
-    "F": { "item": "reinhardtshbm:fins_quad_titanium" },
-    "D": { "tag": "c:dyes/white" }
+    "F": {
+      "item": "reinhardtshbm:fins_quad_titanium"
+    },
+    "D": {
+      "tag": "c:dyes/white"
+    }
   },
-  "result": { "id": "reinhardtshbm:bomb_multi" }
+  "result": {
+    "id": "reinhardtshbm:bomb_multi"
+  }
 }

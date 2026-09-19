@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_polonium"
+                       "tag":  "c:storage_blocks/polonium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_polonium",

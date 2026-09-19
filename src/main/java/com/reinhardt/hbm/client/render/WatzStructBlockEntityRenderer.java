@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.reinhardt.hbm.block.LegacyVariantBlock;
 import com.reinhardt.hbm.blockentity.WatzStructBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.Minecraft;
@@ -50,15 +51,15 @@ public class WatzStructBlockEntityRenderer implements BlockEntityRenderer<WatzSt
             draw(HbmBlocks.WATZ_COOLER.get(), -1, y, -2, poseStack, bufferSource, packedOverlay);
 
             for (int j = -1; j < 2; j++) {
-                draw(HbmBlocks.WATZ_END.get(), 3, y, j, poseStack, bufferSource, packedOverlay);
-                draw(HbmBlocks.WATZ_END.get(), j, y, 3, poseStack, bufferSource, packedOverlay);
-                draw(HbmBlocks.WATZ_END.get(), -3, y, j, poseStack, bufferSource, packedOverlay);
-                draw(HbmBlocks.WATZ_END.get(), j, y, -3, poseStack, bufferSource, packedOverlay);
+                draw(boltedWatzEndState(), 3, y, j, poseStack, bufferSource, packedOverlay);
+                draw(boltedWatzEndState(), j, y, 3, poseStack, bufferSource, packedOverlay);
+                draw(boltedWatzEndState(), -3, y, j, poseStack, bufferSource, packedOverlay);
+                draw(boltedWatzEndState(), j, y, -3, poseStack, bufferSource, packedOverlay);
             }
-            draw(HbmBlocks.WATZ_END.get(), 2, y, 2, poseStack, bufferSource, packedOverlay);
-            draw(HbmBlocks.WATZ_END.get(), 2, y, -2, poseStack, bufferSource, packedOverlay);
-            draw(HbmBlocks.WATZ_END.get(), -2, y, 2, poseStack, bufferSource, packedOverlay);
-            draw(HbmBlocks.WATZ_END.get(), -2, y, -2, poseStack, bufferSource, packedOverlay);
+            draw(boltedWatzEndState(), 2, y, 2, poseStack, bufferSource, packedOverlay);
+            draw(boltedWatzEndState(), 2, y, -2, poseStack, bufferSource, packedOverlay);
+            draw(boltedWatzEndState(), -2, y, 2, poseStack, bufferSource, packedOverlay);
+            draw(boltedWatzEndState(), -2, y, -2, poseStack, bufferSource, packedOverlay);
         }
     }
 
@@ -75,12 +76,22 @@ public class WatzStructBlockEntityRenderer implements BlockEntityRenderer<WatzSt
     }
 
     private static void draw(Block block, int x, int y, int z, PoseStack poseStack, MultiBufferSource bufferSource, int packedOverlay) {
-        BlockState state = block.defaultBlockState();
+        draw(block.defaultBlockState(), x, y, z, poseStack, bufferSource, packedOverlay);
+    }
+
+    private static void draw(BlockState state, int x, int y, int z, PoseStack poseStack, MultiBufferSource bufferSource, int packedOverlay) {
         BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(state);
         poseStack.pushPose();
         poseStack.translate(x + SMALL_BLOCK_OFFSET, y + SMALL_BLOCK_OFFSET, z + SMALL_BLOCK_OFFSET);
         poseStack.scale((float) SMALL_BLOCK_SIZE, (float) SMALL_BLOCK_SIZE, (float) SMALL_BLOCK_SIZE);
         MachineModelRenderer.renderUnculledTintedTranslucent(model, poseStack, bufferSource, state, LightTexture.FULL_BRIGHT, packedOverlay, ALPHA_75);
         poseStack.popPose();
+    }
+
+    private static BlockState boltedWatzEndState() {
+        BlockState state = HbmBlocks.WATZ_END.get().defaultBlockState();
+        return state.hasProperty(LegacyVariantBlock.VARIANT)
+                ? state.setValue(LegacyVariantBlock.VARIANT, 1)
+                : state;
     }
 }

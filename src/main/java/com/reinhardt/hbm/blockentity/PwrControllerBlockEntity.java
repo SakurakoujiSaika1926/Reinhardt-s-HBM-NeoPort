@@ -252,7 +252,7 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
     }
 
     private static boolean isValidPwrCore(Block block) {
-        return block == HbmBlocks.PWR_FUELROD.get()
+        return isFuelRod(block)
                 || block == HbmBlocks.PWR_CONTROL.get()
                 || block == HbmBlocks.PWR_CHANNEL.get()
                 || block == HbmBlocks.PWR_HEATEX.get()
@@ -283,7 +283,7 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         for (Map.Entry<BlockPos, Block> entry : partMap.entrySet()) {
             Block block = entry.getValue();
             assembledParts.add(entry.getKey());
-            if (block == HbmBlocks.PWR_FUELROD.get()) rodCount++;
+            if (isFuelRod(block)) rodCount++;
             if (block == HbmBlocks.PWR_HEATEX.get()) heatexCount++;
             if (block == HbmBlocks.PWR_CHANNEL.get()) channelCount++;
             if (block == HbmBlocks.PWR_HEATSINK.get()) heatsinkCount++;
@@ -300,7 +300,7 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
                     Block at = partMap.get(check);
                     if (at == null || at == HbmBlocks.PWR_CASING.get()) break;
                     if (at == HbmBlocks.PWR_CONTROL.get()) controlled = true;
-                    if (at == HbmBlocks.PWR_FUELROD.get()) {
+                    if (isFuelRod(at)) {
                         if (controlled) controlledDouble++; else connectionsDouble++;
                         break;
                     }
@@ -315,6 +315,11 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         connectionsControlled = controlledDouble / 2;
         heatsinkCount = Math.min(heatsinkCount, 80);
         coreHeatCapacity = CORE_HEAT_CAPACITY_BASE + heatsinkCount * (CORE_HEAT_CAPACITY_BASE / 20L);
+    }
+
+    private static boolean isFuelRod(Block block) {
+        return block == HbmBlocks.PWR_FUELROD.get()
+                || block == HbmBlocks.PWR_FUEL.get();
     }
 
     private void loadFuel() {

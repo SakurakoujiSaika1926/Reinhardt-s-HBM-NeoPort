@@ -17,10 +17,10 @@
       }
     },
     {
-      "item": "reinhardtshbm:powder_spark_mix"
+      "tag": "c:dusts/spark_mix"
     },
     {
-      "item": "reinhardtshbm:powder_magic"
+      "tag": "c:dusts/magic"
     }
   ],
   "result": {

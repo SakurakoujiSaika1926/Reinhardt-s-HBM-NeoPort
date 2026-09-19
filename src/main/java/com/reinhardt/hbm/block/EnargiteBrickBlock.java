@@ -26,7 +26,7 @@ public final class EnargiteBrickBlock extends Block {
         }
         if (kind == Kind.RADIOACTIVE) {
             HbmLivingRadiation radiation = HbmLivingRadiation.get(living);
-            radiation.addRadiation(0.45F);
+            radiation.addRadiationWithReadout(0.45F);
             HbmLivingRadiation.set(living, radiation);
         } else {
             living.addEffect(new MobEffectInstance(HbmMobEffects.TAINT, 15 * 20, 2));

@@ -273,7 +273,7 @@ public final class LegacyUfoEntity extends Monster {
             if (entity instanceof LivingEntity living
                     && !com.reinhardt.hbm.radiation.RadiationEvents.isLegacyRadiationImmune(living)) {
                 HbmLivingRadiation radiation = HbmLivingRadiation.get(living);
-                radiation.addRadiation(5.0F);
+                radiation.addRadiationWithReadout(5.0F);
                 HbmLivingRadiation.set(living, radiation);
             }
         }

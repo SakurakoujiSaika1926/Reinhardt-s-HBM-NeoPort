@@ -6,16 +6,12 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 2200,
-            "material": "titanium"
-          }
-        }
+        "shape": "shell",
+        "material": "titanium"
       },
       "count": 3
     },
@@ -53,7 +49,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:ingot_uranium_fuel"
+        "tag": "c:ingots/uranium_fuel"
       },
       "count": 6
     },

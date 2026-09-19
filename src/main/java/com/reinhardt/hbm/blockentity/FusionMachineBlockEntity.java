@@ -11,6 +11,7 @@ import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.recipe.FusionBreederFluidRecipe;
+import com.reinhardt.hbm.recipe.FusionBreederItemRecipe;
 import com.reinhardt.hbm.menu.FusionMachineMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
@@ -831,8 +832,11 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     private boolean canProcessBreederSolid(Level level) {
         ItemStack input = this.items.get(BREEDER_INPUT_SLOT);
-        if (input.is(HbmItems.METEORITE_SWORD_IRRADIATED.get())) {
-            return canMergeOutput(BREEDER_OUTPUT_SLOT, new ItemStack(HbmItems.METEORITE_SWORD_FUSED.get()));
+        RecipeHolder<FusionBreederItemRecipe> fusionItemHolder = fusionBreederItemRecipe(level, input);
+        if (fusionItemHolder != null) {
+            FusionBreederItemRecipe recipe = fusionItemHolder.value();
+            return this.neutronEnergy >= recipe.flux()
+                    && canMergeOutput(BREEDER_OUTPUT_SLOT, recipe.result());
         }
         RecipeHolder<RbmkOutgasserRecipe> holder = outgasserRecipe(level, input);
         if (holder == null) {
@@ -894,12 +898,14 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     private void processBreederSolid(Level level) {
         ItemStack input = this.items.get(BREEDER_INPUT_SLOT);
-        if (input.is(HbmItems.METEORITE_SWORD_IRRADIATED.get())) {
+        RecipeHolder<FusionBreederItemRecipe> fusionItemHolder = fusionBreederItemRecipe(level, input);
+        if (fusionItemHolder != null) {
+            FusionBreederItemRecipe recipe = fusionItemHolder.value();
             input.shrink(1);
             if (input.isEmpty()) {
                 this.items.set(BREEDER_INPUT_SLOT, ItemStack.EMPTY);
             }
-            mergeOutput(BREEDER_OUTPUT_SLOT, new ItemStack(HbmItems.METEORITE_SWORD_FUSED.get()));
+            mergeOutput(BREEDER_OUTPUT_SLOT, recipe.result().copy());
             return;
         }
         RecipeHolder<RbmkOutgasserRecipe> holder = outgasserRecipe(level, input);
@@ -935,6 +941,19 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
             return null;
         }
         for (RecipeHolder<RbmkOutgasserRecipe> holder : level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.RBMK_OUTGASSER.get())) {
+            if (holder.value().ingredient().test(input)) {
+                return holder;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private RecipeHolder<FusionBreederItemRecipe> fusionBreederItemRecipe(Level level, ItemStack input) {
+        if (input.isEmpty()) {
+            return null;
+        }
+        for (RecipeHolder<FusionBreederItemRecipe> holder : level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.FUSION_BREEDER_ITEM.get())) {
             if (holder.value().ingredient().test(input)) {
                 return holder;
             }
@@ -1261,7 +1280,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     private boolean canAcceptBreederInput(ItemStack stack) {
         return !stack.isEmpty()
                 && this.level != null
-                && (stack.is(HbmItems.METEORITE_SWORD_IRRADIATED.get())
+                && (fusionBreederItemRecipe(this.level, stack) != null
                 || outgasserRecipe(this.level, stack) != null);
     }
 

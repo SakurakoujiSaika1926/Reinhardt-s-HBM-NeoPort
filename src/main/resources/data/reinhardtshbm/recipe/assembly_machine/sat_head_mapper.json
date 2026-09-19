@@ -6,16 +6,12 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:shell"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 30,
-            "material": "steel"
-          }
-        }
+        "shape": "shell",
+        "material": "steel"
       },
       "count": 3
     },
@@ -33,7 +29,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:glass_quartz"
+        "tag": "c:glass_blocks/quartz"
       },
       "count": 8
     }

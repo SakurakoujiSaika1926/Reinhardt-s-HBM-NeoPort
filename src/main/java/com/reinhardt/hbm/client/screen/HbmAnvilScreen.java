@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.search.JechSearchCompat;
 import com.reinhardt.hbm.menu.HbmAnvilMenu;
 import com.reinhardt.hbm.recipe.anvil.AnvilConstructionRecipe;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/processing/gui_anvil.png");
@@ -50,7 +50,7 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
         this.search.setTextColor(0xFFFFFF);
         this.search.setTextColorUneditable(0xFFFFFF);
         this.search.setBordered(false);
-        this.search.setMaxLength(25);
+        this.search.setMaxLength(64);
         this.search.setResponder(this::regenerateRecipes);
         this.search.setValue(previousQuery);
         this.search.setFocused(true);
@@ -233,7 +233,7 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
 
     private void regenerateRecipes(String query) {
         this.recipes.clear();
-        String normalized = query.toLowerCase(Locale.ROOT).strip();
+        String normalized = JechSearchCompat.normalizeQuery(query);
         for (AnvilConstructionRecipe recipe : this.originRecipes) {
             if (normalized.isBlank() || matchesSearch(recipe, normalized)) {
                 this.recipes.add(recipe);
@@ -264,12 +264,12 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
         if (stack.isEmpty()) {
             return false;
         }
-        if (stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+        if (JechSearchCompat.contains(stack.getHoverName().getString(), query)) {
             return true;
         }
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return id.toString().toLowerCase(Locale.ROOT).contains(query)
-                || id.getPath().toLowerCase(Locale.ROOT).contains(query);
+        return JechSearchCompat.contains(id.toString(), query)
+                || JechSearchCompat.contains(id.getPath(), query);
     }
 
     private int recipeAt(int mouseX, int mouseY) {

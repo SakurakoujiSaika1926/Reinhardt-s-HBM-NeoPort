@@ -6,7 +6,7 @@
   "input_items": [
     {
       "ingredient": {
-        "item": "reinhardtshbm:powder_desh_mix"
+        "tag": "c:dusts/desh_mix"
       },
       "count": 1
     }

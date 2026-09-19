@@ -68,10 +68,7 @@ public final class FoundryMaterialShapes {
     private static final Set<String> STOCK_MATERIALS = Set.of(
             "wood", "gunmetal", "weaponsteel", "saturnite", "desh", "polymer", "bakelite", "pc", "pvc"
     );
-    private static final Set<String> GRIP_MATERIALS = Set.of(
-            "wood", "bone", "steel", "dura_steel", "desh", "gunmetal", "weaponsteel",
-            "saturnite", "polymer", "bakelite", "rubber", "pc", "pvc"
-    );
+    private static final Set<String> GRIP_MATERIALS = Set.of();
 
     private FoundryMaterialShapes() {
     }

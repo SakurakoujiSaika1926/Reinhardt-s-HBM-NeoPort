@@ -11,16 +11,12 @@
       "tag": "c:plates/titanium"
     },
     "C": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:plate_cast"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 2200,
-          "material": "titanium"
-        }
-      }
+      "shape": "plate_cast",
+      "material": "titanium"
     },
     "R": {
       "tag": "c:ingots/rubber"

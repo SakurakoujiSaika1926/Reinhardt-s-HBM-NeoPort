@@ -1,9 +1,9 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
-import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.radiation.HbmLivingHazards;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
+import com.reinhardt.hbm.radiation.RadiationShielding;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,7 +39,7 @@ public class MeltdownGasBlock extends HbmGasBlock {
             level.setBlock(target, HbmBlocks.GAS_RADON_DENSE.get().defaultBlockState(), 3);
         }
         if (level.canSeeSky(pos)) {
-            ChunkRadiationData.get(level).incrementRadiation(pos, 5.0D, 5_000.0D);
+            RadiationShielding.incrementContainedRadiation(level, pos, 5.0D, 5_000.0D);
         }
         if (random.nextInt(350) == 0) {
             level.removeBlock(pos, false);
@@ -54,10 +54,11 @@ public class MeltdownGasBlock extends HbmGasBlock {
         if (level.isClientSide || !(entity instanceof LivingEntity living)) {
             return;
         }
+        float dose = RadiationShielding.attenuateDirectDose((ServerLevel) level, pos, living, 0.5F);
         HbmLivingRadiation data = HbmLivingRadiation.get(living);
-        data.addEnvironmentRadiation(0.5F);
+        data.addEnvironmentRadiation(dose);
         if (!(living instanceof Player player && player.isCreative())) {
-            data.addRadiation(0.5F);
+            data.addRadiation(dose);
         }
         if (!HbmArmorProtection.hasHeadProtection(living, HbmArmorProtection.HazardClass.PARTICLE_FINE, 1)) {
             HbmLivingHazards hazards = HbmLivingHazards.get(living);

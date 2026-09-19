@@ -1,4 +1,4 @@
-﻿{
+{
   "neoforge:conditions": [
     {
       "type": "neoforge:not",
@@ -16,16 +16,12 @@
   ],
   "key": {
     "C": {
-      "type": "neoforge:components",
+      "type": "reinhardtshbm:foundry_material",
       "items": [
         "reinhardtshbm:shell"
       ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 30,
-          "material": "steel"
-        }
-      }
+      "shape": "shell",
+      "material": "steel"
     },
     "R": {
       "item": "reinhardtshbm:rbmk_blank"

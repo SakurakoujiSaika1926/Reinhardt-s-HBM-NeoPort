@@ -2,7 +2,7 @@
   "type": "reinhardtshbm:ammo_press",
   "group": "ammo_press.nuke_tots",
   "input": [
-    {}, { "ingredient": { "item": "reinhardtshbm:nugget_pu239" }, "count": 2 }, {},
+    {}, { "ingredient": { "tag": "c:nuggets/pu239" }, "count": 2 }, {},
     {}, { "ingredient": { "item": "reinhardtshbm:ball_tatb" }, "count": 2 }, {},
     {}, { "ingredient": { "tag": "c:plates/steel" }, "count": 4 }, {}
   ],

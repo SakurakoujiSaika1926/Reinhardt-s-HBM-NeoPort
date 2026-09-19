@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:block_yellowcake"
+      "tag": "c:storage_blocks/yellowcake"
     }
   ],
   "result": {

@@ -1,39 +1,35 @@
-﻿{
-    "type":  "reinhardtshbm:arc_welder",
-    "group":  "arc_welder.missile_parts",
-    "duration":  60,
-    "consumption":  1000,
-    "inputs":  [
-                   {
-                       "ingredient":  {
-                                          "tag":  "c:plates/steel"
-                                      },
-                       "count":  4
-                   },
-                   {
-                       "ingredient":  {
-                                          "type":  "neoforge:components",
-                                          "items":  [
-                                                        "reinhardtshbm:wire_fine"
-                                                    ],
-                                          "components":  {
-                                                             "minecraft:custom_data":  {
-                                                                                           "material_id":  1300,
-                                                                                           "material":  "aluminium"
-                                                                                       }
-                                                         }
-                                      },
-                       "count":  4
-                   },
-                   {
-                       "ingredient":  {
-                                          "tag":  "c:plates/copper"
-                                      },
-                       "count":  4
-                   }
-               ],
-    "result":  {
-                   "id":  "reinhardtshbm:thruster_small",
-                   "count":  1
-               }
+{
+  "type": "reinhardtshbm:arc_welder",
+  "group": "arc_welder.missile_parts",
+  "duration": 60,
+  "consumption": 1000,
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "aluminium"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/copper"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:thruster_small",
+    "count": 1
+  }
 }

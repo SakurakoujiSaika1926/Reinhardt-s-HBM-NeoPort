@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class CatalyticReformerBlockEntityRenderer implements BlockEntityRenderer<CatalyticReformerBlockEntity> {
+public class CatalyticReformerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CatalyticReformerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_catalytic_reformer");
 
     public CatalyticReformerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

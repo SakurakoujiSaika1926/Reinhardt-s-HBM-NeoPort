@@ -3,7 +3,7 @@
     "group":  "press.circuit",
     "stamp":  "circuit",
     "ingredient":  {
-                       "item":  "reinhardtshbm:billet_silicon"
+                       "tag":  "c:silicon"
                    },
     "result":  {
                    "id":  "reinhardtshbm:circuit_silicon"

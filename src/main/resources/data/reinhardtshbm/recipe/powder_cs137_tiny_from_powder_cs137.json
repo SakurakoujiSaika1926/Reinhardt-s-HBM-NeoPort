@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "reinhardtshbm:powder_cs137"
+      "tag": "c:dusts/cs137"
     }
   ],
   "result": {

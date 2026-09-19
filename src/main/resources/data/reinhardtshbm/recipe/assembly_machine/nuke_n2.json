@@ -1,0 +1,48 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.n2mine",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:shell"
+        ],
+        "shape": "shell",
+        "material": "steel"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "magnetized_tungsten"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/green"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuke_n2"
+  },
+  "blueprint_pools": [
+    "528.controller"
+  ]
+}

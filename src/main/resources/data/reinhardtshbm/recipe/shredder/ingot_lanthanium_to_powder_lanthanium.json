@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:ingot_lanthanium"
+                       "tag":  "c:ingots/lanthanium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_lanthanium"

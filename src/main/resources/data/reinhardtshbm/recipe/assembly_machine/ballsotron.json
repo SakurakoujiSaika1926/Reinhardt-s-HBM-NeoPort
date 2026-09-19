@@ -6,24 +6,52 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:plate_welded"],
-        "components": { "minecraft:custom_data": { "material_id": 2200, "material": "titanium" } }
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:plate_welded"
+        ],
+        "shape": "plate_welded",
+        "material": "titanium"
       },
       "count": 32
     },
-    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 64 },
-    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 64 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:wire_dense"],
-        "components": { "minecraft:custom_data": { "material_id": 7900, "material": "gold" } }
+        "tag": "c:ingots/rubber"
       },
       "count": 64
     },
-    { "ingredient": { "item": "reinhardtshbm:block_u238" }, "count": 10 },
-    { "ingredient": { "item": "reinhardtshbm:mech_key" }, "count": 1 }
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_dense"
+        ],
+        "shape": "wire_dense",
+        "material": "gold"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/u238"
+      },
+      "count": 10
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:mech_key"
+      },
+      "count": 1
+    }
   ],
-  "result": { "id": "reinhardtshbm:spawn_worm" }
+  "result": {
+    "id": "reinhardtshbm:spawn_worm"
+  }
 }

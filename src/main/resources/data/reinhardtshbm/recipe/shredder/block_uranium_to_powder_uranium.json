@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:block_uranium"
+                       "tag":  "c:storage_blocks/uranium"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_uranium",

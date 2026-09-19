@@ -1,9 +1,9 @@
-﻿{
+{
     "type":  "minecraft:crafting_shapeless",
     "category":  "misc",
     "ingredients":  [
                         {
-                            "item":  "reinhardtshbm:block_combine_steel"
+                            "tag":  "c:storage_blocks/combine_steel"
                         }
                     ],
     "result":  {

@@ -201,7 +201,7 @@ public class StorageCrateUpgradeRecipe extends CustomRecipe {
                 }
                 case TUNGSTEN -> {
                     ingredients.add(Ingredient.of(HbmBlocks.CRATE_STEEL.asItem()));
-                    ingredients.add(Ingredient.of(item("block_tungsten")));
+                    ingredients.add(Ingredient.of(tag("c:storage_blocks/tungsten")));
                     ingredients.add(Ingredient.of(com.reinhardt.hbm.registry.HbmItems.PLATE_CAST.get()));
                 }
                 case MASS_STORAGE -> {
@@ -263,7 +263,7 @@ public class StorageCrateUpgradeRecipe extends CustomRecipe {
         }
 
         private static boolean isTungstenBlock(CraftingInput input, int x, int y) {
-            return is(input, x, y, item("block_tungsten"));
+            return isTag(input, x, y, "c:storage_blocks/tungsten");
         }
 
         private static boolean isCopperCastPlate(CraftingInput input, int x, int y) {

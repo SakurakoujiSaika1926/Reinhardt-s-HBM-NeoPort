@@ -3,7 +3,7 @@
   "category": "misc",
   "pattern": ["MMM", "DCD", "MMM"],
   "key": {
-    "M": { "item": "reinhardtshbm:ingot_meteorite" },
+    "M": { "tag": "c:ingots/meteorite" },
     "D": { "tag": "c:ingots/dineutronium" },
     "C": { "item": "reinhardtshbm:coin_worm" }
   },

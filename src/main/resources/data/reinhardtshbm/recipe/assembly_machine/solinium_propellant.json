@@ -1,0 +1,46 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.soliniumcharge",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/high_explosive"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:neutron_reflector"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:plate_polymer"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "type": "reinhardtshbm:foundry_material",
+        "items": [
+          "reinhardtshbm:wire_fine"
+        ],
+        "shape": "wire",
+        "material": "tungsten"
+      },
+      "count": 6
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:biomass_compressed"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:solinium_propellant"
+  }
+}

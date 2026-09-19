@@ -1,9 +1,9 @@
-﻿{
+{
     "type":  "minecraft:crafting_shapeless",
     "category":  "misc",
     "ingredients":  [
                         {
-                            "item":  "reinhardtshbm:block_advanced_alloy"
+                            "tag":  "c:storage_blocks/advanced_alloy"
                         }
                     ],
     "result":  {

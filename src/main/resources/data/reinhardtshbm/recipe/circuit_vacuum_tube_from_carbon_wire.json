@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "G",
+    "W",
+    "I"
+  ],
+  "key": {
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "W": {
+      "type": "reinhardtshbm:foundry_material",
+      "items": [
+        "reinhardtshbm:wire_fine"
+      ],
+      "shape": "wire",
+      "material": "carbon"
+    },
+    "I": {
+      "tag": "c:plates/polymer"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:circuit_vacuum_tube"
+  }
+}

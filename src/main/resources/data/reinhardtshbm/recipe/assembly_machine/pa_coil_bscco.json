@@ -6,16 +6,12 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:foundry_material",
         "items": [
           "reinhardtshbm:wire_dense"
         ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 48,
-            "material": "bscco"
-          }
-        }
+        "shape": "wire_dense",
+        "material": "bscco"
       },
       "count": 64
     },

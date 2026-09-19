@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class CatalyticCrackerBlockEntityRenderer implements BlockEntityRenderer<CatalyticCrackerBlockEntity> {
+public class CatalyticCrackerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CatalyticCrackerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_catalytic_cracker");
 
     public CatalyticCrackerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {

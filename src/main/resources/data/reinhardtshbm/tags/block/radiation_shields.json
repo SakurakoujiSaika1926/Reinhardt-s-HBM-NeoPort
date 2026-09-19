@@ -1,0 +1,28 @@
+{
+  "replace": false,
+  "values": [
+    "#c:storage_blocks/lead",
+    "reinhardtshbm:block_lead",
+    "reinhardtshbm:glass_lead",
+    "reinhardtshbm:reinforced_stone",
+    "reinhardtshbm:reinforced_stone_stairs",
+    "reinhardtshbm:reinforced_brick",
+    "reinhardtshbm:reinforced_brick_stairs",
+    "reinhardtshbm:reinforced_ducrete",
+    "reinhardtshbm:reinforced_glass",
+    "reinhardtshbm:reinforced_glass_pane",
+    "reinhardtshbm:reinforced_laminate",
+    "reinhardtshbm:reinforced_laminate_pane",
+    "reinhardtshbm:concrete_super",
+    "reinhardtshbm:concrete_super_broken",
+    "reinhardtshbm:cmb_brick",
+    "reinhardtshbm:cmb_brick_reinforced",
+    "reinhardtshbm:cmb_brick_reinforced_stairs",
+    "reinhardtshbm:ducrete",
+    "reinhardtshbm:ducrete_smooth",
+    "reinhardtshbm:ducrete_stairs",
+    "reinhardtshbm:ducrete_smooth_stairs",
+    "reinhardtshbm:brick_ducrete",
+    "reinhardtshbm:brick_ducrete_stairs"
+  ]
+}

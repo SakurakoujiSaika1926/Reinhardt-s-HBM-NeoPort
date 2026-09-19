@@ -1,4 +1,4 @@
-﻿{
+{
   "neoforge:conditions": [
     {
       "type": "neoforge:not",
@@ -16,7 +16,7 @@
   ],
   "key": {
     "G": {
-      "item": "reinhardtshbm:ingot_graphite"
+      "tag": "c:ingots/graphite"
     },
     "B": {
       "item": "reinhardtshbm:motor"

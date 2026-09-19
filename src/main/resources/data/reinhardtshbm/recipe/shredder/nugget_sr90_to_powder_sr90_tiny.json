@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "reinhardtshbm:shredder",
     "ingredient":  {
-                       "item":  "reinhardtshbm:nugget_sr90"
+                       "tag":  "c:nuggets/sr90"
                    },
     "result":  {
                    "id":  "reinhardtshbm:powder_sr90_tiny"

@@ -298,7 +298,7 @@ public class DfcCoreBlockEntity extends DfcInventoryBlockEntity implements MenuP
         AABB coreArea = new AABB(this.worldPosition).inflate(scale);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, coreArea)) {
             HbmLivingRadiation data = HbmLivingRadiation.get(entity);
-            data.addRadiation(HbmLivingRadiation.MAX_RADIATION);
+            data.addRadiationWithReadout(HbmLivingRadiation.MAX_RADIATION);
             HbmLivingRadiation.set(entity, data);
         }
     }
