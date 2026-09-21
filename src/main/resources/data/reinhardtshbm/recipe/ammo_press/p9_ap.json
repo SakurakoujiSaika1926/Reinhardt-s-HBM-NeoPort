@@ -1,1 +1,38 @@
-{"type":"reinhardtshbm:ammo_press","group":"ammo_press.p9_ap","input":[{},{"ingredient":{"tag":"c:ingots/weaponsteel"}},{},{},{"ingredient":{"tag":"c:dusts/smokeless"},"count":2},{},{},{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:casing"],"components":{"minecraft:custom_data":{"variant":"small_steel"}}}},{}],"result":{"id":"reinhardtshbm:ammo_standard","count":12,"components":{"minecraft:custom_data":{"variant":"p9_ap"},"minecraft:custom_model_data":12}}}
+{
+  "type": "reinhardtshbm:ammo_press",
+  "group": "ammo_press.p9_ap",
+  "input": [
+    {},
+    {
+      "ingredient": {
+        "tag": "c:ingots/weaponsteel"
+      }
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "tag": "c:dusts/smokeless"
+      },
+      "count": 2
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:casing_small_steel"
+      }
+    },
+    {}
+  ],
+  "result": {
+    "id": "reinhardtshbm:ammo_standard",
+    "count": 12,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "p9_ap"
+      },
+      "minecraft:custom_model_data": 12
+    }
+  }
+}

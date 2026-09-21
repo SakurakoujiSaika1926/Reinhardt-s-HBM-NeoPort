@@ -6,23 +6,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "aluminium"
+        "item": "reinhardtshbm:shell_aluminium"
       },
       "count": 2
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "titanium"
+        "item": "reinhardtshbm:shell_titanium"
       },
       "count": 4
     },

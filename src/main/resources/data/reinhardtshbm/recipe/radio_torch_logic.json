@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"redstone","pattern":["G","R","I"],"key":{"G":{"tag":"c:dusts/glowstone"},"R":{"item":"minecraft:redstone_torch"},"I":{"item":"reinhardtshbm:circuit_chip"}},"result":{"id":"reinhardtshbm:radio_torch_logic","count":4}}

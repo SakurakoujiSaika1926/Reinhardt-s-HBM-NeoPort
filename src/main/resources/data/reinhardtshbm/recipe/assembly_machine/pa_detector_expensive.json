@@ -20,26 +20,13 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "lead_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_lead_plating"
       },
       "count": 32
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_dense_gold"
       },
       "count": 64
     },
@@ -57,15 +44,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "computer"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_computer"
       },
       "count": 8
     }

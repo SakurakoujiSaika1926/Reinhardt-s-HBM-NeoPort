@@ -10,7 +10,7 @@
       "tag": "c:plates/armor_lunar"
     },
     "S": {
-      "tag": "c:plates/starmetal"
+      "item": "reinhardtshbm:starmetal_boots"
     },
     "B": {
       "tag": "c:storage_blocks/starmetal"

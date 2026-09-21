@@ -1,1 +1,37 @@
-{"type":"reinhardtshbm:ammo_press","group":"ammo_press.p9_fmj","input":[{},{"ingredient":{"tag":"c:ingots/steel"}},{},{},{"ingredient":{"tag":"c:dusts/smokeless"}},{},{},{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:casing"],"components":{"minecraft:custom_data":{"variant":"small"}}}},{}],"result":{"id":"reinhardtshbm:ammo_standard","count":12,"components":{"minecraft:custom_data":{"variant":"p9_fmj"},"minecraft:custom_model_data":10}}}
+{
+  "type": "reinhardtshbm:ammo_press",
+  "group": "ammo_press.p9_fmj",
+  "input": [
+    {},
+    {
+      "ingredient": {
+        "tag": "c:ingots/steel"
+      }
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "tag": "c:dusts/smokeless"
+      }
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:casing_small"
+      }
+    },
+    {}
+  ],
+  "result": {
+    "id": "reinhardtshbm:ammo_standard",
+    "count": 12,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "p9_fmj"
+      },
+      "minecraft:custom_model_data": 10
+    }
+  }
+}

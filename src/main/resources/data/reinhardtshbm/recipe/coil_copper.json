@@ -8,12 +8,7 @@
   ],
   "key": {
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "red_copper"
+      "item": "reinhardtshbm:wire_red_copper"
     },
     "I": {
       "item": "minecraft:iron_ingot"

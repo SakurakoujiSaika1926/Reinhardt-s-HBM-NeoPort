@@ -1,59 +1,41 @@
 {
-    "type":  "reinhardtshbm:centrifuge",
-    "group":  "centrifuge",
-    "ingredient":  {
-                       "type":  "neoforge:components",
-                       "items":  [
-                                     "reinhardtshbm:bedrock_ore_new"
-                                 ],
-                       "components":  {
-                                          "minecraft:custom_data":  {
-                                                                        "grade":  "rad_washed",
-                                                                        "type":  "light"
-                                                                    }
-                                      }
-                   },
-    "input_count":  1,
-    "results":  [
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  6,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  1701,
-                                                                         "material":  "chlorocalcite"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  6,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  300,
-                                                                         "material":  "lithium"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  6,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  1100,
-                                                                         "material":  "sodium"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_new",
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "grade":  "crumbs",
-                                                                         "type":  "light"
-                                                                     },
-                                           "minecraft:custom_model_data":  78
-                                       }
-                    }
-                ]
+  "type": "reinhardtshbm:centrifuge",
+  "group": "centrifuge",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "rad_washed",
+        "type": "light"
+      }
+    }
+  },
+  "input_count": 1,
+  "results": [
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_chlorocalcite",
+      "count": 6
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_lithium",
+      "count": 6
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_sodium",
+      "count": 6
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_new",
+      "components": {
+        "minecraft:custom_data": {
+          "grade": "crumbs",
+          "type": "light"
+        },
+        "minecraft:custom_model_data": 78
+      }
+    }
+  ]
 }

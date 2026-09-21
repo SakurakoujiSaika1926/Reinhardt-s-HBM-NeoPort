@@ -11,15 +11,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "lead_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_lead_plating"
       },
       "count": 4
     },
@@ -43,15 +35,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "circuit"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_circuit"
       },
       "count": 2
     }

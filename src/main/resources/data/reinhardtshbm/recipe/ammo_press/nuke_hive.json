@@ -13,12 +13,7 @@
     {},
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "weaponsteel"
+        "item": "reinhardtshbm:shell_weaponsteel"
       },
       "count": 2
     },

@@ -8,20 +8,10 @@
   ],
   "key": {
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_dense"
-      ],
-      "shape": "wire_dense",
-      "material": "magnetized_tungsten"
+      "item": "reinhardtshbm:wire_dense_magnetized_tungsten"
     },
     "D": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "saturnite"
+      "item": "reinhardtshbm:plate_cast_saturnite"
     },
     "S": {
       "tag": "c:dusts/power"

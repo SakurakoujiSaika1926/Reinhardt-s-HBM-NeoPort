@@ -8,12 +8,7 @@
   ],
   "key": {
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "magnetized_tungsten"
+      "item": "reinhardtshbm:wire_magnetized_tungsten"
     },
     "I": {
       "tag": "c:ingots/steel"

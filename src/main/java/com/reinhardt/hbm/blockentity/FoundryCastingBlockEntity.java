@@ -120,11 +120,7 @@ public class FoundryCastingBlockEntity extends BlockEntity implements CrucibleAc
     }
 
     public boolean installMold(ItemStack stack, Player player) {
-        if (!(stack.getItem() instanceof FoundryMoldItem)) {
-            return false;
-        }
-        FoundryMoldItem.Mold next = FoundryMoldItem.mold(stack);
-        if (next.size() != getMoldSize()) {
+        if (!canInstallMold(stack)) {
             return false;
         }
         if (!this.mold.isEmpty()) {
@@ -137,6 +133,15 @@ public class FoundryCastingBlockEntity extends BlockEntity implements CrucibleAc
         setChanged();
         syncToClient();
         return true;
+    }
+
+    public boolean canInstallMold(ItemStack stack) {
+        return stack.getItem() instanceof FoundryMoldItem
+                && FoundryMoldItem.mold(stack).size() == getMoldSize();
+    }
+
+    public boolean hasOutput() {
+        return !this.output.isEmpty();
     }
 
     public boolean extractOutput(Player player) {

@@ -66,16 +66,16 @@ public class MachinePressMenu extends AbstractContainerMenu {
             if (index == PressBlockEntity.OUTPUT_SLOT) {
                 slot.onTake(player, stack);
             }
-        } else if (this.container.canPlaceItem(PressBlockEntity.FIRE_FUEL_SLOT, stack)) {
-            if (!moveItemStackTo(stack, PressBlockEntity.FIRE_FUEL_SLOT, PressBlockEntity.FIRE_FUEL_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
         } else if (StampItem.isStamp(stack)) {
             if (!moveItemStackTo(stack, PressBlockEntity.STAMP_SLOT, PressBlockEntity.STAMP_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else if (this.container.canPlaceItem(PressBlockEntity.INPUT_SLOT, stack)) {
             if (!moveItemStackTo(stack, PressBlockEntity.INPUT_SLOT, PressBlockEntity.INPUT_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (this.container.canPlaceItem(PressBlockEntity.FIRE_FUEL_SLOT, stack)) {
+            if (!moveItemStackTo(stack, PressBlockEntity.FIRE_FUEL_SLOT, PressBlockEntity.FIRE_FUEL_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else if (!moveItemStackTo(stack, PressBlockEntity.FIRE_STORAGE_START, PressBlockEntity.FIRE_STORAGE_END, false)) {

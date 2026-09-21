@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:coke"
+    "#c:coal_coke",
+    "reinhardtshbm:coke_lignite",
+    "reinhardtshbm:coke_petroleum"
   ]
 }

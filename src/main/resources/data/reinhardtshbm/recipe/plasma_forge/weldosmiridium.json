@@ -8,12 +8,7 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "osmiridium"
+        "item": "reinhardtshbm:plate_cast_osmiridium"
       },
       "count": 2
     }
@@ -25,12 +20,6 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:plate_welded",
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 7699,
-        "material": "osmiridium"
-      }
-    }
+    "id": "reinhardtshbm:plate_welded_osmiridium"
   }
 }

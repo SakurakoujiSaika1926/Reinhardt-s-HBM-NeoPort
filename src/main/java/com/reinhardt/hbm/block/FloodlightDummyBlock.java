@@ -162,6 +162,7 @@ public final class FloodlightDummyBlock extends Block implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!SUPPRESS_CORE_DESTROY.get()
+                && !movedByPiston
                 && !state.is(newState.getBlock())
                 && !level.isClientSide
                 && level.getBlockEntity(pos) instanceof FloodlightDummyBlockEntity dummy

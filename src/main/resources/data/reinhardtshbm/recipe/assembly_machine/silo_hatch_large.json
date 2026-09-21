@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.silohatchlarge",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/welded_steel" }, "count": 6 },
+    { "ingredient": { "item": "reinhardtshbm:plate_polymer" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 },
+    { "ingredient": { "tag": "c:bolts/steel" }, "count": 16 },
+    { "ingredient": { "tag": "c:dyes/green" }, "count": 8 }
+  ],
+  "result": { "id": "reinhardtshbm:silo_hatch_large" }
+}

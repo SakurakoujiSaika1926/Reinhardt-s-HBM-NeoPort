@@ -18,12 +18,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_dense_gold"
       },
       "count": 8
     },

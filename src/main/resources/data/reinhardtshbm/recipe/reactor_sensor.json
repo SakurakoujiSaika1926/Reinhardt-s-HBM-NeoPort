@@ -8,12 +8,7 @@
   ],
   "key": {
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "tungsten"
+      "item": "reinhardtshbm:wire_tungsten"
     },
     "P": {
       "tag": "c:plates/lead"

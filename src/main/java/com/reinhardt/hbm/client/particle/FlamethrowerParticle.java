@@ -81,13 +81,13 @@ public final class FlamethrowerParticle extends TextureSheetParticle {
 
     @Override
     public float getQuadSize(float partialTick) {
-        double ageScaled = (this.age + partialTick) / (double) this.lifetime;
+        double ageScaled = this.age / (double) this.lifetime;
         return (float) ((ageScaled * 1.25D + 0.25D) * 0.5D);
     }
 
     @Override
     public void render(com.mojang.blaze3d.vertex.VertexConsumer buffer, net.minecraft.client.Camera camera, float partialTick) {
-        float ageScaled = Mth.clamp((this.age + partialTick) / (float) this.lifetime, 0.0F, 1.0F);
+        float ageScaled = Mth.clamp(this.age / (float) this.lifetime, 0.0F, 1.0F);
         if (mode == Mode.OXY) {
             float add = ageScaled * 1.25F - 0.25F;
             this.rCol = initialRed - add;

@@ -3,7 +3,8 @@
     "values":  [
     "reinhardtshbm:ore_cinnabar",
     "reinhardtshbm:ore_cinnebar",
-    "reinhardtshbm:ore_deepslate_cinnabar"
-    ,"reinhardtshbm:ore_deepslate_cinnebar"
+    "reinhardtshbm:ore_deepslate_cinnabar",
+    "reinhardtshbm:ore_deepslate_cinnebar",
+    "reinhardtshbm:ore_depth_cinnebar"
   ]
 }

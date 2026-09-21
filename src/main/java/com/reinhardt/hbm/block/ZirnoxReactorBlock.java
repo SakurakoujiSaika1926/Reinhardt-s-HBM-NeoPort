@@ -21,9 +21,32 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class ZirnoxReactorBlock extends LargeMachineBlock implements EntityBlock {
-    public static final Footprint FOOTPRINT = Footprint.centered(2, 5, 2);
+    /** Exact 1.7.10 shape: a 5x5x2 base, 3x3 upper core and two upper side columns. */
+    public static final Footprint FOOTPRINT = createFootprint();
+
+    private static Footprint createFootprint() {
+        java.util.ArrayList<BlockPos> offsets = new java.util.ArrayList<>();
+        for (int y = 0; y <= 1; y++) {
+            for (int x = -2; x <= 2; x++) {
+                for (int z = -2; z <= 2; z++) {
+                    offsets.add(new BlockPos(x, y, z));
+                }
+            }
+        }
+        for (int y = 2; y <= 4; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    offsets.add(new BlockPos(x, y, z));
+                }
+            }
+            offsets.add(new BlockPos(-2, y, 0));
+            offsets.add(new BlockPos(2, y, 0));
+        }
+        return new Footprint(List.copyOf(offsets));
+    }
 
     public ZirnoxReactorBlock(Properties properties, VoxelShape shape) {
         super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
@@ -56,6 +79,44 @@ public class ZirnoxReactorBlock extends LargeMachineBlock implements EntityBlock
                 tickerState,
                 (ZirnoxReactorBlockEntity) blockEntity
         );
+    }
+
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (!level.isClientSide && !oldState.is(state.getBlock())) {
+            updateRedstone(level, pos);
+        }
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (!level.isClientSide) {
+            updateRedstone(level, pos);
+        }
+    }
+
+    public static void updateRedstone(Level level, BlockPos corePos) {
+        if (level.isClientSide || !(level.getBlockEntity(corePos) instanceof ZirnoxReactorBlockEntity reactor)) {
+            return;
+        }
+        boolean powered = false;
+        for (int dx = -2; dx <= 2 && !powered; dx++) {
+            for (int dy = 0; dy <= 4 && !powered; dy++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (dx != -2 && dx != 2 && dy != 0 && dy != 4 && dz != -2 && dz != 2) {
+                        continue;
+                    }
+                    if (level.hasNeighborSignal(corePos.offset(dx, dy, dz))) {
+                        powered = true;
+                        break;
+                    }
+                }
+            }
+        }
+        reactor.setRedstonePowered(powered);
     }
 
     @Override

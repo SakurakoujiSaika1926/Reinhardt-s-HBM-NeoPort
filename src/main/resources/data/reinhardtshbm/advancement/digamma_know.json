@@ -2,7 +2,7 @@
   "parent": "reinhardtshbm:digamma_feel",
   "display": {
     "icon": {
-      "id": "reinhardtshbm:achievement_icon"
+      "id": "reinhardtshbm:achievement_icon_digammaknow"
     },
     "title": {
       "translate": "advancements.reinhardtshbm.digamma_know.title"

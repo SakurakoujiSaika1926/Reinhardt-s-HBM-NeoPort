@@ -14,15 +14,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "ferro_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
       },
       "count": 3
     },

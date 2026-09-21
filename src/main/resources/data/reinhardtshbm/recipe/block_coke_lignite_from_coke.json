@@ -8,15 +8,7 @@
   ],
   "key": {
     "#": {
-      "type": "neoforge:components",
-      "items": [
-        "reinhardtshbm:coke"
-      ],
-      "components": {
-        "minecraft:custom_data": {
-          "variant": "lignite"
-        }
-      }
+      "item": "reinhardtshbm:coke_lignite"
     }
   },
   "result": {

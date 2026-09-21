@@ -6,23 +6,12 @@
   "inputs": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "aluminium"
+        "item": "reinhardtshbm:plate_cast_aluminium"
       },
       "count": 2
     }
   ],
   "result": {
-    "id": "reinhardtshbm:plate_welded",
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 1300,
-        "material": "aluminium"
-      }
-    }
+    "id": "reinhardtshbm:plate_welded_aluminium"
   }
 }

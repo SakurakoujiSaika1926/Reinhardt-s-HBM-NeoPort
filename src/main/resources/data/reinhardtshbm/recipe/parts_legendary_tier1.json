@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"tag":"c:ingots/chainsteel"},{"tag":"c:ingots/asbestos"},{"item":"reinhardtshbm:gem_alexandrite"}],"result":{"id":"reinhardtshbm:parts_legendary","components":{"minecraft:custom_data":{"variant":"tier1"},"minecraft:custom_model_data":0}}}
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"tag":"c:ingots/chainsteel"},{"tag":"c:ingots/asbestos"},{"item":"reinhardtshbm:gem_alexandrite"}],"result":{"id":"reinhardtshbm:parts_legendary_tier1"}}

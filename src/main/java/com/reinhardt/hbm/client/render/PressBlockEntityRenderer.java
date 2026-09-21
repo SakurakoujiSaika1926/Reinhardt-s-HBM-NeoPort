@@ -36,7 +36,6 @@ public class PressBlockEntityRenderer implements BlockEntityRenderer<PressBlockE
 
     @Override
     public void render(PressBlockEntity press, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        press.updateClientAnimation();
         BlockState state = press.getBlockState();
         Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
         boolean electric = press.kind() == PressBlockEntity.Kind.ELECTRIC;

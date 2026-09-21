@@ -11,15 +11,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "heavy_frame"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 3
     },
@@ -37,26 +29,13 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_dense_gold"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "circuit"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_circuit"
       },
       "count": 3
     }

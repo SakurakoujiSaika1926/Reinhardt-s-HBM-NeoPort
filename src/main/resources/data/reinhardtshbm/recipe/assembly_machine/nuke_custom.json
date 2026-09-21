@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "steel"
+        "item": "reinhardtshbm:shell_steel"
       },
       "count": 2
     },

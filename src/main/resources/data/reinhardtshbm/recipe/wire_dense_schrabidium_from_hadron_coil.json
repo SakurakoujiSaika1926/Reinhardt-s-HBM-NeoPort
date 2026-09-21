@@ -7,13 +7,7 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:wire_dense",
-    "count": 2,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 12626,
-        "material": "schrabidium"
-      }
-    }
+    "id": "reinhardtshbm:wire_dense_schrabidium",
+    "count": 2
   }
 }

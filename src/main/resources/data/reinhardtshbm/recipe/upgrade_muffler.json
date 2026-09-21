@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["III","IWI","III"],"key":{"I":{"tag":"c:ingots/rubber"},"W":{"item":"minecraft:wool"}},"result":{"id":"reinhardtshbm:upgrade_muffler","count":16}}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["III","IWI","III"],"key":{"I":{"tag":"c:ingots/rubber"},"W":{"tag":"minecraft:wool"}},"result":{"id":"reinhardtshbm:upgrade_muffler","count":16}}

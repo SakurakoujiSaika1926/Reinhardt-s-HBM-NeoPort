@@ -1,18 +1,12 @@
-﻿{
-    "type":  "reinhardtshbm:press",
-    "group":  "press.wire",
-    "stamp":  "wire",
-    "ingredient":  {
-                       "tag":  "c:ingots/lead"
-                   },
-    "result":  {
-                   "id":  "reinhardtshbm:wire_fine",
-                   "count":  8,
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "material_id":  8200,
-                                                                    "material":  "lead"
-                                                                }
-                                  }
-               }
+{
+  "type": "reinhardtshbm:press",
+  "group": "press.wire",
+  "stamp": "wire",
+  "ingredient": {
+    "tag": "c:ingots/lead"
+  },
+  "result": {
+    "id": "reinhardtshbm:wire_lead",
+    "count": 8
+  }
 }

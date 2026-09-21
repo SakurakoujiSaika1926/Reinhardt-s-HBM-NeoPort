@@ -1,6 +1,8 @@
 {
   "neoforge:conditions": [
-    { "type": "reinhardtshbm:enable_528_mode" }
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
   ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.radarlarge",
@@ -9,25 +11,48 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "heavy_frame" } }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 4
     },
-    { "ingredient": { "tag": "c:ingots/resistant_alloy" }, "count": 8 },
-    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 24 },
-    { "ingredient": { "item": "reinhardtshbm:magnetron" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 3 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "circuit" } }
+        "tag": "c:ingots/resistant_alloy"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/rubber"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:magnetron"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_circuit"
       },
       "count": 6
     },
-    { "ingredient": { "item": "reinhardtshbm:crt_display" }, "count": 4 }
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:crt_display"
+      },
+      "count": 4
+    }
   ],
-  "result": { "id": "reinhardtshbm:machine_radar_large" }
+  "result": {
+    "id": "reinhardtshbm:machine_radar_large"
+  }
 }

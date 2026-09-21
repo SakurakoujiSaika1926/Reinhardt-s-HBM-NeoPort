@@ -2,7 +2,7 @@
   "parent": "reinhardtshbm:root",
   "display": {
     "icon": {
-      "id": "reinhardtshbm:achievement_icon"
+      "id": "reinhardtshbm:achievement_icon_gofish"
     },
     "title": {
       "translate": "advancements.reinhardtshbm.go_fish.title"

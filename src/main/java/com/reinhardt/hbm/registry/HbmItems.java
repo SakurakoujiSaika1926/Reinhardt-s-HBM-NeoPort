@@ -34,7 +34,7 @@ import com.reinhardt.hbm.item.LegacyTeslaArmorModItem;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.BombPartItem;
 import com.reinhardt.hbm.item.BedrockOreBaseItem;
-import com.reinhardt.hbm.item.BedrockOreFragmentItem;
+import com.reinhardt.hbm.item.BedrockOreFragments;
 import com.reinhardt.hbm.item.BedrockOreItem;
 import com.reinhardt.hbm.item.LegacyBedrockOreStageItem;
 import com.reinhardt.hbm.item.LegacyByproductItem;
@@ -43,6 +43,7 @@ import com.reinhardt.hbm.item.BladesItem;
 import com.reinhardt.hbm.item.BlueprintFolderItem;
 import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.item.BrokenItem;
+import com.reinhardt.hbm.item.ChemicalDyeItem;
 import com.reinhardt.hbm.item.ChemistrySetItem;
 import com.reinhardt.hbm.item.CombustionPistonSetItem;
 import com.reinhardt.hbm.item.ColtanCompassItem;
@@ -72,10 +73,10 @@ import com.reinhardt.hbm.item.InfiniteBatteryItem;
 import com.reinhardt.hbm.item.FixedFluidBarrelBlockItem;
 import com.reinhardt.hbm.item.LegacyBarrelBlockItem;
 import com.reinhardt.hbm.item.TankSteelItem;
+import com.reinhardt.hbm.item.ZirnoxTritiumRodItem;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.FluidIconItem;
 import com.reinhardt.hbm.item.FoundryMoldItem;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.FelCrystalItem;
 import com.reinhardt.hbm.item.FixedBatteryItem;
 import com.reinhardt.hbm.item.GasMaskFilterItem;
@@ -106,7 +107,6 @@ import com.reinhardt.hbm.item.LegacyPolaroidItem;
 import com.reinhardt.hbm.item.LegacyCanteenItem;
 import com.reinhardt.hbm.item.LegacyCloudArmorModItem;
 import com.reinhardt.hbm.item.LegacyBalefireMatchItem;
-import com.reinhardt.hbm.item.LegacyChemicalDyeItem;
 import com.reinhardt.hbm.item.LegacyConserveItem;
 import com.reinhardt.hbm.item.LegacyCrayonItem;
 import com.reinhardt.hbm.item.LegacyCrucibleItem;
@@ -189,7 +189,6 @@ import com.reinhardt.hbm.item.PwrFuelItem;
 import com.reinhardt.hbm.item.RadarLinkerItem;
 import com.reinhardt.hbm.item.ReactorSensorItem;
 import com.reinhardt.hbm.item.PwrPrinterItem;
-import com.reinhardt.hbm.item.RawIngotItem;
 import com.reinhardt.hbm.item.RangefinderItem;
 import com.reinhardt.hbm.item.RagItem;
 import com.reinhardt.hbm.item.RadiationSurveyItem;
@@ -220,6 +219,9 @@ import com.reinhardt.hbm.item.WiringRedCopperItem;
 import com.reinhardt.hbm.item.ZirnoxRodItem;
 import com.reinhardt.hbm.item.SoyuzItem;
 import com.reinhardt.hbm.item.OrbitalModuleItem;
+import com.reinhardt.hbm.foundry.FoundryMaterial;
+import com.reinhardt.hbm.foundry.FoundryMaterialItems;
+import com.reinhardt.hbm.foundry.FoundryMaterialShapes;
 import com.reinhardt.hbm.foundry.FoundryShape;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -234,6 +236,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.EitherHolder;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.JukeboxPlayable;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.Items;
@@ -253,8 +256,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import com.reinhardt.hbm.util.Wavelength;
@@ -280,6 +286,7 @@ public final class HbmItems {
     public static final List<DeferredItem<Item>> PLATE_MATERIALS = new ArrayList<>();
     public static final List<DeferredItem<Item>> MISC_MATERIALS = new ArrayList<>();
     public static final List<DeferredItem<Item>> ORE_DROPS = new ArrayList<>();
+    public static final List<DeferredItem<Item>> BEDROCK_ORE_FRAGMENTS = new ArrayList<>();
     public static final List<DeferredItem<Item>> RAW_ORES = new ArrayList<>();
     public static final List<DeferredItem<Item>> MINERAL_CRYSTALS = new ArrayList<>();
     public static final List<DeferredItem<Item>> MACHINE_COMPONENTS = new ArrayList<>();
@@ -364,17 +371,26 @@ public final class HbmItems {
 
     private static final Set<String> RETIRED_LEGACY_CATALOG_ITEM_IDS = Set.of(
             "ammo_bag", "ammo_bag_infinite", "ammo_container", "ammo_debug", "ammo_fireext", "ammo_secret",
-            "battery_advanced", "cell", "circuit", "coin_siege",
+            "battery_advanced", "bedrock_ore_fragment", "cell", "circuit", "coin_siege",
             "fluid_barrel_v2", "fluid_tank_lead_v2", "fluid_tank_v2", "gun_egon", "gun_vortex",
             "jetpack_glider", "mechanism_launcher_1", "mechanism_launcher_2", "mechanism_revolver_1",
             "mechanism_revolver_2", "mechanism_rifle_1", "mechanism_rifle_2", "mechanism_special",
             "multitool_beam", "multitool_decon", "multitool_dig", "multitool_ext", "multitool_hit",
             "multitool_joule", "multitool_mega", "multitool_miner", "multitool_silk", "multitool_sky",
-            "part_grip", "pellet_canister", "pellet_chlorophyte", "pellet_claws", "pellet_flechette", "pellet_meteorite",
+            "achievement_icon", "arc_electrode", "arc_electrode_burnt", "briquette", "casing",
+            "chemical_dye", "chunk_ore", "circuit_star_component", "circuit_star_piece", "coke",
+            "fuel_additive", "grenade_extra", "grenade_filling", "grenade_fuze", "grenade_shell",
+            "ingot_metal", "item_expensive", "item_secret", "pa_coil", "page_of_", "part_generic", "parts_legendary",
+            "piston_set", "plant_item", "powder_ash", "scrap_plastic",
+            "bolt", "ingot_raw", "part_barrel_heavy", "part_barrel_light", "part_grip", "part_mechanism",
+            "part_receiver_heavy", "part_receiver_light", "part_stock", "pellet_canister", "pellet_chlorophyte",
+            "pellet_claws", "pellet_flechette", "pellet_meteorite", "pipe",
+            "plate_cast", "plate_welded",
+            "shell",
             "sliding_blast_door_skin0", "sliding_blast_door_skin1", "sliding_blast_door_skin2",
             "weapon_mod_caliber", "weapon_mod_generic", "weapon_mod_special", "weapon_mod_test",
             "weaponized_starblaster_cell", "weapon_bat", "weapon_bat_nail", "weapon_golf_club",
-            "weapon_pipe_rusty", "weapon_saw"
+            "weapon_pipe_rusty", "weapon_saw", "wire_dense", "wire_fine"
     );
 
     /** Fluid buckets are registered together with their NeoForge fluid entries. */
@@ -474,13 +490,15 @@ public final class HbmItems {
     public static final DeferredItem<Item> INGOT_BORON = ingot("ingot_boron");
     public static final DeferredItem<Item> INGOT_BERYLLIUM = ingot("ingot_beryllium");
     public static final DeferredItem<Item> INGOT_ASBESTOS = ingot("ingot_asbestos");
-    public static final DeferredItem<Item> ARC_ELECTRODE = machineComponent(
+    public static final Map<String, DeferredItem<Item>> ARC_ELECTRODE_ITEMS = variantItems(
             "arc_electrode",
-            () -> new ArcElectrodeItem(new Item.Properties())
+            (id, variant) -> machineComponent(id, () -> new ArcElectrodeItem(new Item.Properties(), variant)),
+            "graphite", "lanthanium", "desh", "saturnite"
     );
-    public static final DeferredItem<Item> ARC_ELECTRODE_BURNT = machineComponent(
+    public static final Map<String, DeferredItem<Item>> ARC_ELECTRODE_BURNT_ITEMS = variantItems(
             "arc_electrode_burnt",
-            () -> new ArcElectrodeBurntItem(new Item.Properties())
+            (id, variant) -> machineComponent(id, () -> new ArcElectrodeBurntItem(new Item.Properties(), variant)),
+            "graphite", "lanthanium", "desh", "saturnite"
     );
     public static final DeferredItem<Item> INGOT_GRAPHITE = ingot("ingot_graphite");
     public static final DeferredItem<Item> INGOT_ADVANCED_ALLOY = ingot("ingot_advanced_alloy", Rarity.UNCOMMON);
@@ -489,41 +507,13 @@ public final class HbmItems {
     public static final DeferredItem<Item> POWDER_AU198 = material(POWDER_MATERIALS, "powder_au198");
     public static final DeferredItem<Item> POWDER_AU198_TINY = material(POWDER_MATERIALS, "powder_au198_tiny");
     public static final DeferredItem<Item> BILLET_AU198 = material(NUCLEAR_BILLETS, "billet_au198");
-    public static final DeferredItem<Item> INGOT_RAW = material(
-            INGOT_MATERIALS,
-            "ingot_raw",
-            () -> new RawIngotItem(new Item.Properties())
-    );
     public static final DeferredItem<Item> FALLOUT_ITEM = material(MISC_MATERIALS, "falloutitem");
     // ItemCustomLore in 1.7.10; its turbofan level-100 easter egg is functional.
     public static final DeferredItem<Item> FLAME_PONY = material(MISC_MATERIALS, "flame_pony");
-    public static final DeferredItem<Item> POWDER_ASH = material(
+    public static final Map<String, DeferredItem<Item>> POWDER_ASH_ITEMS = materialVariants(
             POWDER_MATERIALS,
             "powder_ash",
-            () -> new LegacyVariantItem(new Item.Properties(), "powder_ash", LegacyVariantItem.variants(
-                    "wood",
-                    "coal",
-                    "misc",
-                    "fly",
-                    "soot",
-                    "fullerene"
-            ))
-    );
-
-    public static final DeferredItem<Item> WIRE_FINE = material(
-            MISC_MATERIALS,
-            "wire_fine",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.WIRE)
-    );
-    public static final DeferredItem<Item> WIRE_DENSE = material(
-            MISC_MATERIALS,
-            "wire_dense",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.DENSE_WIRE)
-    );
-    public static final DeferredItem<Item> PIPE = material(
-            MISC_MATERIALS,
-            "pipe",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.PIPE)
+            "wood", "coal", "misc", "fly", "soot", "fullerene"
     );
     public static final DeferredItem<Item> PIPE_LEAD = material(MISC_MATERIALS, "pipe_lead");
     public static final DeferredItem<Item> PIPE_STEEL = material(MISC_MATERIALS, "pipe_steel");
@@ -532,11 +522,6 @@ public final class HbmItems {
             MISC_MATERIALS,
             "tank_steel",
             () -> new TankSteelItem(new Item.Properties().stacksTo(1))
-    );
-    public static final DeferredItem<Item> BOLT = material(
-            MISC_MATERIALS,
-            "bolt",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.BOLT)
     );
     public static final DeferredItem<Item> BOLT_DURA_STEEL = material(MISC_MATERIALS, "bolt_dura_steel");
     public static final DeferredItem<Item> BOLT_TUNGSTEN = material(MISC_MATERIALS, "bolt_tungsten");
@@ -578,58 +563,19 @@ public final class HbmItems {
     public static final DeferredItem<Item> SPHERE_STEEL = material(MISC_MATERIALS, "sphere_steel");
     public static final DeferredItem<Item> THERMO_ELEMENT = material(MACHINE_COMPONENTS, "thermo_element");
     public static final DeferredItem<Item> PISTON_SELENIUM = material(MACHINE_COMPONENTS, "piston_selenium");
-    public static final DeferredItem<Item> PISTON_SET = material(
-            MACHINE_COMPONENTS,
+    public static final Map<String, DeferredItem<Item>> PISTON_SET_ITEMS = variantItems(
             "piston_set",
-            () -> new CombustionPistonSetItem(new Item.Properties().stacksTo(1))
-    );
-    public static final DeferredItem<Item> SHELL = material(
-            MISC_MATERIALS,
-            "shell",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.SHELL)
-    );
-    public static final DeferredItem<Item> PART_MECHANISM = material(
-            MACHINE_COMPONENTS,
-            "part_mechanism",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.MECHANISM)
-    );
-    public static final DeferredItem<Item> PART_BARREL_LIGHT = material(
-            MISC_MATERIALS,
-            "part_barrel_light",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.LIGHT_BARREL)
-    );
-    public static final DeferredItem<Item> PART_BARREL_HEAVY = material(
-            MISC_MATERIALS,
-            "part_barrel_heavy",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.HEAVY_BARREL)
-    );
-    public static final DeferredItem<Item> PART_RECEIVER_LIGHT = material(
-            MISC_MATERIALS,
-            "part_receiver_light",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.LIGHT_RECEIVER)
-    );
-    public static final DeferredItem<Item> PART_RECEIVER_HEAVY = material(
-            MISC_MATERIALS,
-            "part_receiver_heavy",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.HEAVY_RECEIVER)
-    );
-    public static final DeferredItem<Item> PART_STOCK = material(
-            MISC_MATERIALS,
-            "part_stock",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.STOCK)
+            (id, variant) -> material(MACHINE_COMPONENTS, id, () -> new CombustionPistonSetItem(new Item.Properties(), variant)),
+            "steel", "dura", "desh", "starmetal"
     );
     public static final DeferredItem<Item> CANISTER_LUBRICANT = material(MISC_MATERIALS, "canister_lubricant");
     public static final DeferredItem<Item> BIOMASS = material(MISC_MATERIALS, "biomass");
     public static final DeferredItem<Item> BIOMASS_COMPRESSED = material(MISC_MATERIALS, "biomass_compressed");
     public static final DeferredItem<Item> BIO_WAFER = material(MISC_MATERIALS, "bio_wafer");
-    public static final DeferredItem<Item> PLANT_ITEM = material(
+    public static final Map<String, DeferredItem<Item>> PLANT_ITEMS = materialVariants(
             MISC_MATERIALS,
             "plant_item",
-            () -> new LegacyVariantItem(new Item.Properties(), "plant_item", LegacyVariantItem.variants(
-                    "tobacco",
-                    "rope",
-                    "mustardwillow"
-            ))
+            "tobacco", "rope", "mustardwillow"
     );
     public static final DeferredItem<Item> SOLID_FUEL = material(MISC_MATERIALS, "solid_fuel");
     public static final DeferredItem<Item> SOLID_FUEL_BF = material(MISC_MATERIALS, "solid_fuel_bf");
@@ -679,10 +625,10 @@ public final class HbmItems {
     public static final DeferredItem<Item> PART_CARBON = material(MACHINE_COMPONENTS, "part_carbon");
     public static final DeferredItem<Item> PART_COPPER = material(MACHINE_COMPONENTS, "part_copper");
     public static final DeferredItem<Item> PART_PLUTONIUM = material(MACHINE_COMPONENTS, "part_plutonium");
-    public static final DeferredItem<Item> PA_COIL = material(
-            MACHINE_COMPONENTS,
+    public static final Map<String, DeferredItem<Item>> PA_COIL_ITEMS = variantItems(
             "pa_coil",
-            () -> new PACoilItem(new Item.Properties())
+            (id, variant) -> material(MACHINE_COMPONENTS, id, () -> new PACoilItem(new Item.Properties(), variant)),
+            "gold", "niobium", "bscco", "chlorophyte"
     );
     public static final DeferredItem<Item> PARTICLE_EMPTY = particle("particle_empty", false);
     public static final DeferredItem<Item> PARTICLE_COPPER = particle("particle_copper", true);
@@ -767,45 +713,49 @@ public final class HbmItems {
     public static final DeferredItem<Item> LASER_CRYSTAL_CMB = machineComponent("laser_crystal_cmb", () -> new FelCrystalItem(new Item.Properties(), Wavelength.UV));
     public static final DeferredItem<Item> LASER_CRYSTAL_BALE = machineComponent("laser_crystal_bale", () -> new FelCrystalItem(new Item.Properties(), Wavelength.GAMMA));
     public static final DeferredItem<Item> LASER_CRYSTAL_DIGAMMA = machineComponent("laser_crystal_digamma", () -> new FelCrystalItem(new Item.Properties(), Wavelength.DRX));
-    public static final DeferredItem<Item> COKE = material(
+    public static final Map<String, DeferredItem<Item>> COKE_ITEMS = materialVariants(
             MISC_MATERIALS,
             "coke",
-            () -> new LegacyVariantItem(new Item.Properties(), "coke", LegacyVariantItem.variants(
-                    "coal",
-                    "lignite",
-                    "petroleum"
-            ))
+            "coal", "lignite", "petroleum"
     );
     // 1.7.10 ItemEnumMulti variants used by PressRecipes.
-    public static final DeferredItem<Item> BRIQUETTE = material(
+    public static final Map<String, DeferredItem<Item>> BRIQUETTE_ITEMS = materialVariants(
             MISC_MATERIALS,
             "briquette",
-            () -> new LegacyVariantItem(new Item.Properties(), "briquette", LegacyVariantItem.variants(
-                    "coal", "lignite", "wood"
-            ))
+            "coal", "lignite", "wood"
     );
-    public static final DeferredItem<Item> CASING = material(
+    public static final Map<String, DeferredItem<Item>> CASING_ITEMS = materialVariants(
             MISC_MATERIALS,
             "casing",
-            () -> new LegacyVariantItem(new Item.Properties(), "casing", LegacyVariantItem.variants(
-                    "small", "large", "small_steel", "large_steel", "shotshell", "buckshot", "buckshot_advanced"
-            ))
+            "small", "large", "small_steel", "large_steel", "shotshell", "buckshot", "buckshot_advanced"
     );
     // ItemStampBook was intentionally hidden from the 1.7.10 creative inventory.
     public static final DeferredItem<Item> STAMP_BOOK = coreItem(
             "stamp_book",
             () -> new StampBookItem(new Item.Properties().stacksTo(1))
     );
-    public static final DeferredItem<Item> PAGE_OF = coreItem(
-            "page_of_",
-            () -> new LegacyVariantItem(new Item.Properties().stacksTo(1), "page_of_", LegacyVariantItem.variants(
-                    "page1", "page2", "page3", "page4", "page5", "page6", "page7", "page8"
-            ))
+    public static final Map<String, DeferredItem<Item>> PAGE_OF_ITEMS = variantItems(
+            "page_of",
+            (id, variant) -> coreItem(id, () -> new Item(new Item.Properties().stacksTo(1))),
+            "page1", "page2", "page3", "page4", "page5", "page6", "page7", "page8"
     );
     public static final DeferredItem<Item> OIL_TAR = material(
             MISC_MATERIALS,
             "oil_tar",
-            () -> new OilTarItem(new Item.Properties())
+            () -> new OilTarItem(new Item.Properties(), OilTarItem.Variant.CRUDE)
+    );
+    public static final DeferredItem<Item> OIL_TAR_CRACK = material(MISC_MATERIALS, "oil_tar_crack", () -> new OilTarItem(new Item.Properties(), OilTarItem.Variant.CRACK));
+    public static final DeferredItem<Item> OIL_TAR_COAL = material(MISC_MATERIALS, "oil_tar_coal", () -> new OilTarItem(new Item.Properties(), OilTarItem.Variant.COAL));
+    public static final DeferredItem<Item> OIL_TAR_WOOD = material(MISC_MATERIALS, "oil_tar_wood", () -> new OilTarItem(new Item.Properties(), OilTarItem.Variant.WOOD));
+    public static final DeferredItem<Item> OIL_TAR_WAX = material(MISC_MATERIALS, "oil_tar_wax", () -> new OilTarItem(new Item.Properties(), OilTarItem.Variant.WAX));
+    public static final DeferredItem<Item> OIL_TAR_PARAFFIN = material(MISC_MATERIALS, "oil_tar_paraffin", () -> new OilTarItem(new Item.Properties(), OilTarItem.Variant.PARAFFIN));
+    public static final Map<String, DeferredItem<Item>> OIL_TAR_ITEMS = fixedVariantMap(
+            Map.entry("crude", OIL_TAR),
+            Map.entry("crack", OIL_TAR_CRACK),
+            Map.entry("coal", OIL_TAR_COAL),
+            Map.entry("wood", OIL_TAR_WOOD),
+            Map.entry("wax", OIL_TAR_WAX),
+            Map.entry("paraffin", OIL_TAR_PARAFFIN)
     );
     public static final DeferredItem<Item> BATTERY_PACK = coreItem(
             "battery_pack",
@@ -859,25 +809,15 @@ public final class HbmItems {
             "ammo_himars",
             () -> new AmmoHimarsItem(new Item.Properties().stacksTo(1))
     );
-    public static final DeferredItem<Item> FUEL_ADDITIVE = material(
+    public static final Map<String, DeferredItem<Item>> FUEL_ADDITIVE_ITEMS = materialVariants(
             MISC_MATERIALS,
             "fuel_additive",
-            () -> new LegacyVariantItem(new Item.Properties(), "fuel_additive", LegacyVariantItem.variants(
-                    "antiknock",
-                    "deicer"
-            ))
+            "antiknock", "deicer"
     );
-    public static final DeferredItem<Item> PART_GENERIC = material(
+    public static final Map<String, DeferredItem<Item>> PART_GENERIC_ITEMS = materialVariants(
             MACHINE_COMPONENTS,
             "part_generic",
-            () -> new LegacyVariantItem(new Item.Properties(), "part_generic", LegacyVariantItem.variants(
-                    "piston_pneumatic",
-                    "piston_hydraulic",
-                    "piston_electric",
-                    "lde",
-                    "hde",
-                    "glass_polarized"
-            ))
+            "piston_pneumatic", "piston_hydraulic", "piston_electric", "lde", "hde", "glass_polarized"
     );
     public static final DeferredItem<Item> PELLET_GAS = machineComponent(
             "pellet_gas",
@@ -1006,16 +946,6 @@ public final class HbmItems {
             "fluid_duct",
             () -> new HbmFluidDuctItem(new Item.Properties(), "fluid_duct")
     );
-    public static final DeferredItem<Item> PLATE_CAST = material(
-            PLATE_MATERIALS,
-            "plate_cast",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.CAST_PLATE)
-    );
-    public static final DeferredItem<Item> PLATE_WELDED = material(
-            PLATE_MATERIALS,
-            "plate_welded",
-            () -> new FoundryShapeItem(new Item.Properties(), FoundryShape.WELDED_PLATE)
-    );
     public static final DeferredItem<Item> SCRAPS = material(
             MISC_MATERIALS,
             "scraps",
@@ -1030,13 +960,10 @@ public final class HbmItems {
     public static final DeferredItem<Item> FLUORITE = oreDrop("fluorite");
     public static final DeferredItem<Item> LIGNITE = oreDrop("lignite");
     public static final DeferredItem<Item> CINNABAR = oreDrop("cinnabar");
-    public static final DeferredItem<Item> CHUNK_ORE = oreDrop(
+    public static final Map<String, DeferredItem<Item>> CHUNK_ORE_ITEMS = variantItems(
             "chunk_ore",
-            () -> new LegacyVariantItem(new Item.Properties(), "chunk_ore", LegacyVariantItem.variants(
-                    "rare",
-                    "malachite",
-                    "moonstone"
-            ))
+            (id, variant) -> oreDrop(id, () -> new Item(new Item.Properties())),
+            "rare", "malachite", "moonstone"
     );
     public static final DeferredItem<Item> CHUNK_ORE_CRYOLITE = oreDrop("chunk_ore_cryolite");
     public static final DeferredItem<Item> BEDROCK_ORE_NEW = oreDrop(
@@ -1046,10 +973,6 @@ public final class HbmItems {
     public static final DeferredItem<Item> BEDROCK_ORE_BASE = oreDrop(
             "bedrock_ore_base",
             () -> new BedrockOreBaseItem(new Item.Properties())
-    );
-    public static final DeferredItem<Item> BEDROCK_ORE_FRAGMENT = oreDrop(
-            "bedrock_ore_fragment",
-            () -> new BedrockOreFragmentItem(new Item.Properties())
     );
     public static final DeferredItem<Item> LEGACY_BEDROCK_ORE = legacyBedrockOre("bedrock_ore");
     public static final DeferredItem<Item> ORE_BEDROCK = legacyBedrockOre("ore_bedrock");
@@ -1161,7 +1084,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> ROD_ZIRNOX_DEPLETED = fuelRodItem(
             "rod_zirnox_depleted",
-            () -> new LegacyVariantItem(new Item.Properties().stacksTo(1), "rod_zirnox_depleted", LegacyVariantItem.variants(
+            () -> new com.reinhardt.hbm.item.DepletedZirnoxRodItem(new Item.Properties(), LegacyVariantItem.variants(
                     "natural_uranium_fuel",
                     "uranium_fuel",
                     "thorium_fuel",
@@ -1173,7 +1096,10 @@ public final class HbmItems {
                     "zfb_mox_fuel"
             ))
     );
-    public static final DeferredItem<Item> ROD_ZIRNOX_TRITIUM = fuelRodItem("rod_zirnox_tritium");
+    public static final DeferredItem<Item> ROD_ZIRNOX_TRITIUM = fuelRodItem(
+            "rod_zirnox_tritium",
+            () -> new ZirnoxTritiumRodItem(new Item.Properties().stacksTo(1))
+    );
     public static final DeferredItem<Item> PWR_FUEL = fuelRodItem(
             "pwr_fuel",
             () -> new PwrFuelItem(new Item.Properties(), "pwr_fuel")
@@ -1361,6 +1287,10 @@ public final class HbmItems {
             "gear_large",
             () -> new LargeGearItem(new Item.Properties())
     );
+    public static final DeferredItem<Item> GEAR_LARGE_STEEL = machineComponent(
+            "gear_large_steel",
+            () -> new LargeGearItem(new Item.Properties())
+    );
     public static final DeferredItem<Item> DRILL_TITANIUM = machineComponent(
             "drill_titanium",
             () -> new Item(new Item.Properties())
@@ -1373,20 +1303,11 @@ public final class HbmItems {
             "catalytic_converter",
             () -> new Item(new Item.Properties().stacksTo(1))
     );
-    public static final DeferredItem<Item> ITEM_EXPENSIVE = machineComponent(
+    public static final Map<String, DeferredItem<Item>> ITEM_EXPENSIVE_ITEMS = variantItems(
             "item_expensive",
-            () -> new LegacyVariantItem(new Item.Properties(), "item_expensive", LegacyVariantItem.variants(
-                    "steel_plating",
-                    "heavy_frame",
-                    "circuit",
-                    "lead_plating",
-                    "ferro_plating",
-                    "computer",
-                    "bronze_tubes",
-                    "plastic",
-                    "gold_dust",
-                    "degenerate_matter"
-            ))
+            (id, variant) -> machineComponent(id, () -> new Item(new Item.Properties())),
+            "steel_plating", "heavy_frame", "circuit", "lead_plating", "ferro_plating",
+            "computer", "bronze_tubes", "plastic", "gold_dust", "degenerate_matter"
     );
 
     public static final DeferredItem<Item> SCREWDRIVER = toolItem(
@@ -1789,19 +1710,19 @@ public final class HbmItems {
             new LegacyDynamiteStickItem(new Item.Properties(), com.reinhardt.hbm.entity.LegacyGrenadeEntity.Kind.DYNAMITE));
     public static final DeferredItem<Item> STICK_DYNAMITE_FISHING = legacyItem("stick_dynamite_fishing", () ->
             new LegacyDynamiteStickItem(new Item.Properties(), com.reinhardt.hbm.entity.LegacyGrenadeEntity.Kind.FISHING));
-    public static final DeferredItem<Item> GRENADE_SHELL = legacyVariantItem(
-            "grenade_shell", "grenade_shell", "frag", "stick", "tech", "nuke"
+    public static final Map<String, DeferredItem<Item>> GRENADE_SHELL_ITEMS = legacyVariants(
+            "grenade_shell", "frag", "stick", "tech", "nuke"
     );
-    public static final DeferredItem<Item> GRENADE_FILLING = legacyVariantItem(
-            "grenade_filling", "grenade_filling",
+    public static final Map<String, DeferredItem<Item>> GRENADE_FILLING_ITEMS = legacyVariants(
+            "grenade_filling",
             "powder", "he", "demo", "inc", "wp", "cluster", "emp", "plasma", "laser",
             "cluster_heavy", "nuclear", "nuclear_demo", "schrab"
     );
-    public static final DeferredItem<Item> GRENADE_FUZE = legacyVariantItem(
-            "grenade_fuze", "grenade_fuze", "s3", "s7", "s15", "impact", "airburst"
+    public static final Map<String, DeferredItem<Item>> GRENADE_FUZE_ITEMS = legacyVariants(
+            "grenade_fuze", "s3", "s7", "s15", "impact", "airburst"
     );
-    public static final DeferredItem<Item> GRENADE_EXTRA = legacyVariantItem(
-            "grenade_extra", "grenade_extra", "glue", "proxy_fuze", "frag_sleeve", "triplex"
+    public static final Map<String, DeferredItem<Item>> GRENADE_EXTRA_ITEMS = legacyVariants(
+            "grenade_extra", "glue", "proxy_fuze", "frag_sleeve", "triplex"
     );
     public static final DeferredItem<Item> GRENADE_UNIVERSAL = legacyItem(
             "grenade_universal", () -> new UniversalGrenadeItem(new Item.Properties())
@@ -2196,28 +2117,24 @@ public final class HbmItems {
 
     // Direct 1.7.10 metadata items. Do not leave these behind as generic
     // catalog entries: recipes and creative tabs use every individual state.
-    public static final DeferredItem<Item> CIRCUIT_STAR_COMPONENT = machineComponent(
+    public static final Map<String, DeferredItem<Item>> CIRCUIT_STAR_COMPONENT_ITEMS = variantItems(
             "circuit_star_component",
-            () -> new LegacyVariantItem(new Item.Properties(), "circuit_star_component", LegacyVariantItem.variants(
-                    "chipset", "cpu", "ram", "card"
-            ))
+            (id, variant) -> machineComponent(id, () -> new Item(new Item.Properties())),
+            "chipset", "cpu", "ram", "card"
     );
-    public static final DeferredItem<Item> CIRCUIT_STAR_PIECE = machineComponent(
+    public static final Map<String, DeferredItem<Item>> CIRCUIT_STAR_PIECE_ITEMS = variantItems(
             "circuit_star_piece",
-            () -> new LegacyVariantItem(new Item.Properties(), "circuit_star_piece", LegacyVariantItem.variants(
-                    "board_blank", "board_transistor", "board_converter",
-                    "bridge_north", "bridge_south", "bridge_io", "bridge_bus", "bridge_chipset", "bridge_cmos", "bridge_bios",
-                    "cpu_register", "cpu_clock", "cpu_logic", "cpu_cache", "cpu_ext", "cpu_socket",
-                    "mem_socket", "mem_16k_a", "mem_16k_b", "mem_16k_c", "mem_16k_d",
-                    "card_board", "card_processor"
-            ))
+            (id, variant) -> machineComponent(id, () -> new Item(new Item.Properties())),
+            "board_blank", "board_transistor", "board_converter",
+            "bridge_north", "bridge_south", "bridge_io", "bridge_bus", "bridge_chipset", "bridge_cmos", "bridge_bios",
+            "cpu_register", "cpu_clock", "cpu_logic", "cpu_cache", "cpu_ext", "cpu_socket",
+            "mem_socket", "mem_16k_a", "mem_16k_b", "mem_16k_c", "mem_16k_d",
+            "card_board", "card_processor"
     );
-    public static final DeferredItem<Item> INGOT_METAL = material(
+    public static final Map<String, DeferredItem<Item>> INGOT_METAL_ITEMS = materialVariants(
             MISC_MATERIALS,
             "ingot_metal",
-            () -> new LegacyVariantItem(new Item.Properties(), "ingot_metal", LegacyVariantItem.variants(
-                    "scrap", "ingot", "counter", "key", "beacon", "casing", "clockwork", "bar", "detector"
-            ))
+            "scrap", "ingot", "counter", "key", "beacon", "casing", "clockwork", "bar", "detector"
     );
     public static final DeferredItem<Item> UPGRADE_STACK = machineComponent(
             "upgrade_stack", () -> new LegacyMetaUpgradeItem(new Item.Properties().stacksTo(1), "upgrade_stack")
@@ -2318,26 +2235,25 @@ public final class HbmItems {
     public static final DeferredItem<Item> TWINKIE = legacyLemon("twinkie");
 
     // Metadata items from ItemEnumMulti and its direct subclasses.
-    public static final DeferredItem<Item> ACHIEVEMENT_ICON = legacyVariantItem(
-            "achievement_icon", "achievement_icon",
+    public static final Map<String, DeferredItem<Item>> ACHIEVEMENT_ICON_ITEMS = legacyVariants(
+            "achievement_icon",
             "gofish", "acid", "balls", "digammasee", "digammafeel", "digammaknow", "digammakauaimoho",
             "digammaupontop", "digammaforourright", "questionmark"
     );
-    public static final DeferredItem<Item> ITEM_SECRET = legacyVariantItem(
-            "item_secret", "item_secret", "canister", "controller", "selenium_steel", "aberrator", "folly"
+    public static final Map<String, DeferredItem<Item>> ITEM_SECRET_ITEMS = legacyVariants(
+            "item_secret", "canister", "controller", "selenium_steel", "aberrator", "folly"
     );
-    public static final DeferredItem<Item> PARTS_LEGENDARY = legacyVariantItem(
-            "parts_legendary", "parts_legendary", false, "tier1", "tier2", "tier3"
+    public static final Map<String, DeferredItem<Item>> PARTS_LEGENDARY_ITEMS = legacyVariants(
+            "parts_legendary", "tier1", "tier2", "tier3"
     );
-    public static final DeferredItem<Item> SCRAP_PLASTIC = legacyVariantItem(
-            "scrap_plastic", "scrap_plastic",
-            false,
+    public static final Map<String, DeferredItem<Item>> SCRAP_PLASTIC_ITEMS = legacyVariants(
+            "scrap_plastic",
             "board_blank", "board_transistor", "board_converter", "bridge_north", "bridge_south", "bridge_io",
             "bridge_bus", "bridge_chipset", "bridge_cmos", "bridge_bios", "cpu_register", "cpu_clock", "cpu_logic",
             "cpu_cache", "cpu_ext", "cpu_socket", "mem_socket", "mem_16k_a", "mem_16k_b", "mem_16k_c",
             "mem_16k_d", "card_board", "card_processor"
     );
-    public static final DeferredItem<Item> CHEMICAL_DYE = legacyItem("chemical_dye", () -> new LegacyChemicalDyeItem(new Item.Properties()));
+    public static final Map<String, DeferredItem<Item>> CHEMICAL_DYE_ITEMS = chemicalDyeVariants();
 
     public static final DeferredItem<Item> BALEFIRE_AND_STEEL = legacyItem("balefire_and_steel", () -> new LegacyBalefireMatchItem(new Item.Properties()));
     public static final DeferredItem<Item> BISMUTH_TOOL = legacyItem("bismuth_tool", () -> new Item(new Item.Properties().stacksTo(1)));
@@ -2399,6 +2315,8 @@ public final class HbmItems {
         registerPortedLegacyScanners();
         registerPortedLegacyHeldInventories();
         registerPortedPlainItems();
+        registerIndependentFoundryMaterialItems();
+        registerIndependentBedrockOreFragments();
         registerLegacyMaterialItems();
         registerPortedLegacyLoreItems();
         registerPortedLegacyRbmkItems();
@@ -2408,6 +2326,54 @@ public final class HbmItems {
     }
 
     private HbmItems() {
+    }
+
+    @FunctionalInterface
+    private interface VariantRegistrar {
+        DeferredItem<Item> register(String registryName, String variant);
+    }
+
+    private static Map<String, DeferredItem<Item>> materialVariants(List<DeferredItem<Item>> group, String baseName, String... variants) {
+        return variantItems(baseName, (id, variant) -> material(group, id), variants);
+    }
+
+    private static Map<String, DeferredItem<Item>> legacyVariants(String baseName, String... variants) {
+        return variantItems(baseName, (id, variant) -> legacyItem(id, () -> new Item(new Item.Properties())), variants);
+    }
+
+    private static Map<String, DeferredItem<Item>> variantItems(String baseName, VariantRegistrar registrar, String... variants) {
+        Map<String, DeferredItem<Item>> result = new LinkedHashMap<>();
+        for (String variant : variants) {
+            result.put(variant, registrar.register(variantItemId(baseName, variant), variant));
+        }
+        return Collections.unmodifiableMap(result);
+    }
+
+    @SafeVarargs
+    private static Map<String, DeferredItem<Item>> fixedVariantMap(Map.Entry<String, DeferredItem<Item>>... entries) {
+        Map<String, DeferredItem<Item>> result = new LinkedHashMap<>();
+        for (Map.Entry<String, DeferredItem<Item>> entry : entries) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return Collections.unmodifiableMap(result);
+    }
+
+    private static String variantItemId(String baseName, String variant) {
+        return baseName + "_" + variant;
+    }
+
+    private static Map<String, DeferredItem<Item>> chemicalDyeVariants() {
+        String[] variants = {
+                "black", "red", "green", "brown", "blue", "purple", "cyan", "silver",
+                "gray", "pink", "lime", "yellow", "lightblue", "magenta", "orange", "white"
+        };
+        Map<String, DeferredItem<Item>> result = new LinkedHashMap<>();
+        for (int index = 0; index < variants.length; index++) {
+            String variant = variants[index];
+            int colorIndex = index;
+            result.put(variant, legacyItem(variantItemId("chemical_dye", variant), () -> new ChemicalDyeItem(new Item.Properties(), colorIndex)));
+        }
+        return Collections.unmodifiableMap(result);
     }
 
     private static DeferredItem<Item> ingot(String name) {
@@ -2454,6 +2420,60 @@ public final class HbmItems {
         DeferredItem<Item> item = coreItem(name, supplier);
         group.add(item);
         return item;
+    }
+
+    private static void registerIndependentFoundryMaterialItems() {
+        registerIndependentRawIngotItems();
+        registerIndependentFoundryMaterialItems(FoundryShape.PLATE, PLATE_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.CAST_PLATE, PLATE_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.WELDED_PLATE, PLATE_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.WIRE, MISC_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.DENSE_WIRE, MISC_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.PIPE, MISC_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.BOLT, MISC_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.SHELL, MISC_MATERIALS);
+        registerIndependentFoundryMaterialItems(FoundryShape.MECHANISM, MACHINE_COMPONENTS);
+    }
+
+    private static void registerIndependentRawIngotItems() {
+        for (FoundryMaterial material : FoundryMaterial.ordered()) {
+            if (!FoundryMaterialItems.supportsRawIngot(material)) {
+                continue;
+            }
+            String path = independentRawIngotItemPath(material);
+            if (!CORE_ITEM_IDS.contains(path)) {
+                material(INGOT_MATERIALS, path);
+            }
+        }
+    }
+
+    private static void registerIndependentFoundryMaterialItems(FoundryShape shape, List<DeferredItem<Item>> group) {
+        for (FoundryMaterial material : FoundryMaterial.ordered()) {
+            if (!FoundryMaterialShapes.supports(shape, material)) {
+                continue;
+            }
+            String path = independentFoundryItemPath(shape, material);
+            if (!CORE_ITEM_IDS.contains(path)) {
+                material(group, path);
+            }
+        }
+    }
+
+    private static void registerIndependentBedrockOreFragments() {
+        for (BedrockOreFragments.MaterialRef material : BedrockOreFragments.materials()) {
+            String path = BedrockOreFragments.independentItemPath(material);
+            if (!CORE_ITEM_IDS.contains(path)) {
+                BEDROCK_ORE_FRAGMENTS.add(oreDrop(path));
+            }
+        }
+    }
+
+    public static String independentFoundryItemPath(FoundryShape shape, FoundryMaterial material) {
+        return FoundryMaterialItems.foundryItemPath(shape, material);
+    }
+
+    public static String independentRawIngotItemPath(FoundryMaterial material) {
+        return FoundryMaterialItems.rawIngotItemPath(material);
     }
 
     private static DeferredItem<Item> nuclearWaste(String name, NuclearWasteItem.Family family, boolean depleted, boolean tiny) {
@@ -2769,14 +2789,6 @@ public final class HbmItems {
                 .craftRemainder(Items.BOWL)));
     }
 
-    private static DeferredItem<Item> legacyVariantItem(String name, String baseId, String... variants) {
-        return legacyItem(name, () -> new LegacyVariantItem(new Item.Properties(), baseId, LegacyVariantItem.variants(variants)));
-    }
-
-    private static DeferredItem<Item> legacyVariantItem(String name, String baseId, boolean multiName, String... variants) {
-        return legacyItem(name, () -> new LegacyVariantItem(new Item.Properties(), baseId, LegacyVariantItem.variants(variants), multiName));
-    }
-
     private static DeferredItem<Item> record(String name) {
         ResourceKey<JukeboxSong> song = ResourceKey.create(Registries.JUKEBOX_SONG, ReinhardtsHBM.id(name));
         DeferredItem<Item> item = coreItem(name, () -> new HbmRecordItem(
@@ -2792,8 +2804,16 @@ public final class HbmItems {
         return CORE_ITEM_IDS.contains(id) || isOptionalInfiniteWaterItem(id);
     }
 
+    public static ItemStack variantStack(Map<String, DeferredItem<Item>> items, String variant) {
+        DeferredItem<Item> item = items.get(variant);
+        return item == null ? ItemStack.EMPTY : new ItemStack(item.get());
+    }
+
     public static boolean isHiddenPortedPlainItem(DeferredItem<Item> item) {
-        return HIDDEN_PORTED_PLAIN_ITEM_IDS.contains(item.getId().getPath());
+        String path = item.getId().getPath();
+        return HIDDEN_PORTED_PLAIN_ITEM_IDS.contains(path)
+                || path.startsWith("item_secret_")
+                || path.startsWith("scrap_plastic_");
     }
 
     public static boolean isHiddenMissilePart(DeferredItem<Item> item) {
@@ -3123,6 +3143,9 @@ public final class HbmItems {
     private static void registerLegacyMaterialItems() {
         for (String id : loadLegacyItemIds()) {
             if (CORE_ITEM_IDS.contains(id)) {
+                continue;
+            }
+            if (RETIRED_LEGACY_CATALOG_ITEM_IDS.contains(id)) {
                 continue;
             }
 

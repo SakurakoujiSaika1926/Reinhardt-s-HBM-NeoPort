@@ -15,20 +15,10 @@
         "type": "neoforge:compound",
         "ingredients": [
           {
-            "type": "reinhardtshbm:foundry_material",
-            "items": [
-              "reinhardtshbm:plate_cast"
-            ],
-            "shape": "plate_cast",
-            "material": "bismuth_bronze"
+            "item": "reinhardtshbm:plate_cast_bismuth_bronze"
           },
           {
-            "type": "reinhardtshbm:foundry_material",
-            "items": [
-              "reinhardtshbm:plate_cast"
-            ],
-            "shape": "plate_cast",
-            "material": "arsenic_bronze"
+            "item": "reinhardtshbm:plate_cast_arsenic_bronze"
           }
         ]
       },

@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -16,24 +17,34 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID)
 public final class PowerNetworkManager {
     private static final int MAX_COMPONENT_NODES = 8192;
-    private static final long PRUNE_INTERVAL_TICKS = 20L;
+    private static final long PRUNE_INTERVAL_TICKS = 200L;
+    private static final long FOREIGN_SCAN_INTERVAL_TICKS = 20L;
+    private static final long FAST_SOLVE_TICKS_AFTER_CHANGE = 20L;
+    private static final long ENDPOINT_REGISTRATION_TTL_TICKS = 200L;
     private static final TagKey<Block> MOBILE_POWER_COMPATIBLE = TagKey.create(
             Registries.BLOCK,
             ReinhardtsHBM.id("mobile_power_compatible")
@@ -44,34 +55,97 @@ public final class PowerNetworkManager {
         return thread;
     });
     private static final Map<NetworkKey, LevelNetwork> NETWORKS = new ConcurrentHashMap<>();
+    private static final Map<PowerEndpoint, EndpointRegistration> ENDPOINT_REGISTRATIONS =
+            Collections.synchronizedMap(new WeakHashMap<>());
 
     private PowerNetworkManager() {
+    }
+
+    @SubscribeEvent
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        long gameTime = level.getGameTime();
+        for (Map.Entry<NetworkKey, LevelNetwork> entry : NETWORKS.entrySet()) {
+            if (entry.getKey().server() == level.getServer()
+                    && entry.getKey().dimension().equals(level.dimension())) {
+                entry.getValue().tick(level, gameTime);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        NETWORKS.keySet().removeIf(key -> key.server() == level.getServer()
+                && key.dimension().equals(level.dimension()));
+        synchronized (ENDPOINT_REGISTRATIONS) {
+            ENDPOINT_REGISTRATIONS.entrySet().removeIf(entry -> entry.getValue().key.server() == level.getServer()
+                    && entry.getValue().key.dimension().equals(level.dimension()));
+        }
+        HbmSablePowerCompat.invalidate(level);
     }
 
     public static void tickFromEndpoint(Level level, PowerEndpoint endpoint) {
         if (level.isClientSide) {
             return;
         }
-        if (!mobilePowerNodeAllowed(level, endpoint.getPowerPos())) {
+        BlockPos endpointPos = endpoint.getPowerPos().immutable();
+        EndpointRegistration oldRegistration = ENDPOINT_REGISTRATIONS.get(endpoint);
+        if (oldRegistration != null
+                && oldRegistration.key.server == level.getServer()
+                && oldRegistration.key.dimension.equals(level.dimension())
+                && oldRegistration.pos.equals(endpointPos)
+                && oldRegistration.expiresAt >= level.getGameTime()) {
             return;
         }
 
-        LevelNetwork network = network(level, endpoint.getPowerPos());
+        String powerSpace = HbmSablePowerCompat.powerSpaceId(level, endpointPos);
+        if (powerSpace != null && !level.getBlockState(endpointPos).is(MOBILE_POWER_COMPATIBLE)) {
+            unregisterOldEndpoint(endpoint, oldRegistration);
+            ENDPOINT_REGISTRATIONS.remove(endpoint);
+            return;
+        }
+
+        NetworkKey key = new NetworkKey(level.getServer(), level.dimension(), powerSpace);
+        if (oldRegistration != null && oldRegistration.key.equals(key)
+                && oldRegistration.pos.equals(endpointPos)) {
+            ENDPOINT_REGISTRATIONS.put(endpoint, new EndpointRegistration(
+                    key, endpointPos, level.getGameTime() + ENDPOINT_REGISTRATION_TTL_TICKS));
+            return;
+        }
+
+        unregisterOldEndpoint(endpoint, oldRegistration);
+        LevelNetwork network = NETWORKS.computeIfAbsent(key, LevelNetwork::new);
         network.register(endpoint);
+        ENDPOINT_REGISTRATIONS.put(endpoint, new EndpointRegistration(
+                key, endpointPos, level.getGameTime() + ENDPOINT_REGISTRATION_TTL_TICKS));
+    }
 
-        long gameTime = level.getGameTime();
-        if (network.lastTick == gameTime) {
+    private static void unregisterOldEndpoint(PowerEndpoint endpoint, EndpointRegistration registration) {
+        if (registration == null) {
             return;
         }
-
-        network.lastTick = gameTime;
-        network.tick(level);
+        LevelNetwork oldNetwork = NETWORKS.get(registration.key);
+        if (oldNetwork != null) {
+            oldNetwork.unregister(endpoint, registration.pos);
+        }
     }
 
     public static void markDirty(Level level) {
         if (!level.isClientSide) {
+            HbmSablePowerCompat.invalidate(level);
+            synchronized (ENDPOINT_REGISTRATIONS) {
+                ENDPOINT_REGISTRATIONS.entrySet().removeIf(
+                        entry -> entry.getValue().key.server == level.getServer()
+                                && entry.getValue().key.dimension.equals(level.dimension()));
+            }
             for (Map.Entry<NetworkKey, LevelNetwork> entry : NETWORKS.entrySet()) {
-                if (entry.getKey().dimension.equals(level.dimension())) {
+                if (entry.getKey().server == level.getServer()
+                        && entry.getKey().dimension.equals(level.dimension())) {
                     entry.getValue().markDirty();
                 }
             }
@@ -144,7 +218,7 @@ public final class PowerNetworkManager {
     }
 
     private static NetworkKey networkKey(Level level, BlockPos pos) {
-        return new NetworkKey(level.dimension(), HbmSablePowerCompat.powerSpaceId(level, pos));
+        return new NetworkKey(level.getServer(), level.dimension(), HbmSablePowerCompat.powerSpaceId(level, pos));
     }
 
     private static boolean samePowerSpace(LevelAccessor level, BlockPos first, BlockPos second) {
@@ -156,20 +230,34 @@ public final class PowerNetworkManager {
                 || level.getBlockState(pos).is(MOBILE_POWER_COMPATIBLE);
     }
 
-    private record NetworkKey(ResourceKey<Level> dimension, String powerSpace) {
+    private record NetworkKey(net.minecraft.server.MinecraftServer server, ResourceKey<Level> dimension,
+                              String powerSpace) {
+    }
+
+    private record EndpointRegistration(NetworkKey key, BlockPos pos, long expiresAt) {
     }
 
     private static final class LevelNetwork {
         private final NetworkKey key;
         private final Map<BlockPos, PowerEndpoint> endpoints = new HashMap<>();
-        private List<List<BlockPos>> components = List.of();
+        private final Map<BlockPos, Map<BlockPos, Long>> directedReachability = new HashMap<>();
+        private final Map<BlockPos, Map<BlockPos, Long>> reachableEndpoints = new HashMap<>();
+        private final Map<BlockPos, Set<BlockPos>> graphComponents = new HashMap<>();
+        private final Map<BlockPos, Integer> componentByNode = new HashMap<>();
+        private final Map<ExternalRouteKey, List<ExternalEndpoint>> externalRoutes = new HashMap<>();
+        private List<NetworkComponent> components = List.of();
         private CompletableFuture<SolveResult> inFlight;
+        private Map<BlockPos, Allocation> activeAllocations = Map.of();
+        private Map<BlockPos, PowerEndpoint> activeEndpointInstances = Map.of();
         private Map<BlockPos, Long> transferredPower = Map.of();
-        private Set<BlockPos> foreignCables = Set.of();
+        private List<ForeignConnection> foreignConnections = List.of();
         private long graphVersion;
         private long lastTick = Long.MIN_VALUE;
         private long lastPruneTick = Long.MIN_VALUE;
         private long lastForeignScan = Long.MIN_VALUE;
+        private long lastSolveSubmitted = Long.MIN_VALUE;
+        private long fastSolveUntil = Long.MIN_VALUE;
+        private long lastAppliedTransfer;
         private boolean dirty = true;
 
         private LevelNetwork(NetworkKey key) {
@@ -187,18 +275,44 @@ public final class PowerNetworkManager {
             }
         }
 
+        void unregister(PowerEndpoint endpoint, BlockPos pos) {
+            if (this.endpoints.get(pos) == endpoint) {
+                this.endpoints.remove(pos);
+                markDirty();
+            }
+        }
+
         void markDirty() {
-            // A large machine replaces many dummy blocks in one tick. One
-            // rebuild already incorporates all of those changes, so further
-            // marks must not invalidate the same pending solve repeatedly.
+            // Every topology notification advances the revision, even when a
+            // rebuild is already pending.  A solve may still be running for a
+            // previous endpoint instance at the same BlockPos; reusing that
+            // result after the block was broken/replaced would feed its old
+            // allocation into the new machine (ghost power).
+            this.graphVersion++;
+            this.directedReachability.clear();
+            this.reachableEndpoints.clear();
+            this.graphComponents.clear();
+            this.componentByNode.clear();
+            this.externalRoutes.clear();
+            this.lastForeignScan = Long.MIN_VALUE;
+            this.activeAllocations = Map.of();
+            this.activeEndpointInstances = Map.of();
+            this.transferredPower = Map.of();
+            this.lastSolveSubmitted = Long.MIN_VALUE;
+            this.fastSolveUntil = this.lastTick == Long.MIN_VALUE
+                    ? FAST_SOLVE_TICKS_AFTER_CHANGE
+                    : this.lastTick + FAST_SOLVE_TICKS_AFTER_CHANGE;
             if (this.dirty) {
                 return;
             }
             this.dirty = true;
-            this.graphVersion++;
         }
 
-        void tick(Level level) {
+        void tick(Level level, long gameTime) {
+            if (this.lastTick == gameTime) {
+                return;
+            }
+            this.lastTick = gameTime;
             if (this.dirty || this.lastTick - this.lastPruneTick >= PRUNE_INTERVAL_TICKS) {
                 pruneInvalidEndpoints(level);
                 this.lastPruneTick = this.lastTick;
@@ -208,7 +322,8 @@ public final class PowerNetworkManager {
                 SolveResult result = this.inFlight.join();
                 this.inFlight = null;
                 if (result.graphVersion == this.graphVersion) {
-                    apply(result);
+                    this.activeAllocations = result.allocations;
+                    this.activeEndpointInstances = result.endpointInstances;
                 }
             }
 
@@ -217,9 +332,12 @@ public final class PowerNetworkManager {
                 this.dirty = false;
             }
 
-            if (this.inFlight == null && !this.components.isEmpty()) {
+            applyActivePlan();
+
+            if (this.inFlight == null && !this.components.isEmpty() && shouldSubmitSolve()) {
                 SolveSnapshot snapshot = snapshot(level);
                 this.inFlight = CompletableFuture.supplyAsync(() -> solve(snapshot), SOLVER);
+                this.lastSolveSubmitted = this.lastTick;
             }
 
             // 1.7.10 refreshes the neighbour cache every 20 ticks but performs
@@ -230,119 +348,180 @@ public final class PowerNetworkManager {
             }
         }
 
+        private boolean shouldSubmitSolve() {
+            if (this.lastSolveSubmitted == Long.MIN_VALUE) {
+                return true;
+            }
+            long interval = this.lastTick <= this.fastSolveUntil ? 1L : this.lastAppliedTransfer > 0L ? 2L : 4L;
+            return this.lastTick - this.lastSolveSubmitted >= interval;
+        }
+
         private void transferForeignEnergy(Level level) {
-            if (this.lastForeignScan == Long.MIN_VALUE || this.lastTick - this.lastForeignScan >= 20L) {
+            if (this.lastForeignScan == Long.MIN_VALUE
+                    || this.lastTick - this.lastForeignScan >= FOREIGN_SCAN_INTERVAL_TICKS) {
                 Set<BlockPos> cables = new HashSet<>();
-                for (BlockPos endpoint : this.endpoints.keySet()) {
-                    collectCableNodes(level, endpoint, cables);
+                for (NetworkComponent component : this.components) {
+                    for (BlockPos node : component.nodes) {
+                        if (level.getBlockState(node).getBlock() instanceof EnergyCableBlock) {
+                            cables.add(node);
+                        }
+                    }
                 }
-                this.foreignCables = Set.copyOf(cables);
                 this.lastForeignScan = this.lastTick;
 
-                // Forge Energy providers may be attached after the cable's
-                // placement update (or become available after a capability
-                // invalidation).  Keep the persisted connection mask in lock
-                // step with the same six-side probe used by the transfer
-                // bridge; UPDATE_CLIENTS then selects the arm-bearing model.
-                for (BlockPos cable : this.foreignCables) {
+                List<ForeignConnection> connections = new ArrayList<>();
+                Set<BlockPos> cablesToRefresh = new HashSet<>();
+                for (ForeignConnection oldConnection : this.foreignConnections) {
+                    cablesToRefresh.add(oldConnection.cable);
+                }
+                for (BlockPos cable : cables) {
+                    for (Direction direction : Direction.values()) {
+                        BlockPos neighborPos = cable.relative(direction);
+                        if (!level.isLoaded(neighborPos) || !samePowerSpace(level, cable, neighborPos)) {
+                            continue;
+                        }
+                        // Native endpoints (including the explicit converter)
+                        // are handled by the HBM network and must not be
+                        // bridged twice.
+                        if (endpointAt(level, neighborPos) != null || isPowerNode(level, neighborPos)) {
+                            continue;
+                        }
+                        Direction capabilitySide = direction.getOpposite();
+                        IEnergyStorage storage = level.getCapability(
+                                Capabilities.EnergyStorage.BLOCK, neighborPos, capabilitySide);
+                        if (storage != null) {
+                            cablesToRefresh.add(cable);
+                            connections.add(new ForeignConnection(
+                                    cable.immutable(), neighborPos.immutable(), storage));
+                        }
+                    }
+                }
+
+                // Capability providers can appear or disappear without a
+                // block-state change. Refresh only current/previous FE
+                // boundaries instead of recalculating all six arms on every
+                // cable in the network a second time.
+                for (BlockPos cable : cablesToRefresh) {
                     EnergyCableBlock.refreshConnections(level, cable);
                 }
+                this.foreignConnections = List.copyOf(connections);
             }
-            for (BlockPos cable : this.foreignCables) {
-                for (Direction direction : Direction.values()) {
-                    BlockPos neighborPos = cable.relative(direction);
-                    if (!level.isLoaded(neighborPos)) {
-                        continue;
-                    }
-                    if (!samePowerSpace(level, cable, neighborPos)) {
-                        continue;
-                    }
-                    // Native endpoints (including the explicit converter) are
-                    // handled by the HBM network and must not be bridged twice.
-                    if (endpointAt(level, neighborPos) != null || isPowerNode(level, neighborPos)) {
-                        continue;
-                    }
-                    IEnergyStorage storage = level.getCapability(
-                            Capabilities.EnergyStorage.BLOCK, neighborPos, direction.getOpposite());
-                    if (storage == null) {
-                        continue;
-                    }
-                    pullFromForeignStorage(level, cable, storage);
-                    pushToForeignStorage(level, cable, storage);
+
+            Map<Integer, List<ForeignConnection>> grouped = new HashMap<>();
+            for (ForeignConnection connection : this.foreignConnections) {
+                Integer componentIndex = this.componentByNode.get(connection.cable);
+                if (componentIndex != null && level.isLoaded(connection.neighbor)) {
+                    grouped.computeIfAbsent(componentIndex, ignored -> new ArrayList<>()).add(connection);
+                }
+            }
+
+            for (Map.Entry<Integer, List<ForeignConnection>> entry : grouped.entrySet()) {
+                NetworkComponent component = this.components.get(entry.getKey());
+                if (component.unrestricted) {
+                    transferForeignGroup(level, entry.getValue());
+                    continue;
+                }
+                // Directed networks can expose different providers and
+                // receivers at each boundary, so retain boundary-local
+                // decisions while still reusing cached routes/capabilities.
+                for (ForeignConnection connection : entry.getValue()) {
+                    transferForeignGroup(level, List.of(connection));
                 }
             }
         }
 
-        private void collectCableNodes(Level level, BlockPos start, Set<BlockPos> cables) {
-            ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-            Set<BlockPos> visited = new HashSet<>();
-            BlockPos origin = start.immutable();
-            queue.add(origin);
-            visited.add(origin);
-            while (!queue.isEmpty() && visited.size() < MAX_COMPONENT_NODES) {
-                BlockPos current = queue.removeFirst();
-                if (level.getBlockState(current).getBlock() instanceof EnergyCableBlock) {
-                    cables.add(current.immutable());
-                }
-                for (BlockPos next : adjacentGraphNodes(level, current)) {
-                    BlockPos immutable = next.immutable();
-                    if (visited.add(immutable) && isPowerNode(level, immutable)) {
-                        queue.addLast(immutable);
-                    }
-                }
-            }
-        }
-
-        private void pullFromForeignStorage(Level level, BlockPos cable, IEnergyStorage storage) {
-            double rate = HbmConfig.HE_TO_FE_CONVERSION_RATE.get();
-            if (rate <= 0D || !storage.canExtract()) {
+        private void transferForeignGroup(Level level, List<ForeignConnection> connections) {
+            if (connections.isEmpty()) {
                 return;
+            }
+            BlockPos routeCable = connections.getFirst().cable;
+            long demand = externalCapacity(level, routeCable, true);
+            long supply = externalCapacity(level, routeCable, false);
+            if (demand > supply) {
+                long remaining = demand - supply;
+                for (ForeignConnection connection : connections) {
+                    remaining -= pullFromForeignStorage(level, connection.cable, connection.storage, remaining);
+                    if (remaining <= 0L) {
+                        break;
+                    }
+                }
+            } else if (supply > demand) {
+                long remaining = supply - demand;
+                for (ForeignConnection connection : connections) {
+                    remaining -= pushToForeignStorage(level, connection.cable, connection.storage, remaining);
+                    if (remaining <= 0L) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        private record ForeignConnection(BlockPos cable, BlockPos neighbor, IEnergyStorage storage) {
+        }
+
+        private long pullFromForeignStorage(Level level, BlockPos cable, IEnergyStorage storage, long maxHe) {
+            double rate = HbmConfig.HE_TO_FE_CONVERSION_RATE.get();
+            if (maxHe <= 0L || rate <= 0D || !storage.canExtract()) {
+                return 0L;
             }
             int maxExtractFe = storage.extractEnergy(Integer.MAX_VALUE, true);
-            long heBudget = (long) Math.floor(maxExtractFe / rate);
+            long heBudget = Math.min(maxHe, (long) Math.floor(maxExtractFe / rate));
             if (heBudget <= 0L) {
-                return;
+                return 0L;
             }
             long acceptedHe = externalTransfer(level, cable, heBudget, true, true);
             if (acceptedHe <= 0L) {
-                return;
+                return 0L;
             }
             int feToExtract = (int) Math.min(maxExtractFe, Math.min(Integer.MAX_VALUE,
                     Math.round(acceptedHe * rate)));
             int extractedFe = storage.extractEnergy(feToExtract, false);
             if (extractedFe <= 0) {
-                return;
+                return 0L;
             }
             long injectedHe = Math.min(acceptedHe, (long) Math.floor(extractedFe / rate));
             if (injectedHe > 0L) {
-                externalTransfer(level, cable, injectedHe, true, false);
+                return externalTransfer(level, cable, injectedHe, true, false);
             }
+            return 0L;
         }
 
-        private void pushToForeignStorage(Level level, BlockPos cable, IEnergyStorage storage) {
+        private long pushToForeignStorage(Level level, BlockPos cable, IEnergyStorage storage, long maxHe) {
             double rate = HbmConfig.HE_TO_FE_CONVERSION_RATE.get();
-            if (rate <= 0D || !storage.canReceive()) {
-                return;
+            if (maxHe <= 0L || rate <= 0D || !storage.canReceive()) {
+                return 0L;
             }
             int freeSpaceFe = storage.receiveEnergy(Integer.MAX_VALUE, true);
-            long heBudget = (long) Math.floor(freeSpaceFe / rate);
+            long heBudget = Math.min(maxHe, (long) Math.floor(freeSpaceFe / rate));
             if (heBudget <= 0L) {
-                return;
+                return 0L;
             }
             long extractedHe = externalTransfer(level, cable, heBudget, false, true);
             if (extractedHe <= 0L) {
-                return;
+                return 0L;
             }
             int feToSend = (int) Math.min(freeSpaceFe, Math.min(Integer.MAX_VALUE,
                     Math.round(extractedHe * rate)));
             int receivedFe = storage.receiveEnergy(feToSend, false);
             if (receivedFe <= 0) {
-                return;
+                return 0L;
             }
             long usedHe = Math.min(extractedHe, (long) Math.floor(receivedFe / rate));
             if (usedHe > 0L) {
-                externalTransfer(level, cable, usedHe, false, false);
+                return externalTransfer(level, cable, usedHe, false, false);
             }
+            return 0L;
+        }
+
+        private long externalCapacity(Level level, BlockPos cable, boolean receive) {
+            long total = 0L;
+            for (ExternalEndpoint candidate : externalCandidates(level, cable, receive)) {
+                long available = receive
+                        ? candidate.endpoint.getRequestedInput()
+                        : candidate.endpoint.getAvailableOutput();
+                total = saturatedAdd(total, Math.min(Math.max(0L, available), candidate.limit));
+            }
+            return total;
         }
 
         /** Transfers HE between a cable and reachable native endpoints. */
@@ -350,32 +529,7 @@ public final class PowerNetworkManager {
             if (amount <= 0L || !isPowerNode(level, cable)) {
                 return 0L;
             }
-            Map<BlockPos, Long> limits = receive ? directedReachable(level, cable) : null;
-            List<ExternalEndpoint> candidates = new ArrayList<>();
-            if (receive) {
-                for (Map.Entry<BlockPos, Long> entry : limits.entrySet()) {
-                    PowerEndpoint endpoint = endpointAt(level, entry.getKey());
-                    if (endpoint != null && !entry.getKey().equals(cable)
-                            && endpoint.getRequestedInput() > 0L) {
-                        candidates.add(new ExternalEndpoint(endpoint, entry.getValue()));
-                    }
-                }
-            } else {
-                for (BlockPos pos : graphComponent(level, cable)) {
-                    PowerEndpoint endpoint = endpointAt(level, pos);
-                    if (endpoint == null || endpoint.getAvailableOutput() <= 0L) {
-                        continue;
-                    }
-                    long limit = directedReachable(level, pos).getOrDefault(cable, 0L);
-                    if (limit > 0L) {
-                        candidates.add(new ExternalEndpoint(endpoint, limit));
-                    }
-                }
-            }
-            candidates.sort(Comparator
-                    .comparingInt((ExternalEndpoint candidate) -> candidate.endpoint.getPowerPriority().ordinal())
-                    .reversed()
-                    .thenComparing(candidate -> candidate.endpoint.getPowerPos()));
+            List<ExternalEndpoint> candidates = externalCandidates(level, cable, receive);
             long remaining = amount;
             for (ExternalEndpoint candidate : candidates) {
                 long available = receive
@@ -396,10 +550,65 @@ public final class PowerNetworkManager {
             return amount - remaining;
         }
 
+        private List<ExternalEndpoint> externalCandidates(Level level, BlockPos cable, boolean receive) {
+            ExternalRouteKey key = new ExternalRouteKey(cable.immutable(), receive);
+            List<ExternalEndpoint> cached = this.externalRoutes.get(key);
+            if (cached != null) {
+                return cached;
+            }
+
+            List<ExternalEndpoint> candidates = new ArrayList<>();
+            Integer componentIndex = this.componentByNode.get(cable);
+            NetworkComponent component = componentIndex == null ? null : this.components.get(componentIndex);
+            if (component != null && component.unrestricted) {
+                for (BlockPos endpointPos : component.endpoints) {
+                    PowerEndpoint endpoint = this.endpoints.get(endpointPos);
+                    if (endpoint != null) {
+                        candidates.add(new ExternalEndpoint(endpoint, Long.MAX_VALUE));
+                    }
+                }
+            } else if (receive) {
+                for (Map.Entry<BlockPos, Long> entry : reachableEndpoints(level, cable).entrySet()) {
+                    PowerEndpoint endpoint = this.endpoints.get(entry.getKey());
+                    if (endpoint != null && !entry.getKey().equals(cable)) {
+                        candidates.add(new ExternalEndpoint(endpoint, entry.getValue()));
+                    }
+                }
+            } else {
+                Set<BlockPos> graphNodes = graphComponent(level, cable);
+                for (Map.Entry<BlockPos, PowerEndpoint> entry : this.endpoints.entrySet()) {
+                    BlockPos pos = entry.getKey();
+                    PowerEndpoint endpoint = entry.getValue();
+                    if (!graphNodes.contains(pos)) {
+                        continue;
+                    }
+                    long limit = directedReachable(level, pos).getOrDefault(cable, 0L);
+                    if (limit > 0L) {
+                        candidates.add(new ExternalEndpoint(endpoint, limit));
+                    }
+                }
+            }
+            candidates.sort(Comparator
+                    .comparingInt((ExternalEndpoint candidate) -> candidate.endpoint.getPowerPriority().ordinal())
+                    .reversed()
+                    .thenComparing(candidate -> candidate.endpoint.getPowerPos()));
+            List<ExternalEndpoint> route = List.copyOf(candidates);
+            this.externalRoutes.put(key, route);
+            return route;
+        }
+
+        private record ExternalRouteKey(BlockPos cable, boolean receive) {
+        }
+
         private Set<BlockPos> graphComponent(Level level, BlockPos start) {
+            BlockPos origin = start.immutable();
+            Set<BlockPos> cached = this.graphComponents.get(origin);
+            if (cached != null) {
+                return cached;
+            }
+
             Set<BlockPos> visited = new HashSet<>();
             ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-            BlockPos origin = start.immutable();
             visited.add(origin);
             queue.add(origin);
             while (!queue.isEmpty() && visited.size() < MAX_COMPONENT_NODES) {
@@ -411,7 +620,30 @@ public final class PowerNetworkManager {
                     }
                 }
             }
-            return visited;
+            Set<BlockPos> component = Set.copyOf(visited);
+            for (BlockPos pos : component) {
+                this.graphComponents.put(pos, component);
+            }
+            return component;
+        }
+
+        private Map<BlockPos, Long> directedReachable(Level level, BlockPos start) {
+            BlockPos origin = start.immutable();
+            return this.directedReachability.computeIfAbsent(
+                    origin, ignored -> computeDirectedReachable(level, origin));
+        }
+
+        private Map<BlockPos, Long> reachableEndpoints(Level level, BlockPos start) {
+            BlockPos origin = start.immutable();
+            return this.reachableEndpoints.computeIfAbsent(origin, ignored -> {
+                Map<BlockPos, Long> endpointLimits = new HashMap<>();
+                for (Map.Entry<BlockPos, Long> entry : directedReachable(level, origin).entrySet()) {
+                    if (this.endpoints.containsKey(entry.getKey())) {
+                        endpointLimits.put(entry.getKey(), entry.getValue());
+                    }
+                }
+                return Map.copyOf(endpointLimits);
+            });
         }
 
         private record ExternalEndpoint(PowerEndpoint endpoint, long limit) {
@@ -521,14 +753,14 @@ public final class PowerNetworkManager {
             }
         }
 
-        private List<List<BlockPos>> rebuildComponents(Level level) {
+        private List<NetworkComponent> rebuildComponents(Level level) {
             if (this.endpoints.isEmpty()) {
                 return List.of();
             }
 
             Set<BlockPos> visitedNodes = new HashSet<>();
             Set<BlockPos> assignedEndpoints = new HashSet<>();
-            List<List<BlockPos>> rebuilt = new ArrayList<>();
+            List<NetworkComponent> rebuilt = new ArrayList<>();
 
             for (BlockPos start : sortedPositions(this.endpoints.keySet())) {
                 if (assignedEndpoints.contains(start)) {
@@ -536,9 +768,11 @@ public final class PowerNetworkManager {
                 }
 
                 List<BlockPos> componentEndpoints = new ArrayList<>();
+                Set<BlockPos> componentNodes = new HashSet<>();
                 ArrayDeque<BlockPos> queue = new ArrayDeque<>();
                 queue.add(start);
                 visitedNodes.add(start);
+                componentNodes.add(start);
                 int visitedInComponent = 0;
 
                 while (!queue.isEmpty() && visitedInComponent < MAX_COMPONENT_NODES) {
@@ -551,16 +785,27 @@ public final class PowerNetworkManager {
                     }
 
                     for (BlockPos next : adjacentGraphNodes(level, current)) {
-                        if (visitedNodes.contains(next) || !isPowerNode(level, next)) {
+                        BlockPos immutable = next.immutable();
+                        if (visitedNodes.contains(immutable) || !isPowerNode(level, immutable)) {
                             continue;
                         }
-                        visitedNodes.add(next.immutable());
-                        queue.add(next.immutable());
+                        visitedNodes.add(immutable);
+                        componentNodes.add(immutable);
+                        queue.add(immutable);
                     }
                 }
 
                 if (!componentEndpoints.isEmpty()) {
-                    rebuilt.add(sortedPositions(componentEndpoints));
+                    Set<BlockPos> component = Set.copyOf(componentNodes);
+                    boolean unrestricted = component.stream()
+                            .noneMatch(pos -> requiresDirectedPowerRouting(level, pos));
+                    int componentIndex = rebuilt.size();
+                    rebuilt.add(new NetworkComponent(
+                            sortedPositions(componentEndpoints), component, unrestricted));
+                    for (BlockPos pos : component) {
+                        this.graphComponents.put(pos, component);
+                        this.componentByNode.put(pos, componentIndex);
+                    }
                 }
             }
 
@@ -569,36 +814,124 @@ public final class PowerNetworkManager {
 
         private SolveSnapshot snapshot(Level level) {
             List<ComponentSnapshot> snapshots = new ArrayList<>();
-            for (List<BlockPos> component : this.components) {
+            Map<BlockPos, PowerEndpoint> endpointInstances = new HashMap<>();
+            for (NetworkComponent component : this.components) {
                 List<EndpointSnapshot> endpoints = new ArrayList<>();
-                for (BlockPos pos : component) {
+                for (BlockPos pos : component.endpoints) {
                     PowerEndpoint endpoint = this.endpoints.get(pos);
                     if (endpoint != null) {
+                        endpointInstances.put(pos, endpoint);
                         endpoints.add(new EndpointSnapshot(
                                 pos,
                                 Math.max(0L, endpoint.getAvailableOutput()),
                                 Math.max(0L, endpoint.getRequestedInput()),
                                 endpoint.getPowerPriority(),
-                                directedReachable(level, pos)
+                                component.unrestricted ? Map.of() : reachableEndpoints(level, pos)
                         ));
                     }
                 }
                 if (!endpoints.isEmpty()) {
-                    snapshots.add(new ComponentSnapshot(endpoints));
+                    snapshots.add(new ComponentSnapshot(endpoints, component.unrestricted));
                 }
             }
-            return new SolveSnapshot(this.graphVersion, this.lastTick, snapshots);
+            return new SolveSnapshot(this.graphVersion, this.lastTick, snapshots, Map.copyOf(endpointInstances));
         }
 
-        private void apply(SolveResult result) {
-            this.transferredPower = result.transferredPower;
-            for (Map.Entry<BlockPos, Allocation> entry : result.allocations.entrySet()) {
-                PowerEndpoint endpoint = this.endpoints.get(entry.getKey());
-                if (endpoint != null) {
-                    Allocation allocation = entry.getValue();
-                    endpoint.applyPower(allocation.usedOutput, allocation.receivedInput);
+        private void applyActivePlan() {
+            if (this.activeAllocations.isEmpty()) {
+                this.lastAppliedTransfer = 0L;
+                this.transferredPower = Map.of();
+                return;
+            }
+
+            Map<BlockPos, Long> transferred = new HashMap<>();
+            long totalTransferred = 0L;
+            for (NetworkComponent component : this.components) {
+                Map<BlockPos, Long> providerCaps = new HashMap<>();
+                Map<BlockPos, Long> consumerCaps = new HashMap<>();
+                long available = 0L;
+                long requested = 0L;
+                for (BlockPos pos : component.endpoints) {
+                    PowerEndpoint endpoint = this.endpoints.get(pos);
+                    Allocation planned = this.activeAllocations.getOrDefault(pos, Allocation.NONE);
+                    // Coordinates are not an endpoint identity. A multiblock
+                    // can be broken and recreated at the same position while
+                    // its previous asynchronous solve is still in flight.
+                    if (endpoint == null || this.activeEndpointInstances.get(pos) != endpoint) {
+                        continue;
+                    }
+                    long providerCap = Math.min(planned.usedOutput, Math.max(0L, endpoint.getAvailableOutput()));
+                    long consumerCap = Math.min(planned.receivedInput, Math.max(0L, endpoint.getRequestedInput()));
+                    if (providerCap > 0L) {
+                        providerCaps.put(pos, providerCap);
+                        available = saturatedAdd(available, providerCap);
+                    }
+                    if (consumerCap > 0L) {
+                        consumerCaps.put(pos, consumerCap);
+                        requested = saturatedAdd(requested, consumerCap);
+                    }
+                }
+
+                long componentTransferred = Math.min(available, requested);
+                Map<BlockPos, Long> providers = scaleCaps(component.endpoints, providerCaps,
+                        available, componentTransferred, this.lastTick + 17L);
+                Map<BlockPos, Long> consumers = scaleCaps(component.endpoints, consumerCaps,
+                        requested, componentTransferred, this.lastTick);
+                for (BlockPos pos : component.endpoints) {
+                    PowerEndpoint endpoint = this.endpoints.get(pos);
+                    if (endpoint != null && this.activeEndpointInstances.get(pos) == endpoint) {
+                        endpoint.applyPower(providers.getOrDefault(pos, 0L), consumers.getOrDefault(pos, 0L));
+                    }
+                    transferred.put(pos, componentTransferred);
+                }
+                totalTransferred = saturatedAdd(totalTransferred, componentTransferred);
+            }
+            this.lastAppliedTransfer = totalTransferred;
+            this.transferredPower = Map.copyOf(transferred);
+        }
+
+        private static Map<BlockPos, Long> scaleCaps(
+                List<BlockPos> orderedPositions,
+                Map<BlockPos, Long> caps,
+                long totalCaps,
+                long amount,
+                long rotationSeed
+        ) {
+            if (amount <= 0L || totalCaps <= 0L || caps.isEmpty()) {
+                return Map.of();
+            }
+            Map<BlockPos, Long> scaled = new HashMap<>();
+            long allocated = 0L;
+            for (BlockPos pos : orderedPositions) {
+                long cap = caps.getOrDefault(pos, 0L);
+                if (cap <= 0L) {
+                    continue;
+                }
+                long share = Math.min(amount - allocated,
+                        Math.min(cap, weightedDivision(amount, cap, totalCaps).quotient));
+                scaled.put(pos, share);
+                allocated += share;
+                if (allocated >= amount) {
+                    break;
                 }
             }
+
+            long remaining = amount - allocated;
+            int size = orderedPositions.size();
+            int offset = size == 0 ? 0 : (int) Math.floorMod(rotationSeed, (long) size);
+            for (int i = 0; remaining > 0L && i < size; i++) {
+                BlockPos pos = orderedPositions.get((offset + i) % size);
+                long cap = caps.getOrDefault(pos, 0L);
+                long current = scaled.getOrDefault(pos, 0L);
+                if (current < cap) {
+                    scaled.put(pos, current + 1L);
+                    remaining--;
+                }
+            }
+            return scaled;
+        }
+
+        private record NetworkComponent(List<BlockPos> endpoints, Set<BlockPos> nodes, boolean unrestricted) {
         }
     }
 
@@ -709,7 +1042,7 @@ public final class PowerNetworkManager {
         return graphNode.canAcceptPowerFrom(level, from, machineSide);
     }
 
-    private static Map<BlockPos, Long> directedReachable(Level level, BlockPos start) {
+    private static Map<BlockPos, Long> computeDirectedReachable(Level level, BlockPos start) {
         Map<BlockPos, Long> limits = new HashMap<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         BlockPos origin = start.immutable();
@@ -738,6 +1071,12 @@ public final class PowerNetworkManager {
             return Math.max(0L, graphNode.getPowerFlowLimit(level));
         }
         return Long.MAX_VALUE;
+    }
+
+    private static boolean requiresDirectedPowerRouting(LevelAccessor level, BlockPos pos) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        return blockEntity instanceof PowerGraphNode graphNode
+                && graphNode.requiresDirectedPowerRouting(level);
     }
 
     private static boolean canConnectPower(LevelAccessor level, BlockEntity blockEntity, BlockPos connectorPos, Direction machineSide) {
@@ -795,24 +1134,38 @@ public final class PowerNetworkManager {
                 transferredPower.put(endpoint.pos, transferred);
             }
         }
-        return new SolveResult(snapshot.graphVersion, Map.copyOf(allocations), Map.copyOf(transferredPower));
+        return new SolveResult(snapshot.graphVersion, Map.copyOf(allocations), Map.copyOf(transferredPower),
+                snapshot.endpointInstances);
     }
 
     private static long solveComponent(ComponentSnapshot component, Map<BlockPos, Allocation> allocations, long gameTime) {
-        List<EndpointSnapshot> providers = component.endpoints.stream()
-                .filter(endpoint -> endpoint.availableOutput > 0L
-                        && component.canReachConsumer(endpoint.pos))
-                .map(endpoint -> endpoint.withAvailableOutput(
-                        Math.min(endpoint.availableOutput, component.maxPathLimitToConsumer(endpoint.pos))))
-                .filter(endpoint -> endpoint.availableOutput > 0L)
-                .toList();
-        List<EndpointSnapshot> consumers = component.endpoints.stream()
-                .filter(endpoint -> endpoint.requestedInput > 0L
-                        && component.canReachProvider(endpoint.pos))
-                .map(endpoint -> endpoint.withRequestedInput(
-                        Math.min(endpoint.requestedInput, component.maxPathLimitFromProvider(endpoint.pos))))
-                .filter(endpoint -> endpoint.requestedInput > 0L)
-                .toList();
+        List<EndpointSnapshot> providers;
+        List<EndpointSnapshot> consumers;
+        if (component.unrestricted) {
+            boolean hasConsumer = component.endpoints.stream().anyMatch(endpoint -> endpoint.requestedInput > 0L);
+            boolean hasProvider = component.endpoints.stream().anyMatch(endpoint -> endpoint.availableOutput > 0L);
+            providers = hasConsumer ? component.endpoints.stream()
+                    .filter(endpoint -> endpoint.availableOutput > 0L)
+                    .toList() : List.of();
+            consumers = hasProvider ? component.endpoints.stream()
+                    .filter(endpoint -> endpoint.requestedInput > 0L)
+                    .toList() : List.of();
+        } else {
+            providers = component.endpoints.stream()
+                    .filter(endpoint -> endpoint.availableOutput > 0L
+                            && component.canReachConsumer(endpoint.pos))
+                    .map(endpoint -> endpoint.withAvailableOutput(
+                            Math.min(endpoint.availableOutput, component.maxPathLimitToConsumer(endpoint.pos))))
+                    .filter(endpoint -> endpoint.availableOutput > 0L)
+                    .toList();
+            consumers = component.endpoints.stream()
+                    .filter(endpoint -> endpoint.requestedInput > 0L
+                            && component.canReachProvider(endpoint.pos))
+                    .map(endpoint -> endpoint.withRequestedInput(
+                            Math.min(endpoint.requestedInput, component.maxPathLimitFromProvider(endpoint.pos))))
+                    .filter(endpoint -> endpoint.requestedInput > 0L)
+                    .toList();
+        }
 
         long availableOutput = 0L;
         long requestedInput = 0L;
@@ -917,7 +1270,7 @@ public final class PowerNetworkManager {
         for (EndpointSnapshot endpoint : endpoints) {
             long capacity = consumers ? endpoint.requestedInput : endpoint.availableOutput;
             Division division = weightedDivision(delivered, capacity, total);
-            long allocated = Math.min(capacity, division.quotient);
+            long allocated = Math.min(remaining, Math.min(capacity, division.quotient));
             long remainder = division.remainder;
             remaining -= allocated;
             shares.add(new Share(endpoint, capacity, allocated, remainder));
@@ -985,24 +1338,36 @@ public final class PowerNetworkManager {
         private static final Division ZERO = new Division(0L, 0L);
     }
 
-    private record SolveSnapshot(long graphVersion, long gameTime, List<ComponentSnapshot> components) {
+    private record SolveSnapshot(long graphVersion, long gameTime, List<ComponentSnapshot> components,
+                                 Map<BlockPos, PowerEndpoint> endpointInstances) {
     }
 
-    private record ComponentSnapshot(List<EndpointSnapshot> endpoints) {
+    private record ComponentSnapshot(List<EndpointSnapshot> endpoints, boolean unrestricted) {
         private boolean canReachConsumer(BlockPos provider) {
+            if (unrestricted) {
+                return endpoints.stream().anyMatch(endpoint -> endpoint.requestedInput > 0L
+                        && !endpoint.pos.equals(provider));
+            }
             return endpoints.stream().anyMatch(endpoint -> endpoint.requestedInput > 0L
-                    && endpoint.pos != provider
+                    && !endpoint.pos.equals(provider)
                     && endpoints.stream().anyMatch(candidate -> candidate.pos.equals(provider)
                             && candidate.reachableLimits.containsKey(endpoint.pos)));
         }
 
         private boolean canReachProvider(BlockPos consumer) {
+            if (unrestricted) {
+                return endpoints.stream().anyMatch(provider -> provider.availableOutput > 0L
+                        && !provider.pos.equals(consumer));
+            }
             return endpoints.stream().anyMatch(provider -> provider.availableOutput > 0L
-                    && provider.pos != consumer
+                    && !provider.pos.equals(consumer)
                     && provider.reachableLimits.containsKey(consumer));
         }
 
         private long maxPathLimitToConsumer(BlockPos provider) {
+            if (unrestricted) {
+                return Long.MAX_VALUE;
+            }
             return endpoints.stream()
                     .filter(endpoint -> endpoint.pos.equals(provider))
                     .flatMap(endpoint -> endpoints.stream()
@@ -1014,6 +1379,9 @@ public final class PowerNetworkManager {
         }
 
         private long maxPathLimitFromProvider(BlockPos consumer) {
+            if (unrestricted) {
+                return Long.MAX_VALUE;
+            }
             return endpoints.stream()
                     .filter(provider -> provider.availableOutput > 0L)
                     .mapToLong(provider -> provider.reachableLimits.getOrDefault(consumer, 0L))
@@ -1039,7 +1407,8 @@ public final class PowerNetworkManager {
     }
 
     private record SolveResult(long graphVersion, Map<BlockPos, Allocation> allocations,
-                               Map<BlockPos, Long> transferredPower) {
+                               Map<BlockPos, Long> transferredPower,
+                               Map<BlockPos, PowerEndpoint> endpointInstances) {
     }
 
     private record Allocation(long usedOutput, long receivedInput) {

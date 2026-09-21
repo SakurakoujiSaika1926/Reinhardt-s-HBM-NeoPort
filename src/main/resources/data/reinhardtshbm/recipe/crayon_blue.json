@@ -1,1 +1,25 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:chemical_dye"],"components":{"minecraft:custom_data":{"variant":"blue"},"minecraft:custom_model_data":4}},{"tag":"c:tars"},{"item":"minecraft:paper"}],"result":{"id":"reinhardtshbm:crayon","count":4,"components":{"minecraft:custom_data":{"crayon":4},"minecraft:custom_model_data":4}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:chemical_dye_blue"
+    },
+    {
+      "tag": "c:tars"
+    },
+    {
+      "item": "minecraft:paper"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:crayon",
+    "count": 4,
+    "components": {
+      "minecraft:custom_data": {
+        "crayon": 4
+      },
+      "minecraft:custom_model_data": 4
+    }
+  }
+}

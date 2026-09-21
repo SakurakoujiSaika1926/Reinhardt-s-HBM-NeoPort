@@ -8,23 +8,13 @@
   ],
   "key": {
     "A": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "aluminium"
+      "item": "reinhardtshbm:wire_aluminium"
     },
     "C": {
       "item": "reinhardtshbm:circuit_basic"
     },
     "H": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "aluminium"
+      "item": "reinhardtshbm:shell_aluminium"
     },
     "F": {
       "item": "reinhardtshbm:fins_quad_titanium"

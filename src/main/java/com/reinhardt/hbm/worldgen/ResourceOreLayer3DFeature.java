@@ -1,8 +1,6 @@
 package com.reinhardt.hbm.worldgen;
 
 import com.mojang.serialization.Codec;
-import com.reinhardt.hbm.block.LegacyVariantBlock;
-import com.reinhardt.hbm.block.ResourceStoneBlock;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
@@ -19,9 +17,10 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 import java.util.Random;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 /**
- * Port of HBM 1.7.10 {@code OreLayer3D} for the stone_resource hematite,
+ * Port of HBM 1.7.10 {@code OreLayer3D} for the hematite,
  * bauxite and malachite deposits.  These are broad noise layers, not vanilla
  * ore veins; keep the per-layer constants and legacy construction-order noise
  * ids instead of folding them into the generic ore JSON pipeline.
@@ -29,7 +28,7 @@ import java.util.function.IntSupplier;
 public final class ResourceOreLayer3DFeature extends Feature<NoneFeatureConfiguration> {
     private static final int SET_FLAGS = Block.UPDATE_CLIENTS;
 
-    private final int variant;
+    private final Supplier<? extends Block> resource;
     private final double scaleH;
     private final double scaleV;
     private final double threshold;
@@ -38,7 +37,7 @@ public final class ResourceOreLayer3DFeature extends Feature<NoneFeatureConfigur
 
     public static ResourceOreLayer3DFeature hematite() {
         return new ResourceOreLayer3DFeature(
-                ResourceStoneBlock.HEMATITE,
+                HbmBlocks.STONE_RESOURCE_HEMATITE,
                 0.04D,
                 0.25D,
                 230.0D,
@@ -49,7 +48,7 @@ public final class ResourceOreLayer3DFeature extends Feature<NoneFeatureConfigur
 
     public static ResourceOreLayer3DFeature bauxite() {
         return new ResourceOreLayer3DFeature(
-                ResourceStoneBlock.BAUXITE,
+                HbmBlocks.STONE_RESOURCE_BAUXITE,
                 0.03D,
                 0.15D,
                 300.0D,
@@ -60,7 +59,7 @@ public final class ResourceOreLayer3DFeature extends Feature<NoneFeatureConfigur
 
     public static ResourceOreLayer3DFeature malachite() {
         return new ResourceOreLayer3DFeature(
-                ResourceStoneBlock.MALACHITE,
+                HbmBlocks.STONE_RESOURCE_MALACHITE,
                 0.1D,
                 0.15D,
                 275.0D,
@@ -70,10 +69,10 @@ public final class ResourceOreLayer3DFeature extends Feature<NoneFeatureConfigur
         );
     }
 
-    private ResourceOreLayer3DFeature(int variant, double scaleH, double scaleV, double threshold,
+    private ResourceOreLayer3DFeature(Supplier<? extends Block> resource, double scaleH, double scaleV, double threshold,
                                       BooleanSupplier enabled, IntSupplier legacyId) {
         super(NoneFeatureConfiguration.CODEC);
-        this.variant = variant;
+        this.resource = resource;
         this.scaleH = scaleH;
         this.scaleV = scaleV;
         this.threshold = threshold;
@@ -81,11 +80,11 @@ public final class ResourceOreLayer3DFeature extends Feature<NoneFeatureConfigur
         this.legacyId = legacyId;
     }
 
-    public ResourceOreLayer3DFeature(Codec<NoneFeatureConfiguration> codec, int variant, double scaleH,
+    public ResourceOreLayer3DFeature(Codec<NoneFeatureConfiguration> codec, Supplier<? extends Block> resource, double scaleH,
                                      double scaleV, double threshold, BooleanSupplier enabled,
                                      IntSupplier legacyId) {
         super(codec);
-        this.variant = variant;
+        this.resource = resource;
         this.scaleH = scaleH;
         this.scaleV = scaleV;
         this.threshold = threshold;
@@ -120,9 +119,7 @@ public final class ResourceOreLayer3DFeature extends Feature<NoneFeatureConfigur
             }
         }
 
-        BlockState resource = HbmBlocks.STONE_RESOURCE.get()
-                .defaultBlockState()
-                .setValue(LegacyVariantBlock.VARIANT, this.variant);
+        BlockState resource = this.resource.get().defaultBlockState();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         boolean placed = false;
 

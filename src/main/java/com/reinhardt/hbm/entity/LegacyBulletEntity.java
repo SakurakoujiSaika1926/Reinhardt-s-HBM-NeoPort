@@ -40,6 +40,8 @@ public class LegacyBulletEntity extends Entity {
             SynchedEntityData.defineId(LegacyBulletEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> BALEFIRE =
             SynchedEntityData.defineId(LegacyBulletEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> NO_PROJECTILE_GRAVITY =
+            SynchedEntityData.defineId(LegacyBulletEntity.class, EntityDataSerializers.BOOLEAN);
 
     private UUID targetUuid;
     private UUID ownerUuid;
@@ -85,6 +87,7 @@ public class LegacyBulletEntity extends Entity {
         builder.define(AMMO_TYPE, StandardAmmoItem.StandardAmmoType.NONE.ordinal());
         builder.define(BASE_DAMAGE, 0.0F);
         builder.define(BALEFIRE, false);
+        builder.define(NO_PROJECTILE_GRAVITY, false);
     }
 
     public StandardAmmoItem.StandardAmmoType ammoType() {
@@ -99,6 +102,10 @@ public class LegacyBulletEntity extends Entity {
 
     public void setBalefire(boolean balefire) {
         this.entityData.set(BALEFIRE, balefire);
+    }
+
+    public void setNoProjectileGravity(boolean noProjectileGravity) {
+        this.entityData.set(NO_PROJECTILE_GRAVITY, noProjectileGravity);
     }
 
     public void setLockonTarget(Entity target) {
@@ -157,7 +164,7 @@ public class LegacyBulletEntity extends Entity {
         setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);
         if (ammo.family() == StandardAmmoItem.AmmoFamily.ROCKET_ML) {
             setDeltaMovement(nextRocketMotion(motion));
-        } else if (ammo.projectileGravity() != 0.0D) {
+        } else if (!this.entityData.get(NO_PROJECTILE_GRAVITY) && ammo.projectileGravity() != 0.0D) {
             setDeltaMovement(motion.add(0.0D, -ammo.projectileGravity(), 0.0D));
         }
         if (ammo.family() == StandardAmmoItem.AmmoFamily.FLAME && level().isClientSide) {
@@ -377,6 +384,7 @@ public class LegacyBulletEntity extends Entity {
         tag.putInt("ammo_type", this.entityData.get(AMMO_TYPE));
         tag.putFloat("base_damage", this.entityData.get(BASE_DAMAGE));
         tag.putBoolean("balefire", this.entityData.get(BALEFIRE));
+        tag.putBoolean("no_projectile_gravity", this.entityData.get(NO_PROJECTILE_GRAVITY));
         tag.putInt("ricochets", this.ricochets);
         if (this.ownerUuid != null) {
             tag.putUUID("owner", this.ownerUuid);
@@ -388,6 +396,7 @@ public class LegacyBulletEntity extends Entity {
         this.entityData.set(AMMO_TYPE, tag.getInt("ammo_type"));
         this.entityData.set(BASE_DAMAGE, tag.getFloat("base_damage"));
         this.entityData.set(BALEFIRE, tag.getBoolean("balefire"));
+        this.entityData.set(NO_PROJECTILE_GRAVITY, tag.getBoolean("no_projectile_gravity"));
         this.ricochets = tag.getInt("ricochets");
         this.ownerUuid = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
         this.targetUuid = null;

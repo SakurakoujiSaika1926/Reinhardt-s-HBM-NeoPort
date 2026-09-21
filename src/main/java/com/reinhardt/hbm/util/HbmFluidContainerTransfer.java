@@ -1,10 +1,15 @@
 package com.reinhardt.hbm.util;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.InfiniteFluidContainerItem;
+import com.reinhardt.hbm.item.LegacyMercuryContainerHandler;
 import com.reinhardt.hbm.registry.HbmFluids;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -121,9 +126,10 @@ public final class HbmFluidContainerTransfer {
         if (accepted <= 0) {
             return null;
         }
-        FluidStack request = HbmFluids.toNeoStack(fluid, accepted);
+        FluidStack request = drainable.copy();
+        request.setAmount(accepted);
         FluidStack drained = handler.drain(request, IFluidHandler.FluidAction.EXECUTE);
-        if (drained.isEmpty() || !FluidStack.isSameFluidSameComponents(drained, request)) {
+        if (drained.isEmpty() || drained.getAmount() != accepted) {
             return null;
         }
         HbmFluidDefinition drainedFluid = HbmFluids.fromNeoFluid(drained.getFluid()).orElse(HbmFluids.none());
@@ -136,6 +142,15 @@ public final class HbmFluidContainerTransfer {
     @Nullable
     private static ContainerMove simulateFill(ItemStack input, HbmFluidTank tank) {
         if (input.isEmpty() || tank.type().isNone() || tank.amount() <= 0 || tank.pressure() != 0) {
+            return null;
+        }
+
+        if (input.is(Items.GLASS_BOTTLE) && tank.type() == mercury()) {
+            int amount = LegacyMercuryContainerHandler.BOTTLE_AMOUNT_MB;
+            Item bottle = BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("bottle_mercury"));
+            if (bottle != Items.AIR && tank.drain(tank.type(), amount, true).amount() == amount) {
+                return new ContainerMove(tank.type(), amount, new ItemStack(bottle));
+            }
             return null;
         }
 
@@ -165,6 +180,10 @@ public final class HbmFluidContainerTransfer {
         ItemStack copy = output.copy();
         copy.setCount(1);
         return copy;
+    }
+
+    private static HbmFluidDefinition mercury() {
+        return HbmFluids.byName("mercury").orElse(HbmFluids.none());
     }
 
     private record ContainerMove(HbmFluidDefinition fluid, int amount, ItemStack output) {

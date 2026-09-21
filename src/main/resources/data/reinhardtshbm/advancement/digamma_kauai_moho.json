@@ -2,7 +2,7 @@
   "parent": "reinhardtshbm:digamma_know",
   "display": {
     "icon": {
-      "id": "reinhardtshbm:achievement_icon"
+      "id": "reinhardtshbm:achievement_icon_digammakauaimoho"
     },
     "title": {
       "translate": "advancements.reinhardtshbm.digamma_kauai_moho.title"

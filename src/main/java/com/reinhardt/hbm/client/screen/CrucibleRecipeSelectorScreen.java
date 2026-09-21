@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.search.JechSearchCompat;
 import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.menu.CrucibleMenu;
 import com.reinhardt.hbm.recipe.CrucibleRecipe;
@@ -21,7 +22,6 @@ import org.lwjgl.glfw.GLFW;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class CrucibleRecipeSelectorScreen extends Screen {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/processing/gui_recipe_selector.png");
@@ -274,7 +274,7 @@ public class CrucibleRecipeSelectorScreen extends Screen {
 
     private void regenerateRecipes(String query) {
         this.recipes.clear();
-        String normalized = query.toLowerCase(Locale.ROOT);
+        String normalized = JechSearchCompat.normalizeQuery(query);
         for (RecipeHolder<CrucibleRecipe> holder : this.originRecipes) {
             if (normalized.isBlank() || matchesSearch(holder, normalized)) {
                 this.recipes.add(holder);
@@ -286,18 +286,18 @@ public class CrucibleRecipeSelectorScreen extends Screen {
 
     private boolean matchesSearch(RecipeHolder<CrucibleRecipe> holder, String query) {
         CrucibleRecipe recipe = holder.value();
-        if (holder.id().toString().toLowerCase(Locale.ROOT).contains(query)
-                || recipeTitle(recipe).getString().toLowerCase(Locale.ROOT).contains(query)
-                || recipe.icon().getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+        if (JechSearchCompat.contains(holder.id().toString(), query)
+                || JechSearchCompat.contains(recipeTitle(recipe).getString(), query)
+                || JechSearchCompat.contains(recipe.icon().getHoverName().getString(), query)) {
             return true;
         }
         for (CrucibleRecipe.MaterialIngredient ingredient : recipe.input()) {
-            if (materialSearchText(ingredient).contains(query)) {
+            if (JechSearchCompat.contains(materialSearchText(ingredient), query)) {
                 return true;
             }
         }
         for (CrucibleRecipe.MaterialIngredient ingredient : recipe.output()) {
-            if (materialSearchText(ingredient).contains(query)) {
+            if (JechSearchCompat.contains(materialSearchText(ingredient), query)) {
                 return true;
             }
         }
@@ -376,7 +376,7 @@ public class CrucibleRecipeSelectorScreen extends Screen {
     }
 
     private static String materialSearchText(CrucibleRecipe.MaterialIngredient ingredient) {
-        return Component.translatable(ingredient.material().translationKey()).getString().toLowerCase(Locale.ROOT)
-                + " " + ScrapsItem.formatAmount(ingredient.amount()).toLowerCase(Locale.ROOT);
+        return Component.translatable(ingredient.material().translationKey()).getString()
+                + " " + ScrapsItem.formatAmount(ingredient.amount());
     }
 }

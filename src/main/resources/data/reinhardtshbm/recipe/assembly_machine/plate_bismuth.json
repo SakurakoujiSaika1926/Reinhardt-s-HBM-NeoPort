@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.platebismuth",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:nugget_bismuth" }, "count": 2 },
+    { "ingredient": { "tag": "c:billets/u238" }, "count": 2 },
+    { "ingredient": { "tag": "c:dusts/niobium" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_bismuth" }
+}

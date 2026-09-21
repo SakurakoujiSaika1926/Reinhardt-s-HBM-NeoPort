@@ -2,7 +2,7 @@
   "parent": "reinhardtshbm:slimeball",
   "display": {
     "icon": {
-      "id": "reinhardtshbm:achievement_icon"
+      "id": "reinhardtshbm:achievement_icon_balls"
     },
     "title": {
       "translate": "advancements.reinhardtshbm.sulfuric.title"

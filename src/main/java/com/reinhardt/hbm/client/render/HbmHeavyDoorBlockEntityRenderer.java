@@ -57,6 +57,8 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
     private static final ModelResourceLocation QE_SLIDING_FRAME = model("qe_sliding_door_frame");
     private static final ModelResourceLocation QE_SLIDING_LEFT = model("qe_sliding_door_left_door");
     private static final ModelResourceLocation QE_SLIDING_RIGHT = model("qe_sliding_door_right_door");
+    private static final ModelResourceLocation SLIDING_GATE_FRAME = model("sliding_gate_door_frame");
+    private static final ModelResourceLocation SLIDING_GATE_DOOR = model("sliding_gate_door_door");
     private static final ModelResourceLocation QE_CONTAINMENT_FRAME = model("qe_containment_door_frame");
     private static final ModelResourceLocation QE_CONTAINMENT_DOOR = model("qe_containment_door_door");
     private static final ModelResourceLocation SEAL_FRAME = model("sliding_seal_door_frame");
@@ -90,6 +92,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
                 FIRE_FRAME, FIRE_DOOR, TRANSITION_SEAL, TRANSITION_SEAL_FRAME, TRANSITION_SEAL_MOVING,
                 SLIDE_FRAME, SLIDE_LEFT, SLIDE_RIGHT, SLIDE_LEFT_LOCK, SLIDE_RIGHT_LOCK,
                 QE_SLIDING_FRAME, QE_SLIDING_LEFT, QE_SLIDING_RIGHT,
+                SLIDING_GATE_FRAME, SLIDING_GATE_DOOR,
                 QE_CONTAINMENT_FRAME, QE_CONTAINMENT_DOOR,
                 SEAL_FRAME, SEAL_DOOR,
                 SECURE_FRAME, SECURE_DOOR,
@@ -157,7 +160,8 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
             case FIRE_DOOR -> renderFireDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             case TRANSITION_SEAL -> renderTransitionSeal(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
             case SLIDING_BLAST_DOOR, SLIDING_BLAST_DOOR_2 -> renderSlidingBlastDoor(progress, door.state(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SLIDING_GATE_DOOR, QE_SLIDING_DOOR -> renderQeSlidingDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case SLIDING_GATE_DOOR -> renderSlidingGateDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case QE_SLIDING_DOOR -> renderQeSlidingDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
             case QE_CONTAINMENT -> renderQeContainmentDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             case SLIDING_SEAL_DOOR -> renderSealDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
             case SECURE_ACCESS_DOOR -> renderSecureDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
@@ -271,6 +275,15 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
         render(QE_SLIDING_RIGHT, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
+    }
+
+    private static void renderSlidingGateDoor(float progress, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        // 1.12 DoorDecl.SLIDING_GATE_DOOR reuses the seal-door mesh, offsets
+        // it by 0.375 blocks and slides only the door root one block in Z.
+        poseStack.translate(0.375F, 0.0F, 0.0F);
+        render(SLIDING_GATE_FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 0.0F, smooth(progress));
+        render(SLIDING_GATE_DOOR, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
     private static void renderQeContainmentDoor(float progress, byte skinIndex, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {

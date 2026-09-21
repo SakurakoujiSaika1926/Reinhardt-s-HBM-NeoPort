@@ -118,11 +118,14 @@ import com.reinhardt.hbm.item.FixedFluidBarrelBlockItem;
 import com.reinhardt.hbm.item.TankSteelItem;
 import com.reinhardt.hbm.item.LegacyPipetteItem;
 import com.reinhardt.hbm.item.BlowtorchItem;
+import com.reinhardt.hbm.item.ZirnoxTritiumRodItem;
+import com.reinhardt.hbm.item.LegacyMercuryContainerHandler;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerGraphNode;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
@@ -1060,6 +1063,9 @@ public final class HbmCapabilities {
                     if (stack.getItem() instanceof LegacyPipetteItem pipette) {
                         return pipette.createFluidHandler(stack);
                     }
+                    if (stack.getItem() instanceof ZirnoxTritiumRodItem rod) {
+                        return rod.createFluidHandler(stack);
+                    }
                     return null;
                 },
                 fluidCapabilityItems()
@@ -1086,6 +1092,12 @@ public final class HbmCapabilities {
                     legacyPipettes
             );
         }
+        event.registerItem(
+                Capabilities.FluidHandler.ITEM,
+                (stack, context) -> new LegacyMercuryContainerHandler(stack),
+                BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("bottle_mercury")),
+                BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("nugget_mercury"))
+        );
     }
 
     private static net.minecraft.world.level.ItemLike[] fluidCapabilityItems() {
@@ -1116,6 +1128,7 @@ public final class HbmCapabilities {
         items.add(HbmItems.GLYPHID_GLAND.get());
         items.add(HbmItems.CELL_EMPTY.get());
         items.add(HbmItems.CELL_TRITIUM.get());
+        items.add(HbmItems.ROD_ZIRNOX_TRITIUM.get());
         items.add(HbmItems.TANK_STEEL.get());
         items.add(HbmItems.RED_BARREL_ITEM.get());
         items.add(HbmItems.PINK_BARREL_ITEM.get());
@@ -1163,6 +1176,12 @@ public final class HbmCapabilities {
     @Nullable
     private static IItemHandler dummyFuelInputHandler(MachineDummyBlockEntity dummy, @Nullable Direction side) {
         BlockEntity core = dummyCore(dummy);
+        if (core instanceof PressBlockEntity press && press.kind() == PressBlockEntity.Kind.FIRE) {
+            // PressBlockEntity and the dummy proxy apply the same physical-tier
+            // slot policy. A normal handler is required because the middle tier
+            // is both an ingredient input and the sole product output.
+            return new SidedInvWrapper(dummy, side);
+        }
         if (core instanceof ConveyorPressBlockEntity) {
             // The original vertical dummy parts expose the single stamp slot.
             return new SidedInvWrapper(dummy, side);

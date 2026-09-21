@@ -200,14 +200,14 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
     }
 
     public boolean tryInsertCog(Player player, InteractionHand hand, ItemStack stack, BlockPos soundPos) {
-        if (this.hasCog || stack.isEmpty() || stack.getItem() != HbmItems.GEAR_LARGE.get()) {
+        if (this.hasCog || stack.isEmpty()) {
             return false;
         }
         int requiredMeta = getGearMeta();
         if (requiredMeta >= 2) {
             return false;
         }
-        if (stack.getItem() instanceof LegacyVariantItem variantItem && variantItem.variant(stack).modelData() != requiredMeta) {
+        if (stack.getItem() != (requiredMeta == 1 ? HbmItems.GEAR_LARGE_STEEL.get() : HbmItems.GEAR_LARGE.get())) {
             return false;
         }
 

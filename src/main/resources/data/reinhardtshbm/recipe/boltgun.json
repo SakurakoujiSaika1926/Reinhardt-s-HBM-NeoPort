@@ -11,18 +11,13 @@
       "tag": "c:ingots/dura_steel"
     },
     "P": {
-      "item": "reinhardtshbm:part_generic"
+      "item": "reinhardtshbm:part_generic_piston_pneumatic"
     },
     "R": {
       "tag": "c:ingots/rubber"
     },
     "S": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "steel"
+      "item": "reinhardtshbm:shell_steel"
     }
   },
   "result": {

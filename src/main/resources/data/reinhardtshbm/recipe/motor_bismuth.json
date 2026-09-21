@@ -11,20 +11,10 @@
       "tag": "c:nuggets/bismuth"
     },
     "C": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_dense"
-      ],
-      "shape": "wire_dense",
-      "material": "neodymium"
+      "item": "reinhardtshbm:wire_dense_neodymium"
     },
     "S": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "steel"
+      "item": "reinhardtshbm:plate_cast_steel"
     },
     "D": {
       "tag": "c:ingots/dura_steel"

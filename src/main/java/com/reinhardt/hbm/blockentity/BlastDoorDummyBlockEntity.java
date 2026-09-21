@@ -20,7 +20,8 @@ public class BlastDoorDummyBlockEntity extends BlockEntity {
     private static final String CREATE_CORE_OFFSET_Y = "HbmCoreOffsetY";
     private static final String CREATE_CORE_OFFSET_Z = "HbmCoreOffsetZ";
     private BlockPos corePos = BlockPos.ZERO;
-    private boolean dropCoreWhenRemoved = true;
+    // Transient, single-removal authorization set only by a real player break.
+    private boolean dropCoreWhenRemoved;
 
     public BlastDoorDummyBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.BLAST_DOOR_DUMMY.get(), pos, blockState);
@@ -51,7 +52,7 @@ public class BlastDoorDummyBlockEntity extends BlockEntity {
 
     public boolean consumeDropCoreWhenRemoved() {
         boolean drop = this.dropCoreWhenRemoved;
-        this.dropCoreWhenRemoved = true;
+        this.dropCoreWhenRemoved = false;
         return drop;
     }
 

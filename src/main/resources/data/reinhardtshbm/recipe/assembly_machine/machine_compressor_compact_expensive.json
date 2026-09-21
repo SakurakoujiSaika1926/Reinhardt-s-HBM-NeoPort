@@ -11,24 +11,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:item_expensive",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "steel_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_steel_plating"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "copper"
+        "item": "reinhardtshbm:pipe_copper"
       },
       "count": 16
     },
@@ -40,13 +29,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:item_expensive",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "circuit"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_circuit"
       },
       "count": 1
     }

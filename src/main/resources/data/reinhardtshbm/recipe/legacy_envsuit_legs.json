@@ -11,12 +11,7 @@
       "tag": "c:plates/titanium"
     },
     "C": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "titanium"
+      "item": "reinhardtshbm:plate_cast_titanium"
     },
     "R": {
       "tag": "c:ingots/rubber"

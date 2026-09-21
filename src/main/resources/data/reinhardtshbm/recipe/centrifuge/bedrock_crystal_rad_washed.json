@@ -1,59 +1,41 @@
 {
-    "type":  "reinhardtshbm:centrifuge",
-    "group":  "centrifuge",
-    "ingredient":  {
-                       "type":  "neoforge:components",
-                       "items":  [
-                                     "reinhardtshbm:bedrock_ore_new"
-                                 ],
-                       "components":  {
-                                          "minecraft:custom_data":  {
-                                                                        "grade":  "rad_washed",
-                                                                        "type":  "crystal"
-                                                                    }
-                                      }
-                   },
-    "input_count":  1,
-    "results":  [
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  3,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  501,
-                                                                         "material":  "borax"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  3,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  1702,
-                                                                         "material":  "molysite"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  9,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  1101,
-                                                                         "material":  "sodalite"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_new",
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "grade":  "crumbs",
-                                                                         "type":  "crystal"
-                                                                     },
-                                           "minecraft:custom_model_data":  83
-                                       }
-                    }
-                ]
+  "type": "reinhardtshbm:centrifuge",
+  "group": "centrifuge",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "rad_washed",
+        "type": "crystal"
+      }
+    }
+  },
+  "input_count": 1,
+  "results": [
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_borax",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_molysite",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_sodalite",
+      "count": 9
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_new",
+      "components": {
+        "minecraft:custom_data": {
+          "grade": "crumbs",
+          "type": "crystal"
+        },
+        "minecraft:custom_model_data": 83
+      }
+    }
+  ]
 }

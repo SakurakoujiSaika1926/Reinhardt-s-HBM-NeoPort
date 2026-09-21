@@ -103,6 +103,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -376,6 +377,7 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.SAWBLADE.get(), SawbladeEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.CONVEYOR_ITEM.get(), ConveyorMovingItemRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.RBMK_DEBRIS.get(), RbmkDebrisEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.ZIRNOX_DEBRIS.get(), ZirnoxDebrisEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.MINE_RUBBLE.get(), MineRubbleEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.RUBBER_BOAT.get(), RubberBoatEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.MINER_ROCKET.get(), MinerRocketEntityRenderer::new);
@@ -783,8 +785,10 @@ public final class HbmClientRenderers {
                 HbmItems.PIPETTE_LABORATORY.get()
         );
         event.register(
-                com.reinhardt.hbm.item.LegacyChemicalDyeItem::tint,
-                HbmItems.CHEMICAL_DYE.get()
+                com.reinhardt.hbm.item.ChemicalDyeItem::tint,
+                HbmItems.CHEMICAL_DYE_ITEMS.values().stream()
+                        .map(DeferredItem::get)
+                        .toArray(Item[]::new)
         );
         event.register(
                 HbmFluidDuctItem::tint,
@@ -808,44 +812,6 @@ public final class HbmClientRenderers {
         event.register(
                 com.reinhardt.hbm.item.LegacyByproductItem::tint,
                 HbmItems.ORE_BYPRODUCT.get()
-        );
-        event.register(
-                (stack, tintIndex) -> {
-                    com.reinhardt.hbm.foundry.FoundryMaterial material = null;
-                    if (stack.getItem() instanceof com.reinhardt.hbm.item.FoundryShapeItem shapeItem) {
-                        material = shapeItem.material(stack);
-                    }
-                    if (FoundryWireItemModel.usesMaterialOverride(stack, material)) {
-                        return 0xFFFFFFFF;
-                    }
-                    return material == null ? 0xFFFFFFFF : 0xFF000000 | material.moltenColor();
-                },
-                HbmItems.PLATE_CAST.get(),
-                HbmItems.PLATE_WELDED.get(),
-                HbmItems.SHELL.get(),
-                HbmItems.WIRE_FINE.get(),
-                HbmItems.WIRE_DENSE.get(),
-                HbmItems.PIPE.get(),
-                HbmItems.BOLT.get(),
-                HbmItems.PART_MECHANISM.get(),
-                HbmItems.PART_BARREL_LIGHT.get(),
-                HbmItems.PART_BARREL_HEAVY.get(),
-                HbmItems.PART_RECEIVER_LIGHT.get(),
-                HbmItems.PART_RECEIVER_HEAVY.get(),
-                HbmItems.PART_STOCK.get()
-        );
-        event.register(
-                (stack, tintIndex) -> {
-                    com.reinhardt.hbm.foundry.FoundryMaterial material = null;
-                    if (stack.getItem() instanceof com.reinhardt.hbm.item.RawIngotItem rawIngot) {
-                        material = rawIngot.material(stack);
-                    }
-                    if (FoundryWireItemModel.usesMaterialOverride(stack, material)) {
-                        return 0xFFFFFFFF;
-                    }
-                    return com.reinhardt.hbm.item.RawIngotItem.tint(stack, tintIndex);
-                },
-                HbmItems.INGOT_RAW.get()
         );
         event.register(
                 IcfPelletItem::tint,
@@ -943,6 +909,7 @@ public final class HbmClientRenderers {
      */
     private static final class SafeBlockEntityRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
         private static final double OBJ_MARGIN = 32.0D;
+        private static final double LARGE_RENDER_SPAN = 7.0D;
         private static final int OBJ_VIEW_DISTANCE = 256;
 
         private final BlockEntityRenderer<T> delegate;
@@ -974,7 +941,29 @@ public final class HbmClientRenderers {
 
         @Override
         public boolean shouldRenderOffScreen(T blockEntity) {
-            return this.delegate.shouldRenderOffScreen(blockEntity);
+            if (this.delegate.shouldRenderOffScreen(blockEntity)) {
+                return true;
+            }
+
+            /*
+             * The legacy TESRs frequently returned INFINITE_EXTENT_AABB for
+             * large machines.  A hand-maintained renderer allow-list proved
+             * too easy to miss (the large pylon was one such omission), so
+             * derive the policy from each renderer's authored world bounds.
+             * Seven blocks is the smallest span used by the port's genuinely
+             * multiblock OBJ machines; smaller renderers retain frustum
+             * culling and only receive the conservative OBJ safety margin.
+             */
+            AABB bounds = this.delegate.getRenderBoundingBox(blockEntity);
+            if (bounds == null) {
+                return false;
+            }
+            if (bounds == AABB.INFINITE) {
+                return true;
+            }
+            return bounds.maxX - bounds.minX >= LARGE_RENDER_SPAN
+                    || bounds.maxY - bounds.minY >= LARGE_RENDER_SPAN
+                    || bounds.maxZ - bounds.minZ >= LARGE_RENDER_SPAN;
         }
 
         @Override

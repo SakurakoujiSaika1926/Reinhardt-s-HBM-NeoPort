@@ -1,6 +1,11 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:oil_tar"
+    "reinhardtshbm:oil_tar",
+    "reinhardtshbm:oil_tar_crack",
+    "reinhardtshbm:oil_tar_coal",
+    "reinhardtshbm:oil_tar_wood",
+    "reinhardtshbm:oil_tar_wax",
+    "reinhardtshbm:oil_tar_paraffin"
   ]
 }

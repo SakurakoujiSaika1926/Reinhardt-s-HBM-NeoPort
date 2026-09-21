@@ -86,9 +86,9 @@ public final class HbmArmorProtection {
             entry("trenchmaster", FULL_PACKAGE)
     );
     private static final Map<String, Set<HazardClass>> FILTER_PROTECTION = Map.ofEntries(
-            entry("gas_mask_filter", EnumSet.of(HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_LUNG, HazardClass.GAS_BLISTERING, HazardClass.BACTERIA)),
+            entry("gas_mask_filter", EnumSet.of(HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_LUNG, HazardClass.NERVE_AGENT, HazardClass.GAS_BLISTERING, HazardClass.BACTERIA)),
             entry("gas_mask_filter_mono", EnumSet.of(HazardClass.PARTICLE_COARSE, HazardClass.GAS_MONOXIDE)),
-            entry("gas_mask_filter_combo", EnumSet.of(HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_LUNG, HazardClass.GAS_BLISTERING, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE)),
+            entry("gas_mask_filter_combo", EnumSet.of(HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_LUNG, HazardClass.NERVE_AGENT, HazardClass.GAS_BLISTERING, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE)),
             entry("gas_mask_filter_rag", EnumSet.of(HazardClass.PARTICLE_COARSE)),
             entry("gas_mask_filter_piss", EnumSet.of(HazardClass.PARTICLE_COARSE, HazardClass.GAS_LUNG))
     );
@@ -592,6 +592,7 @@ public final class HbmArmorProtection {
         GAS_LUNG,
         GAS_MONOXIDE,
         GAS_INERT,
+        NERVE_AGENT,
         PARTICLE_COARSE,
         PARTICLE_FINE,
         BACTERIA,

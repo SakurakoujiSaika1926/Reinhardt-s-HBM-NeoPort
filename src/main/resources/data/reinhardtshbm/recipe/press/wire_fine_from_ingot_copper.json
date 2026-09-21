@@ -6,13 +6,7 @@
     "tag": "c:ingots/copper"
   },
   "result": {
-    "id": "reinhardtshbm:wire_fine",
-    "count": 8,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 2900,
-        "material": "copper"
-      }
-    }
+    "id": "reinhardtshbm:wire_copper",
+    "count": 8
   }
 }

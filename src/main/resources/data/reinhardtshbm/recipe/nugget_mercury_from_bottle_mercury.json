@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "M"
+  ],
+  "key": {
+    "M": { "item": "reinhardtshbm:bottle_mercury" }
+  },
+  "result": { "id": "reinhardtshbm:nugget_mercury", "count": 8 }
+}

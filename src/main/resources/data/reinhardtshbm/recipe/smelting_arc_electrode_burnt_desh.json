@@ -1,1 +1,12 @@
-{"type":"minecraft:smelting","category":"misc","ingredient":{"type":"neoforge:components","items":["reinhardtshbm:arc_electrode_burnt"],"components":{"minecraft:custom_data":{"variant":"desh"}}},"result":{"id":"reinhardtshbm:ingot_desh"},"experience":3.0,"cookingtime":200}
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "item": "reinhardtshbm:arc_electrode_burnt_desh"
+  },
+  "result": {
+    "id": "reinhardtshbm:ingot_desh"
+  },
+  "experience": 3.0,
+  "cookingtime": 200
+}

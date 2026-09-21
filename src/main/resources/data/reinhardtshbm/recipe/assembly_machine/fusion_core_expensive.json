@@ -1,54 +1,37 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.fusioncore",
-    "blueprint_pools":  [
-                            "528.tcalloy"
-                        ],
-    "duration":  600,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "ferro_plating"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  8
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "plastic"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  8
-                        },
-                        {
-                            "ingredient":  {
-                                               "item":  "reinhardtshbm:circuit_bismoid"
-                                           },
-                            "count":  16
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:struct_torus_core"
-               }
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fusioncore",
+  "blueprint_pools": [
+    "528.tcalloy"
+  ],
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_plastic"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_bismoid"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:struct_torus_core"
+  }
 }
-

@@ -1,1 +1,24 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"mem_socket"},"minecraft:custom_model_data":16}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"mem_16k_a"},"minecraft:custom_model_data":17}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"mem_16k_b"},"minecraft:custom_model_data":18}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"mem_16k_c"},"minecraft:custom_model_data":19}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"mem_16k_d"},"minecraft:custom_model_data":20}}],"result":{"id":"reinhardtshbm:circuit_star_component","components":{"minecraft:custom_data":{"variant":"ram"},"minecraft:custom_model_data":2}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:circuit_star_piece_mem_socket"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_mem_16k_a"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_mem_16k_b"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_mem_16k_c"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_mem_16k_d"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_star_component_ram"
+  }
+}

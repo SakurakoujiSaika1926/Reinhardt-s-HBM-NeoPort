@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "dura_steel"
+        "item": "reinhardtshbm:plate_cast_dura_steel"
       },
       "count": 1
     },

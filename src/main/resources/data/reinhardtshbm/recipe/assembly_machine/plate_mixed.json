@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.platemixed",
+  "duration": 50,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/copper" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:neutron_reflector" }, "count": 1 },
+    { "ingredient": { "tag": "c:plates/saturnite" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_mixed", "count": 4 }
+}

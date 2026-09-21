@@ -14,29 +14,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "heavy_frame"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "steel_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_steel_plating"
       },
       "count": 8
     },

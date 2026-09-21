@@ -12,20 +12,10 @@
       "item": "minecraft:wheat"
     },
     {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:bolt"
-      ],
-      "shape": "bolt",
-      "material": "steel"
+      "item": "reinhardtshbm:bolt_steel"
     },
     {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "copper"
+      "item": "reinhardtshbm:wire_copper"
     },
     {
       "tag": "c:plates/steel"

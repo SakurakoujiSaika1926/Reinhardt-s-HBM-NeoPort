@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["PCP", "SRS", "PCP"],
+  "key": {
+    "P": { "tag": "c:ingots/plastic" },
+    "C": { "item": "reinhardtshbm:circuit_basic" },
+    "S": { "tag": "c:plates/steel" },
+    "R": { "item": "reinhardtshbm:crt_display" }
+  },
+  "result": { "id": "reinhardtshbm:radar_screen" }
+}

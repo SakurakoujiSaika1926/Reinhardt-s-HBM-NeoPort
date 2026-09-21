@@ -32,23 +32,13 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "steel"
+        "item": "reinhardtshbm:shell_steel"
       },
       "count": 12
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "copper"
+        "item": "reinhardtshbm:pipe_copper"
       },
       "count": 8
     },

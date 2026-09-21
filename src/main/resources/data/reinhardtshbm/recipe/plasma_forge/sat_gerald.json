@@ -10,45 +10,25 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "schrabidate"
+        "item": "reinhardtshbm:plate_cast_schrabidate"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "schrabidate"
+        "item": "reinhardtshbm:plate_cast_schrabidate"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "bscco"
+        "item": "reinhardtshbm:wire_dense_bscco"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "bscco"
+        "item": "reinhardtshbm:wire_dense_bscco"
       },
       "count": 64
     },
@@ -60,16 +40,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:part_generic"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "hde"
-          },
-          "minecraft:custom_model_data": 4
-        }
+        "item": "reinhardtshbm:part_generic_hde"
       },
       "count": 4
     },

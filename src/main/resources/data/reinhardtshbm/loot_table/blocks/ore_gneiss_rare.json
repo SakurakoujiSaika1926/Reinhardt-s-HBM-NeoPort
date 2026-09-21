@@ -42,7 +42,7 @@
                   "function": "minecraft:explosion_decay"
                 }
               ],
-              "name": "reinhardtshbm:chunk_ore"
+              "name": "reinhardtshbm:chunk_ore_rare"
             }
           ]
         }

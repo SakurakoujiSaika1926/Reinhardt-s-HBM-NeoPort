@@ -1,0 +1,17 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_528_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fel",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_ferro_plating" }, "count": 3 },
+    { "ingredient": { "tag": "c:wires_dense/gold" }, "count": 64 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:part_generic_glass_polarized" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_circuit" }, "count": 3 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_fel" }
+}

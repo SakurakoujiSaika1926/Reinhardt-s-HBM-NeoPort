@@ -1,4 +1,28 @@
-﻿{
-    "replace":  false,
-    "values": []
+{
+  "replace": false,
+  "values": [
+    "#c:plates/cast_iron",
+    "#c:plates/cast_gold",
+    "#c:plates/cast_schrabidium",
+    "#c:plates/cast_schrabidate",
+    "#c:plates/cast_titanium",
+    "#c:plates/cast_copper",
+    "#c:plates/cast_tungsten",
+    "#c:plates/cast_aluminium",
+    "#c:plates/cast_lead",
+    "#c:plates/cast_zirconium",
+    "#c:plates/cast_osmiridium",
+    "#c:plates/cast_steel",
+    "#c:plates/cast_dura_steel",
+    "#c:plates/cast_desh",
+    "#c:plates/cast_starmetal",
+    "#c:plates/cast_ferrouranium",
+    "#c:plates/cast_tcalloy",
+    "#c:plates/cast_cdalloy",
+    "#c:plates/cast_bismuth_bronze",
+    "#c:plates/cast_arsenic_bronze",
+    "#c:plates/cast_combine_steel",
+    "#c:plates/cast_weaponsteel",
+    "#c:plates/cast_saturnite"
+  ]
 }

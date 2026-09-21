@@ -12,9 +12,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:broken_item"
-        ],
+        "items": "reinhardtshbm:broken_item",
         "components": {
           "minecraft:custom_data": {
             "item_id": "reinhardtshbm:circuit_controller_quantum",
@@ -63,14 +61,8 @@
     },
     {
       "result": {
-        "id": "reinhardtshbm:wire_fine",
-        "count": 32,
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 8200,
-            "material": "lead"
-          }
-        }
+        "id": "reinhardtshbm:wire_lead",
+        "count": 32
       },
       "weight": 75
     }

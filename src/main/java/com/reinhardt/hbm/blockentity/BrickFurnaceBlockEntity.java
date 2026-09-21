@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.BrickFurnaceBlock;
-import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.menu.BrickFurnaceMenu;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -116,6 +115,15 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
             return vanilla;
         }
         String path = registryPath(stack);
+        if (path.startsWith("coke_")) {
+            return 3_200;
+        }
+        if (path.startsWith("briquette_")) {
+            return briquetteDuration(path);
+        }
+        if (path.startsWith("powder_ash_")) {
+            return ashFuelDuration(path);
+        }
         return switch (path) {
             case "solid_fuel" -> 3_200;
             case "solid_fuel_presto" -> 8_000;
@@ -132,14 +140,11 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
             case "block_scrap" -> 400;
             case "powder_fire" -> 6_400;
             case "lignite", "powder_lignite" -> 1_200;
-            case "coke" -> 3_200;
             case "block_coke" -> 32_000;
             case "book_guide" -> 200;
             case "coal_infernal" -> 4_800;
             case "crystal_coal" -> 6_400;
             case "powder_sawdust" -> 100;
-            case "briquette" -> briquetteDuration(stack);
-            case "powder_ash" -> ashFuelDuration(stack);
             default -> 0;
         };
     }
@@ -395,7 +400,7 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
         if (level < ASH_THRESHOLD) {
             return level;
         }
-        ItemStack ash = LegacyVariantItem.stackFor(HbmItems.POWDER_ASH, variant);
+        ItemStack ash = HbmItems.variantStack(HbmItems.POWDER_ASH_ITEMS, variant);
         ItemStack current = this.items.get(ASH_SLOT);
         if (current.isEmpty()) {
             this.items.set(ASH_SLOT, ash);
@@ -442,23 +447,20 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
         return stack.getItem().getCraftingRemainingItem(stack.copyWithCount(1));
     }
 
-    private static int briquetteDuration(ItemStack stack) {
-        int modelData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA, null) == null
-                ? 0 : stack.get(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA).value();
-        return switch (modelData) {
-            case 0 -> 2_000;
-            case 1 -> 1_600;
-            default -> 400;
+    private static int briquetteDuration(String path) {
+        return switch (path) {
+            case "briquette_coal" -> 2_000;
+            case "briquette_lignite" -> 1_600;
+            case "briquette_wood" -> 400;
+            default -> 0;
         };
     }
 
-    private static int ashFuelDuration(ItemStack stack) {
-        if (!(stack.getItem() instanceof LegacyVariantItem variantItem)) {
-            return 0;
-        }
-        return switch (variantItem.variant(stack).id()) {
-            case "coal", "fly" -> 200;
-            default -> 100;
+    private static int ashFuelDuration(String path) {
+        return switch (path) {
+            case "powder_ash_coal", "powder_ash_fly" -> 200;
+            case "powder_ash_wood", "powder_ash_misc", "powder_ash_soot" -> 100;
+            default -> 0;
         };
     }
 

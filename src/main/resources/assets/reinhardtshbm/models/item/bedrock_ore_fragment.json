@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/bedrock_ore_fragment"
-                 },
-    "parent":  "minecraft:item/generated"
-}

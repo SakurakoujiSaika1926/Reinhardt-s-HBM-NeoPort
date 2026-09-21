@@ -1,1 +1,16 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:chemical_dye"],"components":{"minecraft:custom_data":{"variant":"red"},"minecraft:custom_model_data":1}},{"type":"neoforge:components","items":["reinhardtshbm:chemical_dye"],"components":{"minecraft:custom_data":{"variant":"yellow"},"minecraft:custom_model_data":11}}],"result":{"id":"reinhardtshbm:chemical_dye","count":2,"components":{"minecraft:custom_data":{"variant":"orange"},"minecraft:custom_model_data":14}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:chemical_dye_red"
+    },
+    {
+      "item": "reinhardtshbm:chemical_dye_yellow"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:chemical_dye_orange",
+    "count": 2
+  }
+}

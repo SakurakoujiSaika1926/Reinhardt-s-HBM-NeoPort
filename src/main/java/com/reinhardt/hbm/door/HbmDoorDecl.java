@@ -14,7 +14,7 @@ public enum HbmDoorDecl {
     TRANSITION_SEAL("transition_seal", 480, dims(23, 0, 0, 0, 13, 12), new int[][]{{-9, 2, 0, 20, 20, 1}}, 0, "block/doors/transition_seal", "block/doors/transition_seal", Animation.VERTICAL),
     SLIDING_BLAST_DOOR("sliding_blast_door", 24, dims(3, 0, 0, 0, 3, 3), new int[][]{{-2, 0, 0, 4, 5, 1}}, 3, "block/doors/sliding_blast_door", "block/doors/sliding_blast_door", Animation.VERTICAL),
     SLIDING_BLAST_DOOR_2("sliding_blast_door_2", 24, dims(3, 0, 0, 0, 3, 3), new int[][]{{-2, 0, 0, 4, 5, 1}}, 3, "block/doors/sliding_blast_door", "block/doors/sliding_blast_door", Animation.VERTICAL),
-    SLIDING_GATE_DOOR("sliding_gate_door", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
+    SLIDING_GATE_DOOR("sliding_gate_door", 28, dims(1, 0, 0, 0, 0, 0), new int[][]{{0, 0, 0, 1, 2, 2}}, 0, "block/doors/sliding_gate_door", "block/doors/sliding_gate_door", Animation.VERTICAL),
     QE_SLIDING_DOOR("qe_sliding_door", 10, dims(1, 0, 0, 0, 1, 0), new int[][]{{0, 0, 0, 2, 2, 2}}, 0, "block/doors/qe_sliding_door", "block/doors/qe_sliding_door", Animation.VERTICAL),
     QE_CONTAINMENT("qe_containment", 160, dims(2, 0, 0, 0, 1, 1), new int[][]{{-1, 0, 0, 3, 3, 1}}, 3, "block/doors/qe_containment_door", "block/doors/qe_containment_door", Animation.VERTICAL),
     SLIDING_SEAL_DOOR("sliding_seal_door", 20, dims(1, 0, 0, 0, 0, 0), new int[][]{{0, 0, 0, 1, 2, 2}}, 0, "block/doors/sliding_seal_door", "block/doors/sliding_seal_door", Animation.VERTICAL),
@@ -145,7 +145,8 @@ public enum HbmDoorDecl {
 
     private VoxelShape closedShape(int x, int y, int z, boolean collision) {
         return switch (this) {
-            case SLIDING_SEAL_DOOR -> Shapes.box(0.0D, 0.0D, 0.75D, 1.0D, 1.0D, 1.0D);
+            case SLIDING_GATE_DOOR, SLIDING_SEAL_DOOR -> Shapes.box(0.0D, 0.0D, 0.75D, 1.0D, 1.0D, 1.0D);
+            case QE_SLIDING_DOOR -> Shapes.box(0.0D, 0.0D, 0.875D, 1.0D, 1.0D, 1.0D);
             case SECURE_ACCESS_DOOR -> y > 0
                     ? Shapes.box(0.0D, 0.0D, 0.375D, 1.0D, 1.0D, 0.625D)
                     : Shapes.block();
@@ -169,6 +170,9 @@ public enum HbmDoorDecl {
                 if (y == 0) yield Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, collision ? 0.0D : 0.08D, 1.0D);
                 yield Shapes.empty();
             }
+            case SLIDING_GATE_DOOR -> y == 0
+                    ? Shapes.box(0.0D, 0.0D, 0.75D, 1.0D, 0.125D, 1.0D)
+                    : Shapes.empty();
             case SLIDING_SEAL_DOOR -> collision ? Shapes.empty() : Shapes.box(0.0D, 0.0D, 0.75D, 1.0D, 1.0D, 1.0D);
             case SECURE_ACCESS_DOOR -> {
                 if (y == 1) yield Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, collision ? 0.0D : 0.0625D, 1.0D);
@@ -183,9 +187,9 @@ public enum HbmDoorDecl {
                 if (y == 0) yield Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, collision ? 0.0D : 0.0625D, 1.0D);
                 yield Shapes.empty();
             }
-            case SLIDING_GATE_DOOR, QE_SLIDING_DOOR -> collision
-                    ? (z == 0 ? Shapes.box(0.875D, 0.0D, 0.8125D, 1.0D, 1.0D, 1.0D) : Shapes.box(0.0D, 0.0D, 0.8125D, 0.125D, 1.0D, 1.0D))
-                    : Shapes.box(0.0D, 0.0D, 0.8125D, 1.0D, 1.0D, 1.0D);
+            case QE_SLIDING_DOOR -> collision
+                    ? (z == 0 ? Shapes.box(0.875D, 0.0D, 0.875D, 1.0D, 1.0D, 1.0D) : Shapes.box(0.0D, 0.0D, 0.875D, 0.125D, 1.0D, 1.0D))
+                    : Shapes.box(0.0D, 0.0D, 0.875D, 1.0D, 1.0D, 1.0D);
             case QE_CONTAINMENT -> {
                 if (y > 1) yield Shapes.box(0.0D, 0.25D, 0.5D, 1.0D, 1.0D, 1.0D);
                 if (y == 0) yield Shapes.box(0.0D, 0.0D, 0.5D, 1.0D, collision ? 0.0D : 0.125D, 1.0D);

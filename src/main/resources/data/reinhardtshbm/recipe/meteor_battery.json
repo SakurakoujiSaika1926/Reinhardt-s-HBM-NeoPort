@@ -14,12 +14,7 @@
       "tag": "c:storage_blocks/starmetal"
     },
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "schrabidium"
+      "item": "reinhardtshbm:wire_schrabidium"
     }
   },
   "result": {

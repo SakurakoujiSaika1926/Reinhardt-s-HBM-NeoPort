@@ -6,23 +6,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "titanium"
+        "item": "reinhardtshbm:plate_cast_titanium"
       },
       "count": 12
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "lead"
+        "item": "reinhardtshbm:plate_cast_lead"
       },
       "count": 6
     },

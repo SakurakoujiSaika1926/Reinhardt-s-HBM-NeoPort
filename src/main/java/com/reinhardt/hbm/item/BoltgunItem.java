@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.advancement.HbmAdvancements;
-import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -98,17 +97,17 @@ public final class BoltgunItem extends Item {
             return false;
         }
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (BOLT_SPIKE.equals(id) || stack.is(HbmItems.BOLT_TUNGSTEN.get()) || stack.is(HbmItems.BOLT_DURA_STEEL.get())) {
+        if (BOLT_SPIKE.equals(id)
+                || pathEquals(id, "bolt_steel")
+                || stack.is(HbmItems.BOLT_TUNGSTEN.get())
+                || stack.is(HbmItems.BOLT_DURA_STEEL.get())) {
             return true;
         }
-        if (stack.getItem() instanceof FoundryShapeItem foundry && stack.is(HbmItems.BOLT.get())) {
-            FoundryMaterial material = foundry.material(stack);
-            return material != null && switch (material.name()) {
-                case "steel", "tungsten", "dura_steel" -> true;
-                default -> false;
-            };
-        }
         return false;
+    }
+
+    private static boolean pathEquals(ResourceLocation id, String path) {
+        return id != null && id.getNamespace().equals("reinhardtshbm") && id.getPath().equals(path);
     }
 
     @Override

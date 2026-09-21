@@ -11,51 +11,25 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "heavy_frame"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 3
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "ferro_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
       },
       "count": 1
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "bismuth_bronze"
+        "item": "reinhardtshbm:plate_cast_bismuth_bronze"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "zirconium"
+        "item": "reinhardtshbm:plate_welded_zirconium"
       },
       "count": 1
     }
@@ -73,12 +47,6 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:item_expensive",
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "bronze_tubes"
-      },
-      "minecraft:custom_model_data": 6
-    }
+    "id": "reinhardtshbm:item_expensive_bronze_tubes"
   }
 }

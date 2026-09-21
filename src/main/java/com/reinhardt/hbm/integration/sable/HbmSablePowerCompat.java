@@ -8,6 +8,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -29,7 +30,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class HbmSablePowerCompat {
     private static final String WORLD_POWER_SPACE = "";
     private static final Adapter ADAPTER = Adapter.tryCreate();
-    private static final Map<Level, TickCache> CACHES = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final boolean SABLE_LOADED = ADAPTER != null && detectSableLoaded();
+    private static final long CACHE_TTL_TICKS = 200L;
+    private static final Map<Level, ChunkCache> CACHES = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final ThreadLocal<LastCacheLookup> LAST_CACHE = ThreadLocal.withInitial(LastCacheLookup::new);
 
     private HbmSablePowerCompat() {
     }
@@ -44,17 +48,42 @@ public final class HbmSablePowerCompat {
 
     @Nullable
     public static String powerSpaceId(LevelAccessor level, BlockPos pos) {
-        if (!(level instanceof Level realLevel) || ADAPTER == null || !isSableLoaded()) {
+        if (!(level instanceof Level realLevel) || !SABLE_LOADED) {
             return null;
         }
-        TickCache cache;
-        synchronized (CACHES) {
-            cache = CACHES.computeIfAbsent(realLevel, ignored -> new TickCache());
-        }
-        return cache.powerSpaceId(realLevel, pos);
+        return cacheFor(realLevel).powerSpaceId(realLevel, pos);
     }
 
-    private static boolean isSableLoaded() {
+    /** Invalidates plot ownership after an HBM/Sable structure changes. */
+    public static void invalidate(LevelAccessor level) {
+        if (!(level instanceof Level realLevel) || !SABLE_LOADED) {
+            return;
+        }
+        ChunkCache cache;
+        synchronized (CACHES) {
+            cache = CACHES.get(realLevel);
+        }
+        if (cache != null) {
+            cache.clear();
+        }
+    }
+
+    private static ChunkCache cacheFor(Level level) {
+        LastCacheLookup lookup = LAST_CACHE.get();
+        if (lookup.level.get() == level && lookup.cache != null) {
+            return lookup.cache;
+        }
+
+        ChunkCache cache;
+        synchronized (CACHES) {
+            cache = CACHES.computeIfAbsent(level, ignored -> new ChunkCache());
+        }
+        lookup.level = new WeakReference<>(level);
+        lookup.cache = cache;
+        return cache;
+    }
+
+    private static boolean detectSableLoaded() {
         try {
             return ModList.get().isLoaded("sable");
         } catch (IllegalStateException ignored) {
@@ -62,28 +91,40 @@ public final class HbmSablePowerCompat {
         }
     }
 
-    private static final class TickCache {
-        private final Map<Long, String> values = new HashMap<>();
-        private long gameTime = Long.MIN_VALUE;
+    /**
+     * Avoids a synchronized WeakHashMap lookup for every graph edge while not
+     * keeping a world alive after it has been unloaded.
+     */
+    private static final class LastCacheLookup {
+        private WeakReference<Level> level = new WeakReference<>(null);
+        private ChunkCache cache;
+    }
+
+    private static final class ChunkCache {
+        private final Map<Long, CacheEntry> values = new HashMap<>();
 
         @Nullable
         synchronized String powerSpaceId(Level level, BlockPos pos) {
             long now = level.getGameTime();
-            if (now != this.gameTime) {
-                this.values.clear();
-                this.gameTime = now;
-            }
-
-            long key = pos.asLong();
-            String cached = this.values.get(key);
-            if (cached != null) {
-                return WORLD_POWER_SPACE.equals(cached) ? null : cached;
+            long key = ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4);
+            CacheEntry cached = this.values.get(key);
+            if (cached != null && cached.expiresAt >= now) {
+                return WORLD_POWER_SPACE.equals(cached.powerSpace) ? null : cached.powerSpace;
             }
 
             String value = ADAPTER.powerSpaceId(level, pos);
-            this.values.put(key, value == null ? WORLD_POWER_SPACE : value);
+            this.values.put(key, new CacheEntry(
+                    value == null ? WORLD_POWER_SPACE : value,
+                    now + CACHE_TTL_TICKS));
             return value;
         }
+
+        synchronized void clear() {
+            this.values.clear();
+        }
+    }
+
+    private record CacheEntry(String powerSpace, long expiresAt) {
     }
 
     private static final class Adapter {

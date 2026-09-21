@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.queslidingdoor",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:plate_polymer" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 4 },
+    { "ingredient": { "tag": "c:dyes/white" }, "count": 4 },
+    { "ingredient": { "item": "minecraft:glass" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:qe_sliding_door" }
+}

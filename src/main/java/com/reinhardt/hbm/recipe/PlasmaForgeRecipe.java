@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
+import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.item.FluidIconItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
@@ -107,7 +108,7 @@ public record PlasmaForgeRecipe(
     }
 
     public boolean isVisibleForPool(Optional<String> installedPool) {
-        return this.blueprintPools.isEmpty() || installedPool.filter(this.blueprintPools::contains).isPresent();
+        return BlueprintItem.isRecipeVisibleForPool(this.blueprintPools, installedPool);
     }
 
     public static boolean canCraft(

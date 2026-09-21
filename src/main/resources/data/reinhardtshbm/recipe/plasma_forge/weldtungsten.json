@@ -8,12 +8,7 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "tungsten"
+        "item": "reinhardtshbm:plate_cast_tungsten"
       },
       "count": 2
     }
@@ -25,12 +20,6 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:plate_welded",
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 7400,
-        "material": "tungsten"
-      }
-    }
+    "id": "reinhardtshbm:plate_welded_tungsten"
   }
 }

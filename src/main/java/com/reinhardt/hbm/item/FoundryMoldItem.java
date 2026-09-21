@@ -143,53 +143,31 @@ public class FoundryMoldItem extends Item {
         if (!FoundryMaterialShapes.supports(shape, material)) {
             return ItemStack.EMPTY;
         }
-        if (shape == FoundryShape.CAST_PLATE) {
-            return FoundryShapeItem.supports(shape, material)
-                    ? FoundryShapeItem.stackFor(HbmItems.PLATE_CAST.get(), material, count)
-                    : ItemStack.EMPTY;
-        }
-        if (shape == FoundryShape.WIRE) {
-            return FoundryShapeItem.supports(shape, material)
-                    ? FoundryShapeItem.stackFor(HbmItems.WIRE_FINE.get(), material, count)
-                    : ItemStack.EMPTY;
-        }
-        if (shape == FoundryShape.DENSE_WIRE) {
-            return FoundryShapeItem.supports(shape, material)
-                    ? FoundryShapeItem.stackFor(HbmItems.WIRE_DENSE.get(), material, count)
-                    : ItemStack.EMPTY;
-        }
-        if (shape == FoundryShape.SHELL) {
-            return FoundryShapeItem.supports(shape, material)
-                    ? FoundryShapeItem.stackFor(HbmItems.SHELL.get(), material, count)
-                    : ItemStack.EMPTY;
-        }
-        if (shape == FoundryShape.MECHANISM) {
-            return FoundryShapeItem.supports(shape, material)
-                    ? FoundryShapeItem.stackFor(HbmItems.PART_MECHANISM.get(), material, count)
-                    : ItemStack.EMPTY;
-        }
-        if (shape == FoundryShape.PIPE) {
-            return switch (material.name()) {
-                case "copper" -> item("pipe", count);
-                case "lead" -> item("pipe_lead", count);
-                case "steel" -> item("pipe_steel", count);
-                case "dura_steel" -> item("pipe_dura_steel", count);
-                default -> item("pipe_" + material.itemSuffix(), count);
-            };
+        if (isIndependentFoundryShape(shape)) {
+            return item(HbmItems.independentFoundryItemPath(shape, material), count);
         }
         String prefix = switch (shape) {
             case NUGGET -> "nugget";
             case BILLET -> "billet";
             case INGOT -> "ingot";
-            case PLATE -> "plate";
-            case WIRE -> "wire";
-            case DENSE_WIRE -> "wire_dense";
             case PIPE -> "pipe";
             case SHELL -> "shell";
             case BLOCK -> "block";
             default -> shape.key();
         };
         return item(prefix + "_" + material.itemSuffix(), count);
+    }
+
+    private static boolean isIndependentFoundryShape(FoundryShape shape) {
+        return shape == FoundryShape.PLATE
+                || shape == FoundryShape.CAST_PLATE
+                || shape == FoundryShape.WELDED_PLATE
+                || shape == FoundryShape.WIRE
+                || shape == FoundryShape.DENSE_WIRE
+                || shape == FoundryShape.PIPE
+                || shape == FoundryShape.BOLT
+                || shape == FoundryShape.SHELL
+                || shape == FoundryShape.MECHANISM;
     }
 
     private static ItemStack item(String path, int count) {

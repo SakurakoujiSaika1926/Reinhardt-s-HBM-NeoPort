@@ -11,23 +11,13 @@
       "tag": "c:ingots/plastic"
     },
     "H": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:pipe"
-      ],
-      "shape": "pipe",
-      "material": "steel"
+      "item": "reinhardtshbm:pipe_steel"
     },
     "C": {
       "item": "reinhardtshbm:circuit_vacuum_tube"
     },
     "B": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "steel"
+      "item": "reinhardtshbm:shell_steel"
     }
   },
   "result": {

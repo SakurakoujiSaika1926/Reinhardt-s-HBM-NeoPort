@@ -11,13 +11,7 @@
     }
   },
   "result": {
-    "id": "reinhardtshbm:bolt",
-    "count": 16,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 8200,
-        "material": "lead"
-      }
-    }
+    "id": "reinhardtshbm:bolt_lead",
+    "count": 16
   }
 }

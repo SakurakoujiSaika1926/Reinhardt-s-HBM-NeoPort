@@ -2,6 +2,7 @@ package com.reinhardt.hbm.radiation;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ChunkPos;
@@ -32,8 +33,11 @@ public final class HbmRadiationWorlds {
         thread.setDaemon(true);
         return thread;
     });
-    private static final Map<ResourceKey<Level>, WorldRuntime> RUNTIMES = new ConcurrentHashMap<>();
-    private static final Set<ResourceKey<Level>> ACTIVE_WORLDS = ConcurrentHashMap.newKeySet();
+    /** A dimension id is not unique across integrated/dedicated server
+     * lifetimes in the same JVM. Keep runtime state bound to the actual
+     * server so a newly opened save can never inherit stale radiation. */
+    private static final Map<WorldKey, WorldRuntime> RUNTIMES = new ConcurrentHashMap<>();
+    private static final Set<WorldKey> ACTIVE_WORLDS = ConcurrentHashMap.newKeySet();
 
     private HbmRadiationWorlds() {
     }
@@ -58,15 +62,15 @@ public final class HbmRadiationWorlds {
     }
 
     public static boolean hasRadiation(ServerLevel level) {
-        return ACTIVE_WORLDS.contains(level.dimension());
+        return ACTIVE_WORLDS.contains(worldKey(level));
     }
 
     static void markActive(ServerLevel level) {
-        ACTIVE_WORLDS.add(level.dimension());
+        ACTIVE_WORLDS.add(worldKey(level));
     }
 
     static void markInactive(ServerLevel level) {
-        ACTIVE_WORLDS.remove(level.dimension());
+        ACTIVE_WORLDS.remove(worldKey(level));
     }
 
     static void markChunkLoaded(ServerLevel level, ChunkPos chunkPos) {
@@ -75,14 +79,14 @@ public final class HbmRadiationWorlds {
     }
 
     static void markChunkUnloaded(ServerLevel level, ChunkPos chunkPos) {
-        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        WorldRuntime runtime = RUNTIMES.get(worldKey(level));
         if (runtime != null) {
             runtime.unloadChunk(chunkPos.toLong());
         }
     }
 
     static Set<Long> loadedChunks(ServerLevel level) {
-        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        WorldRuntime runtime = RUNTIMES.get(worldKey(level));
         return runtime == null ? Set.of() : runtime.loadedChunks();
     }
 
@@ -102,7 +106,7 @@ public final class HbmRadiationWorlds {
     }
 
     static double getExposureRadiation(ServerLevel level, LivingEntity entity) {
-        WorldRuntime runtime = RUNTIMES.get(level.dimension());
+        WorldRuntime runtime = RUNTIMES.get(worldKey(level));
         if (runtime != null) {
             if (runtime.needsDirectExposureRead()) {
                 return getRadiation(level, entity.blockPosition());
@@ -121,10 +125,10 @@ public final class HbmRadiationWorlds {
     }
 
     static void unload(ServerLevel level) {
-        ResourceKey<Level> dimension = level.dimension();
-        ACTIVE_WORLDS.remove(dimension);
-        RUNTIMES.remove(dimension);
-        RadiationWorldEffects.unload(dimension.location());
+        WorldKey key = worldKey(level);
+        ACTIVE_WORLDS.remove(key);
+        RUNTIMES.remove(key);
+        RadiationWorldEffects.unload(level);
     }
 
     public static void invalidateResistance(ServerLevel level, BlockPos pos) {
@@ -142,11 +146,18 @@ public final class HbmRadiationWorlds {
     }
 
     private static WorldRuntime runtime(ServerLevel level) {
-        return RUNTIMES.computeIfAbsent(level.dimension(), key -> new WorldRuntime());
+        return RUNTIMES.computeIfAbsent(worldKey(level), key -> new WorldRuntime());
+    }
+
+    private static WorldKey worldKey(ServerLevel level) {
+        return new WorldKey(level.getServer(), level.dimension());
     }
 
     private static long chunkKey(BlockPos pos) {
         return new ChunkPos(pos).toLong();
+    }
+
+    private record WorldKey(MinecraftServer server, ResourceKey<Level> dimension) {
     }
 
     private static final class WorldRuntime {

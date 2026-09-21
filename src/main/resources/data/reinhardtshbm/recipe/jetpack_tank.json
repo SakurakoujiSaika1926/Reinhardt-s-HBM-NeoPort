@@ -11,18 +11,11 @@
       "tag": "c:plates/steel"
     },
     "B": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:bolt"
-      ],
-      "shape": "bolt",
-      "material": "steel"
+      "item": "reinhardtshbm:bolt_steel"
     },
     "K": {
       "type": "neoforge:components",
-      "items": [
-        "reinhardtshbm:fluid_tank_full"
-      ],
+      "items": "reinhardtshbm:fluid_tank_full",
       "components": {
         "minecraft:custom_data": {
           "fluid": "kerosene"

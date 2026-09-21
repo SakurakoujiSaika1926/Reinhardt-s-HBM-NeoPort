@@ -1,13 +1,1 @@
-{
-  "type": "reinhardtshbm:press",
-  "group": "press.flat",
-  "stamp": "flat",
-  "ingredient": { "tag": "c:dusts/sawdust" },
-  "result": {
-    "id": "reinhardtshbm:briquette",
-    "components": {
-      "minecraft:custom_data": { "variant": "wood" },
-      "minecraft:custom_model_data": 2
-    }
-  }
-}
+{"type":"reinhardtshbm:press","group":"press.flat","stamp":"flat","ingredient":{"tag":"c:dusts/sawdust"},"result":{"id":"reinhardtshbm:briquette_wood"}}

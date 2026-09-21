@@ -12,12 +12,7 @@
                },
     "solid_input":  {
                         "ingredient":  {
-                                           "type":  "neoforge:components",
-                                           "items":  ["reinhardtshbm:stone_resource"],
-                                           "components":  {
-                                               "minecraft:custom_data":  {"variant":  "bauxite"},
-                                               "minecraft:custom_model_data":  5
-                                           }
+                                           "item":  "reinhardtshbm:stone_resource_bauxite"
                                        },
                         "count":  1
                     }

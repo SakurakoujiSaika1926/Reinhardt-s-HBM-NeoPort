@@ -8,12 +8,7 @@
   ],
   "key": {
     "#": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "lead"
+      "item": "reinhardtshbm:wire_lead"
     }
   },
   "result": {

@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" I ","IMI"," I "],"key":{"I":{"tag":"c:ingots/steel"},"M":{"item":"reinhardtshbm:circuit_advanced"}},"result":{"id":"reinhardtshbm:cm_circuit","components":{"minecraft:custom_data":{"variant":"gold"},"minecraft:custom_model_data":3}}}

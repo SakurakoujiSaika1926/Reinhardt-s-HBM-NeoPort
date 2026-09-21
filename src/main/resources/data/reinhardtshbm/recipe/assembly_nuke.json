@@ -8,28 +8,13 @@
   ],
   "key": {
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_gold"
     },
     "P": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "weaponsteel"
+      "item": "reinhardtshbm:plate_cast_weaponsteel"
     },
     "S": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "weaponsteel"
+      "item": "reinhardtshbm:shell_weaponsteel"
     },
     "E": {
       "item": "reinhardtshbm:ball_tatb"

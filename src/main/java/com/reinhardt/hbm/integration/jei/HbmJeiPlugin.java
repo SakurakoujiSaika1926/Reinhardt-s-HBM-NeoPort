@@ -65,11 +65,9 @@ import com.reinhardt.hbm.recipe.anvil.HbmAnvilRecipes;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.foundry.FoundryMaterialStack;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
-import com.reinhardt.hbm.item.RawIngotItem;
 import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.item.WatzPelletItem;
 import com.reinhardt.hbm.integration.tacz.TaczAmmoAssemblyRecipes;
@@ -266,9 +264,7 @@ public class HbmJeiPlugin implements IModPlugin {
     }
 
     private static boolean needsComponentSubtype(Item item) {
-        return item instanceof FoundryShapeItem
-                || item instanceof RawIngotItem
-                || item instanceof ScrapsItem
+        return item instanceof ScrapsItem
                 || item instanceof LegacyVariantItem
                 || item instanceof WatzPelletItem
                 || item instanceof HbmFluidDuctItem
@@ -277,12 +273,6 @@ public class HbmJeiPlugin implements IModPlugin {
     }
 
     private static String componentSubtype(ItemStack stack) {
-        if (stack.getItem() instanceof FoundryShapeItem foundryShape) {
-            return materialSubtype(foundryShape.material(stack));
-        }
-        if (stack.getItem() instanceof RawIngotItem rawIngot) {
-            return materialSubtype(rawIngot.material(stack));
-        }
         if (stack.getItem() instanceof ScrapsItem) {
             FoundryMaterialStack contents = ScrapsItem.contents(stack);
             if (contents == null) {
@@ -616,6 +606,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.FURNACE_STEEL.get(), RecipeTypes.SMELTING);
         registration.addRecipeCatalyst(HbmBlocks.FOUNDRY_MOLD.get(), CRUCIBLE_CASTING);
         registration.addRecipeCatalyst(HbmBlocks.FOUNDRY_BASIN.get(), CRUCIBLE_CASTING);
+        registration.addRecipeCatalyst(HbmBlocks.MACHINE_STRAND_CASTER.get(), CRUCIBLE_CASTING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_ARMOR_TABLE.get(), ARMOR_TABLE);
         registration.addRecipeCatalyst(HbmBlocks.WATZ.get(), WATZ);
         registration.addRecipeCatalyst(HbmBlocks.WATZ.get(), WATZ_CONSTRUCTION);

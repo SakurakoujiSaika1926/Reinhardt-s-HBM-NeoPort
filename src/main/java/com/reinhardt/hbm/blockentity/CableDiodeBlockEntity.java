@@ -97,14 +97,13 @@ public final class CableDiodeBlockEntity extends BlockEntity implements PowerGra
     }
 
     @Override
-    public List<BlockPos> getRemotePowerLinks(Level level) {
-        return List.of();
+    public boolean requiresDirectedPowerRouting(LevelAccessor level) {
+        return true;
     }
 
-    public static void tick(Level level, BlockPos pos, BlockState state, CableDiodeBlockEntity diode) {
-        if (!level.isClientSide) {
-            PowerNetworkManager.markDirty(level);
-        }
+    @Override
+    public List<BlockPos> getRemotePowerLinks(Level level) {
+        return List.of();
     }
 
     private void changedAndDirty() {

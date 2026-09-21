@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "steel"
+        "item": "reinhardtshbm:plate_welded_steel"
       },
       "count": 8
     },

@@ -8,20 +8,10 @@
   ],
   "key": {
     "S": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "steel"
+      "item": "reinhardtshbm:shell_steel"
     },
     "P": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:pipe"
-      ],
-      "shape": "pipe",
-      "material": "steel"
+      "item": "reinhardtshbm:pipe_steel"
     },
     "G": {
       "tag": "c:ingots/graphite"

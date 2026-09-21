@@ -1,1 +1,50 @@
-{"type":"reinhardtshbm:ammo_press","group":"ammo_press.rocket_inc","input":[{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:fluid_tank_full"],"components":{"minecraft:custom_data":{"fluid":"diesel"}}}},{"ingredient":{"item":"reinhardtshbm:ball_dynamite"}},{},{},{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:casing"],"components":{"minecraft:custom_data":{"variant":"large"}}}},{},{},{"ingredient":{"tag":"c:dusts/smokeless"},"count":3},{}],"result":{"id":"reinhardtshbm:ammo_standard","count":2,"components":{"minecraft:custom_data":{"variant":"rocket_inc"},"minecraft:custom_model_data":17}}}
+{
+  "type": "reinhardtshbm:ammo_press",
+  "group": "ammo_press.rocket_inc",
+  "input": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:fluid_tank_full"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "fluid": "diesel"
+          }
+        }
+      }
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:ball_dynamite"
+      }
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:casing_large"
+      }
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "tag": "c:dusts/smokeless"
+      },
+      "count": 3
+    },
+    {}
+  ],
+  "result": {
+    "id": "reinhardtshbm:ammo_standard",
+    "count": 2,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "rocket_inc"
+      },
+      "minecraft:custom_model_data": 17
+    }
+  }
+}

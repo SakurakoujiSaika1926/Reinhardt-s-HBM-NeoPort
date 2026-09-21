@@ -2,15 +2,7 @@
   "type": "reinhardtshbm:liquefaction",
   "group": "liquefactor.bitumen",
   "ingredient": {
-    "type": "neoforge:components",
-    "items": [
-      "reinhardtshbm:oil_tar"
-    ],
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "coal"
-      }
-    }
+    "item": "reinhardtshbm:oil_tar_coal"
   },
   "output": {
     "fluid": "bitumen",

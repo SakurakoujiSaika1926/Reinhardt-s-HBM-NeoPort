@@ -12,12 +12,7 @@
       "tag": "c:ingots/rubber"
     },
     {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_dense"
-      ],
-      "shape": "wire_dense",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_dense_gold"
     }
   ],
   "result": {

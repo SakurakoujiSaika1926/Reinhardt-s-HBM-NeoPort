@@ -417,6 +417,9 @@ public class IronFurnaceBlockEntity extends BlockEntity implements MachineInvent
 
     private static int fallbackFuelDuration(ItemStack stack) {
         String path = registryPath(stack);
+        if (path.startsWith("coke_")) {
+            return 3_200;
+        }
         return switch (path) {
             case "solid_fuel" -> 3_200;
             case "solid_fuel_presto" -> 6_400;
@@ -426,7 +429,6 @@ public class IronFurnaceBlockEntity extends BlockEntity implements MachineInvent
             case "solid_fuel_presto_triplet_bf" -> 400_000;
             case "rocket_fuel" -> 6_400;
             case "lignite", "powder_lignite" -> 1_200;
-            case "coke" -> 3_200;
             default -> 0;
         };
     }
@@ -436,7 +438,7 @@ public class IronFurnaceBlockEntity extends BlockEntity implements MachineInvent
         if (stack.is(Items.COAL) || path.equals("lignite") || path.equals("powder_lignite")) {
             return 1.25D;
         }
-        if (path.equals("coke")) {
+        if (path.startsWith("coke_")) {
             return 1.5D;
         }
         if (path.startsWith("solid_fuel") || path.equals("rocket_fuel") || path.contains("balefire") || path.endsWith("_bf")) {

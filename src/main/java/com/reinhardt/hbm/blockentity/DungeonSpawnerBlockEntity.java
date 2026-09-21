@@ -66,7 +66,7 @@ public final class DungeonSpawnerBlockEntity extends BlockEntity {
             BlockEntity target = level.getBlockEntity(worldPosition.above(18));
             if (target instanceof LegacyDisplayStandBlockEntity stand) {
                 stand.setDisplayedItem(level.random.nextInt(5) == 0
-                        ? LegacyVariantItem.stackFor(HbmItems.ITEM_SECRET.get(), "aberrator")
+                        ? HbmItems.variantStack(HbmItems.ITEM_SECRET_ITEMS, "aberrator")
                         : new net.minecraft.world.item.ItemStack(HbmItems.CLAY_TABLET.get()));
             }
             level.setBlock(worldPosition, Blocks.OBSIDIAN.defaultBlockState(), Block.UPDATE_ALL);

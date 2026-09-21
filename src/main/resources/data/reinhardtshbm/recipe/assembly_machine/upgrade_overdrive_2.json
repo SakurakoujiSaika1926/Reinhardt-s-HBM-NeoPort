@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [{"type":"neoforge:not","value":{"type":"reinhardtshbm:enable_528_mode"}}],
+  "type":"reinhardtshbm:assembly_machine","group":"ass.overdrive2","duration":600,"power":100,
+  "ingredients":[
+    {"ingredient":{"item":"reinhardtshbm:upgrade_overdrive_1"},"count":1},
+    {"ingredient":{"item":"reinhardtshbm:upgrade_speed_3"},"count":1},
+    {"ingredient":{"item":"reinhardtshbm:upgrade_effect_3"},"count":1},
+    {"ingredient":{"tag":"c:ingots/saturnite"},"count":16},
+    {"ingredient":{"tag":"c:ingots/cft"},"count":8},
+    {"ingredient":{"item":"reinhardtshbm:circuit_capacitor_board"},"count":16}
+  ],
+  "result":{"id":"reinhardtshbm:upgrade_overdrive_2"}
+}

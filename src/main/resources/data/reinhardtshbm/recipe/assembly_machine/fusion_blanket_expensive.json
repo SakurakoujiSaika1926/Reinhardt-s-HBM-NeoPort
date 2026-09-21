@@ -14,26 +14,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "tungsten"
+        "item": "reinhardtshbm:plate_welded_tungsten"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "heavy_frame"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 1
     },

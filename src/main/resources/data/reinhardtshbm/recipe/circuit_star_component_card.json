@@ -1,1 +1,15 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"card_board"},"minecraft:custom_model_data":21}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"card_processor"},"minecraft:custom_model_data":22}}],"result":{"id":"reinhardtshbm:circuit_star_component","components":{"minecraft:custom_data":{"variant":"card"},"minecraft:custom_model_data":3}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:circuit_star_piece_card_board"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_card_processor"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_star_component_card"
+  }
+}

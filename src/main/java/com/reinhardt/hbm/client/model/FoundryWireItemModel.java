@@ -2,9 +2,6 @@ package com.reinhardt.hbm.client.model;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
-import com.reinhardt.hbm.foundry.FoundryShape;
-import com.reinhardt.hbm.item.FoundryShapeItem;
-import com.reinhardt.hbm.item.RawIngotItem;
 import com.reinhardt.hbm.item.ScrapsItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -128,46 +125,8 @@ public final class FoundryWireItemModel implements IDynamicBakedModel {
 
     private static Map<String, VariantTarget> targets() {
         Map<String, VariantTarget> targets = new LinkedHashMap<>();
-        addFoundryTarget(targets, "wire_fine", FoundryShape.WIRE);
-        addFoundryTarget(targets, "wire_dense", FoundryShape.DENSE_WIRE);
-        addFoundryTarget(targets, "pipe", FoundryShape.PIPE);
-        addFoundryTarget(targets, "bolt", FoundryShape.BOLT);
-        addFoundryTarget(targets, "shell", FoundryShape.SHELL);
-        addFoundryTarget(targets, "plate_cast", FoundryShape.CAST_PLATE);
-        addFoundryTarget(targets, "plate_welded", FoundryShape.WELDED_PLATE);
-        addFoundryTarget(targets, "part_mechanism", FoundryShape.MECHANISM);
-        addFoundryTarget(targets, "part_barrel_light", FoundryShape.LIGHT_BARREL);
-        addFoundryTarget(targets, "part_barrel_heavy", FoundryShape.HEAVY_BARREL);
-        addFoundryTarget(targets, "part_receiver_light", FoundryShape.LIGHT_RECEIVER);
-        addFoundryTarget(targets, "part_receiver_heavy", FoundryShape.HEAVY_RECEIVER);
-        addFoundryTarget(targets, "part_stock", FoundryShape.STOCK);
-        targets.put("ingot_raw", new VariantTarget("ingot_raw", MaterialSource.RAW_INGOT, rawIngotOverrides()));
         targets.put("scraps", new VariantTarget("scraps", MaterialSource.SCRAPS, scrapsOverrides()));
         return Map.copyOf(targets);
-    }
-
-    private static void addFoundryTarget(Map<String, VariantTarget> targets, String itemPath, FoundryShape shape) {
-        targets.put(itemPath, new VariantTarget(itemPath, MaterialSource.FOUNDRY_SHAPE, foundryOverrides(itemPath, shape)));
-    }
-
-    private static Map<String, ModelResourceLocation> foundryOverrides(String itemPath, FoundryShape shape) {
-        Map<String, ModelResourceLocation> overrides = new LinkedHashMap<>();
-        for (FoundryMaterial material : FoundryMaterial.ordered()) {
-            if (FoundryShapeItem.supports(shape, material)) {
-                overrides.put(material.name(), sideLoadedModelLocation(authoredModel(itemPath, material.name()).orElseGet(() -> generatedModel(itemPath, material.name()))));
-            }
-        }
-        return Map.copyOf(overrides);
-    }
-
-    private static Map<String, ModelResourceLocation> rawIngotOverrides() {
-        Map<String, ModelResourceLocation> overrides = new LinkedHashMap<>();
-        for (FoundryMaterial material : FoundryMaterial.ordered()) {
-            if (RawIngotItem.supports(material)) {
-                overrides.put(material.name(), sideLoadedModelLocation(generatedModel("ingot_raw", material.name())));
-            }
-        }
-        return Map.copyOf(overrides);
     }
 
     private static Map<String, ModelResourceLocation> scrapsOverrides() {
@@ -182,19 +141,6 @@ public final class FoundryWireItemModel implements IDynamicBakedModel {
     }
 
     private static Optional<String> authoredModel(String itemPath, String material) {
-        if ("wire_fine".equals(itemPath)) {
-            return switch (material) {
-                case "aluminium" -> Optional.of("wire_aluminium");
-                case "copper" -> Optional.of("wire_copper");
-                case "red_copper" -> Optional.of("wire_red_copper");
-                case "gold" -> Optional.of("wire_gold");
-                case "tungsten" -> Optional.of("wire_tungsten");
-                case "carbon" -> Optional.of("wire_carbon");
-                case "schrabidium" -> Optional.of("wire_schrabidium");
-                case "magnetized_tungsten" -> Optional.of("wire_magnetized_tungsten");
-                default -> Optional.empty();
-            };
-        }
         if ("scraps".equals(itemPath) && "bismuth".equals(material)) {
             return Optional.of("scraps_bismuth");
         }
@@ -202,12 +148,6 @@ public final class FoundryWireItemModel implements IDynamicBakedModel {
     }
 
     private static String generatedModel(String itemPath, String material) {
-        if ("wire_fine".equals(itemPath)) {
-            return "wire_fine_legacy_" + material;
-        }
-        if ("wire_dense".equals(itemPath)) {
-            return "wire_dense_legacy_" + material;
-        }
         return "material/" + itemPath + "_" + material;
     }
 
@@ -226,8 +166,6 @@ public final class FoundryWireItemModel implements IDynamicBakedModel {
     @Nullable
     private static FoundryMaterial materialFromStack(ItemStack stack, MaterialSource source) {
         return switch (source) {
-            case FOUNDRY_SHAPE -> stack.getItem() instanceof FoundryShapeItem shapeItem ? shapeItem.material(stack) : null;
-            case RAW_INGOT -> stack.getItem() instanceof RawIngotItem rawIngot ? rawIngot.material(stack) : null;
             case SCRAPS -> {
                 var contents = ScrapsItem.contents(stack);
                 yield contents == null ? null : contents.material();
@@ -244,8 +182,6 @@ public final class FoundryWireItemModel implements IDynamicBakedModel {
     }
 
     private enum MaterialSource {
-        FOUNDRY_SHAPE,
-        RAW_INGOT,
         SCRAPS
     }
 

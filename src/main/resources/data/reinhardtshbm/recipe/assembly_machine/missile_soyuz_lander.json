@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "aluminium"
+        "item": "reinhardtshbm:shell_aluminium"
       },
       "count": 4
     },
@@ -41,16 +36,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:part_generic"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "lde"
-          },
-          "minecraft:custom_model_data": 3
-        }
+        "item": "reinhardtshbm:part_generic_lde"
       },
       "count": 12
     }

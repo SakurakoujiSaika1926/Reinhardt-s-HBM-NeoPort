@@ -480,6 +480,7 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
                 0.05D
         );
         if (flame != null) {
+            flame.setNoProjectileGravity(true);
             flame.setBalefire(fluid == HbmFluids.byName("balefire").orElse(HbmFluids.none()));
         }
         play(HbmSoundEvents.FLAMETHROWER_SHOOT.get(), 2.0F, 1.0F + level.random.nextFloat() * 0.5F);

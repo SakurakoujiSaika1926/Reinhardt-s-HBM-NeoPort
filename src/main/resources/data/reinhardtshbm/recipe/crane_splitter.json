@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["III","PCP","III"],"key":{"P":{"item":"reinhardtshbm:part_generic_piston_pneumatic"},"I":{"tag":"c:ingots/steel"},"C":{"item":"reinhardtshbm:circuit_vacuum_tube"}},"result":{"id":"reinhardtshbm:crane_splitter"}}

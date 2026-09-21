@@ -12,23 +12,13 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "dura_steel"
+        "item": "reinhardtshbm:pipe_dura_steel"
       },
       "count": 5
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "tungsten"
+        "item": "reinhardtshbm:plate_cast_tungsten"
       },
       "count": 16
     },

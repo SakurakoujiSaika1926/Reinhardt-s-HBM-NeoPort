@@ -1,7 +1,1 @@
-{
-  "type": "reinhardtshbm:coking",
-  "group": "coking.heavyoil",
-  "input": { "fluid": "heavyoil", "amount": 11000 },
-  "output": { "id": "reinhardtshbm:coke", "components": { "minecraft:custom_data": { "variant": "petroleum" }, "minecraft:custom_model_data": 2 } },
-  "byproduct": { "fluid": "oil_coker", "amount": 1100 }
-}
+{"type":"reinhardtshbm:coking","group":"coking.heavyoil","input":{"fluid":"heavyoil","amount":11000},"output":{"id":"reinhardtshbm:coke_petroleum"},"byproduct":{"fluid":"oil_coker","amount":1100}}

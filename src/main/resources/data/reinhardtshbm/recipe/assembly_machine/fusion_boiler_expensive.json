@@ -1,59 +1,34 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.fusionboiler",
-    "duration":  300,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "ferro_plating"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  8
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "heavy_frame"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  8
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "plastic"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  16
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:fusion_boiler"
-               }
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fusionboiler",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_plastic"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fusion_boiler"
+  }
 }
-

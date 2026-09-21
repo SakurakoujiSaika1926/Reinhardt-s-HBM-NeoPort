@@ -10,10 +10,7 @@
           "tag": "minecraft:stone_ore_replaceables"
         },
         "state": {
-          "Name": "reinhardtshbm:stone_resource",
-          "Properties": {
-            "variant": "4"
-          }
+          "Name": "reinhardtshbm:stone_resource_limestone"
         }
       }
     ]

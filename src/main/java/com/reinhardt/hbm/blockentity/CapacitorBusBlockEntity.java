@@ -46,6 +46,11 @@ public final class CapacitorBusBlockEntity extends BlockEntity implements PowerG
     }
 
     @Override
+    public boolean requiresDirectedPowerRouting(LevelAccessor level) {
+        return true;
+    }
+
+    @Override
     public List<BlockPos> getRemotePowerLinks(Level level) {
         return List.of();
     }

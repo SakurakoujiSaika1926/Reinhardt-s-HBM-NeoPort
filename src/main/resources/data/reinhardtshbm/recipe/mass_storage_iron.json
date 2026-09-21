@@ -1,4 +1,1 @@
-{
-  "type": "reinhardtshbm:mass_storage",
-  "category": "misc"
-}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" L ","ICI"," I "],"key":{"I":{"tag":"c:ingots/titanium"},"C":{"item":"reinhardtshbm:crate_steel"},"L":{"item":"reinhardtshbm:circuit_vacuum_tube"}},"result":{"id":"reinhardtshbm:mass_storage_iron"}}

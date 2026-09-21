@@ -1,8 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.item.BlueprintFolderItem;
-import com.reinhardt.hbm.foundry.FoundryMaterial;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.LegacyBombCallerItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
@@ -273,7 +271,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:flask_infusion", 1, 1, 5),
                 e("reinhardtshbm:boxcar", 1, 1, 5),
                 e("reinhardtshbm:book_of_", 1, 1, 5),
-                e("reinhardtshbm:item_secret", 1, 1, 1, "folly"),
+                e("reinhardtshbm:item_secret_folly", 1, 1, 1),
                 e("reinhardtshbm:weapon_mod_special", 1, 1, 1, "nickel"),
                 e("reinhardtshbm:weapon_mod_special", 1, 1, 1, "doubloons")
         );
@@ -281,9 +279,9 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:clay_tablet", 1, 1, 10)
         );
         pool("POOL_BLACK_PART",
-                e("reinhardtshbm:item_secret", 4, 4, 10, "selenium_steel"),
-                e("reinhardtshbm:item_secret", 1, 1, 10, "controller"),
-                e("reinhardtshbm:item_secret", 1, 1, 10, "canister"),
+                e("reinhardtshbm:item_secret_selenium_steel", 4, 4, 10),
+                e("reinhardtshbm:item_secret_controller", 1, 1, 10),
+                e("reinhardtshbm:item_secret_canister", 1, 1, 10),
                 e("reinhardtshbm:blueprint_folder", 1, 1, 1, "secret")
         );
         pool("POOL_PILE_HIVE",
@@ -332,24 +330,24 @@ public final class HbmStructureLoot {
         );
         pool("POOL_PILE_MAKESHIFT_WRENCH", e("reinhardtshbm:wrench", 1, 1, 10));
         pool("POOL_PILE_MAKESHIFT_PLATES", e("reinhardtshbm:plate_steel", 1, 1, 10));
-        pool("POOL_PILE_MAKESHIFT_WIRE", e("reinhardtshbm:wire_fine", 1, 1, 10));
+        pool("POOL_PILE_MAKESHIFT_WIRE", e("reinhardtshbm:wire_copper", 1, 1, 10));
         pool("POOL_PILE_NUKE_STORAGE",
                 e("reinhardtshbm:ammo_standard", 1, 1, 50),
                 e("reinhardtshbm:bomb_caller", 1, 1, 10),
                 e("reinhardtshbm:launch_code_piece", 1, 1, 10)
         );
         pool("POOL_PILE_OF_GARBAGE",
-                e("reinhardtshbm:pipe", 0, 2, 20),
+                e("reinhardtshbm:pipe_copper", 0, 2, 20),
                 e("reinhardtshbm:scrap", 1, 5, 20),
                 e("reinhardtshbm:dust", 1, 3, 40),
                 e("reinhardtshbm:dust_tiny", 1, 7, 40),
                 e("reinhardtshbm:powder_cement", 1, 6, 40),
                 e("reinhardtshbm:nugget_lead", 0, 3, 20),
-                e("reinhardtshbm:wire_fine", 1, 2, 20),
-                e("reinhardtshbm:powder_ash", 0, 1, 15),
+                e("reinhardtshbm:wire_copper", 1, 2, 20),
+                e("reinhardtshbm:powder_ash_wood", 0, 1, 15),
                 e("reinhardtshbm:plate_lead", 0, 1, 15),
                 e("minecraft:string", 0, 1, 15),
-                e("reinhardtshbm:bolt", 0, 2, 15, "lead"),
+                e("reinhardtshbm:bolt_lead", 0, 2, 15),
                 e("reinhardtshbm:cap_nuka", 0, 8, 15),
                 e("reinhardtshbm:plate_iron", 0, 2, 15),
                 e("reinhardtshbm:fallout", 0, 2, 15),
@@ -365,7 +363,7 @@ public final class HbmStructureLoot {
         pool("POOL_PILE_MECHANICAL",
                 e("reinhardtshbm:defuser", 1, 1, 30),
                 e("reinhardtshbm:screwdriver", 1, 1, 30),
-                e("reinhardtshbm:wire_fine", 8, 12, 120),
+                e("reinhardtshbm:wire_copper", 8, 12, 120),
                 e("reinhardtshbm:plate_steel", 3, 8, 40),
                 e("reinhardtshbm:plate_copper", 2, 5, 40),
                 e("reinhardtshbm:coil_copper", 2, 5, 40),
@@ -375,7 +373,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:defuser", 1, 1, 40),
                 e("reinhardtshbm:screwdriver", 1, 1, 30),
                 e("reinhardtshbm:canteen_vodka", 1, 1, 40),
-                e("reinhardtshbm:casing", 1, 4, 30),
+                e("reinhardtshbm:casing_small", 1, 4, 30),
                 e("reinhardtshbm:casing_buckshot", 3, 8, 40),
                 e("reinhardtshbm:definitelyfood", 2, 5, 40),
                 e("reinhardtshbm:taurun_helmet", 1, 1, 20),
@@ -394,8 +392,8 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:ingot_beryllium", 1, 2, 4),
                 e("reinhardtshbm:ingot_titanium", 1, 1, 3),
                 e("reinhardtshbm:circuit_vacuum_tube", 1, 1, 5),
-                e("reinhardtshbm:casing", 4, 10, 3, "small"),
-                e("reinhardtshbm:casing", 4, 10, 3, "shotshell"),
+                e("reinhardtshbm:casing_small", 4, 10, 3),
+                e("reinhardtshbm:casing_shotshell", 4, 10, 3),
                 e("reinhardtshbm:cordite", 4, 6, 5),
                 e("reinhardtshbm:battery_pack", 1, 1, 1, "battery_redstone"),
                 e("reinhardtshbm:scrap", 1, 3, 10),
@@ -413,15 +411,15 @@ public final class HbmStructureLoot {
         );
         pool("POOL_MACHINE_PARTS",
                 e("reinhardtshbm:plate_steel", 1, 5, 5),
-                e("reinhardtshbm:shell", 1, 3, 3, "steel"),
+                e("reinhardtshbm:shell_steel", 1, 3, 3),
                 e("reinhardtshbm:plate_polymer", 1, 6, 5),
-                e("reinhardtshbm:bolt", 4, 16, 3, "steel"),
+                e("reinhardtshbm:bolt_steel", 4, 16, 3),
                 e("reinhardtshbm:bolt_tungsten", 4, 16, 3),
                 e("reinhardtshbm:coil_tungsten", 1, 2, 5),
                 e("reinhardtshbm:motor", 1, 2, 4),
                 e("reinhardtshbm:coil_copper", 1, 3, 4),
                 e("reinhardtshbm:coil_copper_torus", 1, 2, 3),
-                e("reinhardtshbm:wire_fine", 1, 8, 5),
+                e("reinhardtshbm:wire_copper", 1, 8, 5),
                 e("reinhardtshbm:piston_selenium", 1, 1, 3),
                 e("reinhardtshbm:battery_pack", 1, 1, 3),
                 e("reinhardtshbm:circuit_vacuum_tube", 1, 2, 4),
@@ -483,7 +481,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:ingot_steel", 1, 2, 7),
                 e("reinhardtshbm:ingot_red_copper", 1, 1, 4),
                 e("reinhardtshbm:ingot_titanium", 1, 3, 5),
-                e("reinhardtshbm:wire_fine", 2, 3, 7),
+                e("reinhardtshbm:wire_copper", 2, 3, 7),
                 e("reinhardtshbm:circuit_vacuum_tube", 1, 1, 4),
                 e("reinhardtshbm:circuit_capacitor", 1, 1, 2),
                 e("reinhardtshbm:battery_pack", 1, 1, 1, "battery_redstone"),
@@ -514,7 +512,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:ammo_standard", 1, 1, 5, "g26_flare"),
                 e("reinhardtshbm:grenade_universal", 1, 1, 2, "nuke:nuclear:s7"),
                 e("reinhardtshbm:grenade_universal", 1, 3, 3, "frag:cluster:s7"),
-                e("reinhardtshbm:grenade_extra", 1, 1, 1, "triplex"),
+                e("reinhardtshbm:grenade_extra_triplex", 1, 1, 1),
                 e("reinhardtshbm:stealth_boy", 1, 1, 2),
                 e("reinhardtshbm:battery_pack", 1, 1, 1, "battery_lithium"),
                 e("reinhardtshbm:syringe_awesome", 1, 1, 1),
@@ -570,7 +568,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:solid_fuel", 1, 5, 1),
                 e("reinhardtshbm:solid_fuel_presto", 1, 2, 2),
                 e("reinhardtshbm:ball_dynamite", 1, 4, 2),
-                e("reinhardtshbm:coke", 1, 3, 1, "petroleum"),
+                e("reinhardtshbm:coke_petroleum", 1, 3, 1),
                 e("minecraft:redstone", 1, 3, 1),
                 e("reinhardtshbm:niter", 1, 3, 1)
         );
@@ -640,7 +638,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:deco_steel", 5, 12, 2),
                 e("reinhardtshbm:block_aluminium", 1, 2, 1),
                 e("reinhardtshbm:block_steel", 1, 1, 1),
-                e("reinhardtshbm:bolt", 4, 16, 3, "steel"),
+                e("reinhardtshbm:bolt_steel", 4, 16, 3),
                 e("reinhardtshbm:circuit_vacuum_tube", 1, 2, 4),
                 e("reinhardtshbm:circuit_analog", 1, 3, 5),
                 e("reinhardtshbm:circuit_capacitor", 1, 1, 3)
@@ -741,14 +739,14 @@ public final class HbmStructureLoot {
         pool("POOL_SPACESHIP",
                 e("reinhardtshbm:battery_pack", 1, 1, 2, "battery_lead"),
                 e("reinhardtshbm:coil_copper", 1, 2, 5),
-                e("reinhardtshbm:wire_fine", 8, 32, 5),
+                e("reinhardtshbm:wire_copper", 8, 32, 5),
                 e("reinhardtshbm:cell_deuterium", 1, 8, 5),
                 e("reinhardtshbm:cell_tritium", 1, 8, 5),
                 e("reinhardtshbm:cell_antimatter", 1, 1, 1),
                 e("reinhardtshbm:powder_neodymium", 1, 1, 1),
                 e("reinhardtshbm:powder_niobium", 1, 1, 1),
-                e("reinhardtshbm:wire_dense", 2, 4, 5),
-                e("reinhardtshbm:wire_dense", 1, 3, 5, "gold"),
+                e("reinhardtshbm:wire_dense_tungsten", 2, 4, 5),
+                e("reinhardtshbm:wire_dense_gold", 1, 3, 5),
                 e("reinhardtshbm:pwr_fuel", 1, 2, 5),
                 e("reinhardtshbm:block_tungsten", 1, 8, 5),
                 e("reinhardtshbm:red_wire_coated", 1, 8, 5),
@@ -911,11 +909,6 @@ public final class HbmStructureLoot {
                 } catch (IllegalArgumentException ignored) {
                     stack = new ItemStack(item, count);
                 }
-            } else if (variant != null && item instanceof FoundryShapeItem shapeItem) {
-                var material = FoundryMaterial.byName(variant);
-                stack = material.filter(value -> FoundryShapeItem.supports(shapeItem.shape(), value))
-                        .map(value -> FoundryShapeItem.stackFor(item, value, count))
-                        .orElseGet(() -> new ItemStack(item, count));
             } else if (variant != null && item instanceof LegacyVariantItem) {
                 stack = LegacyVariantItem.stackFor(item, variant);
             } else {

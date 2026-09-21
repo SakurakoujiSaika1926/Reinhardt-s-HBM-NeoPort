@@ -1,6 +1,7 @@
 ﻿{
     "replace":  false,
     "values":  [
-
-               ]
+        "#c:plates/cast_bismuth_bronze",
+        "#c:plates/cast_arsenic_bronze"
+    ]
 }

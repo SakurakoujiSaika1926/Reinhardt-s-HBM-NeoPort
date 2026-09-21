@@ -2,16 +2,12 @@ package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.block.LegacyVariantBlock;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -27,8 +23,14 @@ final class ToolConversion {
 
     private static final TagKey<net.minecraft.world.item.Item> DURA_STEEL_BOLTS = TagKey.create(
             Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "bolts/dura_steel"));
-    private static final Requirement STEEL_CAST_PLATE = material(30);
-    private static final Requirement BISMOID_BRONZE_CAST_PLATE = material(46, 47);
+    private static final TagKey<net.minecraft.world.item.Item> STEEL_CAST_PLATES = TagKey.create(
+            Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "plates/cast_steel"));
+    private static final TagKey<net.minecraft.world.item.Item> BISMUTH_BRONZE_CAST_PLATES = TagKey.create(
+            Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "plates/cast_bismuth_bronze"));
+    private static final TagKey<net.minecraft.world.item.Item> ARSENIC_BRONZE_CAST_PLATES = TagKey.create(
+            Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "plates/cast_arsenic_bronze"));
+    private static final Requirement STEEL_CAST_PLATE = material(STEEL_CAST_PLATES);
+    private static final Requirement BISMOID_BRONZE_CAST_PLATE = material(BISMUTH_BRONZE_CAST_PLATES, ARSENIC_BRONZE_CAST_PLATES);
     private static final Requirement DURA_STEEL_BOLT = new Requirement(stack -> stack.is(DURA_STEEL_BOLTS), 4);
 
     private ToolConversion() {
@@ -66,15 +68,11 @@ final class ToolConversion {
         return state.hasProperty(LegacyVariantBlock.VARIANT) ? state.getValue(LegacyVariantBlock.VARIANT) : 0;
     }
 
-    private static Requirement material(int... materialIds) {
+    @SafeVarargs
+    private static Requirement material(TagKey<net.minecraft.world.item.Item>... tags) {
         return new Requirement(stack -> {
-            if (!stack.is(HbmItems.PLATE_CAST.get())) {
-                return false;
-            }
-            CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-            int materialId = data.getInt("material_id");
-            for (int accepted : materialIds) {
-                if (materialId == accepted) {
+            for (TagKey<net.minecraft.world.item.Item> tag : tags) {
+                if (stack.is(tag)) {
                     return true;
                 }
             }

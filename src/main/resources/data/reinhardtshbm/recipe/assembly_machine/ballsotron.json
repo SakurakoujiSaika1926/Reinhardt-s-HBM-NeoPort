@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "titanium"
+        "item": "reinhardtshbm:plate_welded_titanium"
       },
       "count": 32
     },
@@ -29,12 +24,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_dense_gold"
       },
       "count": 64
     },

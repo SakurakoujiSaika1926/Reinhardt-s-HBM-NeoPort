@@ -94,12 +94,12 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
                 }
             }
         }
-        generateDepthRock(level, centerX, centerZ, nether);
+        generateHostRock(level, centerX, centerZ, nether);
         return placed;
     }
 
-    private static void generateDepthRock(WorldGenLevel level, int centerX, int centerZ, boolean nether) {
-        Block depthRock = nether ? HbmBlocks.STONE_DEPTH_NETHER.get() : HbmBlocks.STONE_DEPTH.get();
+    private static void generateHostRock(WorldGenLevel level, int centerX, int centerZ, boolean nether) {
+        Block hostRock = nether ? HbmBlocks.STONE_DEPTH_NETHER.get() : Blocks.DEEPSLATE;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         int minY = level.getMinBuildHeight();
         for (int x = centerX - 3; x <= centerX + 3; x++) {
@@ -112,8 +112,9 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
                     pos.set(x, y, z);
                     BlockState state = level.getBlockState(pos);
                     boolean replace = dy < 3 || state.is(Blocks.BEDROCK);
-                    if (replace && (state.is(Blocks.STONE) || state.is(Blocks.BEDROCK) || state.is(Blocks.NETHERRACK))) {
-                        level.setBlock(pos, depthRock.defaultBlockState(), SET_FLAGS);
+                    if (replace && (state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE)
+                            || state.is(Blocks.BEDROCK) || state.is(Blocks.NETHERRACK))) {
+                        level.setBlock(pos, hostRock.defaultBlockState(), SET_FLAGS);
                     }
                 }
             }

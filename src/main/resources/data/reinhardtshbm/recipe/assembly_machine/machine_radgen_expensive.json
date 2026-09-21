@@ -1,33 +1,55 @@
 {
   "neoforge:conditions": [
-    { "type": "reinhardtshbm:enable_528_mode" }
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
   ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.radgen",
-  "blueprint_pools": ["discover.radgen"],
+  "blueprint_pools": [
+    "discover.radgen"
+  ],
   "duration": 400,
   "power": 100,
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "heavy_frame" } }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 4
     },
-    { "ingredient": { "item": "reinhardtshbm:coil_magnetized_tungsten" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:reactor_core" }, "count": 3 },
-    { "ingredient": { "tag": "c:ingots/starmetal" }, "count": 1 },
-    { "ingredient": { "tag": "c:dyes/red" }, "count": 1 },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": ["reinhardtshbm:item_expensive"],
-        "components": { "minecraft:custom_data": { "variant": "circuit" } }
+        "item": "reinhardtshbm:coil_magnetized_tungsten"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:reactor_core"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/starmetal"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:dyes/red"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_circuit"
       },
       "count": 3
     }
   ],
-  "result": { "id": "reinhardtshbm:machine_radgen" }
+  "result": {
+    "id": "reinhardtshbm:machine_radgen"
+  }
 }

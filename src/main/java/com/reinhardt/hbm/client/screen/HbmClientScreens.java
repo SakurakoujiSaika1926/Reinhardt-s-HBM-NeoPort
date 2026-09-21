@@ -110,6 +110,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.CRUCIBLE.get(), CrucibleScreen::new);
         event.register(HbmMenus.STRAND_CASTER.get(), StrandCasterScreen::new);
         event.register(HbmMenus.STORAGE_CRATE.get(), StorageCrateScreen::new);
+        event.register(HbmMenus.PORTABLE_CRATE.get(), PortableCrateScreen::new);
         event.register(HbmMenus.SAFE.get(), SafeScreen::new);
         event.register(HbmMenus.MASS_STORAGE.get(), MassStorageScreen::new);
         event.register(HbmMenus.BATTERY_REDD.get(), BatteryReddScreen::new);

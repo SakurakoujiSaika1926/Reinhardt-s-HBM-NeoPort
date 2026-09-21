@@ -14,12 +14,7 @@
       "item": "minecraft:redstone"
     },
     "C": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "copper"
+      "item": "reinhardtshbm:wire_copper"
     },
     "T": {
       "item": "reinhardtshbm:coil_tungsten"

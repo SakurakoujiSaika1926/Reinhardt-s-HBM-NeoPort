@@ -2,7 +2,16 @@ package com.reinhardt.hbm.explosion;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.advancement.HbmAdvancements;
+import com.reinhardt.hbm.entity.ChekhovBulletEntity;
+import com.reinhardt.hbm.entity.JeremyShellEntity;
+import com.reinhardt.hbm.entity.LegacyArtilleryShellEntity;
+import com.reinhardt.hbm.entity.LegacyBossProjectileEntity;
+import com.reinhardt.hbm.entity.LegacyBulletEntity;
+import com.reinhardt.hbm.entity.LegacyGrenadeEntity;
+import com.reinhardt.hbm.entity.LegacyHimarsRocketEntity;
+import com.reinhardt.hbm.entity.LegacyShrapnelEntity;
 import com.reinhardt.hbm.entity.NukeTorexEntity;
+import com.reinhardt.hbm.entity.UniversalGrenadeEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
@@ -18,7 +27,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Cat;
+import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -26,6 +40,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -51,14 +66,21 @@ import java.util.concurrent.Executors;
 public final class NukeExplosionManager {
     private static final int BOY_RADIUS = 120;
     private static final int MISSILE_RADIUS = 100;
-    private static final int MK5_RAY_STEPS_PER_TICK = 1_536;
-    private static final int MK5_BLOCK_UPDATES_PER_TICK = 64;
+    // Nuclear terrain work stays asynchronous, but the original half-
+    // millisecond slices left most modern server tick headroom unused and
+    // made a crater take several minutes to appear. These limits spend at
+    // most about nine milliseconds per active blast tick while retaining
+    // hard count caps for unusually cheap blocks/rays.
+    private static final int MK5_RAY_STEPS_PER_TICK = 16_384;
+    private static final int MK5_BLOCK_UPDATES_PER_TICK = 512;
     private static final int MK5_DESTROY_BATCH_SIZE = 512;
     private static final int MK5_RAY_DIRECTION_BATCH_SIZE = 4_096;
     private static final int MK5_RAY_DIRECTION_BATCHES_AHEAD = 8;
-    private static final long MK5_RAY_NANOS_PER_TICK = 500_000L;
-    private static final long MK5_BLOCK_UPDATE_NANOS_PER_TICK = 500_000L;
-    private static final int DAMAGE_TICKS = 1;
+    private static final long MK5_RAY_NANOS_PER_TICK = 4_000_000L;
+    private static final long MK5_BLOCK_UPDATE_NANOS_PER_TICK = 5_000_000L;
+    private static final int MK5_DAMAGE_ENTITIES_PER_TICK = 256;
+    private static final long MK5_DAMAGE_NANOS_PER_TICK = 500_000L;
+    private static final float MK5_MAX_DAMAGE = 250.0F;
     private static final long CACHE_MISS = Long.MIN_VALUE;
     private static final long SAMPLE_AIR = 1L << 32;
     private static final long SAMPLE_FLUID_EMPTY = 1L << 33;
@@ -141,6 +163,13 @@ public final class NukeExplosionManager {
                                           boolean spawnTorex, boolean fallout, boolean radiation, int falloutAdd) {
         HbmAdvancements.awardAll(level, "manhattan");
         int falloutScale = fallout ? Math.max(1, (int) (radius * 2.5D + Math.max(0, falloutAdd))) : 0;
+        // The old MK5 starts irradiating nearby entities as soon as it begins
+        // updating. Do not leave the persistent blast-site field behind the
+        // much longer asynchronous terrain queue: players could otherwise
+        // stand in a still-forming crater with an almost clean chunk readout.
+        if (falloutScale > 0) {
+            seedFalloutRadiation(level, BlockPos.containing(x, y, z), falloutScale);
+        }
         TASKS.computeIfAbsent(level.dimension().location(), unused -> new ArrayDeque<>())
                 .add(new NukeTask(new Vec3(x, y, z), radius * 2, radius, radiation, falloutScale));
         playInitialSound(level, x, y, z);
@@ -148,6 +177,24 @@ public final class NukeExplosionManager {
             spawnTorex(level, x, y + 0.5D, z, radius);
         }
         sendInitialParticles(level, x, y, z);
+    }
+
+    private static void seedFalloutRadiation(ServerLevel level, BlockPos center, int scale) {
+        ChunkRadiationData radiation = ChunkRadiationData.get(level);
+        int chunkRadius = Math.max(2, Math.min(8, (int) Math.ceil(scale / 32.0D)));
+        double scaleMultiplier = Math.max(1.0D, scale / 88.0D);
+        for (int xOffset = -chunkRadius; xOffset <= chunkRadius; xOffset++) {
+            for (int zOffset = -chunkRadius; zOffset <= chunkRadius; zOffset++) {
+                double distance = Math.hypot(xOffset * 16.0D, zOffset * 16.0D);
+                if (distance > scale) {
+                    continue;
+                }
+                int manhattan = Math.abs(xOffset) + Math.abs(zOffset);
+                double falloff = 1.0D - distance / Math.max(1.0D, scale);
+                double amount = 50.0D / (manhattan + 1.0D) * scaleMultiplier * Math.max(0.25D, falloff);
+                radiation.incrementRadiation(center.offset(xOffset * 16, 0, zOffset * 16), amount, 10_000.0D);
+            }
+        }
     }
 
     private static void sendFleijaCloud(ServerLevel level, double x, double y, double z, int radius) {
@@ -285,8 +332,11 @@ public final class NukeExplosionManager {
         private RayBatch activeBatch;
         private int activeBatchIndex;
         private RayScan activeRay;
-        private int damageTicks = DAMAGE_TICKS;
+        private DamagePulse activeDamagePulse;
+        private int pendingDamagePulses;
+        private int damagePulseIndex;
         private boolean raysDone;
+        private boolean terrainFinished;
         private boolean falloutScheduled;
 
         private NukeTask(Vec3 center, int strength, int length, boolean radiationEnabled, int falloutScale) {
@@ -302,18 +352,30 @@ public final class NukeExplosionManager {
         }
 
         private boolean tick(ServerLevel level) {
-            dealDamage(level);
-            if (!this.raysDone) {
-                scanRays(level, MK5_RAY_STEPS_PER_TICK);
+            // The old MK5 runs one damage pass for every tick its terrain
+            // explosion remains alive. Keep that observable behaviour, but
+            // consume the passes through a bounded cursor so a crowded blast
+            // cannot monopolise the server thread.
+            if (!this.terrainFinished) {
+                this.pendingDamagePulses++;
             }
-            collectSortedDestroyBatch();
-            applyPendingDestroy(level, MK5_BLOCK_UPDATES_PER_TICK);
-            flushSectionUpdates(level);
-            boolean complete = this.raysDone && this.pendingDestroy.isEmpty() && this.sortFuture == null && this.damageTicks <= 0;
-            if (complete) {
+            processDamage(level);
+
+            if (!this.terrainFinished) {
+                if (!this.raysDone) {
+                    scanRays(level, MK5_RAY_STEPS_PER_TICK);
+                }
+                collectSortedDestroyBatch();
+                applyPendingDestroy(level, MK5_BLOCK_UPDATES_PER_TICK);
+                flushSectionUpdates(level);
+                this.terrainFinished = this.raysDone
+                        && this.pendingDestroy.isEmpty()
+                        && this.sortFuture == null;
+            }
+            if (this.terrainFinished) {
                 scheduleFallout(level);
             }
-            return complete;
+            return this.terrainFinished && this.activeDamagePulse == null && this.pendingDamagePulses <= 0;
         }
 
         private void scheduleFallout(ServerLevel level) {
@@ -322,58 +384,91 @@ public final class NukeExplosionManager {
             }
             this.falloutScheduled = true;
             BlockPos centerPos = BlockPos.containing(this.center);
-            seedFalloutRadiation(level, centerPos, this.falloutScale);
             NuclearFalloutTerrainEffects.schedule(level, centerPos, this.falloutScale);
         }
 
-        private static void seedFalloutRadiation(ServerLevel level, BlockPos center, int scale) {
-            ChunkRadiationData radiation = ChunkRadiationData.get(level);
-            int chunkRadius = Math.max(2, Math.min(8, (int) Math.ceil(scale / 32.0D)));
-            double scaleMultiplier = Math.max(1.0D, scale / 88.0D);
-            for (int xOffset = -chunkRadius; xOffset <= chunkRadius; xOffset++) {
-                for (int zOffset = -chunkRadius; zOffset <= chunkRadius; zOffset++) {
-                    double distance = Math.hypot(xOffset * 16.0D, zOffset * 16.0D);
-                    if (distance > scale) {
-                        continue;
+        private void processDamage(ServerLevel level) {
+            long deadline = System.nanoTime() + MK5_DAMAGE_NANOS_PER_TICK;
+            int processed = 0;
+            while (processed < MK5_DAMAGE_ENTITIES_PER_TICK && System.nanoTime() < deadline) {
+                if (this.activeDamagePulse == null) {
+                    if (this.pendingDamagePulses <= 0) {
+                        return;
                     }
-                    int manhattan = Math.abs(xOffset) + Math.abs(zOffset);
-                    double falloff = 1.0D - distance / Math.max(1.0D, scale);
-                    double amount = 50.0D / (manhattan + 1.0D) * scaleMultiplier * Math.max(0.25D, falloff);
-                    radiation.incrementRadiation(center.offset(xOffset * 16, 0, zOffset * 16), amount, 10_000.0D);
+                    this.pendingDamagePulses--;
+                    this.activeDamagePulse = DamagePulse.capture(
+                            level,
+                            this.center,
+                            this.length * 2.0D,
+                            this.damagePulseIndex++
+                    );
+                    if (System.nanoTime() >= deadline) {
+                        return;
+                    }
+                }
+
+                Entity entity = this.activeDamagePulse.next();
+                if (entity == null) {
+                    this.activeDamagePulse = null;
+                    continue;
+                }
+                processed++;
+                applyLegacyDamage(level, entity, this.activeDamagePulse.index());
+            }
+        }
+
+        private void applyLegacyDamage(ServerLevel level, Entity entity, int pulseIndex) {
+            if (!entity.isAlive() || isLegacyExplosionExempt(entity)) {
+                return;
+            }
+            double range = this.length * 2.0D;
+            double distance = Math.sqrt(entity.distanceToSqr(this.center));
+            if (distance > range) {
+                return;
+            }
+            // Legacy prompt radiation is resistance-attenuated independently
+            // of the binary line-of-sight rule used by blast damage.
+            if (pulseIndex == 0 && entity instanceof LivingEntity living) {
+                applyPromptRadiation(level, living, distance, range);
+            }
+            if (isObstructed(level, entity)) {
+                return;
+            }
+
+            float damage = (float) (MK5_MAX_DAMAGE * (range - distance) / range);
+            // EntityDamageUtil.attackEntityFromNT(..., ignoreIFrame=true) in
+            // 1.7.10 explicitly allowed every MK5 pulse through hurt immunity.
+            entity.invulnerableTime = 0;
+            boolean hurt = entity.hurt(level.damageSources().source(HbmDamageTypes.NUCLEAR_BLAST), damage);
+            entity.invulnerableTime = 0;
+            entity.igniteForSeconds(5.0F);
+
+            if (hurt) {
+                Vec3 knockback = new Vec3(
+                        entity.getX() - this.center.x,
+                        entity.getEyeY() - this.center.y,
+                        entity.getZ() - this.center.z
+                );
+                if (knockback.lengthSqr() > 0.0D) {
+                    entity.setDeltaMovement(entity.getDeltaMovement().add(knockback.normalize().scale(0.2D)));
+                    entity.hurtMarked = true;
                 }
             }
         }
 
-        private void dealDamage(ServerLevel level) {
-            if (this.damageTicks-- <= 0) {
-                return;
-            }
-            double damageRange = this.length * 2.0D;
-            AABB area = new AABB(
-                    this.center.x - damageRange,
-                    this.center.y - damageRange,
-                    this.center.z - damageRange,
-                    this.center.x + damageRange,
-                    this.center.y + damageRange,
-                    this.center.z + damageRange
-            );
-            for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, area)) {
-                double distance = Math.sqrt(entity.distanceToSqr(this.center));
-                if (distance > damageRange) {
-                    continue;
-                }
-                double exposure = 1.0D - distance / damageRange;
-                // Legacy nuclear blasts use HBM's nuclearBlast damage type,
-                // rather than vanilla explosion, so the old death message is
-                // preserved for scheduled (powered) creeper detonations too.
-                entity.hurt(level.damageSources().source(HbmDamageTypes.NUCLEAR_BLAST),
-                        (float) Math.max(4.0D, exposure * this.strength * 4.0D));
-                applyPromptRadiation(level, entity, distance, damageRange);
-            }
+        private boolean isObstructed(ServerLevel level, Entity entity) {
+            Vec3 target = new Vec3(entity.getX(), entity.getEyeY(), entity.getZ());
+            return level.clip(new ClipContext(
+                    this.center,
+                    target,
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    entity
+            )).getType() != HitResult.Type.MISS;
         }
 
         private void applyPromptRadiation(ServerLevel level, LivingEntity entity, double distance, double range) {
-            if (!this.radiationEnabled || this.damageTicks >= 10 || this.strength < 150) {
+            if (!this.radiationEnabled || this.strength < 150) {
                 return;
             }
             if (com.reinhardt.hbm.radiation.RadiationEvents.isLegacyRadiationImmune(entity)) {
@@ -383,7 +478,7 @@ public final class NukeExplosionManager {
             Vec3 ray = target.subtract(this.center);
             double lengthToEntity = ray.length();
             if (lengthToEntity <= 1.0D) {
-                HbmLivingRadiation.get(entity).addRadiation(HbmLivingRadiation.MAX_RADIATION);
+                applyPromptDose(entity, HbmLivingRadiation.MAX_RADIATION);
                 return;
             }
             Vec3 step = ray.normalize();
@@ -400,10 +495,62 @@ public final class NukeExplosionManager {
                 }
                 resistance += Math.max(0.0F, level.getBlockState(cursor).getBlock().getExplosionResistance());
             }
-            float rads = 2_500_000.0F / (this.damageTicks * 5.0F + 1.0F);
+            float rads = 2_500_000.0F;
             rads /= resistance;
             rads /= Math.max(1.0F, (float) (distance * distance));
-            HbmLivingRadiation.get(entity).addRadiation(Math.min(HbmLivingRadiation.MAX_RADIATION, rads));
+            applyPromptDose(entity, Math.min(HbmLivingRadiation.MAX_RADIATION, rads));
+        }
+
+        /** Mirrors legacy RAD_BYPASS: the flash is visible in the received
+         * radiation readout, bypasses armor, but creative/spectator/new-player
+         * protection still prevents it from becoming accumulated body dose. */
+        private static void applyPromptDose(LivingEntity entity, float amount) {
+            HbmLivingRadiation data = HbmLivingRadiation.get(entity);
+            data.addEnvironmentRadiation(amount);
+            if (!(entity instanceof Player player
+                    && (player.isCreative() || player.isSpectator() || player.tickCount < 200))) {
+                data.addRadiation(amount);
+            }
+            HbmLivingRadiation.set(entity, data);
+        }
+
+        private static boolean isLegacyExplosionExempt(Entity entity) {
+            return entity instanceof Cat
+                    || entity instanceof Ocelot
+                    || entity instanceof Player player && (player.isCreative() || player.isSpectator())
+                    || entity instanceof JeremyShellEntity
+                    || entity instanceof LegacyBulletEntity
+                    || entity instanceof ChekhovBulletEntity
+                    || entity instanceof LegacyBossProjectileEntity
+                    || entity instanceof LegacyArtilleryShellEntity
+                    || entity instanceof LegacyHimarsRocketEntity
+                    || entity instanceof LegacyShrapnelEntity
+                    || entity instanceof LegacyGrenadeEntity
+                    || entity instanceof UniversalGrenadeEntity;
+        }
+
+        private static final class DamagePulse {
+            private final List<Entity> entities;
+            private final int index;
+            private int cursor;
+
+            private DamagePulse(List<Entity> entities, int index) {
+                this.entities = entities;
+                this.index = index;
+            }
+
+            private static DamagePulse capture(ServerLevel level, Vec3 center, double range, int index) {
+                AABB area = new AABB(center, center).inflate(range);
+                return new DamagePulse(level.getEntities((Entity) null, area, Entity::isAlive), index);
+            }
+
+            private Entity next() {
+                return this.cursor < this.entities.size() ? this.entities.get(this.cursor++) : null;
+            }
+
+            private int index() {
+                return this.index;
+            }
         }
 
         private void scanRays(ServerLevel level, int maxSteps) {

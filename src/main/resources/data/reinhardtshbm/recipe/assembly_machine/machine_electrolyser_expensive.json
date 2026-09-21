@@ -11,26 +11,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "heavy_frame"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "titanium"
+        "item": "reinhardtshbm:shell_titanium"
       },
       "count": 3
     },
@@ -54,15 +41,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "circuit"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_circuit"
       },
       "count": 4
     }

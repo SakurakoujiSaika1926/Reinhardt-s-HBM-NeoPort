@@ -3,7 +3,7 @@
   "neoforge:conditions": [
     {
       "type": "neoforge:mod_loaded",
-      "modid": "appeng"
+      "modid": "ae2"
     }
   ],
   "ingredient": {

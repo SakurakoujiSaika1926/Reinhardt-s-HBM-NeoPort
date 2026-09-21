@@ -10,23 +10,12 @@
   "inputs": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "combine_steel"
+        "item": "reinhardtshbm:plate_cast_combine_steel"
       },
       "count": 2
     }
   ],
   "result": {
-    "id": "reinhardtshbm:plate_welded",
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 39,
-        "material": "combine_steel"
-      }
-    }
+    "id": "reinhardtshbm:plate_welded_combine_steel"
   }
 }

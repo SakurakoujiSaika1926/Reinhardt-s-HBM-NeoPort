@@ -102,7 +102,7 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
         if (level < threshold) {
             return false;
         }
-        ItemStack produced = LegacyVariantItem.stackFor(HbmItems.POWDER_ASH, variant);
+        ItemStack produced = HbmItems.variantStack(HbmItems.POWDER_ASH_ITEMS, variant);
         for (int slot = 0; slot < items.size(); slot++) {
             ItemStack current = items.get(slot);
             if (current.isEmpty()) {

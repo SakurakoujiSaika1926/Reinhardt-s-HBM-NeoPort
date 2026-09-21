@@ -1,1 +1,23 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" C ","PUP"," C "],"key":{"C":{"item":"reinhardtshbm:circuit_vacuum_tube"},"P":{"item":"reinhardtshbm:part_generic"},"U":{"item":"reinhardtshbm:upgrade_template"}},"result":{"id":"reinhardtshbm:upgrade_stack"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "PUP",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "reinhardtshbm:circuit_vacuum_tube"
+    },
+    "P": {
+      "item": "reinhardtshbm:part_generic_piston_pneumatic"
+    },
+    "U": {
+      "item": "reinhardtshbm:upgrade_template"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:upgrade_stack"
+  }
+}

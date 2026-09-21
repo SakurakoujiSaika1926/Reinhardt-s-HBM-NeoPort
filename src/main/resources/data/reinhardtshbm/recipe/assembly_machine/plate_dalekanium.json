@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.dalekanium",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:block_meteor" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:plate_dalekanium" }
+}

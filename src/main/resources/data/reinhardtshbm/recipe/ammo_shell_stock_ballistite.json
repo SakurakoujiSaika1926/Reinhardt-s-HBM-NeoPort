@@ -14,12 +14,7 @@
       "item": "reinhardtshbm:ballistite"
     },
     "H": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "steel"
+      "item": "reinhardtshbm:shell_steel"
     },
     "C": {
       "tag": "c:ingots/copper"

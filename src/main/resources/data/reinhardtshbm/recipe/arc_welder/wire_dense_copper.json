@@ -6,24 +6,13 @@
   "inputs": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "shape": "wire",
-        "material": "copper"
+        "item": "reinhardtshbm:wire_copper"
       },
       "count": 8
     }
   ],
   "result": {
-    "id": "reinhardtshbm:wire_dense",
-    "count": 1,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 2900,
-        "material": "copper"
-      }
-    }
+    "id": "reinhardtshbm:wire_dense_copper",
+    "count": 1
   }
 }

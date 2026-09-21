@@ -168,6 +168,14 @@ public class MachineDummyBlock extends Block implements EntityBlock {
     }
 
     @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy) {
+            dummy.armPlayerRemoval(!player.isCreative());
+        }
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity part
                 && level.getBlockEntity(part.getCorePos()) instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher) {
@@ -537,17 +545,21 @@ public class MachineDummyBlock extends Block implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!SUPPRESS_CORE_DESTROY.get()
+                && !movedByPiston
                 && !state.is(newState.getBlock())
                 && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy) {
             BlockPos corePos = dummy.getCorePos();
             BlockState coreState = level.getBlockState(corePos);
+            boolean playerRemoval = dummy.isPlayerRemovalArmed();
+            boolean dropCore = dummy.consumeDropCoreWhenRemoved();
             if (level.getBlockEntity(corePos) instanceof RbmkComponentBlockEntity rbmk
                     && pos.getX() == corePos.getX()
                     && pos.getZ() == corePos.getZ()
                     && pos.getY() - corePos.getY() == RbmkComponentBlock.columnHeight(level)
-                    && rbmk.hasLid()) {
+                    && rbmk.hasLid()
+                    && playerRemoval) {
                 ItemStack lid = rbmk.removeLidStack();
-                if (!lid.isEmpty() && !level.isClientSide) {
+                if (dropCore && !lid.isEmpty() && !level.isClientSide) {
                     Block.popResource(level, pos, lid);
                 }
                 super.onRemove(state, level, pos, newState, movedByPiston);
@@ -566,7 +578,7 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                     || coreState.getBlock() instanceof RbmkComponentBlock
                     || level.getBlockEntity(corePos) instanceof FusionMachineBlockEntity
                     || level.getBlockEntity(corePos) instanceof WatzBlockEntity) {
-                level.destroyBlock(corePos, true);
+                level.destroyBlock(corePos, dropCore);
             }
         }
         if (!state.is(newState.getBlock())) {
@@ -584,6 +596,10 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             // LaunchPad's old BlockDummyable received redstone updates on every
             // dummy segment, not only on the core block.
             launcher.updateRedstonePower(pos);
+        }
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockState(dummy.getCorePos()).is(com.reinhardt.hbm.registry.HbmBlocks.MACHINE_ZIRNOX.get())) {
+            ZirnoxReactorBlock.updateRedstone(level, dummy.getCorePos());
         }
     }
 

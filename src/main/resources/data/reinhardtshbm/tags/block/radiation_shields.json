@@ -23,6 +23,7 @@
     "reinhardtshbm:ducrete_stairs",
     "reinhardtshbm:ducrete_smooth_stairs",
     "reinhardtshbm:brick_ducrete",
-    "reinhardtshbm:brick_ducrete_stairs"
+    "reinhardtshbm:brick_ducrete_stairs",
+    "reinhardtshbm:fluid_duct_solid_sealed"
   ]
 }

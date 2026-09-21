@@ -14,34 +14,19 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "cdalloy"
+        "item": "reinhardtshbm:plate_cast_cdalloy"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "copper"
+        "item": "reinhardtshbm:shell_copper"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "steel"
+        "item": "reinhardtshbm:pipe_steel"
       },
       "count": 8
     },

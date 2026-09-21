@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.search.JechSearchCompat;
 import com.reinhardt.hbm.menu.AssemblyMachineMenu;
 import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
 import net.minecraft.ChatFormatting;
@@ -19,7 +20,6 @@ import org.lwjgl.glfw.GLFW;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class AssemblyRecipeSelectorScreen extends Screen {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/processing/gui_recipe_selector.png");
@@ -273,7 +273,7 @@ public class AssemblyRecipeSelectorScreen extends Screen {
 
     private void regenerateRecipes(String query) {
         this.recipes.clear();
-        String normalized = query.toLowerCase(Locale.ROOT);
+        String normalized = JechSearchCompat.normalizeQuery(query);
         for (RecipeHolder<AssemblyMachineRecipe> holder : this.originRecipes) {
             if (normalized.isBlank() || matchesSearch(holder, normalized)) {
                 this.recipes.add(holder);
@@ -285,15 +285,17 @@ public class AssemblyRecipeSelectorScreen extends Screen {
 
     private boolean matchesSearch(RecipeHolder<AssemblyMachineRecipe> holder, String query) {
         AssemblyMachineRecipe recipe = holder.value();
-        if (holder.id().toString().toLowerCase(Locale.ROOT).contains(query) || recipe.group().toLowerCase(Locale.ROOT).contains(query)) {
+        if (JechSearchCompat.contains(holder.id().toString(), query)
+                || JechSearchCompat.contains(recipe.group(), query)) {
             return true;
         }
-        if (!recipe.result().isEmpty() && recipe.result().getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+        if (!recipe.result().isEmpty()
+                && JechSearchCompat.contains(recipe.result().getHoverName().getString(), query)) {
             return true;
         }
         for (AssemblyMachineRecipe.CountedIngredient ingredient : recipe.ingredients()) {
             ItemStack display = displayIngredient(ingredient);
-            if (!display.isEmpty() && display.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+            if (!display.isEmpty() && JechSearchCompat.contains(display.getHoverName().getString(), query)) {
                 return true;
             }
         }
@@ -387,8 +389,8 @@ public class AssemblyRecipeSelectorScreen extends Screen {
     }
 
     private static boolean matchesFluidSearch(AssemblyMachineRecipe.AssemblyFluidStack fluid, String query) {
-        return fluid.type().name().toLowerCase(Locale.ROOT).contains(query)
-                || Component.translatable(fluid.type().translationKey()).getString().toLowerCase(Locale.ROOT).contains(query);
+        return JechSearchCompat.contains(fluid.type().name(), query)
+                || JechSearchCompat.contains(Component.translatable(fluid.type().translationKey()).getString(), query);
     }
 
     private static Component describeFluid(AssemblyMachineRecipe.AssemblyFluidStack fluid) {

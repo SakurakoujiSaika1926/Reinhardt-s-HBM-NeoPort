@@ -1,23 +1,17 @@
 {
-    "type":  "minecraft:crafting_shaped",
-    "category":  "misc",
-    "pattern":  [
-                    "B",
-                    "B",
-                    "B"
-                ],
-    "key":  {
-                "B":  {
-                          "tag":  "c:storage_blocks/steel"
-                      }
-            },
-    "result":  {
-                   "id":  "reinhardtshbm:pipe",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                   "material_id":  30,
-                                                                   "material":  "steel"
-                                                               }
-                                  }
-               }
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "B",
+    "B",
+    "B"
+  ],
+  "key": {
+    "B": {
+      "tag": "c:storage_blocks/steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:pipe_steel"
+  }
 }

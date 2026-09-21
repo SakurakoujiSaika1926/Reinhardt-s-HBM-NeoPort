@@ -1,1 +1,12 @@
-{"type":"minecraft:smelting","category":"misc","ingredient":{"type":"neoforge:components","items":["reinhardtshbm:arc_electrode_burnt"],"components":{"minecraft:custom_data":{"variant":"lanthanium"}}},"result":{"id":"reinhardtshbm:ingot_lanthanium"},"experience":3.0,"cookingtime":200}
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "item": "reinhardtshbm:arc_electrode_burnt_lanthanium"
+  },
+  "result": {
+    "id": "reinhardtshbm:ingot_lanthanium"
+  },
+  "experience": 3.0,
+  "cookingtime": 200
+}

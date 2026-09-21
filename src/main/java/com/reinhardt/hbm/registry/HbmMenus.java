@@ -89,6 +89,7 @@ import com.reinhardt.hbm.menu.LauncherMenu;
 import com.reinhardt.hbm.menu.SteamTurbineMenu;
 import com.reinhardt.hbm.menu.SteelFurnaceMenu;
 import com.reinhardt.hbm.menu.StorageCrateMenu;
+import com.reinhardt.hbm.menu.PortableCrateMenu;
 import com.reinhardt.hbm.menu.SafeMenu;
 import com.reinhardt.hbm.menu.MassStorageMenu;
 import com.reinhardt.hbm.menu.StrandCasterMenu;
@@ -424,6 +425,9 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<StorageCrateMenu>> STORAGE_CRATE =
             MENUS.register("storage_crate", () -> IMenuTypeExtension.create(StorageCrateMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<PortableCrateMenu>> PORTABLE_CRATE =
+            MENUS.register("portable_crate", () -> IMenuTypeExtension.create(PortableCrateMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SafeMenu>> SAFE =
             MENUS.register("safe", () -> IMenuTypeExtension.create(SafeMenu::new));

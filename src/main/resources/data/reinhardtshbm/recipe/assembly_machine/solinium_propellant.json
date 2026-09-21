@@ -24,12 +24,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "shape": "wire",
-        "material": "tungsten"
+        "item": "reinhardtshbm:wire_tungsten"
       },
       "count": 6
     },

@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.protoreactor",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:shell_steel" }, "count": 4 },
+    { "ingredient": { "tag": "c:plates/cast_lead" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:rod_quad_empty" }, "count": 10 },
+    { "ingredient": { "tag": "c:dyes/brown" }, "count": 3 }
+  ],
+  "result": { "id": "reinhardtshbm:dysfunctional_reactor" }
+}

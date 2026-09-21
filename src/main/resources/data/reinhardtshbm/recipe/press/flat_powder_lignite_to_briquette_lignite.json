@@ -1,13 +1,1 @@
-{
-  "type": "reinhardtshbm:press",
-  "group": "press.flat",
-  "stamp": "flat",
-  "ingredient": { "tag": "c:dusts/lignite" },
-  "result": {
-    "id": "reinhardtshbm:briquette",
-    "components": {
-      "minecraft:custom_data": { "variant": "lignite" },
-      "minecraft:custom_model_data": 1
-    }
-  }
-}
+{"type":"reinhardtshbm:press","group":"press.flat","stamp":"flat","ingredient":{"tag":"c:dusts/lignite"},"result":{"id":"reinhardtshbm:briquette_lignite"}}

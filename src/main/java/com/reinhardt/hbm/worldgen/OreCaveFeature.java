@@ -2,8 +2,6 @@ package com.reinhardt.hbm.worldgen;
 
 import com.mojang.serialization.Codec;
 import com.reinhardt.hbm.block.CaveSpikeBlock;
-import com.reinhardt.hbm.block.LegacyVariantBlock;
-import com.reinhardt.hbm.block.ResourceStoneBlock;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
@@ -21,13 +19,15 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 
 import java.util.Random;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 /** Direct port of HBM 1.7.10's OreCave decorator for sulfur and asbestos caves. */
 public final class OreCaveFeature extends Feature<NoneFeatureConfiguration> {
     private static final int FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
     private static final double SCALE = 0.01D;
 
-    private final int material;
+    private final Supplier<? extends Block> ore;
+    private final int spikeMaterial;
     private final double threshold;
     private final int rangeMult;
     private final int yLevel;
@@ -36,21 +36,22 @@ public final class OreCaveFeature extends Feature<NoneFeatureConfiguration> {
     private final BooleanSupplier enabled;
 
     public static OreCaveFeature sulfur() {
-        return new OreCaveFeature(ResourceStoneBlock.SULFUR, 1.5D, 20, 30, 20,
+        return new OreCaveFeature(HbmBlocks.STONE_RESOURCE_SULFUR, 0, 1.5D, 20, 30, 20,
                 HbmBlocks.SULFURIC_ACID_BLOCK.get().defaultBlockState(),
                 () -> HbmConfig.ENABLE_SULFUR_CAVES.get());
     }
 
     public static OreCaveFeature asbestos() {
-        return new OreCaveFeature(ResourceStoneBlock.ASBESTOS, 1.75D, 20, 25, 20,
+        return new OreCaveFeature(HbmBlocks.STONE_RESOURCE_ASBESTOS, 1, 1.75D, 20, 25, 20,
                 null,
                 () -> HbmConfig.ENABLE_ASBESTOS_CAVES.get());
     }
 
-    public OreCaveFeature(int material, double threshold, int rangeMult, int yLevel, int maxRange,
+    public OreCaveFeature(Supplier<? extends Block> ore, int spikeMaterial, double threshold, int rangeMult, int yLevel, int maxRange,
                           BlockState fluid, BooleanSupplier enabled) {
         super(NoneFeatureConfiguration.CODEC);
-        this.material = material;
+        this.ore = ore;
+        this.spikeMaterial = spikeMaterial;
         this.threshold = threshold;
         this.rangeMult = rangeMult;
         this.yLevel = yLevel;
@@ -61,7 +62,8 @@ public final class OreCaveFeature extends Feature<NoneFeatureConfiguration> {
 
     public OreCaveFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
-        this.material = ResourceStoneBlock.SULFUR;
+        this.ore = HbmBlocks.STONE_RESOURCE_SULFUR;
+        this.spikeMaterial = 0;
         this.threshold = 1.5D;
         this.rangeMult = 20;
         this.yLevel = 30;
@@ -83,12 +85,11 @@ public final class OreCaveFeature extends Feature<NoneFeatureConfiguration> {
         int chunkZ = origin.getZ() & ~15;
         LegacyPerlin noise = new LegacyPerlin(new Random(level.getSeed() + this.yLevel), 2);
         RandomSource random = context.random();
-        BlockState ore = HbmBlocks.STONE_RESOURCE.get().defaultBlockState()
-                .setValue(LegacyVariantBlock.VARIANT, this.material);
+        BlockState ore = this.ore.get().defaultBlockState();
         BlockState stalactite = HbmBlocks.STALACTITE.get().defaultBlockState()
-                .setValue(CaveSpikeBlock.MATERIAL, this.material);
+                .setValue(CaveSpikeBlock.MATERIAL, this.spikeMaterial);
         BlockState stalagmite = HbmBlocks.STALAGMITE.get().defaultBlockState()
-                .setValue(CaveSpikeBlock.MATERIAL, this.material);
+                .setValue(CaveSpikeBlock.MATERIAL, this.spikeMaterial);
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         boolean placed = false;
 

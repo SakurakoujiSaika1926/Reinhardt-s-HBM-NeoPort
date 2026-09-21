@@ -6,23 +6,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "steel"
+        "item": "reinhardtshbm:shell_steel"
       },
       "count": 6
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "copper"
+        "item": "reinhardtshbm:plate_cast_copper"
       },
       "count": 24
     },

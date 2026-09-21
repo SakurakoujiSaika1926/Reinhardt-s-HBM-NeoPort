@@ -11,26 +11,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "lead_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_lead_plating"
       },
       "count": 3
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "ferrouranium"
+        "item": "reinhardtshbm:plate_cast_ferrouranium"
       },
       "count": 4
     },
@@ -48,12 +35,6 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:item_expensive",
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "ferro_plating"
-      },
-      "minecraft:custom_model_data": 4
-    }
+    "id": "reinhardtshbm:item_expensive_ferro_plating"
   }
 }

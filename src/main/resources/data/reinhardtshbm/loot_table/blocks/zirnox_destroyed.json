@@ -1,19 +1,11 @@
 ﻿{
-    "pools":  [
-                  {
-                      "entries":  [
-                                      {
-                                          "name":  "reinhardtshbm:zirnox_destroyed",
-                                          "type":  "minecraft:item"
-                                      }
-                                  ],
-                      "rolls":  1,
-                      "conditions":  [
-                                         {
-                                             "condition":  "minecraft:survives_explosion"
-                                         }
-                                     ]
-                  }
-              ],
+    "pools": [
+        {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "reinhardtshbm:concrete_smooth", "functions": [{"function": "minecraft:set_count", "count": 6}]}]},
+        {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "reinhardtshbm:pipe_steel", "functions": [{"function": "minecraft:set_count", "count": 4}]}]},
+        {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "reinhardtshbm:steel_grate", "functions": [{"function": "minecraft:set_count", "count": 2}]}]},
+        {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "reinhardtshbm:debris_metal", "functions": [{"function": "minecraft:set_count", "count": 6}]}]},
+        {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "reinhardtshbm:debris_graphite", "functions": [{"function": "minecraft:set_count", "count": 2}]}]},
+        {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "reinhardtshbm:falloutitem", "functions": [{"function": "minecraft:set_count", "count": 4}]}]}
+    ],
     "type":  "minecraft:block"
 }

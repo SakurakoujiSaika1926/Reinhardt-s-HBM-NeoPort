@@ -1,12 +1,9 @@
 package com.reinhardt.hbm.foundry;
 
-import com.reinhardt.hbm.item.FoundryShapeItem;
-import com.reinhardt.hbm.item.RawIngotItem;
+import com.reinhardt.hbm.item.BedrockOreFragments;
 import com.reinhardt.hbm.item.ScrapsItem;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
@@ -143,36 +140,20 @@ final class FoundryMaterialLookup {
         if (stack.getItem() instanceof ScrapsItem) {
             return Optional.ofNullable(ScrapsItem.contents(stack));
         }
-        if (stack.getItem() instanceof FoundryShapeItem shapeItem) {
-            FoundryMaterial material = shapeItem.material(stack);
-            if (material != null) {
-                return Optional.of(new FoundryMaterialStack(material, shapeItem.shape().q(1)));
-            }
-        }
-        if (stack.getItem() instanceof RawIngotItem rawIngot) {
-            FoundryMaterial material = rawIngot.material(stack);
-            if (material != null) {
-                return Optional.of(new FoundryMaterialStack(material, FoundryShape.INGOT.q(1)));
-            }
-        }
-
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (id != null && id.getNamespace().equals("reinhardtshbm")
-                && id.getPath().equals("bedrock_ore_fragment")) {
-            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA,
-                    net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
-            FoundryMaterial material = FoundryMaterial.byId(tag.getInt("material_id"))
-                    .or(() -> FoundryMaterial.byName(tag.getString("material")))
-                    .orElse(null);
-            return material == null
-                    ? Optional.empty()
-                    : Optional.of(new FoundryMaterialStack(material, FoundryShape.QUANTUM.q(8)));
-        }
         if (id == null) {
             return Optional.empty();
         }
         String namespace = id.getNamespace();
         String path = id.getPath();
+
+        if (namespace.equals("reinhardtshbm")) {
+            String bedrockOreFragmentMaterial = BedrockOreFragments.materialNameFromIndependentPath(path);
+            if (!bedrockOreFragmentMaterial.isBlank()) {
+                return FoundryMaterial.byName(bedrockOreFragmentMaterial)
+                        .map(material -> new FoundryMaterialStack(material, FoundryShape.QUANTUM.q(8)));
+            }
+        }
 
         Optional<FoundryMaterialStack> vanilla = vanillaMaterial(namespace, path);
         if (vanilla.isPresent()) {
@@ -268,14 +249,12 @@ final class FoundryMaterialLookup {
         if (path.equals("plate_cast_copper")) {
             return stack("copper", FoundryShape.CAST_PLATE);
         }
-        if (path.equals("pipe")) {
-            return stack("copper", FoundryShape.PIPE);
-        }
         if (path.equals("pipes_steel")) {
             return stack("steel", FoundryShape.BLOCK, 3);
         }
 
         List<Prefix> prefixes = List.of(
+                new Prefix("ingot_raw_", FoundryShape.INGOT),
                 new Prefix("ingot_", FoundryShape.INGOT),
                 new Prefix("nugget_", FoundryShape.NUGGET),
                 new Prefix("powder_", FoundryShape.DUST),
@@ -289,6 +268,8 @@ final class FoundryMaterialLookup {
                 new Prefix("billet_", FoundryShape.BILLET),
                 new Prefix("pipe_", FoundryShape.PIPE),
                 new Prefix("pipes_", FoundryShape.PIPE),
+                new Prefix("shell_", FoundryShape.SHELL),
+                new Prefix("part_mechanism_", FoundryShape.MECHANISM),
                 new Prefix("block_", FoundryShape.BLOCK),
                 new Prefix("raw_", FoundryShape.INGOT)
         );

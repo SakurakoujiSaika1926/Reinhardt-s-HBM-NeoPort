@@ -14,12 +14,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "cdalloy"
+        "item": "reinhardtshbm:plate_welded_cdalloy"
       },
       "count": 4
     },
@@ -31,12 +26,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "bscco"
+        "item": "reinhardtshbm:wire_dense_bscco"
       },
       "count": 16
     },

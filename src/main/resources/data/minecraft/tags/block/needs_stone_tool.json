@@ -7,6 +7,7 @@
                    "reinhardtshbm:cluster_deepslate_copper",
                    "reinhardtshbm:cluster_deepslate_iron",
                    "reinhardtshbm:cluster_deepslate_titanium",
+                   "reinhardtshbm:cluster_deepslate_tungsten",
                    "reinhardtshbm:cluster_depth_iron",
                    "reinhardtshbm:cluster_depth_titanium",
                    "reinhardtshbm:cluster_depth_tungsten",
@@ -26,6 +27,11 @@
                    "reinhardtshbm:ore_cinnebar",
                    "reinhardtshbm:ore_deepslate_cinnabar",
                    "reinhardtshbm:ore_deepslate_cinnebar",
-                   "reinhardtshbm:stone_resource"
+                   "reinhardtshbm:stone_resource_sulfur",
+                   "reinhardtshbm:stone_resource_asbestos",
+                   "reinhardtshbm:stone_resource_hematite",
+                   "reinhardtshbm:stone_resource_malachite",
+                   "reinhardtshbm:stone_resource_limestone",
+                   "reinhardtshbm:stone_resource_bauxite"
                ]
 }

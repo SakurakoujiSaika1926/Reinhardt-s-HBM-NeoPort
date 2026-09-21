@@ -11,20 +11,10 @@
       "tag": "c:storage_blocks/beryllium"
     },
     "I": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "iron"
+      "item": "reinhardtshbm:plate_cast_iron"
     },
     "T": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:pipe"
-      ],
-      "shape": "pipe",
-      "material": "dura_steel"
+      "item": "reinhardtshbm:pipe_dura_steel"
     }
   },
   "result": {

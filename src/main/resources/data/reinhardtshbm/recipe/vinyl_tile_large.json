@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"building","pattern":[" I ","IBI"," I "],"key":{"I":{"item":"reinhardtshbm:plate_polymer"},"B":{"item":"reinhardtshbm:brick_light"}},"result":{"id":"reinhardtshbm:vinyl_tile","count":4,"components":{"minecraft:custom_data":{"variant":"large"},"minecraft:custom_model_data":0}}}

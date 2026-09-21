@@ -1,4 +1,16 @@
 {
-    "replace": false,
-    "values": []
+  "replace": false,
+  "values": [
+    "#c:plates/welded_iron",
+    "#c:plates/welded_titanium",
+    "#c:plates/welded_copper",
+    "#c:plates/welded_tungsten",
+    "#c:plates/welded_aluminium",
+    "#c:plates/welded_zirconium",
+    "#c:plates/welded_steel",
+    "#c:plates/welded_tcalloy",
+    "#c:plates/welded_cdalloy",
+    "#c:plates/welded_combine_steel",
+    "#c:plates/welded_osmiridium"
+  ]
 }

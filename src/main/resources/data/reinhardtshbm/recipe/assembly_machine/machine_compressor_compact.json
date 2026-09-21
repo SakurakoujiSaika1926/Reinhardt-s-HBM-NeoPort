@@ -14,34 +14,19 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "steel"
+        "item": "reinhardtshbm:plate_cast_steel"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "titanium"
+        "item": "reinhardtshbm:shell_titanium"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "copper"
+        "item": "reinhardtshbm:pipe_copper"
       },
       "count": 4
     },

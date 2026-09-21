@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -39,6 +40,11 @@ public final class AustraliumRegionFeature extends Feature<NoneFeatureConfigurat
         BlockPos origin = context.origin();
         int chunkX = origin.getX() & ~15;
         int chunkZ = origin.getZ() & ~15;
+        int minY = context.level().getMinBuildHeight() + 15;
+        int maxY = Math.min(29, context.level().getMaxBuildHeight() - 1);
+        if (minY > maxY) {
+            return false;
+        }
         boolean placed = false;
         // Old code attempted 0..3 veins per chunk and checked each random
         // position against the 100x100 australium region.
@@ -48,7 +54,7 @@ public final class AustraliumRegionFeature extends Feature<NoneFeatureConfigurat
             if (x < MIN_X || x > MAX_X || z < MIN_Z || z > MAX_Z) {
                 continue;
             }
-            int y = 15 + random.nextInt(15);
+            int y = minY + random.nextInt(maxY - minY + 1);
             placed |= generateVein(context.level(), random, x, y, z);
         }
         return placed;
@@ -89,8 +95,12 @@ public final class AustraliumRegionFeature extends Feature<NoneFeatureConfigurat
                         double dz = (pz + 0.5D - z) / (horizontal / 2.0D);
                         if (dx * dx + dy * dy + dz * dz >= 1.0D) continue;
                         pos.set(px, py, pz);
-                        if (level.getBlockState(pos).is(Blocks.STONE)) {
+                        BlockState target = level.getBlockState(pos);
+                        if (target.is(Blocks.STONE)) {
                             level.setBlock(pos, HbmBlocks.ORE_AUSTRALIUM.get().defaultBlockState(), SET_FLAGS);
+                            placed = true;
+                        } else if (target.is(Blocks.DEEPSLATE)) {
+                            level.setBlock(pos, HbmBlocks.ORE_DEEPSLATE_AUSTRALIUM.get().defaultBlockState(), SET_FLAGS);
                             placed = true;
                         }
                     }

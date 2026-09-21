@@ -1,1 +1,30 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"bridge_bios"},"minecraft:custom_model_data":9}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"bridge_bus"},"minecraft:custom_model_data":6}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"bridge_chipset"},"minecraft:custom_model_data":7}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"bridge_cmos"},"minecraft:custom_model_data":8}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"bridge_io"},"minecraft:custom_model_data":5}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"bridge_north"},"minecraft:custom_model_data":3}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"bridge_south"},"minecraft:custom_model_data":4}}],"result":{"id":"reinhardtshbm:circuit_star_component","components":{"minecraft:custom_data":{"variant":"chipset"},"minecraft:custom_model_data":0}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:circuit_star_piece_bridge_bios"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_bridge_bus"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_bridge_chipset"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_bridge_cmos"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_bridge_io"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_bridge_north"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_bridge_south"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_star_component_chipset"
+  }
+}

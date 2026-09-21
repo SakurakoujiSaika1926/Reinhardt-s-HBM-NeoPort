@@ -131,6 +131,11 @@ public final class CapacitorBlockEntity extends BlockEntity implements PowerEndp
     }
 
     @Override
+    public boolean requiresDirectedPowerRouting(LevelAccessor level) {
+        return true;
+    }
+
+    @Override
     public List<BlockPos> getRemotePowerLinks(Level level) {
         return List.of();
     }

@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.waterdoor",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 16 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 4 },
+    { "ingredient": { "tag": "c:dyes/red" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:water_door" }
+}

@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/part_mechanism"
-                 },
-    "parent":  "minecraft:item/generated"
-}

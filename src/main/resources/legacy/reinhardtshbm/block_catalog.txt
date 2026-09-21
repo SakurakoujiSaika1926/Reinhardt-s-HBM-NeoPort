@@ -889,7 +889,6 @@ stone_gneiss
 stone_keyhole
 stone_keyhole_meta
 stone_porous
-stone_resource
 stones_double_slab
 stones_slab
 struct_icf_core

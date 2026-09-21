@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -65,10 +66,19 @@ public final class HbmFluidNetworks {
     public static void onLevelTick(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel level) {
             for (Map.Entry<NetworkKey, LevelNetwork> entry : NETWORKS.entrySet()) {
-                if (entry.getKey().dimension().equals(level.dimension())) {
+                if (entry.getKey().server() == level.getServer()
+                        && entry.getKey().dimension().equals(level.dimension())) {
                     entry.getValue().tickBalance(level);
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        if (event.getLevel() instanceof ServerLevel level) {
+            NETWORKS.keySet().removeIf(key -> key.server() == level.getServer()
+                    && key.dimension().equals(level.dimension()));
         }
     }
 
@@ -246,7 +256,37 @@ public final class HbmFluidNetworks {
         if (handler == null) {
             return FluidStack.EMPTY;
         }
-        return handler.drain(HbmFluids.toNeoStack(type, amount), execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
+        return drainCompatible(handler, type, amount, execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
+    }
+
+    private static FluidStack drainCompatible(IFluidHandler handler, HbmFluidDefinition type, int amount, IFluidHandler.FluidAction action) {
+        if (handler == null || type == null || type.isNone() || amount <= 0) {
+            return FluidStack.EMPTY;
+        }
+
+        FluidStack exact = handler.drain(HbmFluids.toNeoStack(type, amount), action);
+        if (!exact.isEmpty() && HbmFluids.fromNeoFluid(exact.getFluid()).filter(definition -> definition == type).isPresent()) {
+            return HbmFluids.toNeoStack(type, Math.min(amount, exact.getAmount()));
+        }
+
+        for (int tank = 0; tank < handler.getTanks(); tank++) {
+            FluidStack stored = handler.getFluidInTank(tank);
+            if (stored.isEmpty()) {
+                continue;
+            }
+            if (HbmFluids.fromNeoFluid(stored.getFluid()).filter(definition -> definition == type).isEmpty()) {
+                continue;
+            }
+            FluidStack request = stored.copy();
+            request.setAmount(Math.min(amount, stored.getAmount()));
+            FluidStack drained = handler.drain(request, action);
+            if (!drained.isEmpty()
+                    && HbmFluids.fromNeoFluid(drained.getFluid()).filter(definition -> definition == type).isPresent()) {
+                return HbmFluids.toNeoStack(type, Math.min(amount, drained.getAmount()));
+            }
+        }
+
+        return FluidStack.EMPTY;
     }
 
     public static int fillInto(Level level, BlockPos target, Direction side, FluidStack stack, @Nullable BlockPos excluded, boolean execute) {
@@ -297,8 +337,8 @@ public final class HbmFluidNetworks {
         for (int i = 0; i < selection.endpoints().size() && remaining > 0; i++) {
             int endpointIndex = (startIndex + i) % selection.endpoints().size();
             Endpoint endpoint = selection.endpoints().get(endpointIndex);
-            FluidStack requested = HbmFluids.toNeoStack(type, remaining);
-            FluidStack drained = endpoint.handler().drain(requested, execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
+            FluidStack drained = drainCompatible(endpoint.handler(), type, remaining,
+                    execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
             if (drained.isEmpty()) {
                 continue;
             }
@@ -408,7 +448,8 @@ public final class HbmFluidNetworks {
             FluidStack probe = HbmFluids.toNeoStack(type, MAX_BALANCE_PER_ENDPOINT);
             for (Endpoint endpoint : endpoints(level, type, component.pipes(), null).endpoints()) {
                 int demand = Math.max(0, endpoint.handler().fill(probe, IFluidHandler.FluidAction.SIMULATE));
-                FluidStack availableStack = endpoint.handler().drain(probe, IFluidHandler.FluidAction.SIMULATE);
+                FluidStack availableStack = drainCompatible(endpoint.handler(), type, MAX_BALANCE_PER_ENDPOINT,
+                        IFluidHandler.FluidAction.SIMULATE);
                 int available = HbmFluids.fromNeoFluid(availableStack.getFluid())
                         .filter(definition -> definition == type)
                         .map(ignored -> Math.max(0, availableStack.getAmount()))
@@ -599,7 +640,7 @@ public final class HbmFluidNetworks {
             if (handler == null) {
                 continue;
             }
-            FluidStack stack = handler.drain(HbmFluids.toNeoStack(type, entry.getValue()), IFluidHandler.FluidAction.EXECUTE);
+            FluidStack stack = drainCompatible(handler, type, entry.getValue(), IFluidHandler.FluidAction.EXECUTE);
             if (!stack.isEmpty() && HbmFluids.fromNeoFluid(stack.getFluid()).filter(definition -> definition == type).isPresent()) {
                 drained += stack.getAmount();
             }
@@ -670,13 +711,14 @@ public final class HbmFluidNetworks {
     }
 
     private static NetworkKey networkKey(Level level, BlockPos pos) {
-        return new NetworkKey(level.dimension(), HbmSablePowerCompat.powerSpaceId(level, pos));
+        return new NetworkKey(level.getServer(), level.dimension(), HbmSablePowerCompat.powerSpaceId(level, pos));
     }
 
     private static void removePipe(Level level, BlockPos pos) {
         BlockPos removed = pos.immutable();
         for (Map.Entry<NetworkKey, LevelNetwork> entry : NETWORKS.entrySet()) {
-            if (entry.getKey().dimension().equals(level.dimension())) {
+            if (entry.getKey().server() == level.getServer()
+                    && entry.getKey().dimension().equals(level.dimension())) {
                 entry.getValue().remove(removed);
             }
         }
@@ -777,7 +819,8 @@ public final class HbmFluidNetworks {
         }
     }
 
-    private record NetworkKey(ResourceKey<Level> dimension, String fluidSpace) {
+    private record NetworkKey(net.minecraft.server.MinecraftServer server, ResourceKey<Level> dimension,
+                              String fluidSpace) {
     }
 
     private static final class LevelNetwork {

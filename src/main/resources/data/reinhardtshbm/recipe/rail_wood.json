@@ -11,16 +11,7 @@
       "item": "minecraft:stick"
     },
     "R": {
-      "type": "neoforge:components",
-      "items": [
-        "reinhardtshbm:plant_item"
-      ],
-      "components": {
-        "minecraft:custom_data": {
-          "variant": "rope"
-        },
-        "minecraft:custom_model_data": 1
-      }
+      "item": "reinhardtshbm:plant_item_rope"
     }
   },
   "result": {

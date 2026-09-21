@@ -6,9 +6,12 @@ import com.reinhardt.hbm.block.OilPumpjackBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
+import com.reinhardt.hbm.integration.createdieselgenerators.HbmCreateDieselGeneratorsOilCompat;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.MachineUpgradeItem;
 import com.reinhardt.hbm.menu.OilDerrickMenu;
+import com.reinhardt.hbm.oil.OilFieldSource;
+import com.reinhardt.hbm.oil.ShallowOilTaskQueue;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -24,6 +27,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
@@ -44,14 +48,8 @@ import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Queue;
-import java.util.Random;
-import java.util.Set;
 
 public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
     public static final int BATTERY_SLOT = 0;
@@ -75,6 +73,7 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
 
     private static final int PUSH_PER_PORT = 16_000;
     private static final int MAX_SUCK_NODES = 256;
+    private static final long[] EMPTY_SHALLOW_OIL_TASKS = ShallowOilTaskQueue.EMPTY;
     private static final int UNSET_DRILL_CURSOR = Integer.MIN_VALUE;
     private static final int[] ALL_SLOTS = {0, 1, 2, 3, 4, 5, 6, 7};
     private static final int[] INPUT_SLOTS = {0, 1, 3, 5, 6, 7};
@@ -83,14 +82,17 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
     private final ItemStack[] items = new ItemStack[SLOT_COUNT];
     private final HbmFluidTank oilTank = new HbmFluidTank(oil(), TANK_CAPACITY);
     private final HbmFluidTank gasTank = new HbmFluidTank(gas(), TANK_CAPACITY);
-    private final Set<BlockPos> processed = new HashSet<>();
     private long power;
     private long lastInput;
     private int indicator;
     private int drillCursorY = UNSET_DRILL_CURSOR;
+    private long[] shallowOilTasks = EMPTY_SHALLOW_OIL_TASKS;
+    private int shallowOilTaskIndex;
     private float pumpjackRot;
     private float pumpjackPrevRot;
     private float pumpjackSpeed;
+    private OilFieldSource oilFieldSource = OilFieldSource.UNDETERMINED;
+    private boolean createDieselGeneratorsPipeReady;
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -409,6 +411,12 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
         tag.putLong("LastInput", this.lastInput);
         tag.putInt("Indicator", this.indicator);
         tag.putFloat("PumpjackSpeed", this.pumpjackSpeed);
+        tag.putString("OilFieldSource", this.oilFieldSource.name());
+        tag.putBoolean("CreateDieselGeneratorsPipeReady", this.createDieselGeneratorsPipeReady);
+        if (hasShallowOilTasks()) {
+            tag.putLongArray("ShallowOilTasks", this.shallowOilTasks);
+            tag.putInt("ShallowOilTaskIndex", this.shallowOilTaskIndex);
+        }
     }
 
     @Override
@@ -423,7 +431,22 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
         this.lastInput = tag.getLong("LastInput");
         this.indicator = tag.getInt("Indicator");
         this.pumpjackSpeed = tag.getFloat("PumpjackSpeed");
+        this.oilFieldSource = OilFieldSource.byName(tag.getString("OilFieldSource"));
+        this.createDieselGeneratorsPipeReady = tag.getBoolean("CreateDieselGeneratorsPipeReady");
+        loadShallowOilTasks(tag);
         ensureTankTypes();
+    }
+
+    private void loadShallowOilTasks(CompoundTag tag) {
+        if (!tag.contains("ShallowOilTasks")) {
+            clearShallowOilTasks();
+            return;
+        }
+        this.shallowOilTasks = tag.getLongArray("ShallowOilTasks");
+        this.shallowOilTaskIndex = Math.max(0, Math.min(this.shallowOilTasks.length, tag.getInt("ShallowOilTaskIndex")));
+        if (!hasShallowOilTasks()) {
+            clearShallowOilTasks();
+        }
     }
 
     @Override
@@ -536,12 +559,25 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
     private void operate(Level level) {
         int required = powerReqEff();
         if (this.power >= required && this.oilTank.amount() < this.oilTank.capacity() && this.gasTank.amount() < this.gasTank.capacity()) {
+            ensureOilFieldSource(level);
             this.power -= required;
             if (level.getGameTime() % delayEff() == 0L) {
                 this.indicator = 0;
+                if (this.oilFieldSource == OilFieldSource.CREATE_DIESEL_GENERATORS) {
+                    if (!this.createDieselGeneratorsPipeReady && !advanceCreateDieselGeneratorsOilPipe(level)) {
+                        return;
+                    }
+                    if (!pumpCreateDieselGeneratorsOil(level)) {
+                        this.indicator = 1;
+                    }
+                    return;
+                }
                 int minY = Math.min(drillDepth(level), this.worldPosition.getY() - 1);
                 int y = nextDrillY(level, minY);
                 if (y < minY) {
+                    if (switchToCreateDieselGeneratorsOilIfAvailable(level)) {
+                        return;
+                    }
                     this.indicator = 1;
                     return;
                 }
@@ -552,6 +588,115 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
         } else {
             this.indicator = 2;
         }
+    }
+
+    private void ensureOilFieldSource(Level level) {
+        if (this.oilFieldSource != OilFieldSource.UNDETERMINED) {
+            return;
+        }
+        this.oilFieldSource = detectOilFieldSource(level);
+        if (this.oilFieldSource != OilFieldSource.CREATE_DIESEL_GENERATORS) {
+            this.createDieselGeneratorsPipeReady = false;
+        }
+        setChanged();
+        sync();
+    }
+
+    private OilFieldSource detectOilFieldSource(Level level) {
+        if (!HbmCreateDieselGeneratorsOilCompat.isLoaded()) {
+            return OilFieldSource.HBM;
+        }
+        if (hasHbmOilInDrillColumn(level)) {
+            return OilFieldSource.HBM;
+        }
+        if (hasCreateDieselGeneratorsOil(level)) {
+            return OilFieldSource.CREATE_DIESEL_GENERATORS;
+        }
+        return OilFieldSource.HBM;
+    }
+
+    private boolean switchToCreateDieselGeneratorsOilIfAvailable(Level level) {
+        if (!hasCreateDieselGeneratorsOil(level)) {
+            return false;
+        }
+        this.oilFieldSource = OilFieldSource.CREATE_DIESEL_GENERATORS;
+        this.createDieselGeneratorsPipeReady = false;
+        clearShallowOilTasks();
+        setChanged();
+        sync();
+        return true;
+    }
+
+    private boolean hasCreateDieselGeneratorsOil(Level level) {
+        return HbmCreateDieselGeneratorsOilCompat.isLoaded()
+                && level instanceof ServerLevel serverLevel
+                && HbmCreateDieselGeneratorsOilCompat.hasOil(serverLevel, this.worldPosition);
+    }
+
+    private boolean advanceCreateDieselGeneratorsOilPipe(Level level) {
+        int minY = Math.min(level.getMinBuildHeight(), this.worldPosition.getY() - 1);
+        int y = nextDrillY(level, minY);
+        if (y < minY) {
+            this.indicator = 1;
+            return false;
+        }
+
+        BlockPos pos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
+        if (HbmCreateDieselGeneratorsOilCompat.isBedrock(level.getBlockState(pos))) {
+            this.createDieselGeneratorsPipeReady = true;
+            setChanged();
+            sync();
+            return true;
+        }
+        if (tryDrill(level, y)) {
+            this.drillCursorY = y - 1;
+        }
+        return false;
+    }
+
+    private boolean hasHbmOilInDrillColumn(Level level) {
+        int topY = this.worldPosition.getY() - 1;
+        int minY = Math.min(drillDepth(level), topY);
+        for (int y = topY; y >= minY; y--) {
+            BlockState state = level.getBlockState(new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ()));
+            if (canSuckBlock(state)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean pumpCreateDieselGeneratorsOil(Level level) {
+        if (!this.createDieselGeneratorsPipeReady || !(level instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+
+        int available = HbmCreateDieselGeneratorsOilCompat.getChunkOilAmount(serverLevel, this.worldPosition);
+        if (available <= 0) {
+            return false;
+        }
+
+        Kind kind = kind();
+        int producedOil = kind.oilPerDeposit();
+        if (available != Integer.MAX_VALUE) {
+            producedOil = Math.min(producedOil, available);
+        }
+        if (producedOil <= 0) {
+            return false;
+        }
+
+        int acceptedOil = this.oilTank.fill(oil(), producedOil, false);
+        if (acceptedOil <= 0) {
+            return false;
+        }
+        int gasAmount = kind.gasPerDepositMin() + level.random.nextInt(kind.gasPerDepositMax() - kind.gasPerDepositMin() + 1);
+        this.gasTank.fill(gas(), gasAmount, false);
+        if (available != Integer.MAX_VALUE) {
+            HbmCreateDieselGeneratorsOilCompat.setChunkOilAmount(serverLevel, this.worldPosition, available - acceptedOil);
+        }
+        level.playSound(null, this.worldPosition, SoundEvents.GENERIC_SWIM, SoundSource.BLOCKS, 2.0F, 0.5F);
+        sync();
+        return true;
     }
 
     private int powerReqEff() {
@@ -644,40 +789,70 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     private boolean trySuck(Level level, BlockPos startPos) {
-        BlockState startState = level.getBlockState(startPos);
-        if (!canSuckBlock(startState)) {
+        if (!hasShallowOilTasks()) {
+            BlockState startState = level.getBlockState(startPos);
+            if (!canSuckBlock(startState)) {
+                return false;
+            }
+            rebuildShallowOilTasks(level, startPos);
+            if (!hasShallowOilTasks()) {
+                return false;
+            }
+        }
+        return consumeShallowOilTask(level);
+    }
+
+    private void rebuildShallowOilTasks(Level level, BlockPos startPos) {
+        this.shallowOilTasks = ShallowOilTaskQueue.build(
+                level,
+                startPos,
+                MAX_SUCK_NODES,
+                this::canSuckBlock,
+                this::isOilDeposit
+        );
+        this.shallowOilTaskIndex = 0;
+        setChanged();
+    }
+
+    private boolean consumeShallowOilTask(Level level) {
+        if (!hasShallowOilTasks()) {
             return false;
         }
 
-        Queue<BlockPos> queue = new ArrayDeque<>();
-        this.processed.clear();
-        queue.offer(startPos);
-        this.processed.add(startPos);
-
-        int nodesVisited = 0;
-        while (!queue.isEmpty() && nodesVisited < MAX_SUCK_NODES) {
-            BlockPos currentPos = queue.poll();
-            nodesVisited++;
-            BlockState currentState = level.getBlockState(currentPos);
-            if (isOilDeposit(currentState)) {
-                doSuck(level, currentPos, currentState);
-                return true;
-            }
-            if (!isEmptyOilDeposit(currentState)) {
-                continue;
-            }
-
-            List<Direction> directions = new ArrayList<>(List.of(Direction.values()));
-            Collections.shuffle(directions, new Random(level.random.nextLong()));
-            for (Direction direction : directions) {
-                BlockPos neighborPos = currentPos.relative(direction);
-                if (!this.processed.contains(neighborPos) && canSuckBlock(level.getBlockState(neighborPos))) {
-                    this.processed.add(neighborPos);
-                    queue.offer(neighborPos);
-                }
-            }
+        BlockPos pos = BlockPos.of(this.shallowOilTasks[this.shallowOilTaskIndex]);
+        if (!level.isLoaded(pos)) {
+            advanceShallowOilTask();
+            return true;
         }
-        return false;
+
+        BlockState state = level.getBlockState(pos);
+        if (!isOilDeposit(state)) {
+            advanceShallowOilTask();
+            return true;
+        }
+
+        doSuck(level, pos, state);
+        if (!isOilDeposit(level.getBlockState(pos))) {
+            advanceShallowOilTask();
+        }
+        return true;
+    }
+
+    private boolean hasShallowOilTasks() {
+        return this.shallowOilTaskIndex >= 0 && this.shallowOilTaskIndex < this.shallowOilTasks.length;
+    }
+
+    private void advanceShallowOilTask() {
+        this.shallowOilTaskIndex++;
+        if (!hasShallowOilTasks()) {
+            clearShallowOilTasks();
+        }
+        setChanged();
+    }
+
+    private void clearShallowOilTasks() {
+        this.shallowOilTasks = EMPTY_SHALLOW_OIL_TASKS;
+        this.shallowOilTaskIndex = 0;
     }
 
     private void doSuck(Level level, BlockPos pos, BlockState state) {

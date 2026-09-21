@@ -14,43 +14,26 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "cdalloy"
+        "item": "reinhardtshbm:plate_welded_cdalloy"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "saturnite"
+        "item": "reinhardtshbm:plate_cast_saturnite"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "bscco"
+        "item": "reinhardtshbm:wire_dense_bscco"
       },
       "count": 8
     },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:battery_sc"
-        ],
+        "items": "reinhardtshbm:battery_sc",
         "components": {
           "minecraft:custom_data": {
             "variant": "po210"

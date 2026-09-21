@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": { "type": "reinhardtshbm:enable_528_mode" }
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.fel",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:battery_pack",
+        "components": {
+          "minecraft:custom_data": { "variant": "battery_lithium" },
+          "minecraft:custom_model_data": 2
+        }
+      },
+      "count": 1
+    },
+    { "ingredient": { "tag": "c:wires_dense/gold" }, "count": 64 },
+    { "ingredient": { "tag": "c:plates/cast_steel" }, "count": 12 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:part_generic_glass_polarized" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_capacitor_board" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_fel" }
+}

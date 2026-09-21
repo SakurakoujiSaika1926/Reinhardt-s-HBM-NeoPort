@@ -6,13 +6,7 @@
     "tag": "c:ingots/zirconium"
   },
   "result": {
-    "id": "reinhardtshbm:wire_fine",
-    "count": 8,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 4000,
-        "material": "zirconium"
-      }
-    }
+    "id": "reinhardtshbm:wire_zirconium",
+    "count": 8
   }
 }

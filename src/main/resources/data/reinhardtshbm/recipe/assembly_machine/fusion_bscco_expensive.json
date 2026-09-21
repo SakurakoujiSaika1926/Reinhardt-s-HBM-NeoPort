@@ -14,40 +14,19 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "bscco"
+        "item": "reinhardtshbm:wire_dense_bscco"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "ferro_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
       },
       "count": 1
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "plastic"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_plastic"
       },
       "count": 1
     }

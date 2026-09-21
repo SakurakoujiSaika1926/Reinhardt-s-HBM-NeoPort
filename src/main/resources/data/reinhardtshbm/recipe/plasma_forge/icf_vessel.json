@@ -16,23 +16,13 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "combine_steel"
+        "item": "reinhardtshbm:plate_cast_combine_steel"
       },
       "count": 1
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "tungsten"
+        "item": "reinhardtshbm:plate_welded_tungsten"
       },
       "count": 2
     }

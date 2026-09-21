@@ -2,37 +2,5 @@
   "parent": "minecraft:item/generated",
   "textures": {
     "layer0": "reinhardtshbm:item/oil_tar.crude"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "reinhardtshbm:item/oil_tar_crack"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 2
-      },
-      "model": "reinhardtshbm:item/oil_tar_coal"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 3
-      },
-      "model": "reinhardtshbm:item/oil_tar_wood"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 4
-      },
-      "model": "reinhardtshbm:item/oil_tar_wax"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 5
-      },
-      "model": "reinhardtshbm:item/oil_tar_paraffin"
-    }
-  ]
+  }
 }

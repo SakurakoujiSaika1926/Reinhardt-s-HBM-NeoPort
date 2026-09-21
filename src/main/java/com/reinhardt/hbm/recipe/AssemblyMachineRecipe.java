@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import net.minecraft.core.HolderLookup;
@@ -121,7 +122,7 @@ public record AssemblyMachineRecipe(
     }
 
     public boolean isVisibleForPool(Optional<String> installedPool) {
-        return this.blueprintPools.isEmpty() || installedPool.filter(this.blueprintPools::contains).isPresent();
+        return BlueprintItem.isRecipeVisibleForPool(this.blueprintPools, installedPool);
     }
 
     /**

@@ -20,34 +20,19 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "steel"
+        "item": "reinhardtshbm:plate_cast_steel"
       },
       "count": 6
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "copper"
+        "item": "reinhardtshbm:plate_welded_copper"
       },
       "count": 2
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "steel"
+        "item": "reinhardtshbm:shell_steel"
       },
       "count": 2
     },

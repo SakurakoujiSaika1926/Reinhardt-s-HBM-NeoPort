@@ -1,14 +1,1 @@
-{
-  "type": "reinhardtshbm:press",
-  "group": "press.c9",
-  "stamp": "c9",
-  "ingredient": { "tag": "c:plates/weaponsteel" },
-  "result": {
-    "id": "reinhardtshbm:casing",
-    "count": 4,
-    "components": {
-      "minecraft:custom_data": { "variant": "small_steel" },
-      "minecraft:custom_model_data": 2
-    }
-  }
-}
+{"type":"reinhardtshbm:press","group":"press.c9","stamp":"c9","ingredient":{"tag":"c:plates/weaponsteel"},"result":{"id":"reinhardtshbm:casing_small_steel","count":4}}

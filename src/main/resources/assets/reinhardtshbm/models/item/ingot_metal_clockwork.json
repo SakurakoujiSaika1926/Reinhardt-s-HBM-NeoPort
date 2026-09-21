@@ -1,1 +1,6 @@
-{ "parent": "minecraft:item/generated", "textures": { "layer0": "reinhardtshbm:item/ingot_metal.clockwork" } }
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/ingot_metal.clockwork"
+  }
+}

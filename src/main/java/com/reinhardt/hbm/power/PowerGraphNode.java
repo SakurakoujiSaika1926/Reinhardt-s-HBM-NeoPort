@@ -34,6 +34,15 @@ public interface PowerGraphNode {
         return Long.MAX_VALUE;
     }
 
+    /**
+     * Marks nodes whose direction or throughput changes path reachability.
+     * Ordinary cables and junctions can use the component-wide fast path;
+     * diodes and transformer-like nodes opt into the directed solver.
+     */
+    default boolean requiresDirectedPowerRouting(LevelAccessor level) {
+        return getPowerFlowLimit(level) != Long.MAX_VALUE;
+    }
+
     /** Whether a directed path may enter this node from a connector. */
     default boolean canAcceptPowerFrom(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
         return canConnectPower(level, connectorPos, machineSide);

@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.blastdoor",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:ingots/steel" }, "count": 12 },
+    { "ingredient": { "tag": "c:plates/lead" }, "count": 6 },
+    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 2 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:blast_door" }
+}

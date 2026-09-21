@@ -6,13 +6,7 @@
     "tag": "c:ingots/carbon"
   },
   "result": {
-    "id": "reinhardtshbm:wire_fine",
-    "count": 8,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 699,
-        "material": "carbon"
-      }
-    }
+    "id": "reinhardtshbm:wire_carbon",
+    "count": 8
   }
 }

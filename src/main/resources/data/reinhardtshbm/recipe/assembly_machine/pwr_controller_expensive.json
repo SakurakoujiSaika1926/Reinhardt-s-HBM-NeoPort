@@ -1,12 +1,28 @@
 {
-  "neoforge:conditions": [{ "type": "reinhardtshbm:enable_528_mode" }],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pwrcontroller",
   "duration": 200,
   "power": 500,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "lead_plating" } } }, "count": 1 },
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "circuit" } } }, "count": 3 }
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_lead_plating"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_circuit"
+      },
+      "count": 3
+    }
   ],
-  "result": { "id": "reinhardtshbm:pwr_controller" }
+  "result": {
+    "id": "reinhardtshbm:pwr_controller"
+  }
 }

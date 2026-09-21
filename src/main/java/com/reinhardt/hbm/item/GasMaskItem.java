@@ -157,12 +157,16 @@ public class GasMaskItem extends ArmorItem implements FilterableGasMask {
     }
 
     public enum Kind {
-        STANDARD(Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING)),
-        M65(Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING)),
-        OLDE(Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING)),
+        STANDARD(Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING,
+                HbmArmorProtection.HazardClass.NERVE_AGENT)),
+        M65(Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING,
+                HbmArmorProtection.HazardClass.NERVE_AGENT)),
+        OLDE(Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING,
+                HbmArmorProtection.HazardClass.NERVE_AGENT)),
         MONO(Set.of(
                 HbmArmorProtection.HazardClass.GAS_LUNG,
                 HbmArmorProtection.HazardClass.GAS_BLISTERING,
+                HbmArmorProtection.HazardClass.NERVE_AGENT,
                 HbmArmorProtection.HazardClass.BACTERIA
         ));
 

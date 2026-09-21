@@ -14,34 +14,19 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "tcalloy"
+        "item": "reinhardtshbm:plate_welded_tcalloy"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "bscco"
+        "item": "reinhardtshbm:wire_dense_bscco"
       },
       "count": 32
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "arsenic_bronze"
+        "item": "reinhardtshbm:plate_cast_arsenic_bronze"
       },
       "count": 16
     },

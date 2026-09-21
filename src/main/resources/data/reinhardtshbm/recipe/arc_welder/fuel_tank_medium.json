@@ -6,12 +6,7 @@
   "inputs": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "aluminium"
+        "item": "reinhardtshbm:plate_cast_aluminium"
       },
       "count": 4
     },

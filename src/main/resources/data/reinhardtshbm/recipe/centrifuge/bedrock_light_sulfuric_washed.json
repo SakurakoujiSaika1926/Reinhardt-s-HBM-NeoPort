@@ -1,59 +1,41 @@
 {
-    "type":  "reinhardtshbm:centrifuge",
-    "group":  "centrifuge",
-    "ingredient":  {
-                       "type":  "neoforge:components",
-                       "items":  [
-                                     "reinhardtshbm:bedrock_ore_new"
-                                 ],
-                       "components":  {
-                                          "minecraft:custom_data":  {
-                                                                        "grade":  "sulfuric_washed",
-                                                                        "type":  "light"
-                                                                    }
-                                      }
-                   },
-    "input_count":  1,
-    "results":  [
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  6,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  2200,
-                                                                         "material":  "titanium"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  9,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  2902,
-                                                                         "material":  "bauxite"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  3,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  2903,
-                                                                         "material":  "cryolite"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_new",
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "grade":  "crumbs",
-                                                                         "type":  "light"
-                                                                     },
-                                           "minecraft:custom_model_data":  78
-                                       }
-                    }
-                ]
+  "type": "reinhardtshbm:centrifuge",
+  "group": "centrifuge",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "sulfuric_washed",
+        "type": "light"
+      }
+    }
+  },
+  "input_count": 1,
+  "results": [
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_titanium",
+      "count": 6
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_bauxite",
+      "count": 9
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_cryolite",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_new",
+      "components": {
+        "minecraft:custom_data": {
+          "grade": "crumbs",
+          "type": "light"
+        },
+        "minecraft:custom_model_data": 78
+      }
+    }
+  ]
 }

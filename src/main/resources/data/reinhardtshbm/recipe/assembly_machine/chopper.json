@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "combine_steel"
+        "item": "reinhardtshbm:plate_cast_combine_steel"
       },
       "count": 24
     },
@@ -23,12 +18,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "shape": "wire",
-        "material": "magnetized_tungsten"
+        "item": "reinhardtshbm:wire_magnetized_tungsten"
       },
       "count": 48
     },

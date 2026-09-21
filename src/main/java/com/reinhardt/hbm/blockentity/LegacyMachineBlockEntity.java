@@ -977,7 +977,12 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                     else this.precisionAssemblerProgress = 0.0D;
                 }
             } else {
-                this.precisionAssemblerProgress = 0.0D;
+                // Keep partial work while automation is still feeding the
+                // selected recipe one item at a time. Missing ingredients,
+                // output back-pressure, coolant/fluid shortages and brief
+                // power gaps pause the cycle; only changing/losing the
+                // selected recipe invalidates its process identity.
+                this.precisionAssemblerWorking = false;
             }
         } else {
             this.precisionAssemblerProgress = 0.0D;
@@ -2172,7 +2177,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private void finishPyroRecipe(PyroOvenRecipe recipe) {
         if (!recipe.itemOutput().isEmpty()) {
             ItemStack output = recipe.group().equals("pyrolysis.tar_soot")
-                    ? LegacyVariantItem.stackFor(HbmItems.POWDER_ASH, "soot")
+                    ? HbmItems.variantStack(HbmItems.POWDER_ASH_ITEMS, "soot")
                     : recipe.itemOutput().copy();
             insertExactOutput(output, 2);
         }

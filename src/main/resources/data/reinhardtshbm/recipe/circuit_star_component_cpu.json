@@ -1,1 +1,27 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"cpu_cache"},"minecraft:custom_model_data":13}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"cpu_clock"},"minecraft:custom_model_data":11}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"cpu_ext"},"minecraft:custom_model_data":14}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"cpu_logic"},"minecraft:custom_model_data":12}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"cpu_register"},"minecraft:custom_model_data":10}},{"type":"neoforge:components","items":["reinhardtshbm:circuit_star_piece"],"components":{"minecraft:custom_data":{"variant":"cpu_socket"},"minecraft:custom_model_data":15}}],"result":{"id":"reinhardtshbm:circuit_star_component","components":{"minecraft:custom_data":{"variant":"cpu"},"minecraft:custom_model_data":1}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:circuit_star_piece_cpu_cache"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_cpu_clock"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_cpu_ext"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_cpu_logic"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_cpu_register"
+    },
+    {
+      "item": "reinhardtshbm:circuit_star_piece_cpu_socket"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:circuit_star_component_cpu"
+  }
+}

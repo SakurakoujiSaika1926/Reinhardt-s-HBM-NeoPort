@@ -2,15 +2,12 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.explosion.BalefireExplosionManager;
 import com.reinhardt.hbm.explosion.NukeExplosionManager;
-import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.item.CustomMissileData;
 import com.reinhardt.hbm.item.CustomMissileItem;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.LegacyMissileItem;
 import com.reinhardt.hbm.item.MissilePartItem;
 import com.reinhardt.hbm.block.TaintBlock;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.worldgen.NuclearFalloutTerrainEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -279,14 +276,14 @@ public final class LegacyLauncherImpact {
         String id = missile.missileId();
         java.util.List<ItemStack> stacks = switch (id) {
             case "missile_stealth" -> java.util.List.of(
-                    FoundryShapeItem.stackFor(HbmItems.BOLT.get(), FoundryMaterial.get("steel"), 4));
+                    item("bolt_steel", 4));
             case "missile_shuttle" -> java.util.List.of(item("plate_steel", 8), item("thruster_medium", 2), item("canister_empty", 1), new ItemStack(net.minecraft.world.item.Items.GLASS_PANE, 2));
             case "missile_generic", "missile_incendiary", "missile_cluster", "missile_buster", "missile_decoy" -> java.util.List.of(item("plate_titanium", 4), item("thruster_small", 1));
             case "missile_strong", "missile_incendiary_strong", "missile_cluster_strong", "missile_buster_strong", "missile_emp_strong" -> java.util.List.of(item("plate_steel", 10), item("plate_titanium", 6), item("thruster_medium", 1));
             case "missile_burst", "missile_inferno", "missile_rain", "missile_drill" -> java.util.List.of(item("plate_steel", 16), item("plate_titanium", 10), item("thruster_large", 1));
             case "missile_nuclear", "missile_nuclear_cluster", "missile_volcano", "missile_doomsday", "missile_doomsday_rusted" -> java.util.List.of(item("plate_titanium", 16), item("plate_steel", 20), item("plate_aluminium", 12), item("thruster_large", 1));
             default -> java.util.List.of(item("wire_fine", 4), item("plate_titanium", 4),
-                    FoundryShapeItem.stackFor(HbmItems.SHELL.get(), FoundryMaterial.get("steel"), 2), item("ducttape", 1));
+                    item("shell_steel", 2), item("ducttape", 1));
         };
         for (ItemStack stack : stacks) {
             ItemEntity entity = new ItemEntity(level, missile.getX(), missile.getY(), missile.getZ(), stack);

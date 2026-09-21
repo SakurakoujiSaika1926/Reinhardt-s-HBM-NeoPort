@@ -6,20 +6,10 @@
       "item": "minecraft:potato"
     },
     {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "aluminium"
+      "item": "reinhardtshbm:wire_aluminium"
     },
     {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "copper"
+      "item": "reinhardtshbm:wire_copper"
     }
   ],
   "result": {

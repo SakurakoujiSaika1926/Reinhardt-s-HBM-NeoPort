@@ -14,45 +14,25 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "cdalloy"
+        "item": "reinhardtshbm:plate_welded_cdalloy"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "copper"
+        "item": "reinhardtshbm:plate_welded_copper"
       },
       "count": 64
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "arsenic_bronze"
+        "item": "reinhardtshbm:plate_cast_arsenic_bronze"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "schrabidate"
+        "item": "reinhardtshbm:wire_dense_schrabidate"
       },
       "count": 64
     },

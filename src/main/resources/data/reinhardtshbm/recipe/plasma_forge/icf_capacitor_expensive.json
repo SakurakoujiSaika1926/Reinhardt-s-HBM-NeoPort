@@ -15,37 +15,19 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "ferro_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
       },
       "count": 3
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "neodymium"
+        "item": "reinhardtshbm:wire_dense_neodymium"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "schrabidate"
+        "item": "reinhardtshbm:wire_dense_schrabidate"
       },
       "count": 2
     }

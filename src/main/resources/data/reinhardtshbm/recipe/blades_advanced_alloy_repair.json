@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PIP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/advanced_alloy"
+    },
+    "I": {
+      "item": "reinhardtshbm:blades_advanced_alloy"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:blades_advanced_alloy"
+  }
+}

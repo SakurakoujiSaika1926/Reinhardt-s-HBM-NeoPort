@@ -11,12 +11,7 @@
       "tag": "c:ingots/steel"
     },
     "H": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "steel"
+      "item": "reinhardtshbm:shell_steel"
     },
     "D": {
       "tag": "c:dyes/black"

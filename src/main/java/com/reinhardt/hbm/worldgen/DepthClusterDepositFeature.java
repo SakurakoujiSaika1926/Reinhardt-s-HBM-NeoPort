@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.worldgen;
 
 import com.mojang.serialization.Codec;
-import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -62,7 +61,7 @@ public class DepthClusterDepositFeature extends Feature<NoneFeatureConfiguration
         int chunkX = origin.getX() & ~15;
         int chunkZ = origin.getZ() & ~15;
         int x = chunkX + random.nextInt(16) + 8;
-        int y = Math.max(context.level().getMinBuildHeight(), random.nextInt(3));
+        int y = context.level().getMinBuildHeight() + random.nextInt(3);
         int z = chunkZ + random.nextInt(16) + 8;
         return generate(context.level(), x, y, z, this.ore.get(), random, this.fill);
     }
@@ -74,7 +73,7 @@ public class DepthClusterDepositFeature extends Feature<NoneFeatureConfiguration
         for (int x = centerX - SIZE; x <= centerX + SIZE; x++) {
             int dx = centerX - x;
             for (int y = centerY - SIZE; y <= centerY + SIZE; y++) {
-                if (y < 1 || y > 126 || y < level.getMinBuildHeight() || y >= level.getMaxBuildHeight()) {
+                if (y <= level.getMinBuildHeight() || y >= level.getMaxBuildHeight()) {
                     continue;
                 }
                 int dy = centerY - y;
@@ -91,7 +90,7 @@ public class DepthClusterDepositFeature extends Feature<NoneFeatureConfiguration
                         level.setBlock(pos, ore.defaultBlockState(), SET_FLAGS);
                         placed = true;
                     } else if (len + random.nextInt(2) <= SIZE) {
-                        level.setBlock(pos, HbmBlocks.STONE_DEPTH.get().defaultBlockState(), SET_FLAGS);
+                        level.setBlock(pos, Blocks.DEEPSLATE.defaultBlockState(), SET_FLAGS);
                     }
                 }
             }
@@ -100,6 +99,6 @@ public class DepthClusterDepositFeature extends Feature<NoneFeatureConfiguration
     }
 
     private static boolean isReplaceableDepthTarget(BlockState state) {
-        return state.is(Blocks.STONE) || state.is(Blocks.BEDROCK);
+        return state.is(Blocks.DEEPSLATE) || state.is(Blocks.BEDROCK);
     }
 }

@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.search.JechSearchCompat;
 import com.reinhardt.hbm.item.FluidIconItem;
 import com.reinhardt.hbm.menu.ChemicalPlantMenu;
 import com.reinhardt.hbm.recipe.ChemicalPlantRecipe;
@@ -22,7 +23,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 public class ChemicalPlantRecipeSelectorScreen extends Screen {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/processing/gui_recipe_selector.png");
@@ -275,7 +275,7 @@ public class ChemicalPlantRecipeSelectorScreen extends Screen {
 
     private void regenerateRecipes(String query) {
         this.recipes.clear();
-        String normalized = query.toLowerCase(Locale.ROOT);
+        String normalized = JechSearchCompat.normalizeQuery(query);
         for (RecipeHolder<ChemicalPlantRecipe> holder : this.originRecipes) {
             if (normalized.isBlank() || matchesSearch(holder, normalized)) {
                 this.recipes.add(holder);
@@ -287,30 +287,31 @@ public class ChemicalPlantRecipeSelectorScreen extends Screen {
 
     private boolean matchesSearch(RecipeHolder<ChemicalPlantRecipe> holder, String query) {
         ChemicalPlantRecipe recipe = holder.value();
-        if (holder.id().toString().toLowerCase(Locale.ROOT).contains(query) || recipe.group().toLowerCase(Locale.ROOT).contains(query)) {
+        if (JechSearchCompat.contains(holder.id().toString(), query)
+                || JechSearchCompat.contains(recipe.group(), query)) {
             return true;
         }
-        if (recipe.displayIcon().getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+        if (JechSearchCompat.contains(recipe.displayIcon().getHoverName().getString(), query)) {
             return true;
         }
         for (ChemicalPlantRecipe.CountedIngredient ingredient : recipe.inputItems()) {
             ItemStack display = displayIngredient(ingredient);
-            if (!display.isEmpty() && display.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+            if (!display.isEmpty() && JechSearchCompat.contains(display.getHoverName().getString(), query)) {
                 return true;
             }
         }
         for (ItemStack output : recipe.outputItems()) {
-            if (!output.isEmpty() && output.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+            if (!output.isEmpty() && JechSearchCompat.contains(output.getHoverName().getString(), query)) {
                 return true;
             }
         }
         for (ChemicalPlantRecipe.ChemicalFluidStack fluid : recipe.inputFluids()) {
-            if (Component.translatable(fluid.type().translationKey()).getString().toLowerCase(Locale.ROOT).contains(query)) {
+            if (JechSearchCompat.contains(Component.translatable(fluid.type().translationKey()).getString(), query)) {
                 return true;
             }
         }
         for (ChemicalPlantRecipe.ChemicalFluidStack fluid : recipe.outputFluids()) {
-            if (Component.translatable(fluid.type().translationKey()).getString().toLowerCase(Locale.ROOT).contains(query)) {
+            if (JechSearchCompat.contains(Component.translatable(fluid.type().translationKey()).getString(), query)) {
                 return true;
             }
         }

@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.slidingseal",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:plate_polymer" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 4 },
+    { "ingredient": { "tag": "c:dyes/white" }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:sliding_seal_door" }
+}

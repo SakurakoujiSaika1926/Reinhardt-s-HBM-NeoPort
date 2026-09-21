@@ -1,34 +1,26 @@
 {
-    "type":  "reinhardtshbm:centrifuge",
-    "group":  "centrifuge",
-    "ingredient":  {
-                       "type":  "neoforge:components",
-                       "items":  [
-                                     "reinhardtshbm:chunk_ore"
-                                 ],
-                       "components":  {
-                                          "minecraft:custom_data":  {
-                                                                        "variant":  "rare"
-                                                                    }
-                                      }
-                   },
-    "input_count":  1,
-    "results":  [
-                    {
-                        "id":  "reinhardtshbm:powder_cobalt_tiny",
-                        "count":  2
-                    },
-                    {
-                        "id":  "reinhardtshbm:powder_boron_tiny",
-                        "count":  2
-                    },
-                    {
-                        "id":  "reinhardtshbm:powder_niobium_tiny",
-                        "count":  2
-                    },
-                    {
-                        "id":  "reinhardtshbm:nugget_zirconium",
-                        "count":  3
-                    }
-                ]
+  "type": "reinhardtshbm:centrifuge",
+  "group": "centrifuge",
+  "ingredient": {
+    "item": "reinhardtshbm:chunk_ore_rare"
+  },
+  "input_count": 1,
+  "results": [
+    {
+      "id": "reinhardtshbm:powder_cobalt_tiny",
+      "count": 2
+    },
+    {
+      "id": "reinhardtshbm:powder_boron_tiny",
+      "count": 2
+    },
+    {
+      "id": "reinhardtshbm:powder_niobium_tiny",
+      "count": 2
+    },
+    {
+      "id": "reinhardtshbm:nugget_zirconium",
+      "count": 3
+    }
+  ]
 }

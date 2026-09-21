@@ -12,9 +12,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:broken_item"
-        ],
+        "items": "reinhardtshbm:broken_item",
         "components": {
           "minecraft:custom_data": {
             "item_id": "reinhardtshbm:circuit_chip_quantum",
@@ -35,14 +33,8 @@
     },
     {
       "result": {
-        "id": "reinhardtshbm:wire_dense",
-        "count": 2,
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 48,
-            "material": "bscco"
-          }
-        }
+        "id": "reinhardtshbm:wire_dense_bscco",
+        "count": 2
       },
       "weight": 75
     },
@@ -62,14 +54,8 @@
     },
     {
       "result": {
-        "id": "reinhardtshbm:wire_fine",
-        "count": 8,
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 7900,
-            "material": "gold"
-          }
-        }
+        "id": "reinhardtshbm:wire_gold",
+        "count": 8
       },
       "weight": 75
     }

@@ -1,1 +1,0 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["WWW","  W"],"key":{"W":{"tag":"c:ingots/bakelite"}},"result":{"id":"reinhardtshbm:part_stock","components":{"minecraft:custom_data":{"material_id":20002,"material":"bakelite"}}}}

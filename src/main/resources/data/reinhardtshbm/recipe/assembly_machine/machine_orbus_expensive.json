@@ -11,46 +11,26 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "ferro_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "saturnite"
+        "item": "reinhardtshbm:plate_cast_saturnite"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "bscco"
+        "item": "reinhardtshbm:wire_dense_bscco"
       },
       "count": 16
     },
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:battery_sc"
-        ],
+        "items": "reinhardtshbm:battery_sc",
         "components": {
           "minecraft:custom_data": {
             "variant": "po210"

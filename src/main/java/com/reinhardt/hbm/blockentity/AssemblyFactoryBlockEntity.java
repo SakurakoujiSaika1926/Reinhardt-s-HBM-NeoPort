@@ -12,6 +12,7 @@ import com.reinhardt.hbm.menu.AssemblyFactoryMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
+import com.reinhardt.hbm.recipe.MachineRecipeCache;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
@@ -75,6 +76,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     private static final int[] AUTOMATION_SLOTS = createAutomationSlots();
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> observedWorkItems = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank[] inputTanks = new HbmFluidTank[MODULE_COUNT];
     private final HbmFluidTank[] outputTanks = new HbmFluidTank[MODULE_COUNT];
     private final HbmFluidTank waterTank = new HbmFluidTank(water(), COOLANT_TANK_CAPACITY);
@@ -88,7 +90,11 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     private final int[] motorSoundCycle = new int[MODULE_COUNT];
     private final int[] strikeSoundCycle = new int[MODULE_COUNT];
     private final boolean[] wasWorking = new boolean[MODULE_COUNT];
+    private final ModuleRecipeState[] moduleRecipeStates = createModuleRecipeStates();
     private final AssemfacArm[] clientAnimations = {new AssemfacArm(0), new AssemfacArm(1)};
+    private long observedRecipeCacheGeneration = Long.MIN_VALUE;
+    private boolean recipeCatalogDirty = true;
+    private List<RecipeHolder<AssemblyMachineRecipe>> cachedRecipeCatalog = List.of();
     private long energyStored;
     private long lastInput;
     private long energyCapacity = BASE_ENERGY_CAPACITY;
@@ -235,9 +241,13 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public void applyPower(long usedOutput, long receivedInput) {
+        long previousEnergy = this.energyStored;
+        long previousLastInput = this.lastInput;
         this.energyStored = Math.min(this.energyCapacity, this.energyStored + receivedInput);
         this.lastInput = receivedInput;
-        setChanged();
+        if (this.energyStored != previousEnergy || this.lastInput != previousLastInput) {
+            markRuntimeChanged(false);
+        }
     }
 
     @Override
@@ -326,7 +336,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             this.items.set(slot, ItemStack.EMPTY);
         }
         if (!removed.isEmpty()) {
-            moduleForSlot(slot).ifPresent(module -> this.progress[module] = 0);
+            inventoryChanged(slot, isBlueprintSlot(slot));
             setChangedAndSync(false);
         }
         return removed;
@@ -339,6 +349,9 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         }
         ItemStack stack = this.items.get(slot);
         this.items.set(slot, ItemStack.EMPTY);
+        if (!stack.isEmpty()) {
+            inventoryChanged(slot, isBlueprintSlot(slot));
+        }
         return stack;
     }
 
@@ -347,15 +360,13 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         if (!isValidSlot(slot)) {
             return;
         }
+        ItemStack previous = this.items.get(slot).copy();
         this.items.set(slot, stack);
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize(stack)) {
             stack.setCount(this.getMaxStackSize(stack));
         }
-        moduleForSlot(slot).ifPresent(module -> this.progress[module] = 0);
-        if (isBlueprintSlot(slot)) {
-            int module = moduleForBlueprintSlot(slot);
-            clearSelectionIfBlueprintNoLongerAllowsIt(module);
-        }
+        boolean blueprintChanged = isBlueprintSlot(slot) && !sameItemIgnoringCount(previous, stack);
+        inventoryChanged(slot, blueprintChanged);
         setChangedAndSync(false);
     }
 
@@ -419,6 +430,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         for (int module = 0; module < MODULE_COUNT; module++) {
             this.progress[module] = 0;
         }
+        invalidateAllModuleCatalogs();
         setChangedAndSync(false);
     }
 
@@ -488,6 +500,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         this.energyStored = tag.getLong("EnergyStored");
         this.lastInput = tag.getLong("LastInput");
         this.energyCapacity = Math.max(BASE_ENERGY_CAPACITY, tag.getLong("EnergyCapacity"));
+        invalidateRecipeCatalog();
     }
 
     @Override
@@ -552,6 +565,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         }
         this.selectedRecipeIds[module] = recipeId;
         this.progress[module] = 0;
+        invalidateModuleWork(module);
         setChangedAndSync(true);
     }
 
@@ -564,34 +578,29 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     }
 
     public List<RecipeHolder<AssemblyMachineRecipe>> availableRecipes(Level level, int module) {
-        return AssemblyMachineRecipe.collapseDisplayChoices(activeVisibleRecipes(level, module));
-    }
-
-    private List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level, int module) {
         if (!isValidModule(module)) {
             return List.of();
         }
-        Optional<String> pool = installedBlueprintPool(module);
-        List<RecipeHolder<AssemblyMachineRecipe>> visibleRecipes = level.getRecipeManager()
-                .getAllRecipesFor(HbmRecipeTypes.ASSEMBLY_MACHINE.get())
-                .stream()
-                .filter(holder -> holder.value().isVisibleForPool(pool))
-                .toList();
-        return AssemblyMachineRecipe.activeVariants(visibleRecipes);
+        ensureModuleCatalog(level, module);
+        return this.moduleRecipeStates[module].displayRecipes;
     }
 
     private List<RecipeHolder<AssemblyMachineRecipe>> selectedChoiceVariants(Level level, int module, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
-        return activeVisibleRecipes(level, module).stream()
-                .filter(holder -> AssemblyMachineRecipe.sameDisplayChoice(selectedRecipe, holder))
-                .toList();
+        ensureModuleCatalog(level, module);
+        ModuleRecipeState state = this.moduleRecipeStates[module];
+        if (!selectedRecipe.id().equals(state.variantChoiceId)) {
+            state.variantChoiceId = selectedRecipe.id();
+            state.selectedVariants = state.activeRecipes.stream()
+                    .filter(holder -> AssemblyMachineRecipe.sameDisplayChoice(selectedRecipe, holder))
+                    .toList();
+        }
+        return state.selectedVariants;
     }
 
     private Optional<RecipeHolder<AssemblyMachineRecipe>> selectedRecipeForInputs(Level level, int module, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
         AssemblyMachineRecipe.Input input = new AssemblyMachineRecipe.Input(inputStacks(module), inputFluidStacks(module));
         return selectedChoiceVariants(level, module, selectedRecipe).stream()
                 .filter(holder -> holder.value().matches(input, level))
-                .filter(holder -> canOutput(module, holder.value().result()))
-                .filter(holder -> canFitFluidOutput(module, holder.value()))
                 .findFirst();
     }
 
@@ -635,34 +644,32 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     }
 
     private void tickServer(Level level) {
+        long energyBeforeBattery = this.energyStored;
         this.energyStored = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.energyStored, this.energyCapacity);
+        boolean batteryDischarged = this.energyStored != energyBeforeBattery;
+        ensureRecipeCatalog(level);
 
         long nextCapacity = 0L;
         boolean anyWorking = false;
         int previousWorkingMask = workingMask();
-        boolean sync = level.getGameTime() % 10L == 0L;
         for (int module = 0; module < MODULE_COUNT; module++) {
             this.didProcess[module] = false;
-            Optional<RecipeHolder<AssemblyMachineRecipe>> recipeHolder = getSelectedRecipe(module, level);
-            this.hasRecipe[module] = recipeHolder.isPresent();
-            if (recipeHolder.isEmpty()) {
+            refreshModuleWorkState(level, module);
+            ModuleRecipeState recipeState = this.moduleRecipeStates[module];
+            AssemblyMachineRecipe recipe = recipeState.workRecipe;
+            if (recipe == null) {
                 this.progress[module] = 0;
-                this.workTime[module] = 100;
-                this.currentDemand[module] = 100;
                 stopWorkingSound(level, module);
                 continue;
             }
 
-            RecipeHolder<AssemblyMachineRecipe> selectedHolder = recipeHolder.get();
-            AssemblyMachineRecipe recipe = selectedRecipeForInputs(level, module, selectedHolder)
-                    .orElse(selectedHolder)
-                    .value();
             nextCapacity += recipe.power() * 100L;
-            setupTanks(module, recipe);
-            this.workTime[module] = currentWorkTime(recipe);
-            this.currentDemand[module] = currentDemand(recipe);
 
-            if (!canProcess(module, recipe) || this.energyStored < this.currentDemand[module] || !canCool()) {
+            if (!recipeState.inputsMatch
+                    || !canOutput(module, recipe.result())
+                    || !canFitFluidOutput(module, recipe)
+                    || this.energyStored < this.currentDemand[module]
+                    || !canCool()) {
                 stopWorkingSound(level, module);
                 continue;
             }
@@ -679,15 +686,50 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
                 finishRecipe(module, recipe);
                 this.progress[module] = 0;
                 this.completedCycles[module]++;
+                captureModuleInputSnapshot(module);
+                invalidateModuleWork(module);
             }
         }
 
         this.energyCapacity = Math.max(Math.max(BASE_ENERGY_CAPACITY, nextCapacity), this.energyStored);
         setLit(anyWorking);
         boolean workingChanged = previousWorkingMask != workingMask();
-        if (anyWorking || sync || workingChanged) {
-            setChangedAndSync(sync || workingChanged);
+        boolean periodicWorkingSync = anyWorking && level.getGameTime() % 10L == 0L;
+        if (anyWorking || batteryDischarged || workingChanged) {
+            markRuntimeChanged(periodicWorkingSync || workingChanged);
         }
+    }
+
+    private void refreshModuleWorkState(Level level, int module) {
+        ensureModuleCatalog(level, module);
+        ModuleRecipeState state = this.moduleRecipeStates[module];
+        if (!state.workDirty) {
+            return;
+        }
+
+        state.workDirty = false;
+        state.workRecipe = null;
+        state.inputsMatch = false;
+        Optional<RecipeHolder<AssemblyMachineRecipe>> selected = getSelectedRecipe(module, level);
+        this.hasRecipe[module] = selected.isPresent();
+        if (selected.isEmpty()) {
+            this.workTime[module] = 100;
+            this.currentDemand[module] = 100;
+            return;
+        }
+
+        RecipeHolder<AssemblyMachineRecipe> selectedHolder = selected.get();
+        AssemblyMachineRecipe recipe = selectedRecipeForInputs(level, module, selectedHolder)
+                .orElse(selectedHolder)
+                .value();
+        setupTanks(module, recipe);
+        state.workRecipe = recipe;
+        state.inputsMatch = recipe.matches(
+                new AssemblyMachineRecipe.Input(inputStacks(module), inputFluidStacks(module)),
+                level
+        );
+        this.workTime[module] = currentWorkTime(recipe);
+        this.currentDemand[module] = currentDemand(recipe);
     }
 
     private Optional<RecipeHolder<AssemblyMachineRecipe>> getSelectedRecipe(int module, Level level) {
@@ -697,6 +739,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(level, module, this.selectedRecipeIds[module]);
         if (recipe.isEmpty() || !recipe.get().value().isVisibleForPool(installedBlueprintPool(module))) {
             this.selectedRecipeIds[module] = null;
+            this.progress[module] = 0;
             return Optional.empty();
         }
         if (!recipe.get().id().equals(this.selectedRecipeIds[module])) {
@@ -706,13 +749,15 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     }
 
     private Optional<RecipeHolder<AssemblyMachineRecipe>> findRecipe(Level level, int module, ResourceLocation recipeId) {
+        ensureModuleCatalog(level, module);
+        ModuleRecipeState state = this.moduleRecipeStates[module];
         List<RecipeHolder<AssemblyMachineRecipe>> displayRecipes = availableRecipes(level, module);
         for (RecipeHolder<AssemblyMachineRecipe> holder : displayRecipes) {
             if (holder.id().equals(recipeId)) {
                 return Optional.of(holder);
             }
         }
-        Optional<RecipeHolder<AssemblyMachineRecipe>> rawRecipe = activeVisibleRecipes(level, module).stream()
+        Optional<RecipeHolder<AssemblyMachineRecipe>> rawRecipe = state.activeRecipes.stream()
                 .filter(holder -> holder.id().equals(recipeId))
                 .findFirst();
         if (rawRecipe.isPresent()) {
@@ -747,11 +792,13 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         }
         if (value <= 0 || this.level == null) {
             this.selectedRecipeIds[module] = null;
+            invalidateModuleWork(module);
             return;
         }
         List<RecipeHolder<AssemblyMachineRecipe>> recipes = availableRecipes(this.level, module);
         int index = value - 1;
         this.selectedRecipeIds[module] = index >= 0 && index < recipes.size() ? recipes.get(index).id() : null;
+        invalidateModuleWork(module);
     }
 
     private Optional<String> installedBlueprintPool(int module) {
@@ -765,6 +812,8 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(this.level, module, this.selectedRecipeIds[module]);
         if (recipe.isEmpty() || !recipe.get().value().isVisibleForPool(installedBlueprintPool(module))) {
             this.selectedRecipeIds[module] = null;
+            this.progress[module] = 0;
+            invalidateModuleWork(module);
         }
     }
 
@@ -786,13 +835,6 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             this.outputTanks[module].setCapacity(RECIPE_TANK_CAPACITY);
             this.outputTanks[module].clear();
         }
-    }
-
-    private boolean canProcess(int module, AssemblyMachineRecipe recipe) {
-        if (!recipe.matches(new AssemblyMachineRecipe.Input(inputStacks(module), inputFluidStacks(module)), this.level)) {
-            return false;
-        }
-        return canOutput(module, recipe.result()) && canFitFluidOutput(module, recipe);
     }
 
     private boolean canOutput(int module, ItemStack result) {
@@ -1128,6 +1170,131 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         return module >= 0 && module < MODULE_COUNT;
     }
 
+    private void ensureRecipeCatalog(Level level) {
+        long generation = MachineRecipeCache.generation();
+        if (this.observedRecipeCacheGeneration != generation) {
+            this.observedRecipeCacheGeneration = generation;
+            invalidateRecipeCatalog();
+        }
+        if (!this.recipeCatalogDirty) {
+            return;
+        }
+        this.cachedRecipeCatalog = List.copyOf(
+                level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.ASSEMBLY_MACHINE.get())
+        );
+        this.recipeCatalogDirty = false;
+        invalidateAllModuleCatalogs();
+    }
+
+    private void ensureModuleCatalog(Level level, int module) {
+        ensureRecipeCatalog(level);
+        ModuleRecipeState state = this.moduleRecipeStates[module];
+        if (!state.catalogDirty) {
+            return;
+        }
+        Optional<String> pool = installedBlueprintPool(module);
+        List<RecipeHolder<AssemblyMachineRecipe>> visibleRecipes = this.cachedRecipeCatalog.stream()
+                .filter(holder -> holder.value().isVisibleForPool(pool))
+                .toList();
+        state.activeRecipes = List.copyOf(AssemblyMachineRecipe.activeVariants(visibleRecipes));
+        state.displayRecipes = List.copyOf(AssemblyMachineRecipe.collapseDisplayChoices(state.activeRecipes));
+        state.selectedVariants = List.of();
+        state.variantChoiceId = null;
+        state.catalogDirty = false;
+        state.workDirty = true;
+    }
+
+    private void invalidateRecipeCatalog() {
+        this.recipeCatalogDirty = true;
+        this.cachedRecipeCatalog = List.of();
+        invalidateAllModuleCatalogs();
+    }
+
+    private void invalidateAllModuleCatalogs() {
+        for (int module = 0; module < MODULE_COUNT; module++) {
+            invalidateModuleCatalog(module);
+        }
+    }
+
+    private void invalidateModuleCatalog(int module) {
+        ModuleRecipeState state = this.moduleRecipeStates[module];
+        state.catalogDirty = true;
+        state.activeRecipes = List.of();
+        state.displayRecipes = List.of();
+        state.selectedVariants = List.of();
+        state.variantChoiceId = null;
+        state.workDirty = true;
+    }
+
+    private void invalidateAllModuleWork() {
+        for (int module = 0; module < MODULE_COUNT; module++) {
+            invalidateModuleWork(module);
+        }
+    }
+
+    private void invalidateModuleWork(int module) {
+        this.moduleRecipeStates[module].workDirty = true;
+    }
+
+    private void inventoryChanged(int slot, boolean blueprintChanged) {
+        if (slot >= UPGRADE_START && slot < UPGRADE_END) {
+            invalidateAllModuleWork();
+            return;
+        }
+        Optional<Integer> module = moduleForSlot(slot);
+        if (module.isEmpty()) {
+            return;
+        }
+        int moduleIndex = module.get();
+        if (isBlueprintSlot(slot)) {
+            if (blueprintChanged) {
+                this.progress[moduleIndex] = 0;
+                invalidateModuleCatalog(moduleIndex);
+                clearSelectionIfBlueprintNoLongerAllowsIt(moduleIndex);
+            }
+        } else if (isInputSlot(slot)) {
+            invalidateModuleWork(moduleIndex);
+        }
+    }
+
+    private static boolean sameItemIgnoringCount(ItemStack first, ItemStack second) {
+        if (first.isEmpty() || second.isEmpty()) {
+            return first.isEmpty() && second.isEmpty();
+        }
+        return ItemStack.isSameItemSameComponents(first, second);
+    }
+
+    private void captureModuleInputSnapshot(int module) {
+        // A module consumes its own inputs without going through setItem.
+        // Rebase only that module so restoring an identical AE2 batch remains
+        // observable while the other parallel modules keep their cache state.
+        int start = inputSlotStart(module);
+        for (int slot = start; slot < start + MODULE_INPUT_COUNT; slot++) {
+            this.observedWorkItems.set(slot, this.items.get(slot).copy());
+        }
+    }
+
+    @Override
+    public void setChanged() {
+        // Automated transfers may grow stacks in place and only report the
+        // container change. Observe shared upgrades and each module's inputs
+        // so only the affected recipe state is invalidated.
+        for (int slot = UPGRADE_START; slot < SLOT_COUNT; slot++) {
+            if ((slot >= UPGRADE_END && !isInputSlot(slot))) {
+                continue;
+            }
+            ItemStack current = this.items.get(slot);
+            ItemStack observed = this.observedWorkItems.get(slot);
+            if (current.getCount() == observed.getCount()
+                    && ItemStack.isSameItemSameComponents(current, observed)) {
+                continue;
+            }
+            this.observedWorkItems.set(slot, current.copy());
+            inventoryChanged(slot, false);
+        }
+        super.setChanged();
+    }
+
     private static boolean isSupportedUpgrade(ItemStack stack) {
         if (!MachineUpgradeItem.isMachineUpgrade(stack)) {
             return false;
@@ -1158,6 +1325,14 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             slots[index++] = outputSlot(module);
         }
         return slots;
+    }
+
+    private static ModuleRecipeState[] createModuleRecipeStates() {
+        ModuleRecipeState[] states = new ModuleRecipeState[MODULE_COUNT];
+        for (int module = 0; module < MODULE_COUNT; module++) {
+            states[module] = new ModuleRecipeState();
+        }
+        return states;
     }
 
     private static BlockPos offset(Direction facing, int facingScale, Direction rot, int rotScale) {
@@ -1240,6 +1415,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
                 remaining -= accepted;
             }
             if (filled > 0 && action.execute()) {
+                invalidateFilledRecipeInputs();
                 setChangedAndSync(true);
             }
             return filled;
@@ -1337,6 +1513,38 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         private boolean canFillTank(HbmFluidTank tank, HbmFluidDefinition fluid) {
             return !fluid.isNone() && (tank.type().isNone() || tank.type() == fluid) && tank.pressure() == 0;
         }
+
+        private void invalidateFilledRecipeInputs() {
+            if (this.module >= 0) {
+                invalidateModuleWork(this.module);
+            } else if (this.module == -1) {
+                // The unsided core handler may have filled any module input.
+                invalidateAllModuleWork();
+            }
+        }
+    }
+
+    private void markRuntimeChanged(boolean sync) {
+        // Runtime progress, energy and cooling changes keep the same live item
+        // and fluid capability providers. Avoid rescanning every input slot or
+        // invalidating those providers on every active tick.
+        super.setChanged();
+        if (sync && this.level != null && !this.level.isClientSide) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private static final class ModuleRecipeState {
+        private boolean catalogDirty = true;
+        private boolean workDirty = true;
+        private boolean inputsMatch;
+        private List<RecipeHolder<AssemblyMachineRecipe>> activeRecipes = List.of();
+        private List<RecipeHolder<AssemblyMachineRecipe>> displayRecipes = List.of();
+        private List<RecipeHolder<AssemblyMachineRecipe>> selectedVariants = List.of();
+        @Nullable
+        private ResourceLocation variantChoiceId;
+        @Nullable
+        private AssemblyMachineRecipe workRecipe;
     }
 
     private record Port(BlockPos pos, Direction face) {

@@ -525,7 +525,7 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     private boolean processAsh(AshType type) {
-        ItemStack ash = LegacyVariantItem.stackFor(HbmItems.POWDER_ASH, type.variantId());
+        ItemStack ash = HbmItems.variantStack(HbmItems.POWDER_ASH_ITEMS, type.variantId());
         if (!canPlaceOutput(ASH_SLOT, ash)) {
             return false;
         }

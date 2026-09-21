@@ -12,12 +12,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "copper"
+        "item": "reinhardtshbm:pipe_copper"
       },
       "count": 2
     },

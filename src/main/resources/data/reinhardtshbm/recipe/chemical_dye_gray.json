@@ -1,1 +1,16 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:chemical_dye"],"components":{"minecraft:custom_data":{"variant":"black"},"minecraft:custom_model_data":0}},{"type":"neoforge:components","items":["reinhardtshbm:chemical_dye"],"components":{"minecraft:custom_data":{"variant":"white"},"minecraft:custom_model_data":15}}],"result":{"id":"reinhardtshbm:chemical_dye","count":2,"components":{"minecraft:custom_data":{"variant":"gray"},"minecraft:custom_model_data":8}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:chemical_dye_black"
+    },
+    {
+      "item": "reinhardtshbm:chemical_dye_white"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:chemical_dye_gray",
+    "count": 2
+  }
+}

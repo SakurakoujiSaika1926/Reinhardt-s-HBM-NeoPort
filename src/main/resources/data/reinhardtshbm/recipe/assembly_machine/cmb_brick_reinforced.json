@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.cmbbrick",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:ingots/magnetized_tungsten" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:ducrete" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:cmb_brick" }, "count": 8 }
+  ],
+  "result": { "id": "reinhardtshbm:cmb_brick_reinforced", "count": 8 }
+}

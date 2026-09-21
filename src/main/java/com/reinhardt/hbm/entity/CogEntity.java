@@ -207,9 +207,6 @@ public class CogEntity extends ThrowableProjectile {
     }
 
     private static ItemStack gearStack(int meta) {
-        if (HbmItems.GEAR_LARGE.get() instanceof LegacyVariantItem) {
-            return LegacyVariantItem.stackFor(HbmItems.GEAR_LARGE, meta == 1 ? "steel" : "normal");
-        }
-        return new ItemStack(HbmItems.GEAR_LARGE.get());
+        return new ItemStack((meta == 1 ? HbmItems.GEAR_LARGE_STEEL : HbmItems.GEAR_LARGE).get());
     }
 }

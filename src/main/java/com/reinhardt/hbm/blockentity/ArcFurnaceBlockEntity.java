@@ -560,10 +560,8 @@ public final class ArcFurnaceBlockEntity extends BlockEntity implements PowerEnd
         for (int index = 0; index < 3; index++) {
             ItemStack electrode = items.get(index);
             if (ArcElectrodeItem.damage(electrode)) {
-                ItemStack burnt = new ItemStack(HbmItems.ARC_ELECTRODE_BURNT.get());
                 String variant = ArcElectrodeItem.variantId(electrode);
-                burnt = com.reinhardt.hbm.item.LegacyVariantItem.stackFor(HbmItems.ARC_ELECTRODE_BURNT, variant);
-                items.set(index, burnt);
+                items.set(index, HbmItems.variantStack(HbmItems.ARC_ELECTRODE_BURNT_ITEMS, variant));
             }
         }
     }

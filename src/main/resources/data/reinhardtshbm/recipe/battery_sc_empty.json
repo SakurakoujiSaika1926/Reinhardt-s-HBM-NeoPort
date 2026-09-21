@@ -11,20 +11,10 @@
       "tag": "c:ingots/plastic"
     },
     "G": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_gold"
     },
     "L": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "lead"
+      "item": "reinhardtshbm:plate_cast_lead"
     }
   },
   "result": {

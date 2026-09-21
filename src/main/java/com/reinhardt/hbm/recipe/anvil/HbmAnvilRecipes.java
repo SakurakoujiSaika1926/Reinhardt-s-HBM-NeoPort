@@ -3,10 +3,10 @@ package com.reinhardt.hbm.recipe.anvil;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
+import com.reinhardt.hbm.foundry.FoundryMaterialItems;
 import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.item.FilingCabinetBlockItem;
 import com.reinhardt.hbm.item.FoundryMoldItem;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.PowerCableBoxBlockItem;
 import com.reinhardt.hbm.item.SirenTrackItem;
@@ -139,6 +139,7 @@ public final class HbmAnvilRecipes {
         Set<String> plateMaterials = new LinkedHashSet<>();
         addLegacyBat9000RecyclingRecipe();
         addLegacyDecorationApplianceRecyclingRecipes();
+        addLegacyMachineAndReactorRecyclingRecipes();
         addRedCopperCableBoxRecipes();
         addFluidDuctBoxRecipes();
         addExhaustDuctRecipes();
@@ -197,7 +198,6 @@ public final class HbmAnvilRecipes {
         addConstruction(List.of(ingotIngredient("titanium", 1)), blockItem("deco_titanium", 4), 1);
         addConstruction(List.of(ingotIngredient("tungsten", 1)), blockItem("deco_tungsten", 4), 1);
         addConstruction(List.of(ingotIngredient("asbestos", 1)), blockItem("deco_asbestos", 4), 1);
-
         addConstruction(List.of(ingredient("coil_copper", 2)), item("coil_copper_torus", 1), 1);
         addShellRecipe("titanium", 1);
         addShellRecipe("copper", 1);
@@ -243,7 +243,7 @@ public final class HbmAnvilRecipes {
                 List.of(
                         ingredient("reinforced_stone", 16),
                         plateIngredient("steel", 12),
-                        foundryShapeIngredient(FoundryShape.SHELL, "steel", 2, HbmItems.SHELL.get()),
+                        foundryShapeIngredient(FoundryShape.SHELL, "steel", 2),
                         ingredient("coil_copper", 4),
                         ingredient("gear_large", 1)
                 ),
@@ -253,8 +253,8 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         ingredient("sulfur", 12),
-                        foundryShapeIngredient(FoundryShape.SHELL, "steel", 4, HbmItems.SHELL.get()),
-                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 6, HbmItems.PLATE_CAST.get()),
+                        foundryShapeIngredient(FoundryShape.SHELL, "steel", 4),
+                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 6),
                         ingredient("circuit_basic", 2)
                 ),
                 blockItem("machine_deuterium_extractor", 1),
@@ -263,7 +263,7 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         ingredient("deuterium_filter", 2),
-                        foundryShapeIngredient(FoundryShape.SHELL, "steel", 5, HbmItems.SHELL.get()),
+                        foundryShapeIngredient(FoundryShape.SHELL, "steel", 5),
                         tagIngredient(commonTag("pipes/steel"), 12, hbm("pipe_steel")),
                         ingredient("concrete_asbestos", 8),
                         ingredient("steel_scaffold", 16),
@@ -288,7 +288,7 @@ public final class HbmAnvilRecipes {
                 List.of(
                         ingredient("missile_doomsday_rusted", 1),
                         tagIngredient(commonTag("ingots/hard_plastic"), 8, hbm("ingot_pc")),
-                        foundryShapeIngredient(FoundryShape.WELDED_PLATE, "aluminium", 2, HbmItems.PLATE_WELDED.get()),
+                        foundryShapeIngredient(FoundryShape.WELDED_PLATE, "aluminium", 2),
                         ingredient("billet_pu239", 3)
                 ),
                 item("missile_doomsday", 1),
@@ -297,7 +297,7 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(
                         ingotIngredient("steel", 4),
-                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 16, HbmItems.PLATE_CAST.get()),
+                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 16),
                         plateIngredient("polymer", 8)
                 ),
                 blockItem("machine_boiler", 1),
@@ -305,7 +305,7 @@ public final class HbmAnvilRecipes {
         );
         addConstruction(
                 List.of(
-                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 8, HbmItems.PLATE_CAST.get()),
+                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 8),
                         ingotIngredient("copper", 8, mc("copper_ingot")),
                         ingotIngredient("polymer", 4)
                 ),
@@ -342,6 +342,11 @@ public final class HbmAnvilRecipes {
         addConstruction(
                 List.of(ingredient("tank_steel", 1), plateIngredient("lead", 2), ingredient("nuclear_waste_vitrified", 10)),
                 blockItem("vitrified_barrel", 1),
+                3
+        );
+        addConstruction(
+                List.of(ingredient("man_core", 1), ingotIngredient("beryllium", 4), ingredient("screwdriver", 1)),
+                item("demon_core_open", 1),
                 3
         );
         addLegacyRecyclingRecipe(
@@ -409,7 +414,7 @@ public final class HbmAnvilRecipes {
         );
         addConstruction(
                 List.of(
-                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 2, HbmItems.PLATE_CAST.get()),
+                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 2),
                         ingredient("coil_copper", 4),
                         ingredient("bolt_tungsten", 4),
                         ingredient("circuit_vacuum_tube", 2)
@@ -421,17 +426,17 @@ public final class HbmAnvilRecipes {
                 List.of(
                         plateIngredient("titanium", 2),
                         ingotIngredient("steel", 1),
-                        foundryShapeIngredient(FoundryShape.BOLT, "steel", 4, HbmItems.BOLT.get())
+                        foundryShapeIngredient(FoundryShape.BOLT, "steel", 4)
                 ),
                 item("plate_armor_titanium", 1),
                 2
         );
         addConstruction(
                 List.of(
-                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 4, HbmItems.PLATE_CAST.get()),
+                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "steel", 4),
                         ingotIngredient("tungsten", 8),
                         ingredient("machine_transformer", 1),
-                        ingredient("arc_electrode", 2)
+                        ingredient("arc_electrode_graphite", 2)
                 ),
                 blockItem("machine_arc_welder", 1),
                 2
@@ -454,6 +459,42 @@ public final class HbmAnvilRecipes {
                 ),
                 blockItem("machine_tower_large", 1),
                 4
+        );
+        addConstruction(
+                List.of(
+                        ingredient(mc("bone"), 16),
+                        ingredient(mc("leather"), 4),
+                        ingredient(mc("feather"), 24)
+                ),
+                item("wings_limp", 1),
+                2
+        );
+        addConstruction(
+                List.of(plateIngredient("iron", 6), ingotIngredient("niobium", 1), ingredient("plate_armor_titanium", 1)),
+                item("plate_armor_ajr", 2),
+                3
+        );
+        addConstruction(
+                List.of(plateIngredient("dura_steel", 4), ingredient("plate_armor_titanium", 1),
+                        foundryShapeIngredient(FoundryShape.WIRE, "tungsten", 8)),
+                item("plate_armor_hev", 1),
+                4
+        );
+        addConstruction(
+                List.of(plateIngredient("weaponsteel", 4), ingotIngredient("starmetal", 1),
+                        foundryShapeIngredient(FoundryShape.WIRE, "magnetized_tungsten", 8)),
+                item("plate_armor_lunar", 1),
+                4
+        );
+        addConstruction(
+                List.of(ingredient("ingot_meteorite_forged", 4), ingotIngredient("desh", 1), ingredient("billet_yharonite", 1)),
+                item("plate_armor_fau", 1),
+                6
+        );
+        addConstruction(
+                List.of(ingredient("plate_dineutronium", 4), ingredient("particle_sparkticle", 1), ingredient("plate_armor_fau", 6)),
+                item("plate_armor_dnt", 1),
+                7
         );
         addConstruction(
                 List.of(
@@ -564,7 +605,7 @@ public final class HbmAnvilRecipes {
                 List.of(
                         ingredient(mc("stone_bricks"), 8),
                         tagIngredient(ItemTags.LOGS, 16, mc("oak_log")),
-                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 2, HbmItems.PLATE_CAST.get()),
+                        foundryShapeIngredient(FoundryShape.CAST_PLATE, "copper", 2),
                         ingredient(mc("bricks"), 16)
                 ),
                 blockItem("furnace_combination", 1),
@@ -610,7 +651,7 @@ public final class HbmAnvilRecipes {
                 2
         );
 
-        if (HbmConfig.ENABLE_528_MODE.get()) {
+        if (!HbmConfig.ENABLE_528_MODE.get()) {
             addConstruction(
                     List.of(ingredient("billet_pu_mix", 2), ingredient("billet_uranium", 1), plateIngredient("iron", 2)),
                     item("pile_rod_plutonium", 1),
@@ -642,20 +683,20 @@ public final class HbmAnvilRecipes {
         addMoldSmithing(1, ingredient("billet_uranium", 1), blank, MoldReferenceShape.BILLET, 1);
         addMoldSmithing(2, tagIngredient(commonTag("ingots/iron"), 1, mc("iron_ingot")), blank, MoldReferenceShape.INGOT, 1);
         addMoldSmithing(3, tagIngredient(commonTag("plates/iron"), 1, hbm("plate_iron")), blank, MoldReferenceShape.PLATE, 1);
-        addMoldSmithing(19, foundryShapeIngredient(FoundryShape.CAST_PLATE, "iron", 1, HbmItems.PLATE_CAST.get()), blank, MoldReferenceShape.CAST_PLATE, 1);
-        addMoldSmithing(15, foundryShapeIngredient(FoundryShape.CAST_PLATE, "iron", 3, HbmItems.PLATE_CAST.get()), blank, MoldReferenceShape.CAST_PLATE, 3);
-        addMoldSmithing(4, foundryShapeIngredient(FoundryShape.WIRE, "red_copper", 1, HbmItems.WIRE_FINE.get()), blank, MoldReferenceShape.WIRE, 1);
+        addMoldSmithing(19, foundryShapeIngredient(FoundryShape.CAST_PLATE, "iron", 1), blank, MoldReferenceShape.CAST_PLATE, 1);
+        addMoldSmithing(15, foundryShapeIngredient(FoundryShape.CAST_PLATE, "iron", 3), blank, MoldReferenceShape.CAST_PLATE, 3);
+        addMoldSmithing(4, foundryShapeIngredient(FoundryShape.WIRE, "red_copper", 1), blank, MoldReferenceShape.WIRE, 1);
         addMoldSmithing(5, ingredients(1, "blade_titanium", "blade_tungsten"), blank);
         addMoldSmithing(6, ingredients(1, "blades_steel", "blades_titanium", "blades_advanced_alloy"), blank);
         addMoldSmithing(7, ingredients(1, "stamp_stone_flat", "stamp_iron_flat", "stamp_steel_flat", "stamp_titanium_flat", "stamp_obsidian_flat"), blank);
-        addMoldSmithing(8, foundryShapeIngredient(FoundryShape.SHELL, "steel", 1, HbmItems.SHELL.get()), blank, MoldReferenceShape.SHELL, 1);
+        addMoldSmithing(8, foundryShapeIngredient(FoundryShape.SHELL, "steel", 1), blank, MoldReferenceShape.SHELL, 1);
         addMoldSmithing(9, tagIngredient(commonTag("pipes/steel"), 1, hbm("pipe_steel")), blank, MoldReferenceShape.PIPE, 1);
         addMoldSmithing(10, tagIngredient(commonTag("ingots/iron"), 9, mc("iron_ingot")), blank, MoldReferenceShape.INGOT, 9);
         addMoldSmithing(11, tagIngredient(commonTag("plates/iron"), 9, hbm("plate_iron")), blank, MoldReferenceShape.PLATE, 9);
         addMoldSmithing(12, ingredient(mc("iron_block"), 1), blank, MoldReferenceShape.BLOCK, 1);
         addMoldSmithing(13, ingredient("pipes_steel", 1), blank);
-        addMoldSmithing(20, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "advanced_alloy", 1, HbmItems.WIRE_DENSE.get()), blank, MoldReferenceShape.DENSE_WIRE, 1);
-        addMoldSmithing(21, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "advanced_alloy", 9, HbmItems.WIRE_DENSE.get()), blank, MoldReferenceShape.DENSE_WIRE, 9);
+        addMoldSmithing(20, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "advanced_alloy", 1), blank, MoldReferenceShape.DENSE_WIRE, 1);
+        addMoldSmithing(21, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "advanced_alloy", 9), blank, MoldReferenceShape.DENSE_WIRE, 9);
     }
 
     private static void registerStampConstructionRecipes() {
@@ -698,7 +739,7 @@ public final class HbmAnvilRecipes {
     private static void addShellRecipe(String material, int tier) {
         addConstruction(
                 List.of(plateIngredient(material, 4)),
-                foundryShapeStack(FoundryShape.SHELL, material, 1, HbmItems.SHELL.get()),
+                foundryShapeStack(FoundryShape.SHELL, material, 1),
                 tier
         );
     }
@@ -709,7 +750,7 @@ public final class HbmAnvilRecipes {
                 : ingotIngredient(material, 3);
         addConstruction(
                 List.of(input),
-                foundryShapeStack(FoundryShape.PIPE, material, 1, HbmItems.PIPE.get()),
+                foundryShapeStack(FoundryShape.PIPE, material, 1),
                 tier
         );
     }
@@ -789,10 +830,6 @@ public final class HbmAnvilRecipes {
     private static boolean matchesMoldReference(ItemStack stack, MoldReferenceShape shape, int count) {
         if (stack.isEmpty() || stack.getCount() != count) {
             return false;
-        }
-
-        if (stack.getItem() instanceof FoundryShapeItem shapeItem) {
-            return shapeItem.shape() == shape.foundryShape && FoundryShapeItem.supports(shape.foundryShape, shapeItem.material(stack));
         }
 
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
@@ -882,14 +919,15 @@ public final class HbmAnvilRecipes {
     private static void addLegacyBat9000RecyclingRecipe() {
         FoundryMaterial tcalloy = FoundryMaterial.get("tcalloy");
         Optional<ItemStack> steelPlates = item("plate_steel", 16);
-        if (tcalloy == null || steelPlates.isEmpty()) {
+        Optional<ItemStack> weldedPlates = foundryShapeStack(FoundryShape.WELDED_PLATE, "tcalloy", 4);
+        if (tcalloy == null || steelPlates.isEmpty() || weldedPlates.isEmpty()) {
             return;
         }
 
         CONSTRUCTION.add(new AnvilConstructionRecipe(
                 List.of(AnvilIngredient.of(HbmBlocks.MACHINE_BAT9000.get(), 1)),
                 List.of(
-                        new AnvilOutput(FoundryShapeItem.stackFor(HbmItems.PLATE_WELDED.get(), tcalloy, 4)),
+                        new AnvilOutput(weldedPlates.get()),
                         new AnvilOutput(steelPlates.get())
                 ),
                 3,
@@ -952,7 +990,7 @@ public final class HbmAnvilRecipes {
                 List.of(
                         output("crt_display", 1),
                         output("scrap", 3),
-                        foundryShapeOutput(FoundryShape.WIRE, "copper", 4, HbmItems.WIRE_FINE.get()),
+                        foundryShapeOutput(FoundryShape.WIRE, "copper", 4),
                         output("circuit_pcb", 2),
                         output("circuit_vacuum_tube", 1, 0.5F),
                         output("circuit_capacitor", 1, 0.75F),
@@ -967,8 +1005,8 @@ public final class HbmAnvilRecipes {
                 List.of(
                         output("crt_display", 1),
                         output("scrap", 2),
-                        foundryShapeOutput(FoundryShape.WIRE, "copper", 2, HbmItems.WIRE_FINE.get()),
-                        foundryShapeOutput(FoundryShape.WIRE, "gold", 2, HbmItems.WIRE_FINE.get(), 0.25F),
+                        foundryShapeOutput(FoundryShape.WIRE, "copper", 2),
+                        foundryShapeOutput(FoundryShape.WIRE, "gold", 2, 0.25F),
                         output("circuit_vacuum_tube", 1, 0.25F)
                 )
         );
@@ -1029,7 +1067,7 @@ public final class HbmAnvilRecipes {
                 2,
                 List.of(
                         output("plate_steel", 4),
-                        foundryShapeOutput(FoundryShape.WIRE, "copper", 1, HbmItems.WIRE_FINE.get()),
+                        foundryShapeOutput(FoundryShape.WIRE, "copper", 1),
                         output("circuit_vacuum_tube", 1, 0.5F),
                         output("ingot_polymer", 1, 0.25F)
                 )
@@ -1053,7 +1091,7 @@ public final class HbmAnvilRecipes {
                         output("ingot_steel", 3),
                         output("ingot_steel", 2, 0.5F),
                         output("circuit_vacuum_tube", 1, 0.5F),
-                        foundryShapeOutput(FoundryShape.WIRE, "red_copper", 1, HbmItems.WIRE_FINE.get())
+                        foundryShapeOutput(FoundryShape.WIRE, "red_copper", 1)
                 )
         );
 
@@ -1069,6 +1107,213 @@ public final class HbmAnvilRecipes {
                     )
             ));
         }
+    }
+
+    /**
+     * Direct ports of the remaining 1.7.10 {@code registerConstructionRecycling}
+     * entries.  Keep these explicit: several outputs are not obtainable from the
+     * datapack recipe registry and therefore cannot be covered by JSON-only audits.
+     */
+    private static void addLegacyMachineAndReactorRecyclingRecipes() {
+        addLegacyRecyclingRecipe(
+                ingredientOptional("chunk_ore_rare", 1),
+                2,
+                List.of(
+                        output("fragment_boron", 1),
+                        output("fragment_boron", 1, 0.5F),
+                        output("fragment_lanthanium", 1, 0.1F),
+                        output("fragment_cobalt", 1),
+                        output("fragment_cobalt", 1, 0.5F),
+                        output("fragment_cerium", 1, 0.1F),
+                        output("fragment_neodymium", 1, 0.5F),
+                        output("fragment_niobium", 1, 0.5F)
+                )
+        );
+
+        addLegacyRecyclingRecipe(
+                ingredientOptional("heater_firebox", 1),
+                2,
+                List.of(output("plate_steel", 8), output(new ItemStack(Items.COPPER_INGOT, 6)))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("heater_oven", 1),
+                2,
+                List.of(output("ingot_firebrick", 16), output(new ItemStack(Items.COPPER_INGOT, 8)))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("machine_stirling", 1),
+                2,
+                List.of(output("plate_steel", 6), output(new ItemStack(Items.COPPER_INGOT, 8)), output("coil_copper", 4), output("gear_large", 1))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("machine_stirling_steel", 1),
+                2,
+                List.of(output("plate_steel", 16), output("ingot_beryllium", 6), output(new ItemStack(Items.COPPER_INGOT, 8)),
+                        output("coil_gold", 16), output("gear_large_steel", 1))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("gear_large_steel", 1),
+                2,
+                List.of(output("plate_steel", 8), output("ingot_titanium", 1))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("gear_large", 1),
+                2,
+                List.of(output("plate_iron", 8), output(new ItemStack(Items.COPPER_INGOT)))
+        );
+
+        addLegacyRecyclingRecipe(
+                ingredientOptional("pile_rod_uranium", 1),
+                2,
+                List.of(output("billet_uranium", 3), output("plate_iron", 2))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("pile_rod_source", 1),
+                2,
+                List.of(output("billet_ra226be", 3), output("plate_iron", 2))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("pile_rod_boron", 1),
+                2,
+                List.of(output("ingot_boron", 2), output(new ItemStack(Items.STICK, 2)))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("pile_rod_detector", 1),
+                2,
+                List.of(output("ingot_boron", 2), output("motor", 1), output("circuit_vacuum_tube", 1))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("pile_rod_lithium", 1),
+                2,
+                List.of(output("lithium", 1), output("cell_empty", 1))
+        );
+
+        if (!HbmConfig.ENABLE_528_MODE.get()) {
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("pile_rod_plutonium", 1),
+                    2,
+                    List.of(output("billet_pu_mix", 2), output("billet_uranium", 1), output("plate_iron", 2))
+            );
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("pile_rod_pu239", 1),
+                    2,
+                    List.of(output("billet_pu239", 1), output("billet_pu_mix", 1), output("billet_uranium", 1), output("plate_iron", 2))
+            );
+        } else {
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("pile_rod_plutonium", 1),
+                    2,
+                    List.of(output("billet_pu_mix", 2), output("billet_nuclear_waste", 1), output("plate_iron", 1))
+            );
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("pile_rod_pu239", 1),
+                    2,
+                    List.of(output("billet_pu239", 1), output("billet_pu_mix", 1), output("billet_nuclear_waste", 1), output("plate_iron", 2))
+            );
+        }
+
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_moderator", 1),
+                4,
+                List.of(output("rbmk_blank", 1), output("block_graphite", 4))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_absorber", 1),
+                4,
+                List.of(output("rbmk_blank", 1), output("ingot_boron", 8))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_reflector", 1),
+                4,
+                List.of(output("rbmk_blank", 1), output("neutron_reflector", 8))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_control", 1),
+                4,
+                List.of(output("rbmk_absorber", 1), output("ingot_graphite", 2), output("motor", 2))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_control_mod", 1),
+                4,
+                List.of(output("rbmk_control", 1), output("block_graphite", 4), output("nugget_bismuth", 4))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_control_auto", 1),
+                4,
+                List.of(output("rbmk_control", 1), output("circuit_advanced", 1), output("crt_display", 1))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_rod_reasim", 1),
+                4,
+                List.of(output("rbmk_blank", 1), output("ingot_zirconium", 4), output("shell_steel", 2))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_rod_reasim_mod", 1),
+                4,
+                List.of(output("rbmk_rod_reasim", 1), output("block_graphite", 4), output("ingot_tcalloy", 4))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_outgasser", 1),
+                4,
+                List.of(output("rbmk_blank", 1), output("steel_grate", 6), output("tank_steel", 1), output(new ItemStack(Items.HOPPER)))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("rbmk_storage", 1),
+                4,
+                List.of(output("rbmk_blank", 1), output("crate_steel", 2))
+        );
+
+        if (!HbmConfig.ENABLE_528_MODE.get()) {
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("rbmk_rod", 1),
+                    4,
+                    List.of(output("rbmk_blank", 1), output("shell_steel", 2))
+            );
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("rbmk_rod_mod", 1),
+                    4,
+                    List.of(output("rbmk_rod", 1), output("block_graphite", 4), output("nugget_bismuth", 4))
+            );
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("rbmk_boiler", 1),
+                    4,
+                    List.of(output("rbmk_blank", 1), output("pipe_copper", 6), output("shell_copper", 2))
+            );
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("rbmk_cooler", 1),
+                    4,
+                    List.of(output("rbmk_blank", 1), output("steel_grate", 4), output("plate_polymer", 4))
+            );
+            addLegacyRecyclingRecipe(
+                    ingredientOptional("machine_reactor_small", 1),
+                    4,
+                    List.of(output("ingot_steel", 8), output("ingot_tcalloy", 4), output("motor_desh", 2),
+                            output("ingot_boron", 5), output("plate_lead", 8), output("crt_display", 3),
+                            output("circuit_basic", 1), output("circuit_basic", 1, 0.5F))
+            );
+        }
+
+        addLegacyRecyclingRecipe(
+                ingredientOptional("machine_turbine", 1),
+                3,
+                List.of(output("turbine_titanium", 1), output("coil_copper", 2), output("ingot_steel", 4))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("egg_glyphid", 1),
+                1,
+                List.of(output("glyphid_meat", 2), output("glyphid_meat", 1, 0.5F),
+                        output(new ItemStack(Items.BONE), 0.75F), output(new ItemStack(Items.EXPERIENCE_BOTTLE), 0.5F))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("fusion_heater", 1),
+                1,
+                List.of(output("pipe_steel", 4), output("pipe_copper", 2), output("circuit_analog", 1, 0.5F))
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("fusion_hatch", 1),
+                1,
+                List.of(output("pipe_steel", 4), output("pipe_copper", 4), output("circuit_analog", 1, 0.75F))
+        );
     }
 
     private static void addLegacyRecyclingRecipe(Optional<AnvilIngredient> input, int tier, List<Optional<AnvilOutput>> outputOptions) {
@@ -1109,12 +1354,12 @@ public final class HbmAnvilRecipes {
         return stack.isEmpty() ? Optional.empty() : Optional.of(new AnvilOutput(stack, chance));
     }
 
-    private static Optional<AnvilOutput> foundryShapeOutput(FoundryShape shape, String materialName, int count, Item item) {
-        return foundryShapeStack(shape, materialName, count, item).map(AnvilOutput::new);
+    private static Optional<AnvilOutput> foundryShapeOutput(FoundryShape shape, String materialName, int count) {
+        return foundryShapeStack(shape, materialName, count).map(AnvilOutput::new);
     }
 
-    private static Optional<AnvilOutput> foundryShapeOutput(FoundryShape shape, String materialName, int count, Item item, float chance) {
-        return foundryShapeStack(shape, materialName, count, item).map(stack -> new AnvilOutput(stack, chance));
+    private static Optional<AnvilOutput> foundryShapeOutput(FoundryShape shape, String materialName, int count, float chance) {
+        return foundryShapeStack(shape, materialName, count).map(stack -> new AnvilOutput(stack, chance));
     }
 
     /** Direct 1.7.10 PowerCableBox construction and recycling recipes. */
@@ -1248,24 +1493,21 @@ public final class HbmAnvilRecipes {
         return tagIngredient(commonTag("ingots/" + material), count, displayItemId);
     }
 
-    private static Optional<AnvilIngredient> foundryShapeIngredient(FoundryShape shape, String materialName, int count, Item item) {
-        FoundryMaterial material = FoundryMaterial.get(materialName);
-        if (!FoundryShapeItem.supports(shape, material)) {
-            return Optional.empty();
-        }
-        return AnvilIngredient.ofStacks(count, FoundryShapeItem.stackFor(item, material));
+    private static Optional<AnvilIngredient> foundryShapeIngredient(FoundryShape shape, String materialName, int count) {
+        return foundryShapeStack(shape, materialName, 1)
+                .flatMap(stack -> AnvilIngredient.ofStacks(count, stack));
     }
 
     private static Optional<AnvilIngredient> fluidIngredient(String fluidName, int amount) {
         return HbmFluids.byName(fluidName).flatMap(fluid -> AnvilIngredient.ofFluid(fluid, amount));
     }
 
-    private static Optional<ItemStack> foundryShapeStack(FoundryShape shape, String materialName, int count, Item item) {
+    private static Optional<ItemStack> foundryShapeStack(FoundryShape shape, String materialName, int count) {
         FoundryMaterial material = FoundryMaterial.get(materialName);
-        if (!FoundryShapeItem.supports(shape, material)) {
+        if (!FoundryMaterialItems.supportsShape(shape, material)) {
             return Optional.empty();
         }
-        return Optional.of(FoundryShapeItem.stackFor(item, material, count));
+        return item(HbmItems.independentFoundryItemPath(shape, material), count);
     }
 
     private static Optional<ItemStack> item(String path, int count) {

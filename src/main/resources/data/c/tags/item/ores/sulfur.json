@@ -2,6 +2,7 @@
     "replace":  false,
     "values":  [
                    "reinhardtshbm:ore_sulfur",
-                   "reinhardtshbm:ore_deepslate_sulfur"
+                   "reinhardtshbm:ore_deepslate_sulfur",
+                   "reinhardtshbm:stone_resource_sulfur"
                ]
 }

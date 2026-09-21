@@ -11,13 +11,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:item_expensive",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "heavy_frame"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 4
     },
@@ -35,23 +29,13 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "steel"
+        "item": "reinhardtshbm:shell_steel"
       },
       "count": 12
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "copper"
+        "item": "reinhardtshbm:pipe_copper"
       },
       "count": 16
     },
@@ -63,13 +47,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:item_expensive",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "circuit"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_circuit"
       },
       "count": 4
     }

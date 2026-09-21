@@ -1,13 +1,1 @@
-{
-  "type": "reinhardtshbm:press",
-  "group": "press.flat",
-  "stamp": "flat",
-  "ingredient": { "tag": "c:dusts/coal" },
-  "result": {
-    "id": "reinhardtshbm:briquette",
-    "components": {
-      "minecraft:custom_data": { "variant": "coal" },
-      "minecraft:custom_model_data": 0
-    }
-  }
-}
+{"type":"reinhardtshbm:press","group":"press.flat","stamp":"flat","ingredient":{"tag":"c:dusts/coal"},"result":{"id":"reinhardtshbm:briquette_coal"}}

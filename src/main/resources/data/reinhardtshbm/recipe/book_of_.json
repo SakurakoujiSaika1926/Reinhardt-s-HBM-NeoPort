@@ -1,1 +1,36 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:page_of_"},{"item":"reinhardtshbm:egg_balefire"}],"result":{"id":"reinhardtshbm:book_of_"}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:page_of_page1"
+    },
+    {
+      "item": "reinhardtshbm:page_of_page2"
+    },
+    {
+      "item": "reinhardtshbm:page_of_page3"
+    },
+    {
+      "item": "reinhardtshbm:page_of_page4"
+    },
+    {
+      "item": "reinhardtshbm:page_of_page5"
+    },
+    {
+      "item": "reinhardtshbm:page_of_page6"
+    },
+    {
+      "item": "reinhardtshbm:page_of_page7"
+    },
+    {
+      "item": "reinhardtshbm:page_of_page8"
+    },
+    {
+      "item": "reinhardtshbm:egg_balefire"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:book_of_"
+  }
+}

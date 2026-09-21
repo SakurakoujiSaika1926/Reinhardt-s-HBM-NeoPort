@@ -29,8 +29,9 @@ public final class GasMaskAttachmentItem extends ArmorModItem implements Filtera
     public Set<HbmArmorProtection.HazardClass> blacklist() {
         return this.mono
                 ? Set.of(HbmArmorProtection.HazardClass.GAS_LUNG, HbmArmorProtection.HazardClass.GAS_BLISTERING,
-                HbmArmorProtection.HazardClass.BACTERIA)
-                : Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING);
+                HbmArmorProtection.HazardClass.NERVE_AGENT, HbmArmorProtection.HazardClass.BACTERIA)
+                : Set.of(HbmArmorProtection.HazardClass.GAS_BLISTERING,
+                HbmArmorProtection.HazardClass.NERVE_AGENT);
     }
 
     @Override

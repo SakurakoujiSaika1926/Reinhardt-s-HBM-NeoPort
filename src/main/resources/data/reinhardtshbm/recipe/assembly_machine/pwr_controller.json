@@ -14,12 +14,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "lead"
+        "item": "reinhardtshbm:plate_cast_lead"
       },
       "count": 4
     },

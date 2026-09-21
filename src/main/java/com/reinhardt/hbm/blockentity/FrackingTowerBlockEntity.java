@@ -4,9 +4,12 @@ import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
+import com.reinhardt.hbm.integration.createdieselgenerators.HbmCreateDieselGeneratorsOilCompat;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.MachineUpgradeItem;
 import com.reinhardt.hbm.menu.FrackingTowerMenu;
+import com.reinhardt.hbm.oil.OilFieldSource;
+import com.reinhardt.hbm.oil.ShallowOilTaskQueue;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -22,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -33,6 +37,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -45,11 +50,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
 
 public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
@@ -79,6 +82,9 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
 
     private static final int PUSH_PER_PORT = 16_000;
     private static final int MAX_SUCK_NODES = 256;
+    private static final long[] EMPTY_SHALLOW_OIL_TASKS = ShallowOilTaskQueue.EMPTY;
+    private static final int FRACKING_DEEP_RESERVOIR_CHUNK_RADIUS = 3;
+    private static final long INFINITE_DEEP_OIL = Long.MAX_VALUE;
     private static final int UNSET_DRILL_CURSOR = Integer.MIN_VALUE;
     private static final int[] ALL_SLOTS = {0, 1, 2, 3, 4, 5, 6, 7};
     private static final int[] INPUT_SLOTS = {0, 1, 3, 5, 6, 7};
@@ -93,6 +99,11 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
     private long lastInput;
     private int indicator;
     private int drillCursorY = UNSET_DRILL_CURSOR;
+    private long[] shallowOilTasks = EMPTY_SHALLOW_OIL_TASKS;
+    private int shallowOilTaskIndex;
+    private OilFieldSource oilFieldSource = OilFieldSource.UNDETERMINED;
+    private boolean createDieselGeneratorsPipeReady;
+    private List<ChunkPos> createDieselGeneratorsOilChunks;
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -379,6 +390,12 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
         tag.putLong("LastInput", this.lastInput);
         tag.putInt("Indicator", this.indicator);
         tag.putInt("DrillCursorY", this.drillCursorY);
+        tag.putString("OilFieldSource", this.oilFieldSource.name());
+        tag.putBoolean("CreateDieselGeneratorsPipeReady", this.createDieselGeneratorsPipeReady);
+        if (hasShallowOilTasks()) {
+            tag.putLongArray("ShallowOilTasks", this.shallowOilTasks);
+            tag.putInt("ShallowOilTaskIndex", this.shallowOilTaskIndex);
+        }
     }
 
     @Override
@@ -394,7 +411,22 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
         this.lastInput = tag.getLong("LastInput");
         this.indicator = tag.getInt("Indicator");
         this.drillCursorY = tag.contains("DrillCursorY") ? tag.getInt("DrillCursorY") : UNSET_DRILL_CURSOR;
+        this.oilFieldSource = OilFieldSource.byName(tag.getString("OilFieldSource"));
+        this.createDieselGeneratorsPipeReady = tag.getBoolean("CreateDieselGeneratorsPipeReady");
+        loadShallowOilTasks(tag);
         ensureTankTypes();
+    }
+
+    private void loadShallowOilTasks(CompoundTag tag) {
+        if (!tag.contains("ShallowOilTasks")) {
+            clearShallowOilTasks();
+            return;
+        }
+        this.shallowOilTasks = tag.getLongArray("ShallowOilTasks");
+        this.shallowOilTaskIndex = Math.max(0, Math.min(this.shallowOilTasks.length, tag.getInt("ShallowOilTaskIndex")));
+        if (!hasShallowOilTasks()) {
+            clearShallowOilTasks();
+        }
     }
 
     @Override
@@ -494,21 +526,276 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
     private void operate(Level level) {
         int required = powerReqEff();
         if (this.power >= required && this.oilTank.amount() < this.oilTank.capacity() && this.gasTank.amount() < this.gasTank.capacity()) {
+            ensureOilFieldSource(level);
             this.power -= required;
             if (level.getGameTime() % delayEff() == 0L) {
                 this.indicator = 0;
+                if (this.oilFieldSource == OilFieldSource.CREATE_DIESEL_GENERATORS) {
+                    if (!this.createDieselGeneratorsPipeReady && !advanceCreateDieselGeneratorsOilPipe(level)) {
+                        return;
+                    }
+                    if (!pumpCreateDieselGeneratorsOil(level) && this.indicator == 0) {
+                        if (switchToBedrockOilIfAvailable(level)) {
+                            return;
+                        }
+                        this.indicator = 1;
+                    }
+                    return;
+                }
+                if (this.oilFieldSource == OilFieldSource.HBM_BEDROCK) {
+                    pumpBedrockOil(level);
+                    return;
+                }
                 int minY = Math.min(drillDepth(level), this.worldPosition.getY() - 1);
                 int y = nextDrillY(level, minY);
                 if (y < minY) {
+                    if (switchToCreateDieselGeneratorsOilIfAvailable(level)
+                            || switchToBedrockOilIfAvailable(level)) {
+                        return;
+                    }
                     this.indicator = 1;
                     return;
                 }
-                if (!trySuck(level, y) && tryDrill(level, y)) {
+                BlockPos drillPos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
+                BlockState drillState = level.getBlockState(drillPos);
+                if (isDeepDrillTarget(drillState)) {
+                    if (switchToCreateDieselGeneratorsOilIfAvailable(level)
+                            || switchToBedrockOilIfAvailable(level)) {
+                        return;
+                    }
+                    this.indicator = 1;
+                    return;
+                }
+                if (!trySuckShallow(level, drillPos) && tryDrill(level, y)) {
                     this.drillCursorY = y - 1;
                 }
             }
         } else {
             this.indicator = 2;
+        }
+    }
+
+    private void ensureOilFieldSource(Level level) {
+        if (this.oilFieldSource != OilFieldSource.UNDETERMINED) {
+            return;
+        }
+        this.oilFieldSource = detectOilFieldSource(level);
+        if (this.oilFieldSource != OilFieldSource.CREATE_DIESEL_GENERATORS) {
+            this.createDieselGeneratorsPipeReady = false;
+        }
+        setChanged();
+        sync();
+    }
+
+    private OilFieldSource detectOilFieldSource(Level level) {
+        if (hasShallowOilInDrillColumn(level)) {
+            return OilFieldSource.HBM;
+        }
+        if (hasCreateDieselGeneratorsOil(level)) {
+            return OilFieldSource.CREATE_DIESEL_GENERATORS;
+        }
+        if (hasBedrockOilInDrillColumn(level)) {
+            return OilFieldSource.HBM_BEDROCK;
+        }
+        return OilFieldSource.HBM;
+    }
+
+    private boolean switchToCreateDieselGeneratorsOilIfAvailable(Level level) {
+        if (!hasCreateDieselGeneratorsOil(level)) {
+            return false;
+        }
+        this.oilFieldSource = OilFieldSource.CREATE_DIESEL_GENERATORS;
+        this.createDieselGeneratorsPipeReady = false;
+        clearShallowOilTasks();
+        setChanged();
+        sync();
+        return true;
+    }
+
+    private boolean switchToBedrockOilIfAvailable(Level level) {
+        if (!hasBedrockOilInDrillColumn(level)) {
+            return false;
+        }
+        this.oilFieldSource = OilFieldSource.HBM_BEDROCK;
+        this.createDieselGeneratorsPipeReady = false;
+        clearShallowOilTasks();
+        setChanged();
+        sync();
+        return true;
+    }
+
+    private boolean hasCreateDieselGeneratorsOil(Level level) {
+        return HbmCreateDieselGeneratorsOilCompat.isLoaded()
+                && level instanceof ServerLevel serverLevel
+                && scanCreateDieselGeneratorsOil(serverLevel).hasOil();
+    }
+
+    private boolean advanceCreateDieselGeneratorsOilPipe(Level level) {
+        int minY = Math.min(level.getMinBuildHeight(), this.worldPosition.getY() - 1);
+        int y = nextDrillY(level, minY);
+        if (y < minY) {
+            this.indicator = 1;
+            return false;
+        }
+
+        BlockPos pos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
+        if (isDeepDrillTarget(level.getBlockState(pos))) {
+            this.createDieselGeneratorsPipeReady = true;
+            setChanged();
+            sync();
+            return true;
+        }
+        if (tryDrill(level, y)) {
+            this.drillCursorY = y - 1;
+        }
+        return false;
+    }
+
+    private boolean hasShallowOilInDrillColumn(Level level) {
+        int topY = this.worldPosition.getY() - 1;
+        int minY = Math.min(drillDepth(level), topY);
+        for (int y = topY; y >= minY; y--) {
+            BlockPos pos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
+            BlockState state = level.getBlockState(pos);
+            if (isShallowOilDeposit(state) || (isShallowEmptyOilDeposit(state) && shallowNetworkHasOil(level, pos))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean shallowNetworkHasOil(Level level, BlockPos startPos) {
+        Queue<BlockPos> queue = new ArrayDeque<>();
+        this.processed.clear();
+        queue.offer(startPos);
+        this.processed.add(startPos);
+
+        int nodesVisited = 0;
+        while (!queue.isEmpty() && nodesVisited < MAX_SUCK_NODES) {
+            BlockPos currentPos = queue.poll();
+            nodesVisited++;
+            BlockState currentState = level.getBlockState(currentPos);
+            if (isShallowOilDeposit(currentState)) {
+                return true;
+            }
+            if (!isShallowEmptyOilDeposit(currentState)) {
+                continue;
+            }
+
+            for (Direction direction : Direction.values()) {
+                BlockPos neighborPos = currentPos.relative(direction);
+                if (!this.processed.contains(neighborPos) && isShallowSearchBlock(level.getBlockState(neighborPos))) {
+                    this.processed.add(neighborPos);
+                    queue.offer(neighborPos);
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean hasBedrockOilInDrillColumn(Level level) {
+        int topY = this.worldPosition.getY() - 1;
+        int minY = Math.min(drillDepth(level), topY);
+        for (int y = topY; y >= minY; y--) {
+            BlockState state = level.getBlockState(new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ()));
+            if (isBedrockOilDeposit(state)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean pumpCreateDieselGeneratorsOil(Level level) {
+        if (!this.createDieselGeneratorsPipeReady || !(level instanceof ServerLevel serverLevel) || !canPump()) {
+            return false;
+        }
+
+        int acceptedOil = this.oilTank.fill(oil(), OIL_PER_DEPOSIT, true);
+        if (acceptedOil <= 0) {
+            return false;
+        }
+
+        DeepOilSnapshot snapshot = scanCreateDieselGeneratorsOil(serverLevel);
+        if (!snapshot.hasOil()) {
+            return false;
+        }
+        if (!snapshot.infinite()) {
+            acceptedOil = drainCreateDieselGeneratorsOil(
+                    serverLevel,
+                    snapshot,
+                    (int) Math.min(acceptedOil, snapshot.totalOil())
+            );
+            if (acceptedOil <= 0) {
+                return false;
+            }
+        }
+        this.oilTank.fill(oil(), acceptedOil, false);
+        int gasAmount = GAS_PER_DEPOSIT_MIN + level.random.nextInt(GAS_PER_DEPOSIT_MAX - GAS_PER_DEPOSIT_MIN + 1);
+        this.gasTank.fill(gas(), gasAmount, false);
+        this.fracksolTank.drain(fracksol(), SOLUTION_REQUIRED, false);
+        OilFieldSurfaceEffects.generateRuntimeOilSpot(level, level.random, this.worldPosition.getX(), this.worldPosition.getZ(), DESTRUCTION_RANGE, 10, false);
+        level.playSound(null, this.worldPosition, SoundEvents.GENERIC_SWIM, SoundSource.BLOCKS, 2.0F, 0.5F);
+        sync();
+        return true;
+    }
+
+    private DeepOilSnapshot scanCreateDieselGeneratorsOil(ServerLevel level) {
+        List<DeepOilChunk> availableChunks = new ArrayList<>();
+        long total = 0L;
+        for (ChunkPos chunk : createDieselGeneratorsOilChunks()) {
+            int amount = HbmCreateDieselGeneratorsOilCompat.materializeChunkOilAmount(level, chunk);
+            if (amount == Integer.MAX_VALUE) {
+                return new DeepOilSnapshot(List.of(), INFINITE_DEEP_OIL, true);
+            }
+            if (amount > 0) {
+                availableChunks.add(new DeepOilChunk(chunk, amount));
+                total += amount;
+            }
+        }
+        return new DeepOilSnapshot(availableChunks, total, false);
+    }
+
+    private int drainCreateDieselGeneratorsOil(ServerLevel level, DeepOilSnapshot snapshot, int amount) {
+        int remaining = amount;
+        for (DeepOilChunk chunk : snapshot.chunks()) {
+            int drained = Math.min(chunk.amount(), remaining);
+            if (!HbmCreateDieselGeneratorsOilCompat.setChunkOilAmount(level, chunk.pos(), chunk.amount() - drained)) {
+                continue;
+            }
+            remaining -= drained;
+            if (remaining <= 0) {
+                return amount;
+            }
+        }
+        return amount - remaining;
+    }
+
+    private List<ChunkPos> createDieselGeneratorsOilChunks() {
+        if (this.createDieselGeneratorsOilChunks != null) {
+            return this.createDieselGeneratorsOilChunks;
+        }
+        ChunkPos center = new ChunkPos(this.worldPosition);
+        List<ChunkPos> chunks = new ArrayList<>(1 + 2 * FRACKING_DEEP_RESERVOIR_CHUNK_RADIUS * (FRACKING_DEEP_RESERVOIR_CHUNK_RADIUS + 1));
+        for (int radius = 0; radius <= FRACKING_DEEP_RESERVOIR_CHUNK_RADIUS; radius++) {
+            for (int chunkX = -radius; chunkX <= radius; chunkX++) {
+                for (int chunkZ = -radius; chunkZ <= radius; chunkZ++) {
+                    if (Math.abs(chunkX) + Math.abs(chunkZ) != radius) {
+                        continue;
+                    }
+                    chunks.add(new ChunkPos(center.x + chunkX, center.z + chunkZ));
+                }
+            }
+        }
+        this.createDieselGeneratorsOilChunks = List.copyOf(chunks);
+        return this.createDieselGeneratorsOilChunks;
+    }
+
+    private record DeepOilChunk(ChunkPos pos, int amount) {
+    }
+
+    private record DeepOilSnapshot(List<DeepOilChunk> chunks, long totalOil, boolean infinite) {
+        private boolean hasOil() {
+            return this.infinite || this.totalOil > 0L;
         }
     }
 
@@ -585,48 +872,48 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
         return false;
     }
 
-    private boolean trySuck(Level level, int y) {
-        return trySuck(level, new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ()));
+    private boolean pumpBedrockOil(Level level) {
+        int minY = Math.min(drillDepth(level), this.worldPosition.getY() - 1);
+        int y = nextDrillY(level, minY);
+        if (y < minY) {
+            this.indicator = 1;
+            return false;
+        }
+
+        BlockPos pos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
+        BlockState state = level.getBlockState(pos);
+        if (isBedrockOilDeposit(state)) {
+            if (!canPump()) {
+                return false;
+            }
+            doSuck(level, pos, state);
+            return true;
+        }
+        if (HbmCreateDieselGeneratorsOilCompat.isBedrock(state)) {
+            this.indicator = 1;
+            return false;
+        }
+        if (tryDrill(level, y)) {
+            this.drillCursorY = y - 1;
+        }
+        return false;
     }
 
-    private boolean trySuck(Level level, BlockPos startPos) {
-        BlockState startState = level.getBlockState(startPos);
-        if (!canSuckBlock(startState)) {
-            return false;
+    private boolean trySuckShallow(Level level, BlockPos startPos) {
+        if (!hasShallowOilTasks()) {
+            BlockState startState = level.getBlockState(startPos);
+            if (!isShallowSearchBlock(startState)) {
+                return false;
+            }
+            rebuildShallowOilTasks(level, startPos);
+            if (!hasShallowOilTasks()) {
+                return false;
+            }
         }
         if (!canPump()) {
             return true;
         }
-
-        Queue<BlockPos> queue = new ArrayDeque<>();
-        this.processed.clear();
-        queue.offer(startPos);
-        this.processed.add(startPos);
-
-        int nodesVisited = 0;
-        while (!queue.isEmpty() && nodesVisited < MAX_SUCK_NODES) {
-            BlockPos currentPos = queue.poll();
-            nodesVisited++;
-            BlockState currentState = level.getBlockState(currentPos);
-            if (isPumpableDeposit(currentState)) {
-                doSuck(level, currentPos, currentState);
-                return true;
-            }
-            if (!isEmptyOilDeposit(currentState)) {
-                continue;
-            }
-
-            List<Direction> directions = new ArrayList<>(List.of(Direction.values()));
-            Collections.shuffle(directions, new Random(level.random.nextLong()));
-            for (Direction direction : directions) {
-                BlockPos neighborPos = currentPos.relative(direction);
-                if (!this.processed.contains(neighborPos) && canSuckBlock(level.getBlockState(neighborPos))) {
-                    this.processed.add(neighborPos);
-                    queue.offer(neighborPos);
-                }
-            }
-        }
-        return false;
+        return consumeShallowOilTask(level);
     }
 
     private boolean canPump() {
@@ -635,6 +922,59 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
             this.indicator = 3;
         }
         return hasSolution;
+    }
+
+    private void rebuildShallowOilTasks(Level level, BlockPos startPos) {
+        this.shallowOilTasks = ShallowOilTaskQueue.build(
+                level,
+                startPos,
+                MAX_SUCK_NODES,
+                this::isShallowSearchBlock,
+                this::isShallowOilDeposit
+        );
+        this.shallowOilTaskIndex = 0;
+        setChanged();
+    }
+
+    private boolean consumeShallowOilTask(Level level) {
+        if (!hasShallowOilTasks()) {
+            return false;
+        }
+
+        BlockPos pos = BlockPos.of(this.shallowOilTasks[this.shallowOilTaskIndex]);
+        if (!level.isLoaded(pos)) {
+            advanceShallowOilTask();
+            return true;
+        }
+
+        BlockState state = level.getBlockState(pos);
+        if (!isShallowOilDeposit(state)) {
+            advanceShallowOilTask();
+            return true;
+        }
+
+        doSuck(level, pos, state);
+        if (!isShallowOilDeposit(level.getBlockState(pos))) {
+            advanceShallowOilTask();
+        }
+        return true;
+    }
+
+    private boolean hasShallowOilTasks() {
+        return this.shallowOilTaskIndex >= 0 && this.shallowOilTaskIndex < this.shallowOilTasks.length;
+    }
+
+    private void advanceShallowOilTask() {
+        this.shallowOilTaskIndex++;
+        if (!hasShallowOilTasks()) {
+            clearShallowOilTasks();
+        }
+        setChanged();
+    }
+
+    private void clearShallowOilTasks() {
+        this.shallowOilTasks = EMPTY_SHALLOW_OIL_TASKS;
+        this.shallowOilTaskIndex = 0;
     }
 
     private void doSuck(Level level, BlockPos pos, BlockState state) {
@@ -661,18 +1001,24 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
         sync();
     }
 
-    private boolean canSuckBlock(BlockState state) {
-        return isPumpableDeposit(state) || isEmptyOilDeposit(state);
+    private boolean isDeepDrillTarget(BlockState state) {
+        return HbmCreateDieselGeneratorsOilCompat.isBedrock(state) || isBedrockOilDeposit(state);
     }
 
-    private boolean isPumpableDeposit(BlockState state) {
-        return state.is(HbmBlocks.ORE_OIL.get())
-                || state.is(HbmBlocks.ORE_DEEPSLATE_OIL.get())
-                || state.is(HbmBlocks.ORE_BEDROCK_OIL.get());
+    private boolean isShallowSearchBlock(BlockState state) {
+        return isShallowOilDeposit(state) || isShallowEmptyOilDeposit(state);
     }
 
-    private boolean isEmptyOilDeposit(BlockState state) {
+    private boolean isShallowOilDeposit(BlockState state) {
+        return state.is(HbmBlocks.ORE_OIL.get()) || state.is(HbmBlocks.ORE_DEEPSLATE_OIL.get());
+    }
+
+    private boolean isShallowEmptyOilDeposit(BlockState state) {
         return state.is(HbmBlocks.ORE_OIL_EMPTY.get()) || state.is(HbmBlocks.ORE_DEEPSLATE_OIL_EMPTY.get());
+    }
+
+    private boolean isBedrockOilDeposit(BlockState state) {
+        return state.is(HbmBlocks.ORE_BEDROCK_OIL.get());
     }
 
     private boolean isFillableContainerFor(ItemStack stack, HbmFluidDefinition fluid) {

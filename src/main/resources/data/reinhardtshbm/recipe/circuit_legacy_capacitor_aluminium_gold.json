@@ -13,12 +13,7 @@
       "tag": "c:dusts/aluminium"
     },
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_gold"
     }
   },
   "result": {

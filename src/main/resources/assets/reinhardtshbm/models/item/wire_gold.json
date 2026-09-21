@@ -1,6 +1,6 @@
 {
-    "textures": {
-        "layer0": "reinhardtshbm:item/wire_gold"
-    },
-    "parent": "minecraft:item/generated"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/wire_gold"
+  }
 }

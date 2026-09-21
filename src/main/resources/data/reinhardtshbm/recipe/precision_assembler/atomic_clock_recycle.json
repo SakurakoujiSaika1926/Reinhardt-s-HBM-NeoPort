@@ -12,9 +12,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:broken_item"
-        ],
+        "items": "reinhardtshbm:broken_item",
         "components": {
           "minecraft:custom_data": {
             "item_id": "reinhardtshbm:circuit_atomic_clock",
@@ -42,14 +40,8 @@
     },
     {
       "result": {
-        "id": "reinhardtshbm:wire_fine",
-        "count": 8,
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 4000,
-            "material": "zirconium"
-          }
-        }
+        "id": "reinhardtshbm:wire_zirconium",
+        "count": 8
       },
       "weight": 75
     },

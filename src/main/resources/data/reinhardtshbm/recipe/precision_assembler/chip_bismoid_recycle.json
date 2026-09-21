@@ -12,9 +12,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:broken_item"
-        ],
+        "items": "reinhardtshbm:broken_item",
         "components": {
           "minecraft:custom_data": {
             "item_id": "reinhardtshbm:circuit_chip_bismoid",
@@ -49,14 +47,8 @@
     },
     {
       "result": {
-        "id": "reinhardtshbm:wire_fine",
-        "count": 4,
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 7900,
-            "material": "gold"
-          }
-        }
+        "id": "reinhardtshbm:wire_gold",
+        "count": 4
       },
       "weight": 75
     }

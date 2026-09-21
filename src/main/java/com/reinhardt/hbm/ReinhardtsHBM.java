@@ -6,6 +6,7 @@ import com.reinhardt.hbm.integration.create.HbmCreateAdditionCompat;
 import com.reinhardt.hbm.integration.create.HbmCreateMultiblockCompat;
 import com.reinhardt.hbm.integration.createbigcannons.HbmCreateBigCannonsCompat;
 import com.reinhardt.hbm.integration.immersiveengineering.HbmImmersiveEngineeringCompat;
+import com.reinhardt.hbm.integration.curios.PortableCrateCuriosIntegration;
 import com.reinhardt.hbm.item.LegacyItemComponents;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmArmorMaterials;
@@ -61,6 +62,9 @@ public class ReinhardtsHBM {
         if (ModList.get().isLoaded("immersiveengineering")) {
             modEventBus.addListener((FMLCommonSetupEvent event) ->
                     event.enqueueWork(HbmImmersiveEngineeringCompat::applyDieselGeneratorBalanceDefaults));
+        }
+        if (ModList.get().isLoaded("curios")) {
+            PortableCrateCuriosIntegration.register();
         }
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, HbmConfig.SPEC);
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.CLIENT, HbmClientConfig.SPEC);

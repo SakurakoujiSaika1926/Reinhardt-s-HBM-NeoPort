@@ -1,10 +1,30 @@
 {
-  "type":"minecraft:crafting_shaped","category":"misc",
-  "pattern":["RSR","I I","RSR"],
-  "key":{
-    "R":{"type":"neoforge:components","items":["reinhardtshbm:plant_item"],"components":{"minecraft:custom_data":{"variant":"rope"},"minecraft:custom_model_data":1}},
-    "S":{"tag":"c:plates/iron"},
-    "I":{"tag":"c:ingots/iron"}
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RSR",
+    "I I",
+    "RSR"
+  ],
+  "key": {
+    "R": {
+      "item": "reinhardtshbm:plant_item_rope"
+    },
+    "S": {
+      "tag": "c:plates/iron"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
   },
-  "result":{"id":"reinhardtshbm:conveyor_wand","count":16,"components":{"minecraft:custom_data":{"variant":"regular"},"minecraft:custom_model_data":0}}
+  "result": {
+    "id": "reinhardtshbm:conveyor_wand",
+    "count": 16,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "regular"
+      },
+      "minecraft:custom_model_data": 0
+    }
+  }
 }

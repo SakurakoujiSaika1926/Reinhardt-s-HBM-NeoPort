@@ -41,11 +41,11 @@ public final class HbmWorldgenFeatures {
     public static final DeferredHolder<Feature<?>, BedrockOilDepositFeature> BEDROCK_OIL_DEPOSIT =
             FEATURES.register("bedrock_oil_deposit", () -> new BedrockOilDepositFeature());
     public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_CLUSTER_IRON =
-            FEATURES.register("depth_cluster_iron", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEPTH_IRON, 24));
+            FEATURES.register("depth_cluster_iron", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEEPSLATE_IRON, 24));
     public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_CLUSTER_TITANIUM =
-            FEATURES.register("depth_cluster_titanium", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEPTH_TITANIUM, 32));
+            FEATURES.register("depth_cluster_titanium", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEEPSLATE_TITANIUM, 32));
     public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_CLUSTER_TUNGSTEN =
-            FEATURES.register("depth_cluster_tungsten", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEPTH_TUNGSTEN, 32));
+            FEATURES.register("depth_cluster_tungsten", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEEPSLATE_TUNGSTEN, 32));
     // Legacy DepthDeposit entries (1.7.10: size 5, fill 0.8, one deposit per 16 chunks).
     public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_ORE_CINNEBAR =
             FEATURES.register("depth_ore_cinnebar", () -> new DepthClusterDepositFeature(HbmBlocks.ORE_DEPTH_CINNEBAR, 16, 0.8D));

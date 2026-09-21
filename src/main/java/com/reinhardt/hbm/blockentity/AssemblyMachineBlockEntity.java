@@ -11,6 +11,7 @@ import com.reinhardt.hbm.menu.AssemblyMachineMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
+import com.reinhardt.hbm.recipe.MachineRecipeCache;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
@@ -68,6 +69,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     private static final int[] AUTOMATION_SLOTS = createAutomationSlots();
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> observedAutomationItems = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank inputTank = new HbmFluidTank(TANK_CAPACITY);
     private final HbmFluidTank outputTank = new HbmFluidTank(TANK_CAPACITY);
     private long energyStored;
@@ -91,6 +93,14 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     private long lastClientAnimationTick = Long.MIN_VALUE;
     @Nullable
     private ResourceLocation selectedRecipeId;
+    private long observedRecipeCacheGeneration = Long.MIN_VALUE;
+    private boolean recipeCatalogDirty = true;
+    private boolean workStateDirty = true;
+    private List<RecipeHolder<AssemblyMachineRecipe>> cachedActiveRecipes = List.of();
+    private List<RecipeHolder<AssemblyMachineRecipe>> cachedDisplayRecipes = List.of();
+    @Nullable
+    private AssemblyMachineRecipe cachedWorkRecipe;
+    private boolean cachedCanProcess;
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
@@ -220,9 +230,13 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public void applyPower(long usedOutput, long receivedInput) {
+        long previousEnergy = this.energyStored;
+        long previousLastInput = this.lastInput;
         this.energyStored = Math.min(this.energyCapacity, this.energyStored + receivedInput);
         this.lastInput = receivedInput;
-        setChanged();
+        if (this.energyStored != previousEnergy || this.lastInput != previousLastInput) {
+            markRuntimeChanged();
+        }
     }
 
     @Override
@@ -275,9 +289,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             this.items.set(slot, ItemStack.EMPTY);
         }
         if (!removed.isEmpty()) {
-            if (isInputSlot(slot)) {
-                this.progress = 0;
-            }
+            inventoryChanged(slot);
             setChanged();
         }
         return removed;
@@ -290,6 +302,12 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         }
         ItemStack removed = this.items.get(slot);
         this.items.set(slot, ItemStack.EMPTY);
+        if (!removed.isEmpty()) {
+            if (slot == BLUEPRINT_SLOT) {
+                this.progress = 0;
+            }
+            inventoryChanged(slot);
+        }
         return removed;
     }
 
@@ -302,12 +320,15 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize(stack)) {
             stack.setCount(this.getMaxStackSize(stack));
         }
-        if (isInputSlot(slot)) {
-            this.progress = 0;
-        }
         if (slot == BLUEPRINT_SLOT) {
             this.progress = 0;
+            invalidateRecipeCatalog();
             clearSelectionIfBlueprintNoLongerAllowsIt();
+        } else {
+            // The selected assembly recipe is the process identity. Hopper and
+            // bus transfers commonly grow one input stack at a time; those
+            // count changes only require revalidation and must not erase work.
+            inventoryChanged(slot);
         }
         setChanged();
     }
@@ -355,6 +376,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             this.items.set(slot, ItemStack.EMPTY);
         }
         this.progress = 0;
+        invalidateRecipeCatalog();
         setChanged();
     }
 
@@ -447,6 +469,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         this.currentDemand = Math.max(1, tag.getInt("CurrentDemand"));
         this.completedCycles = tag.getInt("CompletedCycles");
         this.selectedRecipeId = tag.contains("SelectedRecipe") ? ResourceLocation.tryParse(tag.getString("SelectedRecipe")) : null;
+        invalidateRecipeCatalog();
     }
 
     @Override
@@ -463,37 +486,39 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     }
 
     private void tickWork(Level level) {
-        Optional<RecipeHolder<AssemblyMachineRecipe>> recipeHolder = getSelectedRecipe(level);
-        this.hasRecipe = recipeHolder.isPresent();
+        refreshWorkState(level);
+        long energyBeforeBattery = this.energyStored;
         this.energyStored = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.energyStored, this.energyCapacity);
-        if (recipeHolder.isEmpty()) {
+        boolean batteryDischarged = this.energyStored != energyBeforeBattery;
+        AssemblyMachineRecipe recipe = this.cachedWorkRecipe;
+        if (recipe == null) {
             this.progress = 0;
-            this.workTime = 100;
-            this.currentDemand = 100;
             this.energyCapacity = Math.max(BASE_ENERGY_CAPACITY, this.energyStored);
             stopWorkingSounds(level);
             setLit(false);
+            if (batteryDischarged) {
+                markRuntimeChanged();
+            }
             return;
         }
 
-        RecipeHolder<AssemblyMachineRecipe> selectedHolder = recipeHolder.get();
-        AssemblyMachineRecipe recipe = selectedRecipeForInputs(level, selectedHolder)
-                .orElse(selectedHolder)
-                .value();
-        setupTanks(recipe);
-        this.workTime = currentWorkTime(recipe);
-        this.currentDemand = currentDemand(recipe);
         this.energyCapacity = Math.max(Math.max(BASE_ENERGY_CAPACITY, recipe.power() * 100L), this.energyStored);
 
-        if (!canProcess(recipe)) {
+        if (!this.cachedCanProcess) {
             stopWorkingSounds(level);
             setLit(false);
+            if (batteryDischarged) {
+                markRuntimeChanged();
+            }
             return;
         }
 
         if (this.energyStored < this.currentDemand) {
             stopWorkingSounds(level);
             setLit(false);
+            if (batteryDischarged) {
+                markRuntimeChanged();
+            }
             return;
         }
 
@@ -507,8 +532,37 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             this.progress = 0;
             this.completedCycles++;
             machineMeteoriteSword();
+            captureAutomationSnapshot();
+            invalidateWorkState();
         }
-        setChanged();
+        markRuntimeChanged();
+    }
+
+    private void refreshWorkState(Level level) {
+        ensureRecipeCatalog(level);
+        if (!this.workStateDirty) {
+            return;
+        }
+
+        this.workStateDirty = false;
+        this.cachedWorkRecipe = null;
+        this.cachedCanProcess = false;
+        Optional<RecipeHolder<AssemblyMachineRecipe>> recipeHolder = getSelectedRecipe(level);
+        this.hasRecipe = recipeHolder.isPresent();
+        if (recipeHolder.isEmpty()) {
+            this.workTime = 100;
+            this.currentDemand = 100;
+            return;
+        }
+
+        RecipeHolder<AssemblyMachineRecipe> selectedHolder = recipeHolder.get();
+        Optional<RecipeHolder<AssemblyMachineRecipe>> matchingRecipe = selectedRecipeForInputs(level, selectedHolder);
+        AssemblyMachineRecipe recipe = matchingRecipe.orElse(selectedHolder).value();
+        setupTanks(recipe);
+        this.workTime = currentWorkTime(recipe);
+        this.currentDemand = currentDemand(recipe);
+        this.cachedWorkRecipe = recipe;
+        this.cachedCanProcess = matchingRecipe.isPresent() || canProcess(recipe);
     }
 
     private Optional<RecipeHolder<AssemblyMachineRecipe>> getSelectedRecipe(Level level) {
@@ -542,6 +596,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         }
         this.selectedRecipeId = recipeId;
         this.progress = 0;
+        invalidateWorkState();
         setChangedAndSync();
     }
 
@@ -566,7 +621,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
                 return Optional.of(holder);
             }
         }
-        Optional<RecipeHolder<AssemblyMachineRecipe>> rawRecipe = activeVisibleRecipes(level).stream()
+        Optional<RecipeHolder<AssemblyMachineRecipe>> rawRecipe = this.cachedActiveRecipes.stream()
                 .filter(holder -> holder.id().equals(recipeId))
                 .findFirst();
         if (rawRecipe.isPresent()) {
@@ -598,18 +653,21 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     private void setSelectedRecipeByMenuValue(int value) {
         if (value <= 0 || this.level == null) {
             this.selectedRecipeId = null;
+            invalidateWorkState();
             return;
         }
         List<RecipeHolder<AssemblyMachineRecipe>> recipes = availableRecipes(this.level);
         int index = value - 1;
         this.selectedRecipeId = index >= 0 && index < recipes.size() ? recipes.get(index).id() : null;
+        invalidateWorkState();
     }
 
     public List<RecipeHolder<AssemblyMachineRecipe>> availableRecipes(Level level) {
-        return AssemblyMachineRecipe.collapseDisplayChoices(activeVisibleRecipes(level));
+        ensureRecipeCatalog(level);
+        return this.cachedDisplayRecipes;
     }
 
-    private List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level) {
+    protected List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level) {
         List<RecipeHolder<AssemblyMachineRecipe>> visibleRecipes = level.getRecipeManager()
                 .getAllRecipesFor(HbmRecipeTypes.ASSEMBLY_MACHINE.get())
                 .stream()
@@ -619,9 +677,47 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     }
 
     private List<RecipeHolder<AssemblyMachineRecipe>> selectedChoiceVariants(Level level, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
-        return activeVisibleRecipes(level).stream()
+        ensureRecipeCatalog(level);
+        return this.cachedActiveRecipes.stream()
                 .filter(holder -> AssemblyMachineRecipe.sameDisplayChoice(selectedRecipe, holder))
                 .toList();
+    }
+
+    private void ensureRecipeCatalog(Level level) {
+        long generation = MachineRecipeCache.generation();
+        if (this.observedRecipeCacheGeneration != generation) {
+            this.observedRecipeCacheGeneration = generation;
+            invalidateRecipeCatalog();
+        }
+        if (!this.recipeCatalogDirty) {
+            return;
+        }
+
+        this.cachedActiveRecipes = List.copyOf(activeVisibleRecipes(level));
+        this.cachedDisplayRecipes = List.copyOf(AssemblyMachineRecipe.collapseDisplayChoices(this.cachedActiveRecipes));
+        this.recipeCatalogDirty = false;
+        this.workStateDirty = true;
+    }
+
+    private void invalidateRecipeCatalog() {
+        this.recipeCatalogDirty = true;
+        this.cachedActiveRecipes = List.of();
+        this.cachedDisplayRecipes = List.of();
+        invalidateWorkState();
+    }
+
+    private void invalidateWorkState() {
+        this.workStateDirty = true;
+        this.cachedWorkRecipe = null;
+        this.cachedCanProcess = false;
+    }
+
+    private void inventoryChanged(int slot) {
+        if (slot == BLUEPRINT_SLOT) {
+            invalidateRecipeCatalog();
+        } else if (slot != BATTERY_SLOT) {
+            invalidateWorkState();
+        }
     }
 
     private Optional<RecipeHolder<AssemblyMachineRecipe>> selectedRecipeForInputs(Level level, RecipeHolder<AssemblyMachineRecipe> selectedRecipe) {
@@ -919,6 +1015,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         Optional<RecipeHolder<AssemblyMachineRecipe>> recipe = findRecipe(this.level, this.selectedRecipeId);
         if (recipe.isEmpty() || !recipe.get().value().isVisibleForPool(installedBlueprintPool())) {
             this.selectedRecipeId = null;
+            invalidateWorkState();
         }
     }
 
@@ -946,6 +1043,40 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
 
     private static boolean isValidSlot(int slot) {
         return slot >= 0 && slot < SLOT_COUNT;
+    }
+
+    @Override
+    public void setChanged() {
+        // Vanilla hoppers may grow an existing ItemStack in place and then call
+        // only Container#setChanged, bypassing setItem. Snapshot the automated
+        // slots here so that path still invalidates the event-driven work cache.
+        for (int slot = INPUT_START; slot <= OUTPUT_SLOT; slot++) {
+            ItemStack current = this.items.get(slot);
+            ItemStack observed = this.observedAutomationItems.get(slot);
+            if (current.getCount() == observed.getCount()
+                    && ItemStack.isSameItemSameComponents(current, observed)) {
+                continue;
+            }
+            this.observedAutomationItems.set(slot, current.copy());
+            inventoryChanged(slot);
+        }
+        super.setChanged();
+    }
+
+    private void markRuntimeChanged() {
+        // Energy and progress updates do not change the capability provider or
+        // require the automated input snapshot to be compared again.
+        super.setChanged();
+    }
+
+    private void captureAutomationSnapshot() {
+        // Recipe completion mutates stacks internally, without going through
+        // setItem.  Make that post-cycle inventory the new baseline so an AE2
+        // pattern that restores the exact previous counts is still observed as
+        // a real input change on its next insertion.
+        for (int slot = INPUT_START; slot <= OUTPUT_SLOT; slot++) {
+            this.observedAutomationItems.set(slot, this.items.get(slot).copy());
+        }
     }
 
     private void setChangedAndSync() {
@@ -1151,6 +1282,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             }
             int filled = inputTank.fill(fluid, resource.getAmount(), action.simulate());
             if (filled > 0 && action.execute()) {
+                invalidateWorkState();
                 setChangedAndSync();
             }
             return filled;
@@ -1170,6 +1302,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
                 return FluidStack.EMPTY;
             }
             if (action.execute()) {
+                invalidateWorkState();
                 setChangedAndSync();
             }
             return HbmFluids.toNeoStack(fluid, drained.amount());
@@ -1186,6 +1319,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
                 return FluidStack.EMPTY;
             }
             if (action.execute()) {
+                invalidateWorkState();
                 setChangedAndSync();
             }
             return HbmFluids.toNeoStack(fluid, drained.amount());

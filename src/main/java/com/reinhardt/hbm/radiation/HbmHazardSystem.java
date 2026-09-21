@@ -3,25 +3,32 @@ package com.reinhardt.hbm.radiation;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
+import com.reinhardt.hbm.foundry.FoundryMaterialItems;
 import com.reinhardt.hbm.foundry.FoundryMaterialStack;
 import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.item.FluidIconItem;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.LegacyVariantBlockItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.OreBasaltBlockItem;
 import com.reinhardt.hbm.item.RbmkFuelRodItem;
+import com.reinhardt.hbm.item.RtgDepletedPelletItem;
 import com.reinhardt.hbm.item.ScrapsItem;
+import com.reinhardt.hbm.item.WatzPelletItem;
+import com.reinhardt.hbm.item.ZirnoxRodItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.CustomModelData;
 
 import java.util.List;
 import java.util.Locale;
@@ -35,6 +42,7 @@ public final class HbmHazardSystem {
     private static final Map<Item, HbmHazardData> EXTERNAL_URANIUM_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, Double> ASBESTOS_LEVEL_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, Double> COAL_DUST_LEVEL_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Integer> TOXIC_LEVEL_CACHE = new ConcurrentHashMap<>();
 
     /*
      * 1.7.10 used OreDictionary keys for the respiratory hazards.  NeoForge's
@@ -137,14 +145,9 @@ public final class HbmHazardSystem {
                     return 1.0D;
                 }
             }
-            if (stack.getItem() instanceof LegacyVariantBlockItem variant) {
-                if (path.equals("stone_resource") && variant.variant(stack).equals("asbestos")) {
-                    return 1.0D;
-                }
-            }
             double direct = switch (path) {
                 case "brick_asbestos", "tile_lab_broken", "ingot_asbestos", "ore_asbestos",
-                        "ore_gneiss_asbestos", "ore_deepslate_asbestos" -> 1.0D;
+                        "ore_gneiss_asbestos", "ore_deepslate_asbestos", "stone_resource_asbestos" -> 1.0D;
                 case "powder_asbestos", "powder_coltan_ore" -> 3.0D;
                 case "block_asbestos" -> 10.0D;
                 default -> 0.0D;
@@ -200,8 +203,77 @@ public final class HbmHazardSystem {
         return 0.0D;
     }
 
+    /**
+     * Returns the exact unstacked toxicity assigned by the pre-refactor HBM
+     * ItemHazard registrations.  Unlike radiation and coal dust, the old
+     * toxic handler deliberately did not multiply its level by stack size.
+     */
+    public static int toxicLevel(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return 0;
+        }
+
+        String path = itemPath(stack);
+        if (path.isEmpty()) {
+            return 0;
+        }
+
+        if (path.equals("pellet_rtg_depleted") && stack.getItem() instanceof RtgDepletedPelletItem) {
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            return switch (tag.getString("rtg_depleted_material")) {
+                case "lead" -> 2;
+                case "mercury" -> 4;
+                default -> 0;
+            };
+        }
+        if (path.equals("watz_pellet") && WatzPelletItem.isActivePellet(stack)) {
+            return WatzPelletItem.type(stack) == WatzPelletItem.Type.LEAD ? 7 : 0;
+        }
+        if (path.equals("apple_lead")) {
+            CustomModelData model = stack.get(DataComponents.CUSTOM_MODEL_DATA);
+            int variant = Math.max(0, model == null ? 0 : model.value());
+            return switch (variant) {
+                case 0 -> 2;
+                case 1 -> 4;
+                default -> 8;
+            };
+        }
+
+        return TOXIC_LEVEL_CACHE.computeIfAbsent(path, HbmHazardSystem::inferToxicLevel);
+    }
+
+    private static int inferToxicLevel(String path) {
+        return switch (path) {
+            case "ingot_lead", "ingot_pb209", "ingot_radspice", "billet_pb209", "plate_lead" -> 2;
+            case "ingot_arsenic" -> 16;
+            case "nugget_lead", "nugget_pb209", "nugget_radspice", "powder_radspice_tiny" -> 1;
+            case "nugget_arsenic", "powder_radspice" -> 3;
+            case "nugget_mercury" -> 2;
+            case "bottle_mercury" -> 6;
+            case "powder_lead", "powder_pb209", "powder_pb209_tiny", "pellet_rtg_lead" -> 4;
+            case "powder_cloud" -> 14;
+            case "powder_poison" -> 30;
+            case "pellet_mercury" -> 25;
+            case "crystal_lead" -> 12;
+            default -> 0;
+        };
+    }
+
     public static void appendTooltip(ItemStack stack, List<Component> tooltip) {
         HbmHazardData perItem = hazardsPerItem(stack);
+        int toxicLevel = toxicLevel(stack);
+        if (toxicLevel > 0) {
+            String adjective = toxicLevel > 16 ? "extreme"
+                    : toxicLevel > 8 ? "veryhigh"
+                    : toxicLevel > 4 ? "high"
+                    : toxicLevel > 2 ? "medium"
+                    : "little";
+            tooltip.add(Component.translatable(
+                    "trait.reinhardtshbm.toxic.level",
+                    Component.translatable("adjective.reinhardtshbm." + adjective),
+                    Component.translatable("trait.reinhardtshbm.toxic")
+            ).withStyle(ChatFormatting.GREEN));
+        }
         if (asbestosLevel(stack) > 0.0D) {
             tooltip.add(Component.translatable("trait.reinhardtshbm.asbestos").withStyle(ChatFormatting.WHITE));
         }
@@ -269,8 +341,13 @@ public final class HbmHazardSystem {
     }
 
     private static HbmHazardData dynamicHazards(ItemStack stack) {
-        if (stack.getItem() instanceof FoundryShapeItem shapeItem) {
-            return foundryMaterialHazards(shapeItem.material(stack), shapeItem.shape().quanta());
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (itemId != null && itemId.getNamespace().equals(ReinhardtsHBM.MOD_ID)) {
+            Optional<FoundryMaterialStack> materialStack = FoundryMaterialItems.materialStackFromIndependentItemPath(itemId.getPath());
+            if (materialStack.isPresent()) {
+                FoundryMaterialStack contents = materialStack.get();
+                return foundryMaterialHazards(contents.material(), contents.amount());
+            }
         }
         if (stack.getItem() instanceof ScrapsItem) {
             FoundryMaterialStack contents = ScrapsItem.contents(stack);
@@ -280,6 +357,13 @@ public final class HbmHazardSystem {
         }
         if (stack.getItem() instanceof RbmkFuelRodItem rod) {
             return rbmkFuelRodHazards(stack, rod);
+        }
+        if (stack.getItem() instanceof ZirnoxRodItem rod) {
+            return zirnoxFuelRodHazards(stack, rod);
+        }
+        if (stack.is(com.reinhardt.hbm.registry.HbmItems.ROD_ZIRNOX_DEPLETED.get())
+                && stack.getItem() instanceof LegacyVariantItem depleted) {
+            return depletedZirnoxRodHazards(depleted.variant(stack).id());
         }
         if (stack.getItem() instanceof FluidIconItem) {
             Optional<HbmFluidDefinition> fluid = FluidIconItem.fluid(stack);
@@ -324,6 +408,55 @@ public final class HbmHazardSystem {
         double digamma = id.equals("drx") ? 25.0D * Math.max(0.1D, depletion) : 0.0D;
         double hot = Math.max(RbmkFuelRodItem.coreHeat(stack), RbmkFuelRodItem.hullHeat(stack)) >= 50.0F ? 1.0D : 0.0D;
         return new HbmHazardData(radiation, contamination, digamma, hot, 0.0D);
+    }
+
+    private static HbmHazardData zirnoxFuelRodHazards(ItemStack stack, ZirnoxRodItem rod) {
+        String id = rod.variant(stack).id();
+        ZirnoxRodItem.Fuel fuel = rod.fuel(stack);
+        double depletion = Math.max(0.0D, Math.min(1.0D,
+                ZirnoxRodItem.life(stack) / (double) Math.max(1, fuel.maxLife())));
+        depletion = Math.pow(depletion, 0.4D);
+        double fresh = zirnoxFreshRadiation(id);
+        double spent = zirnoxSpentRadiation(id);
+        return rad(fresh + (spent - fresh) * depletion);
+    }
+
+    private static HbmHazardData depletedZirnoxRodHazards(String id) {
+        double blinding = id.equals("les_fuel") ? 20.0D : 0.0D;
+        return new HbmHazardData(zirnoxSpentRadiation(id), 0.0D, 0.0D, 0.0D, blinding);
+    }
+
+    private static double zirnoxFreshRadiation(String id) {
+        return switch (id) {
+            case "natural_uranium_fuel" -> HbmRadiationConstants.U;
+            case "uranium_fuel" -> HbmRadiationConstants.UF;
+            case "th232_fuel" -> HbmRadiationConstants.TH232;
+            case "thorium_fuel" -> HbmRadiationConstants.THF;
+            case "mox_fuel", "zfb_mox_fuel" -> HbmRadiationConstants.MOX;
+            case "plutonium_fuel" -> HbmRadiationConstants.PUF;
+            case "u233_fuel" -> HbmRadiationConstants.U233;
+            case "u235_fuel" -> HbmRadiationConstants.U235;
+            case "les_fuel" -> HbmRadiationConstants.SAF;
+            case "lithium_fuel" -> 0.0D;
+            default -> 0.0D;
+        };
+    }
+
+    private static double zirnoxSpentRadiation(String id) {
+        return switch (id) {
+            case "natural_uranium_fuel" -> HbmRadiationConstants.WST * 11.5D;
+            case "uranium_fuel" -> HbmRadiationConstants.WST * 10.0D;
+            case "th232_fuel" -> HbmRadiationConstants.THF;
+            case "thorium_fuel" -> HbmRadiationConstants.WST * 7.5D;
+            case "mox_fuel" -> HbmRadiationConstants.WST * 10.0D;
+            case "plutonium_fuel" -> HbmRadiationConstants.WST * 12.5D;
+            case "u233_fuel" -> HbmRadiationConstants.WST * 10.0D;
+            case "u235_fuel" -> HbmRadiationConstants.WST * 11.0D;
+            case "les_fuel" -> HbmRadiationConstants.WST * 15.0D;
+            case "lithium_fuel" -> 0.001D;
+            case "zfb_mox_fuel" -> HbmRadiationConstants.WST * 5.0D;
+            default -> 0.0D;
+        };
     }
 
     private static double rbmkFreshRadiation(String id) {

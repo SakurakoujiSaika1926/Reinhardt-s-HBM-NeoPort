@@ -1,0 +1,9 @@
+{
+  "size": 1,
+  "order": 2000,
+  "use_native_gui": false,
+  "icon": "reinhardtshbm:block/crate_iron_top",
+  "validators": [
+    "curios:tag"
+  ]
+}

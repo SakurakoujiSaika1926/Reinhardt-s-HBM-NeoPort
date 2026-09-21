@@ -2,7 +2,6 @@ package com.reinhardt.hbm.registry;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.integration.createbigcannons.HbmCreateBigCannonsCompat;
-import com.reinhardt.hbm.item.BedrockOreFragmentItem;
 import com.reinhardt.hbm.item.BedrockOreItem;
 import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.item.ConcreteColoredBlockItem;
@@ -17,13 +16,11 @@ import com.reinhardt.hbm.item.LegacyByproductItem;
 import com.reinhardt.hbm.item.MetalFenceBlockItem;
 import com.reinhardt.hbm.item.MeteorOreBlockItem;
 import com.reinhardt.hbm.item.NuclearWasteItem;
-import com.reinhardt.hbm.item.OilTarItem;
 import com.reinhardt.hbm.item.OreBasaltBlockItem;
 import com.reinhardt.hbm.item.SellafieldBlockItem;
 import com.reinhardt.hbm.item.ToasterBlockItem;
 import com.reinhardt.hbm.item.FoundryMoldItem;
 import com.reinhardt.hbm.item.FusionComponentBlockItem;
-import com.reinhardt.hbm.item.RawIngotItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -92,8 +89,6 @@ public final class HbmCreativeTabs {
                                 byproduct.addCreativeVariants(output);
                             } else if (oreDrop.get() instanceof BedrockOreItem bedrockOre) {
                                 bedrockOre.addCreativeVariants(output);
-                            } else if (oreDrop.get() instanceof BedrockOreFragmentItem fragment) {
-                                fragment.addCreativeVariants(output);
                             } else {
                                 output.accept(oreDrop);
                             }
@@ -116,32 +111,18 @@ public final class HbmCreativeTabs {
                             }
                         }
                         for (var plate : HbmItems.PLATE_MATERIALS) {
-                            if (plate.get() instanceof com.reinhardt.hbm.item.FoundryShapeItem shapeItem) {
-                                shapeItem.addCreativeVariants(output);
-                            } else {
-                                output.accept(plate);
-                            }
+                            output.accept(plate);
                         }
                         for (var material : HbmItems.MISC_MATERIALS) {
                             if (isPetroleumItem(material) || isNuclearBilletItem(material)) {
                                 continue;
                             }
-                            if (material == HbmItems.COKE) {
-                                output.accept(LegacyVariantItem.stackFor(HbmItems.COKE, "coal"));
-                                output.accept(LegacyVariantItem.stackFor(HbmItems.COKE, "lignite"));
-                                output.accept(LegacyVariantItem.stackFor(HbmItems.COKE, "petroleum"));
-                            } else if (material == HbmItems.BRIQUETTE || material == HbmItems.CASING) {
-                                ((LegacyVariantItem) material.get()).addCreativeVariants(output);
-                            } else if (material == HbmItems.FALLOUT_ITEM) {
+                            if (material == HbmItems.FALLOUT_ITEM) {
                                 output.accept(material);
-                            } else if (material.get() instanceof com.reinhardt.hbm.item.OilTarItem oilTar) {
-                                oilTar.addCreativeVariants(output);
                             } else if (material.get() instanceof com.reinhardt.hbm.item.ScrapsItem scraps) {
                                 scraps.addCreativeVariants(output);
                             } else if (material.get() instanceof NuclearWasteItem waste) {
                                 waste.addCreativeVariants(output);
-                            } else if (material.get() instanceof com.reinhardt.hbm.item.FoundryShapeItem shapeItem) {
-                                shapeItem.addCreativeVariants(output);
                             } else if (material.get() instanceof LegacyVariantItem variantItem) {
                                 variantItem.addCreativeVariants(output);
                             } else {
@@ -174,11 +155,7 @@ public final class HbmCreativeTabs {
                     .icon(() -> new ItemStack(HbmItems.INGOT_STEEL.get()))
                     .displayItems((parameters, output) -> {
                         for (var ingot : HbmItems.INGOT_MATERIALS) {
-                            if (ingot.get() instanceof RawIngotItem rawIngot) {
-                                rawIngot.addCreativeVariants(output);
-                            } else {
-                                output.accept(ingot);
-                            }
+                            output.accept(ingot);
                         }
                     })
                     .build()
@@ -213,8 +190,6 @@ public final class HbmCreativeTabs {
                                 variantItem.addCreativeVariants(output);
                             } else if (component.get() instanceof com.reinhardt.hbm.item.LegacyMetaUpgradeItem upgrade) {
                                 upgrade.addCreativeVariants(output);
-                            } else if (component.get() instanceof com.reinhardt.hbm.item.FoundryShapeItem shapeItem) {
-                                shapeItem.addCreativeVariants(output);
                             } else if (component.get() instanceof DrillbitItem drillbit) {
                                 drillbit.addCreativeVariants(output);
                             } else {
@@ -538,16 +513,12 @@ public final class HbmCreativeTabs {
                             }
                         }
 
-                        if (HbmItems.OIL_TAR.get() instanceof OilTarItem oilTar) {
-                            oilTar.addCreativeVariants(output);
-                        }
-                        output.accept(LegacyVariantItem.stackFor(HbmItems.COKE, "petroleum"));
+                        HbmItems.OIL_TAR_ITEMS.values().forEach(output::accept);
+                        output.accept(HbmItems.COKE_ITEMS.get("petroleum"));
                         output.accept(HbmItems.CANISTER_LUBRICANT);
                         output.accept(HbmItems.SOLID_FUEL);
                         output.accept(HbmItems.SOLID_FUEL_BF);
-                        if (HbmItems.FUEL_ADDITIVE.get() instanceof LegacyVariantItem additive) {
-                            additive.addCreativeVariants(output);
-                        }
+                        HbmItems.FUEL_ADDITIVE_ITEMS.values().forEach(output::accept);
                         for (var item : LegacyHbmContent.LEGACY_ITEMS) {
                             if (isPetroleumLegacyItem(item)) {
                                 output.accept(item);
@@ -931,12 +902,12 @@ public final class HbmCreativeTabs {
     }
 
     private static boolean isPetroleumItem(DeferredItem<Item> item) {
-        return item == HbmItems.OIL_TAR
+        return HbmItems.OIL_TAR_ITEMS.containsValue(item)
                 || item == HbmItems.CANISTER_LUBRICANT
                 || item == HbmItems.SOLID_FUEL
                 || item == HbmItems.SOLID_FUEL_BF
                 || item == HbmItems.ROCKET_FUEL
-                || item == HbmItems.FUEL_ADDITIVE;
+                || HbmItems.FUEL_ADDITIVE_ITEMS.containsValue(item);
     }
 
     private static boolean isPetroleumLegacyItem(DeferredItem<Item> item) {

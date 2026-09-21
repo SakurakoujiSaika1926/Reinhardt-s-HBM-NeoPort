@@ -12,12 +12,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "shape": "wire",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_gold"
       },
       "count": 2
     },

@@ -11,12 +11,7 @@
       "item": "reinhardtshbm:dungeon_chain"
     },
     "H": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "steel"
+      "item": "reinhardtshbm:shell_steel"
     },
     "B": {
       "item": "reinhardtshbm:blades_steel"

@@ -4,9 +4,6 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.foundry.FoundryMaterialStack;
 import com.reinhardt.hbm.foundry.FoundryShape;
-import com.reinhardt.hbm.item.BedrockOreFragmentItem;
-import com.reinhardt.hbm.item.FoundryShapeItem;
-import com.reinhardt.hbm.item.RawIngotItem;
 import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.recipe.ArcFurnaceRecipe;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -102,22 +99,6 @@ final class ArcFurnaceJeiRecipes {
     }
 
     private static List<ItemStack> variants(Item item) {
-        if (item instanceof FoundryShapeItem shapeItem) {
-            return FoundryMaterial.ordered().stream()
-                    .filter(material -> material.behavior() == FoundryMaterial.SmeltingBehavior.SMELTABLE)
-                    .filter(material -> FoundryShapeItem.supports(shapeItem.shape(), material))
-                    .map(material -> FoundryShapeItem.stackFor(item, material))
-                    .toList();
-        }
-        if (item instanceof RawIngotItem) {
-            return FoundryMaterial.ordered().stream()
-                    .filter(RawIngotItem::supports)
-                    .map(material -> RawIngotItem.stackFor(item, material))
-                    .toList();
-        }
-        if (item instanceof BedrockOreFragmentItem) {
-            return BedrockOreFragmentItem.creativeVariants();
-        }
         if (item instanceof ScrapsItem) {
             return FoundryMaterial.ordered().stream()
                     .filter(material -> material.behavior() == FoundryMaterial.SmeltingBehavior.SMELTABLE)

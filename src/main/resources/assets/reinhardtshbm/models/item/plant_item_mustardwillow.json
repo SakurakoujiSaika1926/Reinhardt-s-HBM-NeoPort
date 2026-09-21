@@ -1,4 +1,6 @@
 {
   "parent": "minecraft:item/generated",
-  "textures": { "layer0": "reinhardtshbm:item/plant_item_mustardwillow" }
+  "textures": {
+    "layer0": "reinhardtshbm:item/plant_item_mustardwillow"
+  }
 }

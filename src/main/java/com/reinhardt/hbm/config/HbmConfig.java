@@ -820,13 +820,13 @@ public final class HbmConfig {
 
         builder.push("resourceLayers");
         ENABLE_HEMATITE_DEPOSITS = builder
-                .comment("是否生成赤铁矿 stone_resource 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableHematite，默认：true。")
+                .comment("是否生成赤铁矿 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableHematite，默认：true。")
                 .define("enableHematite", true);
         ENABLE_MALACHITE_DEPOSITS = builder
-                .comment("是否生成孔雀石 stone_resource 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableMalachite，默认：true。")
+                .comment("是否生成孔雀石 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableMalachite，默认：true。")
                 .define("enableMalachite", true);
         ENABLE_BAUXITE_DEPOSITS = builder
-                .comment("是否生成铝土矿 stone_resource 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableBauxite，默认：true。")
+                .comment("是否生成铝土矿 3D 矿层。对应 HBM 1.7.10 WorldConfig.enableBauxite，默认：true。")
                 .define("enableBauxite", true);
         builder.pop();
 

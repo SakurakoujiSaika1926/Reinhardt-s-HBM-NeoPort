@@ -1,9 +1,6 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.PileGraphiteBlockEntity;
-import com.reinhardt.hbm.foundry.FoundryMaterial;
-import com.reinhardt.hbm.foundry.FoundryShape;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.PileRodItem;
 import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -11,7 +8,9 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -457,15 +456,20 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
     }
 
     private static boolean isAluminiumShell(ItemStack stack) {
-        if (!(stack.getItem() instanceof FoundryShapeItem shape) || shape.shape() != FoundryShape.SHELL) {
-            return false;
-        }
-        FoundryMaterial material = shape.material(stack);
-        return material != null && material.name().equals("aluminium");
+        return !stack.isEmpty() && itemPath(stack).equals("shell_aluminium");
     }
 
     private static ItemStack aluminiumShell() {
-        return FoundryShapeItem.stackFor(HbmItems.SHELL.get(), FoundryMaterial.get("aluminium"));
+        return new ItemStack(BuiltInRegistries.ITEM.get(hbmItem("shell_aluminium")));
+    }
+
+    private static String itemPath(ItemStack stack) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return id != null && id.getNamespace().equals("reinhardtshbm") ? id.getPath() : "";
+    }
+
+    private static ResourceLocation hbmItem(String path) {
+        return ResourceLocation.fromNamespaceAndPath("reinhardtshbm", path);
     }
 
     private static boolean isAxisFace(BlockState state, Direction side) {

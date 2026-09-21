@@ -7,12 +7,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.foundry.FoundryMaterialShapes;
 import com.reinhardt.hbm.foundry.FoundryShape;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
+import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.HolderSetCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.crafting.ICustomIngredient;
@@ -55,11 +56,14 @@ public final class FoundryMaterialIngredient implements ICustomIngredient {
         if (stack.isEmpty() || !this.items.contains(stack.getItemHolder())) {
             return false;
         }
-        if (!(stack.getItem() instanceof FoundryShapeItem shapeItem) || shapeItem.shape() != this.shape) {
+        FoundryMaterial expected = material();
+        if (expected == null || !FoundryMaterialShapes.supports(this.shape, expected)) {
             return false;
         }
-        FoundryMaterial expected = material();
-        return expected != null && shapeItem.material(stack) == expected;
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return id != null
+                && id.getNamespace().equals("reinhardtshbm")
+                && id.getPath().equals(HbmItems.independentFoundryItemPath(this.shape, expected));
     }
 
     @Override
@@ -70,8 +74,18 @@ public final class FoundryMaterialIngredient implements ICustomIngredient {
         }
         return this.items.stream()
                 .map(holder -> holder.value())
-                .filter(item -> item instanceof FoundryShapeItem shapeItem && shapeItem.shape() == this.shape)
-                .map(item -> FoundryShapeItem.stackFor(item, material));
+                .flatMap(item -> stackFor(item, material))
+                .filter(stack -> !stack.isEmpty());
+    }
+
+    private Stream<ItemStack> stackFor(Item item, FoundryMaterial material) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        if (id != null
+                && id.getNamespace().equals("reinhardtshbm")
+                && id.getPath().equals(HbmItems.independentFoundryItemPath(this.shape, material))) {
+            return Stream.of(new ItemStack(item));
+        }
+        return Stream.empty();
     }
 
     @Override

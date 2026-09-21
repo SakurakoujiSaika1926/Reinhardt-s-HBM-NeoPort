@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/bolt"
-                 },
-    "parent":  "minecraft:item/generated"
-}

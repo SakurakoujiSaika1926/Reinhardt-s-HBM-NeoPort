@@ -37,6 +37,7 @@ import com.reinhardt.hbm.entity.MeteorEntity;
 import com.reinhardt.hbm.entity.MineRubbleEntity;
 import com.reinhardt.hbm.entity.NukeTorexEntity;
 import com.reinhardt.hbm.entity.RbmkDebrisEntity;
+import com.reinhardt.hbm.entity.ZirnoxDebrisEntity;
 import com.reinhardt.hbm.entity.RubberBoatEntity;
 import com.reinhardt.hbm.entity.TimedExplosiveEntity;
 import com.reinhardt.hbm.entity.LegacyGrenadeEntity;
@@ -149,6 +150,14 @@ public final class HbmEntityTypes {
                     .clientTrackingRange(63)
                     .updateInterval(1)
                     .build("entity_rbmk_debris"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ZirnoxDebrisEntity>> ZIRNOX_DEBRIS =
+            ENTITY_TYPES.register("entity_zirnox_debris", () -> EntityType.Builder
+                    .<ZirnoxDebrisEntity>of(ZirnoxDebrisEntity::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(63)
+                    .updateInterval(1)
+                    .build("entity_zirnox_debris"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<MineRubbleEntity>> MINE_RUBBLE =
             ENTITY_TYPES.register("entity_mine_rubble", () -> EntityType.Builder

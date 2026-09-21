@@ -8,16 +8,7 @@
   ],
   "key": {
     "#": {
-      "type": "neoforge:components",
-      "items": [
-        "reinhardtshbm:ingot_raw"
-      ],
-      "components": {
-        "minecraft:custom_data": {
-          "material_id": 41,
-          "material": "slag"
-        }
-      }
+      "item": "reinhardtshbm:ingot_raw_slag"
     }
   },
   "result": {

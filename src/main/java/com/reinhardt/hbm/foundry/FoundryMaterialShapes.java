@@ -49,26 +49,6 @@ public final class FoundryMaterialShapes {
             "iron", "copper", "aluminium", "lead", "steel", "dura_steel", "rubber"
     );
     private static final Set<String> BOLT_MATERIALS = Set.of("tungsten", "lead", "steel", "dura_steel");
-    private static final Set<String> LIGHT_BARREL_MATERIALS = Set.of(
-            "steel", "dura_steel", "desh", "tcalloy", "cdalloy", "bismuth_bronze",
-            "arsenic_bronze", "gunmetal", "weaponsteel", "saturnite"
-    );
-    private static final Set<String> HEAVY_BARREL_MATERIALS = Set.of(
-            "steel", "dura_steel", "desh", "ferrouranium", "tcalloy", "cdalloy",
-            "gunmetal", "weaponsteel", "saturnite"
-    );
-    private static final Set<String> LIGHT_RECEIVER_MATERIALS = Set.of(
-            "steel", "dura_steel", "desh", "tcalloy", "cdalloy", "bismuth_bronze",
-            "arsenic_bronze", "gunmetal", "weaponsteel", "saturnite"
-    );
-    private static final Set<String> HEAVY_RECEIVER_MATERIALS = Set.of(
-            "dura_steel", "ferrouranium", "tcalloy", "cdalloy", "bismuth_bronze",
-            "arsenic_bronze", "gunmetal", "weaponsteel", "saturnite"
-    );
-    private static final Set<String> STOCK_MATERIALS = Set.of(
-            "wood", "gunmetal", "weaponsteel", "saturnite", "desh", "polymer", "bakelite", "pc", "pvc"
-    );
-    private static final Set<String> GRIP_MATERIALS = Set.of();
 
     private FoundryMaterialShapes() {
     }
@@ -87,12 +67,6 @@ public final class FoundryMaterialShapes {
             case SHELL -> SHELL_MATERIALS.contains(material.name());
             case PIPE -> PIPE_MATERIALS.contains(material.name());
             case BOLT -> BOLT_MATERIALS.contains(material.name());
-            case LIGHT_BARREL -> LIGHT_BARREL_MATERIALS.contains(material.name());
-            case HEAVY_BARREL -> HEAVY_BARREL_MATERIALS.contains(material.name());
-            case LIGHT_RECEIVER -> LIGHT_RECEIVER_MATERIALS.contains(material.name());
-            case HEAVY_RECEIVER -> HEAVY_RECEIVER_MATERIALS.contains(material.name());
-            case STOCK -> STOCK_MATERIALS.contains(material.name());
-            case GRIP -> GRIP_MATERIALS.contains(material.name());
             default -> true;
         };
     }

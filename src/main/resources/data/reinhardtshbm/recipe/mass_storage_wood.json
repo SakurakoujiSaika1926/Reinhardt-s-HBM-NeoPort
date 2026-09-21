@@ -1,14 +1,1 @@
-{
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "pattern": [
-    "PPP",
-    "PIP",
-    "PPP"
-  ],
-  "key": {
-    "P": { "tag": "minecraft:planks" },
-    "I": { "tag": "c:plates/iron" }
-  },
-  "result": { "id": "reinhardtshbm:mass_storage_wood" }
-}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["PPP","PIP","PPP"],"key":{"P":{"tag":"minecraft:planks"},"I":{"tag":"c:plates/iron"}},"result":{"id":"reinhardtshbm:mass_storage_wood"}}

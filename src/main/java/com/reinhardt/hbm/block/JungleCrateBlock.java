@@ -1,8 +1,5 @@
 package com.reinhardt.hbm.block;
 
-import com.reinhardt.hbm.foundry.FoundryMaterial;
-import com.reinhardt.hbm.item.FoundryShapeItem;
-import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -23,12 +20,8 @@ public final class JungleCrateBlock extends Block {
         drops.add(new ItemStack(Items.GOLD_INGOT, 4 + params.getLevel().random.nextInt(4)));
         drops.add(new ItemStack(Items.GOLD_NUGGET, 8 + params.getLevel().random.nextInt(10)));
         add(drops, CrateBlockSupport.stack("powder_gold", 2 + params.getLevel().random.nextInt(3)));
-        drops.add(FoundryShapeItem.stackFor(
-                HbmItems.WIRE_FINE.get(), FoundryMaterial.get("gold"), 4 + params.getLevel().random.nextInt(5)
-        ));
-        drops.add(FoundryShapeItem.stackFor(
-                HbmItems.WIRE_DENSE.get(), FoundryMaterial.get("gold"), 1 + params.getLevel().random.nextInt(2)
-        ));
+        add(drops, CrateBlockSupport.stack("wire_gold", 4 + params.getLevel().random.nextInt(5)));
+        add(drops, CrateBlockSupport.stack("wire_dense_gold", 1 + params.getLevel().random.nextInt(2)));
         if (params.getLevel().random.nextInt(2) == 0) {
             add(drops, CrateBlockSupport.stack("plate_gold", 1 + params.getLevel().random.nextInt(2)));
         }

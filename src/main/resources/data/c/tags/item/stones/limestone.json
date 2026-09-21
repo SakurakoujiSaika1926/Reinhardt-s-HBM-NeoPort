@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
+    "reinhardtshbm:stone_resource_limestone",
     {
       "id": "create:limestone",
       "required": false

@@ -16,20 +16,10 @@
   ],
   "key": {
     "C": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:pipe"
-      ],
-      "shape": "pipe",
-      "material": "copper"
+      "item": "reinhardtshbm:pipe_copper"
     },
     "P": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "copper"
+      "item": "reinhardtshbm:shell_copper"
     },
     "R": {
       "item": "reinhardtshbm:rbmk_blank"

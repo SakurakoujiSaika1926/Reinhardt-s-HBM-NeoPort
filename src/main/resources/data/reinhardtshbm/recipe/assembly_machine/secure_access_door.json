@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.secureaccess",
+  "duration": 400,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/cast_steel" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:plate_polymer" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 4 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 32 },
+    { "ingredient": { "tag": "c:dyes/red" }, "count": 8 }
+  ],
+  "result": { "id": "reinhardtshbm:secure_access_door" }
+}

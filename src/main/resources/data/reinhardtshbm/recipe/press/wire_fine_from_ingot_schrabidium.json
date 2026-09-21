@@ -6,13 +6,7 @@
     "tag": "c:ingots/schrabidium"
   },
   "result": {
-    "id": "reinhardtshbm:wire_fine",
-    "count": 8,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 12626,
-        "material": "schrabidium"
-      }
-    }
+    "id": "reinhardtshbm:wire_schrabidium",
+    "count": 8
   }
 }

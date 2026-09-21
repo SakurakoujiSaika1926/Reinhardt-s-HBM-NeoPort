@@ -11,36 +11,19 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:item_expensive",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "bronze_tubes"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_bronze_tubes"
       },
       "count": 2
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:item_expensive",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "ferro_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_ferro_plating"
       },
       "count": 2
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "dura_steel"
+        "item": "reinhardtshbm:pipe_dura_steel"
       },
       "count": 16
     },
@@ -58,13 +41,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:item_expensive",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "computer"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_computer"
       },
       "count": 1
     }

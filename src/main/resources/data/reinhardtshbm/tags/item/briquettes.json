@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:briquette_coal",
+    "reinhardtshbm:briquette_lignite",
+    "reinhardtshbm:briquette_wood"
+  ]
+}

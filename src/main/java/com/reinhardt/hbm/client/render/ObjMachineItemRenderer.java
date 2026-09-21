@@ -3,10 +3,10 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.DecoCrtBlockItem;
 import com.reinhardt.hbm.item.FilingCabinetBlockItem;
-import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.VendingMachineBlockItem;
 import com.reinhardt.hbm.item.CrashedBombBlockItem;
 import com.reinhardt.hbm.block.DecoCrtBlock;
@@ -116,6 +116,9 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 : stack.getItem() instanceof VendingMachineBlockItem vending
                 ? "vending_machine_" + (vending.variantIndex(stack) == 1 ? "snacks" : "soda")
                 : id;
+        if (id.equals("gear_large_steel")) {
+            profileId = "gear_large";
+        }
         Profile profile = PROFILES.get(profileId);
         if (LauncherBlockEntityRenderer.ITEM_IDS.contains(id)) {
             BlockState launcherState = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
@@ -810,8 +813,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             poseStack.translate(0.0F, -1.375F, 0.0F);
         }
         poseStack.translate(0.0F, 0.0F, -0.875F);
-        int modelIndex = stack.getItem() instanceof LegacyVariantItem item
-                && item.variant(stack).id().equals("steel") ? 1 : 0;
+        int modelIndex = stack.is(HbmItems.GEAR_LARGE_STEEL.get()) ? 1 : 0;
         MachineModelRenderer.renderUnculled(models.get(modelIndex), poseStack, bufferSource,
                 state, packedLight, packedOverlay);
         poseStack.popPose();

@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.recipe;
 
 import com.mojang.serialization.MapCodec;
-import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.UniversalGrenadeItem;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
@@ -17,6 +16,9 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.registries.DeferredItem;
+
+import java.util.Map;
 
 /** Exact shapeless four-component grenade assembly rule from GrenadeCraftingHandler. */
 public final class UniversalGrenadeRecipe extends CustomRecipe {
@@ -55,10 +57,10 @@ public final class UniversalGrenadeRecipe extends CustomRecipe {
     @Override
     public NonNullList<Ingredient> getIngredients() {
         NonNullList<Ingredient> ingredients = NonNullList.create();
-        ingredients.add(Ingredient.of(HbmItems.GRENADE_SHELL.get()));
-        ingredients.add(Ingredient.of(HbmItems.GRENADE_FILLING.get()));
-        ingredients.add(Ingredient.of(HbmItems.GRENADE_FUZE.get()));
-        ingredients.add(Ingredient.of(HbmItems.GRENADE_EXTRA.get()));
+        ingredients.add(ingredient(HbmItems.GRENADE_SHELL_ITEMS));
+        ingredients.add(ingredient(HbmItems.GRENADE_FILLING_ITEMS));
+        ingredients.add(ingredient(HbmItems.GRENADE_FUZE_ITEMS));
+        ingredients.add(ingredient(HbmItems.GRENADE_EXTRA_ITEMS));
         return ingredients;
     }
 
@@ -78,15 +80,15 @@ public final class UniversalGrenadeRecipe extends CustomRecipe {
             ItemStack stack = input.getItem(slot);
             if (stack.isEmpty()) continue;
             count++;
-            Item item = stack.getItem();
-            if (item == HbmItems.GRENADE_SHELL.get() && shell == null) {
-                shell = UniversalGrenadeItem.Shell.byId(variant(stack));
-            } else if (item == HbmItems.GRENADE_FILLING.get() && filling == null) {
-                filling = UniversalGrenadeItem.Filling.byId(variant(stack));
-            } else if (item == HbmItems.GRENADE_FUZE.get() && fuze == null) {
-                fuze = UniversalGrenadeItem.Fuze.byId(variant(stack));
-            } else if (item == HbmItems.GRENADE_EXTRA.get() && extra == null) {
-                extra = UniversalGrenadeItem.Extra.byId(variant(stack));
+            String variant;
+            if ((variant = variant(HbmItems.GRENADE_SHELL_ITEMS, stack)) != null && shell == null) {
+                shell = UniversalGrenadeItem.Shell.byId(variant);
+            } else if ((variant = variant(HbmItems.GRENADE_FILLING_ITEMS, stack)) != null && filling == null) {
+                filling = UniversalGrenadeItem.Filling.byId(variant);
+            } else if ((variant = variant(HbmItems.GRENADE_FUZE_ITEMS, stack)) != null && fuze == null) {
+                fuze = UniversalGrenadeItem.Fuze.byId(variant);
+            } else if ((variant = variant(HbmItems.GRENADE_EXTRA_ITEMS, stack)) != null && extra == null) {
+                extra = UniversalGrenadeItem.Extra.byId(variant);
             } else {
                 return State.INVALID;
             }
@@ -97,8 +99,17 @@ public final class UniversalGrenadeRecipe extends CustomRecipe {
         return new State(shell, filling, fuze, extra);
     }
 
-    private static String variant(ItemStack stack) {
-        return stack.getItem() instanceof LegacyVariantItem item ? item.variant(stack).id() : "";
+    private static Ingredient ingredient(Map<String, DeferredItem<Item>> items) {
+        return Ingredient.of(items.values().stream().map(DeferredItem::get).toArray(Item[]::new));
+    }
+
+    private static String variant(Map<String, DeferredItem<Item>> items, ItemStack stack) {
+        for (Map.Entry<String, DeferredItem<Item>> entry : items.entrySet()) {
+            if (stack.is(entry.getValue().get())) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     private record State(

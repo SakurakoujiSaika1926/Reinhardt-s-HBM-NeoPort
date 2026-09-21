@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "minecraft:book" },
+    { "item": "minecraft:iron_ingot" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:book_guide_book",
+    "components": {
+      "minecraft:custom_data": { "guide_book_type": "starter" }
+    }
+  }
+}

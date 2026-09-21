@@ -12,12 +12,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "dura_steel"
+        "item": "reinhardtshbm:pipe_dura_steel"
       },
       "count": 1
     },

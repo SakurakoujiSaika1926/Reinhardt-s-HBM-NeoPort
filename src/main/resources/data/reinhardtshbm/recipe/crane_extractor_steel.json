@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":["CCC","CPC","CBC"],"key":{"C":{"tag":"c:ingots/steel"},"P":{"item":"reinhardtshbm:part_generic_piston_pneumatic"},"B":{"item":"reinhardtshbm:conveyor"}},"result":{"id":"reinhardtshbm:crane_extractor","count":4}}

@@ -23,23 +23,13 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "steel"
+        "item": "reinhardtshbm:plate_cast_steel"
       },
       "count": 24
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_dense_gold"
       },
       "count": 16
     },

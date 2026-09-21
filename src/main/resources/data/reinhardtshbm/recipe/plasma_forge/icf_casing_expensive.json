@@ -15,26 +15,13 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "bronze_tubes"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_bronze_tubes"
       },
       "count": 4
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "saturnite"
+        "item": "reinhardtshbm:plate_cast_saturnite"
       },
       "count": 4
     },

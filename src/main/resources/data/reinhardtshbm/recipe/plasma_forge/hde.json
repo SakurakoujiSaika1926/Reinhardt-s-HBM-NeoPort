@@ -7,23 +7,13 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "bismuth_bronze"
+        "item": "reinhardtshbm:plate_cast_bismuth_bronze"
       },
       "count": 2
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "combine_steel"
+        "item": "reinhardtshbm:plate_welded_combine_steel"
       },
       "count": 1
     },
@@ -41,12 +31,6 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:part_generic",
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "hde"
-      },
-      "minecraft:custom_model_data": 4
-    }
+    "id": "reinhardtshbm:part_generic_hde"
   }
 }

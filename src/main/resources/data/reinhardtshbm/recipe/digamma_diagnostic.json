@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"item":"reinhardtshbm:geiger_counter"},{"tag":"c:billets/po210"},{"tag":"c:ingots/asbestos"}],"result":{"id":"reinhardtshbm:digamma_diagnostic"}}
+{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"item":"reinhardtshbm:geiger_counter"},{"tag":"c:billets/polonium"},{"tag":"c:ingots/asbestos"}],"result":{"id":"reinhardtshbm:digamma_diagnostic"}}

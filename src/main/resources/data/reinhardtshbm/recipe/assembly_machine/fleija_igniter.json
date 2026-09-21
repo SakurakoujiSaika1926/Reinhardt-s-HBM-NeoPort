@@ -12,12 +12,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "shape": "wire",
-        "material": "schrabidium"
+        "item": "reinhardtshbm:wire_schrabidium"
       },
       "count": 2
     },

@@ -51,6 +51,8 @@ public final class HbmNetwork {
         registrar.playToServer(RadioTelexControlPayload.TYPE, RadioTelexControlPayload.STREAM_CODEC, RadioTelexControlPayload::handle);
         registrar.playToServer(AutocalControlPayload.TYPE, AutocalControlPayload.STREAM_CODEC, AutocalControlPayload::handle);
         registrar.playToServer(BobmazonOrderPayload.TYPE, BobmazonOrderPayload.STREAM_CODEC, BobmazonOrderPayload::handle);
+        registrar.playToServer(PortableCrateOpenPayload.TYPE, PortableCrateOpenPayload.STREAM_CODEC, PortableCrateOpenPayload::handle);
+        registrar.playToServer(PortableCrateSlotClickPayload.TYPE, PortableCrateSlotClickPayload.STREAM_CODEC, PortableCrateSlotClickPayload::handle);
         registrar.playToClient(PlayerInformPayload.TYPE, PlayerInformPayload.STREAM_CODEC, PlayerInformPayload::handle);
         registrar.playToClient(PollutionSyncPayload.TYPE, PollutionSyncPayload.STREAM_CODEC, PollutionSyncPayload::handle);
         registrar.playToClient(BatteryReddSyncPayload.TYPE, BatteryReddSyncPayload.STREAM_CODEC, BatteryReddSyncPayload::handle);
@@ -61,5 +63,6 @@ public final class HbmNetwork {
         registrar.playToClient(MaxwellGibEffectPayload.TYPE, MaxwellGibEffectPayload.STREAM_CODEC, MaxwellGibEffectPayload::handle);
         registrar.playToClient(LandmineEffectPayload.TYPE, LandmineEffectPayload.STREAM_CODEC, LandmineEffectPayload::handle);
         registrar.playToClient(SirenSoundPayload.TYPE, SirenSoundPayload.STREAM_CODEC, SirenSoundPayload::handle);
+        registrar.playToClient(PressAnimationPayload.TYPE, PressAnimationPayload.STREAM_CODEC, PressAnimationPayload::handle);
     }
 }

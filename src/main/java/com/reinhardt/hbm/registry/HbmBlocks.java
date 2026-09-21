@@ -193,6 +193,7 @@ import com.reinhardt.hbm.item.VolcanoCoreBlockItem;
 import com.reinhardt.hbm.item.VendingMachineBlockItem;
 import com.reinhardt.hbm.item.PowerPylonBlockItem;
 import com.reinhardt.hbm.item.PowerCableBoxBlockItem;
+import com.reinhardt.hbm.item.RadSealedFluidDuctBlockItem;
 import com.reinhardt.hbm.block.CompactLauncherBlock;
 import com.reinhardt.hbm.block.LauncherDummyBlock;
 import com.reinhardt.hbm.block.LauncherStructCoreBlock;
@@ -573,6 +574,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> CLUSTER_DEEPSLATE_ALUMINIUM = ore("cluster_deepslate_aluminium", 4.5F, 35.0F);
     /** HBM-specific deepslate copper ore cluster; it drops copper crystal rather than raw copper. */
     public static final DeferredBlock<Block> CLUSTER_DEEPSLATE_COPPER = ore("cluster_deepslate_copper", 4.5F, 35.0F);
+    /** Modern deepslate counterpart for the legacy bottom-layer tungsten cluster. */
+    public static final DeferredBlock<Block> CLUSTER_DEEPSLATE_TUNGSTEN = ore("cluster_deepslate_tungsten", 4.5F, 35.0F);
     public static final DeferredBlock<Block> CLUSTER_DEPTH_IRON = depthClusterOre("cluster_depth_iron");
     public static final DeferredBlock<Block> CLUSTER_DEPTH_TITANIUM = depthClusterOre("cluster_depth_titanium");
     public static final DeferredBlock<Block> CLUSTER_DEPTH_TUNGSTEN = depthClusterOre("cluster_depth_tungsten");
@@ -595,9 +598,18 @@ public final class HbmBlocks {
             () -> new DepthRockBlock(depthRockProperties()));
     public static final DeferredBlock<Block> STONE_GNEISS = registerBlock("stone_gneiss",
             () -> new Block(rock().strength(1.5F, 10.0F)));
-    public static final DeferredBlock<Block> STONE_RESOURCE = registerVariantBlock("stone_resource",
-            () -> new ResourceStoneBlock(rock().strength(5.0F, 10.0F)), LegacyVariantBlock.VARIANT,
-            "block.reinhardtshbm.stone_resource", "sulfur", "asbestos", "hematite", "malachite", "limestone", "bauxite");
+    public static final DeferredBlock<Block> STONE_RESOURCE_SULFUR = registerBlock("stone_resource_sulfur",
+            () -> new ResourceStoneBlock(rock().strength(5.0F, 10.0F), ResourceStoneBlock.Kind.NORMAL));
+    public static final DeferredBlock<Block> STONE_RESOURCE_ASBESTOS = registerBlock("stone_resource_asbestos",
+            () -> new ResourceStoneBlock(rock().strength(5.0F, 10.0F), ResourceStoneBlock.Kind.ASBESTOS));
+    public static final DeferredBlock<Block> STONE_RESOURCE_HEMATITE = registerBlock("stone_resource_hematite",
+            () -> new ResourceStoneBlock(rock().strength(5.0F, 10.0F), ResourceStoneBlock.Kind.NORMAL));
+    public static final DeferredBlock<Block> STONE_RESOURCE_MALACHITE = registerBlock("stone_resource_malachite",
+            () -> new ResourceStoneBlock(rock().strength(5.0F, 10.0F), ResourceStoneBlock.Kind.MALACHITE));
+    public static final DeferredBlock<Block> STONE_RESOURCE_LIMESTONE = registerBlock("stone_resource_limestone",
+            () -> new ResourceStoneBlock(rock().strength(5.0F, 10.0F), ResourceStoneBlock.Kind.NORMAL));
+    public static final DeferredBlock<Block> STONE_RESOURCE_BAUXITE = registerBlock("stone_resource_bauxite",
+            () -> new ResourceStoneBlock(rock().strength(5.0F, 10.0F), ResourceStoneBlock.Kind.NORMAL));
     public static final DeferredBlock<Block> STONE_BIOME = registerVariantBlock("stone_biome",
             () -> new BiomeStoneBlock(rock().strength(5.0F, 10.0F)), BiomeStoneBlock.VARIANT,
             "block.reinhardtshbm.stone_biome", "desert", "woodland");
@@ -1243,7 +1255,7 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> FLUID_DUCT_PAINTABLE = fluidDuct("fluid_duct_paintable", FluidDuctBlock.Kind.PAINTABLE);
     public static final DeferredBlock<Block> FLUID_DUCT_PAINTABLE_BLOCK_EXHAUST = fluidDuct("fluid_duct_paintable_block_exhaust", FluidDuctBlock.Kind.PAINTABLE_EXHAUST);
     public static final DeferredBlock<Block> FLUID_DUCT_SOLID = fluidDuct("fluid_duct_solid", FluidDuctBlock.Kind.SOLID);
-    public static final DeferredBlock<Block> FLUID_DUCT_SOLID_SEALED = fluidDuct("fluid_duct_solid_sealed", FluidDuctBlock.Kind.SOLID_SEALED);
+    public static final DeferredBlock<Block> FLUID_DUCT_SOLID_SEALED = radSealedFluidDuct("fluid_duct_solid_sealed");
     public static final DeferredBlock<Block> FLUID_VALVE = fluidDuct("fluid_valve", FluidDuctBlock.Kind.VALVE);
     public static final DeferredBlock<Block> FLUID_SWITCH = fluidDuct("fluid_switch", FluidDuctBlock.Kind.SWITCH);
     public static final DeferredBlock<Block> FLUID_COUNTER_VALVE = fluidDuct("fluid_counter_valve", FluidDuctBlock.Kind.COUNTER_VALVE);
@@ -2487,6 +2499,7 @@ public final class HbmBlocks {
             CLUSTER_DEEPSLATE_TITANIUM,
             CLUSTER_DEEPSLATE_ALUMINIUM,
             CLUSTER_DEEPSLATE_COPPER,
+            CLUSTER_DEEPSLATE_TUNGSTEN,
             CLUSTER_DEPTH_IRON,
             CLUSTER_DEPTH_TITANIUM,
             CLUSTER_DEPTH_TUNGSTEN
@@ -3068,7 +3081,12 @@ public final class HbmBlocks {
             DEPTH_TILES,
             DEPTH_NETHER_BRICK,
             DEPTH_NETHER_TILES,
-            STONE_RESOURCE,
+            STONE_RESOURCE_SULFUR,
+            STONE_RESOURCE_ASBESTOS,
+            STONE_RESOURCE_HEMATITE,
+            STONE_RESOURCE_MALACHITE,
+            STONE_RESOURCE_LIMESTONE,
+            STONE_RESOURCE_BAUXITE,
             STONE_BIOME,
             WOOD_BARRIER,
             WOOD_STRUCTURE,
@@ -3540,6 +3558,15 @@ public final class HbmBlocks {
                 .strength(5.0F, 10.0F)
                 .sound(HbmSoundTypes.PIPE)
                 .noOcclusion(), kind));
+    }
+
+    private static DeferredBlock<Block> radSealedFluidDuct(String name) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new FluidDuctBlock(metal()
+                .strength(15.0F, 400.0F)
+                .sound(HbmSoundTypes.PIPE)
+                .noOcclusion(), FluidDuctBlock.Kind.SOLID_SEALED));
+        HbmItems.ITEMS.register(name, () -> new RadSealedFluidDuctBlockItem(block.get(), new Item.Properties()));
+        return block;
     }
 
     private static DeferredBlock<Block> fluidDuctGauge(String name) {
@@ -4044,9 +4071,12 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> zirnoxReactor(String name) {
-        return registerObjBlock(name, () -> new ZirnoxReactorBlock(metal()
-                .strength(5.0F, 10.0F)
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new ZirnoxReactorBlock(metal()
+                .strength(5.0F, 100.0F)
                 .noOcclusion(), Shapes.block()));
+        HbmItems.ITEMS.register(name, () -> new ObjMachineLegacyOffsetBlockItem(
+                block.get(), new Item.Properties(), 2, true));
+        return block;
     }
 
     private static DeferredBlock<Block> nukeBoy(String name) {
@@ -4206,7 +4236,7 @@ public final class HbmBlocks {
 
     private static DeferredBlock<Block> zirnoxDestroyed(String name) {
         return registerBlock(name, () -> new ZirnoxDestroyedBlock(metal()
-                .strength(5.0F, 10.0F)
+                .strength(100.0F, 800.0F)
                 .noOcclusion(), Shapes.block()));
     }
 

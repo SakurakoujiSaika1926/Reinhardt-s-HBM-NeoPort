@@ -7,23 +7,13 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "osmiridium"
+        "item": "reinhardtshbm:plate_welded_osmiridium"
       },
       "count": 16
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "starmetal"
+        "item": "reinhardtshbm:plate_cast_starmetal"
       },
       "count": 16
     },

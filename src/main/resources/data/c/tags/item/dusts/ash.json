@@ -1,6 +1,11 @@
 {
-    "replace": false,
-    "values": [
-        "reinhardtshbm:powder_ash"
-    ]
+  "replace": false,
+  "values": [
+    "reinhardtshbm:powder_ash_wood",
+    "reinhardtshbm:powder_ash_coal",
+    "reinhardtshbm:powder_ash_misc",
+    "reinhardtshbm:powder_ash_fly",
+    "reinhardtshbm:powder_ash_soot",
+    "reinhardtshbm:powder_ash_fullerene"
+  ]
 }

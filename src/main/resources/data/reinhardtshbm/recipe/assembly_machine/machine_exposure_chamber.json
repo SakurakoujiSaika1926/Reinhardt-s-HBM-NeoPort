@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "aluminium"
+        "item": "reinhardtshbm:plate_cast_aluminium"
       },
       "count": 12
     },
@@ -29,12 +24,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_dense"
-        ],
-        "shape": "wire_dense",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_dense_gold"
       },
       "count": 32
     },
@@ -53,9 +43,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:battery_pack"
-        ],
+        "items": "reinhardtshbm:battery_pack",
         "components": {
           "minecraft:custom_data": {
             "variant": "capacitor_tantalum"

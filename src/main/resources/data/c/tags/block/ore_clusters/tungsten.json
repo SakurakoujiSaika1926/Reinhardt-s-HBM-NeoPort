@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
+    "reinhardtshbm:cluster_deepslate_tungsten",
     "reinhardtshbm:cluster_depth_tungsten"
   ]
 }

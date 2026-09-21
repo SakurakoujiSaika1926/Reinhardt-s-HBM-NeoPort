@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["ICI", "CAC", "ICI"],
+  "key": {
+    "I": { "tag": "c:ingots/starmetal" },
+    "C": { "item": "reinhardtshbm:circuit_bismoid" },
+    "A": { "item": "reinhardtshbm:gem_alexandrite" }
+  },
+  "result": { "id": "reinhardtshbm:field_disturber" }
+}

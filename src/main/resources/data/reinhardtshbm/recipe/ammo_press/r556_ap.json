@@ -1,1 +1,40 @@
-{"type":"reinhardtshbm:ammo_press","group":"ammo_press.r556_ap","input":[{},{"ingredient":{"tag":"c:ingots/weaponsteel"},"count":2},{},{},{"ingredient":{"tag":"c:dusts/smokeless"},"count":4},{},{},{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:casing"],"components":{"minecraft:custom_data":{"variant":"small_steel"}}},"count":2},{}],"result":{"id":"reinhardtshbm:ammo_standard","count":16,"components":{"minecraft:custom_data":{"variant":"r556_ap"},"minecraft:custom_model_data":8}}}
+{
+  "type": "reinhardtshbm:ammo_press",
+  "group": "ammo_press.r556_ap",
+  "input": [
+    {},
+    {
+      "ingredient": {
+        "tag": "c:ingots/weaponsteel"
+      },
+      "count": 2
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "tag": "c:dusts/smokeless"
+      },
+      "count": 4
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:casing_small_steel"
+      },
+      "count": 2
+    },
+    {}
+  ],
+  "result": {
+    "id": "reinhardtshbm:ammo_standard",
+    "count": 16,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "r556_ap"
+      },
+      "minecraft:custom_model_data": 8
+    }
+  }
+}

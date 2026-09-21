@@ -1,4 +1,16 @@
-﻿{
-    "replace":  false,
-    "values": []
+{
+  "replace": false,
+  "values": [
+    "#c:wires/gold",
+    "#c:wires/schrabidium",
+    "#c:wires/copper",
+    "#c:wires/tungsten",
+    "#c:wires/aluminium",
+    "#c:wires/lead",
+    "#c:wires/zirconium",
+    "#c:wires/steel",
+    "#c:wires/red_copper",
+    "#c:wires/carbon",
+    "#c:wires/magnetized_tungsten"
+  ]
 }

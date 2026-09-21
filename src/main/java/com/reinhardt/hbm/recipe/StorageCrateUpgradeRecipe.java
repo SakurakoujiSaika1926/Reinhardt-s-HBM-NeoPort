@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.recipe;
 
 import com.mojang.serialization.MapCodec;
-import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
@@ -9,7 +8,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -19,24 +17,28 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 
+import java.util.Map;
 import java.util.function.Predicate;
 
-public class StorageCrateUpgradeRecipe extends CustomRecipe {
+/**
+ * Fixed shaped recipes which preserve the stored contents of the upgraded container.
+ *
+ * <p>The 1.7.10 implementation extended {@code ShapedOreRecipe}. Keeping this as a real
+ * shaped recipe is important beyond presentation: JEI can expose the crafting-table
+ * route, recipe transfer retains the exact 3x3 layout, and automation sees every repeated
+ * ingredient instead of one de-duplicated material entry.</p>
+ */
+public class StorageCrateUpgradeRecipe extends ShapedRecipe {
     private final Target target;
 
     public StorageCrateUpgradeRecipe(Target target) {
-        super(CraftingBookCategory.MISC);
+        super("", CraftingBookCategory.MISC, target.pattern(), new ItemStack(target.result().asItem()));
         this.target = target;
-    }
-
-    @Override
-    public boolean matches(CraftingInput input, Level level) {
-        return this.target.matches(input);
     }
 
     @Override
@@ -48,21 +50,6 @@ public class StorageCrateUpgradeRecipe extends CustomRecipe {
         ItemStack result = new ItemStack(this.target.result().asItem());
         copyContainerData(source, result, registries);
         return result;
-    }
-
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= 3 && height >= 3;
-    }
-
-    @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return new ItemStack(this.target.result().asItem());
-    }
-
-    @Override
-    public NonNullList<Ingredient> getIngredients() {
-        return this.target.ingredients();
     }
 
     @Override
@@ -125,102 +112,38 @@ public class StorageCrateUpgradeRecipe extends CustomRecipe {
         MASS_STORAGE_DESH,
         MASS_STORAGE_RESISTANT;
 
-        private boolean matches(CraftingInput input) {
-            if (input.width() != 3 || input.height() != 3) {
-                return false;
-            }
+        private ShapedRecipePattern pattern() {
             return switch (this) {
-                case SAFE -> matchesSafe(input);
-                case DESH -> matchesDesh(input);
-                case TUNGSTEN -> matchesTungsten(input);
-                case MASS_STORAGE -> matchesMassStorage(input);
-                case MASS_STORAGE_DESH -> matchesMassStorageDesh(input);
-                case MASS_STORAGE_RESISTANT -> matchesMassStorageResistant(input);
+                case SAFE -> ShapedRecipePattern.of(Map.of(
+                        'L', Ingredient.of(tag("c:plates/lead")),
+                        'A', Ingredient.of(tag("c:plates/titanium")),
+                        'C', Ingredient.of(HbmBlocks.CRATE_STEEL.asItem())
+                ), "LAL", "ACA", "LAL");
+                case DESH -> ShapedRecipePattern.of(Map.of(
+                        'D', Ingredient.of(tag("c:plates/desh")),
+                        'S', Ingredient.of(HbmBlocks.CRATE_STEEL.asItem())
+                ), " D ", "DSD", " D ");
+                case TUNGSTEN -> ShapedRecipePattern.of(Map.of(
+                        'B', Ingredient.of(tag("c:storage_blocks/tungsten")),
+                        'P', Ingredient.of(tag("c:plates/cast_copper")),
+                        'C', Ingredient.of(HbmBlocks.CRATE_STEEL.asItem())
+                ), "BPB", "PCP", "BPB");
+                case MASS_STORAGE -> ShapedRecipePattern.of(Map.of(
+                        'L', Ingredient.of(HbmItems.CIRCUIT_VACUUM_TUBE.get()),
+                        'I', Ingredient.of(tag("c:ingots/titanium")),
+                        'C', Ingredient.of(HbmBlocks.CRATE_STEEL.asItem())
+                ), " L ", "ICI", " I ");
+                case MASS_STORAGE_DESH -> ShapedRecipePattern.of(Map.of(
+                        'C', Ingredient.of(HbmItems.CIRCUIT_CHIP.get()),
+                        'P', Ingredient.of(tag("c:ingots/desh")),
+                        'M', Ingredient.of(HbmBlocks.MASS_STORAGE_IRON.asItem())
+                ), " C ", "PMP", " P ");
+                case MASS_STORAGE_RESISTANT -> ShapedRecipePattern.of(Map.of(
+                        'C', Ingredient.of(HbmItems.CIRCUIT_ADVANCED.get()),
+                        'P', Ingredient.of(tag("c:ingots/resistant_alloy")),
+                        'M', Ingredient.of(HbmBlocks.MASS_STORAGE_DESH.asItem())
+                ), " C ", "PMP", " P ");
             };
-        }
-
-        private boolean matchesSafe(CraftingInput input) {
-            return isEmpty(input, 0, 0) && isPlate(input, 1, 0, "lead") && isEmpty(input, 2, 0)
-                    && isPlate(input, 0, 1, "titanium") && is(input, 1, 1, HbmBlocks.CRATE_STEEL.asItem()) && isPlate(input, 2, 1, "titanium")
-                    && isEmpty(input, 0, 2) && isPlate(input, 1, 2, "lead") && isEmpty(input, 2, 2);
-        }
-
-        private boolean matchesDesh(CraftingInput input) {
-            return isEmpty(input, 0, 0)
-                    && isDeshPlate(input, 1, 0)
-                    && isEmpty(input, 2, 0)
-                    && isDeshPlate(input, 0, 1)
-                    && is(input, 1, 1, HbmBlocks.CRATE_STEEL.asItem())
-                    && isDeshPlate(input, 2, 1)
-                    && isEmpty(input, 0, 2)
-                    && isDeshPlate(input, 1, 2)
-                    && isEmpty(input, 2, 2);
-        }
-
-        private boolean matchesTungsten(CraftingInput input) {
-            return isTungstenBlock(input, 0, 0)
-                    && isCopperCastPlate(input, 1, 0)
-                    && isTungstenBlock(input, 2, 0)
-                    && isCopperCastPlate(input, 0, 1)
-                    && is(input, 1, 1, HbmBlocks.CRATE_STEEL.asItem())
-                    && isCopperCastPlate(input, 2, 1)
-                    && isTungstenBlock(input, 0, 2)
-                    && isCopperCastPlate(input, 1, 2)
-                    && isTungstenBlock(input, 2, 2);
-        }
-
-        private boolean matchesMassStorage(CraftingInput input) {
-            return isEmpty(input, 0, 0) && is(input, 1, 0, HbmItems.CIRCUIT_VACUUM_TUBE.get()) && isEmpty(input, 2, 0)
-                    && isTag(input, 0, 1, "c:ingots/titanium") && is(input, 1, 1, HbmBlocks.CRATE_STEEL.asItem()) && isTag(input, 2, 1, "c:ingots/titanium")
-                    && isEmpty(input, 0, 2) && isTag(input, 1, 2, "c:ingots/titanium") && isEmpty(input, 2, 2);
-        }
-
-        private boolean matchesMassStorageDesh(CraftingInput input) {
-            return isEmpty(input, 0, 0) && is(input, 1, 0, HbmItems.CIRCUIT_CHIP.get()) && isEmpty(input, 2, 0)
-                    && isTag(input, 0, 1, "c:ingots/desh") && is(input, 1, 1, HbmBlocks.MASS_STORAGE_IRON.asItem()) && isTag(input, 2, 1, "c:ingots/desh")
-                    && isEmpty(input, 0, 2) && isTag(input, 1, 2, "c:ingots/desh") && isEmpty(input, 2, 2);
-        }
-
-        private boolean matchesMassStorageResistant(CraftingInput input) {
-            return isEmpty(input, 0, 0) && is(input, 1, 0, HbmItems.CIRCUIT_ADVANCED.get()) && isEmpty(input, 2, 0)
-                    && isTag(input, 0, 1, "c:ingots/resistant_alloy") && is(input, 1, 1, HbmBlocks.MASS_STORAGE_DESH.asItem()) && isTag(input, 2, 1, "c:ingots/resistant_alloy")
-                    && isEmpty(input, 0, 2) && isTag(input, 1, 2, "c:ingots/resistant_alloy") && isEmpty(input, 2, 2);
-        }
-
-        private NonNullList<Ingredient> ingredients() {
-            NonNullList<Ingredient> ingredients = NonNullList.create();
-            switch (this) {
-                case SAFE -> {
-                    ingredients.add(Ingredient.of(HbmBlocks.CRATE_STEEL.asItem()));
-                    ingredients.add(Ingredient.of(tag("c:plates/lead")));
-                    ingredients.add(Ingredient.of(tag("c:plates/titanium")));
-                }
-                case DESH -> {
-                    ingredients.add(Ingredient.of(HbmBlocks.CRATE_STEEL.asItem()));
-                    ingredients.add(Ingredient.of(tag("c:plates/desh")));
-                }
-                case TUNGSTEN -> {
-                    ingredients.add(Ingredient.of(HbmBlocks.CRATE_STEEL.asItem()));
-                    ingredients.add(Ingredient.of(tag("c:storage_blocks/tungsten")));
-                    ingredients.add(Ingredient.of(com.reinhardt.hbm.registry.HbmItems.PLATE_CAST.get()));
-                }
-                case MASS_STORAGE -> {
-                    ingredients.add(Ingredient.of(HbmBlocks.CRATE_STEEL.asItem()));
-                    ingredients.add(Ingredient.of(HbmItems.CIRCUIT_VACUUM_TUBE.get()));
-                    ingredients.add(Ingredient.of(tag("c:ingots/titanium")));
-                }
-                case MASS_STORAGE_DESH -> {
-                    ingredients.add(Ingredient.of(HbmBlocks.MASS_STORAGE_IRON.asItem()));
-                    ingredients.add(Ingredient.of(HbmItems.CIRCUIT_CHIP.get()));
-                    ingredients.add(Ingredient.of(tag("c:ingots/desh")));
-                }
-                case MASS_STORAGE_RESISTANT -> {
-                    ingredients.add(Ingredient.of(HbmBlocks.MASS_STORAGE_DESH.asItem()));
-                    ingredients.add(Ingredient.of(HbmItems.CIRCUIT_ADVANCED.get()));
-                    ingredients.add(Ingredient.of(tag("c:ingots/resistant_alloy")));
-                }
-            }
-            return ingredients;
         }
 
         private net.minecraft.world.level.ItemLike result() {
@@ -242,51 +165,8 @@ public class StorageCrateUpgradeRecipe extends CustomRecipe {
             };
         }
 
-        private static boolean isEmpty(CraftingInput input, int x, int y) {
-            return input.getItem(x + y * input.width()).isEmpty();
-        }
-
-        private static boolean is(CraftingInput input, int x, int y, net.minecraft.world.item.Item item) {
-            return input.getItem(x + y * input.width()).is(item);
-        }
-
-        private static boolean isDeshPlate(CraftingInput input, int x, int y) {
-            return isPlate(input, x, y, "desh");
-        }
-
-        private static boolean isPlate(CraftingInput input, int x, int y, String material) {
-            return isTag(input, x, y, "c:plates/" + material);
-        }
-
-        private static boolean isTag(CraftingInput input, int x, int y, String id) {
-            return input.getItem(x + y * input.width()).is(tag(id));
-        }
-
-        private static boolean isTungstenBlock(CraftingInput input, int x, int y) {
-            return isTag(input, x, y, "c:storage_blocks/tungsten");
-        }
-
-        private static boolean isCopperCastPlate(CraftingInput input, int x, int y) {
-            ItemStack stack = input.getItem(x + y * input.width());
-            if (!stack.is(com.reinhardt.hbm.registry.HbmItems.PLATE_CAST.get())) {
-                return false;
-            }
-            CustomData data = stack.get(DataComponents.CUSTOM_DATA);
-            if (data == null) {
-                return false;
-            }
-            String material = data.copyTag().getString("material");
-            int materialId = data.copyTag().getInt("material_id");
-            return "copper".equals(material) || materialId == 2900;
-        }
-
-        private static net.minecraft.world.item.Item item(String path) {
-            return BuiltInRegistries.ITEM.get(ReinhardtsHBM.id(path));
-        }
-
         private static TagKey<net.minecraft.world.item.Item> tag(String id) {
-            ResourceLocation location = id.indexOf(':') >= 0 ? ResourceLocation.parse(id) : ReinhardtsHBM.id(id);
-            return TagKey.create(Registries.ITEM, location);
+            return TagKey.create(Registries.ITEM, ResourceLocation.parse(id));
         }
     }
 

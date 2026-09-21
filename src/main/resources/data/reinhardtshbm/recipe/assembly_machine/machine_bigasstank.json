@@ -23,20 +23,10 @@
         "type": "neoforge:compound",
         "children": [
           {
-            "type": "reinhardtshbm:foundry_material",
-            "items": [
-              "reinhardtshbm:plate_welded"
-            ],
-            "shape": "plate_welded",
-            "material": "tcalloy"
+            "item": "reinhardtshbm:plate_welded_tcalloy"
           },
           {
-            "type": "reinhardtshbm:foundry_material",
-            "items": [
-              "reinhardtshbm:plate_welded"
-            ],
-            "shape": "plate_welded",
-            "material": "cdalloy"
+            "item": "reinhardtshbm:plate_welded_cdalloy"
           }
         ]
       },

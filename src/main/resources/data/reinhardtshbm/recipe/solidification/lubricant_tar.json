@@ -1,17 +1,11 @@
-﻿{
-    "type":  "reinhardtshbm:solidification",
-    "group":  "solidifier.lubricant",
-    "input":  {
-                  "fluid":  "lubricant",
-                  "amount":  100
-              },
-    "output":  {
-                   "id":  "reinhardtshbm:oil_tar",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "paraffin"
-                                                                },
-                                      "minecraft:custom_model_data":  5
-                                  }
-               }
+{
+  "type": "reinhardtshbm:solidification",
+  "group": "solidifier.lubricant",
+  "input": {
+    "fluid": "lubricant",
+    "amount": 100
+  },
+  "output": {
+    "id": "reinhardtshbm:oil_tar_paraffin"
+  }
 }

@@ -8,12 +8,7 @@
   ],
   "key": {
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_gold"
     },
     "C": {
       "item": "reinhardtshbm:circuit_advanced"

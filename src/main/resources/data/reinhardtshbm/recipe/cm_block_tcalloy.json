@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"building","pattern":[" I ","IPI"," I "],"key":{"I":{"tag":"c:ingots/resistant_alloy"},"P":{"tag":"c:plates/cast_resistant_alloy"}},"result":{"id":"reinhardtshbm:cm_block","count":4,"components":{"minecraft:custom_data":{"variant":"tcalloy"},"minecraft:custom_model_data":3}}}

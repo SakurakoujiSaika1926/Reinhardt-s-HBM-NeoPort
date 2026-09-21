@@ -2,7 +2,9 @@
   "neoforge:conditions": [
     {
       "type": "neoforge:not",
-      "value": { "type": "reinhardtshbm:enable_528_mode" }
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
     }
   ],
   "type": "reinhardtshbm:assembly_machine",
@@ -10,23 +12,48 @@
   "duration": 400,
   "power": 100,
   "ingredients": [
-    { "ingredient": { "tag": "c:plates/steel" }, "count": 16 },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "titanium"
+        "tag": "c:plates/steel"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:shell_titanium"
       },
       "count": 4
     },
-    { "ingredient": { "tag": "c:plates/dura_steel" }, "count": 4 },
-    { "ingredient": { "item": "reinhardtshbm:crystal_redstone" }, "count": 3 },
-    { "ingredient": { "item": "minecraft:diamond" }, "count": 3 },
-    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 8 },
-    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 3 }
+    {
+      "ingredient": {
+        "tag": "c:plates/dura_steel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:crystal_redstone"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:diamond"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor"
+      },
+      "count": 3
+    }
   ],
   "result": {
     "id": "reinhardtshbm:machine_mining_laser"

@@ -55,3 +55,11 @@ license="${mod_license}"
     versionRange="[4.5,)"
     ordering="AFTER"
     side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="curios"
+    type="optional"
+    reason="Enables HBM gas masks and portable storage crates in dedicated Curios slots."
+    versionRange="[9.5,)"
+    ordering="AFTER"
+    side="BOTH"

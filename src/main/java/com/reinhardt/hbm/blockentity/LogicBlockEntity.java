@@ -275,7 +275,7 @@ public class LogicBlockEntity extends BlockEntity {
             BlockEntity target = level.getBlockEntity(pos.above(18));
             if (target instanceof LegacyDisplayStandBlockEntity stand) {
                 stand.setDisplayedItem(level.random.nextInt(5) == 0
-                        ? LegacyVariantItem.stackFor(HbmItems.ITEM_SECRET.get(), "aberrator")
+                        ? HbmItems.variantStack(HbmItems.ITEM_SECRET_ITEMS, "aberrator")
                         : new ItemStack(HbmItems.CLAY_TABLET.get()));
             }
             level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), 3);

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PIP"
+  ],
+  "key": {
+    "P": {
+      "tag": "c:plates/steel"
+    },
+    "I": {
+      "item": "reinhardtshbm:blades_steel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:blades_steel"
+  }
+}

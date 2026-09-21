@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/part_receiver_light"
-                 },
-    "parent":  "minecraft:item/generated"
-}

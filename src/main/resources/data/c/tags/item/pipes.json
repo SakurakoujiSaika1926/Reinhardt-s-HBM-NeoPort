@@ -1,9 +1,12 @@
 {
   "replace": false,
   "values": [
+    "#c:pipes/steel",
+    "#c:pipes/dura_steel",
+    "#c:pipes/aluminium",
+    "#c:pipes/iron",
     "#c:pipes/copper",
     "#c:pipes/lead",
-    "#c:pipes/steel",
-    "#c:pipes/dura_steel"
+    "#c:pipes/rubber"
   ]
 }

@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -102,6 +103,23 @@ public class BlueprintItem extends Item {
         }
         String pool = tag.getString(POOL_TAG);
         return pool.isBlank() ? Optional.empty() : Optional.of(pool);
+    }
+
+    /**
+     * Legacy {@code GenericRecipe#setPools528} only attached its blueprint pool while 528 mode was
+     * enabled. Datapack recipes keep that pool metadata so the same recipe can be inspected on both
+     * sides of a config reload, therefore the visibility check must preserve the legacy conditional
+     * behavior here instead of treating every {@code 528.*} pool as an unconditional requirement.
+     */
+    public static boolean isRecipeVisibleForPool(List<String> recipePools, Optional<String> installedPool) {
+        if (recipePools.isEmpty()) {
+            return true;
+        }
+        if (!HbmConfig.ENABLE_528_MODE.get()
+                && recipePools.stream().allMatch(pool -> pool.startsWith(POOL_PREFIX_528))) {
+            return true;
+        }
+        return installedPool.filter(recipePools::contains).isPresent();
     }
 
     public static ItemStack stackFor(String pool) {

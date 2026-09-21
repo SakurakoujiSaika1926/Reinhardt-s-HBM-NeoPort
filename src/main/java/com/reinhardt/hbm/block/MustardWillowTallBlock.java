@@ -170,7 +170,7 @@ public class MustardWillowTallBlock extends Block implements BonemealableBlock {
         List<ItemStack> drops = new ArrayList<>();
         drops.add(new ItemStack(HbmBlocks.PLANT_FLOWER.get()));
         if (state.getValue(META) == CD4 + 8) {
-            ItemStack leaves = LegacyVariantItem.stackFor(HbmItems.PLANT_ITEM, "mustardwillow");
+            ItemStack leaves = HbmItems.variantStack(HbmItems.PLANT_ITEMS, "mustardwillow");
             leaves.setCount(3 + params.getLevel().random.nextInt(4));
             drops.add(leaves);
         }

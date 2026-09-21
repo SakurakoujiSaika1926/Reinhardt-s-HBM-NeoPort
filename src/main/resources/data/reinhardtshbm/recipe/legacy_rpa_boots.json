@@ -7,15 +7,7 @@
   ],
   "key": {
     "L": {
-      "type": "neoforge:components",
-      "items": [
-        "reinhardtshbm:parts_legendary"
-      ],
-      "components": {
-        "minecraft:custom_data": {
-          "variant": "tier2"
-        }
-      }
+      "item": "reinhardtshbm:parts_legendary_tier2"
     },
     "K": {
       "tag": "c:plates/kevlar"

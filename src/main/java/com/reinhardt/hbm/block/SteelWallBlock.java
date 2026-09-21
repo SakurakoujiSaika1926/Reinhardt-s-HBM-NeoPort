@@ -3,7 +3,6 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.item.ScrewdriverItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -62,7 +61,11 @@ public class SteelWallBlock extends Block {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, facingForLegacyPlacement(context.getRotation()));
+        // The wall is only two pixels thick. Put that plate on the edge of the
+        // target block farthest from the player so it can be applied cleanly
+        // as an exterior facade. Structure loading bypasses this method and
+        // continues to use the legacy metadata mapping below.
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection());
     }
 
     @Override
@@ -141,23 +144,6 @@ public class SteelWallBlock extends Block {
             case EAST -> 4;
             case WEST -> 5;
             default -> 3;
-        };
-    }
-
-    /**
-     * Exact 1.7.10 DecoBlock placement mapping:
-     * 0 -> meta 3 (north), 1 -> meta 4 (east), 2 -> meta 2 (south),
-     * 3 -> meta 5 (west).  This is equivalent to the player's opposite
-     * horizontal direction for ordinary placement, but keeping the legacy
-     * formula here prevents future "facing" refactors from flipping it.
-     */
-    private static Direction facingForLegacyPlacement(float yaw) {
-        int quadrant = Mth.floor((double)(yaw * 4.0F / 360.0F) + 0.5D) & 3;
-        return switch (quadrant) {
-            case 1 -> Direction.EAST;
-            case 2 -> Direction.SOUTH;
-            case 3 -> Direction.WEST;
-            default -> Direction.NORTH;
         };
     }
 

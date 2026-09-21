@@ -1,0 +1,22 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.schrabhammer",
+  "duration": 6000,
+  "power": 10000000,
+  "ignition_temp": 25000000,
+  "input_items": [
+    { "ingredient": { "tag": "c:storage_blocks/schrabidium" }, "count": 35 },
+    { "ingredient": { "item": "reinhardtshbm:billet_yharonite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:billet_yharonite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:coin_ufo" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:fragment_meteorite" }, "count": 64 }
+  ],
+  "result": { "id": "reinhardtshbm:schrabidium_hammer" }
+}

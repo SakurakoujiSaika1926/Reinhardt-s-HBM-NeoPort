@@ -8,12 +8,7 @@
   ],
   "key": {
     "C": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "steel"
+      "item": "reinhardtshbm:shell_steel"
     },
     "R": {
       "item": "reinhardtshbm:rbmk_blank"

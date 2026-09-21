@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/wire_dense"
-                 },
-    "parent":  "minecraft:item/generated"
-}

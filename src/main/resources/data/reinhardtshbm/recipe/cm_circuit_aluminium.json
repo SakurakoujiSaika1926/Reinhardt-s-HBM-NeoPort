@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" I ","IMI"," I "],"key":{"I":{"tag":"c:ingots/steel"},"M":{"item":"reinhardtshbm:circuit_vacuum_tube"}},"result":{"id":"reinhardtshbm:cm_circuit","components":{"minecraft:custom_data":{"variant":"aluminium"},"minecraft:custom_model_data":0}}}

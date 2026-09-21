@@ -5,17 +5,21 @@
     "#c:ores/alexandrite",
     "#c:ores/asbestos",
     "#c:ores/australium",
+    "#c:ores/bauxite",
                    "#c:ores/beryllium",
+                   "#c:ores/borax",
                    "#c:ores/cinnabar",
                    "#c:ores/cobalt",
                    "#c:ores/coltan",
                    "#c:ores/copper",
                    "#c:ores/fluorite",
                    "#c:ores/gold",
+                   "#c:ores/hematite",
                    "#c:ores/iron",
                    "#c:ores/lead",
     "#c:ores/lignite",
     "#c:ores/lithium",
+    "#c:ores/malachite",
     "#c:ores/niter",
     "#c:ores/plutonium",
                    "#c:ores/rare_earths",
@@ -24,6 +28,7 @@
                    "#c:ores/thorium",
                    "#c:ores/titanium",
                    "#c:ores/tungsten",
-                   "#c:ores/uranium"
+                   "#c:ores/uranium",
+                   "#c:ores/zirconium"
                ]
 }

@@ -34,16 +34,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "material_id": 31,
-            "material": "red_copper"
-          }
-        }
+        "item": "reinhardtshbm:wire_red_copper"
       },
       "count": 8
     },

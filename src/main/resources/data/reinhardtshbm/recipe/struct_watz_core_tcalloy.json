@@ -11,12 +11,7 @@
       "item": "reinhardtshbm:circuit_advanced"
     },
     "B": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "tcalloy"
+      "item": "reinhardtshbm:plate_cast_tcalloy"
     },
     "H": {
       "item": "reinhardtshbm:watz_cooler"

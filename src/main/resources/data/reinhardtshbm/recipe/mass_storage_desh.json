@@ -1,4 +1,1 @@
-{
-  "type": "reinhardtshbm:mass_storage_desh",
-  "category": "misc"
-}
+{"type":"minecraft:crafting_shaped","category":"misc","pattern":[" C ","PMP"," P "],"key":{"P":{"tag":"c:ingots/desh"},"C":{"item":"reinhardtshbm:circuit_chip"},"M":{"item":"reinhardtshbm:mass_storage_iron"}},"result":{"id":"reinhardtshbm:mass_storage_desh"}}

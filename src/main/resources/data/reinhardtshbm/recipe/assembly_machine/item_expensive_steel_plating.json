@@ -11,12 +11,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "steel"
+        "item": "reinhardtshbm:plate_cast_steel"
       },
       "count": 4
     },
@@ -28,23 +23,12 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:bolt"
-        ],
-        "shape": "bolt",
-        "material": "steel"
+        "item": "reinhardtshbm:bolt_steel"
       },
       "count": 16
     }
   ],
   "result": {
-    "id": "reinhardtshbm:item_expensive",
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "steel_plating"
-      },
-      "minecraft:custom_model_data": 0
-    }
+    "id": "reinhardtshbm:item_expensive_steel_plating"
   }
 }

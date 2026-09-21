@@ -8,23 +8,12 @@
   "input_items": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_cast"
-        ],
-        "shape": "plate_cast",
-        "material": "iron"
+        "item": "reinhardtshbm:plate_cast_iron"
       },
       "count": 2
     }
   ],
   "result": {
-    "id": "reinhardtshbm:plate_welded",
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 2600,
-        "material": "iron"
-      }
-    }
+    "id": "reinhardtshbm:plate_welded_iron"
   }
 }

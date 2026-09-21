@@ -1,59 +1,41 @@
 {
-    "type":  "reinhardtshbm:centrifuge",
-    "group":  "centrifuge",
-    "ingredient":  {
-                       "type":  "neoforge:components",
-                       "items":  [
-                                     "reinhardtshbm:bedrock_ore_new"
-                                 ],
-                       "components":  {
-                                          "minecraft:custom_data":  {
-                                                                        "grade":  "solvent_washed",
-                                                                        "type":  "rare"
-                                                                    }
-                                      }
-                   },
-    "input_count":  1,
-    "results":  [
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  3,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  6000,
-                                                                         "material":  "neodymium"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  3,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  3800,
-                                                                         "material":  "strontium"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  3,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  4000,
-                                                                         "material":  "zirconium"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_new",
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "grade":  "crumbs",
-                                                                         "type":  "rare"
-                                                                     },
-                                           "minecraft:custom_model_data":  80
-                                       }
-                    }
-                ]
+  "type": "reinhardtshbm:centrifuge",
+  "group": "centrifuge",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "solvent_washed",
+        "type": "rare"
+      }
+    }
+  },
+  "input_count": 1,
+  "results": [
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_neodymium",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_strontium",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_zirconium",
+      "count": 3
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_new",
+      "components": {
+        "minecraft:custom_data": {
+          "grade": "crumbs",
+          "type": "rare"
+        },
+        "minecraft:custom_model_data": 80
+      }
+    }
+  ]
 }

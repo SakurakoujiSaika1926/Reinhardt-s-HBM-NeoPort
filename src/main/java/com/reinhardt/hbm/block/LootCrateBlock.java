@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.mojang.serialization.MapCodec;
+import com.reinhardt.hbm.integration.tacz.TaczWeaponCrateCompat;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.UniversalGrenadeItem;
 import com.reinhardt.hbm.registry.HbmItems;
@@ -48,12 +49,12 @@ public final class LootCrateBlock extends FallingBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!level.isClientSide) {
-            CrateBlockSupport.open(level, pos, createDrops(level.random));
+            CrateBlockSupport.open(level, pos, createDrops(level, level.random));
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    private List<ItemStack> createDrops(RandomSource random) {
+    private List<ItemStack> createDrops(Level level, RandomSource random) {
         List<ItemStack> pool = createPool();
         if (this.kind == Kind.RED) {
             return pool.stream().map(ItemStack::copy).toList();
@@ -70,6 +71,10 @@ public final class LootCrateBlock extends FallingBlock {
             }
         }
         List<ItemStack> drops = new ArrayList<>(count);
+        if (this.kind == Kind.WEAPON) {
+            TaczWeaponCrateCompat.addRandomDrops(level.registryAccess(), random, pool, count, drops);
+            return drops;
+        }
         for (int i = 0; i < count; i++) {
             drops.add(pool.get(random.nextInt(pool.size())).copy());
         }

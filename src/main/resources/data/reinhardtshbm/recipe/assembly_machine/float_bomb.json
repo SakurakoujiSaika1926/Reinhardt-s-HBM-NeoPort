@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.levibomb",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/titanium" }, "count": 12 },
+    { "ingredient": { "tag": "c:nuggets/schrabidium" }, "count": 3 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 4 },
+    { "ingredient": { "tag": "c:wires_dense/gold" }, "count": 8 }
+  ],
+  "result": { "id": "reinhardtshbm:float_bomb" }
+}

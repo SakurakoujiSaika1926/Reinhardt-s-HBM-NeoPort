@@ -6,24 +6,13 @@
   "inputs": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "shape": "wire",
-        "material": "gold"
+        "item": "reinhardtshbm:wire_gold"
       },
       "count": 8
     }
   ],
   "result": {
-    "id": "reinhardtshbm:wire_dense",
-    "count": 1,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 7900,
-        "material": "gold"
-      }
-    }
+    "id": "reinhardtshbm:wire_dense_gold",
+    "count": 1
   }
 }

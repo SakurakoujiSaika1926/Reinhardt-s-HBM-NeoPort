@@ -64,6 +64,14 @@ public final class SatelliteDockDummyBlock extends BaseEntityBlock {
     }
 
     @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SatelliteDockDummyBlockEntity dummy) {
+            dummy.setDropCoreWhenRemoved(!player.isCreative());
+        }
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
@@ -82,11 +90,11 @@ public final class SatelliteDockDummyBlock extends BaseEntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!SUPPRESS_CORE_REMOVAL.get() && !state.is(newState.getBlock())
+        if (!SUPPRESS_CORE_REMOVAL.get() && !movedByPiston && !state.is(newState.getBlock())
                 && level.getBlockEntity(pos) instanceof SatelliteDockDummyBlockEntity dummy) {
             BlockPos core = dummy.corePos();
             if (level.getBlockEntity(core) instanceof SatelliteDockBlockEntity) {
-                level.destroyBlock(core, true);
+                level.destroyBlock(core, dummy.consumeDropCoreWhenRemoved());
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

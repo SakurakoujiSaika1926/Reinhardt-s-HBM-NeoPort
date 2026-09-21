@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:diesel_bucket",
+    "reinhardtshbm:diesel_crack_bucket",
+    "reinhardtshbm:diesel_reform_bucket",
+    "reinhardtshbm:diesel_crack_reform_bucket"
+  ]
+}

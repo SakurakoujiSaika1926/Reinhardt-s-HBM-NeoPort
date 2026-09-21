@@ -14,12 +14,7 @@
       "item": "minecraft:iron_block"
     },
     "S": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:shell"
-      ],
-      "shape": "shell",
-      "material": "copper"
+      "item": "reinhardtshbm:shell_copper"
     }
   },
   "result": {

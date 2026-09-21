@@ -618,7 +618,8 @@ public class ElectrolyzerBlockEntity extends BlockEntity implements PowerEndpoin
         if (stack.isEmpty()) {
             return false;
         }
-        if (stack.is(HbmItems.BEDROCK_ORE_NEW.get()) || stack.is(HbmItems.BEDROCK_ORE_FRAGMENT.get())) {
+        if (stack.is(HbmItems.BEDROCK_ORE_NEW.get())
+                || HbmItems.BEDROCK_ORE_FRAGMENTS.stream().anyMatch(item -> stack.is(item.get()))) {
             return true;
         }
         return HbmItems.MINERAL_CRYSTALS.stream().anyMatch(item -> stack.is(item.get()));

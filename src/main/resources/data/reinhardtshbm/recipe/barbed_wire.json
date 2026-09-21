@@ -8,12 +8,7 @@
   ],
   "key": {
     "A": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "steel"
+      "item": "reinhardtshbm:wire_steel"
     },
     "I": {
       "item": "minecraft:iron_ingot"

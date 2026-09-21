@@ -1,9 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
-import com.reinhardt.hbm.foundry.FoundryMaterial;
-import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.item.BlueprintFolderItem;
-import com.reinhardt.hbm.item.FoundryShapeItem;
 import com.reinhardt.hbm.item.LegacyConserveItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -97,16 +94,16 @@ public final class LegacyPedestalRecipes {
 
         recipes.add(recipe(variant("ammo_secret", "folly_sm", 1),
                 tag("ingots/starmetal", 1), item("powder_magic", 1), tag("ingots/starmetal", 1),
-                item("powder_magic", 1), variant("chunk_ore", "moonstone", 1), item("powder_magic", 1),
+                item("powder_magic", 1), item("chunk_ore_moonstone", 1), item("powder_magic", 1),
                 tag("ingots/starmetal", 1), item("powder_magic", 1), tag("ingots/starmetal", 1), Condition.FULL_MOON, 1));
         recipes.add(recipe(variant("ammo_secret", "folly_nuke", 1),
                 tag("ingots/starmetal", 1), item("powder_magic", 1), tag("ingots/starmetal", 1),
                 item("powder_magic", 1), variant("ammo_standard", "nuke_high", 4), item("powder_magic", 1),
                 tag("ingots/starmetal", 1), item("powder_magic", 1), tag("ingots/starmetal", 1), Condition.FULL_MOON, 1));
         recipes.add(recipe(variant("ammo_secret", "p35_800", 5),
-                empty(), empty(), empty(), empty(), variant("item_secret", "aberrator", 1), empty(), empty(), empty(), empty(), Condition.NONE, 1));
+                empty(), empty(), empty(), empty(), item("item_secret_aberrator", 1), empty(), empty(), empty(), empty(), Condition.NONE, 1));
         recipes.add(recipe(variant("ammo_secret", "p35_800_bl", 10),
-                empty(), empty(), empty(), empty(), variant("item_secret", "aberrator", 3), empty(), empty(), empty(), empty(), Condition.NONE, 1));
+                empty(), empty(), empty(), empty(), item("item_secret_aberrator", 3), empty(), empty(), empty(), empty(), Condition.NONE, 1));
 
         return List.copyOf(recipes);
     }
@@ -117,27 +114,23 @@ public final class LegacyPedestalRecipes {
     }
 
     private static Spec empty() {
-        return new Spec(null, null, null, null, 0);
+        return new Spec(null, null, null, 0);
     }
 
     private static Spec item(String id, int count) {
-        return new Spec(id, null, null, null, count);
+        return new Spec(id, null, null, count);
     }
 
     private static Spec variant(String id, String variant, int count) {
-        return new Spec(id, variant, null, null, count);
+        return new Spec(id, variant, null, count);
     }
 
     private static Spec tag(String path, int count) {
-        return new Spec(null, null, path, null, count);
-    }
-
-    private static Spec shape(String id, FoundryShape shape, String material, int count) {
-        return new Spec(id, null, null, new ShapeSpec(shape, material), count);
+        return new Spec(null, null, path, count);
     }
 
     private static Spec conserve(String variant, int count) {
-        return new Spec("canned_conserve", variant, null, null, count);
+        return new Spec("canned_conserve", variant, null, count);
     }
 
     public record Recipe(Spec output, Spec[] input, Condition condition, int set) {
@@ -150,10 +143,7 @@ public final class LegacyPedestalRecipes {
         }
     }
 
-    private record ShapeSpec(FoundryShape shape, String material) {
-    }
-
-    private record Spec(String itemId, String variant, String tagPath, ShapeSpec shape, int count) {
+    private record Spec(String itemId, String variant, String tagPath, int count) {
         boolean empty() {
             return count == 0;
         }
@@ -165,12 +155,6 @@ public final class LegacyPedestalRecipes {
             ResourceLocation id = resolve(itemId);
             if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
                 return false;
-            }
-            if (shape != null) {
-                Item item = BuiltInRegistries.ITEM.get(id);
-                return item instanceof FoundryShapeItem foundry
-                        && foundry.shape() == shape.shape()
-                        && FoundryMaterial.byName(shape.material()).isPresent();
             }
             return true;
         }
@@ -190,14 +174,6 @@ public final class LegacyPedestalRecipes {
             if (id == null || !BuiltInRegistries.ITEM.containsKey(id) || !stack.is(BuiltInRegistries.ITEM.get(id))) {
                 return false;
             }
-            if (shape != null) {
-                if (!(stack.getItem() instanceof FoundryShapeItem foundry)
-                        || foundry.shape() != shape.shape()) {
-                    return false;
-                }
-                return foundry.material(stack) != null
-                        && foundry.material(stack).name().equals(shape.material());
-            }
             if (variant == null) {
                 return true;
             }
@@ -214,9 +190,7 @@ public final class LegacyPedestalRecipes {
             }
             Item item = BuiltInRegistries.ITEM.get(id);
             ItemStack stack;
-            if (shape != null && item instanceof FoundryShapeItem) {
-                stack = FoundryShapeItem.stackFor(item, FoundryMaterial.get(shape.material()), count);
-            } else if (item instanceof LegacyVariantItem && variant != null) {
+            if (item instanceof LegacyVariantItem && variant != null) {
                 stack = LegacyVariantItem.stackFor(item, variant);
                 stack.setCount(count);
             } else if (item instanceof LegacyConserveItem && variant != null) {

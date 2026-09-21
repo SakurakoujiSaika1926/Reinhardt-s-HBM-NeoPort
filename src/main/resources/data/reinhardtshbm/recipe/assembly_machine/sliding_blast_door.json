@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.slidingdoor",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 16 },
+    { "ingredient": { "tag": "c:ingots/tungsten" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:reinforced_glass" }, "count": 4 },
+    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 4 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:sliding_blast_door" }
+}

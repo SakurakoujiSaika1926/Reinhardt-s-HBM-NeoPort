@@ -21,7 +21,7 @@ public class TaczAmmoAssemblerBlockEntity extends AssemblyMachineBlockEntity {
     }
 
     @Override
-    public List<RecipeHolder<AssemblyMachineRecipe>> availableRecipes(Level level) {
+    protected List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level) {
         return TaczAmmoAssemblyRecipes.available(level);
     }
 }

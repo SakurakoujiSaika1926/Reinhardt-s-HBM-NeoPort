@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","category":"building","pattern":[" I ","IPI"," I "],"key":{"I":{"tag":"c:ingots/steel"},"P":{"tag":"c:plates/cast_steel"}},"result":{"id":"reinhardtshbm:cm_block","count":4,"components":{"minecraft:custom_data":{"variant":"steel"},"minecraft:custom_model_data":0}}}

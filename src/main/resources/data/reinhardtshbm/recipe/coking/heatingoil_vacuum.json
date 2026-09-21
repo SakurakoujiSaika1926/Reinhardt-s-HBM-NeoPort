@@ -1,7 +1,1 @@
-{
-  "type": "reinhardtshbm:coking",
-  "group": "coking.heatingoil_vacuum",
-  "input": { "fluid": "heatingoil_vacuum", "amount": 500 },
-  "output": { "id": "reinhardtshbm:coke", "components": { "minecraft:custom_data": { "variant": "petroleum" }, "minecraft:custom_model_data": 2 } },
-  "byproduct": { "fluid": "oil_coker", "amount": 50 }
-}
+{"type":"reinhardtshbm:coking","group":"coking.heatingoil_vacuum","input":{"fluid":"heatingoil_vacuum","amount":500},"output":{"id":"reinhardtshbm:coke_petroleum"},"byproduct":{"fluid":"oil_coker","amount":50}}

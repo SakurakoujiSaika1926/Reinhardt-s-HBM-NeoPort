@@ -10,7 +10,6 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
@@ -24,7 +23,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerPylonBlockEntity> {
+public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRenderer<PowerPylonBlockEntity> {
     private static final ModelResourceLocation RED_CONNECTOR = MachineModelRenderer.standalone("block/red_connector_world");
     private static final ModelResourceLocation CONNECTOR_RED_SUPER = MachineModelRenderer.standalone("block/connector_red_super_world");
     private static final ModelResourceLocation RED_PYLON_LARGE = MachineModelRenderer.standalone("block/red_pylon_large_world");
@@ -120,32 +119,43 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(pylon.color() == 0 ? WIRE_TEXTURE : WIRE_GREYSCALE_TEXTURE));
         Vec3[] mounts = pylon.mountPositions();
         for (BlockPos connection : pylon.connections()) {
-            if (!(pylon.getLevel().getBlockEntity(connection) instanceof PowerPylonBlockEntity other)) {
+            PowerPylonBlockEntity.ConnectionRenderInfo otherInfo = pylon.connectionRenderInfo(connection);
+            if (otherInfo == null) {
                 continue;
             }
-            Vec3[] otherMounts = other.mountPositions();
+            PowerPylonBlockEntity other = pylon.getLevel().getBlockEntity(connection) instanceof PowerPylonBlockEntity loaded
+                    ? loaded : null;
+            boolean splitAcrossLoadedEndpoints = other != null && other.hasConnection(pylon.getBlockPos());
+            Vec3[] otherMounts = otherInfo.mountPositions();
             int lineCount = Math.min(mounts.length, otherMounts.length);
             for (int i = 0; i < lineCount; i++) {
-                int otherIndex = adjustedOtherMountIndex(pylon, other, i, lineCount);
+                int otherIndex = adjustedOtherMountIndex(pylon, otherInfo, i, lineCount);
                 Vec3 first = mounts[i % mounts.length];
                 Vec3 secondAbsolute = otherMounts[otherIndex].add(connection.getX() - pylon.getBlockPos().getX(), connection.getY() - pylon.getBlockPos().getY(), connection.getZ() - pylon.getBlockPos().getZ());
-                // 1.7.10 renders each half from its own pylon to the midpoint.
-                // Rendering the full span here duplicates every cable because
-                // the connected pylon renders its own half as well.
-                Vec3 midpoint = first.add(secondAbsolute.subtract(first).scale(0.5D));
-                renderSaggingWire(pylon, poseStack, consumer, first, midpoint, packedOverlay);
+                if (splitAcrossLoadedEndpoints) {
+                    // Match 1.7.10 while both endpoint block entities are loaded:
+                    // each pylon owns one half of the cable.
+                    Vec3 midpoint = first.add(secondAbsolute.subtract(first).scale(0.5D));
+                    renderSaggingWire(pylon, poseStack, consumer, first, midpoint, false, packedOverlay);
+                } else {
+                    // A 100-block high-voltage span can outlive the client chunk
+                    // containing its far endpoint. Draw the whole cached span
+                    // from the loaded end instead of letting the cable vanish.
+                    renderSaggingWire(pylon, poseStack, consumer, first, secondAbsolute, true, packedOverlay);
+                }
             }
         }
     }
 
-    private int adjustedOtherMountIndex(PowerPylonBlockEntity first, PowerPylonBlockEntity second, int line, int lineCount) {
+    private int adjustedOtherMountIndex(PowerPylonBlockEntity first, PowerPylonBlockEntity.ConnectionRenderInfo second,
+                                        int line, int lineCount) {
         int index = line % second.mountPositions().length;
         if (lineCount == 4 && (first.kind() == PowerPylonBlock.Kind.SUBSTATION || second.kind() == PowerPylonBlock.Kind.SUBSTATION)) {
             return matchedOtherMountIndex(first, second, line, lineCount);
         }
         if (lineCount == 4 && first.kind() == PowerPylonBlock.Kind.RED_PYLON_LARGE && second.kind() == PowerPylonBlock.Kind.RED_PYLON_LARGE) {
-            Direction a = first.getBlockState().getValue(PowerPylonBlock.FACING);
-            Direction b = second.getBlockState().getValue(PowerPylonBlock.FACING);
+            Direction a = first.facing();
+            Direction b = second.facing();
             if ((a == Direction.EAST && b == Direction.NORTH) || (a == Direction.NORTH && b == Direction.EAST)) {
                 index = (index + 2) % second.mountPositions().length;
             }
@@ -153,11 +163,14 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
         return index;
     }
 
-    private int matchedOtherMountIndex(PowerPylonBlockEntity first, PowerPylonBlockEntity second, int line, int lineCount) {
-        boolean firstIsCanonical = compareBlockPos(first.getBlockPos(), second.getBlockPos()) <= 0;
-        PowerPylonBlockEntity canonicalFirst = firstIsCanonical ? first : second;
-        PowerPylonBlockEntity canonicalSecond = firstIsCanonical ? second : first;
-        int[] mapping = bestMountMapping(canonicalFirst, canonicalSecond, lineCount);
+    private int matchedOtherMountIndex(PowerPylonBlockEntity first, PowerPylonBlockEntity.ConnectionRenderInfo second,
+                                       int line, int lineCount) {
+        boolean firstIsCanonical = compareBlockPos(first.getBlockPos(), second.pos()) <= 0;
+        Vec3[] firstMounts = absoluteMounts(first.mountPositions(), first.getBlockPos(), lineCount);
+        Vec3[] secondMounts = absoluteMounts(second.mountPositions(), second.pos(), lineCount);
+        int[] mapping = firstIsCanonical
+                ? bestMountMapping(firstMounts, secondMounts, lineCount)
+                : bestMountMapping(secondMounts, firstMounts, lineCount);
         int normalizedLine = line % lineCount;
 
         if (firstIsCanonical) {
@@ -172,9 +185,7 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
         return normalizedLine % second.mountPositions().length;
     }
 
-    private int[] bestMountMapping(PowerPylonBlockEntity first, PowerPylonBlockEntity second, int lineCount) {
-        Vec3[] firstMounts = absoluteMounts(first, lineCount);
-        Vec3[] secondMounts = absoluteMounts(second, lineCount);
+    private int[] bestMountMapping(Vec3[] firstMounts, Vec3[] secondMounts, int lineCount) {
         int[] current = new int[lineCount];
         int[] best = new int[lineCount];
         boolean[] used = new boolean[lineCount];
@@ -265,10 +276,8 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
         return new Vec3(x / count, y / count, z / count);
     }
 
-    private Vec3[] absoluteMounts(PowerPylonBlockEntity pylon, int lineCount) {
-        Vec3[] mounts = pylon.mountPositions();
+    private Vec3[] absoluteMounts(Vec3[] mounts, BlockPos pos, int lineCount) {
         Vec3[] result = new Vec3[lineCount];
-        BlockPos pos = pylon.getBlockPos();
         for (int i = 0; i < lineCount; i++) {
             result[i] = mounts[i % mounts.length].add(pos.getX(), pos.getY(), pos.getZ());
         }
@@ -287,9 +296,10 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
         return Integer.compare(first.getZ(), second.getZ());
     }
 
-    private void renderSaggingWire(PowerPylonBlockEntity pylon, PoseStack poseStack, VertexConsumer consumer, Vec3 start, Vec3 end, int packedOverlay) {
+    private void renderSaggingWire(PowerPylonBlockEntity pylon, PoseStack poseStack, VertexConsumer consumer,
+                                   Vec3 start, Vec3 end, boolean fullSpan, int packedOverlay) {
         Vec3 delta = end.subtract(start);
-        double hang = Math.min(delta.length() / 15.0D, 2.5D);
+        double hang = Math.min(delta.length() / (fullSpan ? 30.0D : 15.0D), 2.5D);
         int color = pylon.color() == 0 ? 0xFFFFFF : pylon.color();
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
@@ -299,8 +309,9 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
         for (int i = 0; i < segments; i++) {
             double t0 = (double) i / (double) segments;
             double t1 = (double) (i + 1) / (double) segments;
-            double sag0 = Math.sin(t0 * Math.PI * 0.5D) * hang;
-            double sag1 = Math.sin(t1 * Math.PI * 0.5D) * hang;
+            double sagArc = fullSpan ? Math.PI : Math.PI * 0.5D;
+            double sag0 = Math.sin(t0 * sagArc) * hang;
+            double sag1 = Math.sin(t1 * sagArc) * hang;
             Vec3 p0 = start.add(delta.scale(t0)).subtract(0.0D, sag0, 0.0D);
             Vec3 p1 = start.add(delta.scale(t1)).subtract(0.0D, sag1, 0.0D);
             drawWireSegment(poseStack, consumer, p0, p1, r, g, b, packedOverlay);
@@ -314,8 +325,10 @@ public class PowerPylonBlockEntityRenderer implements BlockEntityRenderer<PowerP
         if (horizontalNormal.lengthSqr() < 0.0001D) {
             horizontalNormal = new Vec3(1.0D, 0.0D, 0.0D);
         }
-        horizontalNormal = horizontalNormal.normalize().scale(0.025D);
-        Vec3 verticalNormal = delta.cross(horizontalNormal).normalize().scale(0.025D);
+        // Keep the exact 1.7.10 wire girth; the previous 0.025 port value
+        // made long high-voltage spans alias out at shallow viewing angles.
+        horizontalNormal = horizontalNormal.normalize().scale(0.03125D);
+        Vec3 verticalNormal = delta.cross(horizontalNormal).normalize().scale(0.03125D);
         int wrap = Math.max(1, Mth.ceil(length * 8.0D));
 
         quad(poseStack, consumer, start.add(horizontalNormal), start.subtract(horizontalNormal), end.subtract(horizontalNormal), end.add(horizontalNormal), wrap, r, g, b, packedOverlay);

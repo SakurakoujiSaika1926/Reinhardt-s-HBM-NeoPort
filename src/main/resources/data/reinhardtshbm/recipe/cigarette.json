@@ -1,1 +1,22 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"tag":"c:ingots/asbestos"},{"tag":"c:tars"},{"tag":"c:nuggets/po210"},{"item":"reinhardtshbm:plant_item"}],"result":{"id":"reinhardtshbm:cigarette","count":16}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:ingots/asbestos"
+    },
+    {
+      "tag": "c:tars"
+    },
+    {
+      "tag": "c:nuggets/polonium"
+    },
+    {
+      "item": "reinhardtshbm:plant_item_tobacco"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:cigarette",
+    "count": 16
+  }
+}

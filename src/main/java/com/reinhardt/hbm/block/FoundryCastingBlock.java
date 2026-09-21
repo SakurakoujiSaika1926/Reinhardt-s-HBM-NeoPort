@@ -68,8 +68,8 @@ public class FoundryCastingBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.getBlockEntity(pos) instanceof FoundryCastingBlockEntity casting && casting.extractOutput(player)) {
-            if (!level.isClientSide) {
+        if (level.getBlockEntity(pos) instanceof FoundryCastingBlockEntity casting && casting.hasOutput()) {
+            if (!level.isClientSide && casting.extractOutput(player)) {
                 level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
@@ -88,13 +88,26 @@ public class FoundryCastingBlock extends Block implements EntityBlock {
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (casting.installMold(stack, player)) {
-            if (!level.isClientSide) {
+        if (casting.canInstallMold(stack)) {
+            if (!level.isClientSide && casting.installMold(stack, player)) {
                 level.playSound(null, pos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 0.9F, 1.0F);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        // Keep the legacy breakBlock contract: the installed mold, finished
+        // casting and any remaining metal are recovered before vanilla removes
+        // the block entity. onRemove remains as the fallback for explosions and
+        // non-player block replacement; dropContents clears its own state, so
+        // the two paths cannot duplicate drops.
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FoundryCastingBlockEntity casting) {
+            casting.dropContents(level, pos);
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override

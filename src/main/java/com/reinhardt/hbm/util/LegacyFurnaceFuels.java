@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.util;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.item.LegacyVariantItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +29,18 @@ public final class LegacyFurnaceFuels {
             return 0;
         }
 
-        return switch (id.getPath()) {
+        String path = id.getPath();
+        if (path.startsWith("coke_")) {
+            return SINGLE * 16;
+        }
+        if (path.startsWith("briquette_")) {
+            return briquetteBurnTime(path);
+        }
+        if (path.startsWith("powder_ash_")) {
+            return ashBurnTime(path);
+        }
+
+        return switch (path) {
             case "solid_fuel" -> SINGLE * 16;
             case "solid_fuel_presto" -> SINGLE * 40;
             case "solid_fuel_presto_triplet" -> SINGLE * 200;
@@ -45,35 +55,28 @@ public final class LegacyFurnaceFuels {
             case "dust" -> SINGLE / 8;
             case "powder_fire", "crystal_coal" -> 6_400;
             case "lignite", "powder_lignite" -> 1_200;
-            case "coke" -> SINGLE * 16;
             case "block_coke" -> SINGLE * 160;
             case "book_guide" -> SINGLE;
             case "coal_infernal" -> 4_800;
             case "powder_sawdust" -> SINGLE / 2;
-            case "briquette" -> briquetteBurnTime(stack);
-            case "powder_ash" -> ashBurnTime(stack);
             default -> 0;
         };
     }
 
-    private static int briquetteBurnTime(ItemStack stack) {
-        return switch (variantId(stack)) {
-            case "coal" -> SINGLE * 10;
-            case "lignite" -> SINGLE * 8;
-            case "wood" -> SINGLE * 2;
+    private static int briquetteBurnTime(String path) {
+        return switch (path) {
+            case "briquette_coal" -> SINGLE * 10;
+            case "briquette_lignite" -> SINGLE * 8;
+            case "briquette_wood" -> SINGLE * 2;
             default -> 0;
         };
     }
 
-    private static int ashBurnTime(ItemStack stack) {
-        return switch (variantId(stack)) {
-            case "wood", "misc", "soot" -> SINGLE / 2;
-            case "coal", "fly" -> SINGLE;
+    private static int ashBurnTime(String path) {
+        return switch (path) {
+            case "powder_ash_wood", "powder_ash_misc", "powder_ash_soot" -> SINGLE / 2;
+            case "powder_ash_coal", "powder_ash_fly" -> SINGLE;
             default -> 0;
         };
-    }
-
-    private static String variantId(ItemStack stack) {
-        return stack.getItem() instanceof LegacyVariantItem item ? item.variant(stack).id() : "";
     }
 }

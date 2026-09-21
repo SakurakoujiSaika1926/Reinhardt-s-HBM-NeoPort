@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.emptypackage",
+  "duration": 40,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/titanium" }, "count": 4 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:fluid_pack_empty" }
+}

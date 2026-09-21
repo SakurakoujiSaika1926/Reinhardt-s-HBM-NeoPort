@@ -11,12 +11,7 @@
       "item": "reinhardtshbm:ducttape"
     },
     "G": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_gold"
     },
     "T": {
       "item": "reinhardtshbm:tesla"

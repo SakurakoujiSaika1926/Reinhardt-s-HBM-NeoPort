@@ -304,11 +304,11 @@ public final class StorageDrumBlockEntity extends BlockEntity implements Machine
             NuclearWasteItem.WasteClass waste = NuclearWasteItem.classOf(stack);
             return wasteDecay(stack, "nuclear_waste_short_depleted_tiny", waste.liquid() / 10, waste.gas() / 10);
         }
-        if (id.equals("ingot_au198") && level.random.nextInt(shortChance / 20) == 0) {
-            return new DecayResult(new ItemStack(stackFor("ingot_mercury", stack)), 0, 0);
+        if (id.equals("ingot_au198") && level.random.nextInt(shortChance / 100) == 0) {
+            return new DecayResult(new ItemStack(stackFor("bottle_mercury", stack)), 500, 500);
         }
-        if (id.equals("nugget_au198") && level.random.nextInt(shortChance / 100) == 0) {
-            return new DecayResult(new ItemStack(stackFor("nugget_mercury", stack)), 0, 0);
+        if (id.equals("nugget_au198") && level.random.nextInt(shortChance / 1_000) == 0) {
+            return new DecayResult(new ItemStack(stackFor("nugget_mercury", stack)), 50, 50);
         }
         if (id.equals("ingot_pb209") && level.random.nextInt(shortChance / 10) == 0) {
             return new DecayResult(new ItemStack(stackFor("ingot_bismuth", stack)), 0, 0);
@@ -414,7 +414,8 @@ public final class StorageDrumBlockEntity extends BlockEntity implements Machine
                 || id.equals("nuclear_waste_long_tiny")
                 || id.equals("nuclear_waste_short")
                 || id.equals("nuclear_waste_short_tiny")
-                || id.equals("ingot_au198");
+                || id.equals("ingot_au198")
+                || id.equals("nugget_au198");
     }
 
     private static boolean isOutput(ItemStack stack) {
@@ -423,7 +424,8 @@ public final class StorageDrumBlockEntity extends BlockEntity implements Machine
                 || id.equals("nuclear_waste_long_depleted_tiny")
                 || id.equals("nuclear_waste_short_depleted")
                 || id.equals("nuclear_waste_short_depleted_tiny")
-                || id.equals("ingot_mercury");
+                || id.equals("bottle_mercury")
+                || id.equals("nugget_mercury");
     }
 
     private static boolean validSlot(int slot) {

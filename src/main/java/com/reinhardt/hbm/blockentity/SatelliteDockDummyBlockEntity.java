@@ -18,6 +18,8 @@ public final class SatelliteDockDummyBlockEntity extends BlockEntity {
     private static final String CREATE_CORE_OFFSET_Y = "HbmCoreOffsetY";
     private static final String CREATE_CORE_OFFSET_Z = "HbmCoreOffsetZ";
     private BlockPos corePos = BlockPos.ZERO;
+    // Never persisted: contraption capture/removal must not inherit drop rights.
+    private boolean dropCoreWhenRemoved;
 
     public SatelliteDockDummyBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.SAT_DOCK_DUMMY.get(), pos, state);
@@ -41,6 +43,16 @@ public final class SatelliteDockDummyBlockEntity extends BlockEntity {
 
     public void setCoreOffset(BlockPos coreOffset) {
         setCorePos(this.worldPosition.offset(coreOffset));
+    }
+
+    public void setDropCoreWhenRemoved(boolean drop) {
+        this.dropCoreWhenRemoved = drop;
+    }
+
+    public boolean consumeDropCoreWhenRemoved() {
+        boolean drop = this.dropCoreWhenRemoved;
+        this.dropCoreWhenRemoved = false;
+        return drop;
     }
 
     @Override

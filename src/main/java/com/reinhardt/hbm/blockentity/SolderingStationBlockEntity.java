@@ -10,6 +10,7 @@ import com.reinhardt.hbm.item.MachineUpgradeItem;
 import com.reinhardt.hbm.menu.SolderingStationMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
+import com.reinhardt.hbm.recipe.MachineRecipeCache;
 import com.reinhardt.hbm.recipe.SolderingStationRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -22,6 +23,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
@@ -44,6 +46,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class SolderingStationBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
@@ -65,6 +68,7 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
     private static final int[] AUTOMATION_SLOTS = {0, 1, 2, 3, 4, 5, 6};
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> observedWorkItems = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank tank = new HbmFluidTank(TANK_CAPACITY);
     private long power;
     private long maxPower = BASE_MAX_POWER;
@@ -74,6 +78,16 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
     private int processTime = 1;
     private int completedCycles;
     private boolean hasRecipe;
+    private int progressStep = 1;
+    private long observedRecipeCacheGeneration = Long.MIN_VALUE;
+    private boolean recipeCatalogDirty = true;
+    private boolean recipeMatchDirty = true;
+    private boolean statsDirty = true;
+    private boolean identifierDirty = true;
+    private boolean recipeStateInitialized;
+    private List<RecipeHolder<SolderingStationRecipe>> cachedRecipeCatalog = List.of();
+    @Nullable
+    private RecipeHolder<SolderingStationRecipe> cachedRecipe;
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
@@ -166,9 +180,13 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
 
     @Override
     public void applyPower(long usedOutput, long receivedInput) {
+        long previousPower = this.power;
+        long previousLastInput = this.lastInput;
         this.power = Math.min(this.maxPower, this.power + receivedInput);
         this.lastInput = receivedInput;
-        setChanged();
+        if (this.power != previousPower || this.lastInput != previousLastInput) {
+            markRuntimeChanged();
+        }
     }
 
     @Override
@@ -221,9 +239,7 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
             this.items.set(slot, ItemStack.EMPTY);
         }
         if (!removed.isEmpty()) {
-            if (isRecipeSlot(slot)) {
-                this.progress = 0;
-            }
+            inventoryChanged(slot);
             setChanged();
         }
         return removed;
@@ -236,6 +252,9 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         }
         ItemStack removed = this.items.get(slot);
         this.items.set(slot, ItemStack.EMPTY);
+        if (!removed.isEmpty()) {
+            inventoryChanged(slot);
+        }
         return removed;
     }
 
@@ -256,9 +275,7 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
                 && !this.level.isClientSide) {
             this.level.playSound(null, this.worldPosition, HbmSoundEvents.UPGRADE_PLUG.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         }
-        if (isRecipeSlot(slot)) {
-            this.progress = 0;
-        }
+        inventoryChanged(slot);
         setChanged();
     }
 
@@ -314,6 +331,7 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
             this.items.set(slot, ItemStack.EMPTY);
         }
         this.progress = 0;
+        invalidateRecipeMatch();
         setChanged();
     }
 
@@ -391,6 +409,9 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         this.processTime = Math.max(1, tag.getInt("ProcessTime"));
         this.completedCycles = tag.getInt("CompletedCycles");
         this.tank.load(tag.getCompound("Tank"));
+        invalidateRecipeCatalog();
+        this.identifierDirty = true;
+        this.recipeStateInitialized = false;
     }
 
     private void tickClient(Level level, BlockState state) {
@@ -426,33 +447,31 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
 
     private void tickWork(Level level) {
         applyIdentifierSlot();
-        Optional<RecipeHolder<SolderingStationRecipe>> recipeHolder = getRecipe(level);
-        this.hasRecipe = recipeHolder.isPresent();
-        if (recipeHolder.isEmpty()) {
-            this.progress = 0;
-            this.processTime = 1;
-            this.consumption = 100L;
+        refreshWorkState(level);
+        SolderingStationRecipe recipe = this.cachedRecipe == null ? null : this.cachedRecipe.value();
+        if (recipe == null) {
             this.maxPower = Math.max(BASE_MAX_POWER, this.power);
-            this.power = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.power, this.maxPower);
+            boolean batteryDischarged = dischargeBattery();
             setLit(false);
-            setChanged();
+            if (batteryDischarged) {
+                markRuntimeChanged();
+            }
             return;
         }
 
-        SolderingStationRecipe recipe = recipeHolder.get().value();
-        updateUpgradeAdjustedStats(recipe);
         this.maxPower = Math.max(this.consumption * 20L, this.power);
-        this.power = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.power, this.maxPower);
+        boolean batteryDischarged = dischargeBattery();
 
         if (!canOutput(recipe.result()) || this.power < this.consumption) {
-            this.progress = 0;
             setLit(false);
-            setChanged();
+            if (batteryDischarged) {
+                markRuntimeChanged();
+            }
             return;
         }
 
         this.power -= this.consumption;
-        this.progress += 1 + overdriveLevel();
+        this.progress += this.progressStep;
         setLit(true);
 
         if (this.progress >= this.processTime) {
@@ -460,12 +479,66 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
             consumeInputs(recipe);
             insertOutput(recipe.result());
             this.completedCycles++;
+            captureRecipeSlotSnapshot();
+            invalidateRecipeMatch();
         }
-        setChanged();
+        markRuntimeChanged();
     }
 
-    private Optional<RecipeHolder<SolderingStationRecipe>> getRecipe(Level level) {
-        return level.getRecipeManager().getRecipeFor(HbmRecipeTypes.SOLDERING_STATION.get(), recipeInput(), level);
+    private boolean dischargeBattery() {
+        long previousPower = this.power;
+        this.power = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.power, this.maxPower);
+        return this.power != previousPower;
+    }
+
+    private void markRuntimeChanged() {
+        // Internal progress and battery changes do not alter the capability
+        // provider or require another inventory snapshot comparison.
+        super.setChanged();
+    }
+
+    private void captureRecipeSlotSnapshot() {
+        // Completing a cycle mutates ingredient stacks internally. Use the
+        // post-cycle counts as the baseline so an automation system restoring
+        // the same batch cannot be mistaken for an unchanged inventory.
+        for (int slot = TOPPING_START; slot <= SOLDER_SLOT; slot++) {
+            this.observedWorkItems.set(slot, this.items.get(slot).copy());
+        }
+    }
+
+    private void refreshWorkState(Level level) {
+        ensureRecipeCatalog(level);
+        if (this.recipeMatchDirty) {
+            this.recipeMatchDirty = false;
+            ResourceLocation previousId = this.cachedRecipe == null ? null : this.cachedRecipe.id();
+            this.cachedRecipe = level.getRecipeManager()
+                    .getRecipeFor(HbmRecipeTypes.SOLDERING_STATION.get(), recipeInput(), level)
+                    .orElse(null);
+            ResourceLocation nextId = this.cachedRecipe == null ? null : this.cachedRecipe.id();
+            if (this.recipeStateInitialized) {
+                if (!Objects.equals(previousId, nextId)) {
+                    this.progress = 0;
+                }
+            } else {
+                this.recipeStateInitialized = true;
+                if (nextId == null) {
+                    this.progress = 0;
+                }
+            }
+            this.hasRecipe = this.cachedRecipe != null;
+            this.statsDirty = true;
+        }
+        if (!this.statsDirty) {
+            return;
+        }
+        this.statsDirty = false;
+        if (this.cachedRecipe == null) {
+            this.processTime = 1;
+            this.consumption = 100L;
+            this.progressStep = 1;
+        } else {
+            updateUpgradeAdjustedStats(this.cachedRecipe.value());
+        }
     }
 
     private SolderingStationRecipe.Input recipeInput() {
@@ -494,6 +567,7 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         this.processTime = Math.max(1, recipe.duration() - (recipe.duration() * redLevel / 6) + (recipe.duration() * blueLevel / 3));
         this.consumption = Math.max(1L, recipe.consumption() + (recipe.consumption() * redLevel) - (recipe.consumption() * blueLevel / 6));
         this.consumption *= 1L << blackLevel;
+        this.progressStep = 1 + blackLevel;
     }
 
     private int upgradeLevel(MachineUpgradeItem.UpgradeType type) {
@@ -559,7 +633,8 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
         if (this.level == null || stack.isEmpty()) {
             return false;
         }
-        return this.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.SOLDERING_STATION.get()).stream()
+        ensureRecipeCatalog(this.level);
+        return this.cachedRecipeCatalog.stream()
                 .map(RecipeHolder::value)
                 .anyMatch(recipe -> switch (group) {
                     case TOPPING -> containsIngredient(recipe.toppings(), stack);
@@ -606,6 +681,10 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
     }
 
     private void applyIdentifierSlot() {
+        if (!this.identifierDirty) {
+            return;
+        }
+        this.identifierDirty = false;
         ItemStack identifier = this.items.get(FLUID_IDENTIFIER_SLOT);
         if (!(identifier.getItem() instanceof FluidIdentifierItem)) {
             return;
@@ -616,7 +695,11 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
             return;
         }
         if (this.tank.amount() == 0 || this.tank.type() == fluid) {
+            boolean changed = this.tank.type() != fluid;
             this.tank.setType(fluid);
+            if (changed) {
+                invalidateRecipeMatch();
+            }
         }
     }
 
@@ -625,7 +708,8 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
             return false;
         }
 
-        return this.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.SOLDERING_STATION.get()).stream()
+        ensureRecipeCatalog(this.level);
+        return this.cachedRecipeCatalog.stream()
                 .map(RecipeHolder::value)
                 .map(SolderingStationRecipe::fluid)
                 .flatMap(Optional::stream)
@@ -633,6 +717,7 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
     }
 
     private void syncFluidCapability() {
+        invalidateRecipeMatch();
         setChanged();
         if (this.level != null) {
             this.level.invalidateCapabilities(this.worldPosition);
@@ -750,6 +835,62 @@ public class SolderingStationBlockEntity extends BlockEntity implements PowerEnd
 
     private static boolean isValidSlot(int slot) {
         return slot >= 0 && slot < SLOT_COUNT;
+    }
+
+    private void ensureRecipeCatalog(Level level) {
+        long generation = MachineRecipeCache.generation();
+        if (this.observedRecipeCacheGeneration != generation) {
+            this.observedRecipeCacheGeneration = generation;
+            invalidateRecipeCatalog();
+        }
+        if (!this.recipeCatalogDirty) {
+            return;
+        }
+        this.cachedRecipeCatalog = List.copyOf(level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.SOLDERING_STATION.get()));
+        this.recipeCatalogDirty = false;
+        this.recipeMatchDirty = true;
+    }
+
+    private void invalidateRecipeCatalog() {
+        this.recipeCatalogDirty = true;
+        this.cachedRecipeCatalog = List.of();
+        invalidateRecipeMatch();
+    }
+
+    private void invalidateRecipeMatch() {
+        this.recipeMatchDirty = true;
+    }
+
+    private void inventoryChanged(int slot) {
+        if (isRecipeSlot(slot)) {
+            invalidateRecipeMatch();
+        } else if (slot == FLUID_IDENTIFIER_SLOT) {
+            this.identifierDirty = true;
+        } else if (slot >= UPGRADE_START && slot < UPGRADE_END) {
+            this.statsDirty = true;
+        }
+    }
+
+    @Override
+    public void setChanged() {
+        // Hoppers and capability wrappers may grow an ItemStack in place and
+        // report only Container#setChanged. Observe the slots which affect the
+        // cached recipe and derived processing stats so that path also wakes it.
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            if (!isRecipeSlot(slot) && slot != FLUID_IDENTIFIER_SLOT
+                    && (slot < UPGRADE_START || slot >= UPGRADE_END)) {
+                continue;
+            }
+            ItemStack current = this.items.get(slot);
+            ItemStack observed = this.observedWorkItems.get(slot);
+            if (current.getCount() == observed.getCount()
+                    && ItemStack.isSameItemSameComponents(current, observed)) {
+                continue;
+            }
+            this.observedWorkItems.set(slot, current.copy());
+            inventoryChanged(slot);
+        }
+        super.setChanged();
     }
 
     private static boolean isSupportedUpgrade(ItemStack stack) {

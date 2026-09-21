@@ -6,12 +6,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:shell"
-        ],
-        "shape": "shell",
-        "material": "titanium"
+        "item": "reinhardtshbm:shell_titanium"
       },
       "count": 3
     },
@@ -24,9 +19,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:fluid_barrel_full"
-        ],
+        "items": "reinhardtshbm:fluid_barrel_full",
         "components": {
           "minecraft:custom_data": {
             "fluid": "hydrogen"
@@ -68,9 +61,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:battery_pack"
-        ],
+        "items": "reinhardtshbm:battery_pack",
         "components": {
           "minecraft:custom_data": {
             "variant": "battery_lithium"

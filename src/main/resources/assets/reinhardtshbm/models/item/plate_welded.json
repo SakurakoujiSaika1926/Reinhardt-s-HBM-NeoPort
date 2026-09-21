@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/plate_welded"
-                 },
-    "parent":  "minecraft:item/generated"
-}

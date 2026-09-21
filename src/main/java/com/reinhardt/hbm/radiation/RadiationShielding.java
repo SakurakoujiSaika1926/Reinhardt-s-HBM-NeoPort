@@ -27,6 +27,9 @@ public final class RadiationShielding {
     private static final TagKey<Block> RADIATION_SHIELDS = TagKey.create(
             Registries.BLOCK,
             ReinhardtsHBM.id("radiation_shields"));
+    private static final TagKey<Block> HARD_RADIATION_SHIELDS = TagKey.create(
+            Registries.BLOCK,
+            ReinhardtsHBM.id("radiation_hard_shields"));
     private static final TagKey<Block> LEAD_STORAGE_BLOCKS = TagKey.create(
             Registries.BLOCK,
             ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/lead"));
@@ -192,7 +195,7 @@ public final class RadiationShielding {
         if (state.isAir()) {
             return ShieldResult.NONE;
         }
-        if (isLeadHardShield(state)) {
+        if (isHardShield(state)) {
             return ShieldResult.HARD_BLOCKED;
         }
 
@@ -213,7 +216,10 @@ public final class RadiationShielding {
         return resistance <= 0.0D ? ShieldResult.NONE : new ShieldResult(false, resistance);
     }
 
-    private static boolean isLeadHardShield(BlockState state) {
+    private static boolean isHardShield(BlockState state) {
+        if (state.is(HARD_RADIATION_SHIELDS)) {
+            return true;
+        }
         if (state.is(LEAD_STORAGE_BLOCKS)) {
             return true;
         }

@@ -7,12 +7,7 @@
   ],
   "key": {
     "P": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "steel"
+      "item": "reinhardtshbm:plate_cast_steel"
     },
     "T": {
       "item": "reinhardtshbm:tank_steel"

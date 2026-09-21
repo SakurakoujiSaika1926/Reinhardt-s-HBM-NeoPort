@@ -10,9 +10,7 @@
     {
       "ingredient": {
         "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:battery_pack"
-        ],
+        "items": "reinhardtshbm:battery_pack",
         "components": {
           "minecraft:custom_data": {
             "variant": "battery_lithium"
@@ -54,12 +52,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:part_mechanism"
-        ],
-        "shape": "mechanism",
-        "material": "saturnite"
+        "item": "reinhardtshbm:part_mechanism_saturnite"
       },
       "count": 8
     },

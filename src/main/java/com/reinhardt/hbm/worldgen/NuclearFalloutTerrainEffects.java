@@ -210,7 +210,7 @@ public final class NuclearFalloutTerrainEffects {
                 return weightedSet(level, pos, random, "ore_sellafield_schrabidium", 1, "ore_sellafield_uranium_scorched", 9);
             }
             if (state.is(block("ore_deepslate_uranium"))) {
-                return weightedSet(level, pos, random, "ore_sellafield_schrabidium", 1, "ore_deepslate_uranium_scorched", 9);
+                return weightedSet(level, pos, random, "ore_deepslate_schrabidium", 1, "ore_deepslate_uranium_scorched", 9);
             }
             if (state.is(Blocks.BEDROCK) || state.is(block("ore_bedrock_block")) || state.is(block("ore_bedrock_oil"))) {
                 return setIfPresent(level, pos, "sellafield_bedrock");

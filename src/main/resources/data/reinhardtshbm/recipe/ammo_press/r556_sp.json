@@ -1,1 +1,40 @@
-{"type":"reinhardtshbm:ammo_press","group":"ammo_press.r556_sp","input":[{},{"ingredient":{"tag":"c:ingots/lead"},"count":2},{},{},{"ingredient":{"tag":"c:dusts/smokeless"},"count":2},{},{},{"ingredient":{"type":"neoforge:components","items":["reinhardtshbm:casing"],"components":{"minecraft:custom_data":{"variant":"small"}}},"count":2},{}],"result":{"id":"reinhardtshbm:ammo_standard","count":16,"components":{"minecraft:custom_data":{"variant":"r556_sp"},"minecraft:custom_model_data":5}}}
+{
+  "type": "reinhardtshbm:ammo_press",
+  "group": "ammo_press.r556_sp",
+  "input": [
+    {},
+    {
+      "ingredient": {
+        "tag": "c:ingots/lead"
+      },
+      "count": 2
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "tag": "c:dusts/smokeless"
+      },
+      "count": 2
+    },
+    {},
+    {},
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:casing_small"
+      },
+      "count": 2
+    },
+    {}
+  ],
+  "result": {
+    "id": "reinhardtshbm:ammo_standard",
+    "count": 16,
+    "components": {
+      "minecraft:custom_data": {
+        "variant": "r556_sp"
+      },
+      "minecraft:custom_model_data": 5
+    }
+  }
+}

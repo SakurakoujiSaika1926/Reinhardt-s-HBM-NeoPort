@@ -5,15 +5,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.List;
-
-public class ArcElectrodeItem extends LegacyVariantItem {
+public class ArcElectrodeItem extends Item {
     private static final String DURABILITY = "arc_durability";
+    private final String variantId;
 
-    public ArcElectrodeItem(Properties properties) {
-        super(properties.stacksTo(1), "arc_electrode", variants(
-                "graphite", "lanthanium", "desh", "saturnite"
-        ));
+    public ArcElectrodeItem(Properties properties, String variantId) {
+        super(properties.stacksTo(1));
+        this.variantId = variantId;
     }
 
     public static int maxDurability(ItemStack stack) {
@@ -42,8 +40,8 @@ public class ArcElectrodeItem extends LegacyVariantItem {
     }
 
     public static String variantId(ItemStack stack) {
-        if (stack.getItem() instanceof LegacyVariantItem variantItem) {
-            return variantItem.variant(stack).id();
+        if (stack.getItem() instanceof ArcElectrodeItem electrode) {
+            return electrode.variantId;
         }
         return "graphite";
     }

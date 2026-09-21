@@ -2,16 +2,7 @@
   "type": "reinhardtshbm:crystallizer",
   "group": "crystallizer",
   "ingredient": {
-    "type": "neoforge:components",
-    "items": [
-      "reinhardtshbm:plant_item"
-    ],
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "mustardwillow"
-      },
-      "minecraft:custom_model_data": 2
-    }
+    "item": "reinhardtshbm:plant_item_mustardwillow"
   },
   "input_count": 10,
   "acid": {

@@ -1,12 +1,29 @@
 {
-  "neoforge:conditions": [{ "type": "reinhardtshbm:enable_528_mode" }],
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.pwrreflector",
   "duration": 200,
   "power": 500,
   "ingredients": [
-    { "ingredient": { "type": "neoforge:components", "items": ["reinhardtshbm:item_expensive"], "components": { "minecraft:custom_data": { "variant": "steel_plating" } } }, "count": 1 },
-    { "ingredient": { "item": "reinhardtshbm:neutron_reflector" }, "count": 16 }
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_steel_plating"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:neutron_reflector"
+      },
+      "count": 16
+    }
   ],
-  "result": { "id": "reinhardtshbm:pwr_reflector", "count": 4 }
+  "result": {
+    "id": "reinhardtshbm:pwr_reflector",
+    "count": 4
+  }
 }

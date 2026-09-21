@@ -1,13 +1,1 @@
-{
-  "type": "reinhardtshbm:press",
-  "group": "press.printing4",
-  "stamp": "printing4",
-  "ingredient": { "item": "minecraft:paper" },
-  "result": {
-    "id": "reinhardtshbm:page_of_",
-    "components": {
-      "minecraft:custom_data": { "variant": "page4" },
-      "minecraft:custom_model_data": 3
-    }
-  }
-}
+{"type":"reinhardtshbm:press","group":"press.printing4","stamp":"printing4","ingredient":{"item":"minecraft:paper"},"result":{"id":"reinhardtshbm:page_of_page4"}}

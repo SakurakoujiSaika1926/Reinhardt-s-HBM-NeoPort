@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shapeless","category":"building","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:vinyl_tile"],"components":{"minecraft:custom_data":{"variant":"small"},"minecraft:custom_model_data":1}}],"result":{"id":"reinhardtshbm:vinyl_tile","components":{"minecraft:custom_data":{"variant":"large"},"minecraft:custom_model_data":0}}}

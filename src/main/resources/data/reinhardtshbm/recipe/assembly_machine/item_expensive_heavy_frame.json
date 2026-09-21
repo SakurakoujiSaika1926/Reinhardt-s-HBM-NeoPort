@@ -11,15 +11,7 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "steel_plating"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_steel_plating"
       },
       "count": 3
     },
@@ -31,12 +23,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "copper"
+        "item": "reinhardtshbm:plate_welded_copper"
       },
       "count": 4
     },
@@ -54,12 +41,6 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:item_expensive",
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "heavy_frame"
-      },
-      "minecraft:custom_model_data": 1
-    }
+    "id": "reinhardtshbm:item_expensive_heavy_frame"
   }
 }

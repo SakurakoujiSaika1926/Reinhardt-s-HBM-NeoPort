@@ -7,13 +7,7 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:ingot_raw",
-    "count": 9,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 41,
-        "material": "slag"
-      }
-    }
+    "id": "reinhardtshbm:ingot_raw_slag",
+    "count": 9
   }
 }

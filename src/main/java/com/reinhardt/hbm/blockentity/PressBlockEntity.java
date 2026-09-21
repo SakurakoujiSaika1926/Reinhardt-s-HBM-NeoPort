@@ -6,13 +6,13 @@ import com.reinhardt.hbm.item.MachineUpgradeItem;
 import com.reinhardt.hbm.item.StampItem;
 import com.reinhardt.hbm.menu.MachineEPressMenu;
 import com.reinhardt.hbm.menu.MachinePressMenu;
+import com.reinhardt.hbm.network.PressAnimationPayload;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.recipe.PressRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
-import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,7 +22,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -63,8 +62,10 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     public static final long ELECTRIC_ENERGY_CAPACITY = 50_000L;
     public static final long ELECTRIC_DEMAND_PER_TICK = 100L;
 
-    private static final int[] FIRE_BOTTOM_SLOTS = {OUTPUT_SLOT};
-    private static final int[] FIRE_SIDE_SLOTS = {FIRE_FUEL_SLOT, STAMP_SLOT, INPUT_SLOT};
+    private static final int[] NO_AUTOMATION_SLOTS = {};
+    private static final int[] FIRE_FUEL_AUTOMATION_SLOTS = {FIRE_FUEL_SLOT};
+    private static final int[] FIRE_PROCESS_AUTOMATION_SLOTS = {INPUT_SLOT, OUTPUT_SLOT};
+    private static final int[] FIRE_STAMP_AUTOMATION_SLOTS = {STAMP_SLOT};
     private static final int[] ELECTRIC_AUTOMATION_SLOTS = {STAMP_SLOT, INPUT_SLOT, OUTPUT_SLOT};
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(FIRE_SLOT_COUNT, ItemStack.EMPTY);
@@ -79,10 +80,11 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     private boolean wasWorking;
     private int clientProgress;
     private int clientPrevProgress;
-    private int clientSpeed;
-    private int clientDelay;
-    private boolean clientRetracting;
-    private long lastClientAnimationTick = Long.MIN_VALUE;
+    private boolean clientAnimationInitialized;
+    private int lastSyncedProgress = Integer.MIN_VALUE;
+    private int lastSyncedSpeed = Integer.MIN_VALUE;
+    private int lastSyncedDelay = Integer.MIN_VALUE;
+    private boolean lastSyncedRetracting;
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
@@ -238,14 +240,13 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             return ItemStack.EMPTY;
         }
 
+        ItemStack previous = stack.copy();
         ItemStack removed = stack.split(amount);
         if (stack.isEmpty()) {
             this.items.set(slot, ItemStack.EMPTY);
         }
         if (!removed.isEmpty()) {
-            if (slot == INPUT_SLOT || slot == STAMP_SLOT) {
-                this.progress = 0;
-            }
+            resetProgressIfProcessIdentityChanged(slot, previous, this.items.get(slot));
             setChangedAndSync(false);
         }
         return removed;
@@ -258,6 +259,7 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         }
         ItemStack removed = this.items.get(slot);
         this.items.set(slot, ItemStack.EMPTY);
+        resetProgressIfProcessIdentityChanged(slot, removed, ItemStack.EMPTY);
         return removed;
     }
 
@@ -266,14 +268,31 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         if (!isValidSlot(slot)) {
             return;
         }
+        ItemStack previous = this.items.get(slot).copy();
         this.items.set(slot, stack);
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize(stack)) {
             stack.setCount(this.getMaxStackSize(stack));
         }
-        if (slot == INPUT_SLOT || slot == STAMP_SLOT) {
+        resetProgressIfProcessIdentityChanged(slot, previous, stack);
+        setChangedAndSync(false);
+    }
+
+    private void resetProgressIfProcessIdentityChanged(int slot, ItemStack previous, ItemStack current) {
+        if ((slot != INPUT_SLOT && slot != STAMP_SLOT) || this.retracting) {
+            return;
+        }
+        if (!sameProcessIngredient(previous, current)) {
             this.progress = 0;
         }
-        setChangedAndSync(false);
+    }
+
+    private static boolean sameProcessIngredient(ItemStack first, ItemStack second) {
+        if (first.isEmpty() || second.isEmpty()) {
+            return first.isEmpty() && second.isEmpty();
+        }
+        // Stack size is deliberately excluded: one-at-a-time hopper/funnel
+        // transfers do not change the press recipe being worked.
+        return ItemStack.isSameItemSameComponents(first, second);
     }
 
     @Override
@@ -292,8 +311,10 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             case FIRE_FUEL_SLOT -> WoodBurnerBlockEntity.fuelDuration(stack) > 0;
             case STAMP_SLOT -> StampItem.isStamp(stack);
             // TileEntityMachinePress accepted any non-fuel, non-stamp item in the
-            // input slot. Recipe matching controls operation, not storage.
-            case INPUT_SLOT -> !StampItem.isRegisteredStamp(stack) && WoodBurnerBlockEntity.fuelDuration(stack) <= 0;
+            // input slot. A valid press ingredient takes priority when an item
+            // is also fuel (notably coal coke for the graphite-ingot recipe).
+            case INPUT_SLOT -> canAcceptInput(stack)
+                    || !StampItem.isRegisteredStamp(stack) && WoodBurnerBlockEntity.fuelDuration(stack) <= 0;
             case OUTPUT_SLOT -> false;
             default -> slot >= FIRE_STORAGE_START && slot < FIRE_STORAGE_END;
         };
@@ -304,17 +325,65 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         if (kind() == Kind.ELECTRIC) {
             return ELECTRIC_AUTOMATION_SLOTS;
         }
-        return side == Direction.DOWN ? FIRE_BOTTOM_SLOTS : FIRE_SIDE_SLOTS;
+        return getSlotsForAccessor(this.worldPosition, side);
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
-        return slot != OUTPUT_SLOT && canPlaceItem(slot, stack);
+        return canPlaceItemThroughAccessor(this.worldPosition, slot, stack, side);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        return slot == OUTPUT_SLOT;
+        return canTakeItemThroughAccessor(this.worldPosition, slot, stack, side);
+    }
+
+    /**
+     * Exposes the modern three-tier fire press automation layout. The core is
+     * the bottom fuel tier, with the process tier and stamp tier directly above
+     * it. The queried face deliberately does not change a tier's role, so
+     * hoppers, Create funnels/chutes and capability-based buses agree.
+     */
+    public int[] getSlotsForAccessor(BlockPos accessorPos, @Nullable Direction side) {
+        if (kind() == Kind.ELECTRIC) {
+            return ELECTRIC_AUTOMATION_SLOTS;
+        }
+        int layer = accessorPos.getY() - this.worldPosition.getY();
+        return switch (layer) {
+            case 0 -> FIRE_FUEL_AUTOMATION_SLOTS;
+            case 1 -> FIRE_PROCESS_AUTOMATION_SLOTS;
+            case 2 -> FIRE_STAMP_AUTOMATION_SLOTS;
+            default -> NO_AUTOMATION_SLOTS;
+        };
+    }
+
+    public boolean canPlaceItemThroughAccessor(
+            BlockPos accessorPos,
+            int slot,
+            ItemStack stack,
+            @Nullable Direction side
+    ) {
+        return slot != OUTPUT_SLOT
+                && containsSlot(getSlotsForAccessor(accessorPos, side), slot)
+                && canPlaceItem(slot, stack);
+    }
+
+    public boolean canTakeItemThroughAccessor(
+            BlockPos accessorPos,
+            int slot,
+            ItemStack stack,
+            @Nullable Direction side
+    ) {
+        return slot == OUTPUT_SLOT && containsSlot(getSlotsForAccessor(accessorPos, side), slot);
+    }
+
+    private static boolean containsSlot(int[] slots, int slot) {
+        for (int accessibleSlot : slots) {
+            if (accessibleSlot == slot) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -379,27 +448,20 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         return this.items.get(INPUT_SLOT);
     }
 
-    public void updateClientAnimation() {
-        if (this.level == null || !this.level.isClientSide) {
-            return;
+    public void acceptAnimationSync(int progress, int speed, int delay, boolean retracting) {
+        int clampedProgress = Math.max(0, Math.min(MAX_PROGRESS, progress));
+        if (!this.clientAnimationInitialized) {
+            this.clientProgress = clampedProgress;
+            this.clientPrevProgress = clampedProgress;
+            this.clientAnimationInitialized = true;
+        } else {
+            this.clientPrevProgress = this.clientProgress;
+            this.clientProgress = clampedProgress;
         }
-
-        long gameTime = this.level.getGameTime();
-        if (this.lastClientAnimationTick == gameTime) {
-            return;
-        }
-        if (this.lastClientAnimationTick == Long.MIN_VALUE) {
-            this.clientProgress = this.progress;
-            this.clientPrevProgress = this.progress;
-        }
-
-        int steps = this.lastClientAnimationTick == Long.MIN_VALUE
-                ? 1
-                : (int) Math.min(5L, Math.max(1L, gameTime - this.lastClientAnimationTick));
-        for (int step = 0; step < steps; step++) {
-            stepClientAnimation();
-        }
-        this.lastClientAnimationTick = gameTime;
+        this.progress = clampedProgress;
+        this.speed = Math.max(0, Math.min(MAX_SPEED, speed));
+        this.delay = Math.max(0, delay);
+        this.retracting = retracting;
     }
 
     public float clientHeadTravel(float partialTick) {
@@ -447,6 +509,11 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         this.delay = tag.getInt("Delay");
         this.retracting = tag.getBoolean("Retracting");
         this.wasWorking = tag.getBoolean("WasWorking");
+        if (!this.clientAnimationInitialized) {
+            this.clientProgress = this.progress;
+            this.clientPrevProgress = this.progress;
+            this.clientAnimationInitialized = true;
+        }
     }
 
     @Override
@@ -465,6 +532,7 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     private void tickFire(Level level) {
         boolean canProcess = canProcess(level);
         boolean preheated = isPreheated(level);
+        boolean impact = false;
 
         if ((canProcess || this.retracting) && this.burnTime >= FIRE_BURN_PER_OPERATION) {
             this.speed = Math.min(MAX_SPEED, this.speed + (preheated ? 4 : 1));
@@ -485,7 +553,7 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
                 this.progress += stampSpeed;
                 if (this.progress >= MAX_PROGRESS) {
                     this.progress = MAX_PROGRESS;
-                    craft(level);
+                    impact = craft(level);
                     this.retracting = true;
                     this.delay = 5;
                     if (this.burnTime >= FIRE_BURN_PER_OPERATION) {
@@ -507,11 +575,13 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
         setLit(this.progress > 0 || this.speed > 0);
         syncActiveVisuals(level);
+        syncAnimation(level, impact);
     }
 
     private void tickElectric(Level level) {
         boolean canProcess = canProcess(level);
         boolean active = false;
+        boolean impact = false;
         this.energyStored = BatteryPackItem.dischargeIntoMachine(this.items.get(ELECTRIC_BATTERY_SLOT), this.energyStored, ELECTRIC_ENERGY_CAPACITY);
 
         if ((canProcess || this.retracting || this.delay > 0) && this.energyStored >= ELECTRIC_DEMAND_PER_TICK) {
@@ -537,7 +607,7 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
                     this.progress += step;
                     if (this.progress >= MAX_PROGRESS) {
                         this.progress = MAX_PROGRESS;
-                        craft(level);
+                        impact = craft(level);
                         this.retracting = true;
                         this.delay = Math.max(0, 6 - speedLevel);
                     }
@@ -549,6 +619,7 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
         setLit(active || this.progress > 0);
         syncActiveVisuals(level);
+        syncAnimation(level, impact);
     }
 
     private Optional<RecipeHolder<PressRecipe>> getRecipe(Level level) {
@@ -582,10 +653,10 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
                 && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
-    private void craft(Level level) {
+    private boolean craft(Level level) {
         Optional<RecipeHolder<PressRecipe>> recipeHolder = getRecipe(level);
         if (recipeHolder.isEmpty()) {
-            return;
+            return false;
         }
 
         PressRecipe recipe = recipeHolder.get().value();
@@ -609,8 +680,8 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         }
 
         this.completedCycles++;
-        level.playSound(null, this.worldPosition, HbmSoundEvents.PRESS_OPERATE.get(), SoundSource.BLOCKS, 1.5F, 1.0F);
         setChangedAndSync(true);
+        return true;
     }
 
     private void startBurningFuel() {
@@ -659,91 +730,6 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         return slot >= 0 && slot < getContainerSize();
     }
 
-    private void stepClientAnimation() {
-        boolean working = this.getBlockState().hasProperty(PressMachineBlock.LIT)
-                && this.getBlockState().getValue(PressMachineBlock.LIT);
-        this.clientPrevProgress = this.clientProgress;
-
-        if (kind() == Kind.ELECTRIC) {
-            stepElectricClientAnimation(working);
-        } else {
-            stepFireClientAnimation(working);
-        }
-    }
-
-    private void stepElectricClientAnimation(boolean working) {
-        if (!working && this.clientProgress <= 0) {
-            this.clientProgress = 0;
-            this.clientRetracting = false;
-            this.clientDelay = 0;
-            return;
-        }
-
-        if (!working) {
-            this.clientRetracting = true;
-        }
-        if (this.clientDelay > 0) {
-            this.clientDelay--;
-            return;
-        }
-
-        int step = this.clientRetracting ? 20 : 45;
-        if (this.clientRetracting) {
-            this.clientProgress -= step;
-            if (this.clientProgress <= 0) {
-                this.clientProgress = 0;
-                this.clientRetracting = false;
-                this.clientDelay = 5;
-            }
-        } else {
-            this.clientProgress += step;
-            if (this.clientProgress >= MAX_PROGRESS) {
-                this.clientProgress = MAX_PROGRESS;
-                this.clientRetracting = true;
-                this.clientDelay = 5;
-            }
-        }
-    }
-
-    private void stepFireClientAnimation(boolean working) {
-        if (working || this.clientRetracting) {
-            this.clientSpeed = Math.min(MAX_SPEED, this.clientSpeed + 4);
-        } else {
-            this.clientSpeed = Math.max(0, this.clientSpeed - 2);
-        }
-
-        if (!working && this.clientProgress <= 0) {
-            this.clientProgress = 0;
-            this.clientRetracting = false;
-            this.clientDelay = 0;
-            return;
-        }
-        if (!working) {
-            this.clientRetracting = true;
-        }
-        if (this.clientDelay > 0) {
-            this.clientDelay--;
-            return;
-        }
-
-        int step = Math.max(1, this.clientSpeed * PROGRESS_AT_MAX_SPEED / MAX_SPEED);
-        if (this.clientRetracting) {
-            this.clientProgress -= step;
-            if (this.clientProgress <= 0) {
-                this.clientProgress = 0;
-                this.clientRetracting = false;
-                this.clientDelay = 5;
-            }
-        } else {
-            this.clientProgress += step;
-            if (this.clientProgress >= MAX_PROGRESS) {
-                this.clientProgress = MAX_PROGRESS;
-                this.clientRetracting = true;
-                this.clientDelay = 5;
-            }
-        }
-    }
-
     private void setLit(boolean lit) {
         if (this.level == null) {
             return;
@@ -757,12 +743,39 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
     private void syncActiveVisuals(Level level) {
         boolean working = this.progress > 0 || this.retracting || this.speed > 0;
-        if (working != this.wasWorking || (working && level.getGameTime() % 5L == 0L)) {
+        if (working != this.wasWorking) {
             setChangedAndSync(true);
             this.wasWorking = working;
         } else {
             setChanged();
         }
+    }
+
+    private void syncAnimation(Level level, boolean impact) {
+        if (level.isClientSide) {
+            return;
+        }
+        boolean changed = this.progress != this.lastSyncedProgress
+                || this.speed != this.lastSyncedSpeed
+                || this.delay != this.lastSyncedDelay
+                || this.retracting != this.lastSyncedRetracting;
+        if (!changed && !impact) {
+            return;
+        }
+
+        PressAnimationPayload.sendToTracking(
+                level,
+                this.worldPosition,
+                this.progress,
+                this.speed,
+                this.delay,
+                this.retracting,
+                impact
+        );
+        this.lastSyncedProgress = this.progress;
+        this.lastSyncedSpeed = this.speed;
+        this.lastSyncedDelay = this.delay;
+        this.lastSyncedRetracting = this.retracting;
     }
 
     private void setChangedAndSync(boolean forceUpdate) {

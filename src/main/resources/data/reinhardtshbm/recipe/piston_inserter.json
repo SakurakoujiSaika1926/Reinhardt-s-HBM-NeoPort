@@ -11,24 +11,10 @@
       "tag": "c:plates/iron"
     },
     "T": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:bolt"
-      ],
-      "shape": "bolt",
-      "material": "steel"
+      "item": "reinhardtshbm:bolt_steel"
     },
     "P": {
-      "type": "neoforge:components",
-      "items": [
-        "reinhardtshbm:part_generic"
-      ],
-      "components": {
-        "minecraft:custom_data": {
-          "variant": "piston_pneumatic"
-        },
-        "minecraft:custom_model_data": 0
-      }
+      "item": "reinhardtshbm:part_generic_piston_pneumatic"
     }
   },
   "result": {

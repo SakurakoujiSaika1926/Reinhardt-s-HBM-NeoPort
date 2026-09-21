@@ -1,4 +1,19 @@
-﻿{
-    "replace":  false,
-    "values": []
+{
+  "replace": false,
+  "values": [
+    "#c:wires_dense/gold",
+    "#c:wires_dense/schrabidium",
+    "#c:wires_dense/schrabidate",
+    "#c:wires_dense/titanium",
+    "#c:wires_dense/copper",
+    "#c:wires_dense/tungsten",
+    "#c:wires_dense/red_copper",
+    "#c:wires_dense/steel",
+    "#c:wires_dense/neodymium",
+    "#c:wires_dense/niobium",
+    "#c:wires_dense/starmetal",
+    "#c:wires_dense/bscco",
+    "#c:wires_dense/magnetized_tungsten",
+    "#c:wires_dense/dineutronium"
+  ]
 }

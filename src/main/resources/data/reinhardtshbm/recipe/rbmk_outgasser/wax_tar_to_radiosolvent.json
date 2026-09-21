@@ -2,15 +2,7 @@
   "type": "reinhardtshbm:rbmk_outgasser",
   "group": "outgasser.tar",
   "ingredient": {
-    "type": "neoforge:components",
-    "items": [
-      "reinhardtshbm:oil_tar"
-    ],
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "wax"
-      }
-    }
+    "item": "reinhardtshbm:oil_tar_wax"
   },
   "fluid_output": {
     "fluid": "radiosolvent",

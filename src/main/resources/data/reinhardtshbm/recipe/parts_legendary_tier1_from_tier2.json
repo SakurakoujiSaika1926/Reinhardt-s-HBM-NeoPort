@@ -1,1 +1,13 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"type":"neoforge:components","items":["reinhardtshbm:parts_legendary"],"components":{"minecraft:custom_data":{"variant":"tier2"},"minecraft:custom_model_data":1}}],"result":{"id":"reinhardtshbm:parts_legendary","count":3,"components":{"minecraft:custom_data":{"variant":"tier1"},"minecraft:custom_model_data":0}}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:parts_legendary_tier2"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:parts_legendary_tier1",
+    "count": 3
+  }
+}

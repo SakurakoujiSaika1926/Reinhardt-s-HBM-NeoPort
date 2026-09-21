@@ -32,6 +32,14 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
     private static final String CREATE_CORE_OFFSET_Y = "HbmCoreOffsetY";
     private static final String CREATE_CORE_OFFSET_Z = "HbmCoreOffsetZ";
     private BlockPos corePos = BlockPos.ZERO;
+    /*
+     * Removal authorization is intentionally transient.  Create/Aeronautics
+     * removes captured blocks from the level and later restores them from
+     * contraption NBT; that internal removal must never manufacture the core
+     * machine's item.  Only playerWillDestroy arms a proxy for one removal.
+     */
+    private boolean playerRemoval;
+    private boolean dropCoreWhenRemoved;
 
     public MachineDummyBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.MACHINE_DUMMY.get(), pos, blockState);
@@ -69,6 +77,22 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
     /** Rebinds this proxy using its exact relative core link. */
     public void setCoreOffset(BlockPos coreOffset) {
         setCorePos(this.worldPosition.offset(coreOffset));
+    }
+
+    public void armPlayerRemoval(boolean dropCore) {
+        this.playerRemoval = true;
+        this.dropCoreWhenRemoved = dropCore;
+    }
+
+    public boolean isPlayerRemovalArmed() {
+        return this.playerRemoval;
+    }
+
+    public boolean consumeDropCoreWhenRemoved() {
+        boolean drop = this.playerRemoval && this.dropCoreWhenRemoved;
+        this.playerRemoval = false;
+        this.dropCoreWhenRemoved = false;
+        return drop;
     }
 
     private void refreshAdjacentNetworks() {
@@ -147,6 +171,9 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
     @Override
     public int[] getSlotsForFace(Direction side) {
         WorldlyContainer core = coreContainer();
+        if (core instanceof PressBlockEntity press && press.kind() == PressBlockEntity.Kind.FIRE) {
+            return press.getSlotsForAccessor(this.worldPosition, side);
+        }
         if (core instanceof ArcFurnaceBlockEntity furnace) {
             return furnace.isAutomationPort(this.worldPosition) ? furnace.getSlotsForFace(side) : NO_SLOTS;
         }
@@ -174,6 +201,9 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
         WorldlyContainer core = coreContainer();
+        if (core instanceof PressBlockEntity press && press.kind() == PressBlockEntity.Kind.FIRE) {
+            return press.canPlaceItemThroughAccessor(this.worldPosition, slot, stack, side);
+        }
         if (core instanceof ArcFurnaceBlockEntity furnace) {
             return furnace.isAutomationPort(this.worldPosition)
                     && containsSlot(furnace.getSlotsForFace(side), slot)
@@ -212,6 +242,9 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         WorldlyContainer core = coreContainer();
+        if (core instanceof PressBlockEntity press && press.kind() == PressBlockEntity.Kind.FIRE) {
+            return press.canTakeItemThroughAccessor(this.worldPosition, slot, stack, side);
+        }
         if (core instanceof ArcFurnaceBlockEntity furnace) {
             return furnace.isAutomationPort(this.worldPosition)
                     && containsSlot(furnace.getSlotsForFace(side), slot)

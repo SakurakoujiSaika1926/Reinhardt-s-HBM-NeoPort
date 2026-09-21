@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.vaultdoor",
+  "duration": 600,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:ingots/steel" }, "count": 32 },
+    { "ingredient": { "tag": "c:ingots/dura_steel" }, "count": 32 },
+    { "ingredient": { "tag": "c:plates/cast_lead" }, "count": 8 },
+    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 12 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 32 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 3 }
+  ],
+  "result": { "id": "reinhardtshbm:vault_door" }
+}

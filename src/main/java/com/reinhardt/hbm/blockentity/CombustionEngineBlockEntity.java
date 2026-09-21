@@ -324,7 +324,7 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
     public boolean canPlaceItem(int slot, ItemStack stack) {
         return switch (slot) {
             case SLOT_INPUT -> canDrainIntoFuel(stack);
-            case SLOT_PISTON -> stack.getItem() == HbmItems.PISTON_SET.get();
+            case SLOT_PISTON -> stack.getItem() instanceof CombustionPistonSetItem;
             case SLOT_BATTERY -> BatteryPackItem.isBattery(stack);
             case SLOT_IDENTIFIER -> stack.getItem() instanceof FluidIdentifierItem;
             default -> false;

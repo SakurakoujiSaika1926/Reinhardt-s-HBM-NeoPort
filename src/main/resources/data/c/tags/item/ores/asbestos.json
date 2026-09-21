@@ -3,6 +3,7 @@
     "values":  [
                    "reinhardtshbm:ore_asbestos",
                    "reinhardtshbm:ore_gneiss_asbestos",
-                   "reinhardtshbm:ore_deepslate_asbestos"
+                   "reinhardtshbm:ore_deepslate_asbestos",
+                   "reinhardtshbm:stone_resource_asbestos"
                ]
 }

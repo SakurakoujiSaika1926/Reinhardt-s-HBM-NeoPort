@@ -42,12 +42,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:bolt"
-        ],
-        "shape": "bolt",
-        "material": "steel"
+        "item": "reinhardtshbm:bolt_steel"
       },
       "count": 32
     }

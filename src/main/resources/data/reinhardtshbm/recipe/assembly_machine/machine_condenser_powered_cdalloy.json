@@ -14,23 +14,13 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "steel"
+        "item": "reinhardtshbm:plate_welded_steel"
       },
       "count": 8
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:plate_welded"
-        ],
-        "shape": "plate_welded",
-        "material": "cdalloy"
+        "item": "reinhardtshbm:plate_welded_cdalloy"
       },
       "count": 4
     },
@@ -48,20 +38,17 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:pipe"
-        ],
-        "shape": "pipe",
-        "material": "steel"
+        "item": "reinhardtshbm:pipe_steel"
       },
       "count": 24
     }
   ],
-  "input_fluids": {
-    "fluid": "lubricant",
-    "amount": 4000
-  },
+  "input_fluids": [
+    {
+      "fluid": "lubricant",
+      "amount": 4000
+    }
+  ],
   "result": {
     "id": "reinhardtshbm:machine_condenser_powered"
   }

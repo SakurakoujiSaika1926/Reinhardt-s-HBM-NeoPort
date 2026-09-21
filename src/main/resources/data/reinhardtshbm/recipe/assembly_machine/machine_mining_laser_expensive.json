@@ -11,22 +11,34 @@
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": [
-          "reinhardtshbm:item_expensive"
-        ],
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "heavy_frame"
-          }
-        }
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
       },
       "count": 4
     },
-    { "ingredient": { "tag": "c:plates/dura_steel" }, "count": 4 },
-    { "ingredient": { "item": "reinhardtshbm:crystal_redstone" }, "count": 12 },
-    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 16 },
-    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 3 }
+    {
+      "ingredient": {
+        "tag": "c:plates/dura_steel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:crystal_redstone"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_desh"
+      },
+      "count": 3
+    }
   ],
   "result": {
     "id": "reinhardtshbm:machine_mining_laser"

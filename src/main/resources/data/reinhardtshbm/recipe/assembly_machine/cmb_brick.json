@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.cmbtile",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:concretes" }, "count": 4 },
+    { "ingredient": { "tag": "c:plates/combine_steel" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:cmb_brick", "count": 8 }
+}

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:crate_iron",
+    "reinhardtshbm:crate_steel",
+    "reinhardtshbm:crate_desh",
+    "reinhardtshbm:crate_template",
+    "reinhardtshbm:crate_tungsten"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "#c:plates/cast_tcalloy",
+    "#c:plates/cast_cdalloy"
+  ]
+}

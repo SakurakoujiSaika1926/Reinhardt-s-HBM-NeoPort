@@ -8,12 +8,7 @@
   ],
   "key": {
     "C": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "copper"
+      "item": "reinhardtshbm:plate_cast_copper"
     },
     "T": {
       "item": "reinhardtshbm:mp_thruster_15_balefire_large"

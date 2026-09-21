@@ -11,12 +11,7 @@
       "tag": "c:plates/steel"
     },
     "L": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:part_mechanism"
-      ],
-      "shape": "mechanism",
-      "material": "gunmetal"
+      "item": "reinhardtshbm:part_mechanism_gunmetal"
     },
     "M": {
       "item": "reinhardtshbm:motor"

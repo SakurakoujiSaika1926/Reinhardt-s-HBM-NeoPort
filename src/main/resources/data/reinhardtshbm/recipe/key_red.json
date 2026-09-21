@@ -11,12 +11,7 @@
       "tag": "c:dyes/red"
     },
     "C": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_dense"
-      ],
-      "shape": "wire_dense",
-      "material": "starmetal"
+      "item": "reinhardtshbm:wire_dense_starmetal"
     },
     "A": {
       "item": "reinhardtshbm:gem_alexandrite"

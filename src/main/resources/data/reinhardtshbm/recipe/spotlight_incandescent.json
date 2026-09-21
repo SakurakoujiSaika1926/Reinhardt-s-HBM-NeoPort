@@ -1,6 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "decorations",
+  "category": "building",
   "pattern": [
     "G",
     "T",
@@ -11,12 +11,7 @@
       "tag": "c:glass_panes"
     },
     "T": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "tungsten"
+      "item": "reinhardtshbm:wire_tungsten"
     },
     "I": {
       "tag": "c:ingots/iron"

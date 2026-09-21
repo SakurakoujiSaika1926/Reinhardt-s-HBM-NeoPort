@@ -1,17 +1,11 @@
-﻿{
-    "type":  "reinhardtshbm:solidification",
-    "group":  "solidifier.bitumen",
-    "input":  {
-                  "fluid":  "bitumen",
-                  "amount":  100
-              },
-    "output":  {
-                   "id":  "reinhardtshbm:oil_tar",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "crude"
-                                                                },
-                                      "minecraft:custom_model_data":  0
-                                  }
-               }
+{
+  "type": "reinhardtshbm:solidification",
+  "group": "solidifier.bitumen",
+  "input": {
+    "fluid": "bitumen",
+    "amount": 100
+  },
+  "output": {
+    "id": "reinhardtshbm:oil_tar"
+  }
 }

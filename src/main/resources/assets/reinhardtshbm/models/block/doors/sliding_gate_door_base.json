@@ -1,0 +1,1 @@
+{"loader":"neoforge:obj","model":"reinhardtshbm:models/obj/doors/sliding_seal_door.obj","mtl_override":"reinhardtshbm:models/obj/doors/sliding_seal_door.mtl","automatic_culling":false,"shade_quads":true,"flip_v":true,"emissive_ambient":false,"textures":{"default":"reinhardtshbm:block/doors/sliding_gate_door","particle":"reinhardtshbm:block/doors/sliding_gate_door"}}

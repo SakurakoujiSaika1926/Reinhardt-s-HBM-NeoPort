@@ -1,1 +1,6 @@
-{ "parent": "minecraft:item/generated", "textures": { "layer0": "reinhardtshbm:item/circuit_star_piece.board_converter" } }
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "reinhardtshbm:item/circuit_star_piece.board_converter"
+  }
+}

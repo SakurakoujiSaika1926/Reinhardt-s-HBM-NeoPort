@@ -1,0 +1,13 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.sealcontroller",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "tag": "c:ingots/dura_steel" }, "count": 1 },
+    { "ingredient": { "tag": "c:plates/cast_steel" }, "count": 1 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:wire_dense_red_copper" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:seal_controller" }
+}

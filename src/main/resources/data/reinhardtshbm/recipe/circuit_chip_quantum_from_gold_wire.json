@@ -11,23 +11,13 @@
       "tag": "c:ingots/hard_plastic"
     },
     "S": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_dense"
-      ],
-      "shape": "wire_dense",
-      "material": "bscco"
+      "item": "reinhardtshbm:wire_dense_bscco"
     },
     "I": {
       "item": "reinhardtshbm:pellet_charged"
     },
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_gold"
     }
   },
   "result": {

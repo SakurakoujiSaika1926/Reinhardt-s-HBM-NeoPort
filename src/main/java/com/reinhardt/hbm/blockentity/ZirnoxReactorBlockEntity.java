@@ -2,6 +2,7 @@ package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.ZirnoxDestroyedBlock;
 import com.reinhardt.hbm.block.ZirnoxReactorBlock;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
@@ -10,12 +11,15 @@ import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.ZirnoxRodItem;
+import com.reinhardt.hbm.entity.ZirnoxDebrisEntity;
 import com.reinhardt.hbm.menu.ZirnoxReactorMenu;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
+import com.reinhardt.hbm.worldgen.ZirnoxWasteManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -27,6 +31,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -535,9 +540,14 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
         LargeMachineBlock.removeDummies(level, this.worldPosition, facing, ZirnoxReactorBlock.FOOTPRINT);
         BlockState destroyed = HbmBlocks.ZIRNOX_DESTROYED.get().defaultBlockState().setValue(LargeMachineBlock.FACING, facing);
         level.setBlock(this.worldPosition, destroyed, 3);
-        LargeMachineBlock.placeDummies(level, this.worldPosition, facing, ZirnoxReactorBlock.FOOTPRINT);
+        LargeMachineBlock.placeDummies(level, this.worldPosition, facing, ZirnoxDestroyedBlock.FOOTPRINT);
+        level.playSound(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 2.0D,
+                this.worldPosition.getZ() + 0.5D, HbmSoundEvents.RBMK_EXPLOSION.get(),
+                SoundSource.BLOCKS, 10.0F, 1.0F);
         level.explode(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 3.0D, this.worldPosition.getZ() + 0.5D, 12.0F, Level.ExplosionInteraction.BLOCK);
         if (level instanceof ServerLevel serverLevel) {
+            spawnZirnoxDebris(serverLevel);
+            ZirnoxWasteManager.schedule(serverLevel, this.worldPosition, 35);
             AABB area = new AABB(
                     worldPosition.getX() - 100.0D, worldPosition.getY() - 100.0D, worldPosition.getZ() - 100.0D,
                     worldPosition.getX() + 101.0D, worldPosition.getY() + 101.0D, worldPosition.getZ() + 101.0D
@@ -545,6 +555,43 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
             HbmAdvancements.awardNearby(serverLevel, area, "zirnox_boom");
         }
         markNearbyRadiationBeastTargets(level);
+    }
+
+    private void spawnZirnoxDebris(ServerLevel level) {
+        for (int i = 0; i < 2; i++) {
+            spawnDebris(level, ZirnoxDebrisEntity.DebrisType.EXCHANGER);
+        }
+        for (int i = 0; i < 20; i++) {
+            spawnDebris(level, ZirnoxDebrisEntity.DebrisType.CONCRETE);
+            spawnDebris(level, ZirnoxDebrisEntity.DebrisType.BLANK);
+        }
+        for (int i = 0; i < 10; i++) {
+            spawnDebris(level, ZirnoxDebrisEntity.DebrisType.ELEMENT);
+            spawnDebris(level, ZirnoxDebrisEntity.DebrisType.GRAPHITE);
+            spawnDebris(level, ZirnoxDebrisEntity.DebrisType.SHRAPNEL);
+        }
+    }
+
+    private void spawnDebris(ServerLevel level, ZirnoxDebrisEntity.DebrisType type) {
+        ZirnoxDebrisEntity debris = new ZirnoxDebrisEntity(level,
+                this.worldPosition.getX() + 0.5D,
+                this.worldPosition.getY() + 4.0D,
+                this.worldPosition.getZ() + 0.5D,
+                type);
+        double motionX = level.random.nextGaussian() * 0.75D;
+        double motionY = 0.01D + level.random.nextDouble() * 1.25D;
+        double motionZ = level.random.nextGaussian() * 0.75D;
+        if (type == ZirnoxDebrisEntity.DebrisType.CONCRETE) {
+            motionX *= 0.25D;
+            motionY += level.random.nextDouble();
+            motionZ *= 0.25D;
+        } else if (type == ZirnoxDebrisEntity.DebrisType.EXCHANGER) {
+            motionX += 0.5D;
+            motionY *= 0.1D;
+            motionZ += 0.5D;
+        }
+        debris.setDeltaMovement(motionX, motionY, motionZ);
+        level.addFreshEntity(debris);
     }
 
     private void markNearbyRadiationBeastTargets(Level level) {

@@ -6,13 +6,7 @@
     "tag": "c:ingots/steel"
   },
   "result": {
-    "id": "reinhardtshbm:wire_fine",
-    "count": 8,
-    "components": {
-      "minecraft:custom_data": {
-        "material_id": 30,
-        "material": "steel"
-      }
-    }
+    "id": "reinhardtshbm:wire_steel",
+    "count": 8
   }
 }

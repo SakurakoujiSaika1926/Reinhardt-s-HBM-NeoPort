@@ -86,52 +86,112 @@ public final class UniversalGrenadeItemRenderer extends BlockEntityWithoutLevelR
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        applyLegacyTransform(context, poseStack);
+        applyLegacyTransform(UniversalGrenadeItem.shell(stack), context, poseStack);
         renderGrenade(stack, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static void applyLegacyTransform(ItemDisplayContext context, PoseStack poseStack) {
+    private static void applyLegacyTransform(UniversalGrenadeItem.Shell shell,
+                                             ItemDisplayContext context, PoseStack poseStack) {
         switch (context) {
             case GUI -> {
-                // ItemRenderGrenade#INVENTORY: 45° Z, 150° Y, 15° X.
-                poseStack.translate(0.5F, 0.58F, 0.0F);
-                poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0F));
+                // Exact ItemRenderGrenade#INVENTORY matrix. The old GUI used
+                // a 16-pixel coordinate space, hence the 1/16 conversion.
+                poseStack.translate(0.5F, 0.5F, 0.0F);
+                poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(45.0F));
                 poseStack.mulPose(Axis.YP.rotationDegrees(150.0F));
                 poseStack.mulPose(Axis.XP.rotationDegrees(15.0F));
-                poseStack.scale(0.105F, 0.105F, 0.105F);
-                poseStack.translate(0.0F, -5.0F, 0.0F);
+                applyShellTransform(shell, LegacyView.INVENTORY, poseStack);
             }
             case GROUND -> {
-                // ItemRenderGrenade#ENTITY: authored OBJ units were scaled by
-                // 0.125 in the legacy renderer.
-                poseStack.translate(0.0F, -0.58F, 0.0F);
                 poseStack.scale(0.125F, 0.125F, 0.125F);
+                applyShellTransform(shell, LegacyView.ENTITY, poseStack);
             }
             case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
-                // ItemRenderGrenade#EQUIPPED.
-                poseStack.translate(0.19F, -0.30F, -0.03F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                // ItemRenderGrenade#EQUIPPED: scale first, then translate in
+                // authored OBJ units. PoseStack follows the same matrix order.
                 poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.translate(3.0F, 1.0F, -0.5F);
+                applyShellTransform(shell, LegacyView.EQUIPPED, poseStack);
             }
             case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
-                // ItemRenderGrenade#EQUIPPED_FIRST_PERSON's fixed scale and
-                // orientation. HbmAnimations is not present in 1.21.1, so
-                // the static pose is retained while the mesh/tint passes stay
-                // identical to the old renderer.
-                poseStack.translate(0.25F, -0.25F, -0.30F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                // Static equivalent of renderFirstPerson before its optional
+                // BODY/RING animation channels.
                 poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.translate(3.0F, 1.0F, -3.0F);
+                poseStack.mulPose(Axis.YN.rotationDegrees(180.0F));
             }
             case FIXED -> {
-                poseStack.translate(0.0F, -0.58F, 0.0F);
                 poseStack.scale(0.125F, 0.125F, 0.125F);
+                applyShellTransform(shell, LegacyView.ENTITY, poseStack);
             }
             case NONE, HEAD -> {
-                poseStack.translate(0.0F, -0.58F, 0.0F);
                 poseStack.scale(0.125F, 0.125F, 0.125F);
+                applyShellTransform(shell, LegacyView.ENTITY, poseStack);
             }
         }
+    }
+
+    /** Shell-specific transforms from ItemRenderGrenade#renderGrenade. */
+    private static void applyShellTransform(UniversalGrenadeItem.Shell shell,
+                                            LegacyView view, PoseStack poseStack) {
+        switch (view) {
+            case INVENTORY -> {
+                switch (shell) {
+                    case FRAG -> {
+                        poseStack.scale(3.0F, 3.0F, 3.0F);
+                        poseStack.translate(0.0F, -2.0F, 0.0F);
+                    }
+                    case STICK -> {
+                        poseStack.scale(2.0F, 2.0F, 2.0F);
+                        poseStack.translate(0.0F, -4.5F, 0.0F);
+                    }
+                    case TECH -> {
+                        poseStack.scale(3.5F, 3.5F, 3.5F);
+                        poseStack.translate(0.0F, -1.75F, 0.0F);
+                    }
+                    case NUKE -> {
+                        poseStack.scale(2.5F, 2.5F, 2.5F);
+                        poseStack.translate(0.0F, -2.75F, 0.0F);
+                    }
+                }
+            }
+            case EQUIPPED -> {
+                switch (shell) {
+                    case FRAG -> {
+                    }
+                    case STICK -> poseStack.translate(0.0F, -2.0F, 0.0F);
+                    case TECH -> {
+                        poseStack.scale(1.5F, 1.5F, 1.5F);
+                        poseStack.translate(0.5F, -1.0F, 0.5F);
+                    }
+                    case NUKE -> {
+                        poseStack.scale(1.5F, 1.5F, 1.5F);
+                        poseStack.translate(0.5F, -3.0F, 0.5F);
+                    }
+                }
+            }
+            case ENTITY -> {
+                switch (shell) {
+                    case FRAG, STICK -> poseStack.translate(0.0F, -2.0F, 0.0F);
+                    case TECH -> {
+                        poseStack.scale(1.5F, 1.5F, 1.5F);
+                        poseStack.translate(0.0F, -1.0F, 0.0F);
+                    }
+                    case NUKE -> {
+                        poseStack.scale(1.5F, 1.5F, 1.5F);
+                        poseStack.translate(0.0F, -3.0F, 0.0F);
+                    }
+                }
+            }
+        }
+    }
+
+    private enum LegacyView {
+        INVENTORY,
+        EQUIPPED,
+        ENTITY
     }
 
     private static void renderGrenade(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource,

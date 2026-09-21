@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "layer0":  "reinhardtshbm:item/ingot_raw"
-                 },
-    "parent":  "minecraft:item/generated"
-}

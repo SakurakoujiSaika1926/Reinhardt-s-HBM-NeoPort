@@ -11,7 +11,7 @@
       "item": "reinhardtshbm:circuit_advanced"
     },
     "P": {
-      "tag": "c:plates/tungsten"
+      "tag": "c:plates/saturnite"
     },
     "D": {
       "tag": "c:ingots/desh"
@@ -20,12 +20,7 @@
       "item": "reinhardtshbm:jetpack_vector"
     },
     "A": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_cast"
-      ],
-      "shape": "plate_cast",
-      "material": "copper"
+      "item": "reinhardtshbm:plate_cast_copper"
     }
   },
   "result": {

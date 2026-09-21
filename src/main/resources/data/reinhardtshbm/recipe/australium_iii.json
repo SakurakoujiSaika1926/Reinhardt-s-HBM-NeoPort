@@ -8,12 +8,7 @@
   ],
   "key": {
     "S": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:plate_welded"
-      ],
-      "shape": "plate_welded",
-      "material": "steel"
+      "item": "reinhardtshbm:plate_welded_steel"
     },
     "P": {
       "tag": "c:ingots/plastic"
@@ -22,12 +17,7 @@
       "tag": "c:ingots/australium"
     },
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_dense"
-      ],
-      "shape": "wire_dense",
-      "material": "gold"
+      "item": "reinhardtshbm:wire_dense_gold"
     }
   },
   "result": {

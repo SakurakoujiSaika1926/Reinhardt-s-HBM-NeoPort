@@ -35,6 +35,22 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        recipeAudit {
+            server()
+            gameDirectory = project.file('run-recipe-audit')
+            programArgument '--nogui'
+            systemProperty 'reinhardtshbm.recipeAudit', 'true'
+            systemProperty 'reinhardtshbm.recipeAuditReport', project.file('run-recipe-audit/recipe-audit.tsv').absolutePath
+        }
+
+        recipeAudit528 {
+            server()
+            gameDirectory = project.file('run-recipe-audit-528')
+            programArgument '--nogui'
+            systemProperty 'reinhardtshbm.recipeAudit', 'true'
+            systemProperty 'reinhardtshbm.recipeAuditReport', project.file('run-recipe-audit-528/recipe-audit.tsv').absolutePath
+        }
+
         gameTestServer {
             type = "gameTestServer"
             gameDirectory = project.file('run-gametest')
@@ -207,6 +223,19 @@ if (createCompileOnlyFiles.isEmpty()) {
         include '*create-*.jar'
     }
 }
+def curiosCompileOnlyFiles = fileTree(localClientModsDir) {
+    include '*curios*.jar'
+}
+if (curiosCompileOnlyFiles.isEmpty()) {
+    curiosCompileOnlyFiles = fileTree(compileOnlyModsDir) {
+        include '*curios*.jar'
+    }
+}
+if (curiosCompileOnlyFiles.isEmpty()) {
+    curiosCompileOnlyFiles = fileTree('local-deps') {
+        include '*curios*.jar'
+    }
+}
 
 repositories {
     mavenCentral()
@@ -216,6 +245,7 @@ dependencies {
     compileOnly files(jeiCompileOnlyFiles)
     compileOnly files(jadeCompileOnlyFiles)
     compileOnly files(createCompileOnlyFiles)
+    compileOnly files(curiosCompileOnlyFiles)
 }
 
 tasks.withType(ProcessResources).configureEach {
@@ -1065,7 +1095,7 @@ tasks.register('validateLegacyRecipes') {
                 'muon_dark_to_strange.json'                      : [in1: "item:${project.mod_id}:particle_muon", in2: "item:${project.mod_id}:particle_dark", momentum: 12500, out1: "${project.mod_id}:particle_strange"],
                 'strange_magic_to_sparkticle.json'               : [in1: "item:${project.mod_id}:particle_strange", in2: "item:${project.mod_id}:powder_magic", momentum: 12500, out1: "${project.mod_id}:particle_sparkticle", out2: "${project.mod_id}:dust"],
                 'sparkticle_higgs_to_digamma.json'               : [in1: "item:${project.mod_id}:particle_sparkticle", in2: "item:${project.mod_id}:particle_higgs", momentum: 70000, out1: "${project.mod_id}:particle_digamma"],
-                'gold_dust_schrabidate_to_degenerate_matter.json': [in1: "components:${project.mod_id}:item_expensive:gold_dust", in2: 'tag:c:ingots/schrabidate', momentum: 10000, out1: "${project.mod_id}:item_expensive:degenerate_matter"],
+                'gold_dust_schrabidate_to_degenerate_matter.json': [in1: "item:${project.mod_id}:item_expensive_gold_dust", in2: 'tag:c:ingots/schrabidate', momentum: 10000, out1: "${project.mod_id}:item_expensive_degenerate_matter"],
                 'chicken_to_nuggets.json'                        : [in1: 'item:minecraft:chicken', in2: 'item:minecraft:chicken', momentum: 100, out1: "${project.mod_id}:nugget", out2: "${project.mod_id}:nugget"]
         ]
 
@@ -1462,15 +1492,15 @@ tasks.register('validateCreateCuttingParity') {
                             return
                         }
                         def result = recipe.results[0]
-                        if (result.id != "${project.mod_id}:wire_fine") {
-                            problems << "${prefix} result is ${result.id}, expected ${project.mod_id}:wire_fine"
+                        def expectedWireId = "${project.mod_id}:wire_${material}"
+                        if (result.id != expectedWireId) {
+                            problems << "${prefix} result is ${result.id}, expected ${expectedWireId}"
                         }
                         if ((result.count ?: 1) as Integer != 8) {
                             problems << "${prefix} result count is ${result.count ?: 1}, expected 8"
                         }
-                        def customData = result.components instanceof Map ? result.components['minecraft:custom_data'] : null
-                        if (!(customData instanceof Map) || customData.material != material) {
-                            problems << "${prefix} must preserve wire material custom_data.material=${material}"
+                        if (result.components instanceof Map && result.components.containsKey('minecraft:custom_data')) {
+                            problems << "${prefix} must not use legacy custom_data material variants for independent wire ids"
                         }
                         if (createRoutes.containsKey(material)) {
                             problems << "Duplicate Create cutting route for ${material}: ${createRoutes[material].name} and ${recipeFile.name}"
@@ -2059,14 +2089,14 @@ tasks.register('validateRocketMissileRecipes') {
                 'photo_panel.json'                          : [items: ['circuit_pcb'], tags: ['c:glass_panes', 'c:plates/polymer', 'c:dusts/quartz']],
                 'radar_linker.json'                         : [items: ['crt_display', 'circuit_basic'], tags: ['c:plates/steel']],
                 'emp_bomb.json'                             : [items: ['magnetron', 'circuit_advanced'], tags: ['c:plates/lead']],
-                'assembly_machine/magnetron.json'           : [items: ['wire_fine'], tags: ['c:plates/copper']],
-                'soldering_station/circuit_quantum.json'    : [items: ['circuit_chip_quantum', 'circuit_chip_bismoid', 'circuit_atomic_clock', 'circuit_pcb', 'wire_fine'], tags: ['c:ingots/hard_plastic']],
-                'circuit_chip_quantum_from_red_copper_wire.json': [items: ['pellet_charged', 'wire_dense', 'wire_fine'], tags: ['c:ingots/hard_plastic']],
-                'circuit_chip_quantum_from_gold_wire.json' : [items: ['pellet_charged', 'wire_dense', 'wire_fine'], tags: ['c:ingots/hard_plastic']],
+                'assembly_machine/magnetron.json'           : [items: ['wire_tungsten'], tags: ['c:plates/copper']],
+                'soldering_station/circuit_quantum.json'    : [items: ['circuit_chip_quantum', 'circuit_chip_bismoid', 'circuit_atomic_clock', 'circuit_pcb', 'wire_lead'], tags: ['c:ingots/hard_plastic']],
+                'circuit_chip_quantum_from_red_copper_wire.json': [items: ['pellet_charged', 'wire_dense_bscco', 'wire_red_copper'], tags: ['c:ingots/hard_plastic']],
+                'circuit_chip_quantum_from_gold_wire.json' : [items: ['pellet_charged', 'wire_dense_bscco', 'wire_gold'], tags: ['c:ingots/hard_plastic']],
                 'circuit_atomic_clock.json'                : [items: ['circuit_chip'], tags: ['c:plates/polymer', 'c:dusts/strontium']],
-                'soldering_station/circuit_controller.json': [items: ['circuit_controller_chassis', 'upgrade_speed_1', 'circuit_chip', 'circuit_capacitor', 'circuit_capacitor_tantalium', 'wire_fine'], tags: []],
-                'soldering_station/circuit_controller_advanced.json': [items: ['circuit_chip_bismoid', 'circuit_capacitor_tantalium', 'circuit_atomic_clock', 'circuit_controller_chassis', 'upgrade_speed_3', 'wire_fine'], tags: []],
-                'soldering_station/circuit_controller_quantum.json': [items: ['circuit_chip_quantum', 'circuit_chip_bismoid', 'circuit_atomic_clock', 'circuit_controller_advanced', 'upgrade_overdrive_1', 'wire_fine'], tags: []]
+                'soldering_station/circuit_controller.json': [items: ['circuit_controller_chassis', 'upgrade_speed_1', 'circuit_chip', 'circuit_capacitor', 'circuit_capacitor_tantalium', 'wire_lead'], tags: []],
+                'soldering_station/circuit_controller_advanced.json': [items: ['circuit_chip_bismoid', 'circuit_capacitor_tantalium', 'circuit_atomic_clock', 'circuit_controller_chassis', 'upgrade_speed_3', 'wire_lead'], tags: []],
+                'soldering_station/circuit_controller_quantum.json': [items: ['circuit_chip_quantum', 'circuit_chip_bismoid', 'circuit_atomic_clock', 'circuit_controller_advanced', 'upgrade_overdrive_1', 'wire_lead'], tags: []]
         ]
         dependencyChecks.each { path, expected ->
             def recipe = expectedResults[path]
@@ -2139,6 +2169,9 @@ tasks.register('validateRocketMissileRecipes') {
                 catalogIds << id.substring((mod + ':').length())
             }
         }
+        def isIndependentMaterialId = { String id ->
+            id.startsWith('plate_cast_') || id.startsWith('shell_') || id.startsWith('wire_')
+        }
         def collectDirectIds
         collectDirectIds = { value, Set found ->
             if (value instanceof Map) {
@@ -2160,7 +2193,7 @@ tasks.register('validateRocketMissileRecipes') {
             def directIds = [] as Set
             collectDirectIds(recipe, directIds)
             directIds.each { id ->
-                if (!catalogIds.contains(id)) {
+                if (!catalogIds.contains(id) && !isIndependentMaterialId(id)) {
                     problems << path + ' references unlisted legacy id ' + mod + ':' + id
                 }
             }
@@ -2221,6 +2254,8 @@ tasks.register('validatePortRegressionFixes') {
     inputs.files(
             file('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java'),
             file('src/main/java/com/reinhardt/hbm/client/render/AmmoPressBlockEntityRenderer.java'),
+            file('src/main/java/com/reinhardt/hbm/blockentity/AssemblyMachineBlockEntity.java'),
+            file('src/main/java/com/reinhardt/hbm/blockentity/TaczAmmoAssemblerBlockEntity.java'),
             file('src/main/java/com/reinhardt/hbm/client/render/FunnelBlockEntityRenderer.java'),
             file('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java'),
              file('src/main/java/com/reinhardt/hbm/item/MicrowaveBlockItem.java'),
@@ -2272,6 +2307,8 @@ tasks.register('validatePortRegressionFixes') {
         def source = { String path -> file(path).getText('UTF-8') }
         def blocks = source('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java')
         def ammoRenderer = source('src/main/java/com/reinhardt/hbm/client/render/AmmoPressBlockEntityRenderer.java')
+        def assemblyMachine = source('src/main/java/com/reinhardt/hbm/blockentity/AssemblyMachineBlockEntity.java')
+        def taczAmmoAssembler = source('src/main/java/com/reinhardt/hbm/blockentity/TaczAmmoAssemblerBlockEntity.java')
         def funnelRenderer = source('src/main/java/com/reinhardt/hbm/client/render/FunnelBlockEntityRenderer.java')
         def funnelBlock = source('src/main/java/com/reinhardt/hbm/block/FunnelBlock.java')
         def clientRenderers = source('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java')
@@ -2336,6 +2373,11 @@ tasks.register('validatePortRegressionFixes') {
         }
         if (!blocks.contains('LargeMachineBlock.Footprint.legacySouthBox(1, 0, 0, 0, 1, 1)')) {
             problems << 'Ammo press footprint must remain the 1.7.10 {up=1, down=0, north=0, south=0, west=1, east=1} layout.'
+        }
+        if (!assemblyMachine.contains('protected List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level)')
+                || !taczAmmoAssembler.contains('protected List<RecipeHolder<AssemblyMachineRecipe>> activeVisibleRecipes(Level level)')
+                || !taczAmmoAssembler.contains('return TaczAmmoAssemblyRecipes.available(level);')) {
+            problems << 'TaCZ ammo assembler must use its TaCZ recipe pool for display, input validation, and processing.'
         }
         [
                 'case EAST -> 0.0F;',
@@ -2834,6 +2876,724 @@ tasks.register('validateLegacyItemPorts') {
     }
 }
 
+tasks.register('validateRecipeJsonSchemas') {
+    group = 'verification'
+    description = 'Validates every HBM recipe JSON against list-shaped codec fields and retired direct item ids.'
+
+    def recipeRoot = file("src/main/resources/data/${project.mod_id}/recipe")
+    inputs.dir recipeRoot
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+        def listFields = [
+                ("${project.mod_id}:arc_furnace")        : ['liquid'],
+                ("${project.mod_id}:arc_welder")         : ['inputs'],
+                ("${project.mod_id}:assembly_machine")   : ['blueprint_pools', 'ingredients', 'input_fluids', 'output_fluids'],
+                ("${project.mod_id}:centrifuge")         : ['results'],
+                ("${project.mod_id}:chemical_plant")     : ['blueprint_pools', 'input_items', 'input_fluids', 'output_items', 'output_fluids'],
+                ("${project.mod_id}:crucible")           : ['input', 'output'],
+                ("${project.mod_id}:electrolyzer_fluid") : ['byproducts'],
+                ("${project.mod_id}:electrolyzer_metal") : ['byproducts'],
+                ("${project.mod_id}:fusion")             : ['input_fluids', 'output_fluids'],
+                ("${project.mod_id}:gas_centrifuge")     : ['results'],
+                ("${project.mod_id}:plasma_forge")       : ['blueprint_pools', 'input_items', 'input_fluids'],
+                ("${project.mod_id}:precision_assembler"): ['blueprint_pools', 'ingredients', 'input_fluids', 'output_fluids', 'outputs', 'expensive_output_weights'],
+                ("${project.mod_id}:purex")              : ['input_items', 'input_fluids', 'output_items', 'output_fluids'],
+                ("${project.mod_id}:refinery")           : ['outputs'],
+                ("${project.mod_id}:rotary_furnace")     : ['inputs'],
+                ("${project.mod_id}:silex")              : ['outputs'],
+                ("${project.mod_id}:soldering_station")  : ['toppings', 'pcb', 'solder'],
+                ("${project.mod_id}:vacuum_distill")     : ['outputs']
+        ]
+        def retiredDirectIds = [
+                "${project.mod_id}:ammo_bag",
+                "${project.mod_id}:block_po210",
+                "${project.mod_id}:block_redstone",
+                "${project.mod_id}:bolt",
+                "${project.mod_id}:chain",
+                "${project.mod_id}:ingot_raw",
+                "${project.mod_id}:item_expensive",
+                "${project.mod_id}:pipe",
+                "${project.mod_id}:plate_cast",
+                "${project.mod_id}:plate_welded",
+                "${project.mod_id}:shell",
+                "${project.mod_id}:wire",
+                "${project.mod_id}:wire_dense",
+                "${project.mod_id}:wire_fine"
+        ] as Set
+        def retiredMaterialTags = [
+                'c:dusts/np237',
+                'c:nuggets/po210',
+                'c:billets/po210',
+                'c:dusts/po210',
+                'c:dusts/fluorine'
+        ] as Set
+        def validCraftingCategories = ['building', 'redstone', 'equipment', 'misc'] as Set
+        def requiredOutputs = [
+                "${project.mod_id}:circuit_pcb",
+                "${project.mod_id}:circuit_chip",
+                "${project.mod_id}:circuit_analog",
+                "${project.mod_id}:circuit_basic",
+                "${project.mod_id}:circuit_advanced",
+                "${project.mod_id}:circuit_bismoid",
+                "${project.mod_id}:circuit_quantum",
+                "${project.mod_id}:circuit_capacitor_board",
+                "${project.mod_id}:circuit_controller",
+                "${project.mod_id}:circuit_controller_advanced",
+                "${project.mod_id}:circuit_controller_quantum",
+                "${project.mod_id}:machine_strand_caster",
+                "${project.mod_id}:machine_fel",
+                "${project.mod_id}:dysfunctional_reactor",
+                "${project.mod_id}:cmb_brick",
+                "${project.mod_id}:cmb_brick_reinforced",
+                "${project.mod_id}:seal_frame",
+                "${project.mod_id}:seal_controller",
+                "${project.mod_id}:vault_door",
+                "${project.mod_id}:blast_door",
+                "${project.mod_id}:fire_door",
+                "${project.mod_id}:transition_seal",
+                "${project.mod_id}:sliding_blast_door",
+                "${project.mod_id}:large_vehicle_door",
+                "${project.mod_id}:water_door",
+                "${project.mod_id}:qe_containment",
+                "${project.mod_id}:qe_sliding_door",
+                "${project.mod_id}:round_airlock_door",
+                "${project.mod_id}:secure_access_door",
+                "${project.mod_id}:sliding_seal_door",
+                "${project.mod_id}:silo_hatch",
+                "${project.mod_id}:silo_hatch_large",
+                "${project.mod_id}:float_bomb",
+                "${project.mod_id}:therm_endo",
+                "${project.mod_id}:therm_exo",
+                "${project.mod_id}:fluid_pack_empty",
+                "${project.mod_id}:plate_mixed",
+                "${project.mod_id}:plate_dalekanium",
+                "${project.mod_id}:plate_bismuth",
+                "${project.mod_id}:upgrade_overdrive_1",
+                "${project.mod_id}:upgrade_overdrive_2",
+                "${project.mod_id}:upgrade_overdrive_3",
+                "${project.mod_id}:schrabidium_hammer",
+                "${project.mod_id}:machine_weapon_table",
+                "${project.mod_id}:field_disturber",
+                "${project.mod_id}:rbmk_terminal",
+                "${project.mod_id}:radar_screen",
+                "${project.mod_id}:book_guide",
+                "${project.mod_id}:pneumatic_tube",
+                "${project.mod_id}:red_connector_super",
+                "${project.mod_id}:trapdoor_steel",
+                "${project.mod_id}:pipe_lead",
+                "${project.mod_id}:crane_inserter",
+                "${project.mod_id}:crane_extractor",
+                "${project.mod_id}:crane_grabber",
+                "${project.mod_id}:crane_boxer",
+                "${project.mod_id}:crane_unboxer",
+                "${project.mod_id}:crane_router",
+                "${project.mod_id}:crane_splitter",
+                "${project.mod_id}:crane_partitioner",
+                "${project.mod_id}:cm_block",
+                "${project.mod_id}:cm_sheet",
+                "${project.mod_id}:cm_tank",
+                "${project.mod_id}:cm_port",
+                "${project.mod_id}:cm_engine",
+                "${project.mod_id}:cm_circuit",
+                "${project.mod_id}:cm_flux",
+                "${project.mod_id}:cm_heat",
+                "${project.mod_id}:pink_slab",
+                "${project.mod_id}:radio_torch_controller",
+                "${project.mod_id}:radio_torch_counter",
+                "${project.mod_id}:radio_torch_logic",
+                "${project.mod_id}:radio_torch_reader",
+                "${project.mod_id}:vinyl_tile",
+                "${project.mod_id}:mass_storage_iron",
+                "${project.mod_id}:mass_storage_desh",
+                "${project.mod_id}:mass_storage",
+                "${project.mod_id}:mass_storage_wood"
+        ] as Set
+        def producedOutputs = [] as Set
+        def exactRecipes = [:].withDefault { [] }
+        def normalizeJson
+        normalizeJson = { value ->
+            if (value instanceof Map) {
+                def normalized = new TreeMap<String, Object>()
+                value.each { key, nested -> normalized[String.valueOf(key)] = normalizeJson(nested) }
+                return normalized
+            }
+            if (value instanceof List) {
+                return value.collect { normalizeJson(it) }
+            }
+            return value
+        }
+
+        def inspectDirectIds
+        inspectDirectIds = { value, String path ->
+            if (value instanceof Map) {
+                if (value.item instanceof String) {
+                    if (retiredDirectIds.contains(value.item)) {
+                        problems << "${path} references retired item id ${value.item}"
+                    }
+                    if (value.item == 'minecraft:wool') {
+                        problems << "${path} uses nonexistent item minecraft:wool; use the minecraft:wool tag"
+                    }
+                }
+                if (value.id instanceof String && retiredDirectIds.contains(value.id)) {
+                    problems << "${path} references retired output id ${value.id}"
+                }
+                if (value.tag instanceof String && retiredMaterialTags.contains(value.tag)) {
+                    problems << "${path} references retired material tag ${value.tag}"
+                }
+                value.each { key, nested -> inspectDirectIds(nested, "${path}.${key}") }
+            } else if (value instanceof List) {
+                value.eachWithIndex { nested, index -> inspectDirectIds(nested, "${path}[${index}]") }
+            }
+        }
+        def collectOutput = { value ->
+            if (value instanceof Map) {
+                if (value.id instanceof String) {
+                    producedOutputs << value.id
+                }
+                if (value.result instanceof Map && value.result.id instanceof String) {
+                    producedOutputs << value.result.id
+                }
+            }
+        }
+
+        recipeRoot.eachFileRecurse(groovy.io.FileType.FILES) { recipeFile ->
+            if (!recipeFile.name.endsWith('.json')) {
+                return
+            }
+            def relative = project.relativePath(recipeFile)
+            def recipe
+            try {
+                recipe = parser.parseText(recipeFile.getText('UTF-8').replaceFirst('^\\uFEFF', ''))
+            } catch (Exception ex) {
+                problems << "${relative} is not valid JSON: ${ex.message}"
+                return
+            }
+            if (!(recipe instanceof Map)) {
+                problems << "${relative} must contain a JSON object"
+                return
+            }
+            listFields.getOrDefault(recipe.type, []).each { field ->
+                if (recipe.containsKey(field) && !(recipe[field] instanceof List)) {
+                    problems << "${relative} field '${field}' must be a JSON array for ${recipe.type}"
+                }
+            }
+            if (recipe.containsKey('neoforge:conditions') && !(recipe['neoforge:conditions'] instanceof List)) {
+                problems << "${relative} field 'neoforge:conditions' must be a JSON array"
+            }
+            if (recipe.type == 'minecraft:crafting_shaped') {
+                if (!(recipe.pattern instanceof List)) {
+                    problems << "${relative} shaped pattern must be a JSON array"
+                } else if (recipe.key instanceof Map) {
+                    def used = recipe.pattern.join('').toList().findAll { it != ' ' } as Set
+                    def defined = recipe.key.keySet().collect { String.valueOf(it) } as Set
+                    (used - defined).each { problems << "${relative} pattern uses undefined key '${it}'" }
+                    (defined - used).each { problems << "${relative} defines unused key '${it}'" }
+                }
+            }
+            if (recipe.type == 'minecraft:crafting_shapeless' && !(recipe.ingredients instanceof List)) {
+                problems << "${relative} shapeless ingredients must be a JSON array"
+            }
+            if (recipe.type in ['minecraft:crafting_shaped', 'minecraft:crafting_shapeless']
+                    && recipe.category instanceof String
+                    && !validCraftingCategories.contains(recipe.category)) {
+                problems << "${relative} uses invalid crafting category '${recipe.category}'"
+            }
+            inspectDirectIds(recipe, relative)
+            collectOutput(recipe.result)
+            collectOutput(recipe.output)
+            if (recipe.output_items instanceof List) {
+                recipe.output_items.each(collectOutput)
+            }
+            if (recipe.outputs instanceof List) {
+                recipe.outputs.each(collectOutput)
+            }
+            def canonical = groovy.json.JsonOutput.toJson(normalizeJson(recipe))
+            exactRecipes[canonical] << relative
+        }
+
+        exactRecipes.values().findAll { it.size() > 1 }.each { duplicates ->
+            problems << "Exact duplicate recipe JSON: ${duplicates.join(', ')}"
+        }
+        (requiredOutputs - producedOutputs).each { output ->
+            problems << "Required manufacturing chain has no recipe output for ${output}"
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("HBM recipe JSON validation failed:\n - " + problems.join('\n - '))
+        }
+        logger.lifecycle("HBM recipe JSON validation passed (${recipeRoot.listFiles().size()} top-level entries, ${producedOutputs.size()} produced ids).")
+    }
+}
+
+def recipeBaselineFile = file('gradle/verification/recipe-baseline.sha256')
+
+def canonicalRecipeBaseline = {
+    def parser = new groovy.json.JsonSlurper()
+    def digest = java.security.MessageDigest.getInstance('SHA-256')
+    def recipeRoot = file("src/main/resources/data/${project.mod_id}/recipe")
+    fileTree(recipeRoot) {
+        include '**/*.json'
+    }.files.sort { left, right -> left.path <=> right.path }.collect { recipeFile ->
+        def parsed = parser.parseText(recipeFile.getText('UTF-8').replaceFirst('^\\uFEFF', ''))
+        def canonical = groovy.json.JsonOutput.toJson(parsed)
+        def hash = digest.digest(canonical.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                .collect { String.format('%02x', it & 0xff) }
+                .join('')
+        def relative = recipeRoot.toPath().relativize(recipeFile.toPath()).toString().replace('\\', '/')
+        "${hash}\t${relative}"
+    }
+}
+
+tasks.register('updateRecipeBaseline') {
+    group = 'verification'
+    description = 'Explicitly accepts the current complete recipe set as the reviewed release baseline.'
+    inputs.dir file("src/main/resources/data/${project.mod_id}/recipe")
+    outputs.file recipeBaselineFile
+
+    doLast {
+        recipeBaselineFile.parentFile.mkdirs()
+        recipeBaselineFile.setText(canonicalRecipeBaseline().join('\n') + '\n', 'UTF-8')
+        logger.lifecycle("Updated strict recipe baseline with ${canonicalRecipeBaseline().size()} recipes")
+    }
+}
+
+tasks.register('validateRecipeBaseline') {
+    group = 'verification'
+    description = 'Rejects accidental recipe deletion or unreviewed ingredient/output changes.'
+    mustRunAfter tasks.named('updateRecipeBaseline')
+    inputs.dir file("src/main/resources/data/${project.mod_id}/recipe")
+    inputs.file recipeBaselineFile
+    outputs.upToDateWhen { false }
+
+    doLast {
+        if (!recipeBaselineFile.isFile()) {
+            throw new GradleException("Missing strict recipe baseline ${recipeBaselineFile}; run updateRecipeBaseline after review")
+        }
+        def expected = recipeBaselineFile.readLines('UTF-8').findAll { !it.isBlank() }
+        def actual = canonicalRecipeBaseline()
+        if (expected != actual) {
+            def expectedMap = expected.collectEntries { line ->
+                def parts = line.split('\\t', 2)
+                [(parts[1]): parts[0]]
+            }
+            def actualMap = actual.collectEntries { line ->
+                def parts = line.split('\\t', 2)
+                [(parts[1]): parts[0]]
+            }
+            def details = []
+            (expectedMap.keySet() - actualMap.keySet()).sort().each { details << "deleted: ${it}" }
+            (actualMap.keySet() - expectedMap.keySet()).sort().each { details << "added: ${it}" }
+            (expectedMap.keySet().intersect(actualMap.keySet())).sort().each { path ->
+                if (expectedMap[path] != actualMap[path]) {
+                    details << "changed: ${path}"
+                }
+            }
+            throw new GradleException(
+                    "Strict recipe baseline changed without review:\n - " + details.take(100).join('\n - ') +
+                            (details.size() > 100 ? "\n - ... and ${details.size() - 100} more" : '') +
+                            "\nRun updateRecipeBaseline only after verifying the intentional changes."
+            )
+        }
+        logger.lifecycle("Strict recipe baseline passed (${actual.size()} recipes)")
+    }
+}
+
+tasks.register('validateRecipeSemantics') {
+    group = 'verification'
+    description = 'Checks every recipe type, resource id, stack count, and optional-mod guard.'
+    inputs.dir file("src/main/resources/data/${project.mod_id}/recipe")
+    inputs.file file('src/main/java/com/reinhardt/hbm/registry/HbmRecipeTypes.java')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def parser = new groovy.json.JsonSlurper()
+        def problems = []
+        def hbmModId = project.mod_id.toString()
+        def recipeRoot = file("src/main/resources/data/${project.mod_id}/recipe")
+        def recipeTypesSource = file('src/main/java/com/reinhardt/hbm/registry/HbmRecipeTypes.java').getText('UTF-8')
+        def serializerPattern = java.util.regex.Pattern.compile('RECIPE_SERIALIZERS\\.register\\(\\s*"([a-z0-9_./-]+)"')
+        def registeredCustomTypes = [] as Set
+        def serializerMatcher = serializerPattern.matcher(recipeTypesSource)
+        while (serializerMatcher.find()) {
+            registeredCustomTypes << (hbmModId + ':' + serializerMatcher.group(1))
+        }
+        def vanillaTypes = [
+                'minecraft:crafting_shaped', 'minecraft:crafting_shapeless',
+                'minecraft:smelting', 'minecraft:blasting'
+        ] as Set
+        def resourceIdPattern = java.util.regex.Pattern.compile('^[a-z0-9_.-]+:[a-z0-9_./-]+$')
+        def positiveFields = [
+                'count', 'input_count', 'duration', 'cookingtime', 'consumption',
+                'byproduct_interval', 'momentum', 'flux'
+        ] as Set
+
+        fileTree(recipeRoot) {
+            include '**/*.json'
+        }.files.each { recipeFile ->
+            def relative = project.relativePath(recipeFile)
+            def recipe = parser.parseText(recipeFile.getText('UTF-8').replaceFirst('^\\uFEFF', ''))
+            if (!(recipe.type instanceof String)) {
+                problems << "${relative} has no string recipe type"
+                return
+            }
+            if (!vanillaTypes.contains(recipe.type) && !registeredCustomTypes.contains(recipe.type)) {
+                problems << "${relative} uses unregistered recipe serializer ${recipe.type}"
+            }
+            def guardedMods = [] as Set
+            if (recipe['neoforge:conditions'] instanceof List) {
+                recipe['neoforge:conditions'].each { condition ->
+                    if (condition instanceof Map && condition.type == 'neoforge:mod_loaded' && condition.modid instanceof String) {
+                        guardedMods << condition.modid
+                    }
+                }
+            }
+
+            def inspect
+            inspect = { value, String path, String key ->
+                if (value instanceof Map) {
+                    value.each { nestedKey, nested -> inspect(nested, "${path}.${nestedKey}", String.valueOf(nestedKey)) }
+                } else if (value instanceof List) {
+                    value.eachWithIndex { nested, index -> inspect(nested, "${path}[${index}]", key) }
+                } else if (value instanceof String && key in ['item', 'id']) {
+                    if (!(value ==~ resourceIdPattern)) {
+                        problems << "${relative} ${path} is not a valid resource id: ${value}"
+                    } else {
+                        def namespace = value.substring(0, value.indexOf(':'))
+                        if (!(namespace in ['minecraft', hbmModId, 'neoforge']) && !guardedMods.contains(namespace)) {
+                            problems << "${relative} references ${value} without neoforge:mod_loaded guard for ${namespace}"
+                        }
+                    }
+                } else if (value instanceof Number && positiveFields.contains(key)) {
+                    if (value.doubleValue() <= 0) {
+                        problems << "${relative} ${path} must be positive, found ${value}"
+                    }
+                    if (key in ['count', 'input_count'] && value.doubleValue() > 64) {
+                        problems << "${relative} ${path} exceeds one stack (${value}); split it into multiple entries"
+                    }
+                }
+            }
+            inspect(recipe, '$', '')
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("HBM recipe semantic validation failed:\n - " + problems.join('\n - '))
+        }
+        logger.lifecycle("HBM recipe semantic validation passed (${registeredCustomTypes.size()} custom serializers)")
+    }
+}
+
+tasks.register('prepareRecipeAudit') {
+    group = 'verification'
+    description = 'Prepares an isolated one-shot dedicated server for runtime recipe decoding.'
+    outputs.upToDateWhen { false }
+
+    doLast {
+        File auditDirectory = file('run-recipe-audit')
+        auditDirectory.mkdirs()
+        new File(auditDirectory, 'eula.txt').setText('eula=true\n', 'UTF-8')
+        [
+                new File(auditDirectory, 'recipe-audit.tsv'),
+                new File(auditDirectory, 'logs/latest.log')
+        ].each { stale ->
+            if (stale.exists() && !stale.delete()) {
+                throw new GradleException("Unable to clear stale recipe audit artifact ${stale}")
+            }
+        }
+    }
+}
+
+tasks.named('runRecipeAudit') {
+    dependsOn tasks.named('prepareRecipeAudit')
+    dependsOn tasks.named('validateRecipeJsonSchemas')
+    dependsOn tasks.named('validateRecipeSemantics')
+    dependsOn tasks.named('validateRecipeBaseline')
+    outputs.upToDateWhen { false }
+}
+
+tasks.register('validateRuntimeRecipes') {
+    group = 'verification'
+    description = 'Boots NeoForge once and rejects recipe codec, tag, registry, or condition failures.'
+    dependsOn tasks.named('runRecipeAudit')
+    inputs.dir file("src/main/resources/data/${project.mod_id}/recipe")
+    inputs.file file('src/main/java/com/reinhardt/hbm/recipe/anvil/HbmAnvilRecipes.java')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def hbmModId = project.mod_id.toString()
+        File auditDirectory = file('run-recipe-audit')
+        File auditLog = new File(auditDirectory, 'logs/latest.log')
+        File auditReport = new File(auditDirectory, 'recipe-audit.tsv')
+        if (!auditLog.isFile() || !auditReport.isFile()) {
+            throw new GradleException('Runtime recipe audit did not produce its log and registry report')
+        }
+        def logText = auditLog.getText('UTF-8')
+        def badLogLines = auditLog.readLines('UTF-8').findAll { line ->
+            (line.contains('Parsing error loading recipe') && line.contains(hbmModId + ':'))
+                    || (line.contains('Error parsing recipe') && line.contains(hbmModId + ':'))
+                    || (line.contains('Skipping recipe') && line.contains(hbmModId + ':') && line.contains('error parsing conditions'))
+                    || (line.contains('TagLoader') && line.contains("Couldn't load tag"))
+        }
+        if (!logText.contains('HBM_RECIPE_AUDIT_COMPLETE')) {
+            badLogLines << 'Missing HBM_RECIPE_AUDIT_COMPLETE marker; the server did not finish recipe loading'
+        }
+
+        def items = [] as Set
+        def fluids = [] as Set
+        def recipes = [] as Set
+        def itemTagSizes = [:]
+        def recipeOutputs = [:]
+        def anvilOutputs = [] as Set
+        def referenceProblems = []
+        int anvilConstructionCount = 0
+        int anvilSmithingCount = 0
+        auditReport.readLines('UTF-8').each { line ->
+            def parts = line.split('\\t')
+            if (parts.length >= 2 && parts[0] == 'ITEM') items << parts[1]
+            if (parts.length >= 2 && parts[0] == 'FLUID') fluids << parts[1]
+            if (parts.length >= 2 && parts[0] == 'RECIPE') recipes << parts[1]
+            if (parts.length >= 3 && parts[0] == 'ITEM_TAG') itemTagSizes[parts[1]] = parts[2] as Integer
+            if (parts.length >= 3 && parts[0] == 'RECIPE_OUTPUT') recipeOutputs[parts[1]] = parts[2]
+            if (parts.length >= 3 && parts[0] == 'ANVIL_OUTPUT') anvilOutputs << parts[2]
+            if (parts.length >= 2 && parts[0] == 'ANVIL_CONSTRUCTION') anvilConstructionCount++
+            if (parts.length >= 2 && parts[0] == 'ANVIL_SMITHING') anvilSmithingCount++
+            if (parts.length >= 2 && parts[0] == 'ANVIL_ERROR') referenceProblems << parts[1]
+        }
+
+        def requiredAnvilOutputs = [
+                'machine_sawmill', 'machine_steam_engine', 'machine_deuterium_extractor',
+                'machine_deuterium_tower', 'machine_crucible', 'machine_boiler',
+                'machine_industrial_boiler', 'machine_stirling', 'machine_stirling_steel',
+                'machine_blast_furnace', 'machine_rotary_furnace', 'machine_annihilator',
+                'machine_assembly_machine', 'pump_steam', 'pump_electric',
+                'machine_soldering_station', 'machine_arc_welder', 'machine_tower_small',
+                'machine_tower_large', 'red_pylon_large', 'substation', 'heater_firebox',
+                'heater_oven', 'heater_oilburner', 'heater_electric', 'heater_heatex',
+                 'machine_thresher', 'machine_autosaw', 'machine_ashpit', 'chimney_brick',
+                 'chimney_industrial', 'furnace_combination', 'furnace_steel',
+                 'missile_doomsday', 'plate_fuel_u233', 'plate_fuel_u235', 'plate_fuel_mox',
+                 'plate_fuel_pu239', 'plate_fuel_sa326', 'plate_fuel_ra226be', 'plate_fuel_pu238be',
+                 'demon_core_open', 'plate_armor_titanium', 'plate_armor_ajr', 'plate_armor_hev',
+                 'plate_armor_lunar', 'plate_armor_fau', 'plate_armor_dnt',
+                 'fragment_boron', 'fragment_lanthanium', 'fragment_cobalt', 'fragment_cerium',
+                 'fragment_neodymium', 'fragment_niobium', 'billet_uranium', 'billet_ra226be',
+                 'billet_pu_mix', 'billet_pu239', 'cell_empty', 'lithium', 'block_graphite',
+                 'neutron_reflector', 'ingot_graphite', 'ingot_zirconium', 'ingot_tcalloy',
+                 'nugget_bismuth', 'crate_steel', 'turbine_titanium', 'glyphid_meat',
+                 'gear_large', 'gear_large_steel', 'coil_copper', 'coil_gold', 'ingot_firebrick',
+                 'rbmk_blank', 'rbmk_absorber', 'rbmk_control', 'rbmk_rod', 'rbmk_rod_reasim',
+                 'steel_grate'
+         ].collect { hbmModId + ':' + it } as Set
+        (requiredAnvilOutputs - anvilOutputs).each { output ->
+            referenceProblems << "Required legacy anvil output is missing: ${output}"
+        }
+
+        def parser = new groovy.json.JsonSlurper()
+        def recipeRoot = file("src/main/resources/data/${project.mod_id}/recipe")
+        fileTree(recipeRoot) {
+            include '**/*.json'
+        }.files.each { recipeFile ->
+            def recipe = parser.parseText(recipeFile.getText('UTF-8').replaceFirst('^\\uFEFF', ''))
+            def relative = project.relativePath(recipeFile)
+            def recipePath = recipeRoot.toPath().relativize(recipeFile.toPath()).toString().replace('\\', '/')
+            def recipeId = hbmModId + ':' + recipePath.substring(0, recipePath.length() - '.json'.length())
+            // HBM-owned ids can be checked even when an optional-mod/config condition is inactive.
+            // Tag binding remains runtime-only because optional integrations may own their tags.
+            def activeRecipe = recipes.contains(recipeId)
+            def registryConditional = recipe['neoforge:conditions'] instanceof List
+                    && recipe['neoforge:conditions'].any { condition ->
+                        condition instanceof Map
+                                && condition.type == hbmModId + ':enable_infinite_water_tank_recipes'
+                    }
+            def checkHbmIds = activeRecipe || !registryConditional
+            def inspect
+            inspect = { value, String path, String key ->
+                if (value instanceof Map) {
+                    value.each { nestedKey, nested -> inspect(nested, "${path}.${nestedKey}", String.valueOf(nestedKey)) }
+                } else if (value instanceof List) {
+                    value.eachWithIndex { nested, index -> inspect(nested, "${path}[${index}]", key) }
+                } else if (value instanceof String && key in ['item', 'id'] && value.startsWith(hbmModId + ':') && checkHbmIds) {
+                    if (!items.contains(value)) {
+                        referenceProblems << "${relative} ${path} references unregistered item ${value}"
+                    }
+                } else if (value instanceof String && key == 'fluid') {
+                    def fluidId = value.contains(':') ? value : hbmModId + ':' + value
+                    if (!(value in ['none', 'water', 'lava']) && fluidId.startsWith(hbmModId + ':') && !fluids.contains(fluidId)) {
+                        referenceProblems << "${relative} ${path} references unregistered fluid ${fluidId}"
+                    }
+                } else if (value instanceof String && key == 'tag' && activeRecipe) {
+                    if (!itemTagSizes.containsKey(value)) {
+                        referenceProblems << "${relative} ${path} references missing item tag ${value}"
+                    } else if (itemTagSizes[value] == 0) {
+                        referenceProblems << "${relative} ${path} references empty item tag ${value}"
+                    }
+                }
+            }
+            inspect(recipe, '$', '')
+        }
+
+        // The 528-only anvil branch is inactive in the default audit run.  Its
+        // unique material still has to exist so enabling the config cannot make
+        // the Java recipe silently disappear.
+        if (!items.contains(hbmModId + ':billet_nuclear_waste')) {
+            referenceProblems << "528 anvil branch references unregistered item ${hbmModId}:billet_nuclear_waste"
+        }
+
+        def problems = badLogLines + referenceProblems
+        if (!problems.isEmpty()) {
+            throw new GradleException("Runtime recipe audit failed:\n - " + problems.take(200).join('\n - '))
+        }
+        logger.lifecycle("Runtime recipe audit passed (${items.size()} HBM items, ${fluids.size()} HBM fluids, ${recipes.size()} active HBM recipes, ${recipeOutputs.size()} decoded outputs, ${anvilConstructionCount} anvil construction, ${anvilSmithingCount} anvil smithing)")
+    }
+}
+
+tasks.register('prepareRecipeAudit528') {
+    group = 'verification'
+    description = 'Prepares an isolated recipe audit with legacy 528 mode enabled.'
+    dependsOn tasks.named('validateRuntimeRecipes')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        File sourceDirectory = file('run-recipe-audit')
+        File sourceConfig = new File(sourceDirectory, 'config/reinhardtshbm-common.toml')
+        if (!sourceConfig.isFile()) {
+            throw new GradleException('Default recipe audit did not produce reinhardtshbm-common.toml')
+        }
+        File auditDirectory = file('run-recipe-audit-528')
+        File configDirectory = new File(auditDirectory, 'config')
+        configDirectory.mkdirs()
+        new File(auditDirectory, 'eula.txt').setText('eula=true\n', 'UTF-8')
+        def configText = sourceConfig.getText('UTF-8')
+        def enabledConfig = configText.replaceFirst(
+                /(?m)^(\s*enable528Mode\s*=\s*)false\s*$/,
+                '$1true'
+        )
+        if (enabledConfig == configText || !(enabledConfig =~ /(?m)^\s*enable528Mode\s*=\s*true\s*$/).find()) {
+            throw new GradleException('Unable to enable 528 mode in isolated recipe audit config')
+        }
+        new File(configDirectory, 'reinhardtshbm-common.toml').setText(enabledConfig, 'UTF-8')
+        [
+                new File(auditDirectory, 'recipe-audit.tsv'),
+                new File(auditDirectory, 'logs/latest.log')
+        ].each { stale ->
+            if (stale.exists() && !stale.delete()) {
+                throw new GradleException("Unable to clear stale 528 recipe audit artifact ${stale}")
+            }
+        }
+    }
+}
+
+tasks.named('runRecipeAudit528') {
+    dependsOn tasks.named('prepareRecipeAudit528')
+    dependsOn tasks.named('validateRecipeJsonSchemas')
+    dependsOn tasks.named('validateRecipeSemantics')
+    dependsOn tasks.named('validateRecipeBaseline')
+    outputs.upToDateWhen { false }
+}
+
+tasks.register('validateRuntimeRecipes528') {
+    group = 'verification'
+    description = 'Boots NeoForge with 528 mode enabled and validates the alternate recipe/anvil branches.'
+    dependsOn tasks.named('runRecipeAudit528')
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def hbmModId = project.mod_id.toString()
+        File auditDirectory = file('run-recipe-audit-528')
+        File auditLog = new File(auditDirectory, 'logs/latest.log')
+        File auditReport = new File(auditDirectory, 'recipe-audit.tsv')
+        if (!auditLog.isFile() || !auditReport.isFile()) {
+            throw new GradleException('528 runtime recipe audit did not produce its log and registry report')
+        }
+        def logText = auditLog.getText('UTF-8')
+        def problems = auditLog.readLines('UTF-8').findAll { line ->
+            (line.contains('Parsing error loading recipe') && line.contains(hbmModId + ':'))
+                    || (line.contains('Error parsing recipe') && line.contains(hbmModId + ':'))
+                    || (line.contains('Skipping recipe') && line.contains(hbmModId + ':') && line.contains('error parsing conditions'))
+                    || (line.contains('TagLoader') && line.contains("Couldn't load tag"))
+        }
+        if (!logText.contains('HBM_RECIPE_AUDIT_COMPLETE')) {
+            problems << 'Missing HBM_RECIPE_AUDIT_COMPLETE marker in 528 audit'
+        }
+
+        def recipes = [] as Set
+        def items = [] as Set
+        def fluids = [] as Set
+        def itemTagSizes = [:]
+        def anvilOutputs = [] as Set
+        int anvilConstructionCount = 0
+        int anvilSmithingCount = 0
+        auditReport.readLines('UTF-8').each { line ->
+            def parts = line.split('\t')
+            if (parts.length >= 2 && parts[0] == 'RECIPE') recipes << parts[1]
+            if (parts.length >= 2 && parts[0] == 'ITEM') items << parts[1]
+            if (parts.length >= 2 && parts[0] == 'FLUID') fluids << parts[1]
+            if (parts.length >= 3 && parts[0] == 'ITEM_TAG') itemTagSizes[parts[1]] = parts[2] as Integer
+            if (parts.length >= 3 && parts[0] == 'ANVIL_OUTPUT') anvilOutputs << parts[2]
+            if (parts.length >= 2 && parts[0] == 'ANVIL_CONSTRUCTION') anvilConstructionCount++
+            if (parts.length >= 2 && parts[0] == 'ANVIL_SMITHING') anvilSmithingCount++
+            if (parts.length >= 2 && parts[0] == 'ANVIL_ERROR') problems << parts[1]
+        }
+
+        [
+                'billet_nuclear_waste', 'billet_pu_mix', 'billet_pu239',
+                'plate_armor_titanium', 'plate_armor_ajr', 'plate_armor_hev',
+                'plate_armor_lunar', 'plate_armor_fau', 'plate_armor_dnt'
+        ].collect { hbmModId + ':' + it }.findAll { !anvilOutputs.contains(it) }.each { output ->
+            problems << "Required 528 anvil output is missing: ${output}"
+        }
+        [
+                'assembly_machine/machine_silex_expensive',
+                'assembly_machine/machine_fel_expensive',
+                'assembly_machine/machine_strand_caster_expensive'
+        ].collect { hbmModId + ':' + it }.findAll { !recipes.contains(it) }.each { recipe ->
+            problems << "Required 528 recipe is inactive or missing: ${recipe}"
+        }
+
+        def parser = new groovy.json.JsonSlurper()
+        def recipeRoot = file("src/main/resources/data/${project.mod_id}/recipe")
+        fileTree(recipeRoot) {
+            include '**/*.json'
+        }.files.each { recipeFile ->
+            def recipePath = recipeRoot.toPath().relativize(recipeFile.toPath()).toString().replace('\\', '/')
+            def recipeId = hbmModId + ':' + recipePath.substring(0, recipePath.length() - '.json'.length())
+            if (!recipes.contains(recipeId)) {
+                return
+            }
+            def recipe = parser.parseText(recipeFile.getText('UTF-8').replaceFirst('^\\uFEFF', ''))
+            def relative = project.relativePath(recipeFile)
+            def inspect
+            inspect = { value, String path, String key ->
+                if (value instanceof Map) {
+                    value.each { nestedKey, nested -> inspect(nested, "${path}.${nestedKey}", String.valueOf(nestedKey)) }
+                } else if (value instanceof List) {
+                    value.eachWithIndex { nested, index -> inspect(nested, "${path}[${index}]", key) }
+                } else if (value instanceof String && key in ['item', 'id'] && value.startsWith(hbmModId + ':') && !items.contains(value)) {
+                    problems << "${relative} ${path} references unregistered item ${value}"
+                } else if (value instanceof String && key == 'fluid') {
+                    def fluidId = value.contains(':') ? value : hbmModId + ':' + value
+                    if (!(value in ['none', 'water', 'lava']) && fluidId.startsWith(hbmModId + ':') && !fluids.contains(fluidId)) {
+                        problems << "${relative} ${path} references unregistered fluid ${fluidId}"
+                    }
+                } else if (value instanceof String && key == 'tag') {
+                    if (!itemTagSizes.containsKey(value)) {
+                        problems << "${relative} ${path} references missing item tag ${value}"
+                    } else if (itemTagSizes[value] == 0) {
+                        problems << "${relative} ${path} references empty item tag ${value}"
+                    }
+                }
+            }
+            inspect(recipe, '$', '')
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("528 runtime recipe audit failed:\n - " + problems.take(200).join('\n - '))
+        }
+        logger.lifecycle("528 runtime recipe audit passed (${recipes.size()} active HBM recipes, ${anvilConstructionCount} anvil construction, ${anvilSmithingCount} anvil smithing)")
+    }
+}
+
 tasks.register('deployClientMod') {
     group = 'distribution'
     description = 'Atomically deploys the built mod jar into the configured local NeoForge mods folder.'
@@ -2842,6 +3602,11 @@ tasks.register('deployClientMod') {
     dependsOn tasks.named('validateThermalParity')
     dependsOn tasks.named('validatePowerParity')
     dependsOn tasks.named('validateRocketMissileRecipes')
+    dependsOn tasks.named('validateRecipeJsonSchemas')
+    dependsOn tasks.named('validateRecipeSemantics')
+    dependsOn tasks.named('validateRecipeBaseline')
+    dependsOn tasks.named('validateRuntimeRecipes')
+    dependsOn tasks.named('validateRuntimeRecipes528')
 
     doLast {
         File sourceJar = tasks.named('jar').get().archiveFile.get().asFile
@@ -2942,6 +3707,11 @@ tasks.named('build') {
     dependsOn tasks.named('validateDamageTypes')
     dependsOn tasks.named('validateLegacyRecipes')
     dependsOn tasks.named('validateRocketMissileRecipes')
+    dependsOn tasks.named('validateRecipeJsonSchemas')
+    dependsOn tasks.named('validateRecipeSemantics')
+    dependsOn tasks.named('validateRecipeBaseline')
+    dependsOn tasks.named('validateRuntimeRecipes')
+    dependsOn tasks.named('validateRuntimeRecipes528')
     dependsOn tasks.named('validatePortRegressionFixes')
     dependsOn tasks.named('validateThermalParity')
     dependsOn tasks.named('validatePowerParity')

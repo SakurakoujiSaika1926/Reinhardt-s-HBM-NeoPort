@@ -17,7 +17,8 @@ public class HbmHeavyDoorPartBlockEntity extends BlockEntity {
     private static final String CREATE_CORE_OFFSET_Z = "HbmCoreOffsetZ";
     private BlockPos corePos = BlockPos.ZERO;
     private BlockPos localOffset = BlockPos.ZERO;
-    private boolean dropCoreWhenRemoved = true;
+    // Transient, single-removal authorization set only by a real player break.
+    private boolean dropCoreWhenRemoved;
 
     public HbmHeavyDoorPartBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.HEAVY_DOOR_PART.get(), pos, blockState);
@@ -42,7 +43,7 @@ public class HbmHeavyDoorPartBlockEntity extends BlockEntity {
 
     public boolean consumeDropCoreWhenRemoved() {
         boolean drop = this.dropCoreWhenRemoved;
-        this.dropCoreWhenRemoved = true;
+        this.dropCoreWhenRemoved = false;
         return drop;
     }
 

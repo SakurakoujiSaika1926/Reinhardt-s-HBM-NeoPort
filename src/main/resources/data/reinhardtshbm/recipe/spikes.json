@@ -8,12 +8,7 @@
   ],
   "key": {
     "B": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:bolt"
-      ],
-      "shape": "bolt",
-      "material": "steel"
+      "item": "reinhardtshbm:bolt_steel"
     },
     "T": {
       "tag": "c:ingots/steel"

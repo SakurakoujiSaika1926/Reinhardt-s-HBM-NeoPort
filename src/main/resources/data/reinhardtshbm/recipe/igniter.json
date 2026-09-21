@@ -11,12 +11,7 @@
       "tag": "c:plates/steel"
     },
     "W": {
-      "type": "reinhardtshbm:foundry_material",
-      "items": [
-        "reinhardtshbm:wire_fine"
-      ],
-      "shape": "wire",
-      "material": "schrabidium"
+      "item": "reinhardtshbm:wire_schrabidium"
     },
     "C": {
       "item": "reinhardtshbm:circuit_advanced"

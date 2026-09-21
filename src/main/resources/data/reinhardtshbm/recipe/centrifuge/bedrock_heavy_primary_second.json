@@ -1,59 +1,41 @@
 {
-    "type":  "reinhardtshbm:centrifuge",
-    "group":  "centrifuge",
-    "ingredient":  {
-                       "type":  "neoforge:components",
-                       "items":  [
-                                     "reinhardtshbm:bedrock_ore_new"
-                                 ],
-                       "components":  {
-                                          "minecraft:custom_data":  {
-                                                                        "grade":  "primary_second",
-                                                                        "type":  "heavy"
-                                                                    }
-                                      }
-                   },
-    "input_count":  1,
-    "results":  [
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  9,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  7400,
-                                                                         "material":  "tungsten"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  9,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  8200,
-                                                                         "material":  "lead"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_fragment",
-                        "count":  9,
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "material_id":  8200,
-                                                                         "material":  "lead"
-                                                                     }
-                                       }
-                    },
-                    {
-                        "id":  "reinhardtshbm:bedrock_ore_new",
-                        "components":  {
-                                           "minecraft:custom_data":  {
-                                                                         "grade":  "crumbs",
-                                                                         "type":  "heavy"
-                                                                     },
-                                           "minecraft:custom_model_data":  79
-                                       }
-                    }
-                ]
+  "type": "reinhardtshbm:centrifuge",
+  "group": "centrifuge",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:bedrock_ore_new"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "grade": "primary_second",
+        "type": "heavy"
+      }
+    }
+  },
+  "input_count": 1,
+  "results": [
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_tungsten",
+      "count": 9
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_lead",
+      "count": 9
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_fragment_lead",
+      "count": 9
+    },
+    {
+      "id": "reinhardtshbm:bedrock_ore_new",
+      "components": {
+        "minecraft:custom_data": {
+          "grade": "crumbs",
+          "type": "heavy"
+        },
+        "minecraft:custom_model_data": 79
+      }
+    }
+  ]
 }

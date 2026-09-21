@@ -4,9 +4,12 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -38,13 +41,13 @@ final class RadiationWorldEffects {
         thread.setDaemon(true);
         return thread;
     });
-    private static final Map<net.minecraft.resources.ResourceLocation, WorldEffects> EFFECTS = new ConcurrentHashMap<>();
+    private static final Map<WorldKey, WorldEffects> EFFECTS = new ConcurrentHashMap<>();
 
     private RadiationWorldEffects() {
     }
 
     static void tick(ServerLevel level, Map<Long, Double> radiation) {
-        WorldEffects effects = EFFECTS.computeIfAbsent(level.dimension().location(), unused -> new WorldEffects());
+        WorldEffects effects = EFFECTS.computeIfAbsent(worldKey(level), unused -> new WorldEffects());
         effects.applyReady(level);
         effects.applyQueued(level);
         effects.plan(radiation, level.getGameTime());
@@ -54,8 +57,15 @@ final class RadiationWorldEffects {
         EFFECTS.clear();
     }
 
-    static void unload(net.minecraft.resources.ResourceLocation dimension) {
-        EFFECTS.remove(dimension);
+    static void unload(ServerLevel level) {
+        EFFECTS.remove(worldKey(level));
+    }
+
+    private static WorldKey worldKey(ServerLevel level) {
+        return new WorldKey(level.getServer(), level.dimension());
+    }
+
+    private record WorldKey(MinecraftServer server, ResourceKey<Level> dimension) {
     }
 
     private static final class WorldEffects {

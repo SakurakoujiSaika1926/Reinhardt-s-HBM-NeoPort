@@ -9,9 +9,12 @@ import net.minecraft.world.item.TooltipFlag;
 import java.util.List;
 import java.util.Locale;
 
-public class PACoilItem extends LegacyVariantItem {
-    public PACoilItem(Properties properties) {
-        super(properties.stacksTo(1), "pa_coil", variants("gold", "niobium", "bscco", "chlorophyte"));
+public class PACoilItem extends Item {
+    private final Spec spec;
+
+    public PACoilItem(Properties properties, String variantId) {
+        super(properties.stacksTo(1));
+        this.spec = Spec.byId(variantId);
     }
 
     @Override
@@ -27,7 +30,7 @@ public class PACoilItem extends LegacyVariantItem {
     }
 
     public Spec spec(ItemStack stack) {
-        return Spec.byId(variant(stack).id());
+        return this.spec;
     }
 
     private static String number(int value) {

@@ -1,59 +1,43 @@
-﻿{
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.crackingtower",
-    "blueprint_pools":  [
-                            "528.plastic"
-                        ],
-    "duration":  200,
-    "power":  100,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "heavy_frame"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  2
-                        },
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "steel_plating"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  8
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/plastic"
-                                           },
-                            "count":  16
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag":  "c:ingots/niobium"
-                                           },
-                            "count":  4
-                        }
-                    ],
-    "result":  {
-                   "id":  "reinhardtshbm:machine_catalytic_cracker"
-               }
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.crackingtower",
+  "blueprint_pools": [
+    "528.plastic"
+  ],
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_heavy_frame"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_steel_plating"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/niobium"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:machine_catalytic_cracker"
+  }
 }

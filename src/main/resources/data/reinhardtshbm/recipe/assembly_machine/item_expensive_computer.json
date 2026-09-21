@@ -1,60 +1,46 @@
 {
-    "neoforge:conditions":  [
-                                {
-                                    "type":  "reinhardtshbm:enable_528_mode"
-                                }
-                            ],
-    "type":  "reinhardtshbm:assembly_machine",
-    "group":  "ass.excomputer",
-    "duration":  1200,
-    "power":  16000,
-    "ingredients":  [
-                        {
-                            "ingredient":  {
-                                               "type":  "neoforge:components",
-                                               "items":  [
-                                                             "reinhardtshbm:item_expensive"
-                                                         ],
-                                               "components":  {
-                                                                  "minecraft:custom_data":  {
-                                                                                                "variant":  "circuit"
-                                                                                            }
-                                                              }
-                                           },
-                            "count":  3
-                        },
-                        {
-                            "ingredient":  {
-                                               "item":  "reinhardtshbm:circuit_controller"
-                                           },
-                            "count":  4
-                        },
-                        {
-                            "ingredient":  {
-                                               "item":  "reinhardtshbm:circuit_capacitor_board"
-                                           },
-                            "count":  4
-                        },
-                        {
-                            "ingredient":  {
-                                               "tag": "c:glass_blocks/quartz"
-                                           },
-                            "count":  8
-                        }
-                    ],
-    "input_fluids":  [
-                         {
-                             "fluid":  "perfluoromethyl",
-                             "amount":  2000
-                         }
-                     ],
-    "result":  {
-                   "id":  "reinhardtshbm:item_expensive",
-                   "components":  {
-                                      "minecraft:custom_data":  {
-                                                                    "variant":  "computer"
-                                                                },
-                                      "minecraft:custom_model_data":  5
-                                  }
-               }
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_528_mode"
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.excomputer",
+  "duration": 1200,
+  "power": 16000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_circuit"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor_board"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:glass_blocks/quartz"
+      },
+      "count": 8
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "perfluoromethyl",
+      "amount": 2000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:item_expensive_computer"
+  }
 }

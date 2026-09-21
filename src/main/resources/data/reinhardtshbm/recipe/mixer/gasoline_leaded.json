@@ -1,27 +1,19 @@
-﻿{
-    "type":  "reinhardtshbm:mixer",
-    "group":  "mixer.gasoline_leaded",
-    "output":  {
-                   "fluid":  "gasoline_leaded",
-                   "amount":  12000
-               },
-    "duration":  40,
-    "input1":  {
-                   "fluid":  "gasoline",
-                   "amount":  10000
-               },
-    "solid_input":  {
-                        "ingredient":  {
-                                           "type":  "neoforge:components",
-                                           "items":  [
-                                                         "reinhardtshbm:fuel_additive"
-                                                     ],
-                                           "components":  {
-                                                              "minecraft:custom_data":  {
-                                                                                            "variant":  "antiknock"
-                                                                                        }
-                                                          }
-                                       },
-                        "count":  1
-                    }
+{
+  "type": "reinhardtshbm:mixer",
+  "group": "mixer.gasoline_leaded",
+  "output": {
+    "fluid": "gasoline_leaded",
+    "amount": 12000
+  },
+  "duration": 40,
+  "input1": {
+    "fluid": "gasoline",
+    "amount": 10000
+  },
+  "solid_input": {
+    "ingredient": {
+      "item": "reinhardtshbm:fuel_additive_antiknock"
+    },
+    "count": 1
+  }
 }

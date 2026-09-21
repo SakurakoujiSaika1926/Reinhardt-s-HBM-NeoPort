@@ -12,12 +12,7 @@
     },
     {
       "ingredient": {
-        "type": "reinhardtshbm:foundry_material",
-        "items": [
-          "reinhardtshbm:wire_fine"
-        ],
-        "shape": "wire",
-        "material": "aluminium"
+        "item": "reinhardtshbm:wire_aluminium"
       },
       "count": 4
     },

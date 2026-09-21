@@ -9,34 +9,37 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 
 import java.util.List;
 
-/** Six metadata variants from 1.7.10 BlockResourceStone. */
-public final class ResourceStoneBlock extends LegacyVariantBlock {
-    public static final int SULFUR = 0;
-    public static final int ASBESTOS = 1;
-    public static final int HEMATITE = 2;
-    public static final int MALACHITE = 3;
-    public static final int LIMESTONE = 4;
-    public static final int BAUXITE = 5;
+/** Shared behavior for the six independently registered legacy resource stones. */
+public final class ResourceStoneBlock extends Block {
+    public enum Kind {
+        NORMAL,
+        ASBESTOS,
+        MALACHITE
+    }
 
-    public ResourceStoneBlock(Properties properties) {
-        super(properties, 5);
+    private final Kind kind;
+
+    public ResourceStoneBlock(Properties properties, Kind kind) {
+        super(properties);
+        this.kind = kind;
     }
 
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        if (state.getValue(VARIANT) == MALACHITE) {
+        if (this.kind == Kind.MALACHITE) {
             ItemStack tool = params.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.TOOL);
             int fortune = tool == null || tool.isEmpty()
                     ? 0
                     : EnchantmentHelper.getItemEnchantmentLevel(
                             params.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                                     .getOrThrow(Enchantments.FORTUNE), tool);
-            ItemStack stack = com.reinhardt.hbm.item.LegacyVariantItem.stackFor(HbmItems.CHUNK_ORE.get(), "malachite");
+            ItemStack stack = HbmItems.variantStack(HbmItems.CHUNK_ORE_ITEMS, "malachite");
             stack.setCount(3 + fortune + params.getLevel().random.nextInt(fortune + 2));
             return List.of(stack);
         }
@@ -48,14 +51,14 @@ public final class ResourceStoneBlock extends LegacyVariantBlock {
                                BlockState state, net.minecraft.world.level.block.entity.BlockEntity blockEntity,
                                ItemStack tool) {
         super.playerDestroy(level, player, pos, state, blockEntity, tool);
-        if (!level.isClientSide && state.getValue(VARIANT) == ASBESTOS) {
+        if (!level.isClientSide && this.kind == Kind.ASBESTOS) {
             level.setBlock(pos, HbmBlocks.GAS_ASBESTOS.get().defaultBlockState(), 3);
         }
     }
 
     @Override
     public void onBlockExploded(BlockState state, Level level, BlockPos pos, Explosion explosion) {
-        boolean asbestos = state.hasProperty(VARIANT) && state.getValue(VARIANT) == ASBESTOS;
+        boolean asbestos = this.kind == Kind.ASBESTOS;
         super.onBlockExploded(state, level, pos, explosion);
         if (asbestos && !level.isClientSide) {
             level.setBlock(pos, HbmBlocks.GAS_ASBESTOS.get().defaultBlockState(), 3);
