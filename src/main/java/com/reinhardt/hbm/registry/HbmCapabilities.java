@@ -23,7 +23,9 @@ import com.reinhardt.hbm.blockentity.ChemicalFactoryBlockEntity;
 import com.reinhardt.hbm.blockentity.ChemicalPlantBlockEntity;
 import com.reinhardt.hbm.blockentity.CombustionEngineBlockEntity;
 import com.reinhardt.hbm.blockentity.CompressorBlockEntity;
+import com.reinhardt.hbm.blockentity.CustomMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.ConveyorPressBlockEntity;
+import com.reinhardt.hbm.blockentity.CraneMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.CokerBlockEntity;
 import com.reinhardt.hbm.blockentity.CoolingTowerBlockEntity;
 import com.reinhardt.hbm.blockentity.CrystallizerBlockEntity;
@@ -78,12 +80,15 @@ import com.reinhardt.hbm.blockentity.MachineKeyForgeBlockEntity;
 import com.reinhardt.hbm.blockentity.MixerBlockEntity;
 import com.reinhardt.hbm.blockentity.OilDerrickBlockEntity;
 import com.reinhardt.hbm.blockentity.OreSlopperBlockEntity;
+import com.reinhardt.hbm.blockentity.RockMillBlockEntity;
+import com.reinhardt.hbm.blockentity.SupercomputerBlockEntity;
 import com.reinhardt.hbm.blockentity.ParticleAcceleratorBlockEntity;
 import com.reinhardt.hbm.blockentity.PoweredSteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.PressBlockEntity;
 import com.reinhardt.hbm.blockentity.PurexBlockEntity;
 import com.reinhardt.hbm.blockentity.PwrBlockEntity;
 import com.reinhardt.hbm.blockentity.PwrControllerBlockEntity;
+import com.reinhardt.hbm.blockentity.PneumaticStorageBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RefineryBlockEntity;
 import com.reinhardt.hbm.blockentity.RebarBlockEntity;
@@ -98,7 +103,8 @@ import com.reinhardt.hbm.blockentity.SilexBlockEntity;
 import com.reinhardt.hbm.blockentity.SolidifierBlockEntity;
 import com.reinhardt.hbm.blockentity.SolderingStationBlockEntity;
 import com.reinhardt.hbm.blockentity.SoyuzCapsuleBlockEntity;
-import com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity;
+import com.reinhardt.hbm.blockentity.LambdaLaunchpadBlockEntity;
+import com.reinhardt.hbm.blockentity.SoyuzLaunchpadBlockEntity;
 import com.reinhardt.hbm.blockentity.SmallBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.SolarBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamCondenserBlockEntity;
@@ -120,10 +126,10 @@ import com.reinhardt.hbm.item.LegacyPipetteItem;
 import com.reinhardt.hbm.item.BlowtorchItem;
 import com.reinhardt.hbm.item.ZirnoxTritiumRodItem;
 import com.reinhardt.hbm.item.LegacyMercuryContainerHandler;
+import com.reinhardt.hbm.item.ExperienceBagItem;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerGraphNode;
 import com.reinhardt.hbm.power.PowerNetworkManager;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
@@ -166,6 +172,26 @@ public final class HbmCapabilities {
                 HbmBlocks.BLOCK_GRAPHITE_TRITIUM.get(),
                 HbmBlocks.BLOCK_GRAPHITE_DETECTOR.get()
         );
+        event.registerBlock(
+                Capabilities.ItemHandler.BLOCK,
+                HbmCapabilities::customMachinePortItemHandler,
+                HbmBlocks.CM_PORT.get()
+        );
+        event.registerBlock(
+                Capabilities.FluidHandler.BLOCK,
+                HbmCapabilities::customMachinePortFluidHandler,
+                HbmBlocks.CM_PORT.get()
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.PILE_MK2_LOADER.get(),
+                (loader, side) -> new SidedInvWrapper(loader, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.PILE_MK2_VENT.get(),
+                (vent, side) -> vent.fluidHandler(side)
+        );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 HbmBlockEntities.HEATER.get(),
@@ -185,6 +211,11 @@ public final class HbmCapabilities {
                 Capabilities.ItemHandler.BLOCK,
                 HbmBlockEntities.CONVEYOR_PRESS.get(),
                 (press, side) -> new SidedInvWrapper(press, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.CRANE_MACHINE.get(),
+                (crane, side) -> new SidedInvWrapper(crane, side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
@@ -263,6 +294,11 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.CUSTOM_MACHINE.get(),
+                (machine, side) -> new SidedInvWrapper(machine, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
                 HbmBlockEntities.MIXER.get(),
                 (mixer, side) -> new SidedInvWrapper(mixer, side)
         );
@@ -298,8 +334,8 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
-                HbmBlockEntities.SOYUZ_LAUNCHER.get(),
-                HbmCapabilities::soyuzLauncherItemHandler
+                HbmBlockEntities.SOYUZ_LAUNCHPAD.get(),
+                (launchpad, side) -> new SidedInvWrapper(launchpad, side)
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
@@ -538,6 +574,21 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.ROCK_MILL.get(),
+                (mill, side) -> new SidedInvWrapper(mill, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.TAPE_DRIVE.get(),
+                (drive, side) -> new SidedInvWrapper(drive, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.SUPERCOMPUTER.get(),
+                (computer, side) -> new SidedInvWrapper(computer, side)
+        );
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
                 HbmBlockEntities.WASTE_DRUM.get(),
                 HbmCapabilities::wasteDrumItemHandler
         );
@@ -592,6 +643,16 @@ public final class HbmCapabilities {
                 (stabilizer, side) -> new SidedInvWrapper(stabilizer, side)
         );
         event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                HbmBlockEntities.PNEUMATIC_STORAGE.get(),
+                HbmCapabilities::pneumaticStorageItemHandler
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.PNEUMATIC_STORAGE.get(),
+                PneumaticStorageBlockEntity::fluidHandler
+        );
+        event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.ASSEMBLY_MACHINE.get(),
                 HbmCapabilities::assemblyMachineFluidHandler
@@ -615,6 +676,11 @@ public final class HbmCapabilities {
                 Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.COMPRESSOR.get(),
                 (compressor, side) -> compressor.fluidHandler(compressor.getBlockPos(), side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.CUSTOM_MACHINE.get(),
+                CustomMachineBlockEntity::fluidHandler
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
@@ -663,7 +729,12 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
-                HbmBlockEntities.SOYUZ_LAUNCHER.get(),
+                HbmBlockEntities.LAMBDA_LAUNCHPAD.get(),
+                (launcher, side) -> launcher.fluidHandler(launcher.getBlockPos(), side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.SOYUZ_LAUNCHPAD.get(),
                 (launcher, side) -> launcher.fluidHandler(launcher.getBlockPos(), side)
         );
         event.registerBlockEntity(
@@ -963,6 +1034,16 @@ public final class HbmCapabilities {
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.ROCK_MILL.get(),
+                (mill, side) -> mill.fluidHandler(mill.getBlockPos(), side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                HbmBlockEntities.SUPERCOMPUTER.get(),
+                (computer, side) -> computer.fluidHandler(computer.getBlockPos(), side)
+        );
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.CRYSTALLIZER.get(),
                 HbmCapabilities::crystallizerFluidHandler
         );
@@ -1066,6 +1147,9 @@ public final class HbmCapabilities {
                     if (stack.getItem() instanceof ZirnoxTritiumRodItem rod) {
                         return rod.createFluidHandler(stack);
                     }
+                    if (stack.getItem() instanceof ExperienceBagItem experienceBag) {
+                        return experienceBag.createFluidHandler(stack);
+                    }
                     return null;
                 },
                 fluidCapabilityItems()
@@ -1129,6 +1213,8 @@ public final class HbmCapabilities {
         items.add(HbmItems.CELL_EMPTY.get());
         items.add(HbmItems.CELL_TRITIUM.get());
         items.add(HbmItems.ROD_ZIRNOX_TRITIUM.get());
+        items.add(HbmItems.IV_XP_EMPTY.get());
+        items.add(HbmItems.IV_XP.get());
         items.add(HbmItems.TANK_STEEL.get());
         items.add(HbmItems.RED_BARREL_ITEM.get());
         items.add(HbmItems.PINK_BARREL_ITEM.get());
@@ -1142,14 +1228,63 @@ public final class HbmCapabilities {
     @Nullable
     private static IEnergyStorage nativeEnergyStorage(Level level, BlockPos pos, net.minecraft.world.level.block.state.BlockState state,
                                                        @Nullable BlockEntity blockEntity, @Nullable Direction side) {
-        if (PowerNetworkManager.endpointAt(level, pos) == null) {
+        PowerEndpoint endpoint = PowerNetworkManager.endpointAt(level, pos);
+        if (endpoint == null) {
             return null;
+        }
+        if (endpoint instanceof LambdaLaunchpadBlockEntity launchpad) {
+            if (side == null) {
+                if (!pos.equals(launchpad.getBlockPos())) {
+                    return null;
+                }
+            } else if (!endpoint.canConnectPower(level, pos.relative(side), side)) {
+                return null;
+            }
+        }
+        if (endpoint instanceof SoyuzLaunchpadBlockEntity launchpad) {
+            if (side == null) {
+                if (!launchpad.isAutomationPort(pos)) {
+                    return null;
+                }
+            } else if (!endpoint.canConnectPower(level, pos.relative(side), side)) {
+                return null;
+            }
+        }
+        if (endpoint instanceof RockMillBlockEntity mill) {
+            if (side == null) {
+                if (!mill.isAutomationPort(pos)) {
+                    return null;
+                }
+            } else if (!endpoint.canConnectPower(level, pos.relative(side), side)) {
+                return null;
+            }
+        }
+        if (endpoint instanceof SupercomputerBlockEntity computer) {
+            if (side == null) {
+                if (!computer.isAutomationPort(pos)) {
+                    return null;
+                }
+            } else if (!endpoint.canConnectPower(level, pos.relative(side), side)) {
+                return null;
+            }
         }
         return new NativeEnergyStorage(level, pos, side);
     }
 
     private static IItemHandler ashpitItemHandler(AshpitBlockEntity ashpit, @Nullable Direction side) {
         return new SidedInvWrapper(ashpit, side);
+    }
+
+    @Nullable
+    private static IItemHandler pneumaticStorageItemHandler(PneumaticStorageBlockEntity storage,
+                                                              @Nullable Direction side) {
+        return switch (storage.kind()) {
+            // The latest 1.7.10 clutter and mono stores inherit the empty
+            // sided-slot list from TileEntityMachineBase.  They are accessed
+            // through the pneumatic network/GUI, not hopper capabilities.
+            case IMPORTER, EXPORTER -> new SidedInvWrapper(storage, side);
+            case ACCESS, CLUTTER, MONO -> null;
+        };
     }
 
     @Nullable
@@ -1166,6 +1301,30 @@ public final class HbmCapabilities {
         return new PileGraphiteItemHandler(level, pos, side);
     }
 
+    @Nullable
+    private static IItemHandler customMachinePortItemHandler(
+            Level level,
+            BlockPos pos,
+            net.minecraft.world.level.block.state.BlockState state,
+            @Nullable BlockEntity blockEntity,
+            @Nullable Direction side
+    ) {
+        CustomMachineBlockEntity machine = CustomMachineBlockEntity.findForPort(level, pos);
+        return machine == null ? null : new SidedInvWrapper(machine, side);
+    }
+
+    @Nullable
+    private static IFluidHandler customMachinePortFluidHandler(
+            Level level,
+            BlockPos pos,
+            net.minecraft.world.level.block.state.BlockState state,
+            @Nullable BlockEntity blockEntity,
+            @Nullable Direction side
+    ) {
+        CustomMachineBlockEntity machine = CustomMachineBlockEntity.findForPort(level, pos);
+        return machine == null ? null : machine.fluidHandler(side);
+    }
+
     private static IItemHandler fuelInputHandler(HeaterBlockEntity heater, @Nullable Direction side) {
         if (heater.kind() == HeaterBlockEntity.Kind.OILBURNER) {
             return new SidedInvWrapper(heater, side);
@@ -1176,6 +1335,8 @@ public final class HbmCapabilities {
     @Nullable
     private static IItemHandler dummyFuelInputHandler(MachineDummyBlockEntity dummy, @Nullable Direction side) {
         BlockEntity core = dummyCore(dummy);
+        BlockPos accessorPos = dummy.getBlockPos();
+        Direction accessorSide = side;
         if (core instanceof PressBlockEntity press && press.kind() == PressBlockEntity.Kind.FIRE) {
             // PressBlockEntity and the dummy proxy apply the same physical-tier
             // slot policy. A normal handler is required because the middle tier
@@ -1196,16 +1357,28 @@ public final class HbmCapabilities {
             return null;
         }
         if (core instanceof ExcavatorBlockEntity excavator) {
-            return excavator.isAutomationPort(dummy.getBlockPos()) ? new SidedInvWrapper(dummy, side) : null;
+            return excavator.isAutomationPort(accessorPos) ? new SidedInvWrapper(dummy, side) : null;
+        }
+        if (core instanceof RockMillBlockEntity mill) {
+            return mill.allowsAutomationPort(accessorPos, accessorSide)
+                    ? new SidedInvWrapper(dummy, side) : null;
+        }
+        if (core instanceof SupercomputerBlockEntity computer) {
+            return computer.allowsAutomationPort(accessorPos, accessorSide)
+                    ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof CombustionEngineBlockEntity engine) {
-            return engine.allowsAutomationPort(dummy.getBlockPos(), side) ? new SidedInvWrapper(dummy, side) : null;
+            return engine.allowsAutomationPort(accessorPos, accessorSide) ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof WoodBurnerBlockEntity burner) {
-            return burner.isAutomationPort(dummy.getBlockPos()) ? new SidedInvWrapper(dummy, side) : null;
+            return burner.isAutomationPort(accessorPos) ? new SidedInvWrapper(dummy, side) : null;
         }
-        if (core instanceof SoyuzLauncherBlockEntity) {
-            return new SidedInvWrapper(dummy, side);
+        if (core instanceof LambdaLaunchpadBlockEntity) {
+            return null;
+        }
+        if (core instanceof SoyuzLaunchpadBlockEntity launchpad) {
+            return launchpad.allowsAutomationPort(accessorPos, accessorSide)
+                    ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher) {
             return launcher.kind() == com.reinhardt.hbm.blockentity.LauncherBlockEntity.Kind.PAD_RUSTED
@@ -1219,13 +1392,13 @@ public final class HbmCapabilities {
             return new SidedInvWrapper(dummy, side);
         }
         if (core instanceof AssemblyFactoryBlockEntity factory) {
-            return factory.allowsAutomationPort(dummy.getBlockPos(), side) ? new SidedInvWrapper(dummy, side) : null;
+            return factory.allowsAutomationPort(accessorPos, accessorSide) ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof ChemicalFactoryBlockEntity factory) {
-            return factory.allowsAutomationPort(dummy.getBlockPos(), side) ? new SidedInvWrapper(dummy, side) : null;
+            return factory.allowsAutomationPort(accessorPos, accessorSide) ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof ZirnoxReactorBlockEntity reactor) {
-            return reactor.allowsAutomationPort(dummy.getBlockPos(), side) ? new SidedInvWrapper(dummy, side) : null;
+            return reactor.allowsAutomationPort(accessorPos, accessorSide) ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof WatzBlockEntity) {
             return new SidedInvWrapper(dummy, side);
@@ -1234,13 +1407,13 @@ public final class HbmCapabilities {
             return new SidedInvWrapper(dummy, side);
         }
         if (core instanceof MachineBlastFurnaceBlockEntity furnace) {
-            return furnace.allowsAutomationPort(dummy.getBlockPos(), side) ? new SidedInvWrapper(dummy, side) : null;
+            return furnace.allowsAutomationPort(accessorPos, accessorSide) ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof SolderingStationBlockEntity solderingStation) {
-            return solderingStation.allowsAutomationPort(dummy.getBlockPos()) ? new SidedInvWrapper(dummy, side) : null;
+            return solderingStation.allowsAutomationPort(accessorPos) ? new SidedInvWrapper(dummy, side) : null;
         }
         if (core instanceof LegacyMachineBlockEntity machine) {
-            return machine.slotCount() == 0 || !machine.allowsItemAutomationPort(dummy.getBlockPos())
+            return machine.slotCount() == 0 || !machine.allowsItemAutomationPort(accessorPos)
                     ? null
                     : new SidedInvWrapper(dummy, side);
         }
@@ -1269,10 +1442,10 @@ public final class HbmCapabilities {
             return new SidedInvWrapper(dummy, side);
         }
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
-            return accelerator.getSlotsForAccessor(dummy.getBlockPos(), side).length == 0 ? null : new SidedInvWrapper(dummy, side);
+            return accelerator.getSlotsForAccessor(accessorPos, accessorSide).length == 0 ? null : new SidedInvWrapper(dummy, side);
         }
         if (core instanceof RotaryFurnaceBlockEntity furnace) {
-            return furnace.getSlotsForAccessor(dummy.getBlockPos(), side).length == 0 ? null : new SidedInvWrapper(dummy, side);
+            return furnace.getSlotsForAccessor(accessorPos, accessorSide).length == 0 ? null : new SidedInvWrapper(dummy, side);
         }
         if (core instanceof LargeFluidTankBlockEntity) {
             return null;
@@ -1404,10 +1577,6 @@ public final class HbmCapabilities {
     @Nullable
     private static IItemHandler woodBurnerItemHandler(WoodBurnerBlockEntity burner, @Nullable Direction side) {
         return burner.allowsAutomationPort(burner.getBlockPos(), side) ? new SidedInvWrapper(burner, side) : null;
-    }
-
-    private static IItemHandler soyuzLauncherItemHandler(SoyuzLauncherBlockEntity launcher, @Nullable Direction side) {
-        return new SidedInvWrapper(launcher, side);
     }
 
     private static IItemHandler launcherItemHandler(com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher, @Nullable Direction side) {
@@ -1661,204 +1830,225 @@ public final class HbmCapabilities {
                 ? silex.getBlockState().getValue(com.reinhardt.hbm.block.LargeMachineBlock.FACING)
                 : Direction.SOUTH;
         BlockPos corePos = silex.getBlockPos();
-        Direction side = LegacyMachineGeometry.forgeRotateUp(facing);
-        BlockPos northTop = corePos.relative(side).above();
-        BlockPos southTop = corePos.relative(side.getOpposite()).above();
+        Direction side = silexAutomationPortSide(facing);
+        BlockPos sideTop = corePos.relative(side).above();
+        BlockPos oppositeSideTop = corePos.relative(side.getOpposite()).above();
         BlockPos dummyPos = dummy.getBlockPos();
-        return dummyPos.equals(northTop) || dummyPos.equals(southTop);
+        return dummyPos.equals(sideTop) || dummyPos.equals(oppositeSideTop);
+    }
+
+    private static Direction silexAutomationPortSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("SILEX automation ports require a horizontal facing: " + facing);
+        };
     }
 
     @Nullable
     private static IFluidHandler dummyFluidHandler(MachineDummyBlockEntity dummy, @Nullable Direction side) {
         BlockEntity core = dummyCore(dummy);
+        BlockPos accessorPos = dummy.getBlockPos();
+        Direction accessorSide = side;
         if (core instanceof RbmkComponentBlockEntity rbmk) {
             // A dummy segment is the actual capability position queried by a
             // fluid pipe.  RBMK's old trySubscribe/tryProvide coordinates are
             // port-specific, so do not collapse it to the core position.
-            return rbmk.fluidHandler(dummy.getBlockPos(), side);
+            return rbmk.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof FusionMachineBlockEntity fusion) {
-            return fusion.fluidHandler(dummy.getBlockPos(), side);
+            return fusion.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof IcfCoreBlockEntity icf) {
-            return icf.fluidHandler(dummy.getBlockPos(), side);
+            return icf.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof WatzBlockEntity watz) {
-            return watz.fluidHandler(dummy.getBlockPos(), side);
+            return watz.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof PurexBlockEntity purex) {
-            return purex.fluidHandler(side);
+            return purex.fluidHandler(accessorSide);
         }
         if (core instanceof CombustionEngineBlockEntity engine) {
-            return engine.fluidHandler(dummy.getBlockPos(), side);
+            return engine.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof GasFlareBlockEntity flare) {
-            return flare.fluidHandler(dummy.getBlockPos(), side);
+            return flare.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof GasCentrifugeBlockEntity centrifuge) {
-            return centrifuge.fluidHandler(dummy.getBlockPos(), side);
+            return centrifuge.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof IndustrialBoilerBlockEntity boiler) {
-            return boiler.fluidHandler(dummy.getBlockPos(), side);
+            return boiler.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof HeatBoilerBlockEntity boiler) {
-            return boiler.fluidHandler(dummy.getBlockPos(), side);
+            return boiler.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof SolarBoilerBlockEntity boiler) {
-            return boiler.fluidHandler(dummy.getBlockPos(), side);
+            return boiler.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof GroundwaterPumpBlockEntity pump) {
-            return pump.fluidHandler(dummy.getBlockPos(), side);
+            return pump.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof AirCompressorBlockEntity compressor) {
-            return compressor.fluidHandler(dummy.getBlockPos(), side);
+            return compressor.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof GeothermalHeatExchangerBlockEntity exchanger) {
-            return exchanger.fluidHandler(dummy.getBlockPos(), side);
+            return exchanger.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof DeuteriumExtractorBlockEntity extractor) {
-            return extractor.fluidHandler(dummy.getBlockPos(), side);
+            return extractor.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof CompressorBlockEntity compressor) {
-            return compressor.fluidHandler(dummy.getBlockPos(), side);
+            return compressor.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof MixerBlockEntity mixer) {
-            return mixer.fluidHandler(dummy.getBlockPos(), side);
+            return mixer.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof OilDerrickBlockEntity derrick) {
-            return derrick.fluidHandler(dummy.getBlockPos(), side);
+            return derrick.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof FrackingTowerBlockEntity tower) {
-            return tower.fluidHandler(dummy.getBlockPos(), side);
+            return tower.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof RefineryBlockEntity refinery) {
-            return refinery.fluidHandler(dummy.getBlockPos(), side);
+            return refinery.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof VacuumDistillBlockEntity distill) {
-            return distill.fluidHandler(dummy.getBlockPos(), side);
+            return distill.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof CokerBlockEntity coker) {
-            return coker.fluidHandler(dummy.getBlockPos(), side);
+            return coker.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof FurnaceCombinationBlockEntity furnace) {
-            return furnace.fluidHandler(dummy.getBlockPos(), side);
+            return furnace.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof RotaryFurnaceBlockEntity furnace) {
-            return furnace.fluidHandler(dummy.getBlockPos(), side);
+            return furnace.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof SolidifierBlockEntity solidifier) {
-            return solidifier.fluidHandler(dummy.getBlockPos(), side);
+            return solidifier.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof StrandCasterBlockEntity caster) {
-            return caster.fluidHandler(dummy.getBlockPos(), side);
+            return caster.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof ElectrolyzerBlockEntity electrolyzer) {
-            return electrolyzer.fluidHandler(dummy.getBlockPos(), side);
+            return electrolyzer.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof LiquefactorBlockEntity liquefactor) {
-            return liquefactor.fluidHandler(dummy.getBlockPos(), side);
+            return liquefactor.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof CatalyticCrackerBlockEntity cracker) {
-            return cracker.fluidHandler(dummy.getBlockPos(), side);
+            return cracker.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof CatalyticReformerBlockEntity reformer) {
-            return reformer.fluidHandler(dummy.getBlockPos(), side);
+            return reformer.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof HydrotreaterBlockEntity hydrotreater) {
-            return hydrotreater.fluidHandler(dummy.getBlockPos(), side);
+            return hydrotreater.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof FractionTowerBlockEntity tower) {
-            return tower.fluidHandler(dummy.getBlockPos(), side);
+            return tower.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof FluidTankBlockEntity tank) {
-            return tank.fluidHandler(dummy.getBlockPos(), side);
+            return tank.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof SteamEngineBlockEntity engine) {
-            return engine.fluidHandler(dummy.getBlockPos(), side);
+            return engine.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof IndustrialTurbineBlockEntity turbine) {
-            return turbine.fluidHandler(dummy.getBlockPos(), side);
+            return turbine.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof LargeTurbineBlockEntity turbine) {
-            return turbine.fluidHandler(dummy.getBlockPos(), side);
+            return turbine.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof LeviathanTurbineBlockEntity turbine) {
-            return turbine.fluidHandler(dummy.getBlockPos(), side);
+            return turbine.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof GasTurbineBlockEntity turbine) {
-            return turbine.fluidHandler(dummy.getBlockPos(), side);
+            return turbine.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof CoolingTowerBlockEntity tower) {
-            return tower.fluidHandler(dummy.getBlockPos(), side);
+            return tower.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof ZirnoxReactorBlockEntity reactor) {
-            return reactor.fluidHandler(dummy.getBlockPos(), side);
+            return reactor.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof PwrControllerBlockEntity controller) {
-            return controller.fluidHandler(dummy.getBlockPos(), side);
+            return controller.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof WoodBurnerBlockEntity burner) {
-            return burner.fluidHandler(dummy.getBlockPos(), side);
+            return burner.fluidHandler(accessorPos, accessorSide);
         }
-        if (core instanceof SoyuzLauncherBlockEntity launcher) {
-            return launcher.fluidHandler(dummy.getBlockPos(), side);
+        if (core instanceof LambdaLaunchpadBlockEntity launchpad) {
+            return launchpad.fluidHandler(accessorPos, accessorSide);
+        }
+        if (core instanceof SoyuzLaunchpadBlockEntity launchpad) {
+            return launchpad.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher) {
-            return launcher.fluidHandler(dummy.getBlockPos(), side);
+            return launcher.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof MachineBlastFurnaceBlockEntity furnace) {
-            return furnace.fluidHandler(dummy.getBlockPos(), side);
+            return furnace.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof ArcWelderBlockEntity arcWelder) {
-            return arcWelder.fluidHandler(dummy.getBlockPos(), side);
+            return arcWelder.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof ExcavatorBlockEntity excavator) {
-            return excavator.fluidHandler(dummy.getBlockPos(), side);
+            return excavator.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof OreSlopperBlockEntity slopper) {
-            return slopper.fluidHandler(dummy.getBlockPos(), side);
+            return slopper.fluidHandler(accessorPos, accessorSide);
+        }
+        if (core instanceof RockMillBlockEntity mill) {
+            return mill.fluidHandler(accessorPos, accessorSide);
+        }
+        if (core instanceof SupercomputerBlockEntity computer) {
+            return computer.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof CyclotronBlockEntity cyclotron) {
-            return cyclotron.fluidHandler(dummy.getBlockPos(), side);
+            return cyclotron.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
-            return accelerator.fluidHandler(dummy.getBlockPos(), side);
+            return accelerator.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof PoweredSteamCondenserBlockEntity condenser) {
-            return condenser.fluidHandler(dummy.getBlockPos(), side);
+            return condenser.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof ChimneyBlockEntity chimney) {
-            return chimney.fluidHandler(dummy.getBlockPos(), side);
+            return chimney.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof LegacyTurretBlockEntity turret) {
-            return turret.fluidHandler(dummy.getBlockPos(), side);
+            return turret.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof LegacyMachineBlockEntity machine) {
-            return machine.fluidHandler(dummy.getBlockPos(), side);
+            return machine.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof ChemicalPlantBlockEntity chemicalPlant && allowsDummyAutomationPort(dummy, core)) {
-            return chemicalPlant.fluidHandler(side);
+            return chemicalPlant.fluidHandler(accessorSide);
         }
         if (core instanceof CrystallizerBlockEntity crystallizer && allowsDummyAutomationPort(dummy, core)) {
-            return crystallizer.fluidHandler(side);
+            return crystallizer.fluidHandler(accessorSide);
         }
         if (core instanceof SilexBlockEntity silex && allowsDummyAutomationPort(dummy, core)) {
-            return silex.fluidHandler(side);
+            return silex.fluidHandler(accessorSide);
         }
         if (core instanceof AssemblyMachineBlockEntity assemblyMachine && allowsDummyAutomationPort(dummy, core)) {
-            return assemblyMachine.fluidHandler(side);
+            return assemblyMachine.fluidHandler(accessorSide);
         }
-        if (core instanceof AssemblyFactoryBlockEntity factory && factory.allowsAutomationPort(dummy.getBlockPos(), side)) {
-            return factory.fluidHandler(dummy.getBlockPos(), side);
+        if (core instanceof AssemblyFactoryBlockEntity factory && factory.allowsAutomationPort(accessorPos, accessorSide)) {
+            return factory.fluidHandler(accessorPos, accessorSide);
         }
-        if (core instanceof ChemicalFactoryBlockEntity factory && factory.allowsAutomationPort(dummy.getBlockPos(), side)) {
-            return factory.fluidHandler(dummy.getBlockPos(), side);
+        if (core instanceof ChemicalFactoryBlockEntity factory && factory.allowsAutomationPort(accessorPos, accessorSide)) {
+            return factory.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof SolderingStationBlockEntity solderingStation) {
-            return solderingStation.fluidHandler(dummy.getBlockPos(), side);
+            return solderingStation.fluidHandler(accessorPos, accessorSide);
         }
         if (core instanceof HeaterBlockEntity heater) {
-            return heater.fluidHandler(dummy.getBlockPos(), side);
+            return heater.fluidHandler(accessorPos, accessorSide);
         }
         return null;
     }

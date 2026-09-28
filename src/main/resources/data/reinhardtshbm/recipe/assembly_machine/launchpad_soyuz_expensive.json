@@ -1,0 +1,17 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_528_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.launchpadsoyuz",
+  "duration": 1200,
+  "power": 5000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:concrete_rebar" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_ferro_plating" }, "count": 32 },
+    { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 32 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_controller_advanced" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:launchpad_soyuz", "count": 1 }
+}

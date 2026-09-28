@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:combination_oven",
+  "group": "combination_oven.briquette_coal",
+  "input": {
+    "item": "reinhardtshbm:briquette_coal"
+  },
+  "output": {
+    "id": "reinhardtshbm:coke_coal"
+  },
+  "fluid": {
+    "fluid": "coalcreosote",
+    "amount": 150
+  }
+}

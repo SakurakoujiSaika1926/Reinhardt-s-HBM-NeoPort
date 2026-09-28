@@ -10,7 +10,6 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -120,7 +119,7 @@ public class DeuteriumExtractorBlockEntity extends BlockEntity implements PowerE
         Direction facing = state.hasProperty(LargeMachineBlock.FACING)
                 ? state.getValue(LargeMachineBlock.FACING)
                 : Direction.SOUTH;
-        Direction rot = LegacyMachineGeometry.forgeRotateDown(facing);
+        Direction rot = deuteriumExtractorRight(facing);
         return List.of(
                 Port.fromConnector(corePos.relative(facing, -2), facing.getOpposite()),
                 Port.fromConnector(corePos.relative(facing, -2).relative(rot), facing.getOpposite()),
@@ -131,6 +130,16 @@ public class DeuteriumExtractorBlockEntity extends BlockEntity implements PowerE
                 Port.fromConnector(corePos.relative(rot, 2), rot),
                 Port.fromConnector(corePos.relative(facing, -1).relative(rot, 2), rot)
         );
+    }
+
+    private static Direction deuteriumExtractorRight(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Deuterium extractor requires a horizontal facing: " + facing);
+        };
     }
 
     @Override

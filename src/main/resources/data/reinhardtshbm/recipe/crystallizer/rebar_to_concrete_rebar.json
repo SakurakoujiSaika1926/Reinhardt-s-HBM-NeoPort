@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.rebar",
+  "ingredient": {
+    "item": "reinhardtshbm:rebar"
+  },
+  "acid": {
+    "fluid": "concrete",
+    "amount": 1000
+  },
+  "duration": 1,
+  "result": {
+    "id": "reinhardtshbm:concrete_rebar"
+  }
+}

@@ -42,14 +42,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
-        "items": "reinhardtshbm:battery_pack",
-        "components": {
-          "minecraft:custom_data": {
-            "variant": "capacitor_tantalum"
-          },
-          "minecraft:custom_model_data": 9
-        }
+        "item": "reinhardtshbm:battery_pack_capacitor_tantalum"
       },
       "count": 1
     },

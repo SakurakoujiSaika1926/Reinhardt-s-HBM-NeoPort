@@ -7,16 +7,7 @@
                         {
                             "count":  1,
                             "ingredient":  {
-                                               "components":  {
-                                                                  "minecraft:custom_model_data":  6,
-                                                                  "minecraft:custom_data":  {
-                                                                                                "type":  "tcalloy"
-                                                                                            }
-                                                              },
-                                               "items":  [
-                                                             "reinhardtshbm:drillbit"
-                                                         ],
-                                               "type":  "neoforge:components"
+                                               "item":  "reinhardtshbm:drillbit_tcalloy"
                                            }
                         },
                         {
@@ -27,12 +18,6 @@
                         }
                     ],
     "result":  {
-                   "id":  "reinhardtshbm:drillbit",
-                   "components":  {
-                                      "minecraft:custom_model_data":  7,
-                                      "minecraft:custom_data":  {
-                                                                    "type":  "tcalloy_diamond"
-                                                                }
-                                  }
+                   "id":  "reinhardtshbm:drillbit_tcalloy_diamond"
                }
 }

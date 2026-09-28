@@ -1,0 +1,23 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.exgold",
+  "duration": 600,
+  "power": 10000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/gold"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/gold"
+      },
+      "count": 64
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:item_expensive_gold_dust"
+  }
+}

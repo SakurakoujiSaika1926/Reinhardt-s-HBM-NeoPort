@@ -32,7 +32,6 @@ public final class LegacyEmpEntity extends Entity {
 
     public LegacyEmpEntity(EntityType<? extends LegacyEmpEntity> type, Level level) {
         super(type, level);
-        noCulling = true;
     }
 
     public static void spawnBlast(ServerLevel level, double x, double y, double z, int maxAge) {

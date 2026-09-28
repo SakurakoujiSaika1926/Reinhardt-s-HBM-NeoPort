@@ -4,6 +4,7 @@ import com.reinhardt.hbm.blockentity.HeatBoilerBlockEntity;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -24,11 +25,34 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public class HeatBoilerBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     private final Footprint footprint;
 
     public HeatBoilerBlock(Properties properties, Footprint footprint, VoxelShape shape) {
-        super(properties, footprint, shape, RotationBasis.MODERN_NORTH);
+        super(properties, footprint, shape, HeatBoilerBlock::mapHeatBoilerOffset);
         this.footprint = footprint;
+    }
+
+    private static BlockPos mapHeatBoilerOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Heat boiler requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable
@@ -78,7 +102,11 @@ public class HeatBoilerBlock extends LargeMachineBlock implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return super.getStateForPlacement(context);
+        net.minecraft.core.Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
     }
 
     public Footprint footprint() {

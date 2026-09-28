@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" M ", "ACA", " S "],
+  "key": {
+    "M": { "item": "reinhardtshbm:motor" },
+    "A": { "tag": "c:plates/aluminium" },
+    "C": { "item": "reinhardtshbm:shell_copper" },
+    "S": { "tag": "c:plates/cast_steel" }
+  },
+  "result": { "id": "reinhardtshbm:pile_vent" }
+}

@@ -13,6 +13,7 @@ import com.reinhardt.hbm.recipe.PressRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
+import com.reinhardt.hbm.util.FuelItemConsumption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -38,12 +39,17 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class PressBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
+    private static volatile Consumer<PressBlockEntity> clientRenderSnapshotUpdater = ignored -> { };
+    private static volatile long clientRenderSnapshotRevision;
     public static final int FIRE_FUEL_SLOT = 0;
     public static final int STAMP_SLOT = 1;
     public static final int INPUT_SLOT = 2;
@@ -85,6 +91,8 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     private int lastSyncedSpeed = Integer.MIN_VALUE;
     private int lastSyncedDelay = Integer.MIN_VALUE;
     private boolean lastSyncedRetracting;
+    private volatile ItemRenderSnapshot itemRenderSnapshot;
+    private boolean clientRenderSnapshotDirty = true;
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
@@ -128,6 +136,46 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
     public PressBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.PRESS.get(), pos, blockState);
+        this.itemRenderSnapshot = new ItemRenderSnapshot(blockState, ItemStack.EMPTY, null, null,
+                new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ()), 0L);
+    }
+
+    public static void clientTick(Level level, BlockPos pos, BlockState state, PressBlockEntity press) {
+        if (press.itemRenderSnapshot.revision() != clientRenderSnapshotRevision) {
+            press.clientRenderSnapshotDirty = true;
+        }
+        press.refreshClientRenderSnapshot();
+    }
+
+    public static void setClientRenderSnapshotUpdater(Consumer<PressBlockEntity> updater) {
+        clientRenderSnapshotUpdater = Objects.requireNonNull(updater);
+        clientRenderSnapshotRevision++;
+    }
+
+    public static long clientRenderSnapshotRevision() {
+        return clientRenderSnapshotRevision;
+    }
+
+    public ItemRenderSnapshot itemRenderSnapshot() {
+        return this.itemRenderSnapshot;
+    }
+
+    public void refreshClientRenderSnapshot() {
+        if (this.clientRenderSnapshotDirty && this.level != null && this.level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientRenderSnapshot(ItemRenderSnapshot snapshot) {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        ItemRenderSnapshot previous = this.itemRenderSnapshot;
+        this.itemRenderSnapshot = Objects.requireNonNull(snapshot);
+        this.clientRenderSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.bounds(), snapshot.bounds())) {
+            this.level.sendBlockUpdated(this.worldPosition, snapshot.blockState(), snapshot.blockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, PressBlockEntity blockEntity) {
@@ -274,6 +322,10 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             stack.setCount(this.getMaxStackSize(stack));
         }
         resetProgressIfProcessIdentityChanged(slot, previous, stack);
+        if (slot == INPUT_SLOT) {
+            this.clientRenderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
+        }
         setChangedAndSync(false);
     }
 
@@ -388,7 +440,7 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -514,6 +566,22 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             this.clientPrevProgress = this.progress;
             this.clientAnimationInitialized = true;
         }
+        this.clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        this.clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        super.setBlockState(state);
+        this.clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
     }
 
     @Override
@@ -691,10 +759,9 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             return;
         }
 
-        boolean lavaBucket = fuel.is(Items.LAVA_BUCKET);
-        fuel.shrink(1);
+        ItemStack remainder = FuelItemConsumption.consumeOne(fuel);
         if (fuel.isEmpty()) {
-            this.items.set(FIRE_FUEL_SLOT, lavaBucket ? new ItemStack(Items.BUCKET) : ItemStack.EMPTY);
+            this.items.set(FIRE_FUEL_SLOT, remainder);
         }
         this.burnTime += duration;
         setChangedAndSync(false);
@@ -801,6 +868,33 @@ public class PressBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
     private static double lerp(double previous, double current, float partialTick) {
         return previous + (current - previous) * partialTick;
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return sectionMin(first.minX) == sectionMin(second.minX)
+                && sectionMin(first.minY) == sectionMin(second.minY)
+                && sectionMin(first.minZ) == sectionMin(second.minZ)
+                && sectionMax(first.maxX) == sectionMax(second.maxX)
+                && sectionMax(first.maxY) == sectionMax(second.maxY)
+                && sectionMax(first.maxZ) == sectionMax(second.maxZ);
+    }
+
+    private static int sectionMin(double value) {
+        return net.minecraft.util.Mth.floor(value) >> 4;
+    }
+
+    private static int sectionMax(double value) {
+        return net.minecraft.util.Mth.floor(Math.nextDown(value)) >> 4;
+    }
+
+    public record ItemRenderSnapshot(BlockState blockState, ItemStack renderedInput,
+                                     Object itemModelToken, Object geometryToken,
+                                     AABB bounds, long revision) {
+        public ItemRenderSnapshot {
+            Objects.requireNonNull(blockState);
+            renderedInput = renderedInput.copy();
+            Objects.requireNonNull(bounds);
+        }
     }
 
     public enum Kind {

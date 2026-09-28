@@ -24,7 +24,6 @@ public final class LegacyBombletEntity extends Entity {
 
     public LegacyBombletEntity(EntityType<? extends LegacyBombletEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyBombletEntity(Level level, Vec3 position, Vec3 motion, int type) {

@@ -99,7 +99,7 @@ public class LauncherStructCoreBlockEntity extends BlockEntity {
 
     private static void buildCompact(Level level, BlockPos pos) {
         level.setBlock(pos, HbmBlocks.COMPACT_LAUNCHER.get().defaultBlockState(), Block.UPDATE_ALL);
-        CompactLauncherBlock.placeDummies(level, pos);
+        CompactLauncherBlock.placeDummies(level, pos, Direction.NORTH);
     }
 
     private static void buildTable(Level level, BlockPos pos, Direction facing) {

@@ -3,18 +3,19 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.blockentity.LiquefactorBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class LiquefactorBlockEntityRenderer implements BlockEntityRenderer<LiquefactorBlockEntity> {
+public class LiquefactorBlockEntityRenderer implements LongRangeBlockEntityRenderer<LiquefactorBlockEntity> {
     private static final ModelResourceLocation MAIN = MachineModelRenderer.standalone("block/machine_liquefactor");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_liquefactor_fluid");
     private static final ModelResourceLocation GLASS = MachineModelRenderer.standalone("block/machine_liquefactor_glass");
     private static final int GLASS_COLOR = 0x26BFFFFF;
+    private static final AABB RENDER_BOUNDS = createLiquefactorLocalBounds();
 
     public LiquefactorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -30,7 +31,7 @@ public class LiquefactorBlockEntityRenderer implements BlockEntityRenderer<Lique
         BlockState state = liquefactor.getBlockState();
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, 0.0F);
+        applyLiquefactorPose(poseStack);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MAIN), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         if (liquefactor.tank().amount() > 0 && !liquefactor.tank().type().isNone()) {
@@ -57,6 +58,21 @@ public class LiquefactorBlockEntityRenderer implements BlockEntityRenderer<Lique
 
     @Override
     public AABB getRenderBoundingBox(LiquefactorBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 5.0D, 3.0D);
+        // Main OBJ is +/-1.5 by 0..4 after the +0.5 origin shift; fluid/glass are contained.
+        return RENDER_BOUNDS.move(blockEntity.getBlockPos());
+    }
+
+    private static void applyLiquefactorPose(PoseStack poseStack) {
+        // The 1.7.10 liquefactor renderer has no facing-dependent rotation.
+        // Keep this transform owned by this renderer instead of routing it
+        // through a shared machine-orientation helper.
+        poseStack.translate(0.5D, 0.0D, 0.5D);
+    }
+
+    private static AABB createLiquefactorLocalBounds() {
+        PoseStack poseStack = new PoseStack();
+        applyLiquefactorPose(poseStack);
+        return RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
+                -1.5F, 0.0F, -1.5F, 1.5F, 4.0F, 1.5F);
     }
 }

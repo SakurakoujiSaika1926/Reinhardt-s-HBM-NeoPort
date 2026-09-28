@@ -26,17 +26,9 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CoolingTowerBlockEntity extends BlockEntity implements FluidCopiable {
-    private static final Direction[] PORT_DIRECTIONS = {
-            Direction.NORTH,
-            Direction.SOUTH,
-            Direction.WEST,
-            Direction.EAST
-    };
-
     private final HbmFluidTank inputTank = new HbmFluidTank(spentSteam(), CoolingTowerBlock.Kind.SMALL.inputCapacity());
     private final HbmFluidTank outputTank = new HbmFluidTank(water(), CoolingTowerBlock.Kind.SMALL.outputCapacity());
     private int waterTimer;
@@ -166,7 +158,10 @@ public class CoolingTowerBlockEntity extends BlockEntity implements FluidCopiabl
     }
 
     private List<Port> ports() {
-        return ports(this.worldPosition, kind());
+        return switch (kind()) {
+            case SMALL -> smallTowerPorts(this.worldPosition);
+            case LARGE -> largeTowerPorts(this.worldPosition);
+        };
     }
 
     private void setupTanks() {
@@ -241,24 +236,30 @@ public class CoolingTowerBlockEntity extends BlockEntity implements FluidCopiabl
         return CoolingTowerBlock.Kind.SMALL;
     }
 
-    public static List<Port> ports(BlockPos corePos, CoolingTowerBlock.Kind kind) {
-        ArrayList<Port> ports = new ArrayList<>();
-        if (kind == CoolingTowerBlock.Kind.SMALL) {
-            for (Direction direction : PORT_DIRECTIONS) {
-                ports.add(new Port(corePos.relative(direction, 2), corePos.relative(direction, 3), direction));
-            }
-            return List.copyOf(ports);
-        }
+    public static List<Port> smallTowerPorts(BlockPos corePos) {
+        return List.of(
+                new Port(corePos.offset(0, 0, -2), corePos.offset(0, 0, -3), Direction.NORTH),
+                new Port(corePos.offset(0, 0, 2), corePos.offset(0, 0, 3), Direction.SOUTH),
+                new Port(corePos.offset(-2, 0, 0), corePos.offset(-3, 0, 0), Direction.WEST),
+                new Port(corePos.offset(2, 0, 0), corePos.offset(3, 0, 0), Direction.EAST)
+        );
+    }
 
-        for (Direction direction : PORT_DIRECTIONS) {
-            Direction rot = direction.getClockWise();
-            BlockPos sideCenter = corePos.relative(direction, 4);
-            BlockPos connectorCenter = corePos.relative(direction, 5);
-            ports.add(new Port(sideCenter, connectorCenter, direction));
-            ports.add(new Port(sideCenter.relative(rot, 3), connectorCenter.relative(rot, 3), direction));
-            ports.add(new Port(sideCenter.relative(rot, -3), connectorCenter.relative(rot, -3), direction));
-        }
-        return List.copyOf(ports);
+    public static List<Port> largeTowerPorts(BlockPos corePos) {
+        return List.of(
+                new Port(corePos.offset(0, 0, -4), corePos.offset(0, 0, -5), Direction.NORTH),
+                new Port(corePos.offset(3, 0, -4), corePos.offset(3, 0, -5), Direction.NORTH),
+                new Port(corePos.offset(-3, 0, -4), corePos.offset(-3, 0, -5), Direction.NORTH),
+                new Port(corePos.offset(0, 0, 4), corePos.offset(0, 0, 5), Direction.SOUTH),
+                new Port(corePos.offset(-3, 0, 4), corePos.offset(-3, 0, 5), Direction.SOUTH),
+                new Port(corePos.offset(3, 0, 4), corePos.offset(3, 0, 5), Direction.SOUTH),
+                new Port(corePos.offset(-4, 0, 0), corePos.offset(-5, 0, 0), Direction.WEST),
+                new Port(corePos.offset(-4, 0, -3), corePos.offset(-5, 0, -3), Direction.WEST),
+                new Port(corePos.offset(-4, 0, 3), corePos.offset(-5, 0, 3), Direction.WEST),
+                new Port(corePos.offset(4, 0, 0), corePos.offset(5, 0, 0), Direction.EAST),
+                new Port(corePos.offset(4, 0, 3), corePos.offset(5, 0, 3), Direction.EAST),
+                new Port(corePos.offset(4, 0, -3), corePos.offset(5, 0, -3), Direction.EAST)
+        );
     }
 
     private static HbmFluidDefinition spentSteam() {

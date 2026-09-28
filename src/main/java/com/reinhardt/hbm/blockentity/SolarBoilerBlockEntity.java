@@ -1,5 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.client.SolarBoilerClientHooks;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -17,10 +19,18 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.fml.loading.FMLEnvironment;
+import org.joml.AxisAngle4f;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,15 +47,24 @@ public class SolarBoilerBlockEntity extends BlockEntity {
     private int heatDisplay;
     // Matches TileEntitySolarBoiler's delayed client-side mirror queue.
     private final Set<BlockPos> primaryMirrors = new LinkedHashSet<>();
-    private final Set<BlockPos> secondaryMirrors = new LinkedHashSet<>();
+    private volatile RenderSnapshot renderSnapshot;
 
     public SolarBoilerBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.SOLAR_BOILER.get(), pos, blockState);
+        // Bootstrap with the same proved face-used static model envelope used by
+        // client snapshots.  Beam geometry is added only after the client publishes
+        // its immutable mirror set; the owner model can therefore never be clipped
+        // before the first client tick.
+        this.renderSnapshot = new RenderSnapshot(
+                blockState, facing(blockState), false, Set.of(), List.of(),
+                modelBounds(pos, facing(blockState)));
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SolarBoilerBlockEntity boiler) {
         if (level.isClientSide) {
-            boiler.tickClient();
+            if (FMLEnvironment.dist.isClient()) {
+                SolarBoilerClientHooks.tick(boiler);
+            }
             return;
         }
         boiler.tickServer(level);
@@ -80,7 +99,11 @@ public class SolarBoilerBlockEntity extends BlockEntity {
     }
 
     public Set<BlockPos> activeMirrors() {
-        return Set.copyOf(this.secondaryMirrors);
+        return this.renderSnapshot.activeMirrors();
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
     }
 
     @Nullable
@@ -151,10 +174,199 @@ public class SolarBoilerBlockEntity extends BlockEntity {
         }
     }
 
-    private void tickClient() {
-        this.secondaryMirrors.clear();
-        this.secondaryMirrors.addAll(this.primaryMirrors);
+    public void tickClient(boolean beamsEnabled) {
+        Set<BlockPos> nextMirrors = Collections.unmodifiableSet(new LinkedHashSet<>(this.primaryMirrors));
         this.primaryMirrors.clear();
+        BlockState state = this.getBlockState();
+        RenderSnapshot previous = this.renderSnapshot;
+        if (previous.blockState() == state
+                && previous.beamsEnabled() == beamsEnabled
+                && previous.activeMirrors().equals(nextMirrors)) {
+            return;
+        }
+
+        RenderSnapshot next = buildClientRenderSnapshot(state, beamsEnabled, nextMirrors);
+        this.renderSnapshot = next;
+        if (this.level != null && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+            this.level.sendBlockUpdated(
+                    this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private RenderSnapshot buildClientRenderSnapshot(
+            BlockState state, boolean beamsEnabled, Set<BlockPos> mirrors) {
+        Direction direction = facing(state);
+        AABB bounds = modelBounds(this.worldPosition, direction);
+        List<BeamVertex> beamVertices = List.of();
+        if (beamsEnabled) {
+            ArrayList<BeamVertex> builtVertices = new ArrayList<>();
+            int rendered = 0;
+            for (BlockPos mirrorPos : mirrors) {
+                if (rendered++ >= 64) {
+                    break;
+                }
+                int firstVertex = builtVertices.size();
+                appendMirrorBeam(this.worldPosition, mirrorPos, builtVertices);
+                for (int vertexIndex = firstVertex; vertexIndex < builtVertices.size(); vertexIndex++) {
+                    BeamVertex vertex = builtVertices.get(vertexIndex);
+                    double worldX = this.worldPosition.getX() + vertex.x();
+                    double worldY = this.worldPosition.getY() + vertex.y();
+                    double worldZ = this.worldPosition.getZ() + vertex.z();
+                    bounds = bounds.minmax(new AABB(
+                            worldX, worldY, worldZ,
+                            worldX, worldY, worldZ));
+                }
+            }
+            beamVertices = List.copyOf(builtVertices);
+        }
+        return new RenderSnapshot(state, direction, beamsEnabled, mirrors, beamVertices, bounds);
+    }
+
+    private static AABB modelBounds(BlockPos pos, Direction direction) {
+        Matrix4f transform = new Matrix4f()
+                .translation(0.5F, 0.0F, 0.5F);
+        applySolarBoilerBoundsPose(transform, direction);
+        // RenderSolarBoiler renders only Base.  These are the exact face-used
+        // extrema of that group in solar_boiler.obj; Overglow_1..3 are not
+        // world geometry and must not enlarge the culling envelope.
+        return transformedBounds(pos, transform,
+                -1.5F, 0.0F, -1.5F,
+                1.5F, 3.0F, 1.5F);
+    }
+
+    private static void appendMirrorBeam(
+            BlockPos boilerPos, BlockPos mirrorPos, List<BeamVertex> output) {
+        int dx = boilerPos.getX() - mirrorPos.getX();
+        int dy = boilerPos.getY() - mirrorPos.getY();
+        int dz = boilerPos.getZ() - mirrorPos.getZ();
+        double distance = Math.sqrt(dx * (double) dx + dy * (double) dy + dz * (double) dz);
+        if (distance <= 0.0001D) {
+            return;
+        }
+
+        float pitch = (float) (Math.toDegrees(-Math.asin((dy + 0.5D) / distance)) + 90.0D);
+        float yaw = (float) (Math.toDegrees(-Math.atan2(dz, dx)) + 180.0D);
+        Matrix4f transform = new Matrix4f()
+                .translation(-dx, -dy, -dz)
+                .translate(0.0F, 1.0F, 0.0F)
+                .rotate(yawQuaternion(yaw))
+                .rotate(new Quaternionf(new AxisAngle4f(
+                        (float) Math.toRadians(pitch), 0.0F, 0.0F, 1.0F)))
+                .translate(0.0F, -1.0F, 0.0F);
+        float end = (float) distance;
+        appendBeamQuad(output, transform,
+                0.5F, 1.0625F, 0.5F,
+                0.5F, 1.0625F, -0.5F,
+                0.5F, end, -0.5F,
+                0.5F, end, 0.5F);
+        appendBeamQuad(output, transform,
+                -0.5F, 1.0625F, 0.5F,
+                -0.5F, 1.0625F, -0.5F,
+                -0.5F, end, -0.5F,
+                -0.5F, end, 0.5F);
+        appendBeamQuad(output, transform,
+                0.5F, 1.0625F, 0.5F,
+                -0.5F, 1.0625F, 0.5F,
+                -0.5F, end, 0.5F,
+                0.5F, end, 0.5F);
+        appendBeamQuad(output, transform,
+                0.5F, 1.0625F, -0.5F,
+                -0.5F, 1.0625F, -0.5F,
+                -0.5F, end, -0.5F,
+                0.5F, end, -0.5F);
+    }
+
+    private static void appendBeamQuad(
+            List<BeamVertex> output, Matrix4f transform,
+            float ax, float ay, float az,
+            float bx, float by, float bz,
+            float cx, float cy, float cz,
+            float dx, float dy, float dz) {
+        appendBeamVertex(output, transform, ax, ay, az, Math.round(0.01F * 255.0F));
+        appendBeamVertex(output, transform, bx, by, bz, Math.round(0.01F * 255.0F));
+        appendBeamVertex(output, transform, cx, cy, cz, Math.round(0.005F * 255.0F));
+        appendBeamVertex(output, transform, dx, dy, dz, Math.round(0.005F * 255.0F));
+    }
+
+    private static void appendBeamVertex(
+            List<BeamVertex> output, Matrix4f transform,
+            float x, float y, float z, int alpha) {
+        Vector3f transformed = transform.transformPosition(new Vector3f(x, y, z));
+        output.add(new BeamVertex(transformed.x, transformed.y, transformed.z, alpha));
+    }
+
+    private static AABB transformedBounds(
+            BlockPos pos, Matrix4f transform,
+            float minX, float minY, float minZ,
+            float maxX, float maxY, float maxZ) {
+        float outMinX = Float.POSITIVE_INFINITY;
+        float outMinY = Float.POSITIVE_INFINITY;
+        float outMinZ = Float.POSITIVE_INFINITY;
+        float outMaxX = Float.NEGATIVE_INFINITY;
+        float outMaxY = Float.NEGATIVE_INFINITY;
+        float outMaxZ = Float.NEGATIVE_INFINITY;
+        for (float x : new float[]{minX, maxX}) {
+            for (float y : new float[]{minY, maxY}) {
+                for (float z : new float[]{minZ, maxZ}) {
+                    Vector3f point = transform.transformPosition(new Vector3f(x, y, z));
+                    outMinX = Math.min(outMinX, point.x);
+                    outMinY = Math.min(outMinY, point.y);
+                    outMinZ = Math.min(outMinZ, point.z);
+                    outMaxX = Math.max(outMaxX, point.x);
+                    outMaxY = Math.max(outMaxY, point.y);
+                    outMaxZ = Math.max(outMaxZ, point.z);
+                }
+            }
+        }
+        return new AABB(
+                pos.getX() + outMinX, pos.getY() + outMinY, pos.getZ() + outMinZ,
+                pos.getX() + outMaxX, pos.getY() + outMaxY, pos.getZ() + outMaxZ);
+    }
+
+    private static Direction facing(BlockState state) {
+        if (!state.hasProperty(LargeMachineBlock.FACING)) {
+            throw new IllegalStateException("Solar boiler block state is missing its facing property: " + state);
+        }
+        Direction direction = state.getValue(LargeMachineBlock.FACING);
+        if (direction.getAxis().isVertical()) {
+            throw new IllegalStateException("Solar boiler block state has a vertical facing: " + direction);
+        }
+        return direction;
+    }
+
+    private static void applySolarBoilerBoundsPose(Matrix4f transform, Direction facing) {
+        switch (facing) {
+            case EAST -> transform.rotate(new Quaternionf(new AxisAngle4f(
+                    (float) Math.toRadians(90.0F), 0.0F, 1.0F, 0.0F)));
+            case SOUTH -> { }
+            case WEST -> transform.rotate(new Quaternionf(new AxisAngle4f(
+                    (float) Math.toRadians(270.0F), 0.0F, 1.0F, 0.0F)));
+            case NORTH -> transform.rotate(new Quaternionf(new AxisAngle4f(
+                    (float) Math.toRadians(180.0F), 0.0F, 1.0F, 0.0F)));
+            case UP, DOWN -> throw new IllegalArgumentException("Solar boiler facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Quaternionf yawQuaternion(float degrees) {
+        return new Quaternionf(new AxisAngle4f(
+                (float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return sectionMin(first.minX) == sectionMin(second.minX)
+                && sectionMin(first.minY) == sectionMin(second.minY)
+                && sectionMin(first.minZ) == sectionMin(second.minZ)
+                && sectionMax(first.maxX) == sectionMax(second.maxX)
+                && sectionMax(first.maxY) == sectionMax(second.maxY)
+                && sectionMax(first.maxZ) == sectionMax(second.maxZ);
+    }
+
+    private static int sectionMin(double value) {
+        return net.minecraft.util.Mth.floor(value) >> 4;
+    }
+
+    private static int sectionMax(double value) {
+        return net.minecraft.util.Mth.floor(Math.nextDown(value)) >> 4;
     }
 
     private void tryConvert() {
@@ -262,6 +474,23 @@ public class SolarBoilerBlockEntity extends BlockEntity {
         public BlockPos connectorPos() {
             return this.pos.relative(this.face);
         }
+    }
+
+    public record RenderSnapshot(
+            BlockState blockState,
+            Direction facing,
+            boolean beamsEnabled,
+            Set<BlockPos> activeMirrors,
+            List<BeamVertex> beamVertices,
+            AABB bounds) {
+        public RenderSnapshot {
+            activeMirrors = Collections.unmodifiableSet(new LinkedHashSet<>(activeMirrors));
+            beamVertices = List.copyOf(beamVertices);
+        }
+    }
+
+    /** One already-transformed local vertex from the legacy four-face beam. */
+    public record BeamVertex(float x, float y, float z, int alpha) {
     }
 
     private final class SolarBoilerFluidHandler implements IFluidHandler {

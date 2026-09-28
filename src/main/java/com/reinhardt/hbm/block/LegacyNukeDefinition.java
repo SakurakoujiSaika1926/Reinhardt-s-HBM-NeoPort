@@ -65,18 +65,6 @@ public enum LegacyNukeDefinition {
 
     public boolean isCustom() { return this == CUSTOM; }
 
-    public float worldYaw(net.minecraft.core.Direction facing) {
-        return switch (this) {
-            case GADGET -> switch (facing) { case WEST -> 0F; case SOUTH -> 90F; case EAST -> 180F; default -> 270F; };
-            case MAN -> switch (facing) { case EAST -> 90F; case NORTH -> 180F; case WEST -> 270F; default -> 0F; };
-            case MIKE -> switch (facing) { case EAST -> 0F; case NORTH -> 90F; case WEST -> 180F; default -> 270F; };
-            case TSAR, BALEFIRE -> switch (facing) { case WEST -> 90F; case SOUTH -> 180F; case EAST -> 270F; default -> 0F; };
-            case FLEIJA, PROTOTYPE -> switch (facing) { case NORTH -> 90F; case WEST -> 180F; case SOUTH -> 270F; default -> 0F; };
-            case SOLINIUM, N2 -> switch (facing) { case NORTH -> 90F; case WEST -> 180F; case SOUTH -> 270F; default -> 0F; };
-            case CUSTOM -> switch (facing) { case WEST -> 90F; case SOUTH -> 180F; case EAST -> 270F; default -> 0F; };
-        };
-    }
-
     public static LegacyNukeDefinition fromBlockId(String id) {
         return Arrays.stream(values()).filter(definition -> definition.blockId.equals(id)).findFirst().orElse(CUSTOM);
     }

@@ -1,0 +1,58 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_ueu_6",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_ueu"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  6
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "ir",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:powder_xe135_tiny"
+                                 },
+                        "weight":  1
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_uranium"
+                                 },
+                        "weight":  75
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_pu239"
+                                 },
+                        "weight":  13
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_long_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  0
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  5
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_short_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  0
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  6
+                    }
+                ]
+}

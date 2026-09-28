@@ -32,9 +32,9 @@
     },
     {
       "ingredient": {
-        "tag": "c:ingots/hard_plastic"
+        "item": "reinhardtshbm:item_expensive_plastic"
       },
-      "count": 16
+      "count": 4
     },
     {
       "ingredient": {

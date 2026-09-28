@@ -52,6 +52,17 @@ public class SmallBoilerBlock extends Block implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case OLD -> oldBoilerStateForPlacement(context);
+            case ELECTRIC -> electricBoilerStateForPlacement(context);
+        };
+    }
+
+    private BlockState oldBoilerStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState electricBoilerStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
@@ -148,11 +159,33 @@ public class SmallBoilerBlock extends Block implements EntityBlock {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.kind) {
+            case OLD -> rotateOldBoiler(state, rotation);
+            case ELECTRIC -> rotateElectricBoiler(state, rotation);
+        };
+    }
+
+    private static BlockState rotateOldBoiler(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateElectricBoiler(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case OLD -> mirrorOldBoiler(state, mirror);
+            case ELECTRIC -> mirrorElectricBoiler(state, mirror);
+        };
+    }
+
+    private static BlockState mirrorOldBoiler(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorElectricBoiler(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

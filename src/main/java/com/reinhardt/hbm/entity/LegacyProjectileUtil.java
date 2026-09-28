@@ -30,6 +30,9 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.Explosion;
@@ -45,9 +48,12 @@ import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.event.EventHooks;
 import javax.annotation.Nullable;
 
 public final class LegacyProjectileUtil {
+    private static final net.minecraft.resources.ResourceLocation PRECISION_LASER_ARMOR_PIERCE =
+            com.reinhardt.hbm.ReinhardtsHBM.id("precision_laser_armor_pierce");
     private LegacyProjectileUtil() {
     }
 
@@ -162,6 +168,76 @@ public final class LegacyProjectileUtil {
         }
     }
 
+    /**
+     * Exact non-griefing VNT impact used by the orbital death ray's
+     * {@code MASKMAN_BOLT}: {@code BlockProcessorNoDamage},
+     * {@code EntityProcessorStandard.allowSelfDamage()},
+     * {@code PlayerProcessorStandard}, and {@code ExplosionEffectStandard}.
+     */
+    public static void deathRayBoltImpactExplosion(Entity projectile, Vec3 pos, float radius) {
+        if (!(projectile.level() instanceof ServerLevel level)) {
+            return;
+        }
+
+        float size = radius * 2.0F;
+        AABB area = new AABB(
+                pos.x - size - 1.0D, pos.y - size - 1.0D, pos.z - size - 1.0D,
+                pos.x + size + 1.0D, pos.y + size + 1.0D, pos.z + size + 1.0D);
+        // The old bolt has no thrower, and allowSelfDamage therefore asks for
+        // every entity in the box rather than excluding the projectile.
+        java.util.List<Entity> entities = level.getEntities((Entity) null, area, Entity::isAlive);
+        Explosion eventExplosion = new Explosion(level, null,
+                pos.x, pos.y, pos.z, radius, false, Explosion.BlockInteraction.KEEP);
+        EventHooks.onExplosionDetonate(level, eventExplosion, entities, size);
+
+        DamageSource damageSource = level.damageSources().explosion(null);
+        for (Entity entity : entities) {
+            double distanceScaled = Math.sqrt(entity.distanceToSqr(pos)) / size;
+            if (distanceScaled > 1.0D) {
+                continue;
+            }
+            Vec3 delta = new Vec3(
+                    entity.getX() - pos.x,
+                    entity.getEyeY() - pos.y,
+                    entity.getZ() - pos.z);
+            double distance = delta.length();
+            if (distance == 0.0D) {
+                continue;
+            }
+
+            double density = Explosion.getSeenPercent(pos, entity);
+            double knockback = (1.0D - distanceScaled) * density;
+            float damage = (float) ((int) ((knockback * knockback + knockback)
+                    / 2.0D * 8.0D * size + 1.0D));
+            entity.hurt(damageSource, damage);
+
+            // Blast Protection is represented by this attribute in 1.21.1;
+            // it is the direct modern equivalent of the old
+            // EnchantmentProtection.func_92092_a call.
+            double dampenedKnockback = knockback;
+            if (entity instanceof LivingEntity living) {
+                dampenedKnockback *= 1.0D - living.getAttributeValue(
+                        Attributes.EXPLOSION_KNOCKBACK_RESISTANCE);
+            }
+            entity.setDeltaMovement(entity.getDeltaMovement().add(
+                    delta.scale(dampenedKnockback / distance)));
+            entity.hurtMarked = true;
+        }
+
+        // BlockProcessorNoDamage clears the allocated block set before
+        // ExplosionEffectStandard serializes it, leaving exactly one
+        // large-explosion particle and the standard sound.
+        for (ServerPlayer player : level.players()) {
+            if (player.distanceToSqr(pos) <= 250.0D * 250.0D) {
+                level.sendParticles(player, ParticleTypes.EXPLOSION, true,
+                        pos.x, pos.y, pos.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+        }
+        float pitch = (1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.2F) * 0.7F;
+        level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE.value(),
+                SoundSource.BLOCKS, 4.0F, pitch);
+    }
+
     public static void composeExplosionEffect(
             Level level,
             Vec3 pos,
@@ -231,6 +307,19 @@ public final class LegacyProjectileUtil {
         }
         applyLegacyFixedCrossDamage(level, source, pos, radius, damage, 1.0D);
         sendSmallExplosionEffect(level, pos, 10, 2.5F, 1.0F);
+    }
+
+    /**
+     * Literal {@code EntityOrbitalLaser.explode()} port: VNT size 5,
+     * standard 16-ray terrain allocator and normal 1/5 drops, a one-block
+     * cross sampler dealing 1,000 distance-falloff LASER damage with the old
+     * 50 DT / 0.5 DR piercing parameters, and the 15/3.5/1.25 weapon effect.
+     */
+    public static void precisionOrbitalLaserExplosion(ServerLevel level, Vec3 center) {
+        Set<BlockPos> affected = allocateLegacyMissileStandardBlocks(level, center, 5.0F, 16);
+        applyPrecisionOrbitalLaserDamage(level, center);
+        processLegacyStandardBlocksWithDrops(level, center, 5.0F, affected, 1.0F / 5.0F);
+        sendSmallExplosionEffect(level, center, 15, 3.5F, 1.25F);
     }
 
     public static void volcanicExplosion(Entity source, Vec3 pos, float radius, float rangeMod) {
@@ -912,6 +1001,60 @@ public final class LegacyProjectileUtil {
         }
     }
 
+    private static void applyPrecisionOrbitalLaserDamage(ServerLevel level, Vec3 center) {
+        final float radius = 5.0F;
+        final double size = radius * 2.0D;
+        AABB area = new AABB(center, center).inflate(size + 1.0D);
+        java.util.List<Entity> entities = level.getEntities((Entity) null, area, Entity::isAlive);
+        Explosion eventExplosion = new Explosion(level, null,
+                center.x, center.y, center.z, radius, false, Explosion.BlockInteraction.DESTROY);
+        EventHooks.onExplosionDetonate(level, eventExplosion, entities, (float) size);
+        Vec3[] nodes = legacyCrossNodes(center, 1.0D);
+        for (Entity entity : entities) {
+            double distanceScaled = legacyBoxDistance(entity, center) / size;
+            if (distanceScaled > 1.0D) continue;
+            Vec3 delta = new Vec3(entity.getX() - center.x, entity.getEyeY() - center.y, entity.getZ() - center.z);
+            double distance = delta.length();
+            if (distance == 0.0D) continue;
+            double density = 0.0D;
+            for (Vec3 node : nodes) density = Math.max(density, Explosion.getSeenPercent(node, entity));
+            if (density < 0.125D) continue;
+
+            float damage = (float) (1_000.0D * (1.0D - distanceScaled));
+            if (damage > 0.0F) {
+                if (entity instanceof LivingEntity living) hurtPrecisionLaser(level, living, damage);
+                else hurtNoIFrame(entity, level.damageSources().source(HbmDamageTypes.LASER), damage);
+            }
+            double knockback = (1.0D - distanceScaled) * density;
+            if (entity instanceof LivingEntity living) {
+                knockback *= 1.0D - living.getAttributeValue(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE);
+            }
+            entity.setDeltaMovement(entity.getDeltaMovement().add(delta.scale(knockback / distance)));
+            entity.hurtMarked = true;
+        }
+    }
+
+    private static void hurtPrecisionLaser(ServerLevel level, LivingEntity living, float damage) {
+        AttributeInstance armour = living.getAttribute(Attributes.ARMOR);
+        if (armour == null) {
+            hurtNoIFrame(living, level.damageSources().source(HbmDamageTypes.LASER), damage);
+            return;
+        }
+        // EntityDamageUtil applied setupPiercing(..., 0.5) by halving the
+        // armour contribution for this one hit. A transient total multiplier
+        // preserves that per-hit behavior without changing the LASER damage
+        // type or permanently rewriting equipment attributes.
+        armour.removeModifier(PRECISION_LASER_ARMOR_PIERCE);
+        armour.addTransientModifier(new AttributeModifier(
+                PRECISION_LASER_ARMOR_PIERCE, -0.5D,
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        try {
+            hurtNoIFrame(living, level.damageSources().source(HbmDamageTypes.LASER), damage);
+        } finally {
+            armour.removeModifier(PRECISION_LASER_ARMOR_PIERCE);
+        }
+    }
+
     private static void applyLandmineDamage(
             ServerLevel level,
             Vec3 center,
@@ -1045,6 +1188,19 @@ public final class LegacyProjectileUtil {
                 continue;
             }
             level.setBlockAndUpdate(blockPos, net.minecraft.world.level.block.BaseFireBlock.getState(level, blockPos));
+        }
+    }
+
+    private static void processLegacyStandardBlocksWithDrops(
+            ServerLevel level, Vec3 center, float strength, Set<BlockPos> affected, float dropChance) {
+        Explosion context = new Explosion(level, null, center.x, center.y, center.z,
+                strength, false, Explosion.BlockInteraction.DESTROY);
+        for (BlockPos blockPos : affected) {
+            BlockState state = level.getBlockState(blockPos);
+            if (state.isAir()) continue;
+            state.onExplosionHit(level, blockPos, context, (stack, dropPos) -> {
+                if (level.random.nextFloat() < dropChance) Block.popResource(level, dropPos, stack);
+            });
         }
     }
 

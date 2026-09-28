@@ -1,11 +1,11 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.screen.widget.SearchEditBox;
 import com.reinhardt.hbm.menu.PrecisionAssemblerMenu;
 import com.reinhardt.hbm.recipe.PrecisionAssemblerRecipe;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -32,7 +32,7 @@ public final class PrecisionAssemblerRecipeSelectorScreen extends Screen {
     private final List<RecipeHolder<PrecisionAssemblerRecipe>> allRecipes;
     private final List<RecipeHolder<PrecisionAssemblerRecipe>> recipes = new ArrayList<>();
     @Nullable private ResourceLocation selected;
-    private EditBox search;
+    private SearchEditBox search;
     private int left;
     private int top;
     private int page;
@@ -51,7 +51,7 @@ public final class PrecisionAssemblerRecipeSelectorScreen extends Screen {
     @Override protected void init() {
         this.left = (this.width - WIDTH) / 2;
         this.top = (this.height - HEIGHT) / 2;
-        this.search = new EditBox(this.font, this.left + 28, this.top + 111, 102, 12, Component.translatable("container.reinhardtshbm.recipe_selector.search"));
+        this.search = new SearchEditBox(this.font, this.left + 28, this.top + 111, 102, 12, Component.translatable("container.reinhardtshbm.recipe_selector.search"));
         this.search.setTextColor(0xFFFFFF);
         this.search.setTextColorUneditable(0xFFFFFF);
         this.search.setBordered(false);

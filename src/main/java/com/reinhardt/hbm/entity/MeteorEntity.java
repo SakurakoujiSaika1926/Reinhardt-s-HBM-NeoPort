@@ -30,7 +30,6 @@ public class MeteorEntity extends Entity {
 
     public MeteorEntity(EntityType<? extends MeteorEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
         setNoGravity(true);
     }
 

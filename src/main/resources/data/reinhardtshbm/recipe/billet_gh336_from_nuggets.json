@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["###", "###"],
+  "key": {"#": {"tag": "c:nuggets/gh336"}},
+  "result": {"id": "reinhardtshbm:billet_gh336"}
+}

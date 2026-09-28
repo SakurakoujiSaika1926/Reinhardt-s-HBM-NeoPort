@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [{ "item": "reinhardtshbm:egg_balefire" }],
+  "result": { "id": "reinhardtshbm:egg_balefire_shard", "count": 9 }
+}

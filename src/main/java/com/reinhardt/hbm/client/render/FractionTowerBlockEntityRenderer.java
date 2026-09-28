@@ -12,6 +12,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class FractionTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<FractionTowerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fraction_tower");
+    private static final AABB LOCAL_BOUNDS = buildFractionTowerBounds();
 
     public FractionTowerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -24,13 +25,25 @@ public class FractionTowerBlockEntityRenderer implements LongRangeBlockEntityRen
     public void render(FractionTowerBlockEntity tower, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = tower.getBlockState();
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, 0.0F);
+        applyFractionTowerTransform(poseStack);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(FractionTowerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 4.0D, 3.0D);
+        // Exact face-used fraction_tower.obj envelope under the renderer's origin pose.
+        return LOCAL_BOUNDS.move(blockEntity.getBlockPos());
+    }
+
+    private static AABB buildFractionTowerBounds() {
+        PoseStack poseStack = new PoseStack();
+        applyFractionTowerTransform(poseStack);
+        return RenderBounds.transformedBox(net.minecraft.core.BlockPos.ZERO, poseStack,
+                -1.5F, 0.0F, -1.5F, 1.5F, 3.0F, 1.5F);
+    }
+
+    private static void applyFractionTowerTransform(PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
     }
 }

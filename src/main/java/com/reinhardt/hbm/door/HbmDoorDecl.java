@@ -23,6 +23,7 @@ public enum HbmDoorDecl {
     LARGE_VEHICLE_DOOR("large_vehicle_door", 60, dims(5, 0, 0, 0, 3, 3), new int[][]{{0, 0, 0, -4, 6, 2}, {0, 0, 0, 4, 6, 2}}, 0, "block/doors/large_vehicle_door", "block/doors/large_vehicle_door", Animation.VERTICAL),
     VAULT_DOOR("vault_door", 120, dims(4, 0, 0, 0, 2, 2), new int[][]{{-1, 1, 0, 3, 3, 2}}, 7, "block/doors/vault_door", "block/doors/vault_door", Animation.VAULT, new int[][]{{0, 0, 1, -1, 2, 2}}),
     WATER_DOOR("water_door", 60, dims(2, 0, 0, 0, 1, 1), new int[][]{{1, 0, 0, -3, 3, 2}}, 2, "block/doors/water_door", "block/doors/water_door", Animation.WATER),
+    CARGO_DOOR("cargo_door", 60, dims(2, 0, 0, 0, 1, 1), new int[][]{{-1, -1, 0, 3, 3, 1}}, 1, "block/doors/cargo_door", "block/doors/cargo_door", Animation.CARGO),
     SILO_HATCH("silo_hatch", 60, dims(0, 0, 2, 2, 2, 2), new int[][]{{1, 0, 1, -3, 3, 0}, {0, 0, 1, -3, 3, 0}, {-1, 0, 1, -3, 3, 0}}, 0, "block/doors/silo_hatch", "block/doors/silo_hatch", Animation.HATCH, null, 2),
     SILO_HATCH_LARGE("silo_hatch_large", 60, dims(0, 0, 3, 3, 3, 3), new int[][]{{2, 0, 1, -3, 3, 0}, {1, 0, 2, -5, 3, 0}, {0, 0, 2, -5, 3, 0}, {-1, 0, 2, -5, 3, 0}, {-2, 0, 1, -3, 3, 0}}, 0, "block/doors/silo_hatch_large", "block/doors/silo_hatch_large", Animation.HATCH, null, 3);
 
@@ -41,6 +42,7 @@ public enum HbmDoorDecl {
             LARGE_VEHICLE_DOOR,
             VAULT_DOOR,
             WATER_DOOR,
+            CARGO_DOOR,
             SILO_HATCH,
             SILO_HATCH_LARGE
     );
@@ -152,6 +154,7 @@ public enum HbmDoorDecl {
                     : Shapes.block();
             case QE_CONTAINMENT -> Shapes.box(0.0D, 0.0D, 0.5D, 1.0D, 1.0D, 1.0D);
             case WATER_DOOR -> Shapes.box(0.0D, 0.0D, 0.75D, 1.0D, 1.0D, 1.0D);
+            case CARGO_DOOR -> Shapes.box(0.0D, 0.0D, 0.375D, 1.0D, 1.0D, 0.625D);
             default -> Shapes.block();
         };
     }
@@ -200,6 +203,11 @@ public enum HbmDoorDecl {
                 if (y == 0) yield Shapes.box(0.0D, 0.0D, 0.75D, 1.0D, collision ? 0.0D : 0.15D, 1.0D);
                 yield Shapes.empty();
             }
+            case CARGO_DOOR -> {
+                if (y > 1) yield Shapes.box(0.0D, 0.25D, 0.375D, 1.0D, 1.0D, 0.625D);
+                if (y == 0) yield Shapes.box(0.0D, 0.0D, 0.375D, 1.0D, collision ? 0.0D : 0.125D, 0.625D);
+                yield Shapes.empty();
+            }
             case LARGE_VEHICLE_DOOR -> {
                 if (z == 3) yield Shapes.box(0.4D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
                 if (z == -3) yield Shapes.box(0.0D, 0.0D, 0.0D, 0.6D, 1.0D, 1.0D);
@@ -238,6 +246,7 @@ public enum HbmDoorDecl {
         VERTICAL,
         VAULT,
         WATER,
+        CARGO,
         HATCH
     }
 

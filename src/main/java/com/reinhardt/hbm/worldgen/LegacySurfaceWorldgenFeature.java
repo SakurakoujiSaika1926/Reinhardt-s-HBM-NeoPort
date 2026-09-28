@@ -5,7 +5,6 @@ import com.reinhardt.hbm.block.BobbleheadBlock;
 import com.reinhardt.hbm.block.BobbleheadType;
 import com.reinhardt.hbm.block.BroadcasterBlock;
 import com.reinhardt.hbm.block.CrashedBombBlock;
-import com.reinhardt.hbm.block.MustardWillowFlowerBlock;
 import com.reinhardt.hbm.block.SafeBlock;
 import com.reinhardt.hbm.blockentity.BobbleheadBlockEntity;
 import com.reinhardt.hbm.blockentity.HbmStructureLoot;
@@ -106,19 +105,19 @@ public final class LegacySurfaceWorldgenFeature extends Feature<NoneFeatureConfi
         boolean placed = false;
         if (biome.is(BiomeTags.IS_FOREST) && random.nextInt(16) == 0) {
             placed |= generateFlowerPatch(level, random, chunkX, chunkZ,
-                    flower(MustardWillowFlowerBlock.FOXGLOVE));
+                    HbmBlocks.PLANT_FOXGLOVE.get().defaultBlockState());
         }
         if (isDarkForest(biome) && random.nextInt(8) == 0) {
             placed |= generateFlowerPatch(level, random, chunkX, chunkZ,
-                    flower(MustardWillowFlowerBlock.NIGHTSHADE));
+                    HbmBlocks.PLANT_NIGHTSHADE.get().defaultBlockState());
         }
         if (biome.is(BiomeTags.IS_JUNGLE) && random.nextInt(8) == 0) {
             placed |= generateFlowerPatch(level, random, chunkX, chunkZ,
-                    flower(MustardWillowFlowerBlock.TOBACCO));
+                    HbmBlocks.PLANT_TOBACCO.get().defaultBlockState());
         }
         if (random.nextInt(64) == 0) {
             placed |= generateFlowerPatch(level, random, chunkX, chunkZ,
-                    flower(MustardWillowFlowerBlock.WEED));
+                    HbmBlocks.PLANT_HEMP.get().defaultBlockState());
         }
         if (biome.is(BiomeTags.IS_RIVER) && random.nextInt(4) == 0) {
             placed |= generateFlowerPatch(level, random, chunkX, chunkZ,
@@ -129,10 +128,6 @@ public final class LegacySurfaceWorldgenFeature extends Feature<NoneFeatureConfi
                     HbmBlocks.PLANT_REEDS.get().defaultBlockState());
         }
         return placed;
-    }
-
-    private static BlockState flower(int meta) {
-        return HbmBlocks.PLANT_FLOWER.get().defaultBlockState().setValue(MustardWillowFlowerBlock.META, meta);
     }
 
     private static boolean isDarkForest(Holder<Biome> biome) {

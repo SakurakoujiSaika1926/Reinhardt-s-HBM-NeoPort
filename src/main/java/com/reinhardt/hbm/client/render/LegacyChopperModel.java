@@ -18,6 +18,7 @@ public final class LegacyChopperModel {
     private final ModelPart rotorBlades;
     private final ModelPart torsoRotorBlades;
     private final ModelPart tailRotorBlades;
+    private static double authoredMaximumRootRadius;
 
     public LegacyChopperModel(ModelPart root) {
         this.root = root;
@@ -84,6 +85,25 @@ public final class LegacyChopperModel {
                              float px, float py, float pz, float rx, float ry, float rz) {
         root.addOrReplaceChild(name, CubeListBuilder.create().texOffs(u, v).mirror().addBox(x, y, z, dx, dy, dz),
                 PartPose.offsetAndRotation(px, py, pz, rx, ry, rz));
+        double pivotRadius = Math.sqrt(px * px + py * py + pz * pz);
+        double localRadiusSquared = 0.0D;
+        for (float cornerX : new float[] {x, x + dx}) {
+            for (float cornerY : new float[] {y, y + dy}) {
+                for (float cornerZ : new float[] {z, z + dz}) {
+                    localRadiusSquared = Math.max(localRadiusSquared,
+                            cornerX * cornerX + cornerY * cornerY + cornerZ * cornerZ);
+                }
+            }
+        }
+        // Every authored part is a direct root child.  Its static and rotor
+        // rotations preserve |v|, so |pivot| + max|v| is a proof for every
+        // animation phase, including the three continuously rotating blades.
+        authoredMaximumRootRadius = Math.max(authoredMaximumRootRadius,
+                pivotRadius + Math.sqrt(localRadiusSquared));
+    }
+
+    static double authoredMaximumRootRadius() {
+        return authoredMaximumRootRadius;
     }
 
     public void render(PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay) {

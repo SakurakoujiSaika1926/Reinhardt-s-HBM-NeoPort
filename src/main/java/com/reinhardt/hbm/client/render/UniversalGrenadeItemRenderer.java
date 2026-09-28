@@ -11,7 +11,12 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
+
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Port of 1.7.10's ItemRenderGrenade.
@@ -23,6 +28,8 @@ import net.neoforged.neoforge.client.event.ModelEvent;
  * old visual identity.</p>
  */
 public final class UniversalGrenadeItemRenderer extends BlockEntityWithoutLevelRenderer {
+    private static final Map<UniversalGrenadeItem.Shell, AABB> GROUND_BOUNDS =
+            new EnumMap<>(UniversalGrenadeItem.Shell.class);
     private static final ModelResourceLocation FRAG = model("grenade_frag");
     private static final ModelResourceLocation FRAG_BODY = model("grenade_frag_body");
     private static final ModelResourceLocation FRAG_LABEL = model("grenade_frag_label");
@@ -80,6 +87,45 @@ public final class UniversalGrenadeItemRenderer extends BlockEntityWithoutLevelR
         event.register(NUKA_FUZE);
         event.register(NUKA_SPOON);
         event.register(NUKA_RING);
+    }
+
+    static synchronized void invalidateGroundBounds() {
+        GROUND_BOUNDS.clear();
+    }
+
+    /**
+     * Captures the same standalone baked models under the exact GROUND pose
+     * used by this BEWLR.  A normal item-model snapshot cannot see BEWLR
+     * vertices, so the entity renderer must obtain its culling envelope here.
+     */
+    static synchronized AABB groundBounds(ItemStack stack) {
+        UniversalGrenadeItem.Shell shell = UniversalGrenadeItem.shell(stack);
+        AABB cached = GROUND_BOUNDS.get(shell);
+        if (cached != null) {
+            return cached;
+        }
+
+        PoseStack poseStack = new PoseStack();
+        applyLegacyTransform(shell, ItemDisplayContext.GROUND, poseStack);
+        List<ModelResourceLocation> models = switch (shell) {
+            case FRAG -> List.of(FRAG, FRAG_BODY, FRAG_LABEL, FRAG_FUZE, FRAG_SPOON, FRAG_RING);
+            case STICK -> List.of(STICK, STICK_BODY, STICK_CAP_BODY, STICK_LABEL, STICK_FUZE);
+            case TECH -> List.of(TECH, TECH_BODY, TECH_LIGHTS, TECH_FUZE, TECH_RING);
+            case NUKE -> List.of(NUKA, NUKA_BODY, NUKA_LABEL, NUKA_FUZE, NUKA_SPOON, NUKA_RING);
+        };
+        AABB bounds = null;
+        var state = Blocks.IRON_BLOCK.defaultBlockState();
+        for (ModelResourceLocation model : models) {
+            AABB part = BakedBlockGeometrySnapshot.build(
+                    MachineModelRenderer.model(model), state, List.of(poseStack),
+                    net.minecraft.core.BlockPos.ZERO).bounds();
+            bounds = bounds == null ? part : bounds.minmax(part);
+        }
+        if (bounds == null) {
+            bounds = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
+        }
+        GROUND_BOUNDS.put(shell, bounds);
+        return bounds;
     }
 
     @Override

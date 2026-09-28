@@ -1,0 +1,54 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_drx_2",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_drx"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  2
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "gamma",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:undefined"
+                                 },
+                        "weight":  1
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:undefined"
+                                 },
+                        "weight":  1
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:undefined"
+                                 },
+                        "weight":  1
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:undefined"
+                                 },
+                        "weight":  1
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:undefined"
+                                 },
+                        "weight":  1
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:undefined"
+                                 },
+                        "weight":  1
+                    }
+                ]
+}

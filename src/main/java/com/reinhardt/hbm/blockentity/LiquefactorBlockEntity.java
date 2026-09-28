@@ -312,7 +312,7 @@ public class LiquefactorBlockEntity extends BlockEntity implements PowerEndpoint
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

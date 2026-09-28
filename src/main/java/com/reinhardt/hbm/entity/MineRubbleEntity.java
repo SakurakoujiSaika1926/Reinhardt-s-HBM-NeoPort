@@ -30,7 +30,6 @@ public final class MineRubbleEntity extends Entity {
 
     public MineRubbleEntity(EntityType<? extends MineRubbleEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public MineRubbleEntity(Level level, double x, double y, double z, Vec3 motion) {

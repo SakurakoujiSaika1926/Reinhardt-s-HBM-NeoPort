@@ -5,7 +5,6 @@ import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,10 +30,20 @@ import java.util.List;
 import java.util.Set;
 
 public class ExposureChamberBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = Footprint.fromOffsets(BlockPos.ZERO);
 
     public ExposureChamberBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, ExposureChamberBlock::mapExposureChamberOffset);
     }
 
     @Nullable
@@ -173,39 +182,49 @@ public class ExposureChamberBlock extends LargeMachineBlock implements EntityBlo
     }
 
     private static List<BlockPos> oldFootprintPositions(BlockPos corePos, Direction facing) {
-        Set<BlockPos> offsets = new LinkedHashSet<>();
-        addOldFill(offsets, BlockPos.ZERO, new int[]{4, 0, 2, 2, 2, 2}, facing);
-        addOldFill(offsets, BlockPos.ZERO, new int[]{3, 0, 0, 0, -3, 8}, facing);
-        addOldFill(offsets, new BlockPos(0, 2, 0), new int[]{0, 0, 1, -1, -3, 6}, facing);
-        addOldFill(offsets, new BlockPos(0, 2, 0), new int[]{0, 0, -1, 1, -3, 6}, facing);
+        Set<BlockPos> authoredOffsets = new LinkedHashSet<>();
+        addSouthFill(authoredOffsets, BlockPos.ZERO, new int[]{4, 0, 2, 2, 2, 2});
+        addSouthFill(authoredOffsets, BlockPos.ZERO, new int[]{3, 0, 0, 0, -3, 8});
+        addSouthFill(authoredOffsets, new BlockPos(0, 2, 0), new int[]{0, 0, 1, -1, -3, 6});
+        addSouthFill(authoredOffsets, new BlockPos(0, 2, 0), new int[]{0, 0, -1, 1, -3, 6});
 
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing).getOpposite();
-        BlockPos sideOrigin = new BlockPos(rot.getStepX() * 7, 0, rot.getStepZ() * 7);
-        addOldFill(offsets, sideOrigin, new int[]{3, 0, 1, -1, 0, 1}, facing);
-        addOldFill(offsets, sideOrigin, new int[]{3, 0, -1, 1, 0, 1}, facing);
+        BlockPos sideOrigin = new BlockPos(7, 0, 0);
+        addSouthFill(authoredOffsets, sideOrigin, new int[]{3, 0, 1, -1, 0, 1});
+        addSouthFill(authoredOffsets, sideOrigin, new int[]{3, 0, -1, 1, 0, 1});
+        authoredOffsets.add(new BlockPos(7, 0, 1));
+        authoredOffsets.add(new BlockPos(7, 0, -1));
+        authoredOffsets.add(new BlockPos(8, 0, 1));
+        authoredOffsets.add(new BlockPos(8, 0, -1));
+        authoredOffsets.add(new BlockPos(8, 0, 0));
 
-        offsets.add(sideOrigin.relative(facing));
-        offsets.add(sideOrigin.relative(facing.getOpposite()));
-        offsets.add(new BlockPos(rot.getStepX() * 8, 0, rot.getStepZ() * 8).relative(facing));
-        offsets.add(new BlockPos(rot.getStepX() * 8, 0, rot.getStepZ() * 8).relative(facing.getOpposite()));
-        offsets.add(new BlockPos(rot.getStepX() * 8, 0, rot.getStepZ() * 8));
-
-        ArrayList<BlockPos> positions = new ArrayList<>(offsets.size());
-        for (BlockPos offset : offsets) {
-            positions.add(corePos.offset(offset));
+        ArrayList<BlockPos> positions = new ArrayList<>(authoredOffsets.size());
+        for (BlockPos offset : authoredOffsets) {
+            positions.add(corePos.offset(mapExposureChamberOffset(facing, offset)).immutable());
         }
         return List.copyOf(positions);
     }
 
-    private static void addOldFill(Set<BlockPos> offsets, BlockPos origin, int[] dim, Direction facing) {
-        int[] rot = LegacyMachineGeometry.rotateLegacyDimensions(dim, facing);
-        for (int x = origin.getX() - rot[4]; x <= origin.getX() + rot[5]; x++) {
-            for (int y = origin.getY() - rot[1]; y <= origin.getY() + rot[0]; y++) {
-                for (int z = origin.getZ() - rot[2]; z <= origin.getZ() + rot[3]; z++) {
+    private static void addSouthFill(Set<BlockPos> offsets, BlockPos origin, int[] dim) {
+        for (int x = origin.getX() - dim[4]; x <= origin.getX() + dim[5]; x++) {
+            for (int y = origin.getY() - dim[1]; y <= origin.getY() + dim[0]; y++) {
+                for (int z = origin.getZ() - dim[2]; z <= origin.getZ() + dim[3]; z++) {
                     offsets.add(new BlockPos(x, y, z));
                 }
             }
         }
+    }
+
+    private static BlockPos mapExposureChamberOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("Exposure chamber requires a horizontal facing: " + facing);
+        };
     }
 }
 

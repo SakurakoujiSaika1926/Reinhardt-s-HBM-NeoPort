@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.lambdarocket",
+  "blueprint_pools": [ "528.soyuz" ],
+  "duration": 1200,
+  "power": 50000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:part_generic_alclad" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:ingot_tungsten_carbide" }, "count": 24 },
+    { "ingredient": { "item": "reinhardtshbm:rocket_fuel" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 24 },
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_flightdata_processed" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:missile_lambda", "count": 1 }
+}

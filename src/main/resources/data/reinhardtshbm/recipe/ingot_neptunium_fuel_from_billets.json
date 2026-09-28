@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:billet_neptunium_fuel" }, { "item": "reinhardtshbm:billet_neptunium_fuel" }, { "item": "reinhardtshbm:billet_neptunium_fuel" }
+  ],
+  "result": { "id": "reinhardtshbm:ingot_neptunium_fuel", "count": 2 }
+}

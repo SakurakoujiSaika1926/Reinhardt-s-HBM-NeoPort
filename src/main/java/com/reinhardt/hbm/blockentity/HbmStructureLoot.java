@@ -607,6 +607,10 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:definitelyfood", 2, 7, 5),
                 e("reinhardtshbm:cigarette", 1, 8, 5),
                 e("reinhardtshbm:armor_polish", 1, 1, 3),
+                // 1.7.10 injected bathwater into village blacksmith and
+                // mineshaft chests. Keep it as rare exploration loot in the
+                // modern structure-loot pool so bathwater_mk2 stays obtainable.
+                e("reinhardtshbm:bathwater", 1, 1, 1),
                 e("reinhardtshbm:rag", 1, 3, 5),
                 e("minecraft:paper", 1, 6, 7),
                 e("minecraft:clock", 1, 1, 3),

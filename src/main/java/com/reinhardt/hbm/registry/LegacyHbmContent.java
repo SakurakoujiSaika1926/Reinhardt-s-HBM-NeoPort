@@ -1,7 +1,7 @@
 package com.reinhardt.hbm.registry;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.block.LegacyDirectionalBlock;
+import com.reinhardt.hbm.block.CapacitorCopperBlock;
 import com.reinhardt.hbm.block.LegacyVariantBlock;
 import com.reinhardt.hbm.block.LegacyVariantSlabBlock;
 import com.reinhardt.hbm.block.LegacyVariantStrengths;
@@ -272,7 +272,7 @@ public final class LegacyHbmContent {
             "concrete_brick_double_slab"
     );
 
-    /* These registrations are explicitly deprecated in the 1.7.10 source. */
+    /* Intentionally unregistered deprecated entries and aliases removed by flattening. */
     private static final Set<String> RETIRED_LEGACY_BLOCK_IDS = Set.of(
             "capacitor_gold",
             "capacitor_niobium",
@@ -284,6 +284,8 @@ public final class LegacyHbmContent {
             "machine_fensu",
             "machine_lithium_battery",
             "machine_minirtg",
+            "plant_flower",
+            "plant_tall",
             "machine_powerrtg",
             "machine_rtg_furnace_off",
             "machine_rtg_furnace_on",
@@ -438,7 +440,7 @@ public final class LegacyHbmContent {
         }
 
         if (id.equals("capacitor_copper")) {
-            return new LegacyDirectionalBlock(properties
+            return new CapacitorCopperBlock(properties
                     .mapColor(MapColor.METAL)
                     .requiresCorrectToolForDrops()
                     .strength(5.0F, 10.0F)

@@ -5,6 +5,7 @@ import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -24,8 +25,17 @@ public final class FissureBlockEntity extends BlockEntity {
     public static void tick(Level level, BlockPos pos, BlockState state, FissureBlockEntity fissure) {
         if (level.isClientSide) return;
         fissure.lava.setAmount(1_000);
-        IFluidHandler handler = level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK, pos.above(), Direction.DOWN);
-        if (handler != null) handler.fill(HbmFluids.toNeoStack(lava(), 1_000), IFluidHandler.FluidAction.EXECUTE);
+        BlockPos target = pos.above();
+        try {
+            IFluidHandler handler = level.getCapability(
+                    net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK, target, Direction.DOWN);
+            if (handler != null) {
+                handler.fill(HbmFluids.toNeoStack(lava(), 1_000), IFluidHandler.FluidAction.EXECUTE);
+            }
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, target, Direction.DOWN,
+                    "fluid handler", "fissure output", failure);
+        }
     }
 
     public IFluidHandler fluidHandler(Direction side) {

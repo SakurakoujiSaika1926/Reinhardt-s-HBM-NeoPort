@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:billet_schrabidium" }, { "item": "reinhardtshbm:billet_schrabidium" }, { "item": "reinhardtshbm:billet_schrabidium" }
+  ],
+  "result": { "id": "reinhardtshbm:ingot_schrabidium", "count": 2 }
+}

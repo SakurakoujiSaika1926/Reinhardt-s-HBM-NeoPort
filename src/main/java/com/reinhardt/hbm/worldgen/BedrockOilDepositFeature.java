@@ -38,7 +38,8 @@ public class BedrockOilDepositFeature extends Feature<NoneFeatureConfiguration> 
 
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
-        boolean placed = generateBedrockOil(level, origin.getX(), origin.getZ());
+        WorldgenFeatureBounds writeBounds = WorldgenFeatureBounds.forFeature(level, origin);
+        boolean placed = generateBedrockOil(level, origin.getX(), origin.getZ(), writeBounds);
         OilFieldSurfaceEffects.generateBedrockOilSpot(
                 level,
                 random,
@@ -46,12 +47,14 @@ public class BedrockOilDepositFeature extends Feature<NoneFeatureConfiguration> 
                 origin.getZ(),
                 HbmConfig.BEDROCK_OIL_SURFACE_RADIUS.get(),
                 HbmConfig.BEDROCK_OIL_SURFACE_ATTEMPTS.get(),
-                true
+                true,
+                writeBounds
         );
         return placed;
     }
 
-    private static boolean generateBedrockOil(WorldGenLevel level, int centerX, int centerZ) {
+    private static boolean generateBedrockOil(WorldGenLevel level, int centerX, int centerZ,
+                                              WorldgenFeatureBounds writeBounds) {
         int dxzLimit = HbmConfig.BEDROCK_OIL_DXZ_LIMIT.get();
         int maxY = HbmConfig.BEDROCK_OIL_MAX_Y_OFFSET.get();
         int l1Max = HbmConfig.BEDROCK_OIL_L1_MAX.get();
@@ -67,7 +70,12 @@ public class BedrockOilDepositFeature extends Feature<NoneFeatureConfiguration> 
                 }
                 for (int dz = -dxzLimit; dz <= dxzLimit; dz++) {
                     if (Math.abs(dx) + Math.abs(y) + Math.abs(dz) <= l1Max) {
-                        pos.set(centerX + dx, worldY, centerZ + dz);
+                        int blockX = centerX + dx;
+                        int blockZ = centerZ + dz;
+                        if (!writeBounds.contains(blockX, blockZ)) {
+                            continue;
+                        }
+                        pos.set(blockX, worldY, blockZ);
                         if (level.getBlockState(pos).is(Blocks.BEDROCK)) {
                             level.setBlock(pos, HbmBlocks.ORE_BEDROCK_OIL.get().defaultBlockState(), SET_FLAGS);
                             placed = true;

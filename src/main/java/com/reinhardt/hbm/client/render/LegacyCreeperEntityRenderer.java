@@ -7,6 +7,7 @@ import net.minecraft.client.model.CreeperModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -15,6 +16,10 @@ import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Leashable;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.phys.AABB;
 
 /** The five 1.7.10 creepers use the vanilla creeper model with their own skin. */
 public final class LegacyCreeperEntityRenderer<T extends LegacyCreeperEntity>
@@ -55,6 +60,125 @@ public final class LegacyCreeperEntityRenderer<T extends LegacyCreeperEntity>
         float horizontal = (1.0F + swell * 0.4F) * flash;
         float vertical = (1.0F + swell * 0.1F) / flash;
         poseStack.scale(horizontal, vertical, horizontal);
+    }
+
+    @Override
+    public boolean shouldRender(T entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        double radius = visualRadius(entity);
+        AABB bounds = EntityRenderBounds.radius(
+                entity.getX(), entity.getY(), entity.getZ(), Math.nextUp(radius));
+        if (EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ)) {
+            return true;
+        }
+        Entity holder = entity instanceof Leashable leashable ? leashable.getLeashHolder() : null;
+        return holder != null
+                && EntityRenderBounds.isWithinRenderDistance(
+                        entity, bounds, cameraX, cameraY, cameraZ)
+                && frustum.isVisible(holder.getBoundingBoxForCulling());
+    }
+
+    /**
+     * Proved envelope of the current 1.21.1 CreeperModel layer under every
+     * transform executed by LivingEntityRenderer and this renderer. Head and
+     * leg rotations are covered around their authored pivots; the unrotated
+     * body is evaluated corner by corner.
+     */
+    private double visualRadius(T entity) {
+        // getSwelling(partialTick) is linear between these endpoints. The
+        // sine term is therefore bounded exactly by |sin| <= 1 over the pass.
+        double rawMaximum = Math.max(Math.abs(entity.getSwelling(0.0F)),
+                Math.abs(entity.getSwelling(1.0F)));
+        double clampedMaximum = Math.max(
+                Mth.clamp(entity.getSwelling(0.0F), 0.0F, 1.0F),
+                Mth.clamp(entity.getSwelling(1.0F), 0.0F, 1.0F));
+        double poweredSwell = clampedMaximum;
+        poweredSwell *= poweredSwell;
+        poweredSwell *= poweredSwell;
+        poweredSwell *= poweredSwell;
+        poweredSwell *= Math.abs((double) swellMod);
+
+        double flashMaximum = 1.0D + rawMaximum * 0.01D;
+        double flashMinimum = 1.0D - rawMaximum * 0.01D;
+        double horizontal = (1.0D + poweredSwell * 0.4D) * flashMaximum;
+        double vertical = (1.0D + poweredSwell * 0.1D) / flashMinimum;
+
+        double modelRadius = 0.0D;
+        modelRadius = Math.max(modelRadius, animatedPartRadius(horizontal, vertical,
+                0.0D, 6.0D, 0.0D, -4.0D, -8.0D, -4.0D, 8.0D, 8.0D, 8.0D));
+        modelRadius = Math.max(modelRadius, fixedPartRadius(horizontal, vertical,
+                0.0D, 6.0D, 0.0D, -4.0D, 0.0D, -2.0D, 8.0D, 12.0D, 4.0D));
+        modelRadius = Math.max(modelRadius, animatedPartRadius(horizontal, vertical,
+                -2.0D, 18.0D, 4.0D, -2.0D, 0.0D, -2.0D, 4.0D, 6.0D, 4.0D));
+        modelRadius = Math.max(modelRadius, animatedPartRadius(horizontal, vertical,
+                2.0D, 18.0D, 4.0D, -2.0D, 0.0D, -2.0D, 4.0D, 6.0D, 4.0D));
+        modelRadius = Math.max(modelRadius, animatedPartRadius(horizontal, vertical,
+                -2.0D, 18.0D, -4.0D, -2.0D, 0.0D, -2.0D, 4.0D, 6.0D, 4.0D));
+        modelRadius = Math.max(modelRadius, animatedPartRadius(horizontal, vertical,
+                2.0D, 18.0D, -4.0D, -2.0D, 0.0D, -2.0D, 4.0D, 6.0D, 4.0D));
+
+        double radius = modelRadius * entity.getScale();
+        if (entity.hasPose(Pose.SLEEPING)) {
+            radius += Math.abs(entity.getEyeHeight(Pose.STANDING) - 0.1D);
+        }
+        if (LivingEntityRenderer.isEntityUpsideDown(entity)) {
+            radius += entity.getBbHeight() + 0.1D;
+        }
+        return radius;
+    }
+
+    private static double animatedPartRadius(double horizontal, double vertical,
+                                             double pivotX, double pivotY, double pivotZ,
+                                             double x, double y, double z,
+                                             double sizeX, double sizeY, double sizeZ) {
+        double centerX = horizontal * pivotX / 16.0D;
+        double centerY = vertical * (pivotY / 16.0D - 1.501D);
+        double centerZ = horizontal * pivotZ / 16.0D;
+        double centerRadius = Math.sqrt(centerX * centerX + centerY * centerY + centerZ * centerZ);
+        double localRadius = furthestCornerRadius(x, y, z, sizeX, sizeY, sizeZ) / 16.0D;
+        return centerRadius + Math.max(horizontal, vertical) * localRadius;
+    }
+
+    private static double fixedPartRadius(double horizontal, double vertical,
+                                          double pivotX, double pivotY, double pivotZ,
+                                          double x, double y, double z,
+                                          double sizeX, double sizeY, double sizeZ) {
+        double maximum = 0.0D;
+        for (int xSide = 0; xSide < 2; xSide++) {
+            double cornerX = xSide == 0 ? x : x + sizeX;
+            for (int ySide = 0; ySide < 2; ySide++) {
+                double cornerY = ySide == 0 ? y : y + sizeY;
+                for (int zSide = 0; zSide < 2; zSide++) {
+                    double cornerZ = zSide == 0 ? z : z + sizeZ;
+                    double transformedX = horizontal * (pivotX + cornerX) / 16.0D;
+                    double transformedY = vertical * ((pivotY + cornerY) / 16.0D - 1.501D);
+                    double transformedZ = horizontal * (pivotZ + cornerZ) / 16.0D;
+                    maximum = Math.max(maximum, Math.sqrt(
+                            transformedX * transformedX
+                                    + transformedY * transformedY
+                                    + transformedZ * transformedZ));
+                }
+            }
+        }
+        return maximum;
+    }
+
+    private static double furthestCornerRadius(double x, double y, double z,
+                                               double sizeX, double sizeY, double sizeZ) {
+        double maximumSquared = 0.0D;
+        for (int xSide = 0; xSide < 2; xSide++) {
+            double cornerX = xSide == 0 ? x : x + sizeX;
+            for (int ySide = 0; ySide < 2; ySide++) {
+                double cornerY = ySide == 0 ? y : y + sizeY;
+                for (int zSide = 0; zSide < 2; zSide++) {
+                    double cornerZ = zSide == 0 ? z : z + sizeZ;
+                    maximumSquared = Math.max(maximumSquared,
+                            cornerX * cornerX + cornerY * cornerY + cornerZ * cornerZ);
+                }
+            }
+        }
+        return Math.sqrt(maximumSquared);
     }
 
     @Override

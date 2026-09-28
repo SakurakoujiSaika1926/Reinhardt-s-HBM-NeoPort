@@ -20,13 +20,14 @@
   "input_fluids": [
     {
       "fluid": "petroleum",
-      "amount": 500,
+      "amount": 1000,
       "pressure": 1
     }
   ],
   "output_items": [
     {
-      "id": "reinhardtshbm:ingot_polymer"
+      "id": "reinhardtshbm:ingot_polymer",
+      "count": 4
     }
   ],
   "output_fluids": []

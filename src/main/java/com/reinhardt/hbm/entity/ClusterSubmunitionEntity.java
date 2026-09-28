@@ -27,7 +27,6 @@ public final class ClusterSubmunitionEntity extends Entity {
 
     public ClusterSubmunitionEntity(EntityType<? extends ClusterSubmunitionEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
         this.noPhysics = true;
     }
 

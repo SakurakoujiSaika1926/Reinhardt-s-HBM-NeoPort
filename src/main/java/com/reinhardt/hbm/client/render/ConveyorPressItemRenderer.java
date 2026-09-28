@@ -27,7 +27,7 @@ public final class ConveyorPressItemRenderer extends BlockEntityWithoutLevelRend
     ) {
         BlockState state = HbmBlocks.MACHINE_CONVEYOR_PRESS.get().defaultBlockState();
         poseStack.pushPose();
-        applyItemRenderBasePose(context, poseStack);
+        applyConveyorPressItemPose(context, poseStack);
         // RenderConveyorPress ItemRenderBase: translate(0, -4, 0), scale(4.5).
         poseStack.translate(0.0F, -4.0F, 0.0F);
         poseStack.scale(4.5F, 4.5F, 4.5F);
@@ -35,7 +35,7 @@ public final class ConveyorPressItemRenderer extends BlockEntityWithoutLevelRend
         poseStack.popPose();
     }
 
-    private static void applyItemRenderBasePose(ItemDisplayContext context, PoseStack poseStack) {
+    private static void applyConveyorPressItemPose(ItemDisplayContext context, PoseStack poseStack) {
         if (context == ItemDisplayContext.GUI) {
             poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
             poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));

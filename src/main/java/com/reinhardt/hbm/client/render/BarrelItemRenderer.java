@@ -3,11 +3,9 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
@@ -41,39 +39,84 @@ public final class BarrelItemRenderer extends BlockEntityWithoutLevelRenderer {
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        ModelResourceLocation location = modelFor(stack);
-        if (location == null) {
-            return;
+        switch (BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath()) {
+            case "red_barrel" -> renderRedBarrelItem(stack, context, poseStack, bufferSource, packedLight, packedOverlay);
+            case "pink_barrel" -> renderPinkBarrelItem(stack, context, poseStack, bufferSource, packedLight, packedOverlay);
+            case "lox_barrel" -> renderLoxBarrelItem(stack, context, poseStack, bufferSource, packedLight, packedOverlay);
+            case "taint_barrel" -> renderTaintBarrelItem(stack, context, poseStack, bufferSource, packedLight, packedOverlay);
+            case "yellow_barrel" -> renderYellowBarrelItem(stack, context, poseStack, bufferSource, packedLight, packedOverlay);
+            case "vitrified_barrel" -> renderVitrifiedBarrelItem(stack, context, poseStack, bufferSource, packedLight, packedOverlay);
+            default -> { }
         }
+    }
 
+    private static void renderRedBarrelItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
-        BakedModel model = MachineModelRenderer.model(location);
-
         poseStack.pushPose();
-        // ItemRenderer applies its block-space centering before entering a
-        // BEWLR. Undo it so the legacy view transform keeps its original
-        // order, then restore the centering immediately before drawing.
         poseStack.translate(0.5F, 0.5F, 0.5F);
-        applyLegacyBlockItemTransform(context, poseStack);
+        applyRedBarrelItemPose(context, poseStack);
         poseStack.translate(-0.5F, -0.5F, -0.5F);
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderBarrelModel(RED, state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static ModelResourceLocation modelFor(ItemStack stack) {
-        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-        return switch (id) {
-            case "red_barrel" -> RED;
-            case "pink_barrel" -> PINK;
-            case "lox_barrel" -> LOX;
-            case "taint_barrel" -> TAINT;
-            case "yellow_barrel" -> YELLOW;
-            case "vitrified_barrel" -> VITRIFIED;
-            default -> null;
-        };
+    private static void renderPinkBarrelItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                             MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
+        poseStack.pushPose();
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        applyPinkBarrelItemPose(context, poseStack);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        renderBarrelModel(PINK, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
     }
 
-    private static void applyLegacyBlockItemTransform(ItemDisplayContext context, PoseStack poseStack) {
+    private static void renderLoxBarrelItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
+        poseStack.pushPose();
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        applyLoxBarrelItemPose(context, poseStack);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        renderBarrelModel(LOX, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderTaintBarrelItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
+        poseStack.pushPose();
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        applyTaintBarrelItemPose(context, poseStack);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        renderBarrelModel(TAINT, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderYellowBarrelItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
+        poseStack.pushPose();
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        applyYellowBarrelItemPose(context, poseStack);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        renderBarrelModel(YELLOW, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderVitrifiedBarrelItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                                  MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
+        poseStack.pushPose();
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        applyVitrifiedBarrelItemPose(context, poseStack);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+        renderBarrelModel(VITRIFIED, state, poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyRedBarrelItemPose(ItemDisplayContext context, PoseStack poseStack) {
         switch (context) {
             case GUI -> {
                 poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
@@ -98,6 +141,142 @@ public final class BarrelItemRenderer extends BlockEntityWithoutLevelRenderer {
             default -> {
             }
         }
+    }
+
+    private static void applyPinkBarrelItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            default -> { }
+        }
+    }
+
+    private static void applyLoxBarrelItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            default -> { }
+        }
+    }
+
+    private static void applyTaintBarrelItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            default -> { }
+        }
+    }
+
+    private static void applyYellowBarrelItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            default -> { }
+        }
+    }
+
+    private static void applyVitrifiedBarrelItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            default -> { }
+        }
+    }
+
+    private static void renderBarrelModel(ModelResourceLocation model, BlockState state, PoseStack poseStack,
+                                          MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack,
+                bufferSource, state, packedLight, packedOverlay);
     }
 
     private static ModelResourceLocation model(String path) {

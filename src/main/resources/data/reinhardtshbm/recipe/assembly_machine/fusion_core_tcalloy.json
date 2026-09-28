@@ -29,6 +29,12 @@
         "item": "reinhardtshbm:circuit_bismoid"
       },
       "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:drive_flash_particlesim"
+      },
+      "count": 4
     }
   ],
   "result": {

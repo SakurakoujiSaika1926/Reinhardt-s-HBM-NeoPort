@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "c:dusts/copper" },
+    { "tag": "c:dusts/redstone" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:scraps_red_copper",
+    "components": {
+      "minecraft:custom_data": { "amount": 144, "liquid": false },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

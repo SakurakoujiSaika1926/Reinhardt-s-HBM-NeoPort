@@ -5,12 +5,14 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyMinecartEntity;
 import com.reinhardt.hbm.item.LegacyMinecartItem;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
@@ -21,6 +23,12 @@ public final class LegacyMinecartEntityRenderer extends EntityRenderer<LegacyMin
     private static final ModelResourceLocation DESTROYER = MachineModelRenderer.standalone("entity/cart_destroyer");
     private static final ModelResourceLocation POWDER = MachineModelRenderer.standalone("entity/cart_powder");
     private static final BlockState RENDER_STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final LegacyEntityObjMesh BODY_BOUNDS = mesh("cart");
+    private static final LegacyEntityObjMesh DESTROYER_BOUNDS = mesh("cart_destroyer");
+    private static final LegacyEntityObjMesh POWDER_BOUNDS = mesh("cart_powder");
+    private static final double BODY_RADIUS = visualRadius(null);
+    private static final double DESTROYER_RADIUS = visualRadius(DESTROYER_BOUNDS);
+    private static final double POWDER_RADIUS = visualRadius(POWDER_BOUNDS);
 
     public LegacyMinecartEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -53,6 +61,19 @@ public final class LegacyMinecartEntityRenderer extends EntityRenderer<LegacyMin
         super.render(cart, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
+    @Override
+    public boolean shouldRender(LegacyMinecartEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        double radius = switch (entity.variant()) {
+            case DESTROYER -> DESTROYER_RADIUS;
+            case POWDER, SEMTEX -> POWDER_RADIUS;
+            default -> BODY_RADIUS;
+        };
+        return EntityRenderBounds.shouldRender(entity,
+                EntityRenderBounds.radius(entity.getX(), entity.getY(), entity.getZ(), radius),
+                frustum, cameraX, cameraY, cameraZ);
+    }
+
     private static ResourceLocation bodyTexture(LegacyMinecartItem.Base base) {
         return switch (base) {
             case VANILLA -> ReinhardtsHBM.id("textures/entity/cart.png");
@@ -71,5 +92,21 @@ public final class LegacyMinecartEntityRenderer extends EntityRenderer<LegacyMin
     @Override
     public ResourceLocation getTextureLocation(LegacyMinecartEntity entity) {
         return bodyTexture(entity.base());
+    }
+
+    private static LegacyEntityObjMesh mesh(String name) {
+        return LegacyEntityObjMesh.load(ReinhardtsHBM.id(
+                "models/obj/entity/" + name + ".obj"));
+    }
+
+    private static double visualRadius(LegacyEntityObjMesh top) {
+        PoseStack poseStack = new PoseStack();
+        poseStack.translate(0.0D, 0.25D, 0.0D);
+        EntityRenderBounds.FloatBuilder bounds = new EntityRenderBounds.FloatBuilder();
+        BODY_BOUNDS.includeAllFacePositions(poseStack, bounds);
+        if (top != null) top.includeAllFacePositions(poseStack, bounds);
+        // The only remaining transform is arbitrary yaw, which preserves
+        // this exact face-vertex radius.
+        return bounds.maximumRadius();
     }
 }

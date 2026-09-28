@@ -129,11 +129,6 @@ public final class TimedExplosiveEntity extends Entity {
     }
 
     @Override
-    public boolean shouldRenderAtSqrDistance(double distance) {
-        return true;
-    }
-
-    @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putInt("Fuse", fuse());
         tag.putString("Kind", kind().getSerializedName());

@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.block.NukeBoyBlock;
 import com.reinhardt.hbm.blockentity.NukeBoyBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
@@ -12,8 +11,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class NukeBoyBlockEntityRenderer implements BlockEntityRenderer<NukeBoyBlockEntity> {
+public class NukeBoyBlockEntityRenderer implements LongRangeBlockEntityRenderer<NukeBoyBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/nuke_boy_world");
+    private static final AABB[] LOCAL_BOUNDS = buildNukeBoyBounds();
 
     public NukeBoyBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -25,26 +25,47 @@ public class NukeBoyBlockEntityRenderer implements BlockEntityRenderer<NukeBoyBl
     @Override
     public void render(NukeBoyBlockEntity nukeBoy, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = nukeBoy.getBlockState();
-        Direction facing = state.hasProperty(NukeBoyBlock.FACING) ? state.getValue(NukeBoyBlock.FACING) : Direction.SOUTH;
+        Direction facing = nukeBoyFacing(state);
         poseStack.pushPose();
-        poseStack.translate(0.5D, 0.0D, 0.5D);
-        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(legacyYaw(facing)));
-        poseStack.translate(-2.0D, 0.0D, 0.0D);
+        applyNukeBoyTransform(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(NukeBoyBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 2.0D, 3.0D);
+        Direction facing = nukeBoyFacing(blockEntity.getBlockState());
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case WEST -> 90.0F;
-            case SOUTH -> 180.0F;
-            case EAST -> 270.0F;
-            default -> 0.0F;
-        };
+    private static AABB[] buildNukeBoyBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyNukeBoyTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -0.35F, 0.0F, -0.425F, 2.85F, 0.85F, 0.425F);
+        }
+        return bounds;
+    }
+
+    private static void applyNukeBoyTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Nuke Boy facing must be horizontal: " + facing);
+        }
+        poseStack.translate(-2.0F, 0.0F, 0.0F);
+    }
+
+    private static Direction nukeBoyFacing(BlockState state) {
+        if (!state.hasProperty(NukeBoyBlock.FACING)) {
+            throw new IllegalStateException("Nuke Boy state is missing its owned facing property: " + state);
+        }
+        return state.getValue(NukeBoyBlock.FACING);
     }
 }

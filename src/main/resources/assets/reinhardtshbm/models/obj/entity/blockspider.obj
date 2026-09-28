@@ -1,6 +1,8 @@
 # Blender v2.79 (sub 0) OBJ File: 'spider.blend'
 # www.blender.org
+mtllib blockspider.mtl
 o Leg8
+usemtl blockspider
 v -0.132583 0.312500 0.220971
 v -0.132583 0.437500 0.220971
 v -0.486136 0.312500 0.574524

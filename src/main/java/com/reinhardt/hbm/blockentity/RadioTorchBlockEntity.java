@@ -2,25 +2,36 @@ package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.RadioTorchBlock;
 import com.reinhardt.hbm.item.LegacyRttyPagerItem;
+import com.reinhardt.hbm.menu.RttyConfigMenu;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.rtty.HbmRttySystem;
+import com.reinhardt.hbm.rtty.RttyFunctionException;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
+
 /** Server-side state and ticking logic for the 1.7.10 redstone-over-radio blocks. */
-public final class RadioTorchBlockEntity extends BlockEntity {
-    private static final int CHANNEL_LIMIT = 64;
+public final class RadioTorchBlockEntity extends BlockEntity implements MenuProvider {
+    public static final int CHANNEL_LIMIT = 15;
+    public static final int VALUE_NAME_LIMIT = 25;
     private final RadioTorchBlock.Kind kind;
     private String channel = "";
     private int lastState;
@@ -33,9 +44,12 @@ public final class RadioTorchBlockEntity extends BlockEntity {
     private final String[] channels = new String[8];
     private final String[] names = new String[8];
     private final String[] previous = new String[8];
+    private final boolean[] forceUpdate = new boolean[8];
     private final ItemStack[] filters = new ItemStack[3];
     private final int[] lastCount = new int[3];
     private String previousCommand = "";
+    private boolean receiving;
+    private boolean firstTick = true;
 
     public RadioTorchBlockEntity(BlockPos pos, BlockState state, RadioTorchBlock.Kind kind) {
         super(HbmBlockEntities.RADIO_TORCH.get(), pos, state);
@@ -45,6 +59,7 @@ public final class RadioTorchBlockEntity extends BlockEntity {
             channels[i] = "";
             names[i] = "";
             previous[i] = "";
+            forceUpdate[i] = true;
         }
         for (int i = 0; i < filters.length; i++) filters[i] = ItemStack.EMPTY;
     }
@@ -65,6 +80,60 @@ public final class RadioTorchBlockEntity extends BlockEntity {
         String normalized = channel == null ? "" : channel.trim();
         this.channel = normalized.length() > CHANNEL_LIMIT ? normalized.substring(0, CHANNEL_LIMIT) : normalized;
         setChanged();
+    }
+
+    public boolean polling() {
+        return polling;
+    }
+
+    public void setPolling(boolean polling) {
+        if (this.polling == polling) return;
+        this.polling = polling;
+        setChanged();
+        sync();
+    }
+
+    public String readerChannel(int index) {
+        return index >= 0 && index < channels.length ? channels[index] : "";
+    }
+
+    public String readerName(int index) {
+        return index >= 0 && index < names.length ? names[index] : "";
+    }
+
+    public void setReaderEntry(int index, String channel, String name) {
+        if (index < 0 || index >= channels.length) return;
+        String normalizedChannel = limit(channel, CHANNEL_LIMIT);
+        String normalizedName = limit(name, VALUE_NAME_LIMIT);
+        if (!normalizedChannel.equals(channels[index]) || !normalizedName.equals(names[index])) {
+            channels[index] = normalizedChannel;
+            names[index] = normalizedName;
+            forceUpdate[index] = true;
+            setChanged();
+            sync();
+        }
+    }
+
+    public String[] supportedFunctions() {
+        BlockEntity target = resolveTarget();
+        return target instanceof RttyInfo info ? info.rttyFunctionInfo().clone() : new String[0];
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable(switch (kind) {
+            case READER -> "container.reinhardtshbm.rtty_reader";
+            case CONTROLLER -> "container.reinhardtshbm.rtty_controller";
+            default -> "block.reinhardtshbm.radio_torch_" + kind.name().toLowerCase(Locale.ROOT);
+        });
+    }
+
+    @Nullable
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        return kind == RadioTorchBlock.Kind.READER || kind == RadioTorchBlock.Kind.CONTROLLER
+                ? new RttyConfigMenu(containerId, inventory, this)
+                : null;
     }
 
     /** Empty-hand use toggles polling while sneaking and reports state otherwise. */
@@ -103,7 +172,7 @@ public final class RadioTorchBlockEntity extends BlockEntity {
     }
 
     private void tickSender(Level level, BlockPos pos, BlockState state) {
-        BlockPos support = support(pos, state);
+        BlockPos support = senderSupport(pos, state.getValue(RadioTorchBlock.FACING));
         BlockState inputState = level.getBlockState(support);
         int input = Math.max(0, Math.min(15, level.getBestNeighborSignal(support)));
         if (inputState.hasAnalogOutputSignal()) {
@@ -194,10 +263,29 @@ public final class RadioTorchBlockEntity extends BlockEntity {
     }
 
     private void tickReader(Level level, BlockPos pos, BlockState state) {
-        BlockState supportState = level.getBlockState(support(pos, state));
+        BlockPos support = readerSupport(pos, state.getValue(RadioTorchBlock.FACING));
+        BlockEntity target = resolveTarget(level, support);
+        if (target instanceof RttyValueProvider provider) {
+            for (int i = 0; i < channels.length; i++) {
+                if (channels[i].isEmpty() || names[i].isEmpty()) continue;
+                String value = provider.provideRttyValue(RttyInfo.PREFIX_VALUE + names[i].toLowerCase(Locale.ROOT));
+                if (value == null) continue;
+                if (polling || forceUpdate[i] || !value.equals(previous[i])) {
+                    HbmRttySystem.broadcast(level, channels[i], value);
+                    previous[i] = value;
+                    forceUpdate[i] = false;
+                }
+            }
+            setChanged();
+            return;
+        }
+
+        // Keep the existing modern-port analogue fallback for ordinary blocks;
+        // provider-backed HBM machines always use the original named-value API.
+        BlockState supportState = level.getBlockState(support);
         int value = Math.max(0, Math.min(15, supportState.hasAnalogOutputSignal()
-                ? supportState.getAnalogOutputSignal(level, support(pos, state))
-                : level.getBestNeighborSignal(support(pos, state))));
+                ? supportState.getAnalogOutputSignal(level, support)
+                : level.getBestNeighborSignal(support)));
         for (int i = 0; i < channels.length; i++) {
             if (channels[i].isEmpty()) continue;
             String valueText = Integer.toString(value);
@@ -210,7 +298,8 @@ public final class RadioTorchBlockEntity extends BlockEntity {
     }
 
     private void tickCounter(Level level, BlockPos pos, BlockState state) {
-        BlockEntity adjacent = level.getBlockEntity(support(pos, state));
+        BlockEntity adjacent = level.getBlockEntity(
+                counterSupport(pos, state.getValue(RadioTorchBlock.FACING)));
         if (!(adjacent instanceof Container container)) return;
         for (int i = 0; i < filters.length; i++) {
             if (channels[i].isEmpty() || filters[i].isEmpty()) continue;
@@ -226,29 +315,100 @@ public final class RadioTorchBlockEntity extends BlockEntity {
     }
 
     private void tickController(Level level, BlockPos pos, BlockState state) {
-        if (channel.isEmpty()) return;
-        HbmRttySystem.Channel received = HbmRttySystem.listen(level, channel);
-        if (received == null || (!polling && received.timestamp() <= lastUpdate)) return;
-        lastUpdate = received.timestamp();
-        String command = received.signal();
-        if ("selfdestruct".equalsIgnoreCase(command)) {
-            level.explode(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 5.0F,
-                    Level.ExplosionInteraction.BLOCK);
-            return;
+        boolean nowReceiving = false;
+        if (!channel.isEmpty()) {
+            BlockEntity target = resolveTarget(level,
+                    readerSupport(pos, state.getValue(RadioTorchBlock.FACING)));
+            if (target instanceof RttyInteractive interactive) {
+                HbmRttySystem.Channel received = HbmRttySystem.listen(level, channel);
+                if (received != null) {
+                    String command = received.signal();
+                    if ("selfdestruct".equalsIgnoreCase(command)) {
+                        level.destroyBlock(pos, false);
+                        level.explode(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
+                                5.0F, Level.ExplosionInteraction.BLOCK);
+                        return;
+                    }
+                    if (received.timestamp() >= level.getGameTime() - 1L && received.timestamp() != -1L) {
+                        nowReceiving = true;
+                        boolean changed = !command.equals(previousCommand);
+                        if (polling || !receiving || changed) {
+                            try {
+                                interactive.runRttyFunction(
+                                        RttyInfo.PREFIX_FUNCTION + RttyInteractive.command(command),
+                                        RttyInteractive.params(command));
+                            } catch (RttyFunctionException ignored) {
+                                // Malformed radio packets are ignored exactly like 1.7.10.
+                            }
+                        }
+                        if (changed) {
+                            previousCommand = command;
+                            lastUpdate = received.timestamp();
+                            setChanged();
+                        }
+                    }
+                }
+            }
         }
-        // The old IRORInteractive API is optional. Preserve command edge detection
-        // here so adjacent modern machines can consume the command via redstone.
-        if (!command.equals(previousCommand)) {
-            previousCommand = command;
-            boolean powered = !command.isEmpty() && !"off".equalsIgnoreCase(command) && !"0".equals(command);
-            updatePoweredState(level, pos, state, powered);
-            level.updateNeighborsAt(pos, state.getBlock());
-            setChanged();
+        // The published RTTY queue is empty immediately after loading. Retain
+        // the saved burst state for one tick so an edge is not fabricated.
+        if (!firstTick || nowReceiving) {
+            if (receiving != nowReceiving) {
+                receiving = nowReceiving;
+                setChanged();
+            }
         }
+        firstTick = false;
     }
 
-    private BlockPos support(BlockPos pos, BlockState state) {
-        return pos.relative(state.getValue(RadioTorchBlock.FACING).getOpposite());
+    @Nullable
+    private BlockEntity resolveTarget() {
+        if (level == null) return null;
+        return resolveTarget(level, readerSupport(worldPosition, getBlockState().getValue(RadioTorchBlock.FACING)));
+    }
+
+    @Nullable
+    private static BlockEntity resolveTarget(Level level, BlockPos position) {
+        BlockEntity target = level.getBlockEntity(position);
+        return target instanceof MachineDummyBlockEntity dummy ? dummy.core() : target;
+    }
+
+    private static String limit(String value, int maximumLength) {
+        String normalized = value == null ? "" : value.trim();
+        return normalized.length() > maximumLength ? normalized.substring(0, maximumLength) : normalized;
+    }
+
+    private static BlockPos senderSupport(BlockPos pos, Direction facing) {
+        return switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+    }
+
+    private static BlockPos readerSupport(BlockPos pos, Direction facing) {
+        return switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+    }
+
+    private static BlockPos counterSupport(BlockPos pos, Direction facing) {
+        return switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
     }
 
     private void updatePoweredState(Level level, BlockPos pos, BlockState state, boolean powered) {
@@ -279,6 +439,7 @@ public final class RadioTorchBlockEntity extends BlockEntity {
         tag.putBoolean("CustomMap", customMap);
         tag.putBoolean("Descending", descending);
         tag.putString("PreviousCommand", previousCommand);
+        tag.putBoolean("Receiving", receiving);
         for (int i = 0; i < mapping.length; i++) {
             if (!mapping[i].isEmpty()) tag.putString("Map" + i, mapping[i]);
             if (conditions[i] != 0) tag.putInt("Condition" + i, conditions[i]);
@@ -306,6 +467,8 @@ public final class RadioTorchBlockEntity extends BlockEntity {
         customMap = tag.getBoolean("CustomMap");
         descending = tag.getBoolean("Descending");
         previousCommand = tag.getString("PreviousCommand");
+        receiving = tag.getBoolean("Receiving");
+        firstTick = true;
         for (int i = 0; i < mapping.length; i++) {
             mapping[i] = tag.getString("Map" + i);
             conditions[i] = tag.getInt("Condition" + i);
@@ -314,6 +477,7 @@ public final class RadioTorchBlockEntity extends BlockEntity {
             channels[i] = tag.getString("Channel" + i);
             names[i] = tag.getString("Name" + i);
             previous[i] = tag.getString("Previous" + i);
+            forceUpdate[i] = true;
         }
         for (int i = 0; i < filters.length; i++) {
             if (tag.contains("Filter" + i)) filters[i] = ItemStack.parse(registries, tag.getCompound("Filter" + i)).orElse(ItemStack.EMPTY);

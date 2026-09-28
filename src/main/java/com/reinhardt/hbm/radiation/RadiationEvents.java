@@ -17,6 +17,7 @@ import com.reinhardt.hbm.item.HbmPlayerShield;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmDataAttachments;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmMobEffects;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
@@ -43,7 +44,10 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.damagesource.CombatRules;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -52,6 +56,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -340,11 +345,59 @@ public final class RadiationEvents {
     @SubscribeEvent
     public static void onLivingHurt(LivingIncomingDamageEvent event) {
         if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Player player) {
-            HbmPlayerShield.absorb(player, event);
-            applyArmorModDamage(player, event);
-            applyArmorInsertDamage(player, event);
-            applyLegacyArmorCombatHooks(player, event);
+            // Nuclear damage is first stripped of third-party reductions at
+            // LOWEST priority, then this exact HBM protection chain is replayed
+            // once by NuclearTrueDamageEvents.
+            if (!event.getSource().is(HbmDamageTypes.NUCLEAR_BLAST)) {
+                applyHbmDamageProtection(player, event);
+            }
         }
+    }
+
+    public static void applyHbmDamageProtection(Player player, LivingIncomingDamageEvent event) {
+        HbmPlayerShield.absorb(player, event);
+        applyArmorModDamage(player, event);
+        applyArmorInsertDamage(player, event);
+        applyLegacyArmorCombatHooks(player, event);
+    }
+
+    /**
+     * Reapplies only armor authored by HBM after nuclear damage has bypassed
+     * the aggregate armor/toughness attributes. This keeps foreign armor and
+     * attribute stacking out of the calculation without invalidating HBM's
+     * own equipment progression.
+     */
+    public static float applyHbmArmorProtection(Player player, DamageSource source, float amount) {
+        int armor = 0;
+        float toughness = 0.0F;
+        for (ItemStack stack : player.getArmorSlots()) {
+            if (!(stack.getItem() instanceof ArmorItem armorItem)
+                    || !BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace().equals(ReinhardtsHBM.MOD_ID)) {
+                continue;
+            }
+            armor += armorItem.getDefense();
+            toughness += armorItem.getToughness();
+        }
+        if (armor > 0) {
+            amount = CombatRules.getDamageAfterAbsorb(player, amount, source, armor, toughness);
+        }
+
+        if (hasEuphemiumFullSet(player)) {
+            return 0.0F;
+        }
+        if (ArmorFSBItem.hasFSBArmor(player) && "blackjack".equals(ArmorFSBItem.fullSetGroup(player))) {
+            // The Blackjack set supplies vanilla Resistance I; preserve that
+            // HBM-authored 20% reduction without accepting foreign effects.
+            amount *= 0.8F;
+        }
+        return amount;
+    }
+
+    private static boolean hasEuphemiumFullSet(Player player) {
+        return player.getItemBySlot(EquipmentSlot.HEAD).is(HbmItems.EUPHEMIUM_HELMET.get())
+                && player.getItemBySlot(EquipmentSlot.CHEST).is(HbmItems.EUPHEMIUM_PLATE.get())
+                && player.getItemBySlot(EquipmentSlot.LEGS).is(HbmItems.EUPHEMIUM_LEGS.get())
+                && player.getItemBySlot(EquipmentSlot.FEET).is(HbmItems.EUPHEMIUM_BOOTS.get());
     }
 
     /**

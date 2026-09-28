@@ -2,14 +2,13 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.blockentity.LegacyTurretBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyTurretType;
 import com.reinhardt.hbm.entity.LegacyProjectileUtil;
-import com.reinhardt.hbm.power.PowerNetworkManager;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -17,16 +16,16 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
-public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<LegacyTurretBlockEntity> {
+public class LegacyTurretBlockEntityRenderer implements LongRangeBlockEntityRenderer<LegacyTurretBlockEntity> {
+    private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
+    private static final long JAVA_RANDOM_ADDEND = 0xBL;
+    private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
     private static final ModelResourceLocation CHEKHOV_BASE = model("turret_chekhov_base");
     private static final ModelResourceLocation CHEKHOV_CARRIAGE = model("turret_chekhov_carriage");
     private static final ModelResourceLocation CHEKHOV_BODY = model("turret_chekhov_body");
@@ -108,176 +107,237 @@ public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<Lega
 
     @Override
     public void render(LegacyTurretBlockEntity turret, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        LegacyTurretType type = turret.type();
-        if (type.layout() == LegacyTurretType.Layout.SENTRY) {
-            renderSentry(turret, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
-        } else if (type.layout() == LegacyTurretType.Layout.ARTILLERY) {
-            renderArtillery(turret, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
-        } else {
-            renderNt(turret, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+        LegacyTurretBlockEntity.RenderSnapshot snapshot = turret.renderSnapshot();
+        switch (snapshot.type()) {
+            case FRIENDLY -> renderFriendly(turret, snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case FRITZ -> renderFritz(turret, snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case HOWARD -> renderHoward(turret, snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case HOWARD_DAMAGED -> renderHowardDamaged(snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case MAXWELL -> renderMaxwell(turret, snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case RICHARD -> renderRichard(turret, snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case TAUON -> renderTauon(turret, snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case ARTY -> renderArty(snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case HIMARS -> renderHimars(snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case SENTRY -> renderSentry(snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+            case SENTRY_DAMAGED -> renderSentryDamaged(snapshot, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
         }
     }
 
     @Override
     public AABB getRenderBoundingBox(LegacyTurretBlockEntity turret) {
-        return AABB.INFINITE;
+        return turret.renderSnapshot().bounds();
     }
 
-    @Override
-    public boolean shouldRenderOffScreen(LegacyTurretBlockEntity turret) {
-        return true;
-    }
-
-    @Override
-    public int getViewDistance() {
-        return 256;
-    }
-
-    private static void renderNt(LegacyTurretBlockEntity turret, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState state = turret.getBlockState();
-        LegacyTurretType type = turret.type();
-        VecOffset offset = ntOffset(turret.facing());
+    private static void renderFriendly(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                       float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
+                                       int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
         poseStack.pushPose();
-        poseStack.translate(offset.x, 0.0F, offset.z);
-        renderConnectors(turret, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderPart(baseModel(type), poseStack, bufferSource, state, packedLight, packedOverlay);
-
-        double yaw = -Math.toDegrees(turret.renderYaw(partialTick)) - 90.0D;
-        double pitch = Math.toDegrees(turret.renderPitch(partialTick));
-        poseStack.mulPose(yaw((float) yaw));
-        renderPart(carriageModel(type), poseStack, bufferSource, state, packedLight, packedOverlay);
-
-        if (type == LegacyTurretType.HOWARD || type == LegacyTurretType.HOWARD_DAMAGED) {
-            renderHowardTurret(turret, type, partialTick, pitch, poseStack, bufferSource, state, packedLight, packedOverlay);
-        } else {
-            poseStack.translate(0.0F, 1.5F, 0.0F);
-            poseStack.mulPose(roll((float) pitch));
-            poseStack.translate(0.0F, -1.5F, 0.0F);
-            renderNtBody(type, turret, partialTick, poseStack, bufferSource, state, packedLight, packedOverlay);
-        }
+        applyFriendlyRootPose(poseStack, snapshot.facing());
+        renderFriendlyConnectors(turret, snapshot, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(FRIENDLY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 90.0D)));
+        renderPart(FRIENDLY_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        double pitch = Math.toDegrees(snapshot.pitch(partialTick));
+        poseStack.translate(0.0F, 1.5F, 0.0F);
+        poseStack.mulPose(roll((float) pitch));
+        poseStack.translate(0.0F, -1.5F, 0.0F);
+        renderPart(CHEKHOV_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.5F, 0.0F);
+        poseStack.mulPose(pitchX(-snapshot.spin(partialTick)));
+        poseStack.translate(0.0F, -1.5F, 0.0F);
+        renderPart(CHEKHOV_BARRELS, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static void renderHowardTurret(
-            LegacyTurretBlockEntity turret,
-            LegacyTurretType type,
-            float partialTick,
-            double pitch,
-            PoseStack poseStack,
-            MultiBufferSource bufferSource,
-            BlockState state,
-            int packedLight,
-            int packedOverlay
-    ) {
+    private static void renderFritz(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                    float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
+                                    int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applyFritzRootPose(poseStack, snapshot.facing());
+        renderFritzConnectors(turret, snapshot, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(CHEKHOV_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 90.0D)));
+        renderPart(CHEKHOV_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.5F, 0.0F);
+        poseStack.mulPose(roll((float) Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -1.5F, 0.0F);
+        renderPart(FRITZ_GUN, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderHoward(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                     float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
+                                     int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applyHowardRootPose(poseStack, snapshot.facing());
+        renderHowardConnectors(turret, snapshot, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(CHEKHOV_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 90.0D)));
+        renderPart(HOWARD_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.translate(0.0F, 2.25F, 0.0F);
-        poseStack.mulPose(roll((float) pitch));
+        poseStack.mulPose(roll((float) Math.toDegrees(snapshot.pitch(partialTick))));
         poseStack.translate(0.0F, -2.25F, 0.0F);
-        renderPart(type == LegacyTurretType.HOWARD_DAMAGED ? HOWARD_DAMAGED_BODY : HOWARD_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
-        float spin = turret.renderSpin(partialTick);
+        renderPart(HOWARD_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
+        float spin = snapshot.spin(partialTick);
         poseStack.pushPose();
         poseStack.translate(0.0F, 2.5F, 0.0F);
         poseStack.mulPose(pitchX(-spin));
         poseStack.translate(0.0F, -2.5F, 0.0F);
-        renderPart(type == LegacyTurretType.HOWARD_DAMAGED ? HOWARD_DAMAGED_BARRELS_TOP : HOWARD_BARRELS_TOP, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(HOWARD_BARRELS_TOP, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
-        if (type != LegacyTurretType.HOWARD_DAMAGED) {
-            poseStack.translate(0.0F, 2.0F, 0.0F);
-            poseStack.mulPose(pitchX(spin));
-            poseStack.translate(0.0F, -2.0F, 0.0F);
-        }
-        renderPart(type == LegacyTurretType.HOWARD_DAMAGED ? HOWARD_DAMAGED_BARRELS_BOTTOM : HOWARD_BARRELS_BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 2.0F, 0.0F);
+        poseStack.mulPose(pitchX(spin));
+        poseStack.translate(0.0F, -2.0F, 0.0F);
+        renderPart(HOWARD_BARRELS_BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
         poseStack.popPose();
     }
 
-    private static void renderNtBody(LegacyTurretType type, LegacyTurretBlockEntity turret, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        switch (type) {
-            case FRIENDLY -> {
-                renderPart(CHEKHOV_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
-                poseStack.pushPose();
-                poseStack.translate(0.0F, 1.5F, 0.0F);
-                poseStack.mulPose(pitchX(-turret.renderSpin(partialTick)));
-                poseStack.translate(0.0F, -1.5F, 0.0F);
-                renderPart(CHEKHOV_BARRELS, poseStack, bufferSource, state, packedLight, packedOverlay);
-                poseStack.popPose();
-            }
-            case FRITZ -> renderPart(FRITZ_GUN, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case MAXWELL -> {
-                renderPart(MAXWELL_MICROWAVE, poseStack, bufferSource, state, packedLight, packedOverlay);
-                if (turret.beamTicks() > 0) {
-                    poseStack.pushPose();
-                    poseStack.translate(type.barrelLength(), 2.0D, 0.0D);
-                    renderMaxwellBeam(turret, partialTick, poseStack, bufferSource);
-                    poseStack.popPose();
-                }
-            }
-            case RICHARD -> {
-                renderPart(RICHARD_LAUNCHER, poseStack, bufferSource, state, packedLight, packedOverlay);
-                poseStack.translate(0.0F, 0.375F, 0.1875F);
-                int missiles = Math.max(0, Math.min(17, turret.loadedAmmo()));
-                for (int i = 0; i < missiles; i++) {
-                    renderPart(RICHARD_MISSILE, poseStack, bufferSource, state, packedLight, packedOverlay);
-                    if (i == 2 || i == 6 || i == 9 || i == 13) {
-                        poseStack.translate(0.0F, -0.1875F, 0.46875F);
-                    } else {
-                        poseStack.translate(0.0F, 0.0F, -0.1875F);
-                    }
-                }
-            }
-            case TAUON -> {
-                renderPart(TAUON_CANNON, poseStack, bufferSource, state, packedLight, packedOverlay);
-                if (turret.beamTicks() > 0) {
-                    poseStack.pushPose();
-                    poseStack.translate(0.0F, 1.5F, 0.0F);
-                    renderTauonBeam(turret, poseStack, bufferSource);
-                    poseStack.popPose();
-                }
-                poseStack.pushPose();
-                poseStack.translate(0.0F, 1.375F, 0.0F);
-                poseStack.mulPose(pitchX(-turret.renderSpin(partialTick)));
-                poseStack.translate(0.0F, -1.375F, 0.0F);
-                renderPart(TAUON_ROTOR, poseStack, bufferSource, state, packedLight, packedOverlay);
-                poseStack.popPose();
-            }
-            default -> {
-            }
-        }
+    private static void renderHowardDamaged(LegacyTurretBlockEntity.RenderSnapshot snapshot, float partialTick,
+                                            PoseStack poseStack, MultiBufferSource bufferSource,
+                                            int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applyHowardDamagedRootPose(poseStack, snapshot.facing());
+        renderPart(HOWARD_DAMAGED_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 90.0D)));
+        renderPart(HOWARD_DAMAGED_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 2.25F, 0.0F);
+        poseStack.mulPose(roll((float) Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -2.25F, 0.0F);
+        renderPart(HOWARD_DAMAGED_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 2.5F, 0.0F);
+        poseStack.mulPose(pitchX(-snapshot.spin(partialTick)));
+        poseStack.translate(0.0F, -2.5F, 0.0F);
+        renderPart(HOWARD_DAMAGED_BARRELS_TOP, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+        renderPart(HOWARD_DAMAGED_BARRELS_BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
     }
 
-    private static void renderArtillery(LegacyTurretBlockEntity turret, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState state = turret.getBlockState();
-        VecOffset offset = ntOffset(turret.facing());
+    private static void renderMaxwell(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                      float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
+                                      int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
         poseStack.pushPose();
-        poseStack.translate(offset.x, 0.0F, offset.z);
-        double yaw = -Math.toDegrees(turret.renderYaw(partialTick)) - 90.0D;
-        double pitch = Math.toDegrees(turret.renderPitch(partialTick));
-        renderPart(ARTY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
-        poseStack.mulPose(yaw((float) yaw - 90.0F));
-        if (turret.type() == LegacyTurretType.ARTY) {
-            renderPart(ARTY_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
-            poseStack.translate(0.0F, 3.0F, 0.0F);
-            poseStack.mulPose(pitchX((float) pitch));
-            poseStack.translate(0.0F, -3.0F, 0.0F);
-            renderPart(ARTY_CANNON, poseStack, bufferSource, state, packedLight, packedOverlay);
-            poseStack.translate(0.0F, 0.0F, turret.renderArtilleryBarrel(partialTick) * 2.5F);
-            renderPart(ARTY_BARREL, poseStack, bufferSource, state, packedLight, packedOverlay);
-        } else {
-            renderPart(HIMARS_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
-            poseStack.translate(0.0F, 2.25F, 2.0F);
-            poseStack.mulPose(pitchX((float) pitch));
-            poseStack.translate(0.0F, -2.25F, -2.0F);
-            renderPart(HIMARS_LAUNCHER, poseStack, bufferSource, state, packedLight, packedOverlay);
+        applyMaxwellRootPose(poseStack, snapshot.facing());
+        renderMaxwellConnectors(turret, snapshot, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(CHEKHOV_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 90.0D)));
+        renderPart(HOWARD_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.5F, 0.0F);
+        poseStack.mulPose(roll((float) Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -1.5F, 0.0F);
+        renderPart(MAXWELL_MICROWAVE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        if (snapshot.beamTicks() > 0) {
             poseStack.pushPose();
-            poseStack.translate(0.0F, 0.0F, turret.renderCrane(partialTick) * -5.0F);
-            renderPart(HIMARS_CRANE, poseStack, bufferSource, state, packedLight, packedOverlay);
-            renderHimarsLoad(turret, poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.translate(LegacyTurretType.MAXWELL.barrelLength(), 2.0D, 0.0D);
+            renderMaxwellBeam(snapshot, partialTick, poseStack, bufferSource);
             poseStack.popPose();
         }
         poseStack.popPose();
     }
 
-    private static void renderHimarsLoad(LegacyTurretBlockEntity turret, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        int modelData = turret.spareAmmoModelData();
+    private static void renderRichard(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                      float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
+                                      int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applyRichardRootPose(poseStack, snapshot.facing());
+        renderRichardConnectors(turret, snapshot, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(CHEKHOV_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 90.0D)));
+        renderPart(CHEKHOV_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.5F, 0.0F);
+        poseStack.mulPose(roll((float) Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -1.5F, 0.0F);
+        renderPart(RICHARD_LAUNCHER, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 0.375F, 0.1875F);
+        int missiles = Math.max(0, Math.min(17, snapshot.loadedAmmo()));
+        for (int i = 0; i < missiles; i++) {
+            renderPart(RICHARD_MISSILE, poseStack, bufferSource, state, packedLight, packedOverlay);
+            if (i == 2 || i == 6 || i == 9 || i == 13) {
+                poseStack.translate(0.0F, -0.1875F, 0.46875F);
+            } else {
+                poseStack.translate(0.0F, 0.0F, -0.1875F);
+            }
+        }
+        poseStack.popPose();
+    }
+
+    private static void renderTauon(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                    float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
+                                    int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applyTauonRootPose(poseStack, snapshot.facing());
+        renderTauonConnectors(turret, snapshot, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(CHEKHOV_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 90.0D)));
+        renderPart(CHEKHOV_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.5F, 0.0F);
+        poseStack.mulPose(roll((float) Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -1.5F, 0.0F);
+        renderPart(TAUON_CANNON, poseStack, bufferSource, state, packedLight, packedOverlay);
+        if (snapshot.beamTicks() > 0) {
+            poseStack.pushPose();
+            poseStack.translate(0.0F, 1.5F, 0.0F);
+            renderTauonBeam(snapshot, poseStack, bufferSource);
+            poseStack.popPose();
+        }
+        poseStack.translate(0.0F, 1.375F, 0.0F);
+        poseStack.mulPose(pitchX(-snapshot.spin(partialTick)));
+        poseStack.translate(0.0F, -1.375F, 0.0F);
+        renderPart(TAUON_ROTOR, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderArty(LegacyTurretBlockEntity.RenderSnapshot snapshot, float partialTick,
+                                   PoseStack poseStack, MultiBufferSource bufferSource,
+                                   int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applyArtyRootPose(poseStack, snapshot.facing());
+        renderPart(ARTY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 180.0D)));
+        renderPart(ARTY_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 3.0F, 0.0F);
+        poseStack.mulPose(pitchX((float) Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -3.0F, 0.0F);
+        renderPart(ARTY_CANNON, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 0.0F, snapshot.artilleryBarrel(partialTick) * 2.5F);
+        renderPart(ARTY_BARREL, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderHimars(LegacyTurretBlockEntity.RenderSnapshot snapshot, float partialTick,
+                                     PoseStack poseStack, MultiBufferSource bufferSource,
+                                     int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applyHimarsRootPose(poseStack, snapshot.facing());
+        renderPart(ARTY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) (-Math.toDegrees(snapshot.yaw(partialTick)) - 180.0D)));
+        renderPart(HIMARS_CARRIAGE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 2.25F, 2.0F);
+        poseStack.mulPose(pitchX((float) Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -2.25F, -2.0F);
+        renderPart(HIMARS_LAUNCHER, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 0.0F, snapshot.crane(partialTick) * -5.0F);
+        renderPart(HIMARS_CRANE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderHimarsLoad(snapshot, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderHimarsLoad(LegacyTurretBlockEntity.RenderSnapshot snapshot, PoseStack poseStack,
+                                         MultiBufferSource bufferSource, BlockState state,
+                                         int packedLight, int packedOverlay) {
+        int modelData = snapshot.spareAmmoModelData();
         if (modelData < 0 || modelData >= LegacyProjectileUtil.HimarsType.values().length) {
             return;
         }
@@ -287,7 +347,7 @@ public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<Lega
             return;
         }
         renderPart(tube, poseStack, bufferSource, state, packedLight, packedOverlay);
-        int loaded = Math.max(0, Math.min(type.amount(), turret.loadedAmmo()));
+        int loaded = Math.max(0, Math.min(type.amount(), snapshot.loadedAmmo()));
         if (type.modelType() == 0) {
             for (int i = 0; i < loaded; i++) {
                 int capIndex = 5 - i;
@@ -304,82 +364,302 @@ public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<Lega
         }
     }
 
-    private static void renderSentry(LegacyTurretBlockEntity turret, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState state = turret.getBlockState();
-        boolean damaged = turret.type() == LegacyTurretType.SENTRY_DAMAGED;
+    private static void renderSentry(LegacyTurretBlockEntity.RenderSnapshot snapshot, float partialTick,
+                                     PoseStack poseStack, MultiBufferSource bufferSource,
+                                     int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        renderPart(damaged ? SENTRY_DAMAGED_BASE : SENTRY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
-        poseStack.mulPose(yaw((float) -Math.toDegrees(turret.renderYaw(partialTick))));
-        renderPart(damaged ? SENTRY_DAMAGED_PIVOT : SENTRY_PIVOT, poseStack, bufferSource, state, packedLight, packedOverlay);
-        float pitch = (float) -Math.toDegrees(turret.renderPitch(partialTick));
+        applySentryRootPose(poseStack, snapshot.facing());
+        renderPart(SENTRY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) -Math.toDegrees(snapshot.yaw(partialTick))));
+        renderPart(SENTRY_PIVOT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        float pitch = (float) -Math.toDegrees(snapshot.pitch(partialTick));
         poseStack.translate(0.0F, 1.25F, 0.0F);
         poseStack.mulPose(pitchX(pitch));
         poseStack.translate(0.0F, -1.25F, 0.0F);
-        renderPart(damaged ? SENTRY_DAMAGED_BODY : SENTRY_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderPart(damaged ? SENTRY_DAMAGED_DRUM : SENTRY_DRUM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DRUM, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.pushPose();
-        poseStack.translate(0.0F, 0.0F, turret.renderLeftBarrel(partialTick) * -0.5F);
-        renderPart(damaged ? SENTRY_DAMAGED_BARREL_L : SENTRY_BARREL_L, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 0.0F, snapshot.leftBarrel(partialTick) * -0.5F);
+        renderPart(SENTRY_BARREL_L, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
-        if (damaged) {
-            poseStack.translate(0.0F, 1.5F, 0.5F);
-            poseStack.mulPose(pitchX(25.0F));
-            poseStack.translate(0.0F, -1.5F, -0.5F);
-        } else {
-            poseStack.translate(0.0F, 0.0F, turret.renderRightBarrel(partialTick) * -0.5F);
-        }
-        renderPart(damaged ? SENTRY_DAMAGED_BARREL_R : SENTRY_BARREL_R, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 0.0F, snapshot.rightBarrel(partialTick) * -0.5F);
+        renderPart(SENTRY_BARREL_R, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }
 
-    private static void renderConnectors(LegacyTurretBlockEntity turret, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        if (turret.getLevel() == null) {
-            return;
-        }
-        if (turret.type().damaged()) {
-            return;
-        }
-        for (LegacyTurretBlockEntity.ConnectorSpec spec : LegacyTurretBlockEntity.connectorSpecs(turret.getBlockPos(), turret.facing(), turret.type())) {
-            Direction side = spec.machineSide();
-            if (!canRenderConnector(turret, spec, side)) {
+    private static void renderSentryDamaged(LegacyTurretBlockEntity.RenderSnapshot snapshot, float partialTick,
+                                            PoseStack poseStack, MultiBufferSource bufferSource,
+                                            int packedLight, int packedOverlay) {
+        BlockState state = snapshot.blockState();
+        poseStack.pushPose();
+        applySentryDamagedRootPose(poseStack, snapshot.facing());
+        renderPart(SENTRY_DAMAGED_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.mulPose(yaw((float) -Math.toDegrees(snapshot.yaw(partialTick))));
+        renderPart(SENTRY_DAMAGED_PIVOT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.translate(0.0F, 1.25F, 0.0F);
+        poseStack.mulPose(pitchX((float) -Math.toDegrees(snapshot.pitch(partialTick))));
+        poseStack.translate(0.0F, -1.25F, 0.0F);
+        renderPart(SENTRY_DAMAGED_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DAMAGED_DRUM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 0.0F, snapshot.leftBarrel(partialTick) * -0.5F);
+        renderPart(SENTRY_DAMAGED_BARREL_L, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 1.5F, 0.5F);
+        poseStack.mulPose(pitchX(25.0F));
+        poseStack.translate(0.0F, -1.5F, -0.5F);
+        renderPart(SENTRY_DAMAGED_BARREL_R, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+        poseStack.popPose();
+    }
+
+    private static void renderFriendlyConnectors(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                                 PoseStack poseStack, MultiBufferSource bufferSource,
+                                                 BlockState state, int packedLight, int packedOverlay) {
+        List<LegacyTurretBlockEntity.ConnectorSpec> specs = LegacyTurretBlockEntity.friendlyConnectorSpecs(
+                turret.getBlockPos(), snapshot.facing());
+        for (int index = 0; index < specs.size(); index++) {
+            LegacyTurretBlockEntity.ConnectorSpec spec = specs.get(index);
+            if (!snapshot.connector(index)) {
                 continue;
             }
             poseStack.pushPose();
-            poseStack.mulPose(yaw(sideToDegrees(side)));
-            poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
+            applyFriendlyConnectorPose(poseStack, spec);
             renderPart(CHEKHOV_CONNECTORS, poseStack, bufferSource, state, packedLight, packedOverlay);
             poseStack.popPose();
         }
     }
 
-    private static boolean canRenderConnector(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.ConnectorSpec spec, Direction side) {
-        if (PowerNetworkManager.canCableConnectTo(turret.getLevel(), spec.pos(), side.getOpposite())) {
-            return true;
+    private static void renderFritzConnectors(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                              PoseStack poseStack, MultiBufferSource bufferSource,
+                                              BlockState state, int packedLight, int packedOverlay) {
+        List<LegacyTurretBlockEntity.ConnectorSpec> specs = LegacyTurretBlockEntity.fritzConnectorSpecs(
+                turret.getBlockPos(), snapshot.facing());
+        for (int index = 0; index < specs.size(); index++) {
+            LegacyTurretBlockEntity.ConnectorSpec spec = specs.get(index);
+            if (!snapshot.connector(index)) {
+                continue;
+            }
+            poseStack.pushPose();
+            applyFritzConnectorPose(poseStack, spec);
+            renderPart(CHEKHOV_CONNECTORS, poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
         }
-        return turret.type() == LegacyTurretType.FRITZ
-                && turret.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, spec.pos(), side.getOpposite()) != null;
     }
 
-    private static void renderTauonBeam(LegacyTurretBlockEntity turret, PoseStack poseStack, MultiBufferSource bufferSource) {
-        double length = turret.beamDistance();
-        int phase = (int) (((turret.getLevel() == null ? 0L : turret.getLevel().getGameTime()) / 5L) % 360L);
-        renderRandomLineBeam(poseStack.last(), bufferSource.getBuffer(RenderType.lines()), new Vec3(length, 0.0D, 0.0D), phase, Math.max(1, (int) length + 1), 0.1D);
+    private static void renderHowardConnectors(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                               PoseStack poseStack, MultiBufferSource bufferSource,
+                                               BlockState state, int packedLight, int packedOverlay) {
+        List<LegacyTurretBlockEntity.ConnectorSpec> specs = LegacyTurretBlockEntity.howardConnectorSpecs(
+                turret.getBlockPos(), snapshot.facing());
+        for (int index = 0; index < specs.size(); index++) {
+            LegacyTurretBlockEntity.ConnectorSpec spec = specs.get(index);
+            if (!snapshot.connector(index)) {
+                continue;
+            }
+            poseStack.pushPose();
+            applyHowardConnectorPose(poseStack, spec);
+            renderPart(CHEKHOV_CONNECTORS, poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
+        }
     }
 
-    private static void renderMaxwellBeam(LegacyTurretBlockEntity turret, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource) {
-        double length = turret.beamDistance() - turret.type().barrelLength();
-        double gameTime = (turret.getLevel() == null ? 0L : turret.getLevel().getGameTime()) + partialTick;
-        int segments = Math.max(1, (int) (turret.beamDistance() + 1.0D));
+    private static void renderMaxwellConnectors(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                                PoseStack poseStack, MultiBufferSource bufferSource,
+                                                BlockState state, int packedLight, int packedOverlay) {
+        List<LegacyTurretBlockEntity.ConnectorSpec> specs = LegacyTurretBlockEntity.maxwellConnectorSpecs(
+                turret.getBlockPos(), snapshot.facing());
+        for (int index = 0; index < specs.size(); index++) {
+            LegacyTurretBlockEntity.ConnectorSpec spec = specs.get(index);
+            if (!snapshot.connector(index)) {
+                continue;
+            }
+            poseStack.pushPose();
+            applyMaxwellConnectorPose(poseStack, spec);
+            renderPart(CHEKHOV_CONNECTORS, poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
+        }
+    }
+
+    private static void renderRichardConnectors(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                                PoseStack poseStack, MultiBufferSource bufferSource,
+                                                BlockState state, int packedLight, int packedOverlay) {
+        List<LegacyTurretBlockEntity.ConnectorSpec> specs = LegacyTurretBlockEntity.richardConnectorSpecs(
+                turret.getBlockPos(), snapshot.facing());
+        for (int index = 0; index < specs.size(); index++) {
+            LegacyTurretBlockEntity.ConnectorSpec spec = specs.get(index);
+            if (!snapshot.connector(index)) {
+                continue;
+            }
+            poseStack.pushPose();
+            applyRichardConnectorPose(poseStack, spec);
+            renderPart(CHEKHOV_CONNECTORS, poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
+        }
+    }
+
+    private static void renderTauonConnectors(LegacyTurretBlockEntity turret, LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                              PoseStack poseStack, MultiBufferSource bufferSource,
+                                              BlockState state, int packedLight, int packedOverlay) {
+        List<LegacyTurretBlockEntity.ConnectorSpec> specs = LegacyTurretBlockEntity.tauonConnectorSpecs(
+                turret.getBlockPos(), snapshot.facing());
+        for (int index = 0; index < specs.size(); index++) {
+            LegacyTurretBlockEntity.ConnectorSpec spec = specs.get(index);
+            if (!snapshot.connector(index)) {
+                continue;
+            }
+            poseStack.pushPose();
+            applyTauonConnectorPose(poseStack, spec);
+            renderPart(CHEKHOV_CONNECTORS, poseStack, bufferSource, state, packedLight, packedOverlay);
+            poseStack.popPose();
+        }
+    }
+
+    private static void applyFriendlyConnectorPose(PoseStack poseStack, LegacyTurretBlockEntity.ConnectorSpec spec) {
+        switch (spec.machineSide()) {
+            case WEST -> { }
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            default -> { }
+        }
+        poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
+    }
+
+    private static void applyFritzConnectorPose(PoseStack poseStack, LegacyTurretBlockEntity.ConnectorSpec spec) {
+        switch (spec.machineSide()) {
+            case WEST -> { }
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            default -> { }
+        }
+        poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
+    }
+
+    private static void applyHowardConnectorPose(PoseStack poseStack, LegacyTurretBlockEntity.ConnectorSpec spec) {
+        switch (spec.machineSide()) {
+            case WEST -> { }
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            default -> { }
+        }
+        poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
+    }
+
+    private static void applyMaxwellConnectorPose(PoseStack poseStack, LegacyTurretBlockEntity.ConnectorSpec spec) {
+        switch (spec.machineSide()) {
+            case WEST -> { }
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            default -> { }
+        }
+        poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
+    }
+
+    private static void applyRichardConnectorPose(PoseStack poseStack, LegacyTurretBlockEntity.ConnectorSpec spec) {
+        switch (spec.machineSide()) {
+            case WEST -> { }
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            default -> { }
+        }
+        poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
+    }
+
+    private static void applyTauonConnectorPose(PoseStack poseStack, LegacyTurretBlockEntity.ConnectorSpec spec) {
+        switch (spec.machineSide()) {
+            case WEST -> { }
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            default -> { }
+        }
+        poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
+    }
+
+    private static void applyFriendlyRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.friendlyWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyFritzRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.fritzWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyHowardRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.howardWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyHowardDamagedRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.howardDamagedWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyMaxwellRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.maxwellWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyRichardRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.richardWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyTauonRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.tauonWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyArtyRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.artyWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applyHimarsRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.himarsWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applySentryRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.sentryWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void applySentryDamagedRootPose(PoseStack poseStack, Direction facing) {
+        Vec3 offset = LegacyTurretBlockEntity.sentryDamagedWorldOrigin(facing);
+        poseStack.translate(offset.x, 0.0D, offset.z);
+    }
+
+    private static void renderTauonBeam(LegacyTurretBlockEntity.RenderSnapshot snapshot,
+                                        PoseStack poseStack, MultiBufferSource bufferSource) {
+        double length = snapshot.beamDistance();
+        int phase = (int) ((snapshot.gameTime() / 5L) % 360L);
+        renderRandomLineBeam(poseStack.last(), bufferSource.getBuffer(RenderType.lines()),
+                length, phase, Math.max(1, (int) length + 1), 0.1D);
+    }
+
+    private static void renderMaxwellBeam(LegacyTurretBlockEntity.RenderSnapshot snapshot, float partialTick,
+                                          PoseStack poseStack, MultiBufferSource bufferSource) {
+        double length = snapshot.beamDistance() - LegacyTurretType.MAXWELL.barrelLength();
+        double gameTime = snapshot.gameTime() + partialTick;
+        int segments = Math.max(1, (int) (snapshot.beamDistance() + 1.0D));
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.lightning());
         for (int index = 0; index < 8; index++) {
             int phase = (int) ((gameTime * -50.0D + index * 45.0D) % 360.0D);
             renderSolidSpiralBeam(
                     poseStack.last(),
                     consumer,
-                    new Vec3(length, 0.0D, 0.0D),
+                    length,
                     0x2020FF,
                     0x2020FF,
                     phase,
@@ -394,33 +674,45 @@ public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<Lega
     private static void renderRandomLineBeam(
             PoseStack.Pose pose,
             VertexConsumer consumer,
-            Vec3 skeleton,
+            double length,
             int phase,
             int segments,
             double size
     ) {
-        BeamAxes axes = beamAxes(skeleton);
-        Random beamRandom = new Random(phase);
-        int safeSegments = Math.max(1, segments);
-        double segmentLength = skeleton.length() / safeSegments;
-        Vec3 previous = null;
-        for (int index = 0; index <= safeSegments; index++) {
-            double angle = Math.PI * 2.0D * beamRandom.nextFloat();
-            angle += Math.PI * 2.0D * beamRandom.nextFloat();
-            Vec3 spinner = axes.crossX.scale(Math.cos(angle) * size).add(axes.crossZ.scale(Math.sin(angle) * size));
-            Vec3 point = axes.forward.scale(segmentLength * index).add(spinner);
-            if (previous != null) {
-                renderLineSegment(pose, consumer, previous, point, 0xFFA200);
-            }
-            previous = point;
+        double lengthMagnitude = Math.abs(length);
+        if (lengthMagnitude < 1.0E-12D) {
+            return;
         }
-        renderLineSegment(pose, consumer, Vec3.ZERO, skeleton, 0xFFD000);
+        double direction = Math.copySign(1.0D, length);
+        long randomState = (phase ^ JAVA_RANDOM_MULTIPLIER) & JAVA_RANDOM_MASK;
+        int safeSegments = Math.max(1, segments);
+        double segmentLength = lengthMagnitude / safeSegments;
+        double previousX = 0.0D;
+        double previousY = 0.0D;
+        double previousZ = 0.0D;
+        for (int index = 0; index <= safeSegments; index++) {
+            randomState = (randomState * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+            double angle = Math.PI * 2.0D * ((float) (randomState >>> 24) / 16777216.0F);
+            randomState = (randomState * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+            angle += Math.PI * 2.0D * ((float) (randomState >>> 24) / 16777216.0F);
+            double pointX = direction * segmentLength * index;
+            double pointY = Math.sin(angle) * size;
+            double pointZ = direction * Math.cos(angle) * size;
+            if (index > 0) {
+                renderLineSegment(pose, consumer,
+                        previousX, previousY, previousZ, pointX, pointY, pointZ, 0xFFA200);
+            }
+            previousX = pointX;
+            previousY = pointY;
+            previousZ = pointZ;
+        }
+        renderLineSegment(pose, consumer, 0.0D, 0.0D, 0.0D, length, 0.0D, 0.0D, 0xFFD000);
     }
 
     private static void renderSolidSpiralBeam(
             PoseStack.Pose pose,
             VertexConsumer consumer,
-            Vec3 skeleton,
+            double length,
             int outerColor,
             int innerColor,
             int phase,
@@ -429,35 +721,37 @@ public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<Lega
             int layers,
             double thickness
     ) {
-        BeamAxes axes = beamAxes(skeleton);
+        double lengthMagnitude = Math.abs(length);
+        if (lengthMagnitude < 1.0E-12D) {
+            return;
+        }
+        double direction = Math.copySign(1.0D, length);
         int safeSegments = Math.max(1, segments);
         int safeLayers = Math.max(1, layers);
-        double segmentLength = skeleton.length() / safeSegments;
-        Vec3 previous = null;
+        double segmentLength = lengthMagnitude / safeSegments;
+        double previousX = 0.0D;
+        double previousY = 0.0D;
+        double previousZ = 0.0D;
         for (int index = 0; index <= safeSegments; index++) {
             double angle = Math.toRadians(phase + 45.0D * index);
-            Vec3 spinner = axes.crossX.scale(Math.cos(angle) * size).add(axes.crossZ.scale(Math.sin(angle) * size));
-            Vec3 point = axes.forward.scale(segmentLength * index).add(spinner);
-            if (previous != null) {
+            double pointX = direction * segmentLength * index;
+            double pointY = Math.sin(angle) * size;
+            double pointZ = direction * Math.cos(angle) * size;
+            if (index > 0) {
                 for (int layer = 1; layer <= safeLayers; layer++) {
                     double interpolation = safeLayers == 1 ? 0.0D : (double) (layer - 1) / (double) (safeLayers - 1);
                     int color = interpolateColor(outerColor, innerColor, interpolation);
                     double radius = thickness / safeLayers * layer;
-                    renderBeamSegment(pose, consumer, previous, point, axes.crossX, axes.crossZ, radius, color);
+                    renderBeamSegment(pose, consumer,
+                            previousX, previousY, previousZ,
+                            pointX, pointY, pointZ,
+                            direction, radius, color);
                 }
             }
-            previous = point;
+            previousX = pointX;
+            previousY = pointY;
+            previousZ = pointZ;
         }
-    }
-
-    private static BeamAxes beamAxes(Vec3 skeleton) {
-        Vec3 forward = skeleton.normalize();
-        Vec3 crossX = new Vec3(-forward.z, 0.0D, forward.x);
-        if (crossX.lengthSqr() < 1.0E-5D) {
-            crossX = new Vec3(-1.0D, 0.0D, 0.0D);
-        }
-        crossX = crossX.normalize();
-        return new BeamAxes(forward, crossX, crossX.cross(forward).normalize());
     }
 
     private static int interpolateColor(int outerColor, int innerColor, double interpolation) {
@@ -467,74 +761,93 @@ public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<Lega
         return red << 16 | green << 8 | blue;
     }
 
-    private static void renderLineSegment(PoseStack.Pose pose, VertexConsumer consumer, Vec3 start, Vec3 end, int color) {
+    private static void renderLineSegment(PoseStack.Pose pose, VertexConsumer consumer,
+                                          double startX, double startY, double startZ,
+                                          double endX, double endY, double endZ,
+                                          int color) {
         int red = (color >>> 16) & 0xFF;
         int green = (color >>> 8) & 0xFF;
         int blue = color & 0xFF;
-        Vec3 normal = end.subtract(start).normalize();
-        consumer.addVertex(pose, (float) start.x, (float) start.y, (float) start.z)
+        double normalX = endX - startX;
+        double normalY = endY - startY;
+        double normalZ = endZ - startZ;
+        double normalLength = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
+        if (normalLength >= 1.0E-4D) {
+            normalX /= normalLength;
+            normalY /= normalLength;
+            normalZ /= normalLength;
+        } else {
+            normalX = 0.0D;
+            normalY = 0.0D;
+            normalZ = 0.0D;
+        }
+        consumer.addVertex(pose, (float) startX, (float) startY, (float) startZ)
                 .setColor(red, green, blue, 255)
-                .setNormal(pose, (float) normal.x, (float) normal.y, (float) normal.z);
-        consumer.addVertex(pose, (float) end.x, (float) end.y, (float) end.z)
+                .setNormal(pose, (float) normalX, (float) normalY, (float) normalZ);
+        consumer.addVertex(pose, (float) endX, (float) endY, (float) endZ)
                 .setColor(red, green, blue, 255)
-                .setNormal(pose, (float) normal.x, (float) normal.y, (float) normal.z);
+                .setNormal(pose, (float) normalX, (float) normalY, (float) normalZ);
     }
 
-    private static void renderBeamSegment(PoseStack.Pose pose, VertexConsumer consumer, Vec3 previous, Vec3 point, Vec3 axisX, Vec3 axisZ, double thickness, int color) {
+    private static void renderBeamSegment(PoseStack.Pose pose, VertexConsumer consumer,
+                                          double previousX, double previousY, double previousZ,
+                                          double pointX, double pointY, double pointZ,
+                                          double direction, double thickness, int color) {
         int red = (color >>> 16) & 0xFF;
         int green = (color >>> 8) & 0xFF;
         int blue = color & 0xFF;
-        Vec3 x = axisX.scale(thickness);
-        Vec3 z = axisZ.scale(thickness);
-        beamQuad(consumer, pose, previous.add(x).add(z), previous.add(x).subtract(z), point.add(x).subtract(z), point.add(x).add(z), red, green, blue);
-        beamQuad(consumer, pose, previous.subtract(x).add(z), previous.subtract(x).subtract(z), point.subtract(x).subtract(z), point.subtract(x).add(z), red, green, blue);
-        beamQuad(consumer, pose, previous.add(x).add(z), previous.subtract(x).add(z), point.subtract(x).add(z), point.add(x).add(z), red, green, blue);
-        beamQuad(consumer, pose, previous.add(x).subtract(z), previous.subtract(x).subtract(z), point.subtract(x).subtract(z), point.add(x).subtract(z), red, green, blue);
+        double xZ = direction * thickness;
+        double zY = thickness;
+        beamQuad(consumer, pose,
+                previousX, previousY + zY, previousZ + xZ,
+                previousX, previousY - zY, previousZ + xZ,
+                pointX, pointY - zY, pointZ + xZ,
+                pointX, pointY + zY, pointZ + xZ,
+                red, green, blue);
+        beamQuad(consumer, pose,
+                previousX, previousY + zY, previousZ - xZ,
+                previousX, previousY - zY, previousZ - xZ,
+                pointX, pointY - zY, pointZ - xZ,
+                pointX, pointY + zY, pointZ - xZ,
+                red, green, blue);
+        beamQuad(consumer, pose,
+                previousX, previousY + zY, previousZ + xZ,
+                previousX, previousY + zY, previousZ - xZ,
+                pointX, pointY + zY, pointZ - xZ,
+                pointX, pointY + zY, pointZ + xZ,
+                red, green, blue);
+        beamQuad(consumer, pose,
+                previousX, previousY - zY, previousZ + xZ,
+                previousX, previousY - zY, previousZ - xZ,
+                pointX, pointY - zY, pointZ - xZ,
+                pointX, pointY - zY, pointZ + xZ,
+                red, green, blue);
     }
 
-    private static void beamQuad(VertexConsumer consumer, PoseStack.Pose pose, Vec3 a, Vec3 b, Vec3 c, Vec3 d, int red, int green, int blue) {
-        beamVertex(consumer, pose, a, red, green, blue);
-        beamVertex(consumer, pose, b, red, green, blue);
-        beamVertex(consumer, pose, c, red, green, blue);
-        beamVertex(consumer, pose, d, red, green, blue);
+    private static void beamQuad(VertexConsumer consumer, PoseStack.Pose pose,
+                                 double ax, double ay, double az,
+                                 double bx, double by, double bz,
+                                 double cx, double cy, double cz,
+                                 double dx, double dy, double dz,
+                                 int red, int green, int blue) {
+        beamVertex(consumer, pose, ax, ay, az, red, green, blue);
+        beamVertex(consumer, pose, bx, by, bz, red, green, blue);
+        beamVertex(consumer, pose, cx, cy, cz, red, green, blue);
+        beamVertex(consumer, pose, dx, dy, dz, red, green, blue);
     }
 
-    private static void beamVertex(VertexConsumer consumer, PoseStack.Pose pose, Vec3 pos, int red, int green, int blue) {
-        consumer.addVertex(pose, (float) pos.x, (float) pos.y, (float) pos.z)
+    private static void beamVertex(VertexConsumer consumer, PoseStack.Pose pose,
+                                   double x, double y, double z,
+                                   int red, int green, int blue) {
+        consumer.addVertex(pose, (float) x, (float) y, (float) z)
                 .setColor(red, green, blue, 255)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(LightTexture.FULL_BRIGHT)
                 .setNormal(pose, 0.0F, 1.0F, 0.0F);
     }
 
-    private static ModelResourceLocation baseModel(LegacyTurretType type) {
-        return switch (type) {
-            case FRIENDLY -> FRIENDLY_BASE;
-            case HOWARD_DAMAGED -> HOWARD_DAMAGED_BASE;
-            default -> CHEKHOV_BASE;
-        };
-    }
-
-    private static ModelResourceLocation carriageModel(LegacyTurretType type) {
-        return switch (type) {
-            case FRIENDLY -> FRIENDLY_CARRIAGE;
-            case HOWARD, MAXWELL -> HOWARD_CARRIAGE;
-            case HOWARD_DAMAGED -> HOWARD_DAMAGED_CARRIAGE;
-            default -> CHEKHOV_CARRIAGE;
-        };
-    }
-
     private static void renderPart(ModelResourceLocation location, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(location), poseStack, bufferSource, state, packedLight, packedOverlay);
-    }
-
-    private static VecOffset ntOffset(Direction facing) {
-        return switch (facing) {
-            case NORTH -> new VecOffset(1.0F, 1.0F);
-            case WEST -> new VecOffset(1.0F, 0.0F);
-            case EAST -> new VecOffset(0.0F, 1.0F);
-            default -> new VecOffset(0.0F, 0.0F);
-        };
     }
 
     private static ModelResourceLocation model(String name) {
@@ -572,30 +885,14 @@ public class LegacyTurretBlockEntityRenderer implements BlockEntityRenderer<Lega
     }
 
     private static Quaternionf yaw(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
+        return new Quaternionf().rotationY((float) Math.toRadians(degrees));
     }
 
     private static Quaternionf pitchX(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 1.0F, 0.0F, 0.0F));
+        return new Quaternionf().rotationX((float) Math.toRadians(degrees));
     }
 
     private static Quaternionf roll(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 0.0F, 1.0F));
-    }
-
-    private static float sideToDegrees(Direction side) {
-        return switch (side) {
-            case WEST -> 0.0F;
-            case SOUTH -> 90.0F;
-            case EAST -> 180.0F;
-            case NORTH -> 270.0F;
-            default -> 0.0F;
-        };
-    }
-
-    private record VecOffset(float x, float z) {
-    }
-
-    private record BeamAxes(Vec3 forward, Vec3 crossX, Vec3 crossZ) {
+        return new Quaternionf().rotationZ((float) Math.toRadians(degrees));
     }
 }

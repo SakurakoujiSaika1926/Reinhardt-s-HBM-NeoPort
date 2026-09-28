@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.unpackagehbmfluid.lightoil_vacuum",
+  "duration": 40,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:fluid_pack_full"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "fluid": "lightoil_vacuum"
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "lightoil_vacuum",
+      "amount": 32000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fluid_pack_empty"
+  }
+}

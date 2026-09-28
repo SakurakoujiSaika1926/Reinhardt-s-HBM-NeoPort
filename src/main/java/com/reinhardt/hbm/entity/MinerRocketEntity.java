@@ -5,6 +5,9 @@ import com.reinhardt.hbm.registry.HbmParticleTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -12,6 +15,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Return vehicle used by the two legacy mining satellites. */
 public final class MinerRocketEntity extends Entity {
@@ -24,15 +31,22 @@ public final class MinerRocketEntity extends Entity {
             SynchedEntityData.defineId(MinerRocketEntity.class, EntityDataSerializers.INT);
 
     private int timer;
+    private final List<ItemStack> cargo = new ArrayList<>();
 
     public MinerRocketEntity(EntityType<? extends MinerRocketEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public MinerRocketEntity(Level level, int frequency) {
         this(HbmEntityTypes.MINER_ROCKET.get(), level);
         setFrequency(frequency);
+    }
+
+    public MinerRocketEntity(Level level, int frequency, List<ItemStack> cargo) {
+        this(level, frequency);
+        for (ItemStack stack : cargo) {
+            if (!stack.isEmpty()) this.cargo.add(stack.copy());
+        }
     }
 
     @Override
@@ -43,7 +57,14 @@ public final class MinerRocketEntity extends Entity {
 
     public int frequency() { return entityData.get(FREQUENCY); }
     public void setFrequency(int frequency) { entityData.set(FREQUENCY, frequency); }
-    public boolean shouldUnloadCargo() { return entityData.get(MODE) == UNLOADING && timer == 50; }
+    public boolean shouldUnloadCargo() { return entityData.get(MODE) == UNLOADING && timer == 100; }
+
+    public List<ItemStack> takeCargo() {
+        if (!shouldUnloadCargo() || cargo.isEmpty()) return List.of();
+        List<ItemStack> result = cargo.stream().map(ItemStack::copy).toList();
+        cargo.clear();
+        return result;
+    }
 
     @Override
     public void tick() {
@@ -107,6 +128,12 @@ public final class MinerRocketEntity extends Entity {
         tag.putInt("Mode", entityData.get(MODE));
         tag.putInt("Satellite", frequency());
         tag.putInt("Timer", timer);
+        ListTag cargoTag = new ListTag();
+        HolderLookup.Provider registries = level().registryAccess();
+        for (ItemStack stack : cargo) {
+            if (!stack.isEmpty()) cargoTag.add(stack.saveOptional(registries));
+        }
+        tag.put("Cargo", cargoTag);
     }
 
     @Override
@@ -114,5 +141,12 @@ public final class MinerRocketEntity extends Entity {
         entityData.set(MODE, tag.getInt("Mode"));
         setFrequency(tag.getInt("Satellite"));
         timer = tag.getInt("Timer");
+        cargo.clear();
+        HolderLookup.Provider registries = level().registryAccess();
+        ListTag cargoTag = tag.getList("Cargo", Tag.TAG_COMPOUND);
+        for (int index = 0; index < cargoTag.size(); index++) {
+            ItemStack stack = ItemStack.parseOptional(registries, cargoTag.getCompound(index));
+            if (!stack.isEmpty()) cargo.add(stack);
+        }
     }
 }

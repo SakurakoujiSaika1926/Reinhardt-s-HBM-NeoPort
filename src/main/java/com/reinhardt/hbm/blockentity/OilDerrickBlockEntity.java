@@ -1,8 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
-import com.reinhardt.hbm.block.OilDerrickBlock;
-import com.reinhardt.hbm.block.OilPumpjackBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -18,7 +16,6 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -196,13 +193,13 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     public List<Port> ports(LevelAccessor level) {
-        return portsFor(kind(), this.worldPosition, facing());
+        return switch (kind()) {
+            case DERRICK -> derrickPorts(this.worldPosition);
+            case PUMPJACK -> pumpjackPorts(this.worldPosition, facing());
+        };
     }
 
-    public static List<Port> portsFor(Kind kind, BlockPos pos, Direction facing) {
-        if (kind == Kind.PUMPJACK) {
-            return pumpjackPorts(pos, facing);
-        }
+    public static List<Port> derrickPorts(BlockPos pos) {
         return List.of(
                 new Port(pos.relative(Direction.EAST), Direction.EAST),
                 new Port(pos.relative(Direction.WEST), Direction.WEST),
@@ -212,14 +209,38 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     public static List<Port> pumpjackPorts(BlockPos pos, Direction facing) {
-        Direction dir = facing.getAxis().isHorizontal() ? facing : Direction.NORTH;
-        Direction rot = dir.getCounterClockWise();
-        return List.of(
-                new Port(offset(pos, rot, 2, dir, 2), dir),
-                new Port(offset(pos, rot, 2, dir, -2), dir.getOpposite()),
-                new Port(offset(pos, rot, 4, dir, 2), dir),
-                new Port(offset(pos, rot, 4, dir, -2), dir.getOpposite())
-        );
+        return switch (facing) {
+            case NORTH -> List.of(
+                    new Port(pos.offset(-2, 0, -2), Direction.NORTH),
+                    new Port(pos.offset(-2, 0, 2), Direction.SOUTH),
+                    new Port(pos.offset(-4, 0, -2), Direction.NORTH),
+                    new Port(pos.offset(-4, 0, 2), Direction.SOUTH)
+            );
+            case SOUTH -> List.of(
+                    new Port(pos.offset(2, 0, 2), Direction.SOUTH),
+                    new Port(pos.offset(2, 0, -2), Direction.NORTH),
+                    new Port(pos.offset(4, 0, 2), Direction.SOUTH),
+                    new Port(pos.offset(4, 0, -2), Direction.NORTH)
+            );
+            case WEST -> List.of(
+                    new Port(pos.offset(-2, 0, 2), Direction.WEST),
+                    new Port(pos.offset(2, 0, 2), Direction.EAST),
+                    new Port(pos.offset(-2, 0, 4), Direction.WEST),
+                    new Port(pos.offset(2, 0, 4), Direction.EAST)
+            );
+            case EAST -> List.of(
+                    new Port(pos.offset(2, 0, -2), Direction.EAST),
+                    new Port(pos.offset(-2, 0, -2), Direction.WEST),
+                    new Port(pos.offset(2, 0, -4), Direction.EAST),
+                    new Port(pos.offset(-2, 0, -4), Direction.WEST)
+            );
+            case UP, DOWN -> List.of(
+                    new Port(pos.offset(-2, 0, -2), Direction.NORTH),
+                    new Port(pos.offset(-2, 0, 2), Direction.SOUTH),
+                    new Port(pos.offset(-4, 0, -2), Direction.NORTH),
+                    new Port(pos.offset(-4, 0, 2), Direction.SOUTH)
+            );
+        };
     }
 
     @Override
@@ -352,16 +373,17 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         if (this.level == null || this.level.getBlockEntity(this.worldPosition) != this) {
             return false;
         }
-        LargeMachineBlock.Footprint footprint = kind() == Kind.PUMPJACK
-                ? OilPumpjackBlock.FOOTPRINT
-                : OilDerrickBlock.FOOTPRINT;
+        if (!(getBlockState().getBlock() instanceof LargeMachineBlock machine)) {
+            return false;
+        }
         Direction facing = facing();
-        for (BlockPos offset : footprint.offsets()) {
-            BlockPos part = this.worldPosition.offset(LegacyMachineGeometry.rotate(
-                    offset, facing, LargeMachineBlock.RotationBasis.MODERN_NORTH));
+        for (BlockPos part : machine.machineOccupiedPositions(this.worldPosition, facing)) {
             if (player.distanceToSqr(
                     part.getX() + 0.5D,
                     part.getY() + 0.5D,
@@ -976,14 +998,6 @@ public class OilDerrickBlockEntity extends BlockEntity implements PowerEndpoint,
     private Direction facing() {
         BlockState state = getBlockState();
         return state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-    }
-
-    private static BlockPos offset(BlockPos pos, Direction first, int firstDistance, Direction second, int secondDistance) {
-        return pos.offset(
-                first.getStepX() * firstDistance + second.getStepX() * secondDistance,
-                first.getStepY() * firstDistance + second.getStepY() * secondDistance,
-                first.getStepZ() * firstDistance + second.getStepZ() * secondDistance
-        );
     }
 
     private static boolean isValidSlot(int slot) {

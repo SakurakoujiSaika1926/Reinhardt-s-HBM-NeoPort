@@ -1,0 +1,17 @@
+{
+  "type": "reinhardtshbm:rock_mill",
+  "group": "rock.crushing",
+  "auto_switch_group": "autoswitch.crushing",
+  "input": { "ingredient": { "item": "minecraft:soul_sand" }, "count": 1 },
+  "input_fluid": { "fluid": "water", "amount": 250 },
+  "output_fluid": { "fluid": "lava", "amount": 100 },
+  "outputs": [
+    { "stack": { "id": "minecraft:sand" }, "weight": 50 },
+    { "stack": { "id": "reinhardtshbm:powder_fire" }, "weight": 25 },
+    { "stack": { "id": "reinhardtshbm:powder_uranium" }, "weight": 15 },
+    { "stack": { "id": "minecraft:blaze_powder" }, "weight": 5 },
+    { "stack": { "id": "minecraft:nether_wart" }, "weight": 5 }
+  ],
+  "duration": 100,
+  "power": 25
+}

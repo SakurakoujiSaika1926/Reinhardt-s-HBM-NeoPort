@@ -1,0 +1,49 @@
+# latest 1.7.10 export file	expected recipes	modern recipe type	handling	reviewed mapping
+_hbmAmmoPress.json	90	reinhardtshbm:ammo_press	FILTERED_SYSTEM	All functional automatic-turret ammunition is ported; recipes belonging only to the removed handheld HBM gun system stay retired
+_hbmAnnihilator.json	0	-	CODE_TABLE	The current annihilator payout table is code-backed and guarded by the latest-upstream semantic audit
+_hbmAnvil.json	257	-	CODE_TABLE	Construction and smithing outputs are code-backed, exported by both runtime audits, and guarded by the anvil parity contracts
+_hbmArcFurnace.json	613	reinhardtshbm:arc_furnace	DYNAMIC_FOUNDRY	Special cases are data recipes; generic foundry and vanilla-smelting routes are generated from the authoritative material and smelting registries at runtime
+_hbmArcWelder.json	42	reinhardtshbm:arc_welder	STATIC	Direct data-driven port
+_hbmAssemblyMachine.json	630	reinhardtshbm:assembly_machine	STATIC_PLUS_DYNAMIC	Direct data recipes plus every registered-fluid pack/unpack pair; only upstream's config-example custom_demo is excluded and eight real high-version fluids are added
+_hbmBlastFurnace.json	15	reinhardtshbm:blast_furnace	STATIC_PLUS_MODERN	Direct latest table plus deliberate high-version and soft-dependency alloy routes
+_hbmBlastFurnaceLegacy.json	13	-	RETIRED	Recipes belong only to the deprecated legacy dual-input furnace blocks removed from the supported machine roster
+_hbmBreeder.json	31	reinhardtshbm:breeder_reactor	STATIC_PLUS_MODERN	Direct latest table plus one high-version route
+_hbmCentrifuge.json	242	reinhardtshbm:centrifuge	FILTERED_DEPRECATED_CHAIN	Modern bedrock routes are ported; obsolete metadata ore-chain stages are replaced by flattened raw-ore processing
+_hbmChemicalPlant.json	76	reinhardtshbm:chemical_plant	STATIC_PLUS_MODERN	Every latest recipe is ported plus one intentional modern route
+_hbmCoker.json	33	reinhardtshbm:coking	STATIC	Direct data-driven port
+_hbmCombination.json	53	reinhardtshbm:combination_oven	STATIC	Direct data-driven port including all three briquette routes
+_hbmCompressor.json	5	reinhardtshbm:compressor	STATIC	Exact table guarded by validateLegacyRecipes
+_hbmCracking.json	12	reinhardtshbm:cracking	STATIC	Direct data-driven port
+_hbmCrucible.json	13	reinhardtshbm:crucible	STATIC_PLUS_MODERN	Direct foundry transformations plus one modern material route
+_hbmCrucibleSmelting.json	45	reinhardtshbm:crucible	DYNAMIC_FOUNDRY	Item-to-molten-material inputs are resolved from the authoritative flattened foundry material registry at runtime
+_hbmCrystallizer.json	406	reinhardtshbm:crystallizer	FILTERED_DEPRECATED_CHAIN	Modern bedrock and chemical routes are ported; obsolete metadata ore-chain stages are replaced by flattened processing
+_hbmCustomMachines.json	1	reinhardtshbm:custom_machine	STATIC	Exact paper-press custom-machine route
+_hbmCyclotron.json	42	reinhardtshbm:cyclotron	STATIC	Direct data-driven port
+_hbmElectrolyzerFluid.json	8	reinhardtshbm:electrolyzer_fluid	STATIC	Direct data-driven port
+_hbmElectrolyzerMetal.json	36	reinhardtshbm:electrolyzer_metal	STATIC	Direct data-driven port
+_hbmExposureChamber.json	4	reinhardtshbm:exposure_chamber	STATIC_PLUS_MODERN	Every latest recipe is ported plus one modern route
+_hbmFractions.json	19	reinhardtshbm:fraction_tower	STATIC	Direct data-driven port
+_hbmFuelpool.json	63	reinhardtshbm:fuel_pool	STATIC_PLUS_DYNAMIC	Non-rod cooling routes are data recipes; every flattened RBMK fuel rod uses the shared spent-fuel cooling behavior
+_hbmFusion.json	10	reinhardtshbm:fusion	STATIC	Direct data-driven port
+_hbmHydrotreating.json	6	reinhardtshbm:hydrotreating	STATIC	Exact table guarded by validateLegacyRecipes
+_hbmIrradiation.json	19	reinhardtshbm:rbmk_outgasser	SHARED_FUSION_TABLE	The same nineteen recipes are consumed by both the RBMK outgasser and fusion breeder as in latest upstream
+_hbmIrradiationFluids.json	3	reinhardtshbm:fusion_breeder_fluid	STATIC	Direct data-driven port
+_hbmLiquefactor.json	34	reinhardtshbm:liquefaction	STATIC_PLUS_MODERN	Every latest recipe is ported plus one modern route
+_hbmMixer.json	40	reinhardtshbm:mixer	STATIC_PLUS_MODERN	Every latest recipe is ported plus flattened/high-version material routes
+_hbmParticleAccelerator.json	11	reinhardtshbm:particle_accelerator	STATIC	Exact table guarded by validateLegacyRecipes
+_hbmPedestal.json	17	-	RETIRED	Secret pedestal recipes produce only weapons and ammunition from the deliberately removed HBM handheld gun system
+_hbmPlasmaForge.json	45	reinhardtshbm:plasma_forge	STATIC_PLUS_MODE	Latest table plus the reviewed normal/528 progression variants
+_hbmPrecisionAssembly.json	8	reinhardtshbm:precision_assembler	STATIC_PLUS_MODE	Latest table plus reviewed 528-only precision routes
+_hbmPress.json	48	reinhardtshbm:press	STATIC	Direct data-driven port
+_hbmPUREX.json	57	reinhardtshbm:purex	STATIC	Direct data-driven port with flattened autoswitch grouping
+_hbmPyrolysis.json	70	reinhardtshbm:pyrolysis	STATIC_PLUS_DYNAMIC	Fixed routes are data recipes; flammable-fluid and flattened bedrock roasting routes are generated from authoritative registries at runtime
+_hbmRefinery.json	4	reinhardtshbm:refinery	STATIC	Direct data-driven port
+_hbmReforming.json	9	reinhardtshbm:reforming	STATIC	Direct data-driven port
+_hbmRockMill.json	9	reinhardtshbm:rock_mill	STATIC	Direct data-driven port
+_hbmRotaryFurnace.json	12	reinhardtshbm:rotary_furnace	STATIC	Direct data-driven port
+_hbmShredder.json	369	reinhardtshbm:shredder	FILTERED_DEPRECATED_CHAIN	Functional routes are ported; obsolete metadata ore-chain recipes are replaced by flattened tag-driven processing
+_hbmSoldering.json	27	reinhardtshbm:soldering_station	STATIC_PLUS_MODE	Latest table with reviewed normal/528 progression conditions
+_hbmSolidifier.json	47	reinhardtshbm:solidification	STATIC	Direct data-driven port
+_hbmSpaceAssembler.json	1	reinhardtshbm:space_assembler	STATIC	Exact orbital assembler route
+_hbmSuperComputer.json	18	reinhardtshbm:supercomputer	STATIC	Direct data-driven port
+_hbmVacRefinery.json	2	reinhardtshbm:vacuum_distill	STATIC	Direct data-driven port

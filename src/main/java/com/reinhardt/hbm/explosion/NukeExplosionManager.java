@@ -11,6 +11,7 @@ import com.reinhardt.hbm.entity.LegacyGrenadeEntity;
 import com.reinhardt.hbm.entity.LegacyHimarsRocketEntity;
 import com.reinhardt.hbm.entity.LegacyShrapnelEntity;
 import com.reinhardt.hbm.entity.NukeTorexEntity;
+import com.reinhardt.hbm.pollution.HbmArmorProtection;
 import com.reinhardt.hbm.entity.UniversalGrenadeEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -44,6 +46,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -53,6 +56,7 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -61,6 +65,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID)
 public final class NukeExplosionManager {
@@ -80,12 +85,19 @@ public final class NukeExplosionManager {
     private static final long MK5_BLOCK_UPDATE_NANOS_PER_TICK = 5_000_000L;
     private static final int MK5_DAMAGE_ENTITIES_PER_TICK = 256;
     private static final long MK5_DAMAGE_NANOS_PER_TICK = 500_000L;
-    private static final float MK5_MAX_DAMAGE = 250.0F;
+    // High-version balance adjustment requested for heavily buffed players
+    // and affix mobs. Range and the legacy linear falloff remain unchanged.
+    private static final float MK5_MAX_DAMAGE = 5_000.0F;
     private static final long CACHE_MISS = Long.MIN_VALUE;
     private static final long SAMPLE_AIR = 1L << 32;
     private static final long SAMPLE_FLUID_EMPTY = 1L << 33;
-    private static final Map<net.minecraft.resources.ResourceLocation, Queue<NukeTask>> TASKS = new HashMap<>();
-    private static final Map<net.minecraft.resources.ResourceLocation, Map<Long, Long>> FIELD_DISTURBERS = new HashMap<>();
+    // These queues belong to one concrete loaded level, not merely to a
+    // dimension id. Integrated servers reuse minecraft:overworld when the
+    // player leaves one save and creates another in the same JVM; a
+    // dimension-id key would let the abandoned blast continue in the new
+    // save. Identity keys plus the unload hook below make that impossible.
+    private static final Map<ServerLevel, Queue<NukeTask>> TASKS = new IdentityHashMap<>();
+    private static final Map<ServerLevel, Map<Long, Long>> FIELD_DISTURBERS = new IdentityHashMap<>();
     private static final ExecutorService PLANNER = Executors.newFixedThreadPool(
             Math.max(1, Math.min(2, Runtime.getRuntime().availableProcessors() / 2)),
             task -> {
@@ -101,6 +113,11 @@ public final class NukeExplosionManager {
     });
 
     private NukeExplosionManager() {
+    }
+
+    private enum EntityEffectMode {
+        NUCLEAR_BLAST,
+        SOLINIUM_RADIATION
     }
 
     public static void scheduleLittleBoy(ServerLevel level, double x, double y, double z) {
@@ -133,6 +150,14 @@ public final class NukeExplosionManager {
         sendFleijaCloud(level, x, y, z, radius);
     }
 
+    /** 1.7.10 EntityNukeExplosionMK3.makeSol: terrain destruction plus an
+     * unobstructed 15,000..250,000 RAD pulse inside the configured radius;
+     * unlike FLEIJA it does not apply ordinary nuclear-blast damage. */
+    public static void scheduleSoliniumNuke(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, false, false, false, 0,
+                EntityEffectMode.SOLINIUM_RADIATION);
+    }
+
     /** EntityNukeExplosionMK5.statFac (ordinary nuclear/TX warheads). */
     public static void scheduleMk5Nuclear(ServerLevel level, double x, double y, double z, int radius) {
         scheduleInternal(level, x, y, z, radius, true, true, true, 0);
@@ -141,6 +166,32 @@ public final class NukeExplosionManager {
     /** EntityNukeExplosionMK5.statFacNoRad used by custom N2. */
     public static void scheduleMk5NoRadiation(ServerLevel level, double x, double y, double z, int radius) {
         scheduleInternal(level, x, y, z, radius, true, false, false, 0);
+    }
+
+    /**
+     * Exact MK5 core created by {@code EntityDeathBlast}.  The old call is
+     * {@code statFacNoRad(world, strength, ...)}: its ray length is half the
+     * supplied strength and the death-blast entity itself owns the muke sound
+     * and particle packet.  It therefore must not inherit the common modern
+     * Torex, start sounds, or generic start particles.
+     */
+    public static void scheduleDeathBlastMk5NoRadiation(
+            ServerLevel level, double x, double y, double z, int strength) {
+        HbmAdvancements.awardAll(level, "manhattan");
+        com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRadiation(
+                level,
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_HIGH_DURATION,
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.HIGH,
+                x, z);
+        NukeTask task = new NukeTask(
+                new Vec3(x, y, z),
+                strength,
+                strength / 2,
+                false,
+                0,
+                EntityEffectMode.NUCLEAR_BLAST);
+        task.applyInitialDamage(level);
+        TASKS.computeIfAbsent(level, unused -> new ArrayDeque<>()).add(task);
     }
 
     /** EntityMissileMirv doubles missileRadius and uses the normal MK5/Torex pair. */
@@ -161,7 +212,19 @@ public final class NukeExplosionManager {
 
     private static void scheduleInternal(ServerLevel level, double x, double y, double z, int radius,
                                           boolean spawnTorex, boolean fallout, boolean radiation, int falloutAdd) {
+        scheduleInternal(level, x, y, z, radius, spawnTorex, fallout, radiation, falloutAdd,
+                EntityEffectMode.NUCLEAR_BLAST);
+    }
+
+    private static void scheduleInternal(ServerLevel level, double x, double y, double z, int radius,
+                                          boolean spawnTorex, boolean fallout, boolean radiation, int falloutAdd,
+                                          EntityEffectMode entityEffectMode) {
         HbmAdvancements.awardAll(level, "manhattan");
+        com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRadiation(
+                level,
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_HIGH_DURATION,
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.HIGH,
+                x, z);
         int falloutScale = fallout ? Math.max(1, (int) (radius * 2.5D + Math.max(0, falloutAdd))) : 0;
         // The old MK5 starts irradiating nearby entities as soon as it begins
         // updating. Do not leave the persistent blast-site field behind the
@@ -170,13 +233,19 @@ public final class NukeExplosionManager {
         if (falloutScale > 0) {
             seedFalloutRadiation(level, BlockPos.containing(x, y, z), falloutScale);
         }
-        TASKS.computeIfAbsent(level.dimension().location(), unused -> new ArrayDeque<>())
-                .add(new NukeTask(new Vec3(x, y, z), radius * 2, radius, radiation, falloutScale));
+        NukeTask task = new NukeTask(new Vec3(x, y, z), radius * 2, radius, radiation, falloutScale,
+                entityEffectMode);
+        // Terrain tasks are deliberately serialized per dimension, but blast
+        // damage is not terrain work. Resolve the first legacy damage pass at
+        // detonation time so a second nuke cannot sit harmlessly behind an
+        // older crater task. Follow-up passes remain budgeted in tick().
         playInitialSound(level, x, y, z);
         if (spawnTorex) {
             spawnTorex(level, x, y + 0.5D, z, radius);
         }
         sendInitialParticles(level, x, y, z);
+        task.applyInitialDamage(level);
+        TASKS.computeIfAbsent(level, unused -> new ArrayDeque<>()).add(task);
     }
 
     private static void seedFalloutRadiation(ServerLevel level, BlockPos center, int scale) {
@@ -245,20 +314,20 @@ public final class NukeExplosionManager {
 
     /** Registers the 1.7.10 MachineFieldDisturber exclusion point for FLEIJA detonations. */
     public static void registerFieldDisturber(ServerLevel level, BlockPos pos, int lifetimeTicks) {
-        FIELD_DISTURBERS.computeIfAbsent(level.dimension().location(), ignored -> new HashMap<>())
+        FIELD_DISTURBERS.computeIfAbsent(level, ignored -> new HashMap<>())
                 .put(pos.asLong(), level.getGameTime() + lifetimeTicks);
     }
 
     /** Matches EntityNukeExplosionMK3.statFacFleija's 300-block exclusion check. */
     public static boolean isFleijaSuppressed(ServerLevel level, BlockPos explosionCenter) {
-        Map<Long, Long> fields = FIELD_DISTURBERS.get(level.dimension().location());
+        Map<Long, Long> fields = FIELD_DISTURBERS.get(level);
         if (fields == null || fields.isEmpty()) {
             return false;
         }
         long now = level.getGameTime();
         fields.entrySet().removeIf(entry -> entry.getValue() < now);
         if (fields.isEmpty()) {
-            FIELD_DISTURBERS.remove(level.dimension().location());
+            FIELD_DISTURBERS.remove(level);
             return false;
         }
         for (long serializedPos : fields.keySet()) {
@@ -274,7 +343,7 @@ public final class NukeExplosionManager {
         if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        Queue<NukeTask> tasks = TASKS.get(level.dimension().location());
+        Queue<NukeTask> tasks = TASKS.get(level);
         if (tasks == null || tasks.isEmpty()) {
             return;
         }
@@ -283,8 +352,21 @@ public final class NukeExplosionManager {
             tasks.remove();
         }
         if (tasks.isEmpty()) {
-            TASKS.remove(level.dimension().location());
+            TASKS.remove(level);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        Queue<NukeTask> tasks = TASKS.remove(level);
+        if (tasks != null) {
+            tasks.forEach(NukeTask::cancel);
+            tasks.clear();
+        }
+        FIELD_DISTURBERS.remove(level);
     }
 
     private static void playInitialSound(ServerLevel level, double x, double y, double z) {
@@ -321,9 +403,12 @@ public final class NukeExplosionManager {
         private final int length;
         private final boolean radiationEnabled;
         private final int falloutScale;
+        private final EntityEffectMode entityEffectMode;
         private final Long2LongOpenHashMap blockSampleCache = new Long2LongOpenHashMap();
         private final Queue<Long> pendingDestroy = new ArrayDeque<>();
         private final LongOpenHashSet queuedDestroy = new LongOpenHashSet();
+        private final Queue<Long> pendingFluidCleanup = new ArrayDeque<>();
+        private final LongOpenHashSet visitedFluidCleanup = new LongOpenHashSet();
         private final Map<Long, ShortOpenHashSet> sectionUpdates = new HashMap<>();
         private final BlockingQueue<RayBatch> directionBatches =
                 new ArrayBlockingQueue<>(MK5_RAY_DIRECTION_BATCHES_AHEAD);
@@ -333,31 +418,38 @@ public final class NukeExplosionManager {
         private int activeBatchIndex;
         private RayScan activeRay;
         private DamagePulse activeDamagePulse;
-        private int pendingDamagePulses;
+        private boolean damageSweepRequested;
         private int damagePulseIndex;
         private boolean raysDone;
         private boolean terrainFinished;
         private boolean falloutScheduled;
+        private volatile boolean cancelled;
 
-        private NukeTask(Vec3 center, int strength, int length, boolean radiationEnabled, int falloutScale) {
+        private NukeTask(Vec3 center, int strength, int length, boolean radiationEnabled, int falloutScale,
+                         EntityEffectMode entityEffectMode) {
             this.center = center;
             this.strength = strength;
             this.length = length;
             this.radiationEnabled = radiationEnabled;
             this.falloutScale = falloutScale;
+            this.entityEffectMode = entityEffectMode;
             this.blockSampleCache.defaultReturnValue(CACHE_MISS);
-            this.directionPlanner = CompletableFuture.runAsync(
-                    () -> createDirectionBatches(length, this.directionBatches),
-                    RAY_PLANNER);
+            this.directionPlanner = CompletableFuture.runAsync(this::createDirectionBatches, RAY_PLANNER);
         }
 
         private boolean tick(ServerLevel level) {
+            if (this.cancelled) {
+                return true;
+            }
             // The old MK5 runs one damage pass for every tick its terrain
-            // explosion remains alive. Keep that observable behaviour, but
-            // consume the passes through a bounded cursor so a crowded blast
-            // cannot monopolise the server thread.
+            // explosion remains alive. Coalesce requests while a bounded pass
+            // is still running: queuing one full snapshot per tick can build a
+            // minutes-long backlog and make entities take the blast long after
+            // detonation. The first pass was already completed synchronously
+            // by scheduleInternal(), before this terrain task entered the
+            // per-dimension queue.
             if (!this.terrainFinished) {
-                this.pendingDamagePulses++;
+                this.damageSweepRequested = true;
             }
             processDamage(level);
 
@@ -367,15 +459,44 @@ public final class NukeExplosionManager {
                 }
                 collectSortedDestroyBatch();
                 applyPendingDestroy(level, MK5_BLOCK_UPDATES_PER_TICK);
-                flushSectionUpdates(level);
-                this.terrainFinished = this.raysDone
+                boolean structuralDestructionFinished = this.raysDone
                         && this.pendingDestroy.isEmpty()
                         && this.sortFuture == null;
+                if (structuralDestructionFinished) {
+                    applyPendingFluidCleanup(level, MK5_BLOCK_UPDATES_PER_TICK);
+                }
+                flushSectionUpdates(level);
+                this.terrainFinished = structuralDestructionFinished && this.pendingFluidCleanup.isEmpty();
+                if (this.terrainFinished) {
+                    this.visitedFluidCleanup.clear();
+                }
             }
             if (this.terrainFinished) {
                 scheduleFallout(level);
             }
-            return this.terrainFinished && this.activeDamagePulse == null && this.pendingDamagePulses <= 0;
+            return this.terrainFinished && this.activeDamagePulse == null && !this.damageSweepRequested;
+        }
+
+        private void cancel() {
+            this.cancelled = true;
+            this.directionPlanner.cancel(true);
+            if (this.sortFuture != null) {
+                this.sortFuture.cancel(true);
+                this.sortFuture = null;
+            }
+            // clear() wakes a producer waiting for capacity. The producer
+            // also polls cancelled between batches, so it cannot refill an
+            // abandoned queue and monopolize the single ray-planner thread.
+            this.directionBatches.clear();
+            this.activeBatch = null;
+            this.activeRay = null;
+            this.activeDamagePulse = null;
+            this.pendingDestroy.clear();
+            this.queuedDestroy.clear();
+            this.pendingFluidCleanup.clear();
+            this.visitedFluidCleanup.clear();
+            this.sectionUpdates.clear();
+            this.blockSampleCache.clear();
         }
 
         private void scheduleFallout(ServerLevel level) {
@@ -392,14 +513,14 @@ public final class NukeExplosionManager {
             int processed = 0;
             while (processed < MK5_DAMAGE_ENTITIES_PER_TICK && System.nanoTime() < deadline) {
                 if (this.activeDamagePulse == null) {
-                    if (this.pendingDamagePulses <= 0) {
+                    if (!this.damageSweepRequested) {
                         return;
                     }
-                    this.pendingDamagePulses--;
+                    this.damageSweepRequested = false;
                     this.activeDamagePulse = DamagePulse.capture(
                             level,
                             this.center,
-                            this.length * 2.0D,
+                            entityEffectRange(),
                             this.damagePulseIndex++
                     );
                     if (System.nanoTime() >= deadline) {
@@ -413,8 +534,54 @@ public final class NukeExplosionManager {
                     continue;
                 }
                 processed++;
-                applyLegacyDamage(level, entity, this.activeDamagePulse.index());
+                applyLegacyEntityEffect(level, entity, this.activeDamagePulse.index());
             }
+        }
+
+        private void applyInitialDamage(ServerLevel level) {
+            DamagePulse initial = DamagePulse.capture(level, this.center, entityEffectRange(), 0);
+            Entity entity;
+            while ((entity = initial.next()) != null) {
+                applyLegacyEntityEffect(level, entity, 0);
+            }
+            this.damagePulseIndex = 1;
+        }
+
+        private double entityEffectRange() {
+            return this.entityEffectMode == EntityEffectMode.SOLINIUM_RADIATION
+                    ? this.length
+                    : this.length * 2.0D;
+        }
+
+        private void applyLegacyEntityEffect(ServerLevel level, Entity entity, int pulseIndex) {
+            if (this.entityEffectMode == EntityEffectMode.SOLINIUM_RADIATION) {
+                applySoliniumRadiation(entity);
+            } else {
+                applyLegacyDamage(level, entity, pulseIndex);
+            }
+        }
+
+        private void applySoliniumRadiation(Entity entity) {
+            if (!(entity instanceof LivingEntity living) || !living.isAlive()) {
+                return;
+            }
+            double distance = Math.sqrt(living.distanceToSqr(this.center));
+            if (distance > this.length) {
+                return;
+            }
+            double interpolation = 1.0D - distance / this.length;
+            float amount = (float) (15_000.0D + (250_000.0D - 15_000.0D) * interpolation);
+            HbmLivingRadiation data = HbmLivingRadiation.get(living);
+            // ContaminationUtil recorded the environmental reading before
+            // checking creative mode, new-player protection, or immunity.
+            data.addEnvironmentRadiation(amount);
+            boolean protectedPlayer = living instanceof Player player
+                    && (player.isCreative() || player.isSpectator() || player.tickCount < 200);
+            if (!protectedPlayer
+                    && !com.reinhardt.hbm.radiation.RadiationEvents.isLegacyRadiationImmune(living)) {
+                data.addRadiation((float) (amount * HbmArmorProtection.radiationMultiplier(living)));
+            }
+            HbmLivingRadiation.set(living, data);
         }
 
         private void applyLegacyDamage(ServerLevel level, Entity entity, int pulseIndex) {
@@ -560,6 +727,8 @@ public final class NukeExplosionManager {
                 this.blockSampleCache.clear();
                 this.pendingDestroy.clear();
                 this.queuedDestroy.clear();
+                this.pendingFluidCleanup.clear();
+                this.visitedFluidCleanup.clear();
                 this.sortFuture = null;
                 return;
             }
@@ -627,6 +796,50 @@ public final class NukeExplosionManager {
                 fastDestroyCollected(level, pos);
                 checked++;
             }
+        }
+
+        /**
+         * The legacy ray explosion removes liquid blocks along every affected
+         * ray. Direct section writes do not run liquid neighbour updates, so a
+         * source missed between adjacent outer rays can otherwise remain
+         * suspended and refill the completed crater. Fluid blocks actually
+         * struck by this blast seed a bounded connected cleanup pass. It does
+         * not cross solid blocks and cannot leave the explosion sphere, so
+         * shielded tanks and fluids behind an intact containment wall remain
+         * untouched.
+         */
+        private void applyPendingFluidCleanup(ServerLevel level, int maxUpdates) {
+            int checked = 0;
+            long deadline = System.nanoTime() + MK5_BLOCK_UPDATE_NANOS_PER_TICK;
+            while (checked < maxUpdates && !this.pendingFluidCleanup.isEmpty()) {
+                if ((checked & 7) == 0 && System.nanoTime() >= deadline) {
+                    return;
+                }
+                BlockPos origin = BlockPos.of(this.pendingFluidCleanup.remove());
+                for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
+                    BlockPos adjacent = origin.relative(direction);
+                    if (!intersectsExplosionSphere(adjacent)) {
+                        continue;
+                    }
+                    long packed = adjacent.asLong();
+                    if (this.visitedFluidCleanup.contains(packed)) {
+                        continue;
+                    }
+                    if (fastDestroyFluid(level, adjacent)) {
+                        this.visitedFluidCleanup.add(packed);
+                        this.pendingFluidCleanup.add(packed);
+                    }
+                }
+                checked++;
+            }
+        }
+
+        /** True when the unit block volume intersects the exact blast sphere. */
+        private boolean intersectsExplosionSphere(BlockPos pos) {
+            double dx = Math.max(0.0D, Math.abs(this.center.x - (pos.getX() + 0.5D)) - 0.5D);
+            double dy = Math.max(0.0D, Math.abs(this.center.y - (pos.getY() + 0.5D)) - 0.5D);
+            double dz = Math.max(0.0D, Math.abs(this.center.z - (pos.getZ() + 0.5D)) - 0.5D);
+            return dx * dx + dy * dy + dz * dz <= (double) this.length * this.length;
         }
 
         private void flushSectionUpdates(ServerLevel level) {
@@ -731,6 +944,7 @@ public final class NukeExplosionManager {
             if (state.getBlock().getExplosionResistance() >= 3_600_000.0F) {
                 return false;
             }
+            boolean liquid = state.getBlock() instanceof LiquidBlock;
             section.setBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15, Blocks.AIR.defaultBlockState(), false);
             chunk.setUnsaved(true);
             long sectionKey = SectionPos.asLong(
@@ -739,6 +953,40 @@ public final class NukeExplosionManager {
                     SectionPos.blockToSectionCoord(pos.getZ())
             );
             this.sectionUpdates.computeIfAbsent(sectionKey, unused -> new ShortOpenHashSet()).add(SectionPos.sectionRelativePos(pos));
+            HbmRadiationWorlds.invalidateResistanceSection(level, sectionKey);
+            if (liquid && this.visitedFluidCleanup.add(packedPos)) {
+                this.pendingFluidCleanup.add(packedPos);
+            }
+            return true;
+        }
+
+        private boolean fastDestroyFluid(ServerLevel level, BlockPos pos) {
+            LevelChunk chunk = level.getChunkSource().getChunkNow(
+                    SectionPos.blockToSectionCoord(pos.getX()),
+                    SectionPos.blockToSectionCoord(pos.getZ()));
+            if (chunk == null) {
+                return false;
+            }
+            int sectionIndex = level.getSectionIndex(pos.getY());
+            if (sectionIndex < 0 || sectionIndex >= level.getSectionsCount()) {
+                return false;
+            }
+            LevelChunkSection section = chunk.getSection(sectionIndex);
+            BlockState state = section.getBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15);
+            // Do not erase waterlogged machinery or other surviving solids.
+            if (!(state.getBlock() instanceof LiquidBlock)) {
+                return false;
+            }
+            section.setBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15,
+                    Blocks.AIR.defaultBlockState(), false);
+            chunk.setUnsaved(true);
+            long sectionKey = SectionPos.asLong(
+                    SectionPos.blockToSectionCoord(pos.getX()),
+                    SectionPos.blockToSectionCoord(pos.getY()),
+                    SectionPos.blockToSectionCoord(pos.getZ())
+            );
+            this.sectionUpdates.computeIfAbsent(sectionKey, unused -> new ShortOpenHashSet())
+                    .add(SectionPos.sectionRelativePos(pos));
             HbmRadiationWorlds.invalidateResistanceSection(level, sectionKey);
             return true;
         }
@@ -789,7 +1037,8 @@ public final class NukeExplosionManager {
         private record BlockSample(float resistance, boolean air, boolean fluidEmpty) {
         }
 
-        private static void createDirectionBatches(int radius, BlockingQueue<RayBatch> batches) {
+        private void createDirectionBatches() {
+            int radius = this.length;
             int max = (int) (2.5D * Math.PI * Math.pow(radius, 2.0D));
             double[] xs = new double[Math.min(MK5_RAY_DIRECTION_BATCH_SIZE, Math.max(1, max))];
             double[] ys = new double[xs.length];
@@ -798,12 +1047,17 @@ public final class NukeExplosionManager {
             double gspX = Math.PI;
             double gspY = 0.0D;
             for (int gspNum = 1; gspNum <= max; gspNum++) {
+                if (this.cancelled) {
+                    return;
+                }
                 xs[count] = Math.sin(gspX) * Math.cos(gspY);
                 zs[count] = Math.sin(gspX) * Math.sin(gspY);
                 ys[count] = Math.cos(gspX);
                 count++;
                 if (count >= xs.length) {
-                    putRayBatch(batches, new RayBatch(xs, ys, zs, count));
+                    if (!offerRayBatch(new RayBatch(xs, ys, zs, count))) {
+                        return;
+                    }
                     xs = new double[Math.min(MK5_RAY_DIRECTION_BATCH_SIZE, Math.max(1, max - gspNum))];
                     ys = new double[xs.length];
                     zs = new double[xs.length];
@@ -817,18 +1071,23 @@ public final class NukeExplosionManager {
                     gspY = longitude % (Math.PI * 2.0D);
                 }
             }
-            if (count > 0) {
-                putRayBatch(batches, new RayBatch(xs, ys, zs, count));
+            if (count > 0 && !this.cancelled) {
+                offerRayBatch(new RayBatch(xs, ys, zs, count));
             }
         }
 
-        private static void putRayBatch(BlockingQueue<RayBatch> batches, RayBatch batch) {
-            try {
-                batches.put(batch);
-            } catch (InterruptedException exception) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException("Nuke ray planner interrupted", exception);
+        private boolean offerRayBatch(RayBatch batch) {
+            while (!this.cancelled) {
+                try {
+                    if (this.directionBatches.offer(batch, 100L, TimeUnit.MILLISECONDS)) {
+                        return true;
+                    }
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
             }
+            return false;
         }
 
         private record RayBatch(double[] xs, double[] ys, double[] zs, int count) {

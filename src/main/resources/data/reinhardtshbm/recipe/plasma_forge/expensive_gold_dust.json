@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.exgold",
+  "duration": 120,
+  "power": 100000,
+  "ignition_temp": 1000000,
+  "input_items": [
+    { "ingredient": { "tag": "c:dusts/gold" }, "count": 64 },
+    { "ingredient": { "tag": "c:dusts/gold" }, "count": 64 }
+  ],
+  "result": { "id": "reinhardtshbm:item_expensive_gold_dust" }
+}

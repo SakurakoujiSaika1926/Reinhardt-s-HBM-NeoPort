@@ -33,7 +33,6 @@ public final class LegacyVortexEntity extends Entity {
     public LegacyVortexEntity(EntityType<? extends LegacyVortexEntity> type, Level level) {
         super(type, level);
         this.noPhysics = true;
-        this.noCulling = true;
     }
 
     public static void spawn(Level level, Vec3 position, float size, float shrinkRate, boolean noBreak) {

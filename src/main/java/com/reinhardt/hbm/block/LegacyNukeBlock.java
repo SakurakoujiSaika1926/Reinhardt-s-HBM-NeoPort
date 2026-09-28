@@ -14,7 +14,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -49,7 +51,170 @@ public final class LegacyNukeBlock extends HorizontalDirectionalBlock implements
     @Override
     @Nullable
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.definition) {
+            case GADGET -> gadgetPlacement(context);
+            case MAN -> manPlacement(context);
+            case MIKE -> mikePlacement(context);
+            case TSAR -> tsarPlacement(context);
+            case FLEIJA -> fleijaPlacement(context);
+            case PROTOTYPE -> prototypePlacement(context);
+            case SOLINIUM -> soliniumPlacement(context);
+            case N2 -> n2Placement(context);
+            case CUSTOM -> customPlacement(context);
+            case BALEFIRE -> balefirePlacement(context);
+        };
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.definition) {
+            case GADGET -> rotateGadget(state, rotation);
+            case MAN -> rotateMan(state, rotation);
+            case MIKE -> rotateMike(state, rotation);
+            case TSAR -> rotateTsar(state, rotation);
+            case FLEIJA -> rotateFleija(state, rotation);
+            case PROTOTYPE -> rotatePrototype(state, rotation);
+            case SOLINIUM -> rotateSolinium(state, rotation);
+            case N2 -> rotateN2(state, rotation);
+            case CUSTOM -> rotateCustom(state, rotation);
+            case BALEFIRE -> rotateBalefire(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.definition) {
+            case GADGET -> mirrorGadget(state, mirror);
+            case MAN -> mirrorMan(state, mirror);
+            case MIKE -> mirrorMike(state, mirror);
+            case TSAR -> mirrorTsar(state, mirror);
+            case FLEIJA -> mirrorFleija(state, mirror);
+            case PROTOTYPE -> mirrorPrototype(state, mirror);
+            case SOLINIUM -> mirrorSolinium(state, mirror);
+            case N2 -> mirrorN2(state, mirror);
+            case CUSTOM -> mirrorCustom(state, mirror);
+            case BALEFIRE -> mirrorBalefire(state, mirror);
+        };
+    }
+
+    private BlockState gadgetPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState manPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState mikePlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState tsarPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState fleijaPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState prototypePlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState soliniumPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState n2Placement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState customPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState balefirePlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private static BlockState rotateGadget(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateMan(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateMike(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateTsar(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateFleija(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotatePrototype(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateSolinium(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateN2(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateCustom(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateBalefire(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorGadget(BlockState state, Mirror mirror) {
+        return rotateGadget(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorMan(BlockState state, Mirror mirror) {
+        return rotateMan(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorMike(BlockState state, Mirror mirror) {
+        return rotateMike(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorTsar(BlockState state, Mirror mirror) {
+        return rotateTsar(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorFleija(BlockState state, Mirror mirror) {
+        return rotateFleija(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorPrototype(BlockState state, Mirror mirror) {
+        return rotatePrototype(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSolinium(BlockState state, Mirror mirror) {
+        return rotateSolinium(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorN2(BlockState state, Mirror mirror) {
+        return rotateN2(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorCustom(BlockState state, Mirror mirror) {
+        return rotateCustom(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorBalefire(BlockState state, Mirror mirror) {
+        return rotateBalefire(state, mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override

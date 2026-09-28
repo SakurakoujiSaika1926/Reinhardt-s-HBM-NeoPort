@@ -240,7 +240,7 @@ public class AssemblyMachineScreen extends AbstractContainerScreen<AssemblyMachi
         return HbmFluidTooltip.forTank(
                 this.menu.tankFluid(tank),
                 this.menu.tankAmount(tank),
-                this.menu.tankCapacity(),
+                this.menu.tankCapacity(tank),
                 this.menu.tankPressure(tank)
         );
     }

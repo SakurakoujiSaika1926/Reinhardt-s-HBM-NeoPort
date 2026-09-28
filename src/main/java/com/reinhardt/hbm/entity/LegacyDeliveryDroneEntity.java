@@ -52,7 +52,6 @@ public class LegacyDeliveryDroneEntity extends Entity {
 
     public LegacyDeliveryDroneEntity(EntityType<? extends LegacyDeliveryDroneEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     @Override

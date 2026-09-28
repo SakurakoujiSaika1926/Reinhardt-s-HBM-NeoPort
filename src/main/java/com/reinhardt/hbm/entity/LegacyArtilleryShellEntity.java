@@ -60,7 +60,6 @@ public class LegacyArtilleryShellEntity extends Entity implements LegacyRadarDet
 
     public LegacyArtilleryShellEntity(EntityType<? extends LegacyArtilleryShellEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyArtilleryShellEntity(Level level, Vec3 position, Vec3 velocity, int shellType, Vec3 target, boolean whistle) {

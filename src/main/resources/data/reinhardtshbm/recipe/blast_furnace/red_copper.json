@@ -1,7 +1,8 @@
 {
   "type": "reinhardtshbm:blast_furnace",
-  "input_a": { "tag": "reinhardtshbm:blast_furnace/copper_equivalent" },
-  "input_b": { "item": "minecraft:redstone" },
+  "group": "blast.mingrade",
+  "input_a": { "tag": "c:ingots/copper" },
+  "input_b": { "tag": "c:dusts/redstone" },
   "duration": 400,
   "result": { "id": "reinhardtshbm:ingot_red_copper", "count": 2 }
 }

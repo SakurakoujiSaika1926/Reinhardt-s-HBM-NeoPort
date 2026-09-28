@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.flightcalc_water",
+  "duration": 18000,
+  "power": 10000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:drive_flash_empty" }, "count": 1 }
+  ],
+  "input_fluids": [
+    { "fluid": "water", "amount": 16000 }
+  ],
+  "output_fluids": [
+    { "fluid": "spentsteam", "amount": 16000 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:drive_flash_flightsim" }, "weight": 95 },
+    { "result": { "id": "reinhardtshbm:drive_flash_broken" }, "weight": 5 }
+  ]
+}

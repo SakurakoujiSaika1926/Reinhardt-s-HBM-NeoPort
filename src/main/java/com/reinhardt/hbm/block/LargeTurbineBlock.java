@@ -22,17 +22,37 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class LargeTurbineBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = Footprint.box(-1, 1, 0, 1, -1, 3);
 
     public LargeTurbineBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, LargeTurbineBlock::mapLargeTurbineOffset);
+    }
+
+    private static BlockPos mapLargeTurbineOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Large turbine requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        if (!LargeMachineBlock.canPlaceLegacyFootprint(context, facing, FOOTPRINT)) {
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
             return null;
         }
         return this.defaultBlockState().setValue(FACING, facing);

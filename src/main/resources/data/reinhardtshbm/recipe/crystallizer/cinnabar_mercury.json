@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.cinnabar_mercury",
+  "ingredient": {
+    "tag": "c:gems/cinnabar"
+  },
+  "acid": {
+    "fluid": "peroxide",
+    "amount": 500
+  },
+  "duration": 600,
+  "result": {
+    "id": "reinhardtshbm:nugget_mercury",
+    "count": 3
+  }
+}

@@ -22,20 +22,40 @@ import net.minecraft.world.entity.player.Player;
 import javax.annotation.Nullable;
 
 public class SteamEngineBlock extends LargeMachineBlock implements EntityBlock {
-    public static final Footprint FOOTPRINT = Footprint.legacySouthBox(1, 0, 5, 1, 1, 1);
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    public static final Footprint FOOTPRINT = Footprint.box(-1, 1, 0, 1, -5, 1);
 
     public SteamEngineBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, SteamEngineBlock::mapSteamEngineOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        if (!LargeMachineBlock.canPlaceLegacyFootprint(context, facing, FOOTPRINT)) {
+        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT, SteamEngineBlock::mapSteamEngineOffset)) {
             return null;
         }
         return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    private static BlockPos mapSteamEngineOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Steam engine facing must be horizontal: " + facing);
+        };
     }
 
     @Override

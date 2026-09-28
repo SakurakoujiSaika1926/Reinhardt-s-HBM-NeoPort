@@ -20,7 +20,6 @@ import net.minecraft.world.phys.Vec3;
 public final class LegacyBoxcarEntity extends Entity {
     public LegacyBoxcarEntity(EntityType<? extends LegacyBoxcarEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyBoxcarEntity(Level level, Vec3 position) {

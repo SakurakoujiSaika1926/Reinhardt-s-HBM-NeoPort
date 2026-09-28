@@ -24,12 +24,6 @@
                         }
                     ],
     "result":  {
-                   "id":  "reinhardtshbm:drillbit",
-                   "components":  {
-                                      "minecraft:custom_model_data":  4,
-                                      "minecraft:custom_data":  {
-                                                                    "type":  "desh"
-                                                                }
-                                  }
+                   "id":  "reinhardtshbm:drillbit_desh"
                }
 }

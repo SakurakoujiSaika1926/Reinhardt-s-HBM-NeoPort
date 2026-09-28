@@ -36,7 +36,6 @@ public class SoyuzEntity extends Entity {
 
     public SoyuzEntity(EntityType<? extends SoyuzEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
         setNoGravity(true);
         for (int i = 0; i < this.payload.length; i++) {
             this.payload[i] = ItemStack.EMPTY;
@@ -87,7 +86,7 @@ public class SoyuzEntity extends Entity {
                     if (payload.is(HbmItems.SAT_FOEQ.get())) {
                         HbmAdvancements.awardAll(serverLevel, "foeq");
                     }
-                    SatelliteSavedData.get(serverLevel).orbit(serverLevel, payload);
+                    SatelliteSavedData.get(serverLevel).orbit(serverLevel, payload, getX(), getZ());
                 }
                 discard();
             }

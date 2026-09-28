@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "R",
+    "C",
+    "T"
+  ],
+  "key": {
+    "R": {
+      "item": "reinhardtshbm:radio_torch_reader"
+    },
+    "C": {
+      "item": "reinhardtshbm:circuit_analog"
+    },
+    "T": {
+      "item": "reinhardtshbm:rangefinder"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:rtty_designator"
+  }
+}

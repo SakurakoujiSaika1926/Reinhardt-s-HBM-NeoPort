@@ -2,15 +2,20 @@ package com.reinhardt.hbm.registry;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.ChekhovBulletEntity;
+import com.reinhardt.hbm.entity.LambdaRocketEntity;
 import com.reinhardt.hbm.entity.LegacyDeliveryDroneEntity;
 import com.reinhardt.hbm.entity.LegacyRequestDroneEntity;
 import com.reinhardt.hbm.entity.CogEntity;
 import com.reinhardt.hbm.entity.SawbladeEntity;
 import com.reinhardt.hbm.entity.ConveyorMovingItem;
+import com.reinhardt.hbm.entity.ConveyorMovingPackage;
 import com.reinhardt.hbm.entity.DigammaSpearEntity;
 import com.reinhardt.hbm.entity.LegacyDuckEntity;
 import com.reinhardt.hbm.entity.LegacyBomberEntity;
 import com.reinhardt.hbm.entity.LegacyBossProjectileEntity;
+import com.reinhardt.hbm.entity.LegacyDeathBlastEntity;
+import com.reinhardt.hbm.entity.OrbitalLaserEntity;
+import com.reinhardt.hbm.entity.LegacyDeathRayBoltEntity;
 import com.reinhardt.hbm.entity.LegacyChopperEntity;
 import com.reinhardt.hbm.entity.LegacyChopperMineEntity;
 import com.reinhardt.hbm.entity.LegacyUfoEntity;
@@ -37,6 +42,7 @@ import com.reinhardt.hbm.entity.MeteorEntity;
 import com.reinhardt.hbm.entity.MineRubbleEntity;
 import com.reinhardt.hbm.entity.NukeTorexEntity;
 import com.reinhardt.hbm.entity.RbmkDebrisEntity;
+import com.reinhardt.hbm.entity.PileDebrisEntity;
 import com.reinhardt.hbm.entity.ZirnoxDebrisEntity;
 import com.reinhardt.hbm.entity.RubberBoatEntity;
 import com.reinhardt.hbm.entity.TimedExplosiveEntity;
@@ -125,6 +131,14 @@ public final class HbmEntityTypes {
                     .updateInterval(1)
                     .build("entity_conveyor_item"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<ConveyorMovingPackage>> CONVEYOR_PACKAGE =
+            ENTITY_TYPES.register("entity_conveyor_package", () -> EntityType.Builder
+                    .<ConveyorMovingPackage>of(ConveyorMovingPackage::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(63)
+                    .updateInterval(1)
+                    .build("entity_conveyor_package"));
+
     public static final DeferredHolder<EntityType<?>, EntityType<LegacyDeliveryDroneEntity>> DELIVERY_DRONE =
             ENTITY_TYPES.register("entity_delivery_drone", () -> EntityType.Builder
                     .<LegacyDeliveryDroneEntity>of(LegacyDeliveryDroneEntity::new, MobCategory.MISC)
@@ -150,6 +164,14 @@ public final class HbmEntityTypes {
                     .clientTrackingRange(63)
                     .updateInterval(1)
                     .build("entity_rbmk_debris"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<PileDebrisEntity>> PILE_DEBRIS =
+            ENTITY_TYPES.register("entity_pile_debris", () -> EntityType.Builder
+                    .<PileDebrisEntity>of(PileDebrisEntity::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(63)
+                    .updateInterval(1)
+                    .build("entity_pile_debris"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<ZirnoxDebrisEntity>> ZIRNOX_DEBRIS =
             ENTITY_TYPES.register("entity_zirnox_debris", () -> EntityType.Builder
@@ -433,6 +455,33 @@ public final class HbmEntityTypes {
                     .updateInterval(1)
                     .build("entity_boss_projectile"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyDeathBlastEntity>> LEGACY_DEATH_BLAST =
+            ENTITY_TYPES.register("entity_death_blast", () -> EntityType.Builder
+                    .<LegacyDeathBlastEntity>of(LegacyDeathBlastEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .fireImmune()
+                    .clientTrackingRange(10)
+                    .updateInterval(1)
+                    .build("entity_death_blast"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<OrbitalLaserEntity>> ORBITAL_LASER =
+            ENTITY_TYPES.register("entity_orbital_laser", () -> EntityType.Builder
+                    .<OrbitalLaserEntity>of(OrbitalLaserEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .fireImmune()
+                    .clientTrackingRange(10)
+                    .updateInterval(1)
+                    .build("entity_orbital_laser"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyDeathRayBoltEntity>> LEGACY_DEATH_RAY_BOLT =
+            ENTITY_TYPES.register("entity_death_ray_bolt", () -> EntityType.Builder
+                    .<LegacyDeathRayBoltEntity>of(LegacyDeathRayBoltEntity::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .fireImmune()
+                    .clientTrackingRange(10)
+                    .updateInterval(1)
+                    .build("entity_death_ray_bolt"));
+
     public static final DeferredHolder<EntityType<?>, EntityType<LegacyBombletEntity>> LEGACY_BOMBLET =
             ENTITY_TYPES.register("entity_bomblet", () -> EntityType.Builder
                     .<LegacyBombletEntity>of(LegacyBombletEntity::new, MobCategory.MISC)
@@ -669,6 +718,14 @@ public final class HbmEntityTypes {
                     .clientTrackingRange(63)
                     .updateInterval(1)
                     .build("entity_miner_lander"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LambdaRocketEntity>> LAMBDA_ROCKET =
+            ENTITY_TYPES.register("entity_lambda_rocket", () -> EntityType.Builder
+                    .<LambdaRocketEntity>of(LambdaRocketEntity::new, MobCategory.MISC)
+                    .sized(0.6F, 1.8F)
+                    .clientTrackingRange(63)
+                    .updateInterval(1)
+                    .build("entity_lambda_rocket"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<FireworksEntity>> FIREWORKS =
             ENTITY_TYPES.register("entity_fireworks", () -> EntityType.Builder

@@ -24,9 +24,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 
 public final class PistonInserterBlockEntity extends BlockEntity implements WorldlyContainer, MachineInventory {
     public static final int MAX_EXTEND = 25;
+    private static volatile Consumer<PistonInserterBlockEntity> clientRenderSnapshotUpdater = ignored -> { };
+    private static volatile long clientRenderSnapshotRevision;
+
     private final NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
     private int extend;
     private int delay;
@@ -36,9 +43,14 @@ public final class PistonInserterBlockEntity extends BlockEntity implements Worl
     private float renderExtend;
     private float lastRenderExtend;
     private boolean clientInitialized;
+    private volatile RenderSnapshot renderSnapshot;
+    private boolean clientRenderSnapshotDirty = true;
 
     public PistonInserterBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.PISTON_INSERTER.get(), pos, state);
+        this.renderSnapshot = new RenderSnapshot(state, ItemStack.EMPTY, ItemStack.EMPTY, null, null,
+                0.0F, 0.0F,
+                new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ()), -1L);
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos pos, BlockState state, T entity) {
@@ -54,6 +66,42 @@ public final class PistonInserterBlockEntity extends BlockEntity implements Worl
 
     public float extension(float partialTick) {
         return lastRenderExtend + (renderExtend - lastRenderExtend) * partialTick;
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return renderSnapshot;
+    }
+
+    public ItemStack copyHeldItemForRenderSnapshot() {
+        return items.get(0).copyWithCount(items.get(0).isEmpty() ? 0 : 1);
+    }
+
+    /** Installed by the client renderer without loading client classes on a dedicated server. */
+    public static void setClientRenderSnapshotUpdater(Consumer<PistonInserterBlockEntity> updater) {
+        clientRenderSnapshotUpdater = Objects.requireNonNull(updater);
+        clientRenderSnapshotRevision++;
+    }
+
+    public static long clientRenderSnapshotRevision() {
+        return clientRenderSnapshotRevision;
+    }
+
+    public void refreshClientRenderSnapshot() {
+        if (clientRenderSnapshotDirty && level != null && level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientRenderSnapshot(RenderSnapshot snapshot) {
+        if (level == null || !level.isClientSide) {
+            return;
+        }
+        RenderSnapshot previous = renderSnapshot;
+        renderSnapshot = Objects.requireNonNull(snapshot);
+        clientRenderSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.bounds(), snapshot.bounds())) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     public int extend() {
@@ -136,6 +184,12 @@ public final class PistonInserterBlockEntity extends BlockEntity implements Worl
         } else {
             renderExtend += (clientTarget - renderExtend) / 2.0F;
         }
+        if (renderSnapshot.revision() != clientRenderSnapshotRevision
+                || Float.floatToIntBits(renderSnapshot.previousExtension()) != Float.floatToIntBits(lastRenderExtend)
+                || Float.floatToIntBits(renderSnapshot.currentExtension()) != Float.floatToIntBits(renderExtend)) {
+            clientRenderSnapshotDirty = true;
+        }
+        refreshClientRenderSnapshot();
     }
 
     private void sync() {
@@ -164,6 +218,25 @@ public final class PistonInserterBlockEntity extends BlockEntity implements Worl
         retracting = !tag.contains("Retracting") || tag.getBoolean("Retracting");
         lastPowered = tag.getBoolean("LastPowered");
         clientTarget = extend;
+        clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (renderSnapshot != null && previous != state) {
+            clientRenderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
+        }
     }
 
     @Override
@@ -181,13 +254,13 @@ public final class PistonInserterBlockEntity extends BlockEntity implements Worl
     @Override public int getContainerSize() { return 1; }
     @Override public boolean isEmpty() { return items.get(0).isEmpty(); }
     @Override public ItemStack getItem(int slot) { return slot == 0 ? items.get(0) : ItemStack.EMPTY; }
-    @Override public ItemStack removeItem(int slot, int amount) { return slot == 0 ? ContainerHelper.removeItem(items, 0, amount) : ItemStack.EMPTY; }
-    @Override public ItemStack removeItemNoUpdate(int slot) { return slot == 0 ? ContainerHelper.takeItem(items, 0) : ItemStack.EMPTY; }
-    @Override public void setItem(int slot, ItemStack stack) { if (slot == 0) { items.set(0, stack.copyWithCount(Math.min(1, stack.getCount()))); setChanged(); } }
+    @Override public ItemStack removeItem(int slot, int amount) { if (slot != 0) return ItemStack.EMPTY; ItemStack result = ContainerHelper.removeItem(items, 0, amount); renderGeometryChanged(); return result; }
+    @Override public ItemStack removeItemNoUpdate(int slot) { if (slot != 0) return ItemStack.EMPTY; ItemStack result = ContainerHelper.takeItem(items, 0); renderGeometryChanged(); return result; }
+    @Override public void setItem(int slot, ItemStack stack) { if (slot == 0) { items.set(0, stack.copyWithCount(Math.min(1, stack.getCount()))); renderGeometryChanged(); setChanged(); } }
     @Override public int getMaxStackSize() { return 1; }
     @Override public void setChanged() { super.setChanged(); }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
-    @Override public void clearContent() { items.set(0, ItemStack.EMPTY); setChanged(); }
+    @Override public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
+    @Override public void clearContent() { items.set(0, ItemStack.EMPTY); renderGeometryChanged(); setChanged(); }
     @Override public int[] getSlotsForFace(Direction side) { return new int[]{0}; }
     @Override public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction direction) { return slot == 0 && !stack.isEmpty(); }
     @Override public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction direction) { return false; }
@@ -197,6 +270,44 @@ public final class PistonInserterBlockEntity extends BlockEntity implements Worl
         if (!items.get(0).isEmpty()) {
             level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, items.get(0).copy()));
             clearContent();
+        }
+    }
+
+    private void renderGeometryChanged() {
+        clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(first.minY) == section(second.minY)
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return net.minecraft.core.SectionPos.blockToSectionCoord(net.minecraft.util.Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RenderSnapshot(BlockState state, ItemStack sourceItem, ItemStack renderedItem,
+                                 Object modelToken, Object geometryToken,
+                                 float previousExtension, float currentExtension,
+                                 AABB bounds, long revision) {
+        public RenderSnapshot {
+            Objects.requireNonNull(state);
+            sourceItem = sourceItem.copy();
+            renderedItem = renderedItem.copy();
+            Objects.requireNonNull(bounds);
+        }
+
+        public float extension(float partialTick) {
+            return previousExtension + (currentExtension - previousExtension) * partialTick;
         }
     }
 

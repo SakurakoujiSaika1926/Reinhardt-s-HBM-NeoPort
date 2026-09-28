@@ -3,6 +3,7 @@ package com.reinhardt.hbm.menu;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.blockentity.LauncherBlockEntity;
 import com.reinhardt.hbm.item.BatteryPackItem;
+import com.reinhardt.hbm.item.CustomMissileItem;
 import com.reinhardt.hbm.item.MissilePartItem;
 import com.reinhardt.hbm.registry.HbmMenus;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
@@ -38,8 +39,7 @@ public final class LauncherMenu extends AbstractContainerMenu {
         for (int i = 0; i < positions.length; i++) {
             boolean output = launcher.kind() == LauncherBlockEntity.Kind.PAD_RUSTED ? i == 0 : !custom() && (i == 4 || i == 6);
             addSlot(output ? new TakeOnlySlot(launcher, i, positions[i][0], positions[i][1])
-                    : custom() ? new AssemblySlot(launcher, i, positions[i][0], positions[i][1])
-                    : new Slot(launcher, i, positions[i][0], positions[i][1]));
+                    : new LauncherInputSlot(launcher, i, positions[i][0], positions[i][1]));
         }
         int inventoryY = custom() ? 140 : 154;
         for (int row = 0; row < 3; row++) for (int col = 0; col < 9; col++)
@@ -95,11 +95,58 @@ public final class LauncherMenu extends AbstractContainerMenu {
         TakeOnlySlot(LauncherBlockEntity launcher, int slot, int x, int y) { super(launcher, slot, x, y); }
         @Override public boolean mayPlace(ItemStack stack) { return false; }
     }
-    /** The 1.7.10 custom launcher containers used plain slots even though the
-     * tile's automation validator rejects direct insertion. Keep that split:
-     * GUI assembly accepts the component stack; automation remains restricted. */
-    private static final class AssemblySlot extends Slot {
-        AssemblySlot(LauncherBlockEntity launcher, int slot, int x, int y) { super(launcher, slot, x, y); }
-        @Override public boolean mayPlace(ItemStack stack) { return true; }
+    /**
+     * The old launchers deliberately exposed only the missile slot to sided
+     * automation, but their GUI still had manually usable designator, battery,
+     * fuel-container and authorization slots.  Modern Slot delegates to the
+     * container's automation predicate, which made every one of those GUI
+     * slots reject its item. Keep manual input validation separate from the
+     * WorldlyContainer contract.
+     */
+    private static final class LauncherInputSlot extends Slot {
+        private final LauncherBlockEntity launcher;
+        private final int launcherSlot;
+
+        LauncherInputSlot(LauncherBlockEntity launcher, int slot, int x, int y) {
+            super(launcher, slot, x, y);
+            this.launcher = launcher;
+            this.launcherSlot = slot;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return switch (launcher.kind()) {
+                case PAD_RUSTED -> switch (launcherSlot) {
+                    case 1 -> itemIs(stack, "launch_code");
+                    case 2 -> itemIs(stack, "launch_key");
+                    case 3 -> LauncherBlockEntity.isDesignator(stack);
+                    default -> false;
+                };
+                case COMPACT, TABLE -> switch (launcherSlot) {
+                    case 0 -> stack.getItem() instanceof CustomMissileItem;
+                    case 1 -> LauncherBlockEntity.isDesignator(stack);
+                    case 2 -> acceptsFluidContainer(stack, launcher.fuelTank());
+                    case 3 -> acceptsFluidContainer(stack, launcher.oxidizerTank());
+                    case 4 -> itemIs(stack, "rocket_fuel");
+                    case 5 -> BatteryPackItem.isBattery(stack);
+                    default -> false;
+                };
+                case PAD_SMALL, PAD_LARGE -> switch (launcherSlot) {
+                    case 0 -> launcher.validMissile(stack);
+                    case 1 -> LauncherBlockEntity.isDesignator(stack);
+                    case 2 -> BatteryPackItem.isBattery(stack);
+                    case 3 -> acceptsFluidContainer(stack, launcher.fuelTank());
+                    case 5 -> acceptsFluidContainer(stack, launcher.oxidizerTank());
+                    default -> false;
+                };
+                default -> false;
+            };
+        }
+
+        private static boolean acceptsFluidContainer(ItemStack stack, com.reinhardt.hbm.fluid.HbmFluidTank tank) {
+            return itemIs(stack, "fluid_barrel_infinite")
+                    || HbmFluidContainerTransfer.canDrainIntoTank(stack, tank,
+                    fluid -> fluid == tank.type(), output -> true);
+        }
     }
 }

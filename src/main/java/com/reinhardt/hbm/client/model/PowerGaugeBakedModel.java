@@ -64,13 +64,23 @@ public final class PowerGaugeBakedModel implements IDynamicBakedModel {
         if (side == null) {
             return List.of();
         }
-        return List.of(face(side, side == facing ? gauge : base));
+        if (side == facing) {
+            // BlockCableGauge renders deco_red_copper first and then the
+            // transparent cable_gauge icon in its second render pass.  The
+            // overlay cannot replace the base: 118 of its 256 pixels are
+            // transparent by design.
+            return List.of(face(side, base), face(side, gauge));
+        }
+        return List.of(face(side, base));
     }
 
     private List<BakedQuad> fullCube(Direction facing) {
-        List<BakedQuad> quads = new ArrayList<>(6);
+        List<BakedQuad> quads = new ArrayList<>(7);
         for (Direction direction : Direction.values()) {
-            quads.add(face(direction, direction == facing ? gauge : base));
+            quads.add(face(direction, base));
+            if (direction == facing) {
+                quads.add(face(direction, gauge));
+            }
         }
         return List.copyOf(quads);
     }

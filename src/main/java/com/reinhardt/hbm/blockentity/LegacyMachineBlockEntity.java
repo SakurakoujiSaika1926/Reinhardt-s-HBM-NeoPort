@@ -14,7 +14,8 @@ import com.reinhardt.hbm.item.RtgPelletItem;
 import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.item.RadarLinkerItem;
 import com.reinhardt.hbm.api.machine.RadarCommandReceiver;
-import com.reinhardt.hbm.block.MustardWillowTallBlock;
+import com.reinhardt.hbm.block.HempPlantBlock;
+import com.reinhardt.hbm.block.MustardWillowPlantBlock;
 import com.reinhardt.hbm.api.entity.LegacyRadarDetectable;
 import com.reinhardt.hbm.item.StampItem;
 import com.reinhardt.hbm.entity.SawbladeEntity;
@@ -40,13 +41,15 @@ import com.reinhardt.hbm.recipe.CrackingRecipe;
 import com.reinhardt.hbm.recipe.PressRecipe;
 import com.reinhardt.hbm.recipe.PrecisionAssemblerRecipe;
 import com.reinhardt.hbm.recipe.PyroOvenRecipe;
+import com.reinhardt.hbm.recipe.MachineRecipeCache;
 import com.reinhardt.hbm.pollution.HbmPollution;
 import com.reinhardt.hbm.pollution.HbmPollutionConstants;
 import com.reinhardt.hbm.pollution.HbmPollutionType;
 import com.reinhardt.hbm.radiation.ChunkRadiationData;
 import com.reinhardt.hbm.radiation.HbmHazardSystem;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import com.reinhardt.hbm.util.FluidCopiable;
 import net.minecraft.core.BlockPos;
@@ -76,6 +79,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.SimpleBitStorage;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -98,7 +102,11 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.server.level.ChunkResult;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
@@ -106,6 +114,8 @@ import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -124,6 +134,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Entity backing the machine_ blocks that were present in the original 1.7.10
@@ -131,12 +142,15 @@ import java.util.concurrent.CompletableFuture;
  * blocks never become independent machines.
  */
 public final class LegacyMachineBlockEntity extends BlockEntity
-        implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider, FluidCopiable {
+        implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider, FluidCopiable,
+        ClientRenderNeighborSnapshot, RttyValueProvider {
     private static final DustParticleOptions TELEPORTER_PARTICLE =
             new DustParticleOptions(new Vector3f(0.4F, 0.8F, 1.0F), 1.0F);
     public static final int MAX_SLOT_COUNT = 27;
     public static final int SLOT_COUNT = MAX_SLOT_COUNT;
     public static final int DATA_COUNT = 17;
+    private static volatile Consumer<LegacyMachineBlockEntity> clientPrecisionIconSnapshotUpdater = ignored -> { };
+    private static volatile long clientPrecisionIconSnapshotRevision;
 
     private final NonNullList<ItemStack> items;
     private final int[] slotsForFace;
@@ -159,6 +173,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private boolean forcefieldOn;
     private int forcefieldCooldown;
     private int forcefieldBlink;
+    private volatile ForcefieldRenderSnapshot forcefieldRenderSnapshot;
     private final List<Entity> forcefieldOutside = new ArrayList<>();
     private final List<Entity> forcefieldInside = new ArrayList<>();
     private int teleporterTargetX = -1;
@@ -230,6 +245,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private int precisionAssemblerStrikerDelay;
     private long precisionAssemblerLastClientTick = Long.MIN_VALUE;
     private int precisionAssemblerMotorSoundDelay;
+    private volatile PrecisionIconRenderSnapshot precisionIconRenderSnapshot;
+    private boolean clientPrecisionIconSnapshotDirty = true;
+    private volatile RenderNeighborSnapshot renderNeighborSnapshot = RenderNeighborSnapshot.EMPTY;
+    private long clientRenderGameTime;
     private String annihilatorPool = "Recycling";
     private BigInteger annihilatorMonitor = BigInteger.ZERO;
     private int annihilatorSyncTicks;
@@ -256,7 +275,13 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     private float radarPreviousRotation;
     private byte[] radarMap = new byte[40_000];
     private final List<RadarTarget> radarTargets = new ArrayList<>();
-    private final Map<Long, CompletableFuture<Boolean>> radarChunkReads = new HashMap<>();
+    /**
+     * Unloaded radar terrain is read from the region file without constructing
+     * a live chunk. Keeping the decoded heightmap separate from the future is
+     * important: a single saved chunk supplies many of the 200x200 map cells.
+     */
+    private final Map<Long, CompletableFuture<Optional<RadarHeightSnapshot>>> radarChunkReads = new HashMap<>();
+    private final Set<Long> radarMissingChunks = new HashSet<>();
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -340,6 +365,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 default -> {
                 }
             }
+            if (id.equals("machine_forcefield") && index >= 0 && index <= 4) {
+                LegacyMachineBlockEntity.this.publishForcefieldRenderSnapshot(true);
+            }
         }
 
         @Override
@@ -367,6 +395,73 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
         if (machineId().equals("machine_turbofan") && this.tanks.length > 0) {
             this.tanks[0].setType(HbmFluids.byName("kerosene").orElse(HbmFluids.none()));
+        }
+        this.forcefieldRenderSnapshot = buildForcefieldRenderSnapshot();
+        this.precisionIconRenderSnapshot = PrecisionIconRenderSnapshot.empty(pos, state);
+    }
+
+    /** Installed by the client renderer without linking client-only classes on a server. */
+    public static void setClientPrecisionIconSnapshotUpdater(Consumer<LegacyMachineBlockEntity> updater) {
+        clientPrecisionIconSnapshotUpdater = java.util.Objects.requireNonNull(updater);
+        clientPrecisionIconSnapshotRevision++;
+    }
+
+    public static long clientPrecisionIconSnapshotRevision() {
+        return clientPrecisionIconSnapshotRevision;
+    }
+
+    public PrecisionIconRenderSnapshot precisionIconRenderSnapshot() {
+        return precisionIconRenderSnapshot;
+    }
+
+    public RenderNeighborSnapshot renderNeighborSnapshot() {
+        return this.renderNeighborSnapshot;
+    }
+
+    public long clientRenderGameTime() {
+        return this.clientRenderGameTime;
+    }
+
+    @Override
+    public void refreshClientRenderNeighborSnapshot() {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        String id = machineId();
+        boolean precisionFrame = id.equals("machine_precass")
+                && !this.level.getBlockState(this.worldPosition.above(3)).isAir();
+        int rtgConnectorMask = 0;
+        if (id.equals("machine_rtg_grey")) {
+            for (Direction direction : Direction.Plane.HORIZONTAL) {
+                if (PowerNetworkManager.canCableConnectTo(this.level, this.worldPosition, direction)) {
+                    rtgConnectorMask |= 1 << direction.ordinal();
+                }
+            }
+        }
+        this.renderNeighborSnapshot = new RenderNeighborSnapshot(precisionFrame, rtgConnectorMask);
+    }
+
+    public void refreshClientPrecisionIconSnapshot() {
+        PrecisionIconRenderSnapshot snapshot = precisionIconRenderSnapshot;
+        if (snapshot.revision() != clientPrecisionIconSnapshotRevision
+                || snapshot.recipeGeneration() != MachineRecipeCache.generation()) {
+            clientPrecisionIconSnapshotDirty = true;
+        }
+        if (clientPrecisionIconSnapshotDirty && level != null && level.isClientSide
+                && machineId().equals("machine_precass")) {
+            clientPrecisionIconSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientPrecisionIconSnapshot(PrecisionIconRenderSnapshot snapshot) {
+        if (level == null || !level.isClientSide || !machineId().equals("machine_precass")) {
+            return;
+        }
+        PrecisionIconRenderSnapshot previous = precisionIconRenderSnapshot;
+        precisionIconRenderSnapshot = java.util.Objects.requireNonNull(snapshot);
+        clientPrecisionIconSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.bounds(), snapshot.bounds())) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -484,6 +579,17 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             screen.receiveRadarData(this.radarTargets, this.worldPosition, radarRange());
         }
 
+        if (level instanceof ServerLevel serverLevel && level.getGameTime() % 20L == 0L) {
+            com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRadiation(
+                    serverLevel,
+                    com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_MEDIUM_DURATION,
+                    com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.MEDIUM,
+                    this.worldPosition.getX(), this.worldPosition.getZ());
+            com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                    serverLevel, this.worldPosition,
+                    com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_RADAR, 200);
+        }
+
         // 1.7.10 sent its radar state every 50 ticks. The modern BE update tag carries the same data.
         if (beforeCharge != this.energy || !previousTargets.equals(this.radarTargets) || level.getGameTime() % 50L == 0L) {
             if (level.getGameTime() % 50L == 0L || !previousTargets.equals(this.radarTargets)) {
@@ -519,64 +625,199 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (this.radarMap.length != 40_000) {
             this.radarMap = new byte[40_000];
         }
-        ServerLevel serverLevel = level instanceof ServerLevel server ? server : null;
-        int chunkLoads = 0;
-        int chunkLoadCap = HbmConfig.RADAR_CHUNK_LOAD_CAP.get();
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        collectCompletedRadarChunkReads(range);
+        int readsStarted = 0;
+        int readCap = Math.max(0, HbmConfig.RADAR_CHUNK_LOAD_CAP.get());
         long page = level.getGameTime() % 400L;
         for (int offset = 0; offset < 100; offset++) {
             int index = (int) page * 100 + offset;
             int x = this.worldPosition.getX() - range + (index % 200) * range * 2 / 200;
             int z = this.worldPosition.getZ() - range + (index / 200) * range * 2 / 200;
-            BlockPos samplePos = new BlockPos(x, 0, z);
-            if (level.hasChunkAt(samplePos)) {
-                writeRadarMapHeight(level, index, x, z);
-                continue;
-            }
-            if (serverLevel == null || this.radarMap[index] != 0 || chunkLoads >= chunkLoadCap) {
-                continue;
-            }
-
             int chunkX = x >> 4;
             int chunkZ = z >> 4;
             long chunkKey = ChunkPos.asLong(chunkX, chunkZ);
-            if (HbmConfig.RADAR_GENERATE_CHUNKS.get()) {
-                // This is the direct modern equivalent of getChunkFromChunkCoords.
-                serverLevel.getChunkSource().getChunk(chunkX, chunkZ, ChunkStatus.FULL, true);
-                if (level.hasChunkAt(samplePos)) {
-                    writeRadarMapHeight(level, index, x, z);
-                }
-                chunkLoads++;
+
+            // getChunkNow is a strict no-load query. Level#getHeight looked
+            // harmless here, but internally called ServerChunkCache#getChunk
+            // and was the 90% main-thread hotspot in the supplied Spark trace.
+            LevelChunk loadedChunk = serverLevel.getChunkSource().getChunkNow(chunkX, chunkZ);
+            if (loadedChunk != null) {
+                this.radarMissingChunks.remove(chunkKey);
+                writeRadarMapHeight(index,
+                        loadedChunk.getHeight(Heightmap.Types.WORLD_SURFACE, x & 15, z & 15));
                 continue;
             }
 
-            CompletableFuture<Boolean> diskRead = this.radarChunkReads.get(chunkKey);
-            if (diskRead == null) {
-                // WorldUtil.provideChunk only loaded an existing chunk file and never generated terrain.
-                this.radarChunkReads.put(chunkKey, serverLevel.getChunkSource().chunkMap
-                        .read(new ChunkPos(chunkX, chunkZ))
-                        .handle((storedChunk, error) -> error == null && storedChunk.isPresent()));
-                chunkLoads++;
+            if (this.radarMap[index] != 0
+                    || this.radarMissingChunks.contains(chunkKey)
+                    || this.radarChunkReads.containsKey(chunkKey)
+                    || readsStarted >= readCap) {
                 continue;
             }
-            if (!diskRead.isDone()) {
+
+            boolean generateChunks = HbmConfig.RADAR_GENERATE_CHUNKS.get();
+            // Generation is explicitly opt-in, but even then it must not queue
+            // an unbounded wall of chunk work. The configured cap is also the
+            // maximum number of generated chunks in flight for this radar.
+            if (generateChunks && this.radarChunkReads.size() >= readCap) {
                 continue;
             }
-            this.radarChunkReads.remove(chunkKey);
-            if (!diskRead.getNow(false)) {
-                continue;
-            }
-            serverLevel.getChunkSource().getChunk(chunkX, chunkZ, ChunkStatus.FULL, true);
-            if (level.hasChunkAt(samplePos)) {
-                writeRadarMapHeight(level, index, x, z);
-            }
-            chunkLoads++;
+            this.radarChunkReads.put(chunkKey, requestRadarHeightSnapshot(
+                    serverLevel, chunkX, chunkZ, generateChunks));
+            readsStarted++;
         }
     }
 
-    private void writeRadarMapHeight(Level level, int index, int x, int z) {
-        int height = Math.max(50, Math.min(128,
-                level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, x, z)));
+    private CompletableFuture<Optional<RadarHeightSnapshot>> requestRadarHeightSnapshot(
+            ServerLevel level, int chunkX, int chunkZ, boolean generateChunks) {
+        if (!generateChunks) {
+            int minBuildHeight = level.getMinBuildHeight();
+            int levelHeight = level.getHeight();
+            // ChunkMap#read is region-file IO. Decode the persisted heightmap
+            // in its completion stage; never materialise the chunk on the
+            // server thread merely to draw the radar background.
+            return level.getChunkSource().chunkMap.read(new ChunkPos(chunkX, chunkZ))
+                    .handle((storedChunk, error) -> error == null
+                            ? storedChunk.flatMap(tag -> RadarHeightSnapshot.fromNbt(
+                                    tag, minBuildHeight, levelHeight))
+                            : Optional.empty());
+        }
+
+        // ServerChunkCache#getChunkFuture blocks when called by the server
+        // thread. Calling it from a worker takes its documented asynchronous
+        // branch and schedules normal chunk work without parking the tick.
+        CompletableFuture<ChunkResult<ChunkAccess>> chunkFuture = CompletableFuture
+                .supplyAsync(() -> level.getChunkSource().getChunkFuture(
+                        chunkX, chunkZ, ChunkStatus.FULL, true))
+                .thenCompose(future -> future);
+        return chunkFuture.handle((result, error) -> {
+            if (error != null) {
+                return Optional.empty();
+            }
+            ChunkAccess chunk = result.orElse(null);
+            return chunk == null
+                    ? Optional.empty()
+                    : Optional.of(RadarHeightSnapshot.fromChunk(chunk));
+        });
+    }
+
+    private void collectCompletedRadarChunkReads(int range) {
+        for (var iterator = this.radarChunkReads.entrySet().iterator(); iterator.hasNext();) {
+            Map.Entry<Long, CompletableFuture<Optional<RadarHeightSnapshot>>> entry = iterator.next();
+            CompletableFuture<Optional<RadarHeightSnapshot>> read = entry.getValue();
+            if (!read.isDone()) {
+                continue;
+            }
+            Optional<RadarHeightSnapshot> snapshot = read.getNow(Optional.empty());
+            iterator.remove();
+            if (snapshot.isPresent()) {
+                applyRadarChunkSnapshot(entry.getKey(), snapshot.get(), range);
+            } else {
+                this.radarMissingChunks.add(entry.getKey());
+            }
+        }
+    }
+
+    private void applyRadarChunkSnapshot(long chunkKey, RadarHeightSnapshot snapshot, int range) {
+        int chunkX = ChunkPos.getX(chunkKey);
+        int chunkZ = ChunkPos.getZ(chunkKey);
+        int originX = this.worldPosition.getX() - range;
+        int originZ = this.worldPosition.getZ() - range;
+        int diameter = range * 2;
+
+        // Resolve only the map columns/rows represented by this chunk. This
+        // immediately consumes one 256-byte snapshot and avoids retaining up
+        // to 40,000 decoded chunks for a large radar.
+        int[] matchingColumns = new int[200];
+        int matchingColumnCount = 0;
+        for (int column = 0; column < 200; column++) {
+            int x = originX + column * diameter / 200;
+            if ((x >> 4) == chunkX) {
+                matchingColumns[matchingColumnCount++] = column;
+            }
+        }
+        if (matchingColumnCount == 0) {
+            return;
+        }
+        for (int row = 0; row < 200; row++) {
+            int z = originZ + row * diameter / 200;
+            if ((z >> 4) != chunkZ) {
+                continue;
+            }
+            for (int offset = 0; offset < matchingColumnCount; offset++) {
+                int column = matchingColumns[offset];
+                int x = originX + column * diameter / 200;
+                writeRadarMapHeight(row * 200 + column, snapshot.height(x & 15, z & 15));
+            }
+        }
+    }
+
+    private void writeRadarMapHeight(int index, int sampledHeight) {
+        int height = Math.max(50, Math.min(128, sampledHeight));
         this.radarMap[index] = (byte) height;
+    }
+
+    private static final class RadarHeightSnapshot {
+        private static final String[] PERSISTED_HEIGHTMAP_KEYS = {
+                "WORLD_SURFACE", "MOTION_BLOCKING", "WORLD_SURFACE_WG"
+        };
+        private final byte[] heights;
+
+        private RadarHeightSnapshot(byte[] heights) {
+            this.heights = heights;
+        }
+
+        private int height(int localX, int localZ) {
+            return Byte.toUnsignedInt(this.heights[(localX & 15) + (localZ & 15) * 16]);
+        }
+
+        private static RadarHeightSnapshot fromChunk(ChunkAccess chunk) {
+            byte[] heights = new byte[256];
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    int height = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+                    heights[x + z * 16] = (byte) Math.max(50, Math.min(128, height));
+                }
+            }
+            return new RadarHeightSnapshot(heights);
+        }
+
+        private static Optional<RadarHeightSnapshot> fromNbt(
+                CompoundTag chunkTag, int minBuildHeight, int levelHeight) {
+            if (!chunkTag.contains("Heightmaps", Tag.TAG_COMPOUND)) {
+                return Optional.empty();
+            }
+            CompoundTag heightmaps = chunkTag.getCompound("Heightmaps");
+            long[] packed = null;
+            for (String key : PERSISTED_HEIGHTMAP_KEYS) {
+                if (heightmaps.contains(key, Tag.TAG_LONG_ARRAY)) {
+                    packed = heightmaps.getLongArray(key);
+                    break;
+                }
+            }
+            if (packed == null || packed.length == 0) {
+                return Optional.empty();
+            }
+
+            try {
+                SimpleBitStorage storage = new SimpleBitStorage(
+                        Mth.ceillog2(levelHeight + 1), 256, packed);
+                byte[] heights = new byte[256];
+                for (int index = 0; index < heights.length; index++) {
+                    int height = storage.get(index) + minBuildHeight;
+                    heights[index] = (byte) Math.max(50, Math.min(128, height));
+                }
+                return Optional.of(new RadarHeightSnapshot(heights));
+            } catch (RuntimeException malformedHeightmap) {
+                // A corrupt or height-incompatible saved chunk must never take
+                // down the server. It simply remains blank on the radar map.
+                return Optional.empty();
+            }
+        }
     }
 
     private int radarRange() {
@@ -673,7 +914,14 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     }
 
     private BlockPos annihilatorFlamePos() {
-        return this.worldPosition.relative(facing().getOpposite(), 3).above(9);
+        // 1.7.10 TileEntityMachineAnnihilator uses core - metadataDirection * 3 at y + 9.
+        return switch (facing()) {
+            case NORTH -> this.worldPosition.offset(0, 9, 3).immutable();
+            case SOUTH -> this.worldPosition.offset(0, 9, -3).immutable();
+            case WEST -> this.worldPosition.offset(3, 9, 0).immutable();
+            case EAST -> this.worldPosition.offset(-3, 9, 0).immutable();
+            case UP, DOWN -> throw new IllegalStateException("Annihilator requires a horizontal facing");
+        };
     }
 
     private void destroyAnnihilatorItem(ServerLevel level, ItemStack stack) {
@@ -721,6 +969,10 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     /** Client animation state for the legacy precision assembler and turbofan. */
     private void tickClient() {
         if (this.level == null) return;
+        this.clientRenderGameTime = this.level.getGameTime();
+        if (machineId().equals("machine_precass")) {
+            refreshClientPrecisionIconSnapshot();
+        }
         if (machineId().equals("machine_teleporter")) {
             tickTeleporterClient();
             return;
@@ -756,7 +1008,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             if (this.thresherOn && !this.thresherSuspended) {
                 // TileEntityMachineThresher emits one stationary smoke particle each client tick.
                 Direction dir = facing();
-                Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
+                Direction rot = thresherLeftSide();
                 this.level.addParticle(ParticleTypes.SMOKE,
                         this.worldPosition.getX() + 0.5D + dir.getStepX() * 0.8125D + rot.getStepX() * 0.375D,
                         this.worldPosition.getY() + 1.5625D,
@@ -834,7 +1086,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     /** Client effects copied from TileEntityMachinePyroOven#updateEntity. */
     private void tickPyroOvenClient() {
         Direction dir = facing();
-        Direction rot = LegacyMachineGeometry.forgeRotateDown(dir);
+        Direction rot = pyroOvenServiceFace();
         double x = this.worldPosition.getX() + 0.5D - rot.getStepX();
         double z = this.worldPosition.getZ() + 0.5D - rot.getStepZ();
         double y = this.worldPosition.getY() + 3.0D;
@@ -1469,7 +1721,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (this.thresherAngle > 0.0F) {
             Vec3 end = thresherArmTip();
             thresherDamageEntities(level, end);
-            Direction side = LegacyMachineGeometry.forgeRotateDown(facing());
+            Direction side = thresherCutSide();
             for (int index = -3; index <= 3; index++) {
                 BlockPos target = BlockPos.containing(end.x + side.getStepX() * index, this.worldPosition.getY(),
                         end.z + side.getStepZ() * index);
@@ -1528,7 +1780,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             if (level.random.nextInt(100) == 0) thresherDrop(level, new ItemStack(Items.WHEAT_SEEDS), pos);
             return;
         }
-        if (state.getBlock() instanceof MustardWillowTallBlock) {
+        if (state.getBlock() instanceof HempPlantBlock || state.getBlock() instanceof MustardWillowPlantBlock) {
             thresherCutTall(level, pos, state);
             return;
         }
@@ -1543,11 +1795,30 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     }
 
     private void thresherCutTall(Level level, BlockPos pos, BlockState state) {
-        BlockPos upper = MustardWillowTallBlock.isUpper(state) ? pos : pos.above();
+        int matureAge;
+        if (state.getBlock() instanceof HempPlantBlock) {
+            matureAge = state.getValue(HempPlantBlock.AGE);
+            if (matureAge != HempPlantBlock.MATURE) {
+                return;
+            }
+        } else if (state.getBlock() instanceof MustardWillowPlantBlock) {
+            matureAge = state.getValue(MustardWillowPlantBlock.AGE);
+            if (matureAge != MustardWillowPlantBlock.CD4) {
+                return;
+            }
+        } else {
+            return;
+        }
+        BlockPos upper = state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER
+                ? pos
+                : pos.above();
         BlockState upperState = level.getBlockState(upper);
-        if (!(upperState.getBlock() instanceof MustardWillowTallBlock)
-                || upperState.getValue(MustardWillowTallBlock.META) == MustardWillowTallBlock.CD2 + 8
-                || upperState.getValue(MustardWillowTallBlock.META) == MustardWillowTallBlock.CD3 + 8) {
+        if (upperState.getBlock() != state.getBlock()
+                || upperState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.UPPER
+                || (upperState.getBlock() instanceof HempPlantBlock
+                        && upperState.getValue(HempPlantBlock.AGE) != matureAge)
+                || (upperState.getBlock() instanceof MustardWillowPlantBlock
+                        && upperState.getValue(MustardWillowPlantBlock.AGE) != matureAge)) {
             return;
         }
         level.levelEvent(2001, upper, Block.getId(upperState));
@@ -1595,7 +1866,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     private void thresherDamageEntities(Level level, Vec3 end) {
         Direction forward = facing();
-        Direction side = LegacyMachineGeometry.forgeRotateDown(forward);
+        Direction side = thresherCutSide();
         AABB area = new AABB(end.x, this.worldPosition.getY() + 0.5D, end.z, end.x, this.worldPosition.getY() + 0.5D, end.z)
                 .inflate(Math.abs(forward.getStepX() * 0.5D) + Math.abs(side.getStepX() * 4.5D), 0.5D,
                         Math.abs(forward.getStepZ() * 0.5D) + Math.abs(side.getStepZ() * 4.5D));
@@ -1616,7 +1887,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     private void thresherDrop(Level level, ItemStack stack, BlockPos pos) {
         if (stack.isEmpty() || !(level instanceof ServerLevel serverLevel)) return;
-        Direction forward = facing();
+        // MachineThresher is not a BlockDummyable: its old block metadata is opposite the
+        // modern placement-facing state. TileEntityMachineThresher#dropItem uses that raw metadata.
+        Direction forward = thresherDropDirection();
         ItemEntity item = new ItemEntity(serverLevel, this.worldPosition.getX() + 0.5D - forward.getStepX() * 0.75D,
                 this.worldPosition.getY(), this.worldPosition.getZ() + 0.5D - forward.getStepZ() * 0.75D, stack.copy());
         item.setPickUpDelay(10);
@@ -1628,16 +1901,6 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return fluid != null && switch (fluid.name()) {
             case "woodoil", "ethanol", "fishoil", "heavyoil", "coalcreosote" -> true;
             default -> false;
-        };
-    }
-
-    private static float thresherYaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> 0.0F;
-            case WEST -> 90.0F;
-            case SOUTH -> 180.0F;
-            case EAST -> 270.0F;
-            default -> 0.0F;
         };
     }
 
@@ -1946,11 +2209,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             return false;
         }
         boolean changed = false;
-        Direction nozzle = LegacyMachineGeometry.forgeRotateUp(facing());
-        Direction side = LegacyMachineGeometry.forgeRotateDown(nozzle);
         List<BlockPos> ports = servicePorts();
         for (int index = 0; index < ports.size() && fuel.amount() < fuel.capacity(); index++) {
-            Direction portFace = index < 2 ? side : side.getOpposite();
+            Direction portFace = turbofanServiceFace(index);
             int requested = fuel.capacity() - fuel.amount();
             FluidStack drained = HbmFluidNetworks.drainFrom(level, ports.get(index), portFace, fuel.type(), requested,
                     this.worldPosition, true);
@@ -1971,11 +2232,9 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             return false;
         }
         boolean changed = false;
-        Direction nozzle = LegacyMachineGeometry.forgeRotateUp(facing());
-        Direction side = LegacyMachineGeometry.forgeRotateDown(nozzle);
         List<BlockPos> ports = servicePorts();
         for (int index = 0; index < ports.size(); index++) {
-            Direction portFace = index < 2 ? side : side.getOpposite();
+            Direction portFace = turbofanServiceFace(index);
             BlockPos port = ports.get(index);
             if (blood.amount() > 0 && !blood.type().isNone()) {
                 FluidStack stack = HbmFluids.toNeoStack(blood.type(), blood.amount());
@@ -2003,8 +2262,8 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     }
 
     private void turbofanJetEffects(Level level) {
-        Direction nozzle = LegacyMachineGeometry.forgeRotateUp(facing());
-        Direction side = LegacyMachineGeometry.forgeRotateUp(nozzle);
+        Direction nozzle = turbofanNozzleDirection();
+        Direction side = turbofanJetSide();
         if (this.turbofanAfterburner > 0) {
             for (int index = 0; index < 2; index++) {
                 double speed = 2.0D + level.random.nextDouble() * 3.0D;
@@ -2216,7 +2475,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             return false;
         }
         boolean changed = false;
-        Direction portFace = LegacyMachineGeometry.forgeRotateDown(facing());
+        Direction portFace = pyroOvenServiceFace();
         for (BlockPos port : servicePorts()) {
             if (this.tanks[1].amount() <= 0) {
                 break;
@@ -2232,8 +2491,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     }
 
     private boolean sendPyroSmoke(Level level) {
-        Direction side = LegacyMachineGeometry.forgeRotateDown(facing());
-        BlockPos exhaust = offset(Direction.NORTH, 0, side, -1, 3);
+        BlockPos exhaust = pyroOvenExhaustPos();
         return HbmPollution.sendSmoke(level, this.worldPosition, exhaust, Direction.UP,
                 pyroSmokeTank(HbmPollutionType.SOOT),
                 pyroSmokeTank(HbmPollutionType.HEAVYMETAL),
@@ -2501,7 +2759,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         // TileEntitySawmill uses a 0.125-block blade strip, rotated with
         // ForgeDirection#getRotation(UP) rather than the machine render yaw.
         Direction forward = facing();
-        Direction bladeSide = LegacyMachineGeometry.forgeRotateUp(forward);
+        Direction bladeSide = sawmillBladeSide();
         double centerX = this.worldPosition.getX() + 0.5D + bladeSide.getStepX() * 0.9375D;
         double centerZ = this.worldPosition.getZ() + 0.5D + bladeSide.getStepZ() * 0.9375D;
         double halfX = Math.abs(forward.getStepX()) + Math.abs(bladeSide.getStepX()) * 0.0625D;
@@ -2529,7 +2787,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         level.explode(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 1.0D,
                 this.worldPosition.getZ() + 0.5D, 5.0F, Level.ExplosionInteraction.NONE);
         Direction forward = facing();
-        Direction flight = LegacyMachineGeometry.forgeRotateDown(forward);
+        Direction flight = sawmillBladeFlight();
         SawbladeEntity blade = new SawbladeEntity(level,
                 this.worldPosition.getX() + 0.5D + forward.getStepX(),
                 this.worldPosition.getY() + 1.0D,
@@ -3241,6 +3499,65 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return this.energy;
     }
 
+    @Override
+    public String[] rttyFunctionInfo() {
+        if (machineId().equals("machine_radgen")) {
+            String[] info = new String[27];
+            info[0] = RttyInfo.PREFIX_VALUE + "state";
+            info[1] = RttyInfo.PREFIX_VALUE + "power";
+            info[2] = RttyInfo.PREFIX_VALUE + "output";
+            for (int slot = 0; slot < 12; slot++) {
+                info[3 + slot] = RttyInfo.PREFIX_VALUE + "output" + (slot + 1);
+                info[15 + slot] = RttyInfo.PREFIX_VALUE + "progress" + (slot + 1);
+            }
+            return info;
+        }
+        if (machineId().equals("machine_turbofan")) {
+            return new String[] {
+                    RttyInfo.PREFIX_VALUE + "state",
+                    RttyInfo.PREFIX_VALUE + "output",
+                    RttyInfo.PREFIX_VALUE + "power",
+                    RttyInfo.PREFIX_VALUE + "fuel",
+                    RttyInfo.PREFIX_VALUE + "blood",
+                    RttyInfo.PREFIX_VALUE + "afterburner"
+            };
+        }
+        return new String[0];
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (machineId().equals("machine_radgen")) {
+            if (name.equals(RttyInfo.PREFIX_VALUE + "state")) return this.radgenOn ? "1" : "0";
+            if (name.equals(RttyInfo.PREFIX_VALUE + "power")) return Long.toString(this.energy);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "output")) {
+                int total = 0;
+                for (int slot = 0; slot < 12; slot++) {
+                    if (this.radgenDuration[slot] > 0) total += this.radgenProduction[slot];
+                }
+                return Integer.toString(total);
+            }
+            for (int slot = 0; slot < 12; slot++) {
+                if (name.equals(RttyInfo.PREFIX_VALUE + "output" + (slot + 1))) {
+                    return Integer.toString(this.radgenProduction[slot]);
+                }
+                if (name.equals(RttyInfo.PREFIX_VALUE + "progress" + (slot + 1))) {
+                    return Integer.toString(this.radgenProgress[slot] * 100
+                            / Math.max(this.radgenDuration[slot], 1));
+                }
+            }
+        }
+        if (machineId().equals("machine_turbofan")) {
+            if (name.equals(RttyInfo.PREFIX_VALUE + "state")) return this.turbofanWasOn ? "1" : "0";
+            if (name.equals(RttyInfo.PREFIX_VALUE + "output")) return Integer.toString(this.turbofanOutput);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "power")) return Long.toString(this.energy);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "fuel")) return Integer.toString(tankAmount(0));
+            if (name.equals(RttyInfo.PREFIX_VALUE + "blood")) return Integer.toString(tankAmount(1));
+            if (name.equals(RttyInfo.PREFIX_VALUE + "afterburner")) return Integer.toString(this.turbofanAfterburner);
+        }
+        return null;
+    }
+
     public int processTime() {
         return machineId().equals("machine_precass") ? 1_000 : profile().processTime();
     }
@@ -3311,6 +3628,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         this.precisionAssemblerRecipe = selected;
         this.precisionAssemblerProgress = 0.0D;
         this.progress = 0;
+        this.clientPrecisionIconSnapshotDirty = true;
         setChangedAndSync();
     }
 
@@ -3525,6 +3843,30 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         return this.forcefieldOn && this.forcefieldHealth > 0 && this.energy > 0L && this.forcefieldCooldown == 0;
     }
 
+    /**
+     * Immutable publication shared by the render thread and section workers.
+     * The bounds path never reads mutable forcefield fields or client models.
+     */
+    public ForcefieldRenderSnapshot forcefieldRenderSnapshot() {
+        return this.forcefieldRenderSnapshot;
+    }
+
+    private void publishForcefieldRenderSnapshot(boolean rebuildClientSection) {
+        ForcefieldRenderSnapshot next = buildForcefieldRenderSnapshot();
+        ForcefieldRenderSnapshot previous = this.forcefieldRenderSnapshot;
+        this.forcefieldRenderSnapshot = next;
+        if (rebuildClientSection && previous != null && this.level != null && this.level.isClientSide
+                && (previous.radius() != next.radius() || previous.renderable() != next.renderable())) {
+            BlockState state = getBlockState();
+            this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private ForcefieldRenderSnapshot buildForcefieldRenderSnapshot() {
+        boolean renderable = forcefieldRenderable();
+        return new ForcefieldRenderSnapshot(this.forcefieldRadius, this.forcefieldColor, renderable);
+    }
+
     public int forcefieldColor() {
         return this.forcefieldColor;
     }
@@ -3535,6 +3877,54 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     public int forcefieldCooldown() {
         return this.forcefieldCooldown;
+    }
+
+    public record ForcefieldRenderSnapshot(int radius, int color, boolean renderable) {
+    }
+
+    public record PrecisionIconRenderSnapshot(BlockState state, @Nullable ResourceLocation recipeId,
+                                              ItemStack sourceItem, ItemStack renderedItem,
+                                              Object modelToken, AABB bounds,
+                                              long recipeGeneration, long revision) {
+        public PrecisionIconRenderSnapshot {
+            java.util.Objects.requireNonNull(state);
+            sourceItem = sourceItem.copy();
+            renderedItem = renderedItem.copy();
+            java.util.Objects.requireNonNull(bounds);
+        }
+
+        private static PrecisionIconRenderSnapshot empty(BlockPos pos, BlockState state) {
+            double x = pos.getX();
+            double y = pos.getY();
+            double z = pos.getZ();
+            return new PrecisionIconRenderSnapshot(state, null, ItemStack.EMPTY, ItemStack.EMPTY,
+                    null, new AABB(x, y, z, x, y, z), Long.MIN_VALUE, -1L);
+        }
+    }
+
+    public record RenderNeighborSnapshot(boolean precisionFrameVisible, int rtgConnectorMask) {
+        private static final RenderNeighborSnapshot EMPTY = new RenderNeighborSnapshot(false, 0);
+
+        public boolean rtgConnector(Direction direction) {
+            return (rtgConnectorMask & 1 << direction.ordinal()) != 0;
+        }
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(first.minY) == section(second.minY)
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return net.minecraft.core.SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
     }
 
     public void cycleOrbusMode() {
@@ -3625,8 +4015,8 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             // TileEntityMachineThresher only subscribes at the two lateral
             // positions derived from dir.getRotation(UP), never the front,
             // rear, top, or bottom face.
-            Direction left = LegacyMachineGeometry.forgeRotateUp(facing());
-            Direction right = left.getOpposite();
+            Direction left = thresherLeftSide();
+            Direction right = thresherRightSide();
             if (!this.worldPosition.equals(accessorPos) || (side != left && side != right)) {
                 return null;
             }
@@ -3638,8 +4028,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (!machineId().equals("machine_pyrooven")) {
             return allowsFluidAutomationPort(accessorPos) ? new LegacyFluidHandler() : null;
         }
-        Direction exhaustSide = LegacyMachineGeometry.forgeRotateDown(facing());
-        BlockPos exhaust = offset(Direction.NORTH, 0, exhaustSide, -1, 3);
+        BlockPos exhaust = pyroOvenExhaustPos();
         if (accessorPos.equals(exhaust)) {
             return new LegacyFluidHandler(new int[0], new int[]{2, 3, 4});
         }
@@ -3780,6 +4169,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             case 6 -> {
                 this.radarMap = new byte[40_000];
                 this.radarChunkReads.clear();
+                this.radarMissingChunks.clear();
             }
             default -> { return; }
         }
@@ -3936,15 +4326,21 @@ public final class LegacyMachineBlockEntity extends BlockEntity
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
         return switch (machineId()) {
             // TileEntityConveyorPress exposes all four horizontal faces.
-            case "machine_conveyor_press" -> corePorts(false, false);
+            case "machine_conveyor_press" -> conveyorPressPowerPorts();
             // TileEntityMachineRTG and TileEntityMachineAutocrafter enumerate ForgeDirection.VALID_DIRECTIONS.
-            case "machine_rtg_grey", "machine_autocrafter", "machine_teleporter" -> corePorts(true, true);
+            case "machine_rtg_grey" -> greyRtgPowerPorts();
+            case "machine_autocrafter" -> autocrafterPowerPorts();
+            case "machine_teleporter" -> teleporterPowerPorts();
             // TileEntityForceField explicitly excludes its top face.
-            case "machine_forcefield" -> corePorts(true, false);
+            case "machine_forcefield" -> forcefieldPowerPorts();
             // TileEntityMachineRadGen: tryProvide(core - facing * 4, facing.opposite()).
-            case "machine_radgen" -> List.of(this.worldPosition.relative(facing().getOpposite(), 4).immutable());
-            case "machine_radar" -> corePorts(false, false);
-            case "machine_precass", "machine_pyrooven", "machine_radiolysis", "machine_radar_large", "machine_turbofan" -> servicePorts();
+            case "machine_radgen" -> radgenPowerPort();
+            case "machine_radar" -> radarPowerPorts();
+            case "machine_precass" -> precisionAssemblerServicePorts();
+            case "machine_pyrooven" -> pyroOvenServicePorts();
+            case "machine_radiolysis" -> radiolysisServicePorts();
+            case "machine_radar_large" -> largeRadarServicePorts();
+            case "machine_turbofan" -> turbofanServicePorts();
             default -> List.of();
         };
     }
@@ -3974,54 +4370,275 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 : Direction.SOUTH;
     }
 
-    private List<BlockPos> corePorts(boolean includeDown, boolean includeUp) {
-        List<BlockPos> ports = new ArrayList<>(6);
-        ports.add(this.worldPosition.north().immutable());
-        ports.add(this.worldPosition.east().immutable());
-        ports.add(this.worldPosition.south().immutable());
-        ports.add(this.worldPosition.west().immutable());
-        if (includeDown) ports.add(this.worldPosition.below().immutable());
-        if (includeUp) ports.add(this.worldPosition.above().immutable());
-        return List.copyOf(ports);
+    /** 1.7.10 TileEntityMachineThresher: {@code dir.getRotation(UP)}. */
+    private Direction thresherLeftSide() {
+        return switch (facing()) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            case UP, DOWN -> throw new IllegalStateException("Thresher requires a horizontal facing");
+        };
+    }
+
+    /** The opposite thresher intake face, expanded independently instead of deriving a generic rotation. */
+    private Direction thresherRightSide() {
+        return switch (facing()) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalStateException("Thresher requires a horizontal facing");
+        };
+    }
+
+    /** 1.7.10 TileEntityMachineThresher's seven-block cutting axis. */
+    private Direction thresherCutSide() {
+        return switch (facing()) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            case UP, DOWN -> throw new IllegalStateException("Thresher requires a horizontal facing");
+        };
+    }
+
+    /** Raw 1.7.10 MachineThresher metadata direction used only by its item ejector. */
+    private Direction thresherDropDirection() {
+        return switch (facing()) {
+            case NORTH -> Direction.SOUTH;
+            case SOUTH -> Direction.NORTH;
+            case WEST -> Direction.EAST;
+            case EAST -> Direction.WEST;
+            case UP, DOWN -> throw new IllegalStateException("Thresher requires a horizontal facing");
+        };
+    }
+
+    /** 1.7.10 TileEntityMachinePyroOven: {@code dir.getRotation(DOWN)}. */
+    private Direction pyroOvenServiceFace() {
+        return switch (facing()) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalStateException("Pyro oven requires a horizontal facing");
+        };
+    }
+
+    private BlockPos pyroOvenExhaustPos() {
+        // Old code sends smoke at core - dir.getRotation(DOWN), y + 3.
+        return switch (facing()) {
+            case NORTH -> this.worldPosition.offset(1, 3, 0).immutable();
+            case SOUTH -> this.worldPosition.offset(-1, 3, 0).immutable();
+            case WEST -> this.worldPosition.offset(0, 3, -1).immutable();
+            case EAST -> this.worldPosition.offset(0, 3, 1).immutable();
+            case UP, DOWN -> throw new IllegalStateException("Pyro oven requires a horizontal facing");
+        };
+    }
+
+    /** 1.7.10 TileEntityMachineTurbofan's local turbine axis. */
+    private Direction turbofanNozzleDirection() {
+        return switch (facing()) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            case UP, DOWN -> throw new IllegalStateException("Turbofan requires a horizontal facing");
+        };
+    }
+
+    /** 1.7.10 turbofan jet width axis: nozzle.getRotation(UP). */
+    private Direction turbofanJetSide() {
+        return switch (facing()) {
+            case NORTH -> Direction.SOUTH;
+            case SOUTH -> Direction.NORTH;
+            case WEST -> Direction.EAST;
+            case EAST -> Direction.WEST;
+            case UP, DOWN -> throw new IllegalStateException("Turbofan requires a horizontal facing");
+        };
+    }
+
+    /** Direction exposed by the corresponding ordered entry from TileEntityMachineTurbofan#getConPos. */
+    private Direction turbofanServiceFace(int index) {
+        boolean firstSide = index < 2;
+        return switch (facing()) {
+            case NORTH -> firstSide ? Direction.NORTH : Direction.SOUTH;
+            case SOUTH -> firstSide ? Direction.SOUTH : Direction.NORTH;
+            case WEST -> firstSide ? Direction.WEST : Direction.EAST;
+            case EAST -> firstSide ? Direction.EAST : Direction.WEST;
+            case UP, DOWN -> throw new IllegalStateException("Turbofan requires a horizontal facing");
+        };
+    }
+
+    /** 1.7.10 TileEntitySawmill's blade-strip rotation. */
+    private Direction sawmillBladeSide() {
+        return switch (facing()) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            case UP, DOWN -> throw new IllegalStateException("Sawmill requires a horizontal facing");
+        };
+    }
+
+    /** 1.7.10 TileEntitySawmill's ejected blade velocity. */
+    private Direction sawmillBladeFlight() {
+        return switch (facing()) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalStateException("Sawmill requires a horizontal facing");
+        };
+    }
+
+    private List<BlockPos> radgenPowerPort() {
+        // TileEntityMachineRadGen: core - metadataDirection * 4.
+        return switch (facing()) {
+            case NORTH -> List.of(this.worldPosition.offset(0, 0, 4).immutable());
+            case SOUTH -> List.of(this.worldPosition.offset(0, 0, -4).immutable());
+            case WEST -> List.of(this.worldPosition.offset(4, 0, 0).immutable());
+            case EAST -> List.of(this.worldPosition.offset(-4, 0, 0).immutable());
+            case UP, DOWN -> throw new IllegalStateException("Radiation generator requires a horizontal facing");
+        };
+    }
+
+    private List<BlockPos> annihilatorServicePorts() {
+        // Exact expansion of TileEntityMachineAnnihilator#getConPos.
+        return switch (facing()) {
+            case NORTH -> List.of(
+                    this.worldPosition.offset(0, 0, -5).immutable(),
+                    this.worldPosition.offset(2, 0, -3).immutable(),
+                    this.worldPosition.offset(-2, 0, -3).immutable());
+            case SOUTH -> List.of(
+                    this.worldPosition.offset(0, 0, 5).immutable(),
+                    this.worldPosition.offset(-2, 0, 3).immutable(),
+                    this.worldPosition.offset(2, 0, 3).immutable());
+            case WEST -> List.of(
+                    this.worldPosition.offset(-5, 0, 0).immutable(),
+                    this.worldPosition.offset(-3, 0, -2).immutable(),
+                    this.worldPosition.offset(-3, 0, 2).immutable());
+            case EAST -> List.of(
+                    this.worldPosition.offset(5, 0, 0).immutable(),
+                    this.worldPosition.offset(3, 0, 2).immutable(),
+                    this.worldPosition.offset(3, 0, -2).immutable());
+            case UP, DOWN -> throw new IllegalStateException("Annihilator requires a horizontal facing");
+        };
+    }
+
+    private List<BlockPos> pyroOvenServicePorts() {
+        // Exact expansion of TileEntityMachinePyroOven#getConPos, preserving its ordered five ports.
+        return switch (facing()) {
+            case NORTH -> List.of(
+                    this.worldPosition.offset(-3, 0, -2).immutable(), this.worldPosition.offset(-3, 0, -1).immutable(),
+                    this.worldPosition.offset(-3, 0, 0).immutable(), this.worldPosition.offset(-3, 0, 1).immutable(),
+                    this.worldPosition.offset(-3, 0, 2).immutable());
+            case SOUTH -> List.of(
+                    this.worldPosition.offset(3, 0, 2).immutable(), this.worldPosition.offset(3, 0, 1).immutable(),
+                    this.worldPosition.offset(3, 0, 0).immutable(), this.worldPosition.offset(3, 0, -1).immutable(),
+                    this.worldPosition.offset(3, 0, -2).immutable());
+            case WEST -> List.of(
+                    this.worldPosition.offset(-2, 0, 3).immutable(), this.worldPosition.offset(-1, 0, 3).immutable(),
+                    this.worldPosition.offset(0, 0, 3).immutable(), this.worldPosition.offset(1, 0, 3).immutable(),
+                    this.worldPosition.offset(2, 0, 3).immutable());
+            case EAST -> List.of(
+                    this.worldPosition.offset(2, 0, -3).immutable(), this.worldPosition.offset(1, 0, -3).immutable(),
+                    this.worldPosition.offset(0, 0, -3).immutable(), this.worldPosition.offset(-1, 0, -3).immutable(),
+                    this.worldPosition.offset(-2, 0, -3).immutable());
+            case UP, DOWN -> throw new IllegalStateException("Pyro oven requires a horizontal facing");
+        };
+    }
+
+    private List<BlockPos> turbofanServicePorts() {
+        // Exact expansion of TileEntityMachineTurbofan#getConPos.
+        return switch (facing()) {
+            case NORTH -> List.of(
+                    this.worldPosition.offset(0, 0, -2).immutable(), this.worldPosition.offset(-1, 0, -2).immutable(),
+                    this.worldPosition.offset(0, 0, 2).immutable(), this.worldPosition.offset(-1, 0, 2).immutable());
+            case SOUTH -> List.of(
+                    this.worldPosition.offset(0, 0, 2).immutable(), this.worldPosition.offset(1, 0, 2).immutable(),
+                    this.worldPosition.offset(0, 0, -2).immutable(), this.worldPosition.offset(1, 0, -2).immutable());
+            case WEST -> List.of(
+                    this.worldPosition.offset(-2, 0, 0).immutable(), this.worldPosition.offset(-2, 0, 1).immutable(),
+                    this.worldPosition.offset(2, 0, 0).immutable(), this.worldPosition.offset(2, 0, 1).immutable());
+            case EAST -> List.of(
+                    this.worldPosition.offset(2, 0, 0).immutable(), this.worldPosition.offset(2, 0, -1).immutable(),
+                    this.worldPosition.offset(-2, 0, 0).immutable(), this.worldPosition.offset(-2, 0, -1).immutable());
+            case UP, DOWN -> throw new IllegalStateException("Turbofan requires a horizontal facing");
+        };
+    }
+
+    private List<BlockPos> conveyorPressPowerPorts() {
+        return List.of(
+                this.worldPosition.north().immutable(),
+                this.worldPosition.east().immutable(),
+                this.worldPosition.south().immutable(),
+                this.worldPosition.west().immutable()
+        );
+    }
+
+    private List<BlockPos> greyRtgPowerPorts() {
+        return List.of(
+                this.worldPosition.north().immutable(),
+                this.worldPosition.east().immutable(),
+                this.worldPosition.south().immutable(),
+                this.worldPosition.west().immutable(),
+                this.worldPosition.below().immutable(),
+                this.worldPosition.above().immutable()
+        );
+    }
+
+    private List<BlockPos> autocrafterPowerPorts() {
+        return List.of(
+                this.worldPosition.north().immutable(),
+                this.worldPosition.east().immutable(),
+                this.worldPosition.south().immutable(),
+                this.worldPosition.west().immutable(),
+                this.worldPosition.below().immutable(),
+                this.worldPosition.above().immutable()
+        );
+    }
+
+    private List<BlockPos> teleporterPowerPorts() {
+        return List.of(
+                this.worldPosition.north().immutable(),
+                this.worldPosition.east().immutable(),
+                this.worldPosition.south().immutable(),
+                this.worldPosition.west().immutable(),
+                this.worldPosition.below().immutable(),
+                this.worldPosition.above().immutable()
+        );
+    }
+
+    private List<BlockPos> forcefieldPowerPorts() {
+        return List.of(
+                this.worldPosition.north().immutable(),
+                this.worldPosition.east().immutable(),
+                this.worldPosition.south().immutable(),
+                this.worldPosition.west().immutable(),
+                this.worldPosition.below().immutable()
+        );
+    }
+
+    private List<BlockPos> radarPowerPorts() {
+        return List.of(
+                this.worldPosition.north().immutable(),
+                this.worldPosition.east().immutable(),
+                this.worldPosition.south().immutable(),
+                this.worldPosition.west().immutable()
+        );
     }
 
     private List<BlockPos> servicePorts() {
-        Direction dir = facing();
-        Direction left = LegacyMachineGeometry.forgeRotateDown(dir);
         return switch (machineId()) {
-            // TileEntityMachineAnnihilator#getConPos.
-            case "machine_annihilator" -> {
-                Direction side = LegacyMachineGeometry.forgeRotateUp(dir);
-                yield List.of(
-                        this.worldPosition.relative(dir, 5).immutable(),
-                        offset(dir, 3, side, 2, 0),
-                        offset(dir, 3, side, -2, 0)
-                );
-            }
-            // TileEntityMachinePyroOven#getConPos.
-            case "machine_pyrooven" -> List.of(
-                    offset(dir, 2, left, 3, 0),
-                    offset(dir, 1, left, 3, 0),
-                    offset(dir, 0, left, 3, 0),
-                    offset(dir, -1, left, 3, 0),
-                    offset(dir, -2, left, 3, 0)
-            );
+            case "machine_annihilator" -> annihilatorServicePorts();
+            case "machine_pyrooven" -> pyroOvenServicePorts();
             // TileEntityMachinePrecAss#getConPos and TileEntityMachineRadiolysis#getConPos.
-            case "machine_precass" -> planarGridPorts(2);
-            case "machine_radiolysis", "machine_radar_large" -> cardinalPorts(2);
-            // TileEntityMachineTurbofan#getConPos.
-            case "machine_turbofan" -> {
-                Direction nozzle = LegacyMachineGeometry.forgeRotateUp(dir);
-                Direction side = LegacyMachineGeometry.forgeRotateDown(nozzle);
-                yield List.of(
-                        offset(nozzle, 0, side, 2, 0),
-                        offset(nozzle, -1, side, 2, 0),
-                        offset(nozzle, 0, side, -2, 0),
-                        offset(nozzle, -1, side, -2, 0)
-                );
-            }
-            // TileEntityMachineOrbus#getConPos.
-            case "machine_orbus" -> orbusPorts(dir);
+            case "machine_precass" -> precisionAssemblerServicePorts();
+            case "machine_radiolysis" -> radiolysisServicePorts();
+            case "machine_radar_large" -> largeRadarServicePorts();
+            case "machine_turbofan" -> turbofanServicePorts();
+            case "machine_orbus" -> orbusPorts();
             default -> List.of();
         };
     }
@@ -4032,71 +4649,124 @@ public final class LegacyMachineBlockEntity extends BlockEntity
      * created by MachineTurbofan#fillSpace, which those pipe positions touch.
      */
     private List<BlockPos> turbofanPortDummies() {
-        Direction forward = facing();
-        Direction lateral = LegacyMachineGeometry.forgeRotateUp(forward);
-        return List.of(
-                this.worldPosition.relative(forward).immutable(),
-                this.worldPosition.relative(forward).relative(lateral.getOpposite()).immutable(),
-                this.worldPosition.relative(forward.getOpposite()).immutable(),
-                this.worldPosition.relative(forward.getOpposite()).relative(lateral.getOpposite()).immutable()
-        );
+        // 1.7.10 MachineTurbofan#fillSpace creates these four extra dummies explicitly.
+        return switch (facing()) {
+            case NORTH -> List.of(
+                    this.worldPosition.offset(0, 0, -1).immutable(),
+                    this.worldPosition.offset(-1, 0, -1).immutable(),
+                    this.worldPosition.offset(0, 0, 1).immutable(),
+                    this.worldPosition.offset(-1, 0, 1).immutable());
+            case SOUTH -> List.of(
+                    this.worldPosition.offset(0, 0, 1).immutable(),
+                    this.worldPosition.offset(1, 0, 1).immutable(),
+                    this.worldPosition.offset(0, 0, -1).immutable(),
+                    this.worldPosition.offset(1, 0, -1).immutable());
+            case WEST -> List.of(
+                    this.worldPosition.offset(-1, 0, 0).immutable(),
+                    this.worldPosition.offset(-1, 0, 1).immutable(),
+                    this.worldPosition.offset(1, 0, 0).immutable(),
+                    this.worldPosition.offset(1, 0, 1).immutable());
+            case EAST -> List.of(
+                    this.worldPosition.offset(1, 0, 0).immutable(),
+                    this.worldPosition.offset(1, 0, -1).immutable(),
+                    this.worldPosition.offset(-1, 0, 0).immutable(),
+                    this.worldPosition.offset(-1, 0, -1).immutable());
+            case UP, DOWN -> throw new IllegalStateException("Turbofan requires a horizontal facing");
+        };
     }
 
     private List<BlockPos> fluidPorts() {
-        if (machineId().equals("machine_autosaw")) {
-            // TileEntityMachineAutosaw accepts fluid on every face except UP.
-            return corePorts(true, false);
-        }
-        List<BlockPos> ports = new ArrayList<>(servicePorts());
-        if (machineId().equals("machine_pyrooven")) {
-            // TileEntityMachinePyroOven sends smoke through this separate upper exhaust.
-            Direction side = LegacyMachineGeometry.forgeRotateDown(facing());
-            ports.add(offset(Direction.NORTH, 0, side, -1, 3));
-        }
-        return List.copyOf(ports);
+        return switch (machineId()) {
+            case "machine_autosaw" -> autosawFluidPorts();
+            case "machine_annihilator" -> annihilatorServicePorts();
+            case "machine_precass" -> precisionAssemblerServicePorts();
+            case "machine_pyrooven" -> pyroOvenFluidPorts();
+            case "machine_radiolysis" -> radiolysisServicePorts();
+            case "machine_radar_large" -> largeRadarServicePorts();
+            case "machine_turbofan" -> turbofanServicePorts();
+            case "machine_orbus" -> orbusPorts();
+            default -> List.of();
+        };
     }
 
-    private List<BlockPos> cardinalPorts(int distance) {
+    private List<BlockPos> autosawFluidPorts() {
+        // TileEntityMachineAutosaw accepts fluid on every face except UP.
         return List.of(
-                this.worldPosition.east(distance).immutable(),
-                this.worldPosition.west(distance).immutable(),
-                this.worldPosition.south(distance).immutable(),
-                this.worldPosition.north(distance).immutable()
+                this.worldPosition.north().immutable(),
+                this.worldPosition.east().immutable(),
+                this.worldPosition.south().immutable(),
+                this.worldPosition.west().immutable(),
+                this.worldPosition.below().immutable()
         );
     }
 
-    private List<BlockPos> planarGridPorts(int distance) {
-        List<BlockPos> ports = new ArrayList<>(12);
-        for (int z = -1; z <= 1; z++) {
-            ports.add(this.worldPosition.offset(distance, 0, z).immutable());
-            ports.add(this.worldPosition.offset(-distance, 0, z).immutable());
-        }
-        for (int x = -1; x <= 1; x++) {
-            ports.add(this.worldPosition.offset(x, 0, distance).immutable());
-            ports.add(this.worldPosition.offset(x, 0, -distance).immutable());
-        }
+    private List<BlockPos> precisionAssemblerServicePorts() {
+        return List.of(
+                this.worldPosition.offset(2, 0, -1).immutable(),
+                this.worldPosition.offset(-2, 0, -1).immutable(),
+                this.worldPosition.offset(2, 0, 0).immutable(),
+                this.worldPosition.offset(-2, 0, 0).immutable(),
+                this.worldPosition.offset(2, 0, 1).immutable(),
+                this.worldPosition.offset(-2, 0, 1).immutable(),
+                this.worldPosition.offset(-1, 0, 2).immutable(),
+                this.worldPosition.offset(-1, 0, -2).immutable(),
+                this.worldPosition.offset(0, 0, 2).immutable(),
+                this.worldPosition.offset(0, 0, -2).immutable(),
+                this.worldPosition.offset(1, 0, 2).immutable(),
+                this.worldPosition.offset(1, 0, -2).immutable()
+        );
+    }
+
+    private List<BlockPos> radiolysisServicePorts() {
+        return List.of(
+                this.worldPosition.east(2).immutable(),
+                this.worldPosition.west(2).immutable(),
+                this.worldPosition.south(2).immutable(),
+                this.worldPosition.north(2).immutable()
+        );
+    }
+
+    private List<BlockPos> largeRadarServicePorts() {
+        return List.of(
+                this.worldPosition.east(2).immutable(),
+                this.worldPosition.west(2).immutable(),
+                this.worldPosition.south(2).immutable(),
+                this.worldPosition.north(2).immutable()
+        );
+    }
+
+    private List<BlockPos> pyroOvenFluidPorts() {
+        List<BlockPos> ports = new ArrayList<>(pyroOvenServicePorts());
+        // TileEntityMachinePyroOven sends smoke through this separate upper exhaust.
+        ports.add(pyroOvenExhaustPos());
         return List.copyOf(ports);
     }
 
-    private List<BlockPos> orbusPorts(Direction direction) {
-        Direction forward = direction.getOpposite();
-        Direction side = LegacyMachineGeometry.forgeRotateDown(forward);
-        List<BlockPos> ports = new ArrayList<>(8);
-        for (int y : new int[]{-1, 5}) {
-            ports.add(this.worldPosition.offset(0, y, 0).immutable());
-            ports.add(offset(forward, 1, side, 0, y));
-            ports.add(offset(forward, 0, side, 1, y));
-            ports.add(offset(forward, 1, side, 1, y));
-        }
-        return List.copyOf(ports);
-    }
-
-    private BlockPos offset(Direction forward, int forwardDistance, Direction side, int sideDistance, int vertical) {
-        return this.worldPosition.offset(
-                forward.getStepX() * forwardDistance + side.getStepX() * sideDistance,
-                vertical,
-                forward.getStepZ() * forwardDistance + side.getStepZ() * sideDistance
-        ).immutable();
+    private List<BlockPos> orbusPorts() {
+        // 1.7.10 TileEntityMachineOrbus#getConPos: the same four-cell footprint at y - 1 and y + 5.
+        return switch (facing()) {
+            case NORTH -> List.of(
+                    this.worldPosition.offset(0, -1, 0).immutable(), this.worldPosition.offset(0, -1, 1).immutable(),
+                    this.worldPosition.offset(1, -1, 0).immutable(), this.worldPosition.offset(1, -1, 1).immutable(),
+                    this.worldPosition.offset(0, 5, 0).immutable(), this.worldPosition.offset(0, 5, 1).immutable(),
+                    this.worldPosition.offset(1, 5, 0).immutable(), this.worldPosition.offset(1, 5, 1).immutable());
+            case SOUTH -> List.of(
+                    this.worldPosition.offset(0, -1, 0).immutable(), this.worldPosition.offset(0, -1, -1).immutable(),
+                    this.worldPosition.offset(-1, -1, 0).immutable(), this.worldPosition.offset(-1, -1, -1).immutable(),
+                    this.worldPosition.offset(0, 5, 0).immutable(), this.worldPosition.offset(0, 5, -1).immutable(),
+                    this.worldPosition.offset(-1, 5, 0).immutable(), this.worldPosition.offset(-1, 5, -1).immutable());
+            case WEST -> List.of(
+                    this.worldPosition.offset(0, -1, 0).immutable(), this.worldPosition.offset(1, -1, 0).immutable(),
+                    this.worldPosition.offset(0, -1, -1).immutable(), this.worldPosition.offset(1, -1, -1).immutable(),
+                    this.worldPosition.offset(0, 5, 0).immutable(), this.worldPosition.offset(1, 5, 0).immutable(),
+                    this.worldPosition.offset(0, 5, -1).immutable(), this.worldPosition.offset(1, 5, -1).immutable());
+            case EAST -> List.of(
+                    this.worldPosition.offset(0, -1, 0).immutable(), this.worldPosition.offset(-1, -1, 0).immutable(),
+                    this.worldPosition.offset(0, -1, 1).immutable(), this.worldPosition.offset(-1, -1, 1).immutable(),
+                    this.worldPosition.offset(0, 5, 0).immutable(), this.worldPosition.offset(-1, 5, 0).immutable(),
+                    this.worldPosition.offset(0, 5, 1).immutable(), this.worldPosition.offset(-1, 5, 1).immutable());
+            case UP, DOWN -> throw new IllegalStateException("Orbus requires a horizontal facing");
+        };
     }
 
     @Override
@@ -4404,7 +5074,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -4719,6 +5389,37 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         }
         for (int slot = 0; slot < this.items.size(); slot++) {
             this.items.set(slot, ItemStack.parseOptional(registries, tag.getCompound("Slot" + slot)));
+        }
+        if (machineId().equals("machine_forcefield")) {
+            publishForcefieldRenderSnapshot(true);
+        }
+        if (machineId().equals("machine_precass")) {
+            clientPrecisionIconSnapshotDirty = true;
+            refreshClientPrecisionIconSnapshot();
+        }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        refreshClientRenderNeighborSnapshot();
+        if (machineId().equals("machine_precass")) {
+            clientPrecisionIconSnapshotDirty = true;
+            refreshClientPrecisionIconSnapshot();
+        }
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (previous != state) {
+            refreshClientRenderNeighborSnapshot();
+        }
+        if (precisionIconRenderSnapshot != null && previous != state
+                && machineId().equals("machine_precass")) {
+            clientPrecisionIconSnapshotDirty = true;
+            refreshClientPrecisionIconSnapshot();
         }
     }
 

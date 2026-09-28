@@ -76,6 +76,17 @@ public final class IcfControllerBlockEntity extends BlockEntity implements Power
         }
     }
 
+    /** Rewrites assembled ICF port positions after a Create contraption move. */
+    public void transformAssemblyLinks(java.util.function.UnaryOperator<BlockPos> transform) {
+        if (!assembled) {
+            return;
+        }
+        this.ports = this.ports.stream()
+                .map(pos -> transform.apply(pos).immutable())
+                .toList();
+        setChanged();
+    }
+
     public long power() {
         return Math.min(power, maxPower());
     }

@@ -3,6 +3,7 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.blockentity.LauncherBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -16,19 +17,42 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class CompactLauncherBlock extends LargeMachineBlock implements EntityBlock {
-    public static final Footprint FOOTPRINT = Footprint.centered(1, 1, 1);
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    public static final Footprint FOOTPRINT = Footprint.fromOffsets(
+            BlockPos.ZERO,
+            new BlockPos(1, 0, 1),
+            new BlockPos(1, 0, 0),
+            new BlockPos(1, 0, -1),
+            new BlockPos(0, 0, -1),
+            new BlockPos(-1, 0, -1),
+            new BlockPos(-1, 0, 0),
+            new BlockPos(-1, 0, 1),
+            new BlockPos(0, 0, 1)
+    );
     private static final VoxelShape CORE_SHAPE = Shapes.empty();
 
     public CompactLauncherBlock(Properties properties) {
-        super(properties, FOOTPRINT, CORE_SHAPE, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, CORE_SHAPE, CompactLauncherBlock::mapCompactLauncherOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-        return canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), state.getValue(FACING), FOOTPRINT, context)
+        return canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), state.getValue(FACING), FOOTPRINT,
+                context, CompactLauncherBlock::mapCompactLauncherOffset)
                 ? state
                 : null;
     }
@@ -36,20 +60,19 @@ public class CompactLauncherBlock extends LargeMachineBlock implements EntityBlo
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.LivingEntity placer, net.minecraft.world.item.ItemStack stack) {
         if (!level.isClientSide) {
-            placeDummies(level, pos);
-            pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), FOOTPRINT, placer);
+            Direction facing = state.getValue(FACING);
+            placeDummies(level, pos, facing);
+            pushEntitiesOutOfFootprint(level, pos, facing, FOOTPRINT, placer,
+                    CompactLauncherBlock::mapCompactLauncherOffset);
         }
     }
 
-    public static void placeDummies(Level level, BlockPos corePos) {
-        placeDummy(level, corePos.offset(1, 0, 1), corePos, HbmBlocks.DUMMY_PORT_COMPACT_LAUNCHER.get());
-        placeDummy(level, corePos.offset(1, 0, 0), corePos, HbmBlocks.DUMMY_PLATE_COMPACT_LAUNCHER.get());
-        placeDummy(level, corePos.offset(1, 0, -1), corePos, HbmBlocks.DUMMY_PORT_COMPACT_LAUNCHER.get());
-        placeDummy(level, corePos.offset(0, 0, -1), corePos, HbmBlocks.DUMMY_PLATE_COMPACT_LAUNCHER.get());
-        placeDummy(level, corePos.offset(-1, 0, -1), corePos, HbmBlocks.DUMMY_PORT_COMPACT_LAUNCHER.get());
-        placeDummy(level, corePos.offset(-1, 0, 0), corePos, HbmBlocks.DUMMY_PLATE_COMPACT_LAUNCHER.get());
-        placeDummy(level, corePos.offset(-1, 0, 1), corePos, HbmBlocks.DUMMY_PORT_COMPACT_LAUNCHER.get());
-        placeDummy(level, corePos.offset(0, 0, 1), corePos, HbmBlocks.DUMMY_PLATE_COMPACT_LAUNCHER.get());
+    public static void placeDummies(Level level, BlockPos corePos, Direction facing) {
+        for (LauncherPart part : launcherParts(facing)) {
+            placeDummy(level, corePos.offset(part.offset()), corePos,
+                    part.port() ? HbmBlocks.DUMMY_PORT_COMPACT_LAUNCHER.get()
+                            : HbmBlocks.DUMMY_PLATE_COMPACT_LAUNCHER.get());
+        }
     }
 
     public static void placeDummy(Level level, BlockPos pos, BlockPos corePos, Block block) {
@@ -61,25 +84,84 @@ public class CompactLauncherBlock extends LargeMachineBlock implements EntityBlo
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide) {
-            removeDummies(level, pos);
+        if (!movedByPiston && !state.is(newState.getBlock()) && !level.isClientSide) {
+            removeDummies(level, pos, state.getValue(FACING));
             if (level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher) launcher.dropContents(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    private static void removeDummies(Level level, BlockPos corePos) {
+    private static void removeDummies(Level level, BlockPos corePos, Direction facing) {
         if (level.getBlockEntity(corePos) == null) {
             return;
         }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
-            for (BlockPos offset : FOOTPRINT.offsets()) {
-                BlockPos pos = corePos.offset(offset);
-                if (!pos.equals(corePos) && level.getBlockState(pos).getBlock() instanceof LauncherDummyBlock) {
+            for (LauncherPart part : launcherParts(facing)) {
+                BlockPos pos = corePos.offset(part.offset());
+                if (level.getBlockState(pos).getBlock() instanceof LauncherDummyBlock) {
                     level.removeBlock(pos, false);
                 }
             }
         });
+    }
+
+    private static List<LauncherPart> launcherParts(Direction facing) {
+        return switch (facing) {
+            case NORTH -> List.of(
+                    new LauncherPart(new BlockPos(1, 0, 1), true),
+                    new LauncherPart(new BlockPos(1, 0, 0), false),
+                    new LauncherPart(new BlockPos(1, 0, -1), true),
+                    new LauncherPart(new BlockPos(0, 0, -1), false),
+                    new LauncherPart(new BlockPos(-1, 0, -1), true),
+                    new LauncherPart(new BlockPos(-1, 0, 0), false),
+                    new LauncherPart(new BlockPos(-1, 0, 1), true),
+                    new LauncherPart(new BlockPos(0, 0, 1), false)
+            );
+            case EAST -> List.of(
+                    new LauncherPart(new BlockPos(-1, 0, 1), true),
+                    new LauncherPart(new BlockPos(0, 0, 1), false),
+                    new LauncherPart(new BlockPos(1, 0, 1), true),
+                    new LauncherPart(new BlockPos(1, 0, 0), false),
+                    new LauncherPart(new BlockPos(1, 0, -1), true),
+                    new LauncherPart(new BlockPos(0, 0, -1), false),
+                    new LauncherPart(new BlockPos(-1, 0, -1), true),
+                    new LauncherPart(new BlockPos(-1, 0, 0), false)
+            );
+            case SOUTH -> List.of(
+                    new LauncherPart(new BlockPos(-1, 0, -1), true),
+                    new LauncherPart(new BlockPos(-1, 0, 0), false),
+                    new LauncherPart(new BlockPos(-1, 0, 1), true),
+                    new LauncherPart(new BlockPos(0, 0, 1), false),
+                    new LauncherPart(new BlockPos(1, 0, 1), true),
+                    new LauncherPart(new BlockPos(1, 0, 0), false),
+                    new LauncherPart(new BlockPos(1, 0, -1), true),
+                    new LauncherPart(new BlockPos(0, 0, -1), false)
+            );
+            case WEST -> List.of(
+                    new LauncherPart(new BlockPos(1, 0, -1), true),
+                    new LauncherPart(new BlockPos(0, 0, -1), false),
+                    new LauncherPart(new BlockPos(-1, 0, -1), true),
+                    new LauncherPart(new BlockPos(-1, 0, 0), false),
+                    new LauncherPart(new BlockPos(-1, 0, 1), true),
+                    new LauncherPart(new BlockPos(0, 0, 1), false),
+                    new LauncherPart(new BlockPos(1, 0, 1), true),
+                    new LauncherPart(new BlockPos(1, 0, 0), false)
+            );
+            case UP, DOWN -> throw new IllegalArgumentException("Compact launcher requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static BlockPos mapCompactLauncherOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Compact launcher requires a horizontal facing: " + facing);
+        };
+    }
+
+    private record LauncherPart(BlockPos offset, boolean port) {
     }
 
     @Nullable

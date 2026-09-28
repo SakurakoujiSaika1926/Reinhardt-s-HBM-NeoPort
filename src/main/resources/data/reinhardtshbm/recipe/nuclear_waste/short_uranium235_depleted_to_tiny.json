@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:nuclear_waste_short_depleted"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "waste_class": 0
+        }
+      }
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:nuclear_waste_short_depleted_tiny",
+    "count": 9,
+    "components": {
+      "minecraft:custom_data": {
+        "waste_class": 0
+      }
+    }
+  }
+}

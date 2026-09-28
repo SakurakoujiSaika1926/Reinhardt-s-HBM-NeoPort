@@ -10,7 +10,7 @@ public enum LegacyTurretType {
     FRIENDLY("turret_friendly", Layout.NT, "textures/gui/weapon/gui_turret_friendly.png", AmmoKind.R556, false, true,
             10_000L, 100L, 1.5D, 3.5D, 32D, 3D, 4.5D, 3D, 45D, 30D, 15D, 5, 10),
     FRITZ("turret_fritz", Layout.NT, "textures/gui/weapon/gui_turret_fritz.png", AmmoKind.FLUID, false, true,
-            10_000L, 100L, 1.5D, 2.25D, 48D, 2D, 4.5D, 3D, 45D, 30D, 15D, 1, 10),
+            10_000L, 100L, 1.5D, 2.25D, 48D, 2D, 4.5D, 3D, 45D, 30D, 15D, 2, 10),
     HOWARD("turret_howard", Layout.NT, "textures/gui/weapon/gui_turret_howard.png", AmmoKind.DGK, false, true,
             50_000L, 500L, 2.25D, 3.25D, 250D, 3D, 12D, 8D, 90D, 50D, 5D, 1, 10),
     HOWARD_DAMAGED("turret_howard_damaged", Layout.NT, null, AmmoKind.NONE, true, false,
@@ -121,11 +121,35 @@ public enum LegacyTurretType {
     }
 
     public int placeOffset() {
-        return layout == Layout.ARTILLERY ? 1 : 0;
+        return switch (this) {
+            case FRIENDLY -> 0;
+            case FRITZ -> 0;
+            case HOWARD -> 0;
+            case HOWARD_DAMAGED -> 0;
+            case MAXWELL -> 0;
+            case RICHARD -> 0;
+            case TAUON -> 0;
+            case ARTY -> 1;
+            case HIMARS -> 1;
+            case SENTRY -> 0;
+            case SENTRY_DAMAGED -> 0;
+        };
     }
 
     public boolean hasDummies() {
-        return layout != Layout.SENTRY;
+        return switch (this) {
+            case FRIENDLY -> true;
+            case FRITZ -> true;
+            case HOWARD -> true;
+            case HOWARD_DAMAGED -> true;
+            case MAXWELL -> true;
+            case RICHARD -> true;
+            case TAUON -> true;
+            case ARTY -> true;
+            case HIMARS -> true;
+            case SENTRY -> false;
+            case SENTRY_DAMAGED -> false;
+        };
     }
 
     public long maxPower() {

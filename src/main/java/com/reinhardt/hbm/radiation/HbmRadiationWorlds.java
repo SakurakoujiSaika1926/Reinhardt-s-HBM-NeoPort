@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.radiation;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -15,7 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -184,19 +187,29 @@ public final class HbmRadiationWorlds {
             tickCounter++;
             applyExposureResults();
             if (inFlight != null && inFlight.isDone()) {
-                SolvedSnapshot solved = inFlight.join();
-                Set<Long> currentChunks = loadedChunks(solved.updatedChunks(), loadedChunks);
-                boolean accepted = data.applySolvedSnapshot(solved.chunks(), solved.revision(), currentChunks);
-                if (accepted) {
-                    chunkRadiation = filterLoadedChunks(solved.chunks(), loadedChunks);
-                    publishedSnapshot = true;
-                    publishedDirty = false;
-                    publishedRevision = data.revision();
-                    solveAgain = false;
-                } else {
-                    solveAgain = true;
-                }
+                CompletableFuture<SolvedSnapshot> completed = inFlight;
                 inFlight = null;
+                try {
+                    SolvedSnapshot solved = completed.join();
+                    Set<Long> currentChunks = loadedChunks(solved.updatedChunks(), loadedChunks);
+                    boolean accepted = data.applySolvedSnapshot(solved.chunks(), solved.revision(), currentChunks);
+                    if (accepted) {
+                        chunkRadiation = filterLoadedChunks(solved.chunks(), loadedChunks);
+                        publishedSnapshot = true;
+                        publishedDirty = false;
+                        publishedRevision = data.revision();
+                        solveAgain = false;
+                    } else {
+                        solveAgain = true;
+                    }
+                } catch (CancellationException exception) {
+                    solveAgain = false;
+                    ReinhardtsHBM.LOGGER.warn("Asynchronous radiation diffusion solve was cancelled; keeping the last published snapshot");
+                } catch (CompletionException exception) {
+                    solveAgain = false;
+                    ReinhardtsHBM.LOGGER.error("Asynchronous radiation diffusion solve failed; keeping the last published snapshot",
+                            exception.getCause() == null ? exception : exception.getCause());
+                }
             }
             if (inFlight == null && (!initialized || solveAgain
                     || tickCounter % HbmRadiationConstants.RAD_SOLVE_INTERVAL_TICKS == 0)) {
@@ -274,8 +287,16 @@ public final class HbmRadiationWorlds {
             if (inFlightExposure == null || !inFlightExposure.isDone()) {
                 return;
             }
-            readyExposure.putAll(inFlightExposure.join());
+            CompletableFuture<Map<UUID, ExposureResult>> completed = inFlightExposure;
             inFlightExposure = null;
+            try {
+                readyExposure.putAll(completed.join());
+            } catch (CancellationException exception) {
+                ReinhardtsHBM.LOGGER.warn("Asynchronous radiation exposure solve was cancelled; requests will be sampled again");
+            } catch (CompletionException exception) {
+                ReinhardtsHBM.LOGGER.error("Asynchronous radiation exposure solve failed; requests will be sampled again",
+                        exception.getCause() == null ? exception : exception.getCause());
+            }
         }
 
         private void scheduleExposure(long gameTime) {

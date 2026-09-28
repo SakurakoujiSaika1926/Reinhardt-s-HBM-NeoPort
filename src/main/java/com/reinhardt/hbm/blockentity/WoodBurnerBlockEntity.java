@@ -15,6 +15,7 @@ import com.reinhardt.hbm.pollution.HbmPollutionType;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.util.FuelItemConsumption;
 import com.reinhardt.hbm.util.LegacyFurnaceFuels;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import net.minecraft.core.BlockPos;
@@ -316,7 +317,7 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -514,10 +515,9 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
             this.ashLevelMisc -= SOLID_ASH_THRESHOLD;
         }
 
-        Item consumedItem = fuel.getItem();
-        fuel.shrink(1);
+        ItemStack remainder = FuelItemConsumption.consumeOne(fuel);
         if (fuel.isEmpty()) {
-            this.items.set(FUEL_SLOT, consumedItem == Items.LAVA_BUCKET ? new ItemStack(Items.BUCKET) : ItemStack.EMPTY);
+            this.items.set(FUEL_SLOT, remainder);
         }
         this.burnTime = duration;
         this.burnTimeTotal = duration;

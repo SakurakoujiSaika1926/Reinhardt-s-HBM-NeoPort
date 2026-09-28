@@ -3,9 +3,9 @@
 Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1`.
 `Complete` means the block has a real 1.21.1 registration. Rendering, collision, ports, GUI, recipes, and runtime behavior remain separately testable migration contracts.
 
-- Legacy source: `E:\\MC\\Modsource\\HBM_1.7.10`
+- Legacy source: `E:\MC\Modsource\HBM_1.7.10新`
 - Declared 1.7.10 machine_ IDs: **131**
-- Explicitly deprecated in 1.7.10: **17**
+- Explicitly deprecated in 1.7.10: **16**
 
 | Legacy ID | Legacy block class | Legacy tile mapping | Status | Modern ID | BE registration |
 | --- | --- | --- | --- | --- | --- |
@@ -40,9 +40,9 @@ Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1
 | `machine_compressor_compact` | MachineCompressorCompact | TileEntityMachineCompressorCompact -> tileentity_compressor_compact | Complete registration | `machine_compressor_compact` | registered |
 | `machine_condenser` | MachineCondenser | - | Complete registration | `machine_condenser` | registered |
 | `machine_condenser_powered` | MachineCondenserPowered | - | Complete registration | `machine_condenser_powered` | registered |
-| `machine_controller` | MachineReactorControl | - | Complete registration | `machine_controller` | registered |
-| `machine_converter_he_rf` | BlockConverterHeRf | - | Complete registration | `machine_converter_he_rf` | registered |
-| `machine_converter_rf_he` | BlockConverterRfHe | - | Complete registration | `machine_converter_rf_he` | registered |
+| `machine_controller` | MachineReactorControl | - | Deprecated in 1.7.10 - not ported | `machine_controller` | - |
+| `machine_converter_he_rf` | BlockConverterHeRf | - | MISSING - non-deprecated 1.7.10 machine | `machine_converter_he_rf` | - |
+| `machine_converter_rf_he` | BlockConverterRfHe | - | MISSING - non-deprecated 1.7.10 machine | `machine_converter_rf_he` | - |
 | `machine_conveyor_press` | MachineConveyorPress | - | Complete registration | `machine_conveyor_press` | registered |
 | `machine_crucible` | MachineCrucible | - | Complete registration | `machine_crucible` | registered |
 | `machine_crystallizer` | MachineCrystallizer | TileEntityMachineCrystallizer -> tileentity_acidomatic | Complete registration | `machine_crystallizer` | registered |
@@ -65,7 +65,6 @@ Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1
 | `machine_excavator` | MachineExcavator | TileEntityMachineExcavator -> tileentity_ntm_excavator | Complete registration | `machine_excavator` | registered |
 | `machine_exposure_chamber` | MachineExposureChamber | TileEntityMachineExposureChamber -> tileentity_exposure_chamber | Complete registration | `machine_exposure_chamber` | registered |
 | `machine_fel` | MachineFEL | - | Complete registration | `machine_fel` | registered |
-| `machine_fensu` | MachineFENSU | TileEntityMachineFENSU -> tileentity_fensu | Deprecated in 1.7.10 - not ported | `machine_battery_redd` | - |
 | `machine_flare` | MachineGasFlare | TileEntityMachineGasFlare -> tileentity_gasflare | Complete registration | `machine_flare` | registered |
 | `machine_fluidtank` | MachineFluidTank | TileEntityMachineFluidTank -> tileentity_fluid_tank | Complete registration | `machine_fluidtank` | registered |
 | `machine_forcefield` | MachineForceField | - | Complete registration | `machine_forcefield` | registered |
@@ -89,12 +88,10 @@ Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1
 | `machine_lpw2` | MachineLPW2 | TileEntityMachineLPW2 -> tileentity_machine_lpw2 | Complete registration | `machine_lpw2` | registered |
 | `machine_microwave` | MachineMicrowave | - | Complete registration | `machine_microwave` | registered |
 | `machine_mining_laser` | MachineMiningLaser | TileEntityMachineMiningLaser -> tileentity_mining_laser | Complete registration | `machine_mining_laser` | registered |
-| `machine_minirtg` | MachineMiniRTG | TileEntityMachineMiniRTG -> tileentity_mini_rtg | Deprecated in 1.7.10 - not ported | `machine_minirtg` | - |
-| `machine_missile_assembly` | MachineMissileAssembly | TileEntityMachineMissileAssembly -> tileentity_missile_assembly | Complete 1.7.10 model, support-gantry renderer, menu, manual-only automation, construction, sound, recipe and resource migration | `machine_missile_assembly` | source-audited |
+| `machine_missile_assembly` | MachineMissileAssembly | TileEntityMachineMissileAssembly -> tileentity_missile_assembly | Complete registration | `machine_missile_assembly` | registered |
 | `machine_mixer` | MachineMixer | TileEntityMachineMixer -> tileentity_mixer | Complete registration | `machine_mixer` | registered |
 | `machine_orbus` | MachineOrbus | TileEntityMachineOrbus -> tileentity_orbus | Complete registration | `machine_orbus` | registered |
 | `machine_ore_slopper` | MachineOreSlopper | TileEntityMachineOreSlopper -> tileentity_ore_slopper | Complete registration | `machine_ore_slopper` | registered |
-| `machine_powerrtg` | MachineMiniRTG | TileEntityMachineMiniRTG -> tileentity_mini_rtg | Deprecated in 1.7.10 - not ported | `machine_powerrtg` | - |
 | `machine_precass` | MachinePrecAss | TileEntityMachinePrecAss -> tileentity_precass | Complete registration | `machine_precass` | registered |
 | `machine_press` | MachinePress | TileEntityMachinePress -> tileentity_press | Complete registration | `machine_press` | registered |
 | `machine_puf6_tank` | MachinePuF6Tank | TileEntityMachinePuF6Tank -> tileentity_puf6_tank | Complete registration | `machine_puf6_tank` | registered |
@@ -105,12 +102,14 @@ Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1
 | `machine_radar_large` | MachineRadarLarge | TileEntityMachineRadarLarge -> tileentity_radar_large | Complete registration | `machine_radar_large` | registered |
 | `machine_radgen` | MachineRadGen | TileEntityMachineRadGen -> tileentity_radgen | Complete registration | `machine_radgen` | registered |
 | `machine_radiolysis` | MachineRadiolysis | TileEntityMachineRadiolysis -> tileentity_radiolysis | Complete registration | `machine_radiolysis` | registered |
-| `machine_reactor_breeding` | MachineReactorBreeding | TileEntityMachineReactorBreeding -> tileentity_reactor | Complete registration | `machine_reactor_breeding` | registered |
+| `machine_reactor_breeding` | MachineReactorBreeding | TileEntityMachineReactorBreeding -> tileentity_reactor | Deprecated in 1.7.10 - not ported | `machine_reactor_breeding` | - |
 | `machine_refinery` | MachineRefinery | TileEntityMachineRefinery -> tileentity_refinery | Complete registration | `machine_refinery` | registered |
+| `machine_rockmill` | MachineRockMill | TileEntityMachineRockMill -> tileentity_rock_mill | Complete registration | `machine_rockmill` | registered |
 | `machine_rotary_furnace` | MachineRotaryFurnace | TileEntityMachineRotaryFurnace -> tileentity_rotary_furnace | Complete registration | `machine_rotary_furnace` | registered |
+| `machine_rtg` | MachineRTG | TileEntityMachineRTG -> tileentity_machine_rtg | MISSING - non-deprecated 1.7.10 machine | `machine_rtg` | - |
 | `machine_rtg_furnace_off` | MachineRtgFurnace | - | Deprecated in 1.7.10 - not ported | `machine_rtg_furnace_off` | - |
 | `machine_rtg_furnace_on` | MachineRtgFurnace | - | Deprecated in 1.7.10 - not ported | `machine_rtg_furnace_on` | - |
-| `machine_rtg_grey` | MachineRTG | TileEntityMachineRTG -> tileentity_machine_rtg | Complete registration | `machine_rtg_grey` | registered |
+| `machine_satlink` | MachineSatLink | TileEntityMachineSatLink -> tileentity_satlink | Complete registration | `machine_satlink` | registered |
 | `machine_satlinker` | MachineSatLinker | TileEntityMachineSatLinker -> tileentity_satlinker | Complete registration | `machine_satlinker` | registered |
 | `machine_sawmill` | MachineSawmill | - | Complete registration | `machine_sawmill` | registered |
 | `machine_schrabidium_battery` | MachineBattery | TileEntityMachineBattery -> tileentity_battery | Deprecated in 1.7.10 - not ported | `machine_schrabidium_battery` | - |
@@ -126,22 +125,24 @@ Generated from the 1.7.10 source declarations by `tools/audit-machine-prefix.ps1
 | `machine_stirling_steel` | MachineStirling | - | Complete registration | `machine_stirling_steel` | registered |
 | `machine_storage_drum` | StorageDrum | TileEntityStorageDrum -> tileentity_waste_storage_drum | Complete registration | `machine_storage_drum` | registered |
 | `machine_strand_caster` | MachineStrandCaster | TileEntityMachineStrandCaster -> tileentity_strand_caster | Complete registration | `machine_strand_caster` | registered |
+| `machine_supercomputer` | MachineSuperComputer | TileEntityMachineSuperComputer -> tileentity_supercomputer | Complete registration | `machine_supercomputer` | registered |
+| `machine_tape_drive` | MachineTapeDrive | TileEntityMachineTapeDrive -> tileentity_tape_drive | Complete registration | `machine_tape_drive` | registered |
 | `machine_teleporter` | MachineTeleporter | TileEntityMachineTeleporter -> tileentity_teleblock | Complete registration | `machine_teleporter` | registered |
 | `machine_thresher` | MachineThresher | TileEntityMachineThresher -> tileentity_thresher | Complete registration | `machine_thresher` | registered |
 | `machine_tower_large` | MachineTowerLarge | - | Complete registration | `machine_tower_large` | registered |
 | `machine_tower_small` | MachineTowerSmall | - | Complete registration | `machine_tower_small` | registered |
 | `machine_transformer` | MachineTransformer | - | Complete registration | `machine_transformer` | not required or custom |
-| `machine_turbine` | MachineTurbine | TileEntityMachineTurbine -> tileentity_turbine | Complete registration | `machine_turbine` | registered |
-| `machine_turbinegas` | MachineTurbineGas | TileEntityMachineTurbineGas -> tileentity_machine_gasturbine | Complete registration (renamed) | `machine_turbine_gas` | registered |
+| `machine_turbinegas` | MachineTurbineGas | TileEntityMachineTurbineGas -> tileentity_machine_gasturbine | MISSING - non-deprecated 1.7.10 machine | `machine_turbine_gas` | - |
 | `machine_turbofan` | MachineTurbofan | TileEntityMachineTurbofan -> tileentity_machine_turbofan | Complete registration | `machine_turbofan` | registered |
 | `machine_uf6_tank` | MachineUF6Tank | TileEntityMachineUF6Tank -> tileentity_uf6_tank | Complete registration | `machine_uf6_tank` | registered |
 | `machine_vacuum_distill` | MachineVacuumDistill | TileEntityMachineVacuumDistill -> tileentity_vacuuum_distill | Complete registration | `machine_vacuum_distill` | registered |
 | `machine_waste_drum` | WasteDrum | TileEntityWasteDrum -> tileentity_waste_drum | Complete registration | `machine_waste_drum` | registered |
-| `machine_weapon_table` | BlockWeaponTable | - | retired: HBM combat firearms removed in favour of TACZ | - | not registered |
+| `machine_weapon_table` | BlockWeaponTable | - | MISSING - non-deprecated 1.7.10 machine | `machine_weapon_table` | - |
 | `machine_well` | MachineOilWell | TileEntityMachineOilWell -> tileentity_derrick | Complete registration | `machine_well` | registered |
 | `machine_wood_burner` | MachineWoodBurner | TileEntityMachineWoodBurner -> tileentity_wood_burner | Complete registration | `machine_wood_burner` | registered |
 
 ## Result
 
-- Active legacy machines registered in 1.21.1: **113**
-- Active legacy machines still missing: **0**
+- Active legacy machines registered in 1.21.1: **109**
+- Active legacy machines still missing: **5**
+- Missing IDs: `machine_converter_he_rf`, `machine_converter_rf_he`, `machine_rtg`, `machine_turbinegas`, `machine_weapon_table`

@@ -6,7 +6,6 @@ import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,12 +29,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExcavatorBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final int OFFSET = 3;
     public static final int HEIGHT_OFFSET = 3;
     public static final Footprint FOOTPRINT = footprint();
 
     public ExcavatorBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, ExcavatorBlock::mapExcavatorOffset);
     }
 
     @Nullable
@@ -186,7 +195,24 @@ public class ExcavatorBlock extends LargeMachineBlock implements EntityBlock {
     }
 
     private static List<BlockPos> oldFootprintPositions(BlockPos corePos, Direction facing) {
-        return LegacyMachineGeometry.positionsForLegacyFootprint(corePos, facing, FOOTPRINT);
+        ArrayList<BlockPos> positions = new ArrayList<>(FOOTPRINT.offsets().size());
+        for (BlockPos offset : FOOTPRINT.offsets()) {
+            positions.add(corePos.offset(mapExcavatorOffset(facing, offset)).immutable());
+        }
+        return List.copyOf(positions);
+    }
+
+    private static BlockPos mapExcavatorOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("Excavator requires a horizontal facing: " + facing);
+        };
     }
 }
 

@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
+import com.reinhardt.hbm.blockentity.ClientRenderNeighborSnapshot;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
@@ -41,14 +42,24 @@ public class FluidDuctBlock extends Block implements EntityBlock {
     public static final BooleanProperty DOWN = BooleanProperty.create("down");
     public static final BooleanProperty OPEN = BooleanProperty.create("open");
 
-    private static final VoxelShape CENTER = Shapes.box(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D);
-    private static final VoxelShape NORTH_ARM = Shapes.box(0.3125D, 0.3125D, 0.0D, 0.6875D, 0.6875D, 0.3125D);
-    private static final VoxelShape SOUTH_ARM = Shapes.box(0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D, 1.0D);
-    private static final VoxelShape WEST_ARM = Shapes.box(0.0D, 0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D);
-    private static final VoxelShape EAST_ARM = Shapes.box(0.6875D, 0.3125D, 0.3125D, 1.0D, 0.6875D, 0.6875D);
-    private static final VoxelShape UP_ARM = Shapes.box(0.3125D, 0.6875D, 0.3125D, 0.6875D, 1.0D, 0.6875D);
-    private static final VoxelShape DOWN_ARM = Shapes.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.3125D, 0.6875D);
-    private static final VoxelShape ISOLATED_COLLISION = Shapes.or(NORTH_ARM, SOUTH_ARM, WEST_ARM, EAST_ARM, UP_ARM, DOWN_ARM);
+    private static final VoxelShape MK2_CENTER = Shapes.box(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D);
+    private static final VoxelShape MK2_NORTH_ARM = Shapes.box(0.3125D, 0.3125D, 0.0D, 0.6875D, 0.6875D, 0.3125D);
+    private static final VoxelShape MK2_SOUTH_ARM = Shapes.box(0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D, 1.0D);
+    private static final VoxelShape MK2_WEST_ARM = Shapes.box(0.0D, 0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D);
+    private static final VoxelShape MK2_EAST_ARM = Shapes.box(0.6875D, 0.3125D, 0.3125D, 1.0D, 0.6875D, 0.6875D);
+    private static final VoxelShape MK2_UP_ARM = Shapes.box(0.3125D, 0.6875D, 0.3125D, 0.6875D, 1.0D, 0.6875D);
+    private static final VoxelShape MK2_DOWN_ARM = Shapes.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.3125D, 0.6875D);
+    private static final VoxelShape MK2_ISOLATED_COLLISION = Shapes.or(MK2_NORTH_ARM, MK2_SOUTH_ARM, MK2_WEST_ARM, MK2_EAST_ARM, MK2_UP_ARM, MK2_DOWN_ARM);
+
+    private static final VoxelShape PAINTABLE_CENTER = Shapes.box(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D);
+    private static final VoxelShape PAINTABLE_NORTH_ARM = Shapes.box(0.3125D, 0.3125D, 0.0D, 0.6875D, 0.6875D, 0.3125D);
+    private static final VoxelShape PAINTABLE_SOUTH_ARM = Shapes.box(0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D, 1.0D);
+    private static final VoxelShape PAINTABLE_WEST_ARM = Shapes.box(0.0D, 0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D);
+    private static final VoxelShape PAINTABLE_EAST_ARM = Shapes.box(0.6875D, 0.3125D, 0.3125D, 1.0D, 0.6875D, 0.6875D);
+    private static final VoxelShape PAINTABLE_UP_ARM = Shapes.box(0.3125D, 0.6875D, 0.3125D, 0.6875D, 1.0D, 0.6875D);
+    private static final VoxelShape PAINTABLE_DOWN_ARM = Shapes.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 0.3125D, 0.6875D);
+    private static final VoxelShape PAINTABLE_ISOLATED_COLLISION = Shapes.or(PAINTABLE_NORTH_ARM, PAINTABLE_SOUTH_ARM, PAINTABLE_WEST_ARM, PAINTABLE_EAST_ARM, PAINTABLE_UP_ARM, PAINTABLE_DOWN_ARM);
+
     private static final VoxelShape BOX_CENTER = Shapes.box(0.0625D, 0.0625D, 0.0625D, 0.9375D, 0.9375D, 0.9375D);
     private static final VoxelShape BOX_CORE = Shapes.box(0.125D, 0.125D, 0.125D, 0.875D, 0.875D, 0.875D);
     private static final VoxelShape BOX_NORTH_ARM = Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 0.125D);
@@ -57,7 +68,15 @@ public class FluidDuctBlock extends Block implements EntityBlock {
     private static final VoxelShape BOX_EAST_ARM = Shapes.box(0.875D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
     private static final VoxelShape BOX_UP_ARM = Shapes.box(0.125D, 0.875D, 0.125D, 0.875D, 1.0D, 0.875D);
     private static final VoxelShape BOX_DOWN_ARM = Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 0.125D, 0.875D);
-    private static final VoxelShape BOX_ISOLATED = BOX_CENTER;
+
+    private static final VoxelShape EXHAUST_CENTER = Shapes.box(0.0625D, 0.0625D, 0.0625D, 0.9375D, 0.9375D, 0.9375D);
+    private static final VoxelShape EXHAUST_CORE = Shapes.box(0.125D, 0.125D, 0.125D, 0.875D, 0.875D, 0.875D);
+    private static final VoxelShape EXHAUST_NORTH_ARM = Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 0.125D);
+    private static final VoxelShape EXHAUST_SOUTH_ARM = Shapes.box(0.125D, 0.125D, 0.875D, 0.875D, 0.875D, 1.0D);
+    private static final VoxelShape EXHAUST_WEST_ARM = Shapes.box(0.0D, 0.125D, 0.125D, 0.125D, 0.875D, 0.875D);
+    private static final VoxelShape EXHAUST_EAST_ARM = Shapes.box(0.875D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
+    private static final VoxelShape EXHAUST_UP_ARM = Shapes.box(0.125D, 0.875D, 0.125D, 0.875D, 1.0D, 0.875D);
+    private static final VoxelShape EXHAUST_DOWN_ARM = Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 0.125D, 0.875D);
 
     private final Kind kind;
 
@@ -85,17 +104,28 @@ public class FluidDuctBlock extends Block implements EntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (this.kind.fullBlockShape()) {
-            return Shapes.block();
-        }
-        if (this.kind == Kind.BOX || this.kind == Kind.EXHAUST) {
-            return getBoxDuctSelectionShape(state);
-        }
-        return getStandardSelectionShape(state);
+        return switch (this.kind) {
+            case MK2 -> mk2SelectionShape(state);
+            case BOX -> boxSelectionShape(state);
+            case EXHAUST -> exhaustSelectionShape(state);
+            case GAUGE -> gaugeSelectionShape(state);
+            case PAINTABLE -> paintableSelectionShape(state);
+            case PAINTABLE_EXHAUST -> paintableExhaustSelectionShape(state);
+            case SOLID -> solidSelectionShape(state);
+            case SOLID_SEALED -> solidSealedSelectionShape(state);
+            case VALVE -> valveSelectionShape(state);
+            case SWITCH -> switchSelectionShape(state);
+            case COUNTER_VALVE -> counterValveSelectionShape(state);
+        };
     }
 
-    private static VoxelShape getStandardSelectionShape(BlockState state) {
-        int mask = connectionMask(state);
+    private static VoxelShape mk2SelectionShape(BlockState state) {
+        int mask = (state.getValue(EAST) ? 32 : 0)
+                | (state.getValue(WEST) ? 16 : 0)
+                | (state.getValue(UP) ? 8 : 0)
+                | (state.getValue(DOWN) ? 4 : 0)
+                | (state.getValue(SOUTH) ? 2 : 0)
+                | (state.getValue(NORTH) ? 1 : 0);
         if (mask == 0) {
             return Shapes.block();
         }
@@ -118,37 +148,152 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         );
     }
 
-    private static VoxelShape getStandardCollisionShape(BlockState state) {
-        VoxelShape shape = CENTER;
+    private static VoxelShape paintableSelectionShape(BlockState state) {
+        int mask = (state.getValue(EAST) ? 32 : 0)
+                | (state.getValue(WEST) ? 16 : 0)
+                | (state.getValue(UP) ? 8 : 0)
+                | (state.getValue(DOWN) ? 4 : 0)
+                | (state.getValue(SOUTH) ? 2 : 0)
+                | (state.getValue(NORTH) ? 1 : 0);
+        if (mask == 0) {
+            return Shapes.block();
+        }
+        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
+            return Shapes.box(0.0D, 0.3125D, 0.3125D, 1.0D, 0.6875D, 0.6875D);
+        }
+        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) {
+            return Shapes.box(0.3125D, 0.0D, 0.3125D, 0.6875D, 1.0D, 0.6875D);
+        }
+        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) {
+            return Shapes.box(0.3125D, 0.3125D, 0.0D, 0.6875D, 0.6875D, 1.0D);
+        }
+        return Shapes.box(
+                state.getValue(WEST) ? 0.0D : 0.3125D,
+                state.getValue(DOWN) ? 0.0D : 0.3125D,
+                state.getValue(NORTH) ? 0.0D : 0.3125D,
+                state.getValue(EAST) ? 1.0D : 0.6875D,
+                state.getValue(UP) ? 1.0D : 0.6875D,
+                state.getValue(SOUTH) ? 1.0D : 0.6875D
+        );
+    }
+
+    private static VoxelShape boxSelectionShape(BlockState state) {
+        int mask = (state.getValue(EAST) ? 32 : 0)
+                | (state.getValue(WEST) ? 16 : 0)
+                | (state.getValue(UP) ? 8 : 0)
+                | (state.getValue(DOWN) ? 4 : 0)
+                | (state.getValue(SOUTH) ? 2 : 0)
+                | (state.getValue(NORTH) ? 1 : 0);
+        int count = Integer.bitCount(mask);
+        if (mask == 0) return BOX_CENTER;
+        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) return Shapes.box(0.0D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
+        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) return Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 1.0D, 0.875D);
+        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) return Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 1.0D);
+        double lower = count == 2 ? 0.125D : 0.0625D;
+        double upper = count == 2 ? 0.875D : 0.9375D;
+        return Shapes.box(
+                state.getValue(WEST) ? 0.0D : lower,
+                state.getValue(DOWN) ? 0.0D : lower,
+                state.getValue(NORTH) ? 0.0D : lower,
+                state.getValue(EAST) ? 1.0D : upper,
+                state.getValue(UP) ? 1.0D : upper,
+                state.getValue(SOUTH) ? 1.0D : upper
+        );
+    }
+
+    private static VoxelShape exhaustSelectionShape(BlockState state) {
+        int mask = (state.getValue(EAST) ? 32 : 0)
+                | (state.getValue(WEST) ? 16 : 0)
+                | (state.getValue(UP) ? 8 : 0)
+                | (state.getValue(DOWN) ? 4 : 0)
+                | (state.getValue(SOUTH) ? 2 : 0)
+                | (state.getValue(NORTH) ? 1 : 0);
+        int count = Integer.bitCount(mask);
+        if (mask == 0) return EXHAUST_CENTER;
+        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) return Shapes.box(0.0D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
+        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) return Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 1.0D, 0.875D);
+        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) return Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 1.0D);
+        double lower = count == 2 ? 0.125D : 0.0625D;
+        double upper = count == 2 ? 0.875D : 0.9375D;
+        return Shapes.box(
+                state.getValue(WEST) ? 0.0D : lower,
+                state.getValue(DOWN) ? 0.0D : lower,
+                state.getValue(NORTH) ? 0.0D : lower,
+                state.getValue(EAST) ? 1.0D : upper,
+                state.getValue(UP) ? 1.0D : upper,
+                state.getValue(SOUTH) ? 1.0D : upper
+        );
+    }
+
+    private static VoxelShape gaugeSelectionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape paintableExhaustSelectionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape solidSelectionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape solidSealedSelectionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape valveSelectionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape switchSelectionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape counterValveSelectionShape(BlockState state) { return Shapes.block(); }
+
+    private static VoxelShape mk2CollisionShape(BlockState state) {
+        VoxelShape shape = MK2_CENTER;
         boolean connected = false;
         if (state.getValue(NORTH)) {
-            shape = Shapes.or(shape, NORTH_ARM);
+            shape = Shapes.or(shape, MK2_NORTH_ARM);
             connected = true;
         }
         if (state.getValue(SOUTH)) {
-            shape = Shapes.or(shape, SOUTH_ARM);
+            shape = Shapes.or(shape, MK2_SOUTH_ARM);
             connected = true;
         }
         if (state.getValue(WEST)) {
-            shape = Shapes.or(shape, WEST_ARM);
+            shape = Shapes.or(shape, MK2_WEST_ARM);
             connected = true;
         }
         if (state.getValue(EAST)) {
-            shape = Shapes.or(shape, EAST_ARM);
+            shape = Shapes.or(shape, MK2_EAST_ARM);
             connected = true;
         }
         if (state.getValue(UP)) {
-            shape = Shapes.or(shape, UP_ARM);
+            shape = Shapes.or(shape, MK2_UP_ARM);
             connected = true;
         }
         if (state.getValue(DOWN)) {
-            shape = Shapes.or(shape, DOWN_ARM);
+            shape = Shapes.or(shape, MK2_DOWN_ARM);
             connected = true;
         }
-        return connected ? shape : ISOLATED_COLLISION;
+        return connected ? shape : MK2_ISOLATED_COLLISION;
     }
 
-    private static VoxelShape getBoxDuctCollisionShape(BlockState state) {
+    private static VoxelShape paintableCollisionShape(BlockState state) {
+        VoxelShape shape = PAINTABLE_CENTER;
+        boolean connected = false;
+        if (state.getValue(NORTH)) {
+            shape = Shapes.or(shape, PAINTABLE_NORTH_ARM);
+            connected = true;
+        }
+        if (state.getValue(SOUTH)) {
+            shape = Shapes.or(shape, PAINTABLE_SOUTH_ARM);
+            connected = true;
+        }
+        if (state.getValue(WEST)) {
+            shape = Shapes.or(shape, PAINTABLE_WEST_ARM);
+            connected = true;
+        }
+        if (state.getValue(EAST)) {
+            shape = Shapes.or(shape, PAINTABLE_EAST_ARM);
+            connected = true;
+        }
+        if (state.getValue(UP)) {
+            shape = Shapes.or(shape, PAINTABLE_UP_ARM);
+            connected = true;
+        }
+        if (state.getValue(DOWN)) {
+            shape = Shapes.or(shape, PAINTABLE_DOWN_ARM);
+            connected = true;
+        }
+        return connected ? shape : PAINTABLE_ISOLATED_COLLISION;
+    }
+
+    private static VoxelShape boxCollisionShape(BlockState state) {
         boolean north = state.getValue(NORTH);
         boolean south = state.getValue(SOUTH);
         boolean east = state.getValue(EAST);
@@ -159,7 +304,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         int count = (east ? 1 : 0) + (west ? 1 : 0) + (up ? 1 : 0) + (down ? 1 : 0) + (south ? 1 : 0) + (north ? 1 : 0);
 
         if (mask == 0) {
-            return BOX_ISOLATED;
+            return BOX_CENTER;
         }
         if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
             return Shapes.box(0.0D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
@@ -193,51 +338,55 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         return shape;
     }
 
-    private static VoxelShape getBoxDuctSelectionShape(BlockState state) {
-        int mask = connectionMask(state);
-        int count = Integer.bitCount(mask);
-        if (mask == 0) {
-            return BOX_CENTER;
-        }
-        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) {
-            return Shapes.box(0.0D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
-        }
-        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) {
-            return Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 1.0D, 0.875D);
-        }
-        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) {
-            return Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 1.0D);
-        }
-        double lower = count == 2 ? 0.125D : 0.0625D;
-        double upper = count == 2 ? 0.875D : 0.9375D;
-        return Shapes.box(
-                state.getValue(WEST) ? 0.0D : lower,
-                state.getValue(DOWN) ? 0.0D : lower,
-                state.getValue(NORTH) ? 0.0D : lower,
-                state.getValue(EAST) ? 1.0D : upper,
-                state.getValue(UP) ? 1.0D : upper,
-                state.getValue(SOUTH) ? 1.0D : upper
-        );
-    }
+    private static VoxelShape exhaustCollisionShape(BlockState state) {
+        boolean north = state.getValue(NORTH);
+        boolean south = state.getValue(SOUTH);
+        boolean east = state.getValue(EAST);
+        boolean west = state.getValue(WEST);
+        boolean up = state.getValue(UP);
+        boolean down = state.getValue(DOWN);
+        int mask = (east ? 32 : 0) | (west ? 16 : 0) | (up ? 8 : 0) | (down ? 4 : 0) | (south ? 2 : 0) | (north ? 1 : 0);
+        int count = (east ? 1 : 0) + (west ? 1 : 0) + (up ? 1 : 0) + (down ? 1 : 0) + (south ? 1 : 0) + (north ? 1 : 0);
 
-    private static int connectionMask(BlockState state) {
-        return (state.getValue(EAST) ? 32 : 0)
-                | (state.getValue(WEST) ? 16 : 0)
-                | (state.getValue(UP) ? 8 : 0)
-                | (state.getValue(DOWN) ? 4 : 0)
-                | (state.getValue(SOUTH) ? 2 : 0)
-                | (state.getValue(NORTH) ? 1 : 0);
+        if (mask == 0) return EXHAUST_CENTER;
+        if (mask == 0b100000 || mask == 0b010000 || mask == 0b110000) return Shapes.box(0.0D, 0.125D, 0.125D, 1.0D, 0.875D, 0.875D);
+        if (mask == 0b001000 || mask == 0b000100 || mask == 0b001100) return Shapes.box(0.125D, 0.0D, 0.125D, 0.875D, 1.0D, 0.875D);
+        if (mask == 0b000010 || mask == 0b000001 || mask == 0b000011) return Shapes.box(0.125D, 0.125D, 0.0D, 0.875D, 0.875D, 1.0D);
+
+        VoxelShape shape = count == 2 ? EXHAUST_CORE : EXHAUST_CENTER;
+        if (north) shape = Shapes.or(shape, EXHAUST_NORTH_ARM);
+        if (south) shape = Shapes.or(shape, EXHAUST_SOUTH_ARM);
+        if (west) shape = Shapes.or(shape, EXHAUST_WEST_ARM);
+        if (east) shape = Shapes.or(shape, EXHAUST_EAST_ARM);
+        if (up) shape = Shapes.or(shape, EXHAUST_UP_ARM);
+        if (down) shape = Shapes.or(shape, EXHAUST_DOWN_ARM);
+        return shape;
     }
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (this.kind.fullBlockShape()) {
-            return Shapes.block();
-        }
-        return this.kind == Kind.BOX || this.kind == Kind.EXHAUST
-                ? getBoxDuctCollisionShape(state)
-                : getStandardCollisionShape(state);
+        return switch (this.kind) {
+            case MK2 -> mk2CollisionShape(state);
+            case BOX -> boxCollisionShape(state);
+            case EXHAUST -> exhaustCollisionShape(state);
+            case GAUGE -> gaugeCollisionShape(state);
+            case PAINTABLE -> paintableCollisionShape(state);
+            case PAINTABLE_EXHAUST -> paintableExhaustCollisionShape(state);
+            case SOLID -> solidCollisionShape(state);
+            case SOLID_SEALED -> solidSealedCollisionShape(state);
+            case VALVE -> valveCollisionShape(state);
+            case SWITCH -> switchCollisionShape(state);
+            case COUNTER_VALVE -> counterValveCollisionShape(state);
+        };
     }
+
+    private static VoxelShape gaugeCollisionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape paintableExhaustCollisionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape solidCollisionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape solidSealedCollisionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape valveCollisionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape switchCollisionShape(BlockState state) { return Shapes.block(); }
+    private static VoxelShape counterValveCollisionShape(BlockState state) { return Shapes.block(); }
 
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
@@ -254,6 +403,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         if (!state.is(newState.getBlock())) {
             level.invalidateCapabilities(pos);
             refreshNeighborPipes(level, pos);
+            refreshAdjacentRenderSnapshots(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
@@ -290,21 +440,227 @@ public class FluidDuctBlock extends Block implements EntityBlock {
     }
 
     public void refreshConnections(LevelAccessor level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        if (!(state.getBlock() instanceof FluidDuctBlock)) {
+        // Connection properties are persisted and synchronized by the server.
+        // Recomputing them on a client or while a chunk is still assembling can
+        // observe a dummy before its remote machine core exists and permanently
+        // turn a working endpoint into a visually disconnected pipe.
+        if (level instanceof Level actualLevel && actualLevel.isClientSide) {
             return;
         }
+        switch (this.kind) {
+            case MK2 -> refreshMk2Connections(level, pos);
+            case BOX -> refreshBoxConnections(level, pos);
+            case EXHAUST -> refreshExhaustConnections(level, pos);
+            case GAUGE -> refreshGaugeConnections(level, pos);
+            case PAINTABLE -> refreshPaintableConnections(level, pos);
+            case PAINTABLE_EXHAUST -> refreshPaintableExhaustConnections(level, pos);
+            case SOLID -> refreshSolidConnections(level, pos);
+            case SOLID_SEALED -> refreshSolidSealedConnections(level, pos);
+            case VALVE -> refreshValveConnections(level, pos);
+            case SWITCH -> refreshSwitchConnections(level, pos);
+            case COUNTER_VALVE -> refreshCounterValveConnections(level, pos);
+        }
+    }
 
-        HbmFluidDefinition type = connectionType(level, pos, this.kind);
+    private static void refreshMk2Connections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
         BlockState next = state
-                .setValue(NORTH, canConnect(level, pos, Direction.NORTH, type))
-                .setValue(SOUTH, canConnect(level, pos, Direction.SOUTH, type))
-                .setValue(EAST, canConnect(level, pos, Direction.EAST, type))
-                .setValue(WEST, canConnect(level, pos, Direction.WEST, type))
-                .setValue(UP, canConnect(level, pos, Direction.UP, type))
-                .setValue(DOWN, canConnect(level, pos, Direction.DOWN, type));
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
         if (next != state) {
             level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshBoxConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshExhaustConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        HbmFluidDefinition type = FluidPipeBlockEntity.defaultLegacyExhaustFluid();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshGaugeConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshPaintableConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshPaintableExhaustConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        HbmFluidDefinition type = FluidPipeBlockEntity.defaultLegacyExhaustFluid();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshSolidConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshSolidSealedConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshValveConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshSwitchConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshCounterValveConnections(LevelAccessor level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof FluidDuctBlock)) return;
+        BlockEntity entity = level.getBlockEntity(pos);
+        HbmFluidDefinition type = entity instanceof FluidPipeBlockEntity pipe ? pipe.type() : HbmFluids.none();
+        BlockState next = state
+                .setValue(NORTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.NORTH, type))
+                .setValue(SOUTH, HbmFluidNetworks.canPipeConnect(level, pos, Direction.SOUTH, type))
+                .setValue(EAST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.EAST, type))
+                .setValue(WEST, HbmFluidNetworks.canPipeConnect(level, pos, Direction.WEST, type))
+                .setValue(UP, HbmFluidNetworks.canPipeConnect(level, pos, Direction.UP, type))
+                .setValue(DOWN, HbmFluidNetworks.canPipeConnect(level, pos, Direction.DOWN, type));
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshAdjacentRenderSnapshots(LevelAccessor level, BlockPos pipePos) {
+        for (Direction direction : Direction.values()) {
+            ClientRenderNeighborSnapshot.refreshAtOrDummyCore(level, pipePos.relative(direction));
         }
     }
 
@@ -332,21 +688,6 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         }
         refreshConnections(level, pos);
         refreshNeighborPipes(level, pos);
-    }
-
-    private static boolean canConnect(LevelAccessor level, BlockPos pos, Direction direction, HbmFluidDefinition type) {
-        return HbmFluidNetworks.canPipeConnect(level, pos, direction, type);
-    }
-
-    private static HbmFluidDefinition connectionType(LevelAccessor level, BlockPos pos, Kind kind) {
-        if (kind.isExhaust()) {
-            return FluidPipeBlockEntity.defaultLegacyExhaustFluid();
-        }
-        BlockEntity entity = level.getBlockEntity(pos);
-        if (entity instanceof FluidPipeBlockEntity pipe) {
-            return pipe.type();
-        }
-        return HbmFluids.none();
     }
 
     public static int changeTypeRecursively(Level level, BlockPos start, HbmFluidDefinition previousType, HbmFluidDefinition nextType, int limit) {
@@ -392,28 +733,22 @@ public class FluidDuctBlock extends Block implements EntityBlock {
     }
 
     public enum Kind {
-        MK2(false, true),
-        BOX(false, true),
-        EXHAUST(false, true),
-        GAUGE(true, true),
-        PAINTABLE(false, true),
-        PAINTABLE_EXHAUST(true, true),
-        SOLID(true, true),
-        SOLID_SEALED(true, true),
-        VALVE(true, false),
-        SWITCH(true, false),
-        COUNTER_VALVE(true, false);
+        MK2(true),
+        BOX(true),
+        EXHAUST(true),
+        GAUGE(true),
+        PAINTABLE(true),
+        PAINTABLE_EXHAUST(true),
+        SOLID(true),
+        SOLID_SEALED(true),
+        VALVE(false),
+        SWITCH(false),
+        COUNTER_VALVE(false);
 
-        private final boolean fullBlockShape;
         private final boolean initialOpen;
 
-        Kind(boolean fullBlockShape, boolean initialOpen) {
-            this.fullBlockShape = fullBlockShape;
+        Kind(boolean initialOpen) {
             this.initialOpen = initialOpen;
-        }
-
-        public boolean fullBlockShape() {
-            return fullBlockShape;
         }
 
         public boolean initialOpen() {

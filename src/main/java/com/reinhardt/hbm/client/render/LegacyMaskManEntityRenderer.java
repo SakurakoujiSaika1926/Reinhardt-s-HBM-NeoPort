@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyMaskManEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -13,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Mask Man's original eight-part OBJ and health-dependent head. */
@@ -28,6 +30,9 @@ public final class LegacyMaskManEntityRenderer extends EntityRenderer<LegacyMask
     private static final ModelResourceLocation SKULL = model("maskman_skull");
     private static final ModelResourceLocation IOU = model("maskman_iou");
     private static final BlockState STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final LegacyEntityObjMesh BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/entity/maskman.obj"));
+    private static final double VISUAL_RADIUS = visualRadius();
 
     public LegacyMaskManEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -94,6 +99,14 @@ public final class LegacyMaskManEntityRenderer extends EntityRenderer<LegacyMask
         super.render(entity, yaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
+    @Override
+    public boolean shouldRender(LegacyMaskManEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        return EntityRenderBounds.shouldRender(entity,
+                EntityRenderBounds.radius(entity.getX(), entity.getY(), entity.getZ(), VISUAL_RADIUS),
+                frustum, cameraX, cameraY, cameraZ);
+    }
+
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource bufferSource, int packedLight,
                                    float x, float y, float z, float rotation, ResourceLocation texture) {
@@ -113,5 +126,35 @@ public final class LegacyMaskManEntityRenderer extends EntityRenderer<LegacyMask
     @Override
     public ResourceLocation getTextureLocation(LegacyMaskManEntity entity) {
         return MASKMAN_TEXTURE;
+    }
+
+    private static double visualRadius() {
+        double legPivot = Math.sqrt(0.5D * 0.5D + 1.75D * 1.75D + 0.5D * 0.5D);
+        double armPivot = Math.sqrt(0.5D * 0.5D + 3.75D * 3.75D + 1.5D * 1.5D);
+        double headPivot = Math.sqrt(0.5D * 0.5D + 4.0D * 4.0D);
+        double movingRadius = BOUNDS_MODEL.maximumGroupFaceRadius("Torso");
+        movingRadius = Math.max(movingRadius,
+                legPivot + BOUNDS_MODEL.maximumGroupFaceRadius("LLeg"));
+        movingRadius = Math.max(movingRadius,
+                legPivot + BOUNDS_MODEL.maximumGroupFaceRadius("RLeg"));
+        movingRadius = Math.max(movingRadius,
+                armPivot + BOUNDS_MODEL.maximumGroupFaceRadius("LArm"));
+        movingRadius = Math.max(movingRadius,
+                armPivot + BOUNDS_MODEL.maximumGroupFaceRadius("RArm"));
+        movingRadius = Math.max(movingRadius,
+                headPivot + BOUNDS_MODEL.maximumGroupFaceRadius("Head"));
+        movingRadius = Math.max(movingRadius,
+                headPivot + BOUNDS_MODEL.maximumGroupFaceRadius("Skull"));
+        movingRadius = Math.max(movingRadius,
+                headPivot + BOUNDS_MODEL.maximumGroupFaceRadius("IOU"));
+
+        // The two fixed translations have magnitudes 1.5078125 and 1.5.
+        // Every health/head/walk-dependent operation is a rotation around one
+        // of the explicit pivots included above, so it cannot exceed this
+        // model-derived sphere.
+        double radius = 1.5078125D + 1.5D + movingRadius;
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
 }

@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.blueprints",
+  "duration": 18000,
+  "power": 50000,
+  "ingredients": [
+    { "ingredient": { "item": "minecraft:paper" }, "count": 16 },
+    { "ingredient": { "tag": "c:dyes/blue" }, "count": 16 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:blueprint_folder" }, "weight": 20 },
+    { "result": { "id": "minecraft:paper", "count": 16 }, "weight": 80 }
+  ]
+}

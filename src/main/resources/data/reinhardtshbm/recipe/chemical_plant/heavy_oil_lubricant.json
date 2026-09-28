@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.heavylube",
+  "duration": 40,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "heavyoil",
+      "amount": 2000
+    }
+  ],
+  "output_items": [],
+  "output_fluids": [
+    {
+      "fluid": "lubricant",
+      "amount": 1000
+    }
+  ]
+}

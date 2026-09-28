@@ -65,7 +65,7 @@ public class DfcInjectorBlockEntity extends DfcInventoryBlockEntity implements M
                 case 1 -> DfcInjectorBlockEntity.this.tanks[0].setAmount(value);
                 case 3 -> DfcInjectorBlockEntity.this.tanks[1].setType(HbmFluids.byOldId(value).orElse(HbmFluids.none()));
                 case 4 -> DfcInjectorBlockEntity.this.tanks[1].setAmount(value);
-                case 6 -> DfcInjectorBlockEntity.this.beam = value;
+                case 6 -> DfcInjectorBlockEntity.this.setBeam(value, true);
                 default -> {
                 }
             }
@@ -84,6 +84,8 @@ public class DfcInjectorBlockEntity extends DfcInventoryBlockEntity implements M
     public static void tick(Level level, BlockPos pos, BlockState state, DfcInjectorBlockEntity injector) {
         if (!level.isClientSide) {
             injector.tickServer(level);
+        } else {
+            injector.refreshClientBeamSnapshotRevision();
         }
     }
 
@@ -141,11 +143,12 @@ public class DfcInjectorBlockEntity extends DfcInventoryBlockEntity implements M
         if (this.tanks[1].type().isNone() && this.tanks[1].amount() == 0) {
             this.tanks[1].setType(fluid("tritium"));
         }
-        this.beam = tag.getInt("Beam");
+        setBeam(tag.getInt("Beam"), true);
     }
 
     private void tickServer(Level level) {
         boolean changed = transferContainers();
+        int previousBeam = this.beam;
         this.beam = 0;
         Direction direction = facing();
         for (int distance = 1; distance <= RANGE; distance++) {
@@ -162,9 +165,15 @@ public class DfcInjectorBlockEntity extends DfcInventoryBlockEntity implements M
                 break;
             }
         }
-        if (changed || level.getGameTime() % 10L == 0L || this.beam > 0) {
+        publishBeamRenderSnapshot(this.beam, false);
+        if (changed || level.getGameTime() % 10L == 0L || this.beam > 0 || previousBeam != this.beam) {
             setChangedAndSync(true);
         }
+    }
+
+    private void setBeam(int beam, boolean rebuildClientSection) {
+        this.beam = Math.max(0, beam);
+        publishBeamRenderSnapshot(this.beam, rebuildClientSection);
     }
 
     private boolean transferContainers() {

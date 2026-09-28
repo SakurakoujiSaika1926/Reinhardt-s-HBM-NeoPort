@@ -103,7 +103,7 @@ public class AssemblyMachineRecipeCategory implements IRecipeCategory<RecipeHold
             addFluid(builder.addOutputSlot(80, 99), recipe.outputFluids().getFirst());
         }
 
-        builder.addOutputSlot(98, 45).addItemStack(recipe.result().copy());
+        builder.addOutputSlot(98, 45).addItemStacks(recipe.possibleResults());
     }
 
     @Override

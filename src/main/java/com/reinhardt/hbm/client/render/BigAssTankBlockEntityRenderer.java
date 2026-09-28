@@ -4,15 +4,16 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.block.BigAssTankBlock;
 import com.reinhardt.hbm.blockentity.BigAssTankBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -20,6 +21,8 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class BigAssTankBlockEntityRenderer implements LongRangeBlockEntityRenderer<BigAssTankBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_bat9000");
+    /* Face-used bat9000.obj: [-2.625,0,-2.625]..[2.625,5,2.625]. */
+    private static final AABB[] LOCAL_BOUNDS = buildBigAssTankBounds();
     private static final ResourceLocation DANGER_DIAMOND =
             ReinhardtsHBM.id("textures/models/misc/danger_diamond.png");
 
@@ -33,8 +36,9 @@ public class BigAssTankBlockEntityRenderer implements LongRangeBlockEntityRender
     @Override
     public void render(BigAssTankBlockEntity tank, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = tank.getBlockState();
+        Direction facing = bigAssTankFacing(state);
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, 0.0F);
+        applyBigAssTankTransform(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
         renderFluidWindows(tank, partialTick, poseStack, bufferSource, packedOverlay);
         renderHazardDiamonds(tank.tank().type(), poseStack, bufferSource, packedOverlay);
@@ -43,15 +47,40 @@ public class BigAssTankBlockEntityRenderer implements LongRangeBlockEntityRender
 
     @Override
     public AABB getRenderBoundingBox(BigAssTankBlockEntity blockEntity) {
-        BlockPos pos = blockEntity.getBlockPos();
-        return new AABB(
-                pos.getX() - 2.0D,
-                pos.getY(),
-                pos.getZ() - 2.0D,
-                pos.getX() + 3.0D,
-                pos.getY() + 5.0D,
-                pos.getZ() + 3.0D
-        );
+        // Fluid windows and the four 45-degree hazard labels lie inside the tank shell.
+        Direction facing = bigAssTankFacing(blockEntity.getBlockState());
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
+    }
+
+    private static AABB[] buildBigAssTankBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyBigAssTankTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    BlockPos.ZERO, poseStack,
+                    -2.625F, 0.0F, -2.625F, 2.625F, 5.0F, 2.625F);
+        }
+        return bounds;
+    }
+
+    private static void applyBigAssTankTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            // RenderBigAssTank metadata 2/3/4/5: 270/90/0/180 degrees.
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case WEST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("BAT-9000 facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction bigAssTankFacing(BlockState state) {
+        if (!state.hasProperty(BigAssTankBlock.FACING)) {
+            throw new IllegalStateException("BAT-9000 state is missing its owned facing property: " + state);
+        }
+        return state.getValue(BigAssTankBlock.FACING);
     }
 
     private static void renderFluidWindows(BigAssTankBlockEntity tank, float partialTick,

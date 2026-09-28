@@ -3,6 +3,7 @@ package com.reinhardt.hbm.item;
 import com.reinhardt.hbm.block.PwrBlock;
 import com.reinhardt.hbm.blockentity.PwrBlockEntity;
 import com.reinhardt.hbm.blockentity.PwrControllerBlockEntity;
+import com.reinhardt.hbm.network.PwrPrinterOpenPayload;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,8 +22,11 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -94,6 +98,9 @@ public class PwrPrinterItem extends Item {
                 return InteractionResult.CONSUME;
             }
             writeScan(stack, scan);
+            if (player instanceof ServerPlayer serverPlayer) {
+                PacketDistributor.sendToPlayer(serverPlayer, createOpenPayload(scan));
+            }
             player.displayClientMessage(Component.translatable("chat.reinhardtshbm.pwr_printer.scanned", scan.parts()).withStyle(ChatFormatting.YELLOW), true);
             level.playSound(null, clicked, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.25F, 1.25F);
         }
@@ -105,11 +112,18 @@ public class PwrPrinterItem extends Item {
         BlockPos start = controllerPos.relative(dir);
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         Set<BlockPos> visited = new HashSet<>();
+        List<ScannedPart> scannedParts = new ArrayList<>();
+        // ItemPWRPrinter seeded the controller into its visited set before it
+        // entered the vessel.  This keeps it in the diagram without counting
+        // it as a reactor part or traversing back out through the front face.
+        visited.add(controllerPos.immutable());
         queue.add(start);
         int rods = 0;
         int ports = 0;
-        BlockPos min = start;
-        BlockPos max = start;
+        // The legacy printer included the controller in its bounds and slice
+        // images, but only followed the reactor-facing side into the vessel.
+        BlockPos min = controllerPos;
+        BlockPos max = controllerPos;
         int parts = 0;
         while (!queue.isEmpty() && visited.size() < 4096) {
             BlockPos pos = queue.removeFirst();
@@ -121,6 +135,7 @@ public class PwrPrinterItem extends Item {
                 continue;
             }
             parts++;
+            scannedParts.add(new ScannedPart(pos.immutable(), info.kind()));
             min = new BlockPos(Math.min(min.getX(), pos.getX()), Math.min(min.getY(), pos.getY()), Math.min(min.getZ(), pos.getZ()));
             max = new BlockPos(Math.max(max.getX(), pos.getX()), Math.max(max.getY(), pos.getY()), Math.max(max.getZ(), pos.getZ()));
             if (info.kind() == PwrBlock.Kind.FUEL) {
@@ -136,7 +151,7 @@ public class PwrPrinterItem extends Item {
                 }
             }
         }
-        return new Scan(min, max, parts, rods, ports);
+        return new Scan(controllerPos.immutable(), min, max, parts, rods, ports, dir, List.copyOf(scannedParts));
     }
 
     private static BlockStateInfo blockInfo(Level level, BlockPos pos) {
@@ -164,9 +179,49 @@ public class PwrPrinterItem extends Item {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
+    private static PwrPrinterOpenPayload createOpenPayload(Scan scan) {
+        BlockPos min = scan.min();
+        List<PwrPrinterOpenPayload.Part> parts = new ArrayList<>(scan.scannedParts().size() + 1);
+        // The controller is part of every diagram, matching ItemPWRPrinter's
+        // old whitelist of pwr_block + pwr_controller.
+        parts.add(new PwrPrinterOpenPayload.Part(
+                scan.controllerPos().getX() - min.getX(),
+                scan.controllerPos().getY() - min.getY(),
+                scan.controllerPos().getZ() - min.getZ(),
+                PwrBlock.Kind.CONTROLLER
+        ));
+        for (ScannedPart part : scan.scannedParts()) {
+            parts.add(new PwrPrinterOpenPayload.Part(
+                    part.pos().getX() - min.getX(),
+                    part.pos().getY() - min.getY(),
+                    part.pos().getZ() - min.getZ(),
+                    part.kind()
+            ));
+        }
+        return new PwrPrinterOpenPayload(
+                scan.max().getX() - min.getX() + 1,
+                scan.max().getY() - min.getY() + 1,
+                scan.max().getZ() - min.getZ() + 1,
+                scan.inward(),
+                parts
+        );
+    }
+
     private record BlockStateInfo(boolean isPwr, PwrBlock.Kind kind) {
     }
 
-    private record Scan(BlockPos min, BlockPos max, int parts, int rods, int ports) {
+    private record ScannedPart(BlockPos pos, PwrBlock.Kind kind) {
+    }
+
+    private record Scan(
+            BlockPos controllerPos,
+            BlockPos min,
+            BlockPos max,
+            int parts,
+            int rods,
+            int ports,
+            Direction inward,
+            List<ScannedPart> scannedParts
+    ) {
     }
 }

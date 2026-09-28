@@ -1,13 +1,14 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.mojang.math.Axis;
+import com.reinhardt.hbm.block.CompressorBlock;
 import com.reinhardt.hbm.blockentity.CompressorBlockEntity;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -22,6 +23,14 @@ public class CompressorBlockEntityRenderer implements LongRangeBlockEntityRender
     private static final ModelResourceLocation COMPACT_BODY = MachineModelRenderer.standalone("block/machine_compressor_compact_world");
     private static final ModelResourceLocation COMPACT_FAN1 = MachineModelRenderer.standalone("block/machine_compressor_compact_fan1");
     private static final ModelResourceLocation COMPACT_FAN2 = MachineModelRenderer.standalone("block/machine_compressor_compact_fan2");
+    private static final AABB NORMAL_NORTH_RENDER_BOUNDS = createNormalLocalBounds(Direction.NORTH);
+    private static final AABB NORMAL_SOUTH_RENDER_BOUNDS = createNormalLocalBounds(Direction.SOUTH);
+    private static final AABB NORMAL_WEST_RENDER_BOUNDS = createNormalLocalBounds(Direction.WEST);
+    private static final AABB NORMAL_EAST_RENDER_BOUNDS = createNormalLocalBounds(Direction.EAST);
+    private static final AABB COMPACT_NORTH_RENDER_BOUNDS = createCompactLocalBounds(Direction.NORTH);
+    private static final AABB COMPACT_SOUTH_RENDER_BOUNDS = createCompactLocalBounds(Direction.SOUTH);
+    private static final AABB COMPACT_WEST_RENDER_BOUNDS = createCompactLocalBounds(Direction.WEST);
+    private static final AABB COMPACT_EAST_RENDER_BOUNDS = createCompactLocalBounds(Direction.EAST);
 
     public CompressorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -38,16 +47,14 @@ public class CompressorBlockEntityRenderer implements LongRangeBlockEntityRender
     @Override
     public void render(CompressorBlockEntity compressor, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = compressor.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.SOUTH;
+        Direction facing = compressorFacing(state);
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(
-                poseStack,
-                LegacyMachineGeometry.legacyWavefrontYaw(facing, 270.0F)
-        );
         if (compressor.kind() == CompressorBlockEntity.Kind.COMPACT) {
+            applyCompactCompressorPose(poseStack, facing);
             renderCompact(compressor, partialTick, poseStack, bufferSource, state, packedLight, packedOverlay);
         } else {
+            applyNormalCompressorPose(poseStack, facing);
             renderNormal(compressor, partialTick, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
@@ -56,23 +63,84 @@ public class CompressorBlockEntityRenderer implements LongRangeBlockEntityRender
     @Override
     public AABB getRenderBoundingBox(CompressorBlockEntity blockEntity) {
         if (blockEntity.kind() == CompressorBlockEntity.Kind.COMPACT) {
-            return new AABB(
-                    blockEntity.getBlockPos().getX() - 3.0D,
-                    blockEntity.getBlockPos().getY(),
-                    blockEntity.getBlockPos().getZ() - 3.0D,
-                    blockEntity.getBlockPos().getX() + 4.0D,
-                    blockEntity.getBlockPos().getY() + 3.0D,
-                    blockEntity.getBlockPos().getZ() + 4.0D
-            );
+            return compactRenderBounds(blockEntity.getBlockPos(), compressorFacing(blockEntity.getBlockState()));
         }
-        return new AABB(
-                blockEntity.getBlockPos().getX() - 2.0D,
-                blockEntity.getBlockPos().getY(),
-                blockEntity.getBlockPos().getZ() - 2.0D,
-                blockEntity.getBlockPos().getX() + 3.0D,
-                blockEntity.getBlockPos().getY() + 9.0D,
-                blockEntity.getBlockPos().getZ() + 3.0D
-        );
+        return normalRenderBounds(blockEntity.getBlockPos(), compressorFacing(blockEntity.getBlockState()));
+    }
+
+    /** Exact RenderCompressor metadata mapping. */
+    private static void applyNormalCompressorPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Normal compressor facing must be horizontal: " + facing);
+        }
+    }
+
+    /** Exact RenderCompressorCompact metadata mapping. */
+    private static void applyCompactCompressorPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Compact compressor facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction compressorFacing(BlockState state) {
+        if (!state.hasProperty(CompressorBlock.FACING)) {
+            throw new IllegalStateException("Compressor state is missing its owned facing property: " + state);
+        }
+        Direction facing = state.getValue(CompressorBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Compressor state has an invalid vertical facing: " + state);
+        }
+        return facing;
+    }
+
+    static AABB normalRenderBounds(BlockPos pos, Direction facing) {
+        AABB localBounds = switch (facing) {
+            case NORTH -> NORMAL_NORTH_RENDER_BOUNDS;
+            case SOUTH -> NORMAL_SOUTH_RENDER_BOUNDS;
+            case WEST -> NORMAL_WEST_RENDER_BOUNDS;
+            case EAST -> NORMAL_EAST_RENDER_BOUNDS;
+            case UP, DOWN -> throw new IllegalArgumentException("Normal compressor facing must be horizontal: " + facing);
+        };
+        return localBounds.move(pos);
+    }
+
+    static AABB compactRenderBounds(BlockPos pos, Direction facing) {
+        AABB localBounds = switch (facing) {
+            case NORTH -> COMPACT_NORTH_RENDER_BOUNDS;
+            case SOUTH -> COMPACT_SOUTH_RENDER_BOUNDS;
+            case WEST -> COMPACT_WEST_RENDER_BOUNDS;
+            case EAST -> COMPACT_EAST_RENDER_BOUNDS;
+            case UP, DOWN -> throw new IllegalArgumentException("Compact compressor facing must be horizontal: " + facing);
+        };
+        return localBounds.move(pos);
+    }
+
+    private static AABB createNormalLocalBounds(Direction facing) {
+        PoseStack poseStack = new PoseStack();
+        applyNormalCompressorPose(poseStack, facing);
+        // Compressor's 478 face-used vertices dominate the pump's full 0..1 stroke and fan sweep.
+        return RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
+                -1.5F, 0.0F, -1.5F,
+                2.5F, 8.5F, 1.5F);
+    }
+
+    private static AABB createCompactLocalBounds(Direction facing) {
+        PoseStack poseStack = new PoseStack();
+        applyCompactCompressorPose(poseStack, facing);
+        // Condenser's 1,242 face-used vertices dominate both fans' full sweeps.
+        return RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
+                -1.625F, -0.125F, -3.5F,
+                1.625F, 3.125F, 3.5F);
     }
 
     private static void renderNormal(CompressorBlockEntity compressor, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {

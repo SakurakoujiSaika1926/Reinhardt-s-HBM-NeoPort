@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:plant_hemp" },
+    { "item": "reinhardtshbm:plant_hemp" },
+    { "item": "reinhardtshbm:plant_hemp" },
+    { "item": "reinhardtshbm:plant_hemp" },
+    { "item": "reinhardtshbm:plant_hemp" },
+    { "item": "reinhardtshbm:plant_hemp" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:biomass",
+    "count": 4
+  }
+}

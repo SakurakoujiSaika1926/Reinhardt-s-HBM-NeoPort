@@ -36,7 +36,6 @@ public class ChekhovBulletEntity extends Entity {
 
     public ChekhovBulletEntity(EntityType<? extends ChekhovBulletEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public ChekhovBulletEntity(Level level, double x, double y, double z, Vec3 direction, StandardAmmoItem.Bmg50Type ammoType) {

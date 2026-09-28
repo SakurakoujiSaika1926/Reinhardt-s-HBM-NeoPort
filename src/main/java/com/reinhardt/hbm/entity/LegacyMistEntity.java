@@ -31,7 +31,6 @@ public final class LegacyMistEntity extends Entity {
     public LegacyMistEntity(EntityType<? extends LegacyMistEntity> type, Level level) {
         super(type, level);
         this.noPhysics = true;
-        this.noCulling = true;
     }
 
     public LegacyMistEntity(Level level, double x, double y, double z, MistType type, float width, float height) {

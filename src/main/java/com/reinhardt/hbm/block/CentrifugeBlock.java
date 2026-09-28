@@ -8,6 +8,7 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -31,15 +32,69 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 
+import java.util.List;
+
 public class CentrifugeBlock extends LargeMachineBlock implements EntityBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     private final Kind kind;
 
     public CentrifugeBlock(Properties properties, Kind kind, VoxelShape shape) {
-        super(properties, Footprint.centered(0, 4, 0), shape, RotationBasis.MODERN_NORTH);
+        super(properties, footprint(kind), shape, offsetMapper(kind));
         this.kind = kind;
         this.registerDefaultState(this.defaultBlockState().setValue(LIT, false));
+    }
+
+    private static Footprint footprint(Kind kind) {
+        return switch (kind) {
+            case NORMAL -> normalCentrifugeFootprint();
+            case GAS -> gasCentrifugeFootprint();
+        };
+    }
+
+    private static Footprint normalCentrifugeFootprint() {
+        return new Footprint(List.of(
+                new BlockPos(0, 0, 0),
+                new BlockPos(0, 1, 0),
+                new BlockPos(0, 2, 0),
+                new BlockPos(0, 3, 0)
+        ));
+    }
+
+    private static Footprint gasCentrifugeFootprint() {
+        return new Footprint(List.of(
+                new BlockPos(0, 0, 0),
+                new BlockPos(0, 1, 0),
+                new BlockPos(0, 2, 0),
+                new BlockPos(0, 3, 0)
+        ));
+    }
+
+    private static OffsetMapper offsetMapper(Kind kind) {
+        return switch (kind) {
+            case NORMAL -> CentrifugeBlock::mapCentrifugeOffset;
+            case GAS -> CentrifugeBlock::mapGasCentrifugeOffset;
+        };
+    }
+
+    private static BlockPos mapCentrifugeOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Centrifuge requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static BlockPos mapGasCentrifugeOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Gas centrifuge requires a horizontal facing: " + facing);
+        };
     }
 
     public Kind kind() {
@@ -49,8 +104,62 @@ public class CentrifugeBlock extends LargeMachineBlock implements EntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        return state == null ? null : state.setValue(LIT, false);
+        return switch (this.kind) {
+            case NORMAL -> normalCentrifugeStateForPlacement(context);
+            case GAS -> gasCentrifugeStateForPlacement(context);
+        };
+    }
+
+    private BlockState normalCentrifugeStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing).setValue(LIT, false);
+    }
+
+    private BlockState gasCentrifugeStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing).setValue(LIT, false);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return switch (this.kind) {
+            case NORMAL -> rotateNormalCentrifuge(state, rotation);
+            case GAS -> rotateGasCentrifuge(state, rotation);
+        };
+    }
+
+    private static BlockState rotateNormalCentrifuge(
+            BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateGasCentrifuge(
+            BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return switch (this.kind) {
+            case NORMAL -> mirrorNormalCentrifuge(state, mirror);
+            case GAS -> mirrorGasCentrifuge(state, mirror);
+        };
+    }
+
+    private static BlockState mirrorNormalCentrifuge(
+            BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorGasCentrifuge(
+            BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
     }
 
     @Nullable

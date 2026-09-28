@@ -68,7 +68,6 @@ public final class LegacyUfoEntity extends Monster {
     public LegacyUfoEntity(EntityType<? extends LegacyUfoEntity> type, Level level) {
         super(type, level);
         setNoGravity(true);
-        noCulling = true;
         deathTime = -30;
         xpReward = 500;
     }

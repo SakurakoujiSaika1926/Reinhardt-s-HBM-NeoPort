@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.oil_tar_wax",
+  "ingredient": { "item": "reinhardtshbm:oil_tar_wax" },
+  "acid": { "fluid": "iongel", "amount": 500 },
+  "duration": 200,
+  "result": { "id": "reinhardtshbm:pellet_charged" }
+}

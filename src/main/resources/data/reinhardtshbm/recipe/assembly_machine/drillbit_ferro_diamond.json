@@ -7,16 +7,7 @@
                         {
                             "count":  1,
                             "ingredient":  {
-                                               "components":  {
-                                                                  "minecraft:custom_model_data":  8,
-                                                                  "minecraft:custom_data":  {
-                                                                                                "type":  "ferro"
-                                                                                            }
-                                                              },
-                                               "items":  [
-                                                             "reinhardtshbm:drillbit"
-                                                         ],
-                                               "type":  "neoforge:components"
+                                               "item":  "reinhardtshbm:drillbit_ferro"
                                            }
                         },
                         {
@@ -27,12 +18,6 @@
                         }
                     ],
     "result":  {
-                   "id":  "reinhardtshbm:drillbit",
-                   "components":  {
-                                      "minecraft:custom_model_data":  9,
-                                      "minecraft:custom_data":  {
-                                                                    "type":  "ferro_diamond"
-                                                                }
-                                  }
+                   "id":  "reinhardtshbm:drillbit_ferro_diamond"
                }
 }

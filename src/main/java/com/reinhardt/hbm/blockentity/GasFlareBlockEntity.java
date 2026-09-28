@@ -14,6 +14,9 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import com.reinhardt.hbm.util.SettingsCopiable;
 import net.minecraft.core.BlockPos;
@@ -49,7 +52,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider, SettingsCopiable {
+public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer,
+        MenuProvider, SettingsCopiable, RttyValueProvider, RttyInteractive {
     public static final long MAX_POWER = 100_000L;
     public static final int TANK_CAPACITY = 64_000;
     public static final int SLOT_BATTERY = 0;
@@ -148,6 +152,42 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
 
     public boolean active() {
         return this.active;
+    }
+
+    @Override
+    public String[] rttyFunctionInfo() {
+        return new String[] {
+                RttyInfo.PREFIX_VALUE + "flowstate",
+                RttyInfo.PREFIX_VALUE + "ignitionstate",
+                RttyInfo.PREFIX_VALUE + "output",
+                RttyInfo.PREFIX_VALUE + "power",
+                RttyInfo.PREFIX_VALUE + "fluid",
+                RttyInfo.PREFIX_FUNCTION + "setflowstate" + RttyInteractive.NAME_SEPARATOR + "state",
+                RttyInfo.PREFIX_FUNCTION + "setignitionstate" + RttyInteractive.NAME_SEPARATOR + "state"
+        };
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (name.equals(RttyInfo.PREFIX_VALUE + "flowstate")) return this.valveOpen ? "1" : "0";
+        if (name.equals(RttyInfo.PREFIX_VALUE + "ignitionstate")) return this.ignitionEnabled ? "1" : "0";
+        if (name.equals(RttyInfo.PREFIX_VALUE + "output")) return Integer.toString(this.output);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "power")) return Long.toString(this.power);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "fluid")) return Integer.toString(this.tank.amount());
+        return null;
+    }
+
+    @Override
+    public String runRttyFunction(String name, String[] params) {
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "setflowstate") && params.length == 1) {
+            this.valveOpen = params[0].equals("1");
+            sync();
+        }
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "setignitionstate") && params.length == 1) {
+            this.ignitionEnabled = params[0].equals("1");
+            sync();
+        }
+        return null;
     }
 
     public void toggleValve() {
@@ -312,7 +352,7 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

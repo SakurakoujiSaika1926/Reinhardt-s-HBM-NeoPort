@@ -128,6 +128,21 @@ public class LegacyTurretScreen extends AbstractContainerScreen<LegacyTurretMenu
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
         guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, this.inventoryLabelY, 0x404040, false);
+        LegacyTurretBlockEntity turret = this.menu.turret();
+        if (turret != null && turret.type() == LegacyTurretType.MAXWELL) {
+            Component range = Component.translatable(
+                    "gui.reinhardtshbm.turret.maxwell.range",
+                    this.menu.maxwellRange()
+            );
+            guiGraphics.drawString(
+                    this.font,
+                    range,
+                    this.imageWidth - 8 - this.font.width(range),
+                    this.inventoryLabelY,
+                    0x404040,
+                    false
+            );
+        }
         List<String> names = this.menu.whitelist();
         while (this.whitelistIndex >= names.size()) {
             this.whitelistIndex--;

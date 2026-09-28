@@ -1,0 +1,35 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_hep241_2",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_hep241"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  2
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "visible",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_pu241"
+                                 },
+                        "weight":  45
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_short_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  5
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  55
+                    }
+                ]
+}

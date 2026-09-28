@@ -4,6 +4,7 @@ import com.reinhardt.hbm.blockentity.BigAssTankBlockEntity;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -33,11 +34,21 @@ import java.util.List;
 import java.util.Set;
 
 public class BigAssTankBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     private static final int CORE_OFFSET = 2;
     private static final ThreadLocal<Boolean> RELOCATING = ThreadLocal.withInitial(() -> false);
 
     public BigAssTankBlock(Properties properties, Footprint footprint, VoxelShape shape) {
-        super(properties, footprint, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, footprint, shape, BigAssTankBlock::mapBigAssTankOffset);
     }
 
     @Override
@@ -96,8 +107,9 @@ public class BigAssTankBlock extends LargeMachineBlock implements EntityBlock {
             tank.loadFromItem(stack);
             tank.refreshConnectionsAfterPlacement();
         }
-        LargeMachineBlock.placeDummies(level, corePos, facing, machineFootprint(), RotationBasis.HBM_LEGACY_SOUTH);
-        LargeMachineBlock.pushEntitiesOutOfFootprint(level, corePos, facing, machineFootprint(), placer, RotationBasis.HBM_LEGACY_SOUTH);
+        LargeMachineBlock.placeDummies(level, corePos, facing, machineFootprint(), BigAssTankBlock::mapBigAssTankOffset);
+        LargeMachineBlock.pushEntitiesOutOfFootprint(level, corePos, facing, machineFootprint(), placer,
+                BigAssTankBlock::mapBigAssTankOffset);
     }
 
     @Nullable
@@ -132,7 +144,7 @@ public class BigAssTankBlock extends LargeMachineBlock implements EntityBlock {
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!(stack.getItem() instanceof FluidIdentifierItem)) {
+        if (!(stack.getItem() instanceof FluidIdentifierItem) || !player.isShiftKeyDown()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof BigAssTankBlockEntity tank) {
@@ -166,7 +178,8 @@ public class BigAssTankBlock extends LargeMachineBlock implements EntityBlock {
                 tank.dropInventoryContentsOnly(level, pos);
             }
             level.invalidateCapabilities(pos);
-            LargeMachineBlock.removeDummies(level, pos, state.getValue(FACING), machineFootprint(), RotationBasis.HBM_LEGACY_SOUTH);
+            LargeMachineBlock.removeDummies(level, pos, state.getValue(FACING), machineFootprint(),
+                    BigAssTankBlock::mapBigAssTankOffset);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
@@ -174,10 +187,19 @@ public class BigAssTankBlock extends LargeMachineBlock implements EntityBlock {
     private Set<BlockPos> footprintPositions(BlockPos corePos, net.minecraft.core.Direction facing) {
         Set<BlockPos> positions = new LinkedHashSet<>();
         for (BlockPos offset : machineFootprint().offsets()) {
-            positions.add(corePos.offset(com.reinhardt.hbm.util.LegacyMachineGeometry.rotate(
-                    offset, facing, RotationBasis.HBM_LEGACY_SOUTH)));
+            positions.add(corePos.offset(mapBigAssTankOffset(facing, offset)));
         }
         return positions;
+    }
+
+    private static BlockPos mapBigAssTankOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("BAT9000 requires a horizontal facing: " + facing);
+        };
     }
 }
 

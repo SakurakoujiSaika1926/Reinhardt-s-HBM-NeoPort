@@ -7,7 +7,6 @@ import com.reinhardt.hbm.blockentity.TeslaCoilBlockEntity;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -16,11 +15,19 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-import java.util.Random;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /** Direct modern rendering route for 1.7.10 RenderTesla. */
-public final class TeslaCoilBlockEntityRenderer implements BlockEntityRenderer<TeslaCoilBlockEntity> {
+public final class TeslaCoilBlockEntityRenderer implements LongRangeBlockEntityRenderer<TeslaCoilBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/tesla");
+    private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
+    private static final long JAVA_RANDOM_ADDEND = 0xBL;
+    private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
+    /** CPU-only arc batches are weakly owned by the exact block entity that produced them. */
+    private final Map<TeslaCoilBlockEntity, CachedArcGeometry> arcGeometry = new WeakHashMap<>();
 
     public TeslaCoilBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -32,7 +39,8 @@ public final class TeslaCoilBlockEntityRenderer implements BlockEntityRenderer<T
     @Override
     public void render(TeslaCoilBlockEntity tesla, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState state = tesla.getBlockState();
+        TeslaCoilBlockEntity.RenderSnapshot snapshot = tesla.renderSnapshot();
+        BlockState state = snapshot.blockState();
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
@@ -40,70 +48,157 @@ public final class TeslaCoilBlockEntityRenderer implements BlockEntityRenderer<T
                 state, packedLight, packedOverlay);
         poseStack.popPose();
 
-        if (tesla.targets().isEmpty()) {
+        List<Vec3> targets = snapshot.targets();
+        if (targets.isEmpty()) {
             return;
         }
-        Vec3 origin = tesla.emitter();
         poseStack.pushPose();
         poseStack.translate(0.5D, TeslaCoilBlockEntity.EMITTER_OFFSET, 0.5D);
-        int phase = (int) ((tesla.getLevel() == null ? 0L : tesla.getLevel().getGameTime()) % 1000L) + 1;
+        int phase = (int) (snapshot.gameTime() % 1000L) + 1;
+        CachedArcGeometry geometry = geometryFor(tesla, snapshot, phase);
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.lightning());
         PoseStack.Pose pose = poseStack.last();
-        for (Vec3 target : tesla.targets()) {
-            Vec3 vector = target.subtract(origin);
-            if (vector.lengthSqr() > 1.0E-5D) {
-                renderLegacyRandomBeam(pose, consumer, vector, phase, (int) Math.ceil(vector.length() * 5.0D));
-            }
+        float[] vertices = geometry.vertices();
+        for (int offset = 0; offset < vertices.length; offset += 3) {
+            consumer.addVertex(pose, vertices[offset], vertices[offset + 1], vertices[offset + 2])
+                    .setColor(0x40, 0x40, 0x40, 0xFF)
+                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(LightTexture.FULL_BRIGHT)
+                    .setNormal(pose, 0.0F, 1.0F, 0.0F);
         }
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(TeslaCoilBlockEntity tesla) {
-        return new AABB(tesla.getBlockPos()).inflate(TeslaCoilBlockEntity.RANGE);
+        return tesla.renderSnapshot().bounds();
     }
 
-    private static void renderLegacyRandomBeam(PoseStack.Pose pose, VertexConsumer consumer, Vec3 end,
+    private static void appendLegacyRandomBeam(FloatVertexBuilder output, Vec3 end,
                                                int phase, int segments) {
-        Vec3 axis = end.normalize();
-        Vec3 side = new Vec3(axis.z, 0.0D, -axis.x);
-        if (side.lengthSqr() < 1.0E-5D) {
-            side = new Vec3(1.0D, 0.0D, 0.0D);
+        double length = Math.sqrt(end.x * end.x + end.y * end.y + end.z * end.z);
+        double axisX = end.x / length;
+        double axisY = end.y / length;
+        double axisZ = end.z / length;
+        double sideX = axisZ;
+        double sideY = 0.0D;
+        double sideZ = -axisX;
+        double sideLengthSqr = sideX * sideX + sideZ * sideZ;
+        if (sideLengthSqr < 1.0E-5D) {
+            sideX = 1.0D;
+            sideZ = 0.0D;
+        } else {
+            double inverseSideLength = 1.0D / Math.sqrt(sideLengthSqr);
+            sideX *= inverseSideLength;
+            sideZ *= inverseSideLength;
         }
-        side = side.normalize();
-        Vec3 vertical = side.cross(axis).normalize();
-        Random random = new Random(phase);
-        Vec3 previous = Vec3.ZERO;
+        double verticalX = sideY * axisZ - sideZ * axisY;
+        double verticalY = sideZ * axisX - sideX * axisZ;
+        double verticalZ = sideX * axisY - sideY * axisX;
+        double inverseVerticalLength = 1.0D / Math.sqrt(
+                verticalX * verticalX + verticalY * verticalY + verticalZ * verticalZ);
+        verticalX *= inverseVerticalLength;
+        verticalY *= inverseVerticalLength;
+        verticalZ *= inverseVerticalLength;
+        long randomState = (phase ^ JAVA_RANDOM_MULTIPLIER) & JAVA_RANDOM_MASK;
+        double previousX = 0.0D;
+        double previousY = 0.0D;
+        double previousZ = 0.0D;
         int count = Math.max(1, segments);
         for (int index = 1; index <= count; index++) {
             double progress = index / (double) count;
-            Vec3 point = end.scale(progress);
+            double pointX = end.x * progress;
+            double pointY = end.y * progress;
+            double pointZ = end.z * progress;
             if (index < count) {
-                point = point.add(side.scale((random.nextDouble() - 0.5D) * 0.25D))
-                        .add(vertical.scale((random.nextDouble() - 0.5D) * 0.25D));
+                randomState = (randomState * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+                long high = randomState >>> 22;
+                randomState = (randomState * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+                double sideOffset = (((high << 27) + (randomState >>> 21)) * 0x1.0p-53 - 0.5D) * 0.25D;
+                randomState = (randomState * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+                high = randomState >>> 22;
+                randomState = (randomState * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+                double verticalOffset = (((high << 27) + (randomState >>> 21)) * 0x1.0p-53 - 0.5D) * 0.25D;
+                pointX += sideX * sideOffset + verticalX * verticalOffset;
+                pointY += sideY * sideOffset + verticalY * verticalOffset;
+                pointZ += sideZ * sideOffset + verticalZ * verticalOffset;
             }
-            beamQuad(consumer, pose, previous, point, side.scale(0.03125D), vertical.scale(0.03125D));
-            previous = point;
+            appendBeamQuad(output,
+                    previousX, previousY, previousZ,
+                    pointX, pointY, pointZ,
+                    sideX * 0.03125D, sideY * 0.03125D, sideZ * 0.03125D,
+                    verticalX * 0.03125D, verticalY * 0.03125D, verticalZ * 0.03125D);
+            previousX = pointX;
+            previousY = pointY;
+            previousZ = pointZ;
         }
     }
 
-    private static void beamQuad(VertexConsumer consumer, PoseStack.Pose pose, Vec3 start, Vec3 end,
-                                 Vec3 side, Vec3 vertical) {
-        vertex(consumer, pose, start.add(side).add(vertical));
-        vertex(consumer, pose, start.subtract(side).add(vertical));
-        vertex(consumer, pose, end.subtract(side).subtract(vertical));
-        vertex(consumer, pose, end.add(side).subtract(vertical));
-        vertex(consumer, pose, start.add(vertical));
-        vertex(consumer, pose, start.subtract(vertical));
-        vertex(consumer, pose, end.subtract(vertical));
-        vertex(consumer, pose, end.add(vertical));
+    private static void appendBeamQuad(FloatVertexBuilder output,
+                                       double startX, double startY, double startZ,
+                                       double endX, double endY, double endZ,
+                                       double sideX, double sideY, double sideZ,
+                                       double verticalX, double verticalY, double verticalZ) {
+        output.add(startX + sideX + verticalX, startY + sideY + verticalY, startZ + sideZ + verticalZ);
+        output.add(startX - sideX + verticalX, startY - sideY + verticalY, startZ - sideZ + verticalZ);
+        output.add(endX - sideX - verticalX, endY - sideY - verticalY, endZ - sideZ - verticalZ);
+        output.add(endX + sideX - verticalX, endY + sideY - verticalY, endZ + sideZ - verticalZ);
+        output.add(startX + verticalX, startY + verticalY, startZ + verticalZ);
+        output.add(startX - verticalX, startY - verticalY, startZ - verticalZ);
+        output.add(endX - verticalX, endY - verticalY, endZ - verticalZ);
+        output.add(endX + verticalX, endY + verticalY, endZ + verticalZ);
     }
 
-    private static void vertex(VertexConsumer consumer, PoseStack.Pose pose, Vec3 point) {
-        consumer.addVertex(pose, (float) point.x, (float) point.y, (float) point.z)
-                .setColor(0x40, 0x40, 0x40, 0xFF)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(LightTexture.FULL_BRIGHT)
-                .setNormal(pose, 0.0F, 1.0F, 0.0F);
+    private synchronized CachedArcGeometry geometryFor(
+            TeslaCoilBlockEntity tesla, TeslaCoilBlockEntity.RenderSnapshot snapshot, int phase) {
+        CachedArcGeometry previous = this.arcGeometry.get(tesla);
+        if (previous != null
+                && previous.phase() == phase
+                && previous.emitter().equals(snapshot.emitter())
+                && previous.targets().equals(snapshot.targets())) {
+            return previous;
+        }
+
+        FloatVertexBuilder output = new FloatVertexBuilder(192);
+        for (Vec3 target : snapshot.targets()) {
+            Vec3 vector = target.subtract(snapshot.emitter());
+            if (vector.lengthSqr() > 1.0E-5D) {
+                appendLegacyRandomBeam(output, vector, phase,
+                        (int) Math.ceil(vector.length() * 5.0D));
+            }
+        }
+        CachedArcGeometry next = new CachedArcGeometry(
+                snapshot.emitter(), List.copyOf(snapshot.targets()), phase, output.toArray());
+        this.arcGeometry.put(tesla, next);
+        return next;
+    }
+
+    private record CachedArcGeometry(Vec3 emitter, List<Vec3> targets, int phase, float[] vertices) {
+    }
+
+    private static final class FloatVertexBuilder {
+        private float[] values;
+        private int size;
+
+        private FloatVertexBuilder(int expectedFloats) {
+            this.values = new float[Math.max(3, expectedFloats)];
+        }
+
+        private void add(double x, double y, double z) {
+            ensureCapacity(this.size + 3);
+            this.values[this.size++] = (float) x;
+            this.values[this.size++] = (float) y;
+            this.values[this.size++] = (float) z;
+        }
+
+        private void ensureCapacity(int required) {
+            if (required > this.values.length) {
+                this.values = Arrays.copyOf(this.values, Math.max(required, this.values.length * 2));
+            }
+        }
+
+        private float[] toArray() {
+            return Arrays.copyOf(this.values, this.size);
+        }
     }
 }

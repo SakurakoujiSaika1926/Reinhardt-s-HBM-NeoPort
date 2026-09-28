@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:block/doors/cargo_door_base",
+  "visibility": {
+    "DoorBot": false,
+    "DoorTop": false
+  }
+}

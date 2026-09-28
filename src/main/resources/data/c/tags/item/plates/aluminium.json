@@ -1,6 +1,10 @@
 {
     "replace": false,
     "values": [
-        "reinhardtshbm:plate_aluminium"
+        "reinhardtshbm:plate_aluminium",
+        {
+            "id": "immersiveengineering:plate_aluminum",
+            "required": false
+        }
     ]
 }

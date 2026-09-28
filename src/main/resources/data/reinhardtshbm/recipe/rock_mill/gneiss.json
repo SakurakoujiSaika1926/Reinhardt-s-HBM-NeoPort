@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:rock_mill",
+  "group": "rock.crushing",
+  "auto_switch_group": "autoswitch.crushing",
+  "input": { "ingredient": { "item": "reinhardtshbm:stone_gneiss" }, "count": 1 },
+  "input_fluid": { "fluid": "water", "amount": 250 },
+  "output_fluid": { "fluid": "colloid", "amount": 250 },
+  "outputs": [
+    { "stack": { "id": "minecraft:gravel" }, "weight": 50 },
+    { "stack": { "id": "minecraft:sand" }, "weight": 10 },
+    { "stack": { "id": "reinhardtshbm:powder_lithium" }, "weight": 25 },
+    { "stack": { "id": "reinhardtshbm:powder_niobium" }, "weight": 5 },
+    { "stack": { "id": "reinhardtshbm:powder_uranium" }, "weight": 5 },
+    { "stack": { "id": "reinhardtshbm:powder_gold" }, "weight": 5 }
+  ],
+  "duration": 200,
+  "power": 25
+}

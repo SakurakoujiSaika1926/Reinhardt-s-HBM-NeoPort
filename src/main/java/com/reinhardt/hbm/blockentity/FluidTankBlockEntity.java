@@ -274,8 +274,7 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
 
     public List<Port> ports(LevelAccessor level) {
         BlockState state = level.getBlockState(this.worldPosition);
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-        return portsFor(this.worldPosition, facing);
+        return fluidTankPortsFor(this.worldPosition, state.getValue(LargeMachineBlock.FACING));
     }
 
     /** Refreshes machine ports after a multiblock has finished placing its dummies. */
@@ -285,21 +284,66 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
         }
     }
 
-    public static List<Port> portsFor(BlockPos pos, Direction facing) {
+    public static List<Port> fluidTankPortsFor(BlockPos pos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> northFluidTankPorts(pos);
+            case EAST -> eastFluidTankPorts(pos);
+            case SOUTH -> southFluidTankPorts(pos);
+            case WEST -> westFluidTankPorts(pos);
+            case UP, DOWN -> throw new IllegalArgumentException("Fluid tank facing must be horizontal: " + facing);
+        };
+    }
+
+    private static List<Port> northFluidTankPorts(BlockPos pos) {
         return List.of(
-                Port.fromLocalConnector(pos, new BlockPos(2, 0, -1), Direction.EAST, facing),
-                Port.fromLocalConnector(pos, new BlockPos(2, 0, 1), Direction.EAST, facing),
-                Port.fromLocalConnector(pos, new BlockPos(-2, 0, -1), Direction.WEST, facing),
-                Port.fromLocalConnector(pos, new BlockPos(-2, 0, 1), Direction.WEST, facing),
-                Port.fromLocalConnector(pos, new BlockPos(-1, 0, 2), Direction.SOUTH, facing),
-                Port.fromLocalConnector(pos, new BlockPos(1, 0, 2), Direction.SOUTH, facing),
-                Port.fromLocalConnector(pos, new BlockPos(-1, 0, -2), Direction.NORTH, facing),
-                Port.fromLocalConnector(pos, new BlockPos(1, 0, -2), Direction.NORTH, facing)
+                new Port(pos.offset(2, 0, -1).immutable(), Direction.EAST),
+                new Port(pos.offset(2, 0, 1).immutable(), Direction.EAST),
+                new Port(pos.offset(-2, 0, -1).immutable(), Direction.WEST),
+                new Port(pos.offset(-2, 0, 1).immutable(), Direction.WEST),
+                new Port(pos.offset(-1, 0, 1).immutable(), Direction.SOUTH),
+                new Port(pos.offset(1, 0, 1).immutable(), Direction.SOUTH),
+                new Port(pos.offset(-1, 0, -1).immutable(), Direction.NORTH),
+                new Port(pos.offset(1, 0, -1).immutable(), Direction.NORTH)
         );
     }
 
-    public static List<Port> portsFor(BlockPos pos) {
-        return portsFor(pos, Direction.NORTH);
+    private static List<Port> eastFluidTankPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.offset(1, 0, 2).immutable(), Direction.SOUTH),
+                new Port(pos.offset(-1, 0, 2).immutable(), Direction.SOUTH),
+                new Port(pos.offset(1, 0, -2).immutable(), Direction.NORTH),
+                new Port(pos.offset(-1, 0, -2).immutable(), Direction.NORTH),
+                new Port(pos.offset(-1, 0, -1).immutable(), Direction.WEST),
+                new Port(pos.offset(-1, 0, 1).immutable(), Direction.WEST),
+                new Port(pos.offset(1, 0, -1).immutable(), Direction.EAST),
+                new Port(pos.offset(1, 0, 1).immutable(), Direction.EAST)
+        );
+    }
+
+    private static List<Port> southFluidTankPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.offset(-2, 0, 1).immutable(), Direction.WEST),
+                new Port(pos.offset(-2, 0, -1).immutable(), Direction.WEST),
+                new Port(pos.offset(2, 0, 1).immutable(), Direction.EAST),
+                new Port(pos.offset(2, 0, -1).immutable(), Direction.EAST),
+                new Port(pos.offset(1, 0, -1).immutable(), Direction.NORTH),
+                new Port(pos.offset(-1, 0, -1).immutable(), Direction.NORTH),
+                new Port(pos.offset(1, 0, 1).immutable(), Direction.SOUTH),
+                new Port(pos.offset(-1, 0, 1).immutable(), Direction.SOUTH)
+        );
+    }
+
+    private static List<Port> westFluidTankPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.offset(-1, 0, -2).immutable(), Direction.NORTH),
+                new Port(pos.offset(1, 0, -2).immutable(), Direction.NORTH),
+                new Port(pos.offset(-1, 0, 2).immutable(), Direction.SOUTH),
+                new Port(pos.offset(1, 0, 2).immutable(), Direction.SOUTH),
+                new Port(pos.offset(1, 0, 1).immutable(), Direction.EAST),
+                new Port(pos.offset(1, 0, -1).immutable(), Direction.EAST),
+                new Port(pos.offset(-1, 0, 1).immutable(), Direction.WEST),
+                new Port(pos.offset(-1, 0, -1).immutable(), Direction.WEST)
+        );
     }
 
     protected boolean allowsFluidPort(BlockPos queriedPos, @Nullable Direction side) {
@@ -396,7 +440,7 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -731,6 +775,10 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     }
 
     protected static void refreshFluidDuctsAround(LevelAccessor level, BlockPos pos) {
+        BlockState ownState = level.getBlockState(pos);
+        if (ownState.getBlock() instanceof com.reinhardt.hbm.block.FluidDuctBlock duct) {
+            duct.refreshConnections(level, pos);
+        }
         for (Direction direction : Direction.values()) {
             BlockPos neighbor = pos.relative(direction);
             BlockState state = level.getBlockState(neighbor);
@@ -761,35 +809,8 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     }
 
     public record Port(BlockPos pos, Direction face) {
-        public static Port fromLocalConnector(BlockPos corePos, BlockPos connectorOffset, Direction localFace, Direction facing) {
-            Direction face = rotate(localFace, facing);
-            BlockPos connectorPos = corePos.offset(rotate(connectorOffset, facing));
-            return new Port(connectorPos.relative(face.getOpposite()).immutable(), face);
-        }
-
         public BlockPos connectorPos() {
             return this.pos.relative(this.face).immutable();
-        }
-
-        private static BlockPos rotate(BlockPos pos, Direction facing) {
-            return switch (facing) {
-                case EAST -> new BlockPos(-pos.getZ(), pos.getY(), pos.getX());
-                case SOUTH -> new BlockPos(-pos.getX(), pos.getY(), -pos.getZ());
-                case WEST -> new BlockPos(pos.getZ(), pos.getY(), -pos.getX());
-                default -> pos;
-            };
-        }
-
-        private static Direction rotate(Direction direction, Direction facing) {
-            if (direction.getAxis().isVertical()) {
-                return direction;
-            }
-            return switch (facing) {
-                case EAST -> direction.getClockWise();
-                case SOUTH -> direction.getOpposite();
-                case WEST -> direction.getCounterClockWise();
-                default -> direction;
-            };
         }
     }
 

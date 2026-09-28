@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "autoswitch.pilerod",
+  "duration": 40,
+  "power": 200,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:billet_po210be" }, "count": 3 }
+  ],
+  "result": { "id": "reinhardtshbm:pile_rod_po210be" }
+}

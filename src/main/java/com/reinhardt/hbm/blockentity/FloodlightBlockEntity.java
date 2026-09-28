@@ -8,6 +8,7 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -19,27 +20,51 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.function.Consumer;
 
 public final class FloodlightBlockEntity extends BlockEntity implements PowerEndpoint {
     public static final int LIGHT_COUNT = 15;
     public static final int MAX_POWER = 5_000;
     public static final int POWER_PER_TICK = 100;
     public static final int MAX_LENGTH = 64;
+    private static final Set<FloodlightBlockEntity> CLIENT_INSTANCES =
+            Collections.newSetFromMap(new WeakHashMap<>());
+    private static volatile Consumer<FloodlightBlockEntity> clientRenderSnapshotUpdater = ignored -> { };
+    private static volatile long clientRenderSnapshotRevision;
+
     private final BlockPos[] lightPositions = new BlockPos[LIGHT_COUNT];
     private int power;
     private int delay;
     private float rotation;
     private boolean on;
+    private volatile RenderSnapshot renderSnapshot;
+    private boolean clientRenderSnapshotDirty = true;
 
     public FloodlightBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.FLOODLIGHT.get(), pos, state);
+        this.renderSnapshot = new RenderSnapshot(
+                renderMeta(state), 0.0F, false, null, emptyBounds(pos), -1L);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, FloodlightBlockEntity light) {
         if (level.isClientSide) {
+            RenderSnapshot snapshot = light.renderSnapshot;
+            if (snapshot.meta() != renderMeta(state)
+                    || Float.floatToIntBits(snapshot.rotation()) != Float.floatToIntBits(light.rotation)
+                    || snapshot.on() != light.on
+                    || snapshot.revision() != clientRenderSnapshotRevision) {
+                light.clientRenderSnapshotDirty = true;
+            }
+            light.refreshClientRenderSnapshot();
             return;
         }
         PowerNetworkManager.tickFromEndpoint(level, light);
@@ -94,6 +119,9 @@ public final class FloodlightBlockEntity extends BlockEntity implements PowerEnd
         if (level != null && !level.isClientSide) {
             destroyLights();
             sync();
+        } else {
+            clientRenderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
         }
     }
 
@@ -198,6 +226,76 @@ public final class FloodlightBlockEntity extends BlockEntity implements PowerEnd
 
     public boolean isOn() { return on; }
     public float rotation() { return rotation; }
+    public RenderSnapshot renderSnapshot() { return renderSnapshot; }
+
+    /** Installed by the client renderer without introducing client classes on a dedicated server. */
+    public static void setClientRenderSnapshotUpdater(Consumer<FloodlightBlockEntity> updater) {
+        clientRenderSnapshotUpdater = Objects.requireNonNull(updater);
+        markLoadedClientSnapshotsDirty(false);
+    }
+
+    /** Publishes a new immutable post-bake generation to every loaded client instance. */
+    public static void invalidateClientRenderSnapshotsAfterBake() {
+        clientRenderSnapshotRevision++;
+        markLoadedClientSnapshotsDirty(true);
+    }
+
+    /** Removes old baked-quad generations from block entities during client logout. */
+    public static void clearClientRenderSnapshotsAfterLogout() {
+        clientRenderSnapshotRevision++;
+        synchronized (CLIENT_INSTANCES) {
+            for (FloodlightBlockEntity light : CLIENT_INSTANCES) {
+                light.renderSnapshot = new RenderSnapshot(
+                        renderMeta(light.getBlockState()), light.rotation, light.on,
+                        null, emptyBounds(light.worldPosition), -1L);
+                light.clientRenderSnapshotDirty = true;
+            }
+            CLIENT_INSTANCES.clear();
+        }
+    }
+
+    private static void markLoadedClientSnapshotsDirty(boolean refreshNow) {
+        ArrayList<FloodlightBlockEntity> loaded;
+        synchronized (CLIENT_INSTANCES) {
+            loaded = new ArrayList<>(CLIENT_INSTANCES);
+        }
+        for (FloodlightBlockEntity light : loaded) {
+            light.clientRenderSnapshotDirty = true;
+            if (refreshNow) {
+                light.refreshClientRenderSnapshot();
+            }
+        }
+    }
+
+    public static long clientRenderSnapshotRevision() {
+        return clientRenderSnapshotRevision;
+    }
+
+    public void refreshClientRenderSnapshot() {
+        if (clientRenderSnapshotDirty && level != null && level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientRenderSnapshot(RenderSnapshot snapshot) {
+        if (level == null || !level.isClientSide) {
+            return;
+        }
+        RenderSnapshot previous = renderSnapshot;
+        renderSnapshot = Objects.requireNonNull(snapshot);
+        clientRenderSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.bounds(), snapshot.bounds())) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        super.setBlockState(state);
+        clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
     public boolean isLightPosition(BlockPos pos, int index) {
         return index >= 0 && index < LIGHT_COUNT && pos.equals(lightPositions[index]);
     }
@@ -239,6 +337,62 @@ public final class FloodlightBlockEntity extends BlockEntity implements PowerEnd
         delay = Math.max(0, tag.getInt("Delay"));
         rotation = tag.getFloat("Rotation");
         on = tag.getBoolean("On");
+        clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (level != null && level.isClientSide) {
+            synchronized (CLIENT_INSTANCES) {
+                CLIENT_INSTANCES.add(this);
+            }
+            clientRenderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        synchronized (CLIENT_INSTANCES) {
+            CLIENT_INSTANCES.remove(this);
+        }
+        super.setRemoved();
+    }
+
+    private static int renderMeta(BlockState state) {
+        return state.getValue(FloodlightBlock.FACING).ordinal()
+                + (state.getValue(FloodlightBlock.FLIPPED) ? 6 : 0);
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(first.minY) == section(second.minY)
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    private static AABB emptyBounds(BlockPos pos) {
+        return new AABB(pos.getX(), pos.getY(), pos.getZ(),
+                pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public record RenderSnapshot(int meta, float rotation, boolean on, Object geometryToken,
+                                 AABB bounds, long revision) {
+        public RenderSnapshot {
+            Objects.requireNonNull(bounds);
+        }
     }
 
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries) { CompoundTag tag = super.getUpdateTag(registries); saveAdditional(tag, registries); return tag; }

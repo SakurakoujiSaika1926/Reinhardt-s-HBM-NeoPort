@@ -1,9 +1,9 @@
 package com.reinhardt.hbm.client.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,13 +20,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.AxisAngle4f;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class MachineModelRenderer {
     private static final RandomSource RANDOM = RandomSource.create();
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private static final Map<ModelResourceLocation, BakedModel> MODEL_CACHE = new ConcurrentHashMap<>();
 
     private MachineModelRenderer() {
     }
@@ -36,40 +41,19 @@ final class MachineModelRenderer {
     }
 
     static BakedModel model(ModelResourceLocation location) {
-        return Minecraft.getInstance().getModelManager().getModel(location);
+        return MODEL_CACHE.computeIfAbsent(
+                location,
+                key -> Minecraft.getInstance().getModelManager().getModel(key)
+        );
     }
 
-    static void orient(PoseStack poseStack, Direction facing, float extraDegrees) {
-        orientYaw(poseStack, yaw(facing) + extraDegrees);
+    static void invalidateModelCache() {
+        MODEL_CACHE.clear();
     }
 
-    static void orientLegacySouthZero(PoseStack poseStack, Direction facing) {
-        orientYaw(poseStack, 180.0F - yaw(facing));
-    }
-
-    static void orientLegacyStirlingParts(PoseStack poseStack, Direction facing) {
-        // RenderStirling translated to the block center, then rotated the
-        // origin-authored 1.7.10 OBJ without translating back.
-        orientLegacyWavefrontOriginYaw(poseStack, legacyStirlingYaw(facing));
-    }
-
-    static void orientLegacyHeaterParts(PoseStack poseStack, Direction facing) {
-        orientYaw(poseStack, legacyHeaterYaw(facing));
-    }
-
-    static void orientLegacyGasTurbineParts(PoseStack poseStack, Direction facing) {
-        orientLegacyWavefrontOriginYaw(poseStack, legacyGasTurbineYaw(facing));
-    }
-
-    static void orientYaw(PoseStack poseStack, float degrees) {
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        poseStack.mulPose(yawQuaternion(degrees));
-        poseStack.translate(-0.5F, 0.0F, -0.5F);
-    }
-
-    static void orientLegacyWavefrontOriginYaw(PoseStack poseStack, float degrees) {
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        poseStack.mulPose(yawQuaternion(degrees));
+    /** Combines the level view transform with a block entity's local pose for direct VBO draws. */
+    static Matrix4f composeModelView(PoseStack poseStack) {
+        return new Matrix4f(RenderSystem.getModelViewMatrix()).mul(poseStack.last().pose());
     }
 
     static Quaternionf xQuaternion(float degrees) {
@@ -171,9 +155,38 @@ final class MachineModelRenderer {
         renderUnculledTintedUv(model, poseStack, bufferSource, state, packedLight, packedOverlay, argb, 0.0F, 0.0F);
     }
 
+    static void renderUnculledTinted(BakedModel model, PoseStack poseStack, MultiBufferSource bufferSource,
+                                      BlockState state, int packedLight, int packedOverlay,
+                                      float red, float green, float blue, float alpha) {
+        for (RenderType renderType : model.getRenderTypes(state, RANDOM, ModelData.EMPTY)) {
+            RenderType entityRenderType = RenderTypeHelper.getEntityRenderType(renderType, false);
+            VertexConsumer consumer = bufferSource.getBuffer(entityRenderType);
+            renderQuads(model, poseStack, consumer, state, packedLight, packedOverlay, renderType,
+                    red, green, blue, alpha);
+        }
+    }
+
     static void renderUnculledTintedTranslucent(BakedModel model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay, int argb) {
         renderUnculledTintedUv(model, poseStack, bufferSource, state, packedLight, packedOverlay, argb,
                 0.0F, 0.0F, 1.0F, 1.0F, RenderType.entityTranslucent(TextureAtlas.LOCATION_BLOCKS));
+    }
+
+    /**
+     * Emits the same unculled tinted model data as
+     * {@link #renderUnculledTintedTranslucent}, but into an already selected
+     * vertex consumer. This is used when immutable machine geometry is baked
+     * once into a static vertex buffer instead of being rebuilt every frame.
+     */
+    static void emitUnculledTinted(BakedModel model, PoseStack poseStack, VertexConsumer consumer,
+                                   BlockState state, int packedLight, int packedOverlay, int argb) {
+        float alpha = ((argb >>> 24) & 0xFF) / 255.0F;
+        float red = ((argb >>> 16) & 0xFF) / 255.0F;
+        float green = ((argb >>> 8) & 0xFF) / 255.0F;
+        float blue = (argb & 0xFF) / 255.0F;
+        for (RenderType renderType : model.getRenderTypes(state, RANDOM, ModelData.EMPTY)) {
+            renderQuads(model, poseStack, consumer, state, packedLight, packedOverlay, renderType,
+                    red, green, blue, alpha);
+        }
     }
 
     /** Untextured full-bright colour pass for legacy GL geometry rendered with texture disabled. */
@@ -230,7 +243,7 @@ final class MachineModelRenderer {
         PoseStack.Pose pose = poseStack.last();
         RANDOM.setSeed(42L);
         renderQuadList(model.getQuads(state, null, RANDOM, ModelData.EMPTY, renderType), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha, uOffset, vOffset, uScale, vScale);
-        for (Direction side : Direction.values()) {
+        for (Direction side : DIRECTIONS) {
             RANDOM.setSeed(42L);
             renderQuadList(model.getQuads(state, side, RANDOM, ModelData.EMPTY, renderType), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha, uOffset, vOffset, uScale, vScale);
         }
@@ -240,7 +253,7 @@ final class MachineModelRenderer {
         PoseStack.Pose pose = poseStack.last();
         RANDOM.setSeed(42L);
         renderQuadList(model.getQuads(state, null, RANDOM, ModelData.EMPTY, renderType), pose, consumer, packedLight, packedOverlay);
-        for (Direction side : Direction.values()) {
+        for (Direction side : DIRECTIONS) {
             if (excludedDirections.contains(side)) {
                 continue;
             }
@@ -264,7 +277,7 @@ final class MachineModelRenderer {
         RANDOM.setSeed(42L);
         renderStandaloneTextureQuadList(model.getQuads(state, null, RANDOM, ModelData.EMPTY, renderType),
                 pose, consumer, packedLight, packedOverlay, uOffset, vOffset, red, green, blue, alpha);
-        for (Direction side : Direction.values()) {
+        for (Direction side : DIRECTIONS) {
             RANDOM.setSeed(42L);
             renderStandaloneTextureQuadList(model.getQuads(state, side, RANDOM, ModelData.EMPTY, renderType),
                     pose, consumer, packedLight, packedOverlay, uOffset, vOffset, red, green, blue, alpha);
@@ -273,6 +286,31 @@ final class MachineModelRenderer {
 
     private static void renderQuadList(List<BakedQuad> quads, PoseStack.Pose pose, VertexConsumer consumer, int packedLight, int packedOverlay) {
         renderQuadList(quads, pose, consumer, packedLight, packedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    /** Emits an immutable main-thread-captured quad list without resolving a model again. */
+    static void renderCapturedQuads(List<BakedQuad> quads, PoseStack poseStack, VertexConsumer consumer,
+                                    int packedLight, int packedOverlay) {
+        renderQuadList(quads, poseStack.last(), consumer, packedLight, packedOverlay);
+    }
+
+    /** Emits immutable main-thread-captured quads with the legacy translucent structure tint. */
+    static void emitCapturedQuadsTinted(List<BakedQuad> quads, PoseStack poseStack, VertexConsumer consumer,
+                                        int packedLight, int packedOverlay, int argb) {
+        float alpha = ((argb >>> 24) & 0xFF) / 255.0F;
+        float red = ((argb >>> 16) & 0xFF) / 255.0F;
+        float green = ((argb >>> 8) & 0xFF) / 255.0F;
+        float blue = (argb & 0xFF) / 255.0F;
+        renderQuadList(quads, poseStack.last(), consumer, packedLight, packedOverlay,
+                red, green, blue, alpha);
+    }
+
+    /** Emits captured standalone-model quads through the same sprite-normalized UV path as renderUnculledUv. */
+    static void renderCapturedQuadsStandaloneTexture(List<BakedQuad> quads, PoseStack poseStack,
+                                                     VertexConsumer consumer, int packedLight, int packedOverlay,
+                                                     float uOffset, float vOffset) {
+        renderStandaloneTextureQuadList(quads, poseStack.last(), consumer, packedLight, packedOverlay,
+                uOffset, vOffset);
     }
 
     private static void renderQuadList(List<BakedQuad> quads, PoseStack.Pose pose, VertexConsumer consumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
@@ -389,38 +427,4 @@ final class MachineModelRenderer {
         return min + normalized * width;
     }
 
-    static Quaternionf yawQuaternion(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
-    }
-
-    static float yaw(Direction facing) {
-        return LegacyMachineGeometry.yawModernNorth(facing);
-    }
-
-    private static float legacyHeaterYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 0.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            default -> 90.0F;
-        };
-    }
-
-    private static float legacyGasTurbineYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 0.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            default -> 90.0F;
-        };
-    }
-
-    private static float legacyStirlingYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 90.0F;
-            case SOUTH -> 0.0F;
-            case WEST -> 270.0F;
-            default -> 180.0F;
-        };
-    }
 }

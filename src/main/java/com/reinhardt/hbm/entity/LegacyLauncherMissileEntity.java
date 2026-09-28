@@ -40,7 +40,7 @@ public final class LegacyLauncherMissileEntity extends Entity implements LegacyR
     private int interpolationTicks;
 
     public LegacyLauncherMissileEntity(EntityType<? extends LegacyLauncherMissileEntity> type, Level level) {
-        super(type, level); noCulling = true;
+        super(type, level);
     }
     public static LegacyLauncherMissileEntity create(Level level, ItemStack stack, double x, double y, double z,
                                                      int targetX, int targetZ, Direction facing) {
@@ -225,7 +225,7 @@ public final class LegacyLauncherMissileEntity extends Entity implements LegacyR
         fuel=tag.getFloat("fuel"); consumption=tag.getFloat("consumption");
     }
     @Override public String translationKey() {
-        if (isAntiBallistic()) return "radar.target.ab";
+        if (isAntiBallistic()) return "radar.target.abm";
         if (missileId().equals("missile_doomsday") || missileId().equals("missile_doomsday_rusted")) return "radar.target.doomsday";
         if (missileId().equals("missile_shuttle")) return "radar.target.shuttle";
         if (missileItem().getItem() instanceof CustomMissileItem) return switch (blipLevel()) {

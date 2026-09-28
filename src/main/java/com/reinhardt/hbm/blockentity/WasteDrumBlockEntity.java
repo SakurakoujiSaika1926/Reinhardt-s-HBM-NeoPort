@@ -157,7 +157,7 @@ public class WasteDrumBlockEntity extends BlockEntity implements MachineInventor
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

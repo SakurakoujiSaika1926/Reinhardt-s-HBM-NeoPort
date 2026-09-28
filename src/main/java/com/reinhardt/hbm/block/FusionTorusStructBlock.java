@@ -27,7 +27,7 @@ public class FusionTorusStructBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide || type != HbmBlockEntities.FUSION_TORUS_STRUCT.get()) {
+        if (type != HbmBlockEntities.FUSION_TORUS_STRUCT.get()) {
             return null;
         }
         return (tickerLevel, pos, tickerState, blockEntity) -> {

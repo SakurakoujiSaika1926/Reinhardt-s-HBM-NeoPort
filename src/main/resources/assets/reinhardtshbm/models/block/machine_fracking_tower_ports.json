@@ -7,16 +7,20 @@
   "flip_v": true,
   "emissive_ambient": false,
   "visibility": {
-    "pZ/pY": false,
-    "pZ/nnn": false,
-    "pZ/nnp": false,
-    "pZ/pnp": false,
-    "pZ/pnn": false,
-    "pZ/ppn": false,
-    "pZ/npn": false,
-    "pZ/npp": false,
-    "pZ/ppp": false,
-    "pZ/nY": false
+    "pZ": true,
+    "pX": true,
+    "nZ": true,
+    "nX": true,
+    "pY": false,
+    "nnn": false,
+    "nnp": false,
+    "pnp": false,
+    "pnn": false,
+    "ppn": false,
+    "npn": false,
+    "npp": false,
+    "ppp": false,
+    "nY": false
   },
   "textures": {
     "particle": "reinhardtshbm:block/pipe_silver"

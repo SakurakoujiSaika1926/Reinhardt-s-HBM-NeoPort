@@ -96,13 +96,22 @@ public final class BrickFurnaceBlock extends Block implements EntityBlock {
             return;
         }
         Direction facing = state.getValue(FACING);
-        Direction side = facing.getClockWise();
         double centerX = pos.getX() + 0.5D;
         double centerZ = pos.getZ() + 0.5D;
         double variance = random.nextDouble() * 0.6D - 0.3D;
-        double particleX = centerX + facing.getStepX() * 0.52D + side.getStepX() * variance;
+        double particleX = switch (facing) {
+            case NORTH, SOUTH -> centerX + variance;
+            case EAST -> centerX + 0.52D;
+            case WEST -> centerX - 0.52D;
+            case UP, DOWN -> throw new IllegalArgumentException("Brick furnace facing must be horizontal: " + facing);
+        };
+        double particleZ = switch (facing) {
+            case NORTH -> centerZ - 0.52D;
+            case EAST, WEST -> centerZ + variance;
+            case SOUTH -> centerZ + 0.52D;
+            case UP, DOWN -> throw new IllegalArgumentException("Brick furnace facing must be horizontal: " + facing);
+        };
         double particleY = pos.getY() + random.nextDouble() * 0.375D;
-        double particleZ = centerZ + facing.getStepZ() * 0.52D + side.getStepZ() * variance;
         level.addParticle(ParticleTypes.SMOKE,
                 particleX, particleY, particleZ, 0.0D, 0.0D, 0.0D);
         level.addParticle(ParticleTypes.FLAME,

@@ -25,6 +25,8 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -86,7 +88,155 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case GRAPHITE -> graphiteStateForPlacement(context);
+            case DRILLED -> drilledStateForPlacement(context);
+            case FUEL -> fuelStateForPlacement(context);
+            case PLUTONIUM -> plutoniumStateForPlacement(context);
+            case CONTROL -> controlStateForPlacement(context);
+            case SOURCE -> sourceStateForPlacement(context);
+            case LITHIUM -> lithiumStateForPlacement(context);
+            case TRITIUM -> tritiumStateForPlacement(context);
+            case DETECTOR -> detectorStateForPlacement(context);
+        };
+    }
+
+    private BlockState graphiteStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState drilledStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState fuelStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState plutoniumStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState controlStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState sourceStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState lithiumStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState tritiumStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    private BlockState detectorStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.kind) {
+            case GRAPHITE -> rotateGraphite(state, rotation);
+            case DRILLED -> rotateDrilled(state, rotation);
+            case FUEL -> rotateFuel(state, rotation);
+            case PLUTONIUM -> rotatePlutonium(state, rotation);
+            case CONTROL -> rotateControl(state, rotation);
+            case SOURCE -> rotateSource(state, rotation);
+            case LITHIUM -> rotateLithium(state, rotation);
+            case TRITIUM -> rotateTritium(state, rotation);
+            case DETECTOR -> rotateDetector(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case GRAPHITE -> mirrorGraphite(state, mirror);
+            case DRILLED -> mirrorDrilled(state, mirror);
+            case FUEL -> mirrorFuel(state, mirror);
+            case PLUTONIUM -> mirrorPlutonium(state, mirror);
+            case CONTROL -> mirrorControl(state, mirror);
+            case SOURCE -> mirrorSource(state, mirror);
+            case LITHIUM -> mirrorLithium(state, mirror);
+            case TRITIUM -> mirrorTritium(state, mirror);
+            case DETECTOR -> mirrorDetector(state, mirror);
+        };
+    }
+
+    private static BlockState rotateGraphite(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateDrilled(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateFuel(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotatePlutonium(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateControl(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateSource(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateLithium(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateTritium(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateDetector(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState mirrorGraphite(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorDrilled(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorFuel(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorPlutonium(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorControl(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorSource(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorLithium(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorTritium(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorDetector(BlockState state, Mirror mirror) {
+        return state;
     }
 
     @Override
@@ -235,7 +385,7 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
         }
 
         if (!level.isClientSide) {
-            boolean active = stack.is(HbmItems.PILE_ROD_PU239.get());
+            boolean active = stack.is(HbmItems.PILE_ROD_PU239_GRAPHITE.get());
             level.setBlock(pos, stateFor(target, state.getValue(AXIS), state.getValue(ALUMINIUM), active), Block.UPDATE_ALL);
             consumeHeld(player, hand, stack);
             level.playSound(null, pos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 0.75F, 1.0F);
@@ -246,7 +396,7 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
     private void extractRod(Level level, BlockPos pos, BlockState state, Direction side, Player player, InteractionHand hand, ItemStack screwdriver) {
         Item rod = this.kind.insertedRod();
         if (this.kind == Kind.FUEL && state.getValue(ACTIVE)) {
-            rod = HbmItems.PILE_ROD_PU239.get();
+            rod = HbmItems.PILE_ROD_PU239_GRAPHITE.get();
         }
         level.setBlock(pos, stateFor(Kind.DRILLED, state.getValue(AXIS), state.getValue(ALUMINIUM), false), Block.UPDATE_ALL);
         eject(level, pos, side, new ItemStack(rod));
@@ -373,7 +523,7 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
                 incomingKind,
                 initialState.getValue(AXIS),
                 initialState.getValue(ALUMINIUM),
-                stack.is(HbmItems.PILE_ROD_PU239.get())
+                stack.is(HbmItems.PILE_ROD_PU239_GRAPHITE.get())
         );
         PileGraphiteBlockEntity.PileState carriedPileState = null;
 
@@ -420,7 +570,7 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
     }
 
     private static Kind targetFor(ItemStack stack) {
-        if (stack.is(HbmItems.PILE_ROD_URANIUM.get()) || stack.is(HbmItems.PILE_ROD_PU239.get())) {
+        if (stack.is(HbmItems.PILE_ROD_URANIUM.get()) || stack.is(HbmItems.PILE_ROD_PU239_GRAPHITE.get())) {
             return Kind.FUEL;
         }
         if (stack.is(HbmItems.PILE_ROD_PLUTONIUM.get())) {
@@ -450,7 +600,7 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
             return null;
         }
         if (block.kind == Kind.FUEL && state.getValue(ACTIVE)) {
-            return HbmItems.PILE_ROD_PU239.get();
+            return HbmItems.PILE_ROD_PU239_GRAPHITE.get();
         }
         return block.kind.insertedRod();
     }
@@ -507,7 +657,7 @@ public final class PileGraphiteBlock extends Block implements EntityBlock {
         Item rod = this.kind.insertedRod();
         if (rod != null) {
             if (this.kind == Kind.FUEL && state.getValue(ACTIVE)) {
-                rod = HbmItems.PILE_ROD_PU239.get();
+                rod = HbmItems.PILE_ROD_PU239_GRAPHITE.get();
             }
             drops.add(new ItemStack(rod));
         }

@@ -2,10 +2,10 @@ package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.client.search.JechSearchCompat;
+import com.reinhardt.hbm.client.screen.widget.SearchEditBox;
 import com.reinhardt.hbm.menu.HbmAnvilMenu;
 import com.reinhardt.hbm.recipe.anvil.AnvilConstructionRecipe;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -26,7 +26,7 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
 
     private final List<AnvilConstructionRecipe> originRecipes;
     private final List<AnvilConstructionRecipe> recipes = new ArrayList<>();
-    private EditBox search;
+    private SearchEditBox search;
     private int page;
     private int pageCount;
     private int selection = -1;
@@ -46,7 +46,7 @@ public class HbmAnvilScreen extends AbstractContainerScreen<HbmAnvilMenu> {
         super.init();
         this.titleLabelX = 61 - this.font.width(this.title) / 2;
         String previousQuery = this.search == null ? "" : this.search.getValue();
-        this.search = new EditBox(this.font, this.leftPos + 10, this.topPos + 111, 84, 12, Component.translatable("container.reinhardtshbm.anvil.search"));
+        this.search = new SearchEditBox(this.font, this.leftPos + 10, this.topPos + 111, 84, 12, Component.translatable("container.reinhardtshbm.anvil.search"));
         this.search.setTextColor(0xFFFFFF);
         this.search.setTextColorUneditable(0xFFFFFF);
         this.search.setBordered(false);

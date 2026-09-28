@@ -598,7 +598,6 @@ sliding_seal_door
 snowglobe
 solar_mirror
 soyuz_capsule
-soyuz_launcher
 spikes
 spotlight_beam
 spotlight_fluoro
@@ -629,7 +628,6 @@ struct_launcher
 struct_launcher_core
 struct_launcher_core_large
 struct_scaffold
-struct_soyuz_core
 struct_torus_core
 struct_watz_core
 substation

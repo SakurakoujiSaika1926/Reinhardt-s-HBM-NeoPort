@@ -48,9 +48,36 @@ public class PowerMachineBlock extends Block implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.type) {
+            case WOOD_BURNER -> woodBurnerStateForPlacement(context);
+            case ELECTRIC_FURNACE -> electricFurnaceStateForPlacement(context);
+            case ELECTRIC_FURNACE_ON -> litElectricFurnaceStateForPlacement(context);
+            case SHREDDER -> shredderStateForPlacement(context);
+        };
+    }
+
+    private BlockState woodBurnerStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState()
                 .setValue(FACING, context.getHorizontalDirection().getOpposite())
-                .setValue(LIT, this.type == MachineType.ELECTRIC_FURNACE_ON);
+                .setValue(LIT, false);
+    }
+
+    private BlockState electricFurnaceStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState()
+                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(LIT, false);
+    }
+
+    private BlockState litElectricFurnaceStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState()
+                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(LIT, true);
+    }
+
+    private BlockState shredderStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState()
+                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(LIT, false);
     }
 
     @Override
@@ -157,11 +184,53 @@ public class PowerMachineBlock extends Block implements EntityBlock {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.type) {
+            case WOOD_BURNER -> rotateWoodBurner(state, rotation);
+            case ELECTRIC_FURNACE -> rotateElectricFurnace(state, rotation);
+            case ELECTRIC_FURNACE_ON -> rotateLitElectricFurnace(state, rotation);
+            case SHREDDER -> rotateShredder(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.type) {
+            case WOOD_BURNER -> mirrorWoodBurner(state, mirror);
+            case ELECTRIC_FURNACE -> mirrorElectricFurnace(state, mirror);
+            case ELECTRIC_FURNACE_ON -> mirrorLitElectricFurnace(state, mirror);
+            case SHREDDER -> mirrorShredder(state, mirror);
+        };
+    }
+
+    private static BlockState rotateWoodBurner(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateElectricFurnace(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateLitElectricFurnace(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateShredder(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorWoodBurner(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorElectricFurnace(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorLitElectricFurnace(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorShredder(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

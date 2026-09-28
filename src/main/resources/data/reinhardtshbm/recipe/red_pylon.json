@@ -4,7 +4,7 @@
     "pattern":  [
                     "CWC",
                     "PWP",
-                    " T "
+                    " S "
                 ],
     "key":  {
                 "C":  {
@@ -16,8 +16,8 @@
                 "P":  {
                           "tag":  "c:plates/polymer"
                       },
-                "T":  {
-                          "item":  "reinhardtshbm:red_wire_coated"
+                "S":  {
+                          "tag":  "c:cobblestones"
                       }
             },
     "result":  {

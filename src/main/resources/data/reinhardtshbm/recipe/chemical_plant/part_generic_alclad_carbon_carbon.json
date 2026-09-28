@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.carboncarbon",
+  "duration": 400,
+  "power": 100000,
+  "input_items": [
+    { "ingredient": { "tag": "c:gems/coke" }, "count": 8 },
+    { "ingredient": { "tag": "c:plates/titanium" }, "count": 1 }
+  ],
+  "input_fluids": [
+    { "fluid": "heavyoil_vacuum", "amount": 1000 },
+    { "fluid": "syngas", "amount": 8000 }
+  ],
+  "output_items": [
+    { "id": "reinhardtshbm:part_generic_alclad", "count": 1 }
+  ],
+  "output_fluids": []
+}

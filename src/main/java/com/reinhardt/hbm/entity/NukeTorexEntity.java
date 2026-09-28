@@ -34,7 +34,6 @@ public class NukeTorexEntity extends Entity {
 
     public NukeTorexEntity(EntityType<? extends NukeTorexEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
         setNoGravity(true);
     }
 

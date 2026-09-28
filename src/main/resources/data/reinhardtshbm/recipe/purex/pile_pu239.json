@@ -19,17 +19,11 @@
   ],
   "output_items": [
     {
-      "id": "reinhardtshbm:billet_pu239"
-    },
-    {
-      "id": "reinhardtshbm:billet_pu_mix"
+      "id": "reinhardtshbm:billet_pu239",
+      "count": 2
     },
     {
       "id": "reinhardtshbm:billet_uranium"
-    },
-    {
-      "id": "reinhardtshbm:plate_iron",
-      "count": 2
     }
   ]
 }

@@ -4,11 +4,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.entity.SawbladeEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
@@ -16,6 +18,7 @@ import org.joml.Quaternionf;
 /** Direct transform port of RenderSawblade. */
 public final class SawbladeEntityRenderer extends EntityRenderer<SawbladeEntity> {
     private static final ModelResourceLocation BLADE = MachineModelRenderer.standalone("block/machine_sawmill_blade");
+    private static volatile double visualRadius = Double.NaN;
 
     public SawbladeEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -46,6 +49,31 @@ public final class SawbladeEntityRenderer extends EntityRenderer<SawbladeEntity>
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BLADE), poseStack, bufferSource, state, packedLight, 0);
         poseStack.popPose();
         super.render(blade, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+    }
+
+    @Override
+    public boolean shouldRender(SawbladeEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        return EntityRenderBounds.shouldRender(entity,
+                EntityRenderBounds.radius(entity.getX(), entity.getY(), entity.getZ(), visualRadius()),
+                frustum, cameraX, cameraY, cameraZ);
+    }
+
+    static void invalidateBounds() {
+        visualRadius = Double.NaN;
+    }
+
+    private static double visualRadius() {
+        double cached = visualRadius;
+        if (Double.isFinite(cached)) return cached;
+        PoseStack poseStack = new PoseStack();
+        poseStack.translate(0.0D, -1.375D, 0.0D);
+        BlockState state = HbmBlocks.MACHINE_SAWMILL.get().defaultBlockState();
+        double local = BakedBlockGeometrySnapshot.build(
+                MachineModelRenderer.model(BLADE), state, java.util.List.of(poseStack),
+                net.minecraft.core.BlockPos.ZERO).maximumRadius();
+        visualRadius = Math.nextUp(local + 1.0D);
+        return visualRadius;
     }
 
     @Override

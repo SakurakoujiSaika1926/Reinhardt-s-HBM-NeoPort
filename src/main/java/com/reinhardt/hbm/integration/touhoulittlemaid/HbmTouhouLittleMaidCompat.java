@@ -58,7 +58,7 @@ public final class HbmTouhouLittleMaidCompat {
         try {
             Object inventory = method.get().invoke(entity);
             return inventory instanceof IItemHandler handler ? handler : null;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
             return null;
         }
     }
@@ -70,7 +70,7 @@ public final class HbmTouhouLittleMaidCompat {
                 return Optional.empty();
             }
             return Optional.of(method);
-        } catch (NoSuchMethodException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
             return Optional.empty();
         }
     }

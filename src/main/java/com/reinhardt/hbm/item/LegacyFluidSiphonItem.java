@@ -3,6 +3,7 @@ package com.reinhardt.hbm.item;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTrait;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -41,29 +42,41 @@ public final class LegacyFluidSiphonItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        for (int tank = 0; tank < tanks.getTanks(); tank++) {
-            FluidStack stored = tanks.getFluidInTank(tank);
-            HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(stored.getFluid()).orElse(HbmFluids.none());
-            if (stored.isEmpty() || fluid.isNone() || fluid.hasTrait(HbmFluidTrait.UNSIPHONABLE)) {
-                continue;
-            }
+        try {
+            for (int tank = 0; tank < tanks.getTanks(); tank++) {
+                FluidStack stored = tanks.getFluidInTank(tank);
+                HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(stored.getFluid()).orElse(HbmFluids.none());
+                if (stored.isEmpty() || fluid.isNone() || fluid.hasTrait(HbmFluidTrait.UNSIPHONABLE)) {
+                    continue;
+                }
 
-            boolean drained = fillFullContainers(player, tanks, stored);
-            FluidStack remaining = tanks.getFluidInTank(tank);
-            if (remaining.getAmount() < BUCKET) {
-                drained |= fillPipette(player, tanks, remaining);
+                boolean drained = fillFullContainers(player, tanks, stored);
+                FluidStack remaining = tanks.getFluidInTank(tank);
+                if (remaining.getAmount() < BUCKET) {
+                    drained |= fillPipette(player, tanks, remaining);
+                }
+                // 1.7.10 intentionally stopped after draining one compatible tank.
+                if (drained) {
+                    return InteractionResult.CONSUME;
+                }
             }
-            // 1.7.10 intentionally stopped after draining one compatible tank.
-            if (drained) {
-                return InteractionResult.CONSUME;
-            }
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, context.getClickedPos(), context.getClickedFace(),
+                    "fluid handler", "legacy siphon transfer", failure);
+            return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
     }
 
     private static IFluidHandler fluidHandler(Level level, BlockPos pos, Direction clickedFace) {
-        IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null);
-        return handler != null ? handler : level.getCapability(Capabilities.FluidHandler.BLOCK, pos, clickedFace);
+        try {
+            IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null);
+            return handler != null ? handler : level.getCapability(Capabilities.FluidHandler.BLOCK, pos, clickedFace);
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, pos, clickedFace,
+                    "fluid handler", "legacy siphon capability discovery", failure);
+            return null;
+        }
     }
 
     private static boolean fillFullContainers(Player player, IFluidHandler tanks, FluidStack stored) {

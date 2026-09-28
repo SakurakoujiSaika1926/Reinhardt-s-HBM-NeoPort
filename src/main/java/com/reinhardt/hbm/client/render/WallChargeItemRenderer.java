@@ -19,9 +19,11 @@ import net.minecraft.world.level.block.state.BlockState;
  * <p>1.7.10 rendered these through one {@code RenderBlockRotated} handler:
  * dynamite/miner used {@code charge_dynamite.obj}, while C4/semtex used
  * {@code charge_c4.obj}. Its only target-local operation was Y=-90 degrees,
- * Z=-90 degrees, then Y=0.375. The context matrices below are written here,
- * rather than delegated to a shared helper, because this route must preserve
- * the old block-item pipeline without any automatic fitting.</p>
+ * Z=-90 degrees, then Y=0.375. That local pair maps the authored visible
+ * +Y face (the timer/label side) onto +Z, exactly like the corrected CRT and
+ * IBM 300PL item fronts. The context matrices below therefore keep +Z facing
+ * the item camera; they are written per variant rather than delegated to a
+ * shared rotation helper.</p>
  */
 public final class WallChargeItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final ModelResourceLocation DYNAMITE = model("block/charge_dynamite_world");
@@ -41,17 +43,34 @@ public final class WallChargeItemRenderer extends BlockEntityWithoutLevelRendere
         }
 
         Block block = blockItem.getBlock();
-        ModelResourceLocation model = modelFor(block);
-        BlockState state = block.defaultBlockState();
+        if (block == HbmBlocks.CHARGE_DYNAMITE.get()) {
+            renderDynamiteChargeItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (block == HbmBlocks.CHARGE_MINER.get()) {
+            renderMinerChargeItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (block == HbmBlocks.CHARGE_C4.get()) {
+            renderC4ChargeItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (block == HbmBlocks.CHARGE_SEMTEX.get()) {
+            renderSemtexChargeItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else {
+            throw new IllegalArgumentException("Wall-charge renderer received an unsupported block: " + block);
+        }
+    }
 
+    private static void renderDynamiteChargeItem(ItemDisplayContext context, PoseStack poseStack,
+                                                 MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        // The old RenderItem block route applies these literal context poses
-        // before RenderBlockRotated receives the matrix.
+        applyDynamiteChargeItemPose(context, poseStack);
+        renderChargeModel(DYNAMITE, HbmBlocks.CHARGE_DYNAMITE.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyDynamiteChargeItemPose(ItemDisplayContext context, PoseStack poseStack) {
         poseStack.translate(0.5F, 0.5F, 0.5F);
         switch (context) {
             case GUI -> {
                 poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
                 poseStack.scale(0.625F, 0.625F, 0.625F);
             }
             case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
@@ -61,16 +80,22 @@ public final class WallChargeItemRenderer extends BlockEntityWithoutLevelRendere
                 poseStack.scale(0.375F, 0.375F, 0.375F);
             }
             case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
-                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
                 poseStack.scale(0.4F, 0.4F, 0.4F);
             }
             case GROUND -> {
                 poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
                 poseStack.scale(0.25F, 0.25F, 0.25F);
             }
-            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
-            case NONE, HEAD -> throw new IllegalArgumentException(
-                    "1.7.10 RenderBlockRotated has no " + context + " item context");
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case NONE -> {
+            }
         }
 
         // RenderBlockRotated#renderInventoryBlock, in the source order.
@@ -78,17 +103,153 @@ public final class WallChargeItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
         poseStack.translate(0.0F, 0.375F, 0.0F);
         poseStack.translate(-0.5F, -0.5F, -0.5F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack,
-                bufferSource, state, packedLight, packedOverlay);
+    }
+
+    private static void renderMinerChargeItem(ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyMinerChargeItemPose(context, poseStack);
+        renderChargeModel(MINER, HbmBlocks.CHARGE_MINER.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static ModelResourceLocation modelFor(Block block) {
-        if (block == HbmBlocks.CHARGE_DYNAMITE.get()) return DYNAMITE;
-        if (block == HbmBlocks.CHARGE_MINER.get()) return MINER;
-        if (block == HbmBlocks.CHARGE_C4.get()) return C4;
-        if (block == HbmBlocks.CHARGE_SEMTEX.get()) return SEMTEX;
-        throw new IllegalArgumentException("Wall-charge renderer received an unsupported block: " + block);
+    private static void applyMinerChargeItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case NONE -> {
+            }
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+        poseStack.translate(0.0F, 0.375F, 0.0F);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+    }
+
+    private static void renderC4ChargeItem(ItemDisplayContext context, PoseStack poseStack,
+                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyC4ChargeItemPose(context, poseStack);
+        renderChargeModel(C4, HbmBlocks.CHARGE_C4.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyC4ChargeItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case NONE -> {
+            }
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+        poseStack.translate(0.0F, 0.375F, 0.0F);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+    }
+
+    private static void renderSemtexChargeItem(ItemDisplayContext context, PoseStack poseStack,
+                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applySemtexChargeItemPose(context, poseStack);
+        renderChargeModel(SEMTEX, HbmBlocks.CHARGE_SEMTEX.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applySemtexChargeItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case NONE -> {
+            }
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+        poseStack.translate(0.0F, 0.375F, 0.0F);
+        poseStack.translate(-0.5F, -0.5F, -0.5F);
+    }
+
+    private static void renderChargeModel(ModelResourceLocation model, BlockState state, PoseStack poseStack,
+                                          MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack,
+                bufferSource, state, packedLight, packedOverlay);
     }
 
     private static ModelResourceLocation model(String path) {

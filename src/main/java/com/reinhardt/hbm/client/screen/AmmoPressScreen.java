@@ -2,10 +2,10 @@ package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.blockentity.AmmoPressBlockEntity;
+import com.reinhardt.hbm.client.screen.widget.SearchEditBox;
 import com.reinhardt.hbm.menu.AmmoPressMenu;
 import com.reinhardt.hbm.recipe.AmmoPressRecipe;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +23,7 @@ public class AmmoPressScreen extends AbstractContainerScreen<AmmoPressMenu> {
     private static final float GHOST_ALPHA = 0.20F;
     private static final int RECIPES_PER_PAGE = 12;
 
-    private EditBox search;
+    private SearchEditBox search;
     private List<RecipeHolder<AmmoPressRecipe>> filteredRecipes = List.of();
     private int page;
 
@@ -38,7 +38,7 @@ public class AmmoPressScreen extends AbstractContainerScreen<AmmoPressMenu> {
     protected void init() {
         super.init();
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
-        this.search = new EditBox(this.font, this.leftPos + 10, this.topPos + 75, 66, 12, Component.translatable("container.reinhardtshbm.ammo_press.search"));
+        this.search = new SearchEditBox(this.font, this.leftPos + 10, this.topPos + 75, 66, 12, Component.translatable("container.reinhardtshbm.ammo_press.search"));
         this.search.setBordered(false);
         this.search.setTextColor(0xFFFFFF);
         this.search.setResponder(text -> {

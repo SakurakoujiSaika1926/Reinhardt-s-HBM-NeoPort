@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [{ "item": "reinhardtshbm:billet_americium_fuel" }],
+  "result": { "id": "reinhardtshbm:nugget_americium_fuel", "count": 6 }
+}

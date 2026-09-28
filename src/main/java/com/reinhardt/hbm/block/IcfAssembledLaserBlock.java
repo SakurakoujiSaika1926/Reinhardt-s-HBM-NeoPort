@@ -36,7 +36,11 @@ public final class IcfAssembledLaserBlock extends LegacyVariantBlock implements 
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState replacement, boolean movedByPiston) {
-        if (!state.is(replacement.getBlock()) && level.getBlockEntity(pos) instanceof IcfAssembledLaserBlockEntity assembled) {
+        // Contraption capture is a move. Restoring the raw laser component in
+        // the source world here would duplicate the complete assembled laser.
+        if (!movedByPiston
+                && !state.is(replacement.getBlock())
+                && level.getBlockEntity(pos) instanceof IcfAssembledLaserBlockEntity assembled) {
             assembled.restoreOriginal();
             return;
         }

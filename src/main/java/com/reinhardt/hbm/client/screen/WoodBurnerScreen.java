@@ -80,7 +80,9 @@ public class WoodBurnerScreen extends AbstractContainerScreen<WoodBurnerMenu> {
         }
 
         if (isHovering(TOGGLE_X, TOGGLE_Y, TOGGLE_WIDTH, TOGGLE_HEIGHT, mouseX, mouseY)) {
-            guiGraphics.renderComponentTooltip(this.font, List.of(Component.literal(this.menu.isOn() ? "ON" : "OFF")), mouseX, mouseY);
+            guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
+                    this.menu.isOn() ? "gui.reinhardtshbm.turret.on" : "gui.reinhardtshbm.turret.off"
+            )), mouseX, mouseY);
         }
     }
 

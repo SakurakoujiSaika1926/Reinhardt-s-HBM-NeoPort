@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "group": "blast.mingradeOre",
+  "input_a": { "tag": "c:ores/copper" },
+  "input_b": { "tag": "c:dusts/redstone" },
+  "input_b_count": 6,
+  "duration": 1200,
+  "result": { "id": "reinhardtshbm:ingot_red_copper", "count": 6 },
+  "byproduct": { "id": "reinhardtshbm:ingot_raw_slag" }
+}

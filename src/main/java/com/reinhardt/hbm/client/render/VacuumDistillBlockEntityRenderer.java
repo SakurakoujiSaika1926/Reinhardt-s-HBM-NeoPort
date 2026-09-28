@@ -24,14 +24,17 @@ public class VacuumDistillBlockEntityRenderer implements LongRangeBlockEntityRen
     public void render(VacuumDistillBlockEntity refinery, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = refinery.getBlockState();
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, 180.0F);
+        // RenderVacuumDistill has no metadata yaw: only the block-centre translation.
+        poseStack.translate(0.5F, 0.0F, 0.5F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(VacuumDistillBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(5.0D, 10.0D, 5.0D);
+        // Exact face-used vacuum_distill.obj envelope under the fixed 180-degree render pose.
+        return RenderBounds.localFloatVertices(blockEntity.getBlockPos(),
+                -1.0D, 0.0D, -1.0D, 2.0D, 9.0D, 2.0D);
     }
 }
 

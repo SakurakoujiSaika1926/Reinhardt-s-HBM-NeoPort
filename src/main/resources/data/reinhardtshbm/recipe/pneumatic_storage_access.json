@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["TGT", "GCG", "TDT"],
+  "key": {
+    "T": { "item": "reinhardtshbm:pneumatic_tube" },
+    "G": { "tag": "c:glass_blocks" },
+    "C": { "item": "reinhardtshbm:circuit_basic" },
+    "D": { "item": "reinhardtshbm:crt_display" }
+  },
+  "result": { "id": "reinhardtshbm:pneumatic_storage_access" }
+}

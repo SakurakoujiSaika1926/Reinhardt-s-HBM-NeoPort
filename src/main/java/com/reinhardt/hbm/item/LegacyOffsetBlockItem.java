@@ -45,7 +45,7 @@ public class LegacyOffsetBlockItem extends BlockItem {
         if (!level.getBlockState(corePos).canBeReplaced(placeContext)) {
             return InteractionResult.FAIL;
         }
-        if (!LargeMachineBlock.canPlaceFootprintAt(level, corePos, facing, machine.machineFootprint(), placeContext, machine.machineRotationBasis())) {
+        if (!machine.canPlaceMachineFootprintAt(level, corePos, facing, placeContext)) {
             return InteractionResult.FAIL;
         }
 

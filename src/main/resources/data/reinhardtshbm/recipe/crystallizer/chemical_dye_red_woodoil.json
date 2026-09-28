@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.chemical_dye",
+  "ingredient": { "tag": "c:dusts/iron" },
+  "acid": { "fluid": "woodoil", "amount": 100 },
+  "duration": 20,
+  "result": { "id": "reinhardtshbm:chemical_dye_red", "count": 4 }
+}

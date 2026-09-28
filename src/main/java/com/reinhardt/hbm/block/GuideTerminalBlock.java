@@ -31,7 +31,15 @@ public final class GuideTerminalBlock extends Block {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         // 1.7.10 metadata 2/5/3/4 was yaw 0/90/180/270 respectively.
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getClockWise());
+        Direction facing = switch (context.getHorizontalDirection()) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException(
+                    "Guide terminal placement direction must be horizontal: " + context.getHorizontalDirection());
+        };
+        return this.defaultBlockState().setValue(FACING, facing);
     }
 
     @Override

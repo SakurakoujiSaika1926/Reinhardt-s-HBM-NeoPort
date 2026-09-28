@@ -47,6 +47,32 @@ public class StorageCrateBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case IRON -> ironCrateStateForPlacement(context);
+            case STEEL -> steelCrateStateForPlacement(context);
+            case DESH -> deshCrateStateForPlacement(context);
+            case TEMPLATE -> templateCrateStateForPlacement(context);
+            case TUNGSTEN -> tungstenCrateStateForPlacement(context);
+        };
+    }
+
+    private BlockState ironCrateStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState steelCrateStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState deshCrateStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState templateCrateStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState tungstenCrateStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
@@ -111,11 +137,63 @@ public class StorageCrateBlock extends Block implements EntityBlock {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case IRON -> rotateIronCrate(state, rotation);
+            case STEEL -> rotateSteelCrate(state, rotation);
+            case DESH -> rotateDeshCrate(state, rotation);
+            case TEMPLATE -> rotateTemplateCrate(state, rotation);
+            case TUNGSTEN -> rotateTungstenCrate(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case IRON -> mirrorIronCrate(state, mirror);
+            case STEEL -> mirrorSteelCrate(state, mirror);
+            case DESH -> mirrorDeshCrate(state, mirror);
+            case TEMPLATE -> mirrorTemplateCrate(state, mirror);
+            case TUNGSTEN -> mirrorTungstenCrate(state, mirror);
+        };
+    }
+
+    private static BlockState rotateIronCrate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateSteelCrate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateDeshCrate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateTemplateCrate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateTungstenCrate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorIronCrate(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSteelCrate(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorDeshCrate(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorTemplateCrate(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorTungstenCrate(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

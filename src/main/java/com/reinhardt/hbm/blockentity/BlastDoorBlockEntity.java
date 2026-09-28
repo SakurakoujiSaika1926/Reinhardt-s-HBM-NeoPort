@@ -61,35 +61,35 @@ public class BlastDoorBlockEntity extends BlockEntity implements LockableBlockEn
             door.timer++;
             if (door.isOpening) {
                 if (door.timer >= 0) {
-                    door.removeDummy(pos.above(1));
+                    door.removeDummy(door.localAbove(1));
                 }
                 if (door.timer >= 20) {
-                    door.removeDummy(pos.above(2));
+                    door.removeDummy(door.localAbove(2));
                 }
                 if (door.timer >= 40) {
-                    door.removeDummy(pos.above(3));
+                    door.removeDummy(door.localAbove(3));
                 }
                 if (door.timer >= 60) {
-                    door.removeDummy(pos.above(4));
+                    door.removeDummy(door.localAbove(4));
                 }
                 if (door.timer >= 80) {
-                    door.removeDummy(pos.above(5));
+                    door.removeDummy(door.localAbove(5));
                 }
             } else {
                 if (door.timer >= 20) {
-                    door.placeDummy(pos.above(5));
+                    door.placeDummy(door.localAbove(5));
                 }
                 if (door.timer >= 40) {
-                    door.placeDummy(pos.above(4));
+                    door.placeDummy(door.localAbove(4));
                 }
                 if (door.timer >= 60) {
-                    door.placeDummy(pos.above(3));
+                    door.placeDummy(door.localAbove(3));
                 }
                 if (door.timer >= 80) {
-                    door.placeDummy(pos.above(2));
+                    door.placeDummy(door.localAbove(2));
                 }
                 if (door.timer >= 100) {
-                    door.placeDummy(pos.above(1));
+                    door.placeDummy(door.localAbove(1));
                 }
             }
             if (door.timer >= MOVE_TICKS) {
@@ -110,7 +110,7 @@ public class BlastDoorBlockEntity extends BlockEntity implements LockableBlockEn
     public boolean placeInitialDummies() {
         boolean placed = true;
         for (int y = 1; y <= 6; y++) {
-            placed &= placeDummy(this.worldPosition.above(y));
+            placed &= placeDummy(localAbove(y));
         }
         return placed;
     }
@@ -120,7 +120,7 @@ public class BlastDoorBlockEntity extends BlockEntity implements LockableBlockEn
             return;
         }
         boolean powered = (!isLocked() && this.level.hasNeighborSignal(this.worldPosition))
-                || this.level.hasNeighborSignal(this.worldPosition.above(6));
+                || this.level.hasNeighborSignal(localAbove(6));
         if (powered) {
             if (!this.redstoned) {
                 tryToggle(null);
@@ -342,6 +342,10 @@ public class BlastDoorBlockEntity extends BlockEntity implements LockableBlockEn
                 }
             }
         });
+    }
+
+    private BlockPos localAbove(int distance) {
+        return this.worldPosition.above(distance);
     }
 
     private void playStartSound() {

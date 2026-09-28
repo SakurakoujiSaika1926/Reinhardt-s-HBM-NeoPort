@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.lightconstruction",
+  "duration": 400,
+  "power": 25000,
+  "input_items": [
+    { "ingredient": { "tag": "c:plates/dura_steel" }, "count": 2 }
+  ],
+  "input_fluids": [
+    { "fluid": "xylene", "amount": 1000 },
+    { "fluid": "phosgene", "amount": 1000 },
+    { "fluid": "sourgas", "amount": 4000 }
+  ],
+  "output_items": [
+    { "id": "reinhardtshbm:part_generic_alclad", "count": 1 }
+  ],
+  "output_fluids": []
+}

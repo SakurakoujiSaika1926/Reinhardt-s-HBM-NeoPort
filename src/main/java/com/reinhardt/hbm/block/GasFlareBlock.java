@@ -27,7 +27,26 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class GasFlareBlock extends LargeMachineBlock implements EntityBlock {
-    public static final Footprint FOOTPRINT = Footprint.legacySouthBox(11, 0, 1, 1, 1, 1);
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    public static final Footprint FOOTPRINT = Footprint.box(-1, 1, 0, 11, -1, 1);
     private static final List<Box> COLLISION = List.of(
             new Box(-1.5D, 0.0D, -1.5D, 1.5D, 3.875D, 1.5D),
             new Box(-0.75D, 3.875D, -0.75D, 0.75D, 9.0D, 0.75D),
@@ -36,7 +55,17 @@ public class GasFlareBlock extends LargeMachineBlock implements EntityBlock {
     );
 
     public GasFlareBlock(Properties properties) {
-        super(properties, FOOTPRINT, shapeForPart(BlockPos.ZERO), RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shapeForPart(BlockPos.ZERO), GasFlareBlock::mapGasFlareOffset);
+    }
+
+    private static BlockPos mapGasFlareOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Gas flare requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable

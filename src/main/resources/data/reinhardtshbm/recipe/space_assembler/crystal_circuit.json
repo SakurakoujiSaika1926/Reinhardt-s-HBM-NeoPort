@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:space_assembler",
+  "group": "space.crystalcircuit",
+  "ingredient": {
+    "item": "reinhardtshbm:orbital_assembly_crystal_circuit"
+  },
+  "input_count": 1,
+  "results": [
+    {
+      "id": "reinhardtshbm:circuit_crystal"
+    }
+  ],
+  "duration": 3600
+}

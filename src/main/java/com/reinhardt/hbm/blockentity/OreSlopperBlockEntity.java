@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.LargeMachineBlock;
-import com.reinhardt.hbm.block.OreSlopperBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.BatteryPackItem;
@@ -16,7 +15,6 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -51,7 +49,6 @@ import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
@@ -323,7 +320,7 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -444,7 +441,7 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
         }
 
         if (this.animation == SlopperAnimation.DUMPING && this.level != null) {
-            Direction dir = OreSlopperBlock.legacyDirFromFacing(facing());
+            Direction dir = facing();
             this.level.addParticle(
                     new BlockParticleOption(ParticleTypes.BLOCK, Blocks.IRON_BLOCK.defaultBlockState()),
                     this.worldPosition.getX() + 0.5D + dir.getStepX() + this.level.random.nextGaussian() * 0.25D,
@@ -526,7 +523,7 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
         if (this.level == null) {
             return;
         }
-        Direction dir = OreSlopperBlock.legacyDirFromFacing(facing());
+        Direction dir = facing();
         AABB blades = new AABB(
                 this.worldPosition.getX() - 0.5D,
                 this.worldPosition.getY() + 1.0D,
@@ -659,25 +656,61 @@ public class OreSlopperBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     private List<Port> portPositions() {
-        Direction facing = this.getBlockState().hasProperty(LargeMachineBlock.FACING) ? this.getBlockState().getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-        Direction dir = OreSlopperBlock.legacyDirFromFacing(facing);
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
-        ArrayList<Port> ports = new ArrayList<>();
-        ports.add(new Port(this.worldPosition.relative(dir, 4), dir));
-        ports.add(new Port(this.worldPosition.relative(dir.getOpposite(), 4), dir.getOpposite()));
-        ports.add(new Port(this.worldPosition.relative(rot, 2), rot));
-        ports.add(new Port(this.worldPosition.relative(rot.getOpposite(), 2), rot.getOpposite()));
-        ports.add(new Port(this.worldPosition.relative(dir, 2).relative(rot, 2), rot));
-        ports.add(new Port(this.worldPosition.relative(dir, 2).relative(rot.getOpposite(), 2), rot.getOpposite()));
-        ports.add(new Port(this.worldPosition.relative(dir.getOpposite(), 2).relative(rot, 2), rot));
-        ports.add(new Port(this.worldPosition.relative(dir.getOpposite(), 2).relative(rot.getOpposite(), 2), rot.getOpposite()));
-        return ports;
+        return oreSlopperPorts(this.worldPosition, facing());
+    }
+
+    private static List<Port> oreSlopperPorts(BlockPos core, Direction facing) {
+        return switch (facing) {
+            case NORTH -> List.of(
+                    new Port(core.offset(0, 0, -4), Direction.NORTH),
+                    new Port(core.offset(0, 0, 4), Direction.SOUTH),
+                    new Port(core.offset(2, 0, 0), Direction.EAST),
+                    new Port(core.offset(-2, 0, 0), Direction.WEST),
+                    new Port(core.offset(2, 0, -2), Direction.EAST),
+                    new Port(core.offset(-2, 0, -2), Direction.WEST),
+                    new Port(core.offset(2, 0, 2), Direction.EAST),
+                    new Port(core.offset(-2, 0, 2), Direction.WEST));
+            case EAST -> List.of(
+                    new Port(core.offset(4, 0, 0), Direction.EAST),
+                    new Port(core.offset(-4, 0, 0), Direction.WEST),
+                    new Port(core.offset(0, 0, 2), Direction.SOUTH),
+                    new Port(core.offset(0, 0, -2), Direction.NORTH),
+                    new Port(core.offset(2, 0, 2), Direction.SOUTH),
+                    new Port(core.offset(2, 0, -2), Direction.NORTH),
+                    new Port(core.offset(-2, 0, 2), Direction.SOUTH),
+                    new Port(core.offset(-2, 0, -2), Direction.NORTH));
+            case SOUTH -> List.of(
+                    new Port(core.offset(0, 0, 4), Direction.SOUTH),
+                    new Port(core.offset(0, 0, -4), Direction.NORTH),
+                    new Port(core.offset(-2, 0, 0), Direction.WEST),
+                    new Port(core.offset(2, 0, 0), Direction.EAST),
+                    new Port(core.offset(-2, 0, 2), Direction.WEST),
+                    new Port(core.offset(2, 0, 2), Direction.EAST),
+                    new Port(core.offset(-2, 0, -2), Direction.WEST),
+                    new Port(core.offset(2, 0, -2), Direction.EAST));
+            case WEST -> List.of(
+                    new Port(core.offset(-4, 0, 0), Direction.WEST),
+                    new Port(core.offset(4, 0, 0), Direction.EAST),
+                    new Port(core.offset(0, 0, -2), Direction.NORTH),
+                    new Port(core.offset(0, 0, 2), Direction.SOUTH),
+                    new Port(core.offset(-2, 0, -2), Direction.NORTH),
+                    new Port(core.offset(-2, 0, 2), Direction.SOUTH),
+                    new Port(core.offset(2, 0, -2), Direction.NORTH),
+                    new Port(core.offset(2, 0, 2), Direction.SOUTH));
+            case UP, DOWN -> throw new IllegalArgumentException("Ore slopper direction must be horizontal: " + facing);
+        };
     }
 
     private Direction facing() {
-        return this.getBlockState().hasProperty(LargeMachineBlock.FACING)
-                ? this.getBlockState().getValue(LargeMachineBlock.FACING)
-                : Direction.NORTH;
+        BlockState state = this.getBlockState();
+        if (!state.hasProperty(LargeMachineBlock.FACING)) {
+            throw new IllegalStateException("Ore slopper block state is missing its facing property: " + state);
+        }
+        Direction facing = state.getValue(LargeMachineBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Ore slopper block state has a vertical facing: " + facing);
+        }
+        return facing;
     }
 
     private static HbmFluidDefinition water() {

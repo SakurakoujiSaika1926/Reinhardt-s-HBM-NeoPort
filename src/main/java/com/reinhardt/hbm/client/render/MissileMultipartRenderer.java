@@ -2,6 +2,7 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.blockentity.LauncherBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
@@ -17,6 +18,7 @@ import org.joml.Quaternionf;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /** Exact OBJ grouping and transforms from MissilePart, MissilePronter and GUIMachineMissileAssembly. */
 public final class MissileMultipartRenderer {
@@ -68,6 +70,15 @@ public final class MissileMultipartRenderer {
         return geometry(warhead).height() + geometry(fuselage).height() + geometry(thruster).height();
     }
 
+    static float partHeight(String id) {
+        Geometry geometry = PARTS.get(id);
+        return geometry == null ? 0.0F : geometry.height();
+    }
+
+    static Set<String> partIds() {
+        return Set.copyOf(PARTS.keySet());
+    }
+
     public static void render(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                               int packedOverlay, ItemStack warhead, ItemStack fuselage, ItemStack fins, ItemStack thruster) {
         renderPart(state, poseStack, bufferSource, packedLight, packedOverlay, thruster);
@@ -76,6 +87,16 @@ public final class MissileMultipartRenderer {
         renderPart(state, poseStack, bufferSource, packedLight, packedOverlay, fuselage);
         poseStack.translate(0.0F, geometry(fuselage).height(), 0.0F);
         renderPart(state, poseStack, bufferSource, packedLight, packedOverlay, warhead);
+    }
+
+    static void render(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                       int packedOverlay, LauncherBlockEntity.MissileRenderData missile) {
+        renderPart(state, poseStack, bufferSource, packedLight, packedOverlay, missile.thrusterId());
+        poseStack.translate(0.0F, missile.thrusterHeight(), 0.0F);
+        renderPart(state, poseStack, bufferSource, packedLight, packedOverlay, missile.finsId());
+        renderPart(state, poseStack, bufferSource, packedLight, packedOverlay, missile.fuselageId());
+        poseStack.translate(0.0F, missile.fuselageHeight(), 0.0F);
+        renderPart(state, poseStack, bufferSource, packedLight, packedOverlay, missile.warheadId());
     }
 
     /** Direct matrix port of GUIMachineMissileAssembly's rotating OBJ preview. */
@@ -118,7 +139,15 @@ public final class MissileMultipartRenderer {
         }
     }
 
-    private static ModelResourceLocation model(String id) {
+    private static void renderPart(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
+                                   int packedLight, int packedOverlay, String id) {
+        if (PARTS.containsKey(id)) {
+            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model(id)), poseStack, bufferSource,
+                    state, packedLight, packedOverlay);
+        }
+    }
+
+    static ModelResourceLocation model(String id) {
         return ModelResourceLocation.standalone(ReinhardtsHBM.id("block/missile_parts/" + id));
     }
 

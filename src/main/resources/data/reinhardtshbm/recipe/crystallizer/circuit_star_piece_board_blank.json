@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.circuit_star_piece",
+  "ingredient": { "item": "reinhardtshbm:scrap_plastic_board_blank" },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:circuit_star_piece_board_blank" }
+}

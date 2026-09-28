@@ -44,7 +44,6 @@ public final class LegacyBossProjectileEntity extends Entity {
 
     public LegacyBossProjectileEntity(EntityType<? extends LegacyBossProjectileEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyBossProjectileEntity(Level level, Entity owner, Vec3 origin, Vec3 direction, Type type, Entity target) {

@@ -36,7 +36,7 @@ public class CombustionEngineBlock extends LargeMachineBlock implements EntityBl
     private static final Footprint FOOTPRINT = combustionEngineFootprint();
 
     public CombustionEngineBlock(Properties properties) {
-        super(properties, FOOTPRINT, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, CombustionEngineBlock::mapCombustionEngineOffset);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(LIT, false));
@@ -47,7 +47,8 @@ public class CombustionEngineBlock extends LargeMachineBlock implements EntityBl
         BlockState state = this.defaultBlockState()
                 .setValue(FACING, context.getHorizontalDirection().getOpposite())
                 .setValue(LIT, false);
-        return LargeMachineBlock.canPlaceFootprint(context, state, FOOTPRINT) ? state : null;
+        return LargeMachineBlock.canPlaceFootprint(context, state, FOOTPRINT,
+                CombustionEngineBlock::mapCombustionEngineOffset) ? state : null;
     }
 
     @Nullable
@@ -128,6 +129,16 @@ public class CombustionEngineBlock extends LargeMachineBlock implements EntityBl
             }
         }
         return new Footprint(List.copyOf(offsets));
+    }
+
+    private static BlockPos mapCombustionEngineOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Combustion engine requires a horizontal facing: " + facing);
+        };
     }
 }
 

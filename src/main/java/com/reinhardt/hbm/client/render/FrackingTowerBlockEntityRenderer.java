@@ -13,6 +13,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 public class FrackingTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<FrackingTowerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fracking_tower");
     private static final ModelResourceLocation PORTS_MODEL = MachineModelRenderer.standalone("block/machine_fracking_tower_ports");
+    private static final AABB LOCAL_BOUNDS = buildFrackingTowerBounds();
 
     public FrackingTowerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -26,7 +27,7 @@ public class FrackingTowerBlockEntityRenderer implements LongRangeBlockEntityRen
     public void render(FrackingTowerBlockEntity tower, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = tower.getBlockState();
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, 180.0F);
+        applyFrackingTowerTransform(poseStack);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.5F, 0.0F);
@@ -37,6 +38,20 @@ public class FrackingTowerBlockEntityRenderer implements LongRangeBlockEntityRen
 
     @Override
     public AABB getRenderBoundingBox(FrackingTowerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(8.0D, 28.0D, 8.0D);
+        /* Face-used fracking_tower.obj envelope under the fixed render pose.
+         * The translated ports OBJ is wholly contained in this envelope. */
+        return LOCAL_BOUNDS.move(blockEntity.getBlockPos());
+    }
+
+    private static AABB buildFrackingTowerBounds() {
+        PoseStack poseStack = new PoseStack();
+        applyFrackingTowerTransform(poseStack);
+        return RenderBounds.transformedBox(net.minecraft.core.BlockPos.ZERO, poseStack,
+                -3.5F, 0.0F, -3.55F, 3.5F, 24.5F, 3.5F);
+    }
+
+    private static void applyFrackingTowerTransform(PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
     }
 }

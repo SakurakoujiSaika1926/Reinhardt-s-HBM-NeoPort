@@ -5,10 +5,8 @@ import com.reinhardt.hbm.block.HbmHeavyDoorBlock;
 import com.reinhardt.hbm.blockentity.HbmHeavyDoorBlockEntity;
 import com.reinhardt.hbm.door.HbmDoorDecl;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,10 +16,12 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmHeavyDoorBlockEntity> {
+public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRenderer<HbmHeavyDoorBlockEntity> {
     private static final ModelResourceLocation FIRE_FRAME = model("fire_door_frame");
     private static final ModelResourceLocation FIRE_DOOR = model("fire_door_door");
     // Transition Seal keeps one complete OBJ asset; TE rendering selects its roots through visibility variants.
@@ -79,10 +79,14 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
     private static final ModelResourceLocation WATER_BOLT = model("water_door_bolt");
     private static final ModelResourceLocation WATER_SPINNY_UPPER = model("water_door_spinny_upper");
     private static final ModelResourceLocation WATER_SPINNY_LOWER = model("water_door_spinny_lower");
+    private static final ModelResourceLocation CARGO_FRAME = model("cargo_door_frame");
+    private static final ModelResourceLocation CARGO_TOP = model("cargo_door_top");
+    private static final ModelResourceLocation CARGO_BOTTOM = model("cargo_door_bottom");
     private static final ModelResourceLocation SILO_FRAME = model("silo_hatch_frame");
     private static final ModelResourceLocation SILO_HATCH = model("silo_hatch_hatch");
     private static final ModelResourceLocation SILO_LARGE_FRAME = model("silo_hatch_large_frame");
     private static final ModelResourceLocation SILO_LARGE_HATCH = model("silo_hatch_large_hatch");
+    private static final Map<HbmDoorDecl, AABB[]> LOCAL_BOUNDS = buildDoorBounds();
 
     public HbmHeavyDoorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -98,9 +102,10 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
                 SECURE_FRAME, SECURE_DOOR,
                 AIRLOCK_FRAME, AIRLOCK_LEFT, AIRLOCK_RIGHT,
                 VEHICLE_FRAME, VEHICLE_LEFT, VEHICLE_RIGHT,
-                VAULT_FRAME, VAULT_DOOR, VAULT_LABEL,
-                WATER_FRAME, WATER_DOOR, WATER_BOLT, WATER_SPINNY_UPPER, WATER_SPINNY_LOWER,
-                SILO_FRAME, SILO_HATCH,
+                 VAULT_FRAME, VAULT_DOOR, VAULT_LABEL,
+                 WATER_FRAME, WATER_DOOR, WATER_BOLT, WATER_SPINNY_UPPER, WATER_SPINNY_LOWER,
+                 CARGO_FRAME, CARGO_TOP, CARGO_BOTTOM,
+                 SILO_FRAME, SILO_HATCH,
                 SILO_LARGE_FRAME, SILO_LARGE_HATCH
         ));
         for (TransitionSealPart part : TRANSITION_SEAL_PARTS) {
@@ -129,49 +134,504 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
         float progress = doorBlock.decl().openProgress(ticks);
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyDoorYaw(facing));
-        renderDoor(doorBlock.decl(), door, ticks, progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+        switch (doorBlock.decl()) {
+            case FIRE_DOOR -> {
+                applyFireDoorWorldPose(poseStack, facing);
+                renderFireDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case TRANSITION_SEAL -> {
+                applyTransitionSealWorldPose(poseStack, facing);
+                renderTransitionSeal(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case SLIDING_BLAST_DOOR -> {
+                applySlidingBlastDoorWorldPose(poseStack, facing);
+                renderSlidingBlastDoor(progress, door.state(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case SLIDING_BLAST_DOOR_2 -> {
+                applySlidingBlastDoor2WorldPose(poseStack, facing);
+                renderSlidingBlastDoor(progress, door.state(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case SLIDING_GATE_DOOR -> {
+                applySlidingGateDoorWorldPose(poseStack, facing);
+                renderSlidingGateDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case QE_SLIDING_DOOR -> {
+                applyQeSlidingDoorWorldPose(poseStack, facing);
+                renderQeSlidingDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case QE_CONTAINMENT -> {
+                applyQeContainmentWorldPose(poseStack, facing);
+                renderQeContainmentDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case SLIDING_SEAL_DOOR -> {
+                applySlidingSealDoorWorldPose(poseStack, facing);
+                renderSealDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case SECURE_ACCESS_DOOR -> {
+                applySecureAccessDoorWorldPose(poseStack, facing);
+                renderSecureDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case ROUND_AIRLOCK_DOOR -> {
+                applyRoundAirlockDoorWorldPose(poseStack, facing);
+                renderAirlockDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case LARGE_VEHICLE_DOOR -> {
+                applyLargeVehicleDoorWorldPose(poseStack, facing);
+                renderVehicleDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case VAULT_DOOR -> {
+                applyVaultDoorWorldPose(poseStack, facing);
+                renderVaultDoor(vaultPull(door, ticks), vaultSlide(door, ticks), door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case WATER_DOOR -> {
+                applyWaterDoorWorldPose(poseStack, facing);
+                renderWaterDoor(waterDoorProgress(door, ticks), waterBoltProgress(door, ticks), door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case CARGO_DOOR -> {
+                applyCargoDoorWorldPose(poseStack, facing);
+                renderCargoDoor(door, ticks, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case SILO_HATCH -> {
+                applySiloHatchWorldPose(poseStack, facing);
+                renderSiloHatch(ticks, SILO_FRAME, SILO_HATCH, 1.875F, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+            case SILO_HATCH_LARGE -> {
+                applySiloHatchLargeWorldPose(poseStack, facing);
+                renderSiloHatch(ticks, SILO_LARGE_FRAME, SILO_LARGE_HATCH, 2.875F, poseStack, bufferSource, state, packedLight, packedOverlay);
+            }
+        }
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(HbmHeavyDoorBlockEntity blockEntity) {
-        if (blockEntity.getBlockState().getBlock() instanceof HbmHeavyDoorBlock doorBlock
-                && doorBlock.decl() == HbmDoorDecl.TRANSITION_SEAL) {
-            /*
-             * RenderDoorGeneric marked this door as a global renderer.  Its
-             * legacy mesh is 26 blocks wide and rises above the 24-block
-             * frame while opening; the ordinary eight-block BER box clips
-             * both the top assembly and the outer frame.  Keep this bound
-             * local to the giant door instead of changing the shared render
-             * distance or applying a generic model transform.
-             */
-            BlockPos pos = blockEntity.getBlockPos();
-            return new AABB(
-                    pos.getX() - 14.0D, pos.getY(), pos.getZ() - 14.0D,
-                    pos.getX() + 15.0D, pos.getY() + 48.0D, pos.getZ() + 15.0D
-            );
+        if (!(blockEntity.getBlockState().getBlock() instanceof HbmHeavyDoorBlock doorBlock)) {
+            return new AABB(blockEntity.getBlockPos());
         }
-        return new AABB(blockEntity.getBlockPos()).inflate(8.0D, 8.0D, 8.0D);
+        Direction facing = blockEntity.getBlockState().getValue(HbmHeavyDoorBlock.FACING);
+        return LOCAL_BOUNDS.get(doorBlock.decl())[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
-    private static void renderDoor(HbmDoorDecl decl, HbmHeavyDoorBlockEntity door, float ticks, float progress, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        switch (decl) {
-            case FIRE_DOOR -> renderFireDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case TRANSITION_SEAL -> renderTransitionSeal(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SLIDING_BLAST_DOOR, SLIDING_BLAST_DOOR_2 -> renderSlidingBlastDoor(progress, door.state(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SLIDING_GATE_DOOR -> renderSlidingGateDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case QE_SLIDING_DOOR -> renderQeSlidingDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case QE_CONTAINMENT -> renderQeContainmentDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SLIDING_SEAL_DOOR -> renderSealDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SECURE_ACCESS_DOOR -> renderSecureDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case ROUND_AIRLOCK_DOOR -> renderAirlockDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case LARGE_VEHICLE_DOOR -> renderVehicleDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case VAULT_DOOR -> renderVaultDoor(vaultPull(door, ticks), vaultSlide(door, ticks), door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case WATER_DOOR -> renderWaterDoor(waterDoorProgress(door, ticks), waterBoltProgress(door, ticks), door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SILO_HATCH -> renderSiloHatch(ticks, SILO_FRAME, SILO_HATCH, 1.875F, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SILO_HATCH_LARGE -> renderSiloHatch(ticks, SILO_LARGE_FRAME, SILO_LARGE_HATCH, 2.875F, poseStack, bufferSource, state, packedLight, packedOverlay);
+    private static Map<HbmDoorDecl, AABB[]> buildDoorBounds() {
+        EnumMap<HbmDoorDecl, AABB[]> bounds = new EnumMap<>(HbmDoorDecl.class);
+        bounds.put(HbmDoorDecl.FIRE_DOOR, buildFireDoorBounds());
+        bounds.put(HbmDoorDecl.TRANSITION_SEAL, buildTransitionSealBounds());
+        bounds.put(HbmDoorDecl.SLIDING_BLAST_DOOR, buildSlidingBlastDoorBounds());
+        bounds.put(HbmDoorDecl.SLIDING_BLAST_DOOR_2, buildSlidingBlastDoor2Bounds());
+        bounds.put(HbmDoorDecl.SLIDING_GATE_DOOR, buildSlidingGateDoorBounds());
+        bounds.put(HbmDoorDecl.QE_SLIDING_DOOR, buildQeSlidingDoorBounds());
+        bounds.put(HbmDoorDecl.QE_CONTAINMENT, buildQeContainmentBounds());
+        bounds.put(HbmDoorDecl.SLIDING_SEAL_DOOR, buildSlidingSealDoorBounds());
+        bounds.put(HbmDoorDecl.SECURE_ACCESS_DOOR, buildSecureAccessDoorBounds());
+        bounds.put(HbmDoorDecl.ROUND_AIRLOCK_DOOR, buildRoundAirlockDoorBounds());
+        bounds.put(HbmDoorDecl.LARGE_VEHICLE_DOOR, buildLargeVehicleDoorBounds());
+        bounds.put(HbmDoorDecl.VAULT_DOOR, buildVaultDoorBounds());
+        bounds.put(HbmDoorDecl.WATER_DOOR, buildWaterDoorBounds());
+        bounds.put(HbmDoorDecl.CARGO_DOOR, buildCargoDoorBounds());
+        bounds.put(HbmDoorDecl.SILO_HATCH, buildSiloHatchBounds());
+        bounds.put(HbmDoorDecl.SILO_HATCH_LARGE, buildSiloHatchLargeBounds());
+        return bounds;
+    }
+
+    private static double[] doorEnvelope(HbmDoorDecl decl) {
+        return switch (decl) {
+            case FIRE_DOOR -> new double[] {-0.5D, 0.0D, -1.5D, 0.5D, 5.75D, 2.5D};
+            case TRANSITION_SEAL -> new double[] {
+                    bakedMin(-1.4173260000000003D), bakedMin(-0.000003D), -12.5D,
+                    bakedMax(8.475050071175868D), bakedMax(46.40530200456391D), 13.5D};
+            case SLIDING_BLAST_DOOR -> new double[] {
+                    -0.5D, 0.0D, bakedMin(-4.625001D), 0.5D, 4.0D, 4.625D};
+            case SLIDING_BLAST_DOOR_2 -> new double[] {
+                    -0.5D, 0.0D, bakedMin(-4.625001D), 0.5D, 4.0D, 4.625D};
+            case QE_SLIDING_DOOR -> new double[] {
+                    0.28125D, bakedMin(0.001D), bakedMin(-1.45D),
+                    0.46875D, bakedMax(2.001D), bakedMax(2.45D)};
+            case SLIDING_GATE_DOOR -> new double[] {0.125D, 0.0D, -0.5D, 0.375D, 2.0D, 1.4375D};
+            case QE_CONTAINMENT -> new double[] {0.0D, 0.0D, -1.5D, 0.5D, 4.75D, 1.5D};
+            case SLIDING_SEAL_DOOR -> new double[] {0.25D, 0.0D, -0.5D, 0.5D, 2.0D, 1.3375D};
+            case SECURE_ACCESS_DOOR -> new double[] {-0.5D, 0.0D, -2.5D, 0.5D, 8.5D, 2.5D};
+            case ROUND_AIRLOCK_DOOR -> new double[] {-0.5625D, 0.0D, -2.9375D, 0.5625D, 4.0D, 3.9375D};
+            case LARGE_VEHICLE_DOOR -> new double[] {
+                    bakedMin(-0.562501D), 0.0D, -6.3125D,
+                    bakedMax(0.562501D), 6.0D, 6.3125D};
+            case VAULT_DOOR -> new double[] {-1.5D, 0.0D, -2.5D, 0.5D, 5.0D, bakedMax(7.1606857040168865D)};
+            case WATER_DOOR -> new double[] {
+                    -0.125D, 0.0D, bakedMin(-1.5116028602111482D),
+                    bakedMax(2.9241597794153664D), 3.0D, bakedMax(2.5807082132563766D)};
+            case CARGO_DOOR -> new double[] {-0.3125D, 0.0D, -1.5D, 0.3125D, 3.9375D, 1.5D};
+            case SILO_HATCH -> new double[] {
+                    -2.5D, 0.0D, bakedMin(-4.012259526419164D),
+                    2.5D, bakedMax(4.519344934278313D), 2.5D};
+            case SILO_HATCH_LARGE -> new double[] {
+                    -3.5D, 0.0D, bakedMin(-6.012259526419163D),
+                    3.5D, bakedMax(6.512486141889841D), 3.5D};
+        };
+    }
+
+    private static AABB[] buildFireDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.FIRE_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyFireDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
         }
+        return facings;
+    }
+
+    private static AABB[] buildTransitionSealBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.TRANSITION_SEAL);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyTransitionSealWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildSlidingBlastDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.SLIDING_BLAST_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applySlidingBlastDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildSlidingBlastDoor2Bounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.SLIDING_BLAST_DOOR_2);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applySlidingBlastDoor2WorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildSlidingGateDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.SLIDING_GATE_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applySlidingGateDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildQeSlidingDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.QE_SLIDING_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyQeSlidingDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildQeContainmentBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.QE_CONTAINMENT);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyQeContainmentWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildSlidingSealDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.SLIDING_SEAL_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applySlidingSealDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildSecureAccessDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.SECURE_ACCESS_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applySecureAccessDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildRoundAirlockDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.ROUND_AIRLOCK_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyRoundAirlockDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildLargeVehicleDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.LARGE_VEHICLE_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyLargeVehicleDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildVaultDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.VAULT_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyVaultDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildWaterDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.WATER_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyWaterDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildCargoDoorBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.CARGO_DOOR);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyCargoDoorWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildSiloHatchBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.SILO_HATCH);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applySiloHatchWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB[] buildSiloHatchLargeBounds() {
+        double[] envelope = doorEnvelope(HbmDoorDecl.SILO_HATCH_LARGE);
+        AABB[] facings = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applySiloHatchLargeWorldPose(poseStack, facing);
+            facings[facing.ordinal()] = transformedDoorEnvelope(poseStack, envelope);
+        }
+        return facings;
+    }
+
+    private static AABB transformedDoorEnvelope(PoseStack poseStack, double[] envelope) {
+        return RenderBounds.transformedBox(net.minecraft.core.BlockPos.ZERO, poseStack,
+                (float) envelope[0], (float) envelope[1], (float) envelope[2],
+                (float) envelope[3], (float) envelope[4], (float) envelope[5]);
+    }
+
+    private static void applyFireDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Fire door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyTransitionSealWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Transition seal requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySlidingBlastDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Sliding blast door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySlidingBlastDoor2WorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Sliding blast door 2 requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySlidingGateDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Sliding gate door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyQeSlidingDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("QE sliding door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyQeContainmentWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("QE containment door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySlidingSealDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Sliding seal door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySecureAccessDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Secure access door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyRoundAirlockDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Round airlock door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyLargeVehicleDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Large vehicle door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyVaultDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Vault door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyWaterDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Water door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyCargoDoorWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Cargo door requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySiloHatchWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Silo hatch requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySiloHatchLargeWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Large silo hatch requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static double bakedMin(double value) {
+        return Math.nextDown((float) value);
+    }
+
+    private static double bakedMax(double value) {
+        return Math.nextUp((float) value);
     }
 
     private static void renderFireDoor(float progress, byte skinIndex, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
@@ -179,7 +639,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
         // RenderFireDoor used glRotate(90) at the already translated TESR
         // origin.  Do not rotate around the block centre here: that adds a
         // compensating translation which the 1.7.10 renderer never had.
-        poseStack.mulPose(MachineModelRenderer.yawQuaternion(90.0F));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
         poseStack.translate(-0.5F, 0.0F, 0.0F);
         render(skinned("fire_door_frame", skinIndex, 5), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.translate(0.0F, Mth.clamp(progress * 2.75F, 0.0F, 2.75F), 0.0F);
@@ -324,7 +784,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
     private static void renderVehicleDoor(float progress, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         float open = Mth.clamp(progress * 3.0F, 0.0F, 3.0F);
         // RenderVehicleDoor used a direct glRotate(90) at the legacy origin.
-        poseStack.mulPose(MachineModelRenderer.yawQuaternion(90.0F));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
         render(VEHICLE_FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(-open, 0.0F, 0.0F);
@@ -349,7 +809,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
         poseStack.translate(0.375F, 0.0F, 0.0F);
         // RenderWaterDoor used a direct glRotate(90) after its +0.375 X
         // translation; rotating around the block centre would move the frame.
-        poseStack.mulPose(MachineModelRenderer.yawQuaternion(90.0F));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
         render(skinned("water_door_frame", skinIndex, 2), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         poseStack.translate(-1.1875F, 0.0F, 0.0F);
@@ -370,6 +830,27 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
         poseStack.pushPose();
         rotateZAt(poseStack, 0.40625F, 0.71875F, 0.0F, boltProgress * 360.0F);
         render(skinned("water_door_spinny_lower", skinIndex, 2), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderCargoDoor(HbmHeavyDoorBlockEntity door, float ticks, PoseStack poseStack,
+                                        MultiBufferSource bufferSource, BlockState state,
+                                        int packedLight, int packedOverlay) {
+        float bottomMove = openWindow(ticks, 0.0F, 60.0F) * 2.0F;
+        float topMove = door.state() == HbmHeavyDoorBlockEntity.STATE_CLOSING
+                ? openWindow(ticks, 0.0F, 30.0F)
+                : openWindow(ticks, 30.0F, 60.0F);
+
+        render(CARGO_FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+
+        poseStack.pushPose();
+        poseStack.translate(0.0F, topMove, 0.0F);
+        render(CARGO_TOP, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        poseStack.translate(0.0F, bottomMove, 0.0F);
+        render(CARGO_BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -488,15 +969,6 @@ public class HbmHeavyDoorBlockEntityRenderer implements BlockEntityRenderer<HbmH
         }
         int skin = Math.floorMod((int) skinIndex, skinCount);
         return skin == 0 ? model(baseModel) : model(baseModel + "_skin_" + skin);
-    }
-
-    private static float legacyDoorYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 0.0F;
-            case NORTH -> 90.0F;
-            case WEST -> 180.0F;
-            default -> 270.0F;
-        };
     }
 
     private static ModelResourceLocation model(String name) {

@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.cmbtubes",
+  "duration": 6000,
+  "power": 10000000,
+  "ignition_temp": 12500000,
+  "input_items": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_bronze_tubes" }, "count": 3 },
+    { "ingredient": { "item": "reinhardtshbm:plate_cast_combine_steel" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:powder_chlorophyte" }, "count": 12 }
+  ],
+  "input_fluids": [
+    { "fluid": "reformgas", "amount": 4000 }
+  ],
+  "result": { "id": "reinhardtshbm:item_expensive_cmb_tubes" }
+}

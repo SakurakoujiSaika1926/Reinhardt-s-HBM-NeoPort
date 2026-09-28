@@ -1,6 +1,8 @@
 # Blender v2.79 (sub 0) OBJ File: 'trenchmaster_scaled.blend'
 # www.blender.org
+mtllib trenchmaster.mtl
 o LeftBoot
+usemtl default
 v 4.625000 24.299997 2.625000
 v -0.625000 24.299999 2.625000
 v 4.625000 24.299997 -2.625000

@@ -27,11 +27,15 @@ import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmMobEffects;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -73,13 +77,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider, RadarCommandReceiver {
+public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer,
+        MenuProvider, RadarCommandReceiver, ClientRenderNeighborSnapshot, RttyInteractive {
     public static final int CHIP_SLOT = 0;
     public static final int AMMO_START = 1;
     public static final int AMMO_END = 10;
@@ -89,6 +95,11 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
     private static final int[] AMMO_SLOTS = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     private static final int[] FRITZ_INPUT_SLOTS = {1, 2, 3, 4, 5, 6, 7, 8};
     private static final int[] NO_SLOTS = {};
+    private static final Vec3 WORLD_ORIGIN_NORTH = new Vec3(1.0D, 0.0D, 1.0D);
+    private static final Vec3 WORLD_ORIGIN_WEST = new Vec3(1.0D, 0.0D, 0.0D);
+    private static final Vec3 WORLD_ORIGIN_EAST = new Vec3(0.0D, 0.0D, 1.0D);
+    private static final Vec3 WORLD_ORIGIN_SOUTH = Vec3.ZERO;
+    private static final Vec3 SENTRY_WORLD_ORIGIN = new Vec3(0.5D, 0.0D, 0.5D);
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank tank = new HbmFluidTank(HbmFluids.byName("diesel").orElse(HbmFluids.none()), 16_000);
     private long power;
@@ -144,6 +155,8 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
     private double rotationPitch;
     private double prevRotationYaw;
     private double prevRotationPitch;
+    private volatile RenderSnapshot renderSnapshot;
+    private long clientConnectorMask;
     @Nullable
     private TurretCasingEffects.CasingKind pendingCasing;
     @Nullable
@@ -211,6 +224,9 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
 
     public LegacyTurretBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.LEGACY_TURRET.get(), pos, blockState);
+        // Dedicated servers never consume renderer bounds.  Start with the
+        // core block and let the client publish the exact model/beam envelope.
+        this.renderSnapshot = buildRenderSnapshot(false);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, LegacyTurretBlockEntity turret) {
@@ -225,6 +241,53 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
 
     public LegacyTurretType type() {
         return getBlockState().getBlock() instanceof LegacyTurretBlock block ? block.type() : LegacyTurretType.FRIENDLY;
+    }
+
+    @Override
+    public void refreshClientRenderNeighborSnapshot() {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        LegacyTurretType type = type();
+        long connectorMask = 0L;
+        if (!type.damaged()) {
+            List<ConnectorSpec> specs = connectorSpecsForCurrentType();
+            for (int index = 0; index < specs.size(); index++) {
+                ConnectorSpec spec = specs.get(index);
+                Direction capabilitySide = spec.machineSide().getOpposite();
+                boolean connected = PowerNetworkManager.canCableConnectTo(
+                        this.level, spec.pos(), capabilitySide);
+                if (!connected && type == LegacyTurretType.FRITZ) {
+                    try {
+                        connected = this.level.getCapability(
+                                Capabilities.FluidHandler.BLOCK, spec.pos(), capabilitySide) != null;
+                    } catch (RuntimeException | LinkageError failure) {
+                        ExternalCapabilitySafety.report(this.level, spec.pos(), capabilitySide,
+                                "fluid handler", "turret connector render probe", failure);
+                    }
+                }
+                if (connected) {
+                    connectorMask |= 1L << index;
+                }
+            }
+        }
+        this.clientConnectorMask = connectorMask;
+        publishRenderSnapshot(false);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        refreshClientRenderNeighborSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (previous != state) {
+            refreshClientRenderNeighborSnapshot();
+        }
     }
 
     private void tickClient() {
@@ -281,6 +344,7 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         } else {
             this.artilleryBarrelPos = Math.max(0.0D, this.artilleryBarrelPos - 0.05D);
         }
+        publishRenderSnapshot(true);
     }
 
     private void tickServer(Level level) {
@@ -472,17 +536,15 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
             return;
         }
         this.tank.setAmount(this.tank.amount() - 2);
-        LegacyBulletEntity flame = spawnLegacyBullet(
+        spawnLegacyBullet(
                 level,
                 StandardAmmoItem.StandardAmmoType.FLAME_DIESEL,
                 Math.min(fluid.flammableHeatPerMillibucket() / 500_000.0F, 20.0F),
                 null,
-                0.05D
+                0.05D,
+                true,
+                fluid == HbmFluids.byName("balefire").orElse(HbmFluids.none())
         );
-        if (flame != null) {
-            flame.setNoProjectileGravity(true);
-            flame.setBalefire(fluid == HbmFluids.byName("balefire").orElse(HbmFluids.none()));
-        }
         play(HbmSoundEvents.FLAMETHROWER_SHOOT.get(), 2.0F, 1.0F + level.random.nextFloat() * 0.5F);
     }
 
@@ -686,25 +748,23 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
 
     @Nullable
     private LegacyBulletEntity spawnLegacyBullet(Level level, StandardAmmoItem.StandardAmmoType ammo, float baseDamage, @Nullable Entity lockon) {
-        return spawnLegacyBullet(level, ammo, baseDamage, lockon, 0.0D);
+        return spawnLegacyBullet(level, ammo, baseDamage, lockon, 0.0D, false, false);
     }
 
     @Nullable
-    private LegacyBulletEntity spawnLegacyBullet(Level level, StandardAmmoItem.StandardAmmoType ammo, float baseDamage, @Nullable Entity lockon, double spread) {
+    private LegacyBulletEntity spawnLegacyBullet(Level level, StandardAmmoItem.StandardAmmoType ammo, float baseDamage,
+                                                 @Nullable Entity lockon, double spread,
+                                                 boolean noProjectileGravity, boolean balefire) {
         Vec3 pos = turretPos();
         Vec3 dir = barrelVector(1.0D).normalize();
-        if (spread > 0.0D) {
-            dir = dir.add(
-                    level.random.nextGaussian() * spread,
-                    level.random.nextGaussian() * spread,
-                    level.random.nextGaussian() * spread
-            ).normalize();
-        }
         Vec3 muzzle = pos.add(barrelVector(type().barrelLength()));
-        LegacyBulletEntity bullet = new LegacyBulletEntity(level, muzzle.x, muzzle.y, muzzle.z, dir, ammo, baseDamage);
+        LegacyBulletEntity bullet = new LegacyBulletEntity(
+                level, muzzle.x, muzzle.y, muzzle.z, dir, ammo, baseDamage, null, (float) spread);
         if (lockon != null) {
             bullet.setLockonTarget(lockon);
         }
+        bullet.setNoProjectileGravity(noProjectileGravity);
+        bullet.setBalefire(balefire);
         level.addFreshEntity(bullet);
         return bullet;
     }
@@ -861,7 +921,7 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         if (type() != LegacyTurretType.FRITZ || side == null || side == Direction.UP || side == Direction.DOWN) {
             return null;
         }
-        for (ConnectorSpec spec : connectorSpecs(this.worldPosition, facing(), type())) {
+        for (ConnectorSpec spec : fritzConnectorSpecs(this.worldPosition, facing())) {
             BlockPos machinePort = spec.pos().relative(spec.machineSide().getOpposite());
             if (machinePort.equals(queriedPos) && spec.machineSide() == side) {
                 return this.tank;
@@ -1074,25 +1134,109 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
     }
 
     public Vec3 turretPos() {
-        Vec3 offset = horizontalOffset();
+        Vec3 offset = switch (type()) {
+            case FRIENDLY -> friendlyWorldOrigin(facing());
+            case FRITZ -> fritzWorldOrigin(facing());
+            case HOWARD -> howardWorldOrigin(facing());
+            case HOWARD_DAMAGED -> howardDamagedWorldOrigin(facing());
+            case MAXWELL -> maxwellWorldOrigin(facing());
+            case RICHARD -> richardWorldOrigin(facing());
+            case TAUON -> tauonWorldOrigin(facing());
+            case ARTY -> artyWorldOrigin(facing());
+            case HIMARS -> himarsWorldOrigin(facing());
+            case SENTRY -> sentryWorldOrigin(facing());
+            case SENTRY_DAMAGED -> sentryDamagedWorldOrigin(facing());
+        };
         return Vec3.atLowerCornerOf(this.worldPosition).add(offset.x, type().heightOffset(), offset.z);
     }
 
-    public Vec3 horizontalOffset() {
-        LegacyTurretType type = type();
-        if (type.layout() == LegacyTurretType.Layout.SENTRY) {
-            return new Vec3(0.5D, 0.0D, 0.5D);
-        }
-        return horizontalOffset(facing());
+    public static Vec3 friendlyWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
     }
 
-    public static Vec3 horizontalOffset(Direction facing) {
+    public static Vec3 fritzWorldOrigin(Direction facing) {
         return switch (facing) {
-            case NORTH -> new Vec3(1.0D, 0.0D, 1.0D);
-            case WEST -> new Vec3(1.0D, 0.0D, 0.0D);
-            case EAST -> new Vec3(0.0D, 0.0D, 1.0D);
-            default -> new Vec3(0.0D, 0.0D, 0.0D);
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
         };
+    }
+
+    public static Vec3 howardWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
+    }
+
+    public static Vec3 howardDamagedWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
+    }
+
+    public static Vec3 maxwellWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
+    }
+
+    public static Vec3 richardWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
+    }
+
+    public static Vec3 tauonWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
+    }
+
+    public static Vec3 artyWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
+    }
+
+    public static Vec3 himarsWorldOrigin(Direction facing) {
+        return switch (facing) {
+            case NORTH -> WORLD_ORIGIN_NORTH;
+            case WEST -> WORLD_ORIGIN_WEST;
+            case EAST -> WORLD_ORIGIN_EAST;
+            default -> WORLD_ORIGIN_SOUTH;
+        };
+    }
+
+    public static Vec3 sentryWorldOrigin(Direction facing) {
+        return SENTRY_WORLD_ORIGIN;
+    }
+
+    public static Vec3 sentryDamagedWorldOrigin(Direction facing) {
+        return SENTRY_WORLD_ORIGIN;
     }
 
     public Direction facing() {
@@ -1311,6 +1455,68 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         return enqueueTarget(target.getX(), target.getY(), target.getZ());
     }
 
+    @Override
+    public String[] rttyFunctionInfo() {
+        List<String> functions = new ArrayList<>(List.of(
+                RttyInfo.PREFIX_FUNCTION + "setactive" + RttyInteractive.NAME_SEPARATOR + "active (0 or 1)",
+                RttyInfo.PREFIX_FUNCTION + "targetplayers" + RttyInteractive.NAME_SEPARATOR + "enabled (0 or 1)",
+                RttyInfo.PREFIX_FUNCTION + "targetanimals" + RttyInteractive.NAME_SEPARATOR + "enabled (0 or 1)",
+                RttyInfo.PREFIX_FUNCTION + "targetmobs" + RttyInteractive.NAME_SEPARATOR + "enabled (0 or 1)",
+                RttyInfo.PREFIX_FUNCTION + "targetmachines" + RttyInteractive.NAME_SEPARATOR + "enabled (0 or 1)",
+                RttyInfo.PREFIX_FUNCTION + "addwhitelist" + RttyInteractive.NAME_SEPARATOR + "name",
+                RttyInfo.PREFIX_FUNCTION + "removewhitelist" + RttyInteractive.NAME_SEPARATOR + "name"
+        ));
+        if (type() == LegacyTurretType.ARTY || type() == LegacyTurretType.HIMARS) {
+            functions.add(RttyInfo.PREFIX_FUNCTION + "enqueue" + RttyInteractive.NAME_SEPARATOR
+                    + "x" + RttyInteractive.PARAM_SEPARATOR + "y" + RttyInteractive.PARAM_SEPARATOR + "z");
+        }
+        if (type() == LegacyTurretType.ARTY) {
+            functions.add(RttyInfo.PREFIX_FUNCTION + "setmode" + RttyInteractive.NAME_SEPARATOR + "mode");
+        } else if (type() == LegacyTurretType.HIMARS) {
+            functions.add(RttyInfo.PREFIX_FUNCTION + "setmanual" + RttyInteractive.NAME_SEPARATOR + "enabled (0 or 1)");
+        }
+        return functions.toArray(String[]::new);
+    }
+
+    @Override
+    public String runRttyFunction(String name, String[] params) {
+        if (params.length > 0) {
+            try {
+                int enabled = Integer.parseInt(params[0]);
+                if (name.equals(RttyInfo.PREFIX_FUNCTION + "setactive")) this.on = enabled == 1;
+                if (name.equals(RttyInfo.PREFIX_FUNCTION + "targetplayers")) this.targetPlayers = enabled == 1;
+                if (name.equals(RttyInfo.PREFIX_FUNCTION + "targetanimals")) this.targetAnimals = enabled == 1;
+                if (name.equals(RttyInfo.PREFIX_FUNCTION + "targetmobs")) this.targetMobs = enabled == 1;
+                if (name.equals(RttyInfo.PREFIX_FUNCTION + "targetmachines")) this.targetMachines = enabled == 1;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "addwhitelist") && params.length > 0) {
+            addWhitelistName(params[0]);
+        }
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "removewhitelist") && params.length > 0) {
+            List<String> names = whitelist();
+            int index = names.indexOf(params[0]);
+            if (index >= 0) removeWhitelistName(index);
+        }
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "enqueue") && params.length > 2) {
+            try {
+                sendCommandPosition(Integer.parseInt(params[0]), Integer.parseInt(params[1]), Integer.parseInt(params[2]));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (type() == LegacyTurretType.ARTY
+                && name.equals(RttyInfo.PREFIX_FUNCTION + "setmode") && params.length == 1) {
+            this.mode = RttyInteractive.parseInt(params[0], 0, 2);
+        }
+        if (type() == LegacyTurretType.HIMARS
+                && name.equals(RttyInfo.PREFIX_FUNCTION + "setmanual") && params.length == 1) {
+            this.mode = RttyInteractive.parseInt(params[0], 0, 1);
+        }
+        setChanged();
+        return null;
+    }
+
     public void addWhitelistName(String name) {
         if (name.isEmpty() || name.length() > 25 || !isChip(this.items.get(CHIP_SLOT))) {
             return;
@@ -1379,12 +1585,12 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
 
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
-        return connectorSpecs(this.worldPosition, facing(), type()).stream().map(ConnectorSpec::pos).toList();
+        return connectorSpecsForCurrentType().stream().map(ConnectorSpec::pos).toList();
     }
 
     @Override
     public boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
-        for (ConnectorSpec spec : connectorSpecs(this.worldPosition, facing(), type())) {
+        for (ConnectorSpec spec : connectorSpecsForCurrentType()) {
             if (spec.pos().equals(connectorPos) && spec.machineSide() == machineSide) {
                 return true;
             }
@@ -1476,6 +1682,9 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         return this.level != null
                 && this.level.getBlockEntity(this.worldPosition) == this
                 && player.distanceToSqr(
@@ -1631,6 +1840,9 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
                 this.tank.setType(savedType);
             }
         }
+        if (this.level != null && this.level.isClientSide) {
+            publishRenderSnapshot(true);
+        }
     }
 
     @Override
@@ -1659,18 +1871,108 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
+    }
+
+    private void publishRenderSnapshot(boolean rebuildClientSection) {
+        RenderSnapshot previous = this.renderSnapshot;
+        RenderSnapshot next = buildRenderSnapshot(true);
+        this.renderSnapshot = next;
+        if (rebuildClientSection && this.level != null && this.level.isClientSide
+                && previous != null && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+            BlockState state = getBlockState();
+            this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private RenderSnapshot buildRenderSnapshot(boolean calculateBounds) {
+        BlockState state = getBlockState();
+        LegacyTurretType type = state.getBlock() instanceof LegacyTurretBlock block
+                ? block.type()
+                : LegacyTurretType.FRIENDLY;
+        Direction facing = state.hasProperty(LegacyTurretBlock.FACING)
+                ? state.getValue(LegacyTurretBlock.FACING)
+                : Direction.NORTH;
+        AABB bounds = calculateBounds
+                ? LegacyTurretRenderBounds.calculate(
+                this.worldPosition,
+                type,
+                facing,
+                this.prevRotationYaw,
+                this.rotationYaw,
+                this.prevRotationPitch,
+                this.rotationPitch,
+                this.beamTicks,
+                this.beamDistance
+        ) : new AABB(this.worldPosition);
+        return new RenderSnapshot(
+                state,
+                type,
+                facing,
+                this.prevRotationYaw,
+                this.rotationYaw,
+                this.prevRotationPitch,
+                this.rotationPitch,
+                this.lastSpin,
+                this.spin,
+                this.lastCrane,
+                this.crane,
+                this.lastBarrelLeftPos,
+                this.barrelLeftPos,
+                this.lastBarrelRightPos,
+                this.barrelRightPos,
+                this.lastArtilleryBarrelPos,
+                this.artilleryBarrelPos,
+                this.loaded,
+                this.spareAmmo,
+                this.beamTicks,
+                this.beamDistance,
+                this.level == null ? 0L : this.level.getGameTime(),
+                this.clientConnectorMask,
+                bounds
+        );
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(first.minY) == section(second.minY)
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
     private static boolean isChip(ItemStack stack) {
         return stack.is(HbmItems.TURRET_CHIP.get());
     }
 
-    public static List<ConnectorSpec> connectorSpecs(BlockPos corePos, Direction facing, LegacyTurretType type) {
-        if (type.layout() == LegacyTurretType.Layout.SENTRY) {
-            return List.of(new ConnectorSpec(corePos.below(), Direction.DOWN, 0.0F, 0.0F));
-        }
-        if (type.layout() == LegacyTurretType.Layout.ARTILLERY) {
-            return artilleryConnectorSpecs(corePos, facing);
-        }
-        Vec3 offset = horizontalOffset(facing);
+    private List<ConnectorSpec> connectorSpecsForCurrentType() {
+        return switch (type()) {
+            case FRIENDLY -> friendlyConnectorSpecs(this.worldPosition, facing());
+            case FRITZ -> fritzConnectorSpecs(this.worldPosition, facing());
+            case HOWARD -> howardConnectorSpecs(this.worldPosition, facing());
+            case HOWARD_DAMAGED -> howardDamagedConnectorSpecs(this.worldPosition, facing());
+            case MAXWELL -> maxwellConnectorSpecs(this.worldPosition, facing());
+            case RICHARD -> richardConnectorSpecs(this.worldPosition, facing());
+            case TAUON -> tauonConnectorSpecs(this.worldPosition, facing());
+            case ARTY -> artyConnectorSpecs(this.worldPosition, facing());
+            case HIMARS -> himarsConnectorSpecs(this.worldPosition, facing());
+            case SENTRY -> sentryConnectorSpecs(this.worldPosition, facing());
+            case SENTRY_DAMAGED -> sentryDamagedConnectorSpecs(this.worldPosition, facing());
+        };
+    }
+
+    public static List<ConnectorSpec> friendlyConnectorSpecs(BlockPos corePos, Direction facing) {
+        Vec3 offset = friendlyWorldOrigin(facing);
         BlockPos anchor = corePos.offset((int) offset.x, 0, (int) offset.z);
         return List.of(
                 new ConnectorSpec(anchor.offset(-2, 0, 0), Direction.WEST, 0.0F, 0.0F),
@@ -1684,21 +1986,233 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         );
     }
 
-    private static List<ConnectorSpec> artilleryConnectorSpecs(BlockPos corePos, Direction facing) {
-        Direction dir = facing.getOpposite();
-        Direction rot = dir.getClockWise();
-        ArrayList<ConnectorSpec> specs = new ArrayList<>();
+    public static List<ConnectorSpec> fritzConnectorSpecs(BlockPos corePos, Direction facing) {
+        Vec3 offset = fritzWorldOrigin(facing);
+        BlockPos anchor = corePos.offset((int) offset.x, 0, (int) offset.z);
+        return List.of(
+                new ConnectorSpec(anchor.offset(-2, 0, 0), Direction.WEST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(-2, 0, -1), Direction.WEST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, 1), Direction.SOUTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(0, 0, 1), Direction.SOUTH, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(1, 0, 0), Direction.EAST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(1, 0, -1), Direction.EAST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(0, 0, -2), Direction.NORTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, -2), Direction.NORTH, 0.0F, 0.0F)
+        );
+    }
+
+    public static List<ConnectorSpec> howardConnectorSpecs(BlockPos corePos, Direction facing) {
+        Vec3 offset = howardWorldOrigin(facing);
+        BlockPos anchor = corePos.offset((int) offset.x, 0, (int) offset.z);
+        return List.of(
+                new ConnectorSpec(anchor.offset(-2, 0, 0), Direction.WEST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(-2, 0, -1), Direction.WEST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, 1), Direction.SOUTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(0, 0, 1), Direction.SOUTH, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(1, 0, 0), Direction.EAST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(1, 0, -1), Direction.EAST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(0, 0, -2), Direction.NORTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, -2), Direction.NORTH, 0.0F, 0.0F)
+        );
+    }
+
+    public static List<ConnectorSpec> howardDamagedConnectorSpecs(BlockPos corePos, Direction facing) {
+        Vec3 offset = howardDamagedWorldOrigin(facing);
+        BlockPos anchor = corePos.offset((int) offset.x, 0, (int) offset.z);
+        return List.of(
+                new ConnectorSpec(anchor.offset(-2, 0, 0), Direction.WEST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(-2, 0, -1), Direction.WEST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, 1), Direction.SOUTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(0, 0, 1), Direction.SOUTH, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(1, 0, 0), Direction.EAST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(1, 0, -1), Direction.EAST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(0, 0, -2), Direction.NORTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, -2), Direction.NORTH, 0.0F, 0.0F)
+        );
+    }
+
+    public static List<ConnectorSpec> maxwellConnectorSpecs(BlockPos corePos, Direction facing) {
+        Vec3 offset = maxwellWorldOrigin(facing);
+        BlockPos anchor = corePos.offset((int) offset.x, 0, (int) offset.z);
+        return List.of(
+                new ConnectorSpec(anchor.offset(-2, 0, 0), Direction.WEST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(-2, 0, -1), Direction.WEST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, 1), Direction.SOUTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(0, 0, 1), Direction.SOUTH, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(1, 0, 0), Direction.EAST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(1, 0, -1), Direction.EAST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(0, 0, -2), Direction.NORTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, -2), Direction.NORTH, 0.0F, 0.0F)
+        );
+    }
+
+    public static List<ConnectorSpec> richardConnectorSpecs(BlockPos corePos, Direction facing) {
+        Vec3 offset = richardWorldOrigin(facing);
+        BlockPos anchor = corePos.offset((int) offset.x, 0, (int) offset.z);
+        return List.of(
+                new ConnectorSpec(anchor.offset(-2, 0, 0), Direction.WEST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(-2, 0, -1), Direction.WEST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, 1), Direction.SOUTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(0, 0, 1), Direction.SOUTH, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(1, 0, 0), Direction.EAST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(1, 0, -1), Direction.EAST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(0, 0, -2), Direction.NORTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, -2), Direction.NORTH, 0.0F, 0.0F)
+        );
+    }
+
+    public static List<ConnectorSpec> tauonConnectorSpecs(BlockPos corePos, Direction facing) {
+        Vec3 offset = tauonWorldOrigin(facing);
+        BlockPos anchor = corePos.offset((int) offset.x, 0, (int) offset.z);
+        return List.of(
+                new ConnectorSpec(anchor.offset(-2, 0, 0), Direction.WEST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(-2, 0, -1), Direction.WEST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, 1), Direction.SOUTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(0, 0, 1), Direction.SOUTH, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(1, 0, 0), Direction.EAST, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(1, 0, -1), Direction.EAST, 0.0F, 0.0F),
+                new ConnectorSpec(anchor.offset(0, 0, -2), Direction.NORTH, 0.0F, -1.0F),
+                new ConnectorSpec(anchor.offset(-1, 0, -2), Direction.NORTH, 0.0F, 0.0F)
+        );
+    }
+
+    public static List<ConnectorSpec> artyConnectorSpecs(BlockPos corePos, Direction facing) {
+        ArrayList<ConnectorSpec> specs = new ArrayList<>(32);
         for (int y = 0; y <= 1; y++) {
             for (int j = 0; j < 4; j++) {
-                specs.add(new ConnectorSpec(corePos.relative(dir, -1 + j).relative(rot, -3).above(y), Direction.SOUTH, 0.0F, 0.0F));
-                specs.add(new ConnectorSpec(corePos.relative(dir, -1 + j).relative(rot, 2).above(y), Direction.NORTH, 0.0F, 0.0F));
-                specs.add(new ConnectorSpec(corePos.relative(dir, -2).relative(rot, 1 - j).above(y), Direction.EAST, 0.0F, 0.0F));
-                specs.add(new ConnectorSpec(corePos.relative(dir, 3).relative(rot, 1 - j).above(y), Direction.WEST, 0.0F, 0.0F));
+                switch (facing) {
+                    case NORTH -> {
+                        specs.add(new ConnectorSpec(corePos.offset(3, y, -1 + j), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-2, y, -1 + j), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(j - 1, y, -2), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(j - 1, y, 3), Direction.WEST, 0.0F, 0.0F));
+                    }
+                    case SOUTH -> {
+                        specs.add(new ConnectorSpec(corePos.offset(-3, y, 1 - j), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(2, y, 1 - j), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, 2), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, -3), Direction.WEST, 0.0F, 0.0F));
+                    }
+                    case EAST -> {
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, 3), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, -2), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(2, y, j - 1), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-3, y, j - 1), Direction.WEST, 0.0F, 0.0F));
+                    }
+                    default -> {
+                        specs.add(new ConnectorSpec(corePos.offset(-1 + j, y, -3), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-1 + j, y, 2), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-2, y, 1 - j), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(3, y, 1 - j), Direction.WEST, 0.0F, 0.0F));
+                    }
+                }
             }
         }
         return specs;
     }
 
+    public static List<ConnectorSpec> himarsConnectorSpecs(BlockPos corePos, Direction facing) {
+        ArrayList<ConnectorSpec> specs = new ArrayList<>(32);
+        for (int y = 0; y <= 1; y++) {
+            for (int j = 0; j < 4; j++) {
+                switch (facing) {
+                    case NORTH -> {
+                        specs.add(new ConnectorSpec(corePos.offset(3, y, -1 + j), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-2, y, -1 + j), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(j - 1, y, -2), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(j - 1, y, 3), Direction.WEST, 0.0F, 0.0F));
+                    }
+                    case SOUTH -> {
+                        specs.add(new ConnectorSpec(corePos.offset(-3, y, 1 - j), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(2, y, 1 - j), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, 2), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, -3), Direction.WEST, 0.0F, 0.0F));
+                    }
+                    case EAST -> {
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, 3), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(1 - j, y, -2), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(2, y, j - 1), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-3, y, j - 1), Direction.WEST, 0.0F, 0.0F));
+                    }
+                    default -> {
+                        specs.add(new ConnectorSpec(corePos.offset(-1 + j, y, -3), Direction.SOUTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-1 + j, y, 2), Direction.NORTH, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(-2, y, 1 - j), Direction.EAST, 0.0F, 0.0F));
+                        specs.add(new ConnectorSpec(corePos.offset(3, y, 1 - j), Direction.WEST, 0.0F, 0.0F));
+                    }
+                }
+            }
+        }
+        return specs;
+    }
+
+    public static List<ConnectorSpec> sentryConnectorSpecs(BlockPos corePos, Direction facing) {
+        return List.of(new ConnectorSpec(corePos.below(), Direction.DOWN, 0.0F, 0.0F));
+    }
+
+    public static List<ConnectorSpec> sentryDamagedConnectorSpecs(BlockPos corePos, Direction facing) {
+        return List.of(new ConnectorSpec(corePos.below(), Direction.DOWN, 0.0F, 0.0F));
+    }
+
     public record ConnectorSpec(BlockPos pos, Direction machineSide, float renderOffsetX, float renderOffsetZ) {
+    }
+
+    public record RenderSnapshot(
+            BlockState blockState,
+            LegacyTurretType type,
+            Direction facing,
+            double previousYaw,
+            double yaw,
+            double previousPitch,
+            double pitch,
+            float previousSpin,
+            float spin,
+            float previousCrane,
+            float crane,
+            double previousLeftBarrel,
+            double leftBarrel,
+            double previousRightBarrel,
+            double rightBarrel,
+            double previousArtilleryBarrel,
+            double artilleryBarrel,
+            int loadedAmmo,
+            int spareAmmoModelData,
+            int beamTicks,
+            double beamDistance,
+            long gameTime,
+            long connectorMask,
+            AABB bounds
+    ) {
+        public double yaw(float partialTick) {
+            return Mth.lerp(partialTick, previousYaw, yaw);
+        }
+
+        public double pitch(float partialTick) {
+            return Mth.lerp(partialTick, previousPitch, pitch);
+        }
+
+        public float spin(float partialTick) {
+            return Mth.lerp(partialTick, previousSpin, spin);
+        }
+
+        public boolean connector(int index) {
+            return (connectorMask & 1L << index) != 0L;
+        }
+
+        public float crane(float partialTick) {
+            return Mth.lerp(partialTick, previousCrane, crane);
+        }
+
+        public double leftBarrel(float partialTick) {
+            return Mth.lerp(partialTick, previousLeftBarrel, leftBarrel);
+        }
+
+        public double rightBarrel(float partialTick) {
+            return Mth.lerp(partialTick, previousRightBarrel, rightBarrel);
+        }
+
+        public double artilleryBarrel(float partialTick) {
+            return Mth.lerp(partialTick, previousArtilleryBarrel, artilleryBarrel);
+        }
     }
 }

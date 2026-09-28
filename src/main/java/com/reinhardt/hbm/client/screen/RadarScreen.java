@@ -130,7 +130,7 @@ public final class RadarScreen extends AbstractContainerScreen<RadarMenu> {
                 case 6 -> "gui.reinhardtshbm.radar.configure";
                 default -> "gui.reinhardtshbm.radar.clear_map";
             };
-            graphics.renderTooltip(font, Component.translatable(key), mouseX, mouseY);
+            graphics.renderComponentTooltip(font, radarControlTooltip(action, key), mouseX, mouseY);
             return;
         }
         if (inside(mouseX, mouseY, 8, 17, 200, 200)) {
@@ -148,6 +148,21 @@ public final class RadarScreen extends AbstractContainerScreen<RadarMenu> {
             int z = (int) ((mouseY - topPos - 117) * ((double) menu.machine().radarRangeValue() * 2.0D + 1.0D) / 192.0D + menu.blockPos().getZ());
             graphics.renderTooltip(font, Component.literal(x + " / " + z), mouseX, mouseY);
         }
+    }
+
+    private static List<Component> radarControlTooltip(int action, String key) {
+        return switch (action) {
+            case 3 -> List.of(
+                    Component.translatable(key),
+                    Component.translatable("gui.reinhardtshbm.radar.smart_mode.description")
+            );
+            case 4 -> List.of(
+                    Component.translatable(key),
+                    Component.translatable("gui.reinhardtshbm.radar.redstone_mode.range"),
+                    Component.translatable("gui.reinhardtshbm.radar.redstone_mode.tier")
+            );
+            default -> List.of(Component.translatable(key));
+        };
     }
 
     private int actionAt(double mouseX, double mouseY) {

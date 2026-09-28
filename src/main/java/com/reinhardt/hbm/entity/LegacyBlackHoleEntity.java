@@ -34,7 +34,6 @@ public final class LegacyBlackHoleEntity extends Entity {
     public LegacyBlackHoleEntity(EntityType<? extends LegacyBlackHoleEntity> type, Level level) {
         super(type, level);
         this.noPhysics = true;
-        this.noCulling = true;
     }
 
     public static void spawn(Level level, Vec3 position, float size, boolean noBreak) {

@@ -3,16 +3,21 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.blockentity.DfcCoreBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class DfcCoreBlockEntityRenderer implements BlockEntityRenderer<DfcCoreBlockEntity> {
+public class DfcCoreBlockEntityRenderer implements LongRangeBlockEntityRenderer<DfcCoreBlockEntity> {
     private static final ModelResourceLocation SPHERE_UV = MachineModelRenderer.standalone("block/dfc_core_sphere_uv");
     private static final ModelResourceLocation SPHERE_RUV = MachineModelRenderer.standalone("block/dfc_core_sphere_ruv");
+    private static final double MAX_PULSE = ((Math.asin(0.8D) / 0.8D) + 1.0D) / 2.0D;
+    private static final double MAX_ORB_SCALE = 5.0D * (5.0D + 0.5D * MAX_PULSE);
+    // Round the analytical supremum outwards to cover the renderer's intermediate float arithmetic.
+    private static final double MAX_ORB_X_RADIUS = Math.ceil(0.475529D * MAX_ORB_SCALE * 1_000.0D) / 1_000.0D;
+    private static final double MAX_ORB_YZ_RADIUS = Math.ceil(0.5D * MAX_ORB_SCALE * 1_000.0D) / 1_000.0D;
 
     public DfcCoreBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -39,7 +44,14 @@ public class DfcCoreBlockEntityRenderer implements BlockEntityRenderer<DfcCoreBl
 
     @Override
     public AABB getRenderBoundingBox(DfcCoreBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(5.0D);
+        BlockPos pos = blockEntity.getBlockPos();
+        double centerX = pos.getX() + 0.5D;
+        double centerY = pos.getY() + 0.5D;
+        double centerZ = pos.getZ() + 0.5D;
+        return new AABB(
+                centerX - MAX_ORB_X_RADIUS, centerY - MAX_ORB_YZ_RADIUS, centerZ - MAX_ORB_YZ_RADIUS,
+                centerX + MAX_ORB_X_RADIUS, centerY + MAX_ORB_YZ_RADIUS, centerZ + MAX_ORB_YZ_RADIUS
+        );
     }
 
     /** Direct state/scale port of RenderCore#renderStandby. */

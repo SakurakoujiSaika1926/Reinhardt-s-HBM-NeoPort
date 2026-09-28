@@ -44,14 +44,17 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
     public static final int BATTERY_SLOT = 0;
@@ -63,10 +66,12 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     public static final int OUTPUT_SLOT = 16;
     public static final int SLOT_COUNT = 17;
     public static final int TANK_CAPACITY = 4_000;
-    public static final int DATA_COUNT = 15;
+    public static final int DATA_COUNT = 17;
     public static final long BASE_ENERGY_CAPACITY = 100_000L;
 
     private static final int[] AUTOMATION_SLOTS = createAutomationSlots();
+    private static volatile Consumer<AssemblyMachineBlockEntity> clientRecipeIconSnapshotUpdater = ignored -> { };
+    private static volatile long clientRecipeIconSnapshotRevision;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final NonNullList<ItemStack> observedAutomationItems = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
@@ -101,16 +106,19 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     @Nullable
     private AssemblyMachineRecipe cachedWorkRecipe;
     private boolean cachedCanProcess;
+    private volatile RecipeIconRenderSnapshot recipeIconRenderSnapshot;
+    private boolean clientRecipeIconSnapshotDirty = true;
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
             if (index >= 9 && index < DATA_COUNT) {
                 int tankDataIndex = index - 9;
-                HbmFluidTank tank = tankByFlatIndex(tankDataIndex / 3);
-                return switch (tankDataIndex % 3) {
+                HbmFluidTank tank = tankByFlatIndex(tankDataIndex / 4);
+                return switch (tankDataIndex % 4) {
                     case 0 -> tank.type().oldId();
-                    case 1 -> tank.amount();
-                    case 2 -> tank.pressure();
+                    case 1 -> tank.capacity();
+                    case 2 -> tank.amount();
+                    case 3 -> tank.pressure();
                     default -> 0;
                 };
             }
@@ -133,11 +141,12 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         public void set(int index, int value) {
             if (index >= 9 && index < DATA_COUNT) {
                 int tankDataIndex = index - 9;
-                HbmFluidTank tank = tankByFlatIndex(tankDataIndex / 3);
-                switch (tankDataIndex % 3) {
+                HbmFluidTank tank = tankByFlatIndex(tankDataIndex / 4);
+                switch (tankDataIndex % 4) {
                     case 0 -> tank.setType(HbmFluids.byOldId(value).orElse(HbmFluids.none()));
-                    case 1 -> tank.setAmount(value);
-                    case 2 -> tank.setPressure(value);
+                    case 1 -> tank.setCapacity(value);
+                    case 2 -> tank.setAmount(value);
+                    case 3 -> tank.setPressure(value);
                     default -> {
                     }
                 }
@@ -171,11 +180,52 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
 
     protected AssemblyMachineBlockEntity(BlockEntityType<? extends AssemblyMachineBlockEntity> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
+        this.recipeIconRenderSnapshot = RecipeIconRenderSnapshot.empty(pos, blockState);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, AssemblyMachineBlockEntity blockEntity) {
+        if (level.isClientSide) {
+            blockEntity.refreshClientRecipeIconSnapshot();
+        }
         PowerNetworkManager.tickFromEndpoint(level, blockEntity);
         blockEntity.tickWork(level);
+    }
+
+    /** Installed by the client renderer without linking client-only classes on a server. */
+    public static void setClientRecipeIconSnapshotUpdater(Consumer<AssemblyMachineBlockEntity> updater) {
+        clientRecipeIconSnapshotUpdater = Objects.requireNonNull(updater);
+        clientRecipeIconSnapshotRevision++;
+    }
+
+    public static long clientRecipeIconSnapshotRevision() {
+        return clientRecipeIconSnapshotRevision;
+    }
+
+    public RecipeIconRenderSnapshot recipeIconRenderSnapshot() {
+        return recipeIconRenderSnapshot;
+    }
+
+    public void refreshClientRecipeIconSnapshot() {
+        RecipeIconRenderSnapshot snapshot = recipeIconRenderSnapshot;
+        if (snapshot.revision() != clientRecipeIconSnapshotRevision
+                || snapshot.recipeGeneration() != MachineRecipeCache.generation()) {
+            clientRecipeIconSnapshotDirty = true;
+        }
+        if (clientRecipeIconSnapshotDirty && level != null && level.isClientSide) {
+            clientRecipeIconSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientRecipeIconSnapshot(RecipeIconRenderSnapshot snapshot) {
+        if (level == null || !level.isClientSide) {
+            return;
+        }
+        RecipeIconRenderSnapshot previous = recipeIconRenderSnapshot;
+        recipeIconRenderSnapshot = Objects.requireNonNull(snapshot);
+        clientRecipeIconSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.bounds(), snapshot.bounds())) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     @Override
@@ -367,7 +417,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -470,6 +520,25 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         this.completedCycles = tag.getInt("CompletedCycles");
         this.selectedRecipeId = tag.contains("SelectedRecipe") ? ResourceLocation.tryParse(tag.getString("SelectedRecipe")) : null;
         invalidateRecipeCatalog();
+        clientRecipeIconSnapshotDirty = true;
+        refreshClientRecipeIconSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        clientRecipeIconSnapshotDirty = true;
+        refreshClientRecipeIconSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (recipeIconRenderSnapshot != null && previous != state) {
+            clientRecipeIconSnapshotDirty = true;
+            refreshClientRecipeIconSnapshot();
+        }
     }
 
     @Override
@@ -597,6 +666,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         this.selectedRecipeId = recipeId;
         this.progress = 0;
         invalidateWorkState();
+        clientRecipeIconSnapshotDirty = true;
         setChangedAndSync();
     }
 
@@ -654,12 +724,14 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         if (value <= 0 || this.level == null) {
             this.selectedRecipeId = null;
             invalidateWorkState();
+            clientRecipeIconSnapshotDirty = true;
             return;
         }
         List<RecipeHolder<AssemblyMachineRecipe>> recipes = availableRecipes(this.level);
         int index = value - 1;
         this.selectedRecipeId = index >= 0 && index < recipes.size() ? recipes.get(index).id() : null;
         invalidateWorkState();
+        clientRecipeIconSnapshotDirty = true;
     }
 
     public List<RecipeHolder<AssemblyMachineRecipe>> availableRecipes(Level level) {
@@ -724,7 +796,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         AssemblyMachineRecipe.Input input = new AssemblyMachineRecipe.Input(inputStacks(), inputFluidStacks());
         return selectedChoiceVariants(level, selectedRecipe).stream()
                 .filter(holder -> holder.value().matches(input, level))
-                .filter(holder -> canOutput(holder.value().result()))
+                .filter(holder -> canOutput(holder.value()))
                 .filter(holder -> canFitFluidOutput(holder.value()))
                 .findFirst();
     }
@@ -783,9 +855,13 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
                 && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
+    private boolean canOutput(AssemblyMachineRecipe recipe) {
+        return recipe.canFitItemOutput(this.items.get(OUTPUT_SLOT));
+    }
+
     private void finishRecipe(AssemblyMachineRecipe recipe) {
         consumeInputs(recipe);
-        ItemStack result = recipe.result().copy();
+        ItemStack result = recipe.rollResult(this.level.random);
         ItemStack output = this.items.get(OUTPUT_SLOT);
         if (output.isEmpty()) {
             this.items.set(OUTPUT_SLOT, result);
@@ -834,15 +910,19 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
     private void setupTanks(AssemblyMachineRecipe recipe) {
         if (!recipe.inputFluids().isEmpty()) {
             AssemblyMachineRecipe.AssemblyFluidStack input = recipe.inputFluids().getFirst();
+            this.inputTank.setCapacity(Math.max(Math.max(this.inputTank.amount(), input.amount() * 2), TANK_CAPACITY));
             this.inputTank.conform(input.type(), input.pressure());
         } else if (this.inputTank.amount() == 0) {
+            this.inputTank.setCapacity(TANK_CAPACITY);
             this.inputTank.clear();
         }
 
         if (!recipe.outputFluids().isEmpty()) {
             AssemblyMachineRecipe.AssemblyFluidStack output = recipe.outputFluids().getFirst();
+            this.outputTank.setCapacity(Math.max(Math.max(this.outputTank.amount(), output.amount() * 2), TANK_CAPACITY));
             this.outputTank.conform(output.type(), output.pressure());
         } else if (this.outputTank.amount() == 0) {
+            this.outputTank.setCapacity(TANK_CAPACITY);
             this.outputTank.clear();
         }
     }
@@ -851,7 +931,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         if (!recipe.matches(new AssemblyMachineRecipe.Input(inputStacks(), inputFluidStacks()), this.level)) {
             return false;
         }
-        return canOutput(recipe.result()) && canFitFluidOutput(recipe);
+        return canOutput(recipe) && canFitFluidOutput(recipe);
     }
 
     private boolean canFitFluidOutput(AssemblyMachineRecipe recipe) {
@@ -873,7 +953,7 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         }
 
         BlockState state = this.level.getBlockState(this.worldPosition);
-        if (state.getBlock() instanceof AssemblyMachineBlock && state.getValue(AssemblyMachineBlock.LIT) != lit) {
+        if (state.hasProperty(AssemblyMachineBlock.LIT) && state.getValue(AssemblyMachineBlock.LIT) != lit) {
             this.level.setBlock(this.worldPosition, state.setValue(AssemblyMachineBlock.LIT, lit), Block.UPDATE_CLIENTS);
         }
     }
@@ -1242,6 +1322,42 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         }
     }
 
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(first.minY) == section(second.minY)
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return net.minecraft.core.SectionPos.blockToSectionCoord(net.minecraft.util.Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RecipeIconRenderSnapshot(BlockState state, @Nullable ResourceLocation recipeId,
+                                           ItemStack sourceItem, ItemStack renderedItem, Object modelToken, AABB bounds,
+                                           long recipeGeneration, long revision) {
+        public RecipeIconRenderSnapshot {
+            Objects.requireNonNull(state);
+            sourceItem = sourceItem.copy();
+            renderedItem = renderedItem.copy();
+            Objects.requireNonNull(bounds);
+        }
+
+        private static RecipeIconRenderSnapshot empty(BlockPos pos, BlockState state) {
+            double x = pos.getX();
+            double y = pos.getY();
+            double z = pos.getZ();
+            return new RecipeIconRenderSnapshot(state, null, ItemStack.EMPTY, ItemStack.EMPTY, null,
+                    new AABB(x, y, z, x, y, z), Long.MIN_VALUE, -1L);
+        }
+    }
+
     private final class AssemblyMachineFluidHandler implements IFluidHandler {
         @Override
         public int getTanks() {
@@ -1259,7 +1375,11 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
 
         @Override
         public int getTankCapacity(int tank) {
-            return tank == 0 || tank == 1 ? TANK_CAPACITY : 0;
+            return switch (tank) {
+                case 0 -> inputTank.capacity();
+                case 1 -> outputTank.capacity();
+                default -> 0;
+            };
         }
 
         @Override

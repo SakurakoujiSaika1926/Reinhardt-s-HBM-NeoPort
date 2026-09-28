@@ -129,6 +129,7 @@ public final class HbmDoorClientSounds {
                 case QE_SLIDING_DOOR -> new Profile(null, HbmSoundEvents.DOOR_QE_SLIDING_OPENING.get(), null, HbmSoundEvents.DOOR_QE_SLIDING_OPENED.get(), null, HbmSoundEvents.DOOR_QE_SLIDING_OPENING.get(), HbmSoundEvents.DOOR_QE_SLIDING_SHUT.get(), 2.0F);
                 case QE_CONTAINMENT -> new Profile(null, HbmSoundEvents.WGH_START.get(), null, HbmSoundEvents.WGH_STOP.get(), null, HbmSoundEvents.WGH_START.get(), HbmSoundEvents.WGH_STOP.get(), 2.0F);
                 case WATER_DOOR -> new Profile(HbmSoundEvents.DOOR_LEVER.get(), HbmSoundEvents.DOOR_WGH_BIG_START.get(), null, HbmSoundEvents.DOOR_WGH_BIG_STOP.get(), null, HbmSoundEvents.DOOR_WGH_BIG_START.get(), HbmSoundEvents.DOOR_LEVER.get(), 2.0F);
+                case CARGO_DOOR -> new Profile(null, HbmSoundEvents.DOOR_GARAGE_MOVE.get(), null, HbmSoundEvents.DOOR_GARAGE_STOP.get(), null, HbmSoundEvents.DOOR_GARAGE_MOVE.get(), HbmSoundEvents.DOOR_GARAGE_STOP.get(), 2.0F);
                 case SILO_HATCH, SILO_HATCH_LARGE -> new Profile(null, HbmSoundEvents.DOOR_WGH_BIG_START.get(), null, HbmSoundEvents.DOOR_WGH_BIG_STOP.get(), null, HbmSoundEvents.DOOR_WGH_BIG_START.get(), HbmSoundEvents.DOOR_WGH_BIG_STOP.get(), 2.0F);
                 case VAULT_DOOR -> new Profile(null, null, null, null, null, null, null, 1.0F);
             };

@@ -1,0 +1,17 @@
+{
+  "type": "reinhardtshbm:custom_machine",
+  "group": "paperPress",
+  "machine": "paper_press",
+  "ingredient": { "item": "reinhardtshbm:powder_sawdust" },
+  "input_count": 1,
+  "input_fluid": {
+    "fluid": "water",
+    "amount": 250,
+    "pressure": 0
+  },
+  "result": { "id": "minecraft:paper", "count": 3 },
+  "duration": 60,
+  "power": 10,
+  "pollution_type": "SOOT",
+  "pollution_amount": 0.03
+}

@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:rock_mill",
+  "group": "rock.crushing",
+  "auto_switch_group": "autoswitch.crushing",
+  "input": { "ingredient": { "tag": "c:ores/bauxite" }, "count": 1 },
+  "input_fluid": { "fluid": "water", "amount": 250 },
+  "output_fluid": { "fluid": "colloid", "amount": 250 },
+  "outputs": [
+    { "stack": { "id": "minecraft:gravel" }, "weight": 25 },
+    { "stack": { "id": "minecraft:clay_ball" }, "weight": 25 },
+    { "stack": { "id": "reinhardtshbm:stone_resource_hematite" }, "weight": 25 },
+    { "stack": { "id": "reinhardtshbm:ore_titanium" }, "weight": 25 }
+  ],
+  "duration": 200,
+  "power": 25
+}

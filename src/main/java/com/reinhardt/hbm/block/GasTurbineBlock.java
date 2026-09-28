@@ -7,7 +7,6 @@ import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,7 +43,7 @@ public class GasTurbineBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     // HBM 1.7.10 MachineTurbineGas#getDimensions(): {2, 0, 1, 1, 4, 5}
     // Order is UP, DOWN, FORWARD, BACKWARD, LEFT, RIGHT with SOUTH as the unrotated basis.
-    public static final LargeMachineBlock.Footprint FOOTPRINT = LargeMachineBlock.Footprint.legacySouthBox(2, 0, 1, 1, 4, 5);
+    public static final LargeMachineBlock.Footprint FOOTPRINT = LargeMachineBlock.Footprint.box(-4, 5, 0, 2, -1, 1);
     private final VoxelShape shape;
 
     public GasTurbineBlock(Properties properties, VoxelShape shape) {
@@ -238,7 +237,7 @@ public class GasTurbineBlock extends Block implements EntityBlock {
             return;
         }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
-            for (BlockPos pos : oldTurbinePositions(corePos, facing)) {
+            for (BlockPos pos : occupiedPositions(corePos, facing)) {
                 if (pos.equals(corePos)) {
                     continue;
                 }
@@ -251,8 +250,29 @@ public class GasTurbineBlock extends Block implements EntityBlock {
         });
     }
 
+    public static List<BlockPos> occupiedPositions(BlockPos corePos, Direction facing) {
+        java.util.ArrayList<BlockPos> positions = new java.util.ArrayList<>(FOOTPRINT.offsets().size());
+        for (BlockPos offset : FOOTPRINT.offsets()) {
+            positions.add(corePos.offset(mapGasTurbineOffset(facing, offset)).immutable());
+        }
+        return List.copyOf(positions);
+    }
+
+    private static BlockPos mapGasTurbineOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("Gas turbine requires a horizontal facing: " + facing);
+        };
+    }
+
     private static List<BlockPos> oldTurbinePositions(BlockPos corePos, Direction facing) {
-        return LegacyMachineGeometry.positionsForLegacyFootprint(corePos, facing, FOOTPRINT);
+        return occupiedPositions(corePos, facing);
     }
 
     private static void refreshPorts(Level level, BlockPos corePos, BlockState state) {

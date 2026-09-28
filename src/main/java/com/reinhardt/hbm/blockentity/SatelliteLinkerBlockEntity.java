@@ -105,7 +105,7 @@ public final class SatelliteLinkerBlockEntity extends BlockEntity implements Mac
 
     @Override public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) { return false; }
     @Override public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) { return slot >= 0 && slot < SLOT_COUNT; }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    @Override public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
 
     @Override
     public void clearContent() {

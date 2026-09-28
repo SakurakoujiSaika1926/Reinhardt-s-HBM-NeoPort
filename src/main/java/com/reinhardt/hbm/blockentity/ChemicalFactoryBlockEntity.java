@@ -393,7 +393,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -930,7 +930,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
         ports.add(new Port(pos.offset(2, 0, -3), Direction.NORTH));
 
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = chemicalFactoryRightSide(facing);
         for (int i = -2; i <= 2; i++) {
             ports.add(new Port(pos.offset(offset(facing, i, rot, 2)).above(3), Direction.UP));
             ports.add(new Port(pos.offset(offset(facing, i, rot, -2)).above(3), Direction.UP));
@@ -956,7 +956,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
         ports.add(new Port(pos.offset(2, 0, -3), Direction.NORTH));
 
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = chemicalFactoryRightSide(facing);
         for (int i = -2; i <= 2; i++) {
             ports.add(new Port(pos.offset(offset(facing, i, rot, 2)).above(3), Direction.UP));
             ports.add(new Port(pos.offset(offset(facing, i, rot, -2)).above(3), Direction.UP));
@@ -968,7 +968,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> ioConnectorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = chemicalFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 1, rot, 3)), rot),
                 new Port(this.worldPosition.offset(offset(facing, -1, rot, 3)), rot),
@@ -979,7 +979,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> ioAccessorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = chemicalFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 1, rot, 2)), rot),
                 new Port(this.worldPosition.offset(offset(facing, -1, rot, 2)), rot),
@@ -990,7 +990,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> coolantConnectorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = chemicalFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 3, rot, 1)), facing),
                 new Port(this.worldPosition.offset(offset(facing, 3, rot, -1)), facing),
@@ -1001,7 +1001,7 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> coolantAccessorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = chemicalFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 2, rot, 1)), facing),
                 new Port(this.worldPosition.offset(offset(facing, 2, rot, -1)), facing),
@@ -1013,6 +1013,16 @@ public class ChemicalFactoryBlockEntity extends BlockEntity implements PowerEndp
     private Direction facing() {
         BlockState state = this.getBlockState();
         return state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+    }
+
+    private static Direction chemicalFactoryRightSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Chemical factory requires a horizontal facing: " + facing);
+        };
     }
 
     private HbmFluidTank tankByFlatIndex(int tank) {

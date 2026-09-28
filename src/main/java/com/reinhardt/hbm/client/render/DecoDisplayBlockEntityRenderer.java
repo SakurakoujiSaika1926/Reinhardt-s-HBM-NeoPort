@@ -48,8 +48,7 @@ public final class DecoDisplayBlockEntityRenderer implements BlockEntityRenderer
         BlockState state = display.getBlockState();
         if (state.is(HbmBlocks.DECO_COMPUTER.get())) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, 0.5F, 0.5F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(computerRotation(state.getValue(DecoModelBlock.FACING))));
+            applyDecoComputerPose(poseStack, decoComputerFacing(state));
             MachineModelRenderer.renderUnculled(MachineModelRenderer.model(COMPUTER), poseStack,
                     bufferSource, state, packedLight, packedOverlay);
             poseStack.popPose();
@@ -57,8 +56,7 @@ public final class DecoDisplayBlockEntityRenderer implements BlockEntityRenderer
         }
         if (state.is(HbmBlocks.DECO_CRT.get())) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, 0.0F, 0.5F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(crtRotation(state.getValue(DecoCrtBlock.FACING))));
+            applyDecoCrtPose(poseStack, decoCrtFacing(state));
             int variant = Math.max(0, Math.min(CRT_MONITOR.length - 1, state.getValue(DecoCrtBlock.VARIANT)));
             MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CRT_MONITOR[variant]), poseStack,
                     bufferSource, state, packedLight, packedOverlay);
@@ -77,23 +75,49 @@ public final class DecoDisplayBlockEntityRenderer implements BlockEntityRenderer
         return MachineModelRenderer.standalone(path);
     }
 
-    private static float computerRotation(net.minecraft.core.Direction facing) {
-        return switch (facing) {
-            case SOUTH -> 0.0F;
-            case WEST -> 270.0F;
-            case EAST -> 90.0F;
-            default -> 180.0F;
-        };
+    private static void applyDecoComputerPose(PoseStack poseStack, net.minecraft.core.Direction facing) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (facing) {
+            case SOUTH -> { }
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Decorative computer facing must be horizontal: " + facing);
+        }
     }
 
-    private static float crtRotation(net.minecraft.core.Direction facing) {
-        return switch (facing) {
-            // RenderCRT metadata 0/1/2/3 maps to NORTH/EAST/WEST/SOUTH;
-            // its inventory/world rotations are 90/0/270/180 degrees.
-            case NORTH -> 90.0F;
-            case EAST -> 0.0F;
-            case WEST -> 270.0F;
-            default -> 180.0F;
-        };
+    private static void applyDecoCrtPose(PoseStack poseStack, net.minecraft.core.Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        // RenderCRT metadata 0/1/2/3 maps to NORTH/EAST/WEST/SOUTH;
+        // its inventory/world rotations are 90/0/270/180 degrees.
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Decorative CRT facing must be horizontal: " + facing);
+        }
+    }
+
+    private static net.minecraft.core.Direction decoComputerFacing(BlockState state) {
+        if (!state.hasProperty(DecoModelBlock.FACING)) {
+            throw new IllegalStateException("Decorative computer state is missing its facing property: " + state);
+        }
+        net.minecraft.core.Direction facing = state.getValue(DecoModelBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Decorative computer state has a vertical facing: " + facing);
+        }
+        return facing;
+    }
+
+    private static net.minecraft.core.Direction decoCrtFacing(BlockState state) {
+        if (!state.hasProperty(DecoCrtBlock.FACING)) {
+            throw new IllegalStateException("Decorative CRT state is missing its facing property: " + state);
+        }
+        net.minecraft.core.Direction facing = state.getValue(DecoCrtBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Decorative CRT state has a vertical facing: " + facing);
+        }
+        return facing;
     }
 }

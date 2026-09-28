@@ -3,6 +3,7 @@ package com.reinhardt.hbm.block;
 import com.mojang.serialization.MapCodec;
 import com.reinhardt.hbm.blockentity.SatelliteDockBlockEntity;
 import com.reinhardt.hbm.blockentity.SatelliteDockDummyBlockEntity;
+import com.reinhardt.hbm.blockentity.MachineDummyMenuAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -83,6 +84,7 @@ public final class SatelliteDockDummyBlock extends BaseEntityBlock {
                 && level.getBlockEntity(dummy.corePos()) instanceof SatelliteDockBlockEntity dock
                 && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(dock, buffer -> buffer.writeBlockPos(dummy.corePos()));
+            MachineDummyMenuAccess.record(serverPlayer, pos, dummy.corePos());
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
@@ -112,11 +114,18 @@ public final class SatelliteDockDummyBlock extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
+        return orientedShape(level, pos);
     }
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return orientedShape(level, pos);
+    }
+
+    private static VoxelShape orientedShape(BlockGetter level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof SatelliteDockDummyBlockEntity dummy) {
+            return SHAPE;
+        }
         return SHAPE;
     }
 }

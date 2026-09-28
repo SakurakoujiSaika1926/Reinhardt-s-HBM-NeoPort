@@ -35,10 +35,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
+import java.util.function.Consumer;
 
 /** 1.7.10 LaunchPad[Base/Large/Rusted], CompactLauncher and LaunchTable state machines. */
 public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory,
@@ -46,6 +48,11 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
     public enum Kind { PAD_SMALL, PAD_RUSTED, PAD_LARGE, COMPACT, TABLE, SOYUZ }
     public static final long MAX_POWER = 100_000L;
     public static final int STATE_MISSING = 0, STATE_LOADING = 1, STATE_READY = 2;
+    private static volatile Consumer<LauncherBlockEntity> clientRenderSnapshotUpdater = ignored -> { };
+    private static volatile Consumer<LauncherBlockEntity> clientGpuCacheDisposer = ignored -> { };
+    private static volatile long clientRenderSnapshotRevision;
+    private static final Set<LauncherBlockEntity> LOADED_CLIENT_INSTANCES =
+            Collections.newSetFromMap(new WeakHashMap<>());
     private final Kind kind;
     private final NonNullList<ItemStack> items;
     private final HbmFluidTank fuelTank, oxidizerTank;
@@ -58,6 +65,8 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
     private float lift = 1F, erector = 90F, prevLift = 1F, prevErector = 90F, syncLift = 1F, syncErector = 90F;
     private int animationSync;
     private String customName = "";
+    private volatile RenderSnapshot renderSnapshot;
+    private boolean clientRenderSnapshotDirty = true;
 
     private final ContainerData data = new ContainerData() {
         public int get(int i) { return switch (i) {
@@ -70,7 +79,13 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
             case 0 -> power = v; case 1 -> solidFuel = v; case 2 -> fuelTank.setAmount(v);
             case 3 -> oxidizerTank.setAmount(v); case 4 -> setSyncedType(fuelTank, v);
             case 5 -> setSyncedType(oxidizerTank, v); case 6 -> state = v;
-            case 7 -> missileLoaded = v != 0; case 8 -> tableSize = MissilePartItem.Size.values()[v];
+            case 7 -> { missileLoaded = v != 0; clientRenderSnapshotDirty = true; }
+            case 8 -> {
+                if (v >= 0 && v < MissilePartItem.Size.values().length) {
+                    tableSize = MissilePartItem.Size.values()[v];
+                    clientRenderSnapshotDirty = true;
+                }
+            }
             default -> throw new IndexOutOfBoundsException(i);
         } }
         public int getCount() { return 9; }
@@ -85,6 +100,12 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
         fuelTank = new HbmFluidTank(capacity);
         oxidizerTank = new HbmFluidTank(capacity);
         delay = kind == Kind.PAD_LARGE ? 20 : 0;
+        Direction initialFacing = state.hasProperty(LargeMachineBlock.FACING)
+                ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        renderSnapshot = new RenderSnapshot(null, state, kind, initialFacing, -1,
+                1.0F, 1.0F, 90.0F, 90.0F, false, false,
+                MissilePartItem.Size.SIZE_10, scaffoldHeight, false,
+                MissileRenderData.EMPTY, emptyRenderBounds(pos), -1L);
     }
     private boolean custom() { return kind == Kind.COMPACT || kind == Kind.TABLE; }
     public Kind kind() { return kind; }
@@ -100,6 +121,7 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
             throw new IllegalStateException("Only the rusted launch pad may receive legacy structure missile state");
         }
         this.missileLoaded = missileLoaded;
+        this.clientRenderSnapshotDirty = true;
         setChanged();
     }
     public boolean erected() { return erected; }
@@ -111,7 +133,7 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
     public boolean erectorMoving() { return erectorMoving; }
     public MissilePartItem.Size tableSize() { return tableSize; }
     public int scaffoldHeight() { return scaffoldHeight; }
-    public void setScaffoldHeight(int height) { scaffoldHeight = height; }
+    public void setScaffoldHeight(int height) { scaffoldHeight = height; clientRenderSnapshotDirty = true; }
     public HbmFluidTank fuelTank() { return fuelTank; }
     public HbmFluidTank oxidizerTank() { return oxidizerTank; }
     public Direction facing() { return getBlockState().hasProperty(LargeMachineBlock.FACING)
@@ -124,6 +146,17 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
                 be.lift += (be.syncLift - be.lift) / be.animationSync;
                 be.erector += (be.syncErector - be.erector) / be.animationSync--;
             } else { be.lift = be.syncLift; be.erector = be.syncErector; }
+            RenderSnapshot snapshot = be.renderSnapshot;
+            if (snapshot.revision() != clientRenderSnapshotRevision
+                    || snapshot.facing() != be.facing()
+                    || snapshot.formFactor() != be.formFactor
+                    || snapshot.previousLift() != be.prevLift || snapshot.lift() != be.lift
+                    || snapshot.previousErector() != be.prevErector || snapshot.erector() != be.erector
+                    || snapshot.erected() != be.erected || snapshot.readyToLoad() != be.readyToLoad
+                    || snapshot.tableSize() != be.tableSize) {
+                be.clientRenderSnapshotDirty = true;
+            }
+            be.refreshClientRenderSnapshot();
             return;
         }
         if (be.kind == Kind.PAD_RUSTED) be.tickRedstoneEdge();
@@ -188,8 +221,12 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
         if (erected && canLaunch()) state = STATE_READY;
         boolean wasLiftMoving = liftMoving, wasErectorMoving = erectorMoving;
         liftMoving = lift != prevLift; erectorMoving = erector != prevErector;
-        if (wasLiftMoving && !liftMoving) playSound("door.wgh_stop", 2F);
-        if (wasErectorMoving && !erectorMoving) playSound("door.garage_stop", 2F);
+        if (wasLiftMoving && !liftMoving) {
+            level.playSound(null, worldPosition, HbmSoundEvents.WGH_STOP.get(), SoundSource.BLOCKS, 2F, 1F);
+        }
+        if (wasErectorMoving && !erectorMoving) {
+            level.playSound(null, worldPosition, HbmSoundEvents.DOOR_GARAGE_STOP.get(), SoundSource.BLOCKS, 2F, 1F);
+        }
     }
     private void retract(float rotationSpeed, float liftSpeed) {
         if (erector < 90F) {
@@ -326,6 +363,7 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
     public void setTableSize(MissilePartItem.Size size) {
         if (kind != Kind.TABLE || (size != MissilePartItem.Size.SIZE_10 && size != MissilePartItem.Size.SIZE_15 && size != MissilePartItem.Size.SIZE_20)) return;
         tableSize = size;
+        clientRenderSnapshotDirty = true;
         sync();
     }
     public void cycleTableSize() {
@@ -335,6 +373,7 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
             case SIZE_20 -> MissilePartItem.Size.SIZE_10;
             default -> throw new IllegalStateException("Invalid launch table size " + tableSize);
         };
+        clientRenderSnapshotDirty = true;
         sync();
     }
     private static ItemStack legacyItem(String id) { return new ItemStack(BuiltInRegistries.ITEM.getOptional(ReinhardtsHBM.id(id)).orElseThrow()); }
@@ -376,26 +415,84 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
     }
     public record Port(BlockPos pos, Direction face) { }
     public List<Port> ports() {
+        return switch (this.kind) {
+            case PAD_SMALL -> smallLaunchPadPorts();
+            case PAD_RUSTED -> rustedLaunchPadPorts();
+            case PAD_LARGE -> largeLaunchPadPorts();
+            case COMPACT -> compactLauncherPorts();
+            case TABLE -> launchTablePorts();
+            case SOYUZ -> soyuzLauncherPorts();
+        };
+    }
+
+    private List<Port> smallLaunchPadPorts() {
         List<Port> ports = new ArrayList<>();
-        if (kind == Kind.PAD_RUSTED) return ports;
-        if (kind == Kind.TABLE) {
-            for (int i = -4; i <= 4; i++) {
-                ports.add(new Port(worldPosition.offset(i, 0, 5), Direction.SOUTH));
-                ports.add(new Port(worldPosition.offset(i, 0, -5), Direction.NORTH));
-                ports.add(new Port(worldPosition.offset(5, 0, i), Direction.EAST));
-                ports.add(new Port(worldPosition.offset(-5, 0, i), Direction.WEST));
-            }
-        } else {
-            int edge = kind == Kind.PAD_LARGE ? 5 : 2, offset = kind == Kind.PAD_LARGE ? 2 : 1;
-            for (int i : new int[] {-offset, offset}) {
-                ports.add(new Port(worldPosition.offset(edge, 0, i), Direction.EAST));
-                ports.add(new Port(worldPosition.offset(-edge, 0, i), Direction.WEST));
-                ports.add(new Port(worldPosition.offset(i, 0, edge), Direction.SOUTH));
-                ports.add(new Port(worldPosition.offset(i, 0, -edge), Direction.NORTH));
-            }
-            if (kind == Kind.COMPACT) for (int x : new int[] {-1, 1}) for (int z : new int[] {-1, 1})
-                ports.add(new Port(worldPosition.offset(x, -1, z), Direction.DOWN));
+        ports.add(new Port(worldPosition.offset(2, 0, -1), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-2, 0, -1), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(-1, 0, 2), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(-1, 0, -2), Direction.NORTH));
+        ports.add(new Port(worldPosition.offset(2, 0, 1), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-2, 0, 1), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(1, 0, 2), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(1, 0, -2), Direction.NORTH));
+        return ports;
+    }
+
+    private List<Port> rustedLaunchPadPorts() {
+        return List.of();
+    }
+
+    private List<Port> largeLaunchPadPorts() {
+        List<Port> ports = new ArrayList<>();
+        ports.add(new Port(worldPosition.offset(5, 0, -2), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-5, 0, -2), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(-2, 0, 5), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(-2, 0, -5), Direction.NORTH));
+        ports.add(new Port(worldPosition.offset(5, 0, 2), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-5, 0, 2), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(2, 0, 5), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(2, 0, -5), Direction.NORTH));
+        return ports;
+    }
+
+    private List<Port> compactLauncherPorts() {
+        List<Port> ports = new ArrayList<>();
+        ports.add(new Port(worldPosition.offset(2, 0, -1), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-2, 0, -1), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(-1, 0, 2), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(-1, 0, -2), Direction.NORTH));
+        ports.add(new Port(worldPosition.offset(2, 0, 1), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-2, 0, 1), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(1, 0, 2), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(1, 0, -2), Direction.NORTH));
+        ports.add(new Port(worldPosition.offset(-1, -1, -1), Direction.DOWN));
+        ports.add(new Port(worldPosition.offset(-1, -1, 1), Direction.DOWN));
+        ports.add(new Port(worldPosition.offset(1, -1, -1), Direction.DOWN));
+        ports.add(new Port(worldPosition.offset(1, -1, 1), Direction.DOWN));
+        return ports;
+    }
+
+    private List<Port> launchTablePorts() {
+        List<Port> ports = new ArrayList<>();
+        for (int i = -4; i <= 4; i++) {
+            ports.add(new Port(worldPosition.offset(i, 0, 5), Direction.SOUTH));
+            ports.add(new Port(worldPosition.offset(i, 0, -5), Direction.NORTH));
+            ports.add(new Port(worldPosition.offset(5, 0, i), Direction.EAST));
+            ports.add(new Port(worldPosition.offset(-5, 0, i), Direction.WEST));
         }
+        return ports;
+    }
+
+    private List<Port> soyuzLauncherPorts() {
+        List<Port> ports = new ArrayList<>();
+        ports.add(new Port(worldPosition.offset(2, 0, -1), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-2, 0, -1), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(-1, 0, 2), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(-1, 0, -2), Direction.NORTH));
+        ports.add(new Port(worldPosition.offset(2, 0, 1), Direction.EAST));
+        ports.add(new Port(worldPosition.offset(-2, 0, 1), Direction.WEST));
+        ports.add(new Port(worldPosition.offset(1, 0, 2), Direction.SOUTH));
+        ports.add(new Port(worldPosition.offset(1, 0, -2), Direction.NORTH));
         return ports;
     }
     @Nullable public IFluidHandler fluidHandler(BlockPos queriedPos, @Nullable Direction side) {
@@ -426,29 +523,27 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
     @Override public int getContainerSize() { return items.size(); }
     @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
     @Override public ItemStack getItem(int i) { return items.get(i); }
-    @Override public ItemStack removeItem(int i, int amount) { ItemStack out = items.get(i).split(amount); setChanged(); return out; }
-    @Override public ItemStack removeItemNoUpdate(int i) { ItemStack out = items.get(i); items.set(i, ItemStack.EMPTY); return out; }
-    @Override public void setItem(int i, ItemStack stack) { items.set(i, stack); setChanged(); }
+    @Override public ItemStack removeItem(int i, int amount) { ItemStack out = items.get(i).split(amount); clientRenderSnapshotDirty = true; setChanged(); return out; }
+    @Override public ItemStack removeItemNoUpdate(int i) { ItemStack out = items.get(i); items.set(i, ItemStack.EMPTY); clientRenderSnapshotDirty = true; return out; }
+    @Override public void setItem(int i, ItemStack stack) { items.set(i, stack); clientRenderSnapshotDirty = true; setChanged(); }
     @Override public boolean canPlaceItem(int i, ItemStack stack) { return !custom() && kind != Kind.PAD_RUSTED && i == 0 && validMissile(stack); }
     @Override public int[] getSlotsForFace(Direction side) { return kind == Kind.PAD_RUSTED ? new int[0] : new int[] {0}; }
     @Override public boolean canPlaceItemThroughFace(int i, ItemStack stack, @Nullable Direction side) { return canPlaceItem(i, stack); }
     @Override public boolean canTakeItemThroughFace(int i, ItemStack stack, Direction side) { return false; }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
-    @Override public void clearContent() { items.replaceAll(stack -> ItemStack.EMPTY); setChanged(); }
+    @Override public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
+    @Override public void clearContent() { items.replaceAll(stack -> ItemStack.EMPTY); clientRenderSnapshotDirty = true; setChanged(); }
     @Override public Component getDisplayName() {
         return customName.isEmpty() ? Component.translatable(switch (kind) {
             case COMPACT -> "block.reinhardtshbm.compact_launcher";
             case TABLE -> "block.reinhardtshbm.launch_table";
             case PAD_RUSTED -> "block.reinhardtshbm.launch_pad_rusted";
+            case PAD_LARGE -> "block.reinhardtshbm.launch_pad_large";
             default -> "block.reinhardtshbm.launch_pad";
         }) : Component.literal(customName);
     }
     public void setCustomName(String name) { customName = name; setChanged(); }
     @Override public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) { return new LauncherMenu(id, inv, this, data); }
     @Override public void dropContents(Level level, BlockPos pos) { for (ItemStack stack : items) if (!stack.isEmpty()) Block.popResource(level, pos, stack); clearContent(); }
-    private void playSound(String id, float volume) {
-        level.playSound(null, worldPosition, BuiltInRegistries.SOUND_EVENT.getOptional(ReinhardtsHBM.id(id)).orElseThrow(), SoundSource.BLOCKS, volume, 1F);
-    }
     public void sync() { setChanged(); if (level != null && !level.isClientSide) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3); }
     @Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
@@ -469,7 +564,12 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
         power = tag.getLong("power"); solidFuel = tag.getInt("solidfuel");
         fuelTank.load(tag.getCompound("Fuel")); oxidizerTank.load(tag.getCompound("Oxidizer"));
         missileLoaded = tag.getBoolean("missileLoaded"); customName = tag.getString("name");
-        if (tag.contains("padSize")) tableSize = MissilePartItem.Size.values()[tag.getInt("padSize")];
+        if (tag.contains("padSize")) {
+            int sizeOrdinal = tag.getInt("padSize");
+            if (sizeOrdinal >= 0 && sizeOrdinal < MissilePartItem.Size.values().length) {
+                tableSize = MissilePartItem.Size.values()[sizeOrdinal];
+            }
+        }
         if (tag.contains("height")) scaffoldHeight = tag.getInt("height");
         erected = tag.getBoolean("erected"); readyToLoad = tag.getBoolean("readyToLoad");
         if (tag.contains("lift")) lift = tag.getFloat("lift");
@@ -477,6 +577,7 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
         if (tag.contains("formFactor")) formFactor = tag.getInt("formFactor");
         redstonePower = tag.getInt("redstonePower"); prevRedstonePower = tag.getInt("prevRedstonePower");
         activatedBlocks.clear(); for (long pos : tag.getLongArray("activatedBlocks")) activatedBlocks.add(BlockPos.of(pos));
+        clientRenderSnapshotDirty = true;
     }
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag(); saveAdditional(tag, registries);
@@ -489,9 +590,187 @@ public class LauncherBlockEntity extends BlockEntity implements PowerEndpoint, M
         syncLift = lift; syncErector = erector; lift = oldLift; erector = oldErector;
         animationSync = 3; state = tag.getInt("State");
         liftMoving = tag.getBoolean("LiftMoving"); erectorMoving = tag.getBoolean("ErectorMoving");
+        clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
     }
     @Nullable @Override public Packet<ClientGamePacketListener> getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
     @Override public void onDataPacket(Connection connection, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
         handleUpdateTag(packet.getTag(), registries);
+    }
+
+    /** Installed by the client renderer without loading client classes on a dedicated server. */
+    public static void setClientRenderSnapshotUpdater(Consumer<LauncherBlockEntity> updater) {
+        clientRenderSnapshotUpdater = Objects.requireNonNull(updater);
+        markLoadedClientSnapshotsDirty(false);
+    }
+
+    /** Installed by the renderer so chunk unload/removal releases this machine's GPU buffers. */
+    public static void setClientGpuCacheDisposer(Consumer<LauncherBlockEntity> disposer) {
+        clientGpuCacheDisposer = Objects.requireNonNull(disposer);
+    }
+
+    /** Invalidates all loaded snapshots before/after publishing a post-bake geometry generation. */
+    public static void invalidateClientRenderSnapshotsAfterBake() {
+        clientRenderSnapshotRevision++;
+        markLoadedClientSnapshotsDirty(true);
+    }
+
+    public static void clearClientRenderSnapshotsAfterLogout() {
+        clientRenderSnapshotRevision++;
+        List<LauncherBlockEntity> loaded;
+        synchronized (LOADED_CLIENT_INSTANCES) {
+            loaded = new ArrayList<>(LOADED_CLIENT_INSTANCES);
+            LOADED_CLIENT_INSTANCES.clear();
+        }
+        for (LauncherBlockEntity launcher : loaded) {
+            launcher.renderSnapshot = RenderSnapshot.empty(launcher.worldPosition,
+                    launcher.getBlockState(), launcher.kind);
+            launcher.clientRenderSnapshotDirty = true;
+        }
+    }
+
+    private static void markLoadedClientSnapshotsDirty(boolean refreshNow) {
+        List<LauncherBlockEntity> loaded;
+        synchronized (LOADED_CLIENT_INSTANCES) {
+            loaded = new ArrayList<>(LOADED_CLIENT_INSTANCES);
+        }
+        for (LauncherBlockEntity launcher : loaded) {
+            launcher.clientRenderSnapshotDirty = true;
+            if (refreshNow) {
+                launcher.refreshClientRenderSnapshot();
+            }
+        }
+    }
+
+    public static long clientRenderSnapshotRevision() {
+        return clientRenderSnapshotRevision;
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return renderSnapshot;
+    }
+
+    public void refreshClientRenderSnapshot() {
+        if (clientRenderSnapshotDirty && level != null && level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientRenderSnapshot(RenderSnapshot snapshot) {
+        if (level == null || !level.isClientSide) {
+            return;
+        }
+        RenderSnapshot previous = renderSnapshot;
+        renderSnapshot = Objects.requireNonNull(snapshot);
+        clientRenderSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.bounds(), snapshot.bounds())) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (level != null && level.isClientSide) {
+            synchronized (LOADED_CLIENT_INSTANCES) {
+                LOADED_CLIENT_INSTANCES.add(this);
+            }
+            clientRenderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level != null && level.isClientSide) {
+            synchronized (LOADED_CLIENT_INSTANCES) {
+                LOADED_CLIENT_INSTANCES.remove(this);
+            }
+            clientGpuCacheDisposer.accept(this);
+        }
+        super.setRemoved();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (renderSnapshot != null && previous != state) {
+            clientRenderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
+        }
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(first.minY) == section(second.minY)
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    private static AABB emptyRenderBounds(BlockPos pos) {
+        return new AABB(pos.getX(), pos.getY(), pos.getZ(),
+                pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public record MissileRenderData(boolean present, boolean custom, boolean legacyTierTwo,
+                                    String legacyId, String thrusterId, float thrusterHeight,
+                                    String finsId, String fuselageId, float fuselageHeight,
+                                    String warheadId, float totalHeight) {
+        public static final MissileRenderData EMPTY = new MissileRenderData(false, false, false,
+                "", "", 0.0F, "", "", 0.0F, "", 0.0F);
+
+        public MissileRenderData {
+            Objects.requireNonNull(legacyId);
+            Objects.requireNonNull(thrusterId);
+            Objects.requireNonNull(finsId);
+            Objects.requireNonNull(fuselageId);
+            Objects.requireNonNull(warheadId);
+        }
+    }
+
+    public record RenderSnapshot(Object geometryToken, BlockState blockState,
+                                 Kind kind, Direction facing, int formFactor,
+                                 float previousLift, float lift,
+                                 float previousErector, float erector,
+                                 boolean erected, boolean readyToLoad,
+                                 MissilePartItem.Size tableSize, int scaffoldHeight,
+                                 boolean validMissile, MissileRenderData missile,
+                                 AABB bounds, long revision) {
+        public RenderSnapshot {
+            Objects.requireNonNull(blockState);
+            Objects.requireNonNull(kind);
+            Objects.requireNonNull(facing);
+            Objects.requireNonNull(tableSize);
+            Objects.requireNonNull(missile);
+            Objects.requireNonNull(bounds);
+        }
+
+        private static RenderSnapshot empty(BlockPos pos, BlockState state, Kind kind) {
+            Direction facing = state.hasProperty(LargeMachineBlock.FACING)
+                    ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+            return new RenderSnapshot(null, state, kind, facing, -1,
+                    1.0F, 1.0F, 90.0F, 90.0F,
+                    false, false, MissilePartItem.Size.SIZE_10, 0,
+                    false, MissileRenderData.EMPTY, emptyRenderBounds(pos), -1L);
+        }
+
+        public float lift(float partialTick) {
+            return Mth.lerp(partialTick, previousLift, lift);
+        }
+
+        public float erector(float partialTick) {
+            return Mth.lerp(partialTick, previousErector, erector);
+        }
     }
 }

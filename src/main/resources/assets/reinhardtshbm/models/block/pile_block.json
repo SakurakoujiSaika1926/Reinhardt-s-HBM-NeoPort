@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "particle": "reinhardtshbm:block/pile_block",
+    "side": "reinhardtshbm:block/pile_block",
+    "top": "reinhardtshbm:block/pile_block_top",
+    "bottom": "reinhardtshbm:block/pile_block_top"
+  }
+}

@@ -136,7 +136,7 @@ public class ElectrolyzerScreen extends AbstractContainerScreen<ElectrolyzerMenu
             return;
         }
         if (material == null || amount <= 0) {
-            graphics.renderComponentTooltip(this.font, List.of(Component.literal("Empty").withStyle(ChatFormatting.RED)), mouseX, mouseY);
+            graphics.renderComponentTooltip(this.font, List.of(Component.translatable("gui.reinhardtshbm.empty").withStyle(ChatFormatting.RED)), mouseX, mouseY);
             return;
         }
         graphics.renderComponentTooltip(

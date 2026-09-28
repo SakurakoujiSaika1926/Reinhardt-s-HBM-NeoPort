@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.unpackagehbmfluid.flue",
+  "duration": 40,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:fluid_pack_full"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "fluid": "flue"
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "flue",
+      "amount": 32000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fluid_pack_empty"
+  }
+}

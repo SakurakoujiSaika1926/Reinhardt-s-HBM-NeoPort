@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.crystal",
+  "ingredient": { "tag": "c:ingots/schraranium" },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:crystal_schraranium" }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.capacitorgold",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/steel"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "c:wires_dense/gold"
+      },
+      "count": 16
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:battery_pack_capacitor_gold"
+  }
+}

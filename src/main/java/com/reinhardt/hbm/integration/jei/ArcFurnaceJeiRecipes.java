@@ -1,10 +1,7 @@
 package com.reinhardt.hbm.integration.jei;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.foundry.FoundryMaterialStack;
-import com.reinhardt.hbm.foundry.FoundryShape;
-import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.recipe.ArcFurnaceRecipe;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -99,14 +96,6 @@ final class ArcFurnaceJeiRecipes {
     }
 
     private static List<ItemStack> variants(Item item) {
-        if (item instanceof ScrapsItem) {
-            return FoundryMaterial.ordered().stream()
-                    .filter(material -> material.behavior() == FoundryMaterial.SmeltingBehavior.SMELTABLE)
-                    .map(material -> ScrapsItem.create(
-                            new FoundryMaterialStack(material, FoundryShape.INGOT.q(1)), false
-                    ))
-                    .toList();
-        }
         return List.of(new ItemStack(item));
     }
 }

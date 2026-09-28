@@ -128,7 +128,7 @@ public class AirCompressorBlockEntity extends BlockEntity implements PowerEndpoi
         Direction facing = this.getBlockState().hasProperty(LargeMachineBlock.FACING)
                 ? this.getBlockState().getValue(LargeMachineBlock.FACING)
                 : Direction.NORTH;
-        Direction right = facing.getClockWise();
+        Direction right = airCompressorRightSide(facing);
         BlockPos frontLeft = this.worldPosition;
         BlockPos frontRight = this.worldPosition.relative(right);
         BlockPos backLeft = this.worldPosition.relative(facing.getOpposite());
@@ -255,6 +255,16 @@ public class AirCompressorBlockEntity extends BlockEntity implements PowerEndpoi
 
     private static HbmFluidDefinition air() {
         return HbmFluids.byName("air").orElse(HbmFluids.none());
+    }
+
+    private static Direction airCompressorRightSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Air compressor requires a horizontal facing: " + facing);
+        };
     }
 
     public record Port(BlockPos pos, Direction face) {

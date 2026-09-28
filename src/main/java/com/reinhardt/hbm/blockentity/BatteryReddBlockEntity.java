@@ -9,7 +9,6 @@ import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerGraphNode;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -408,6 +407,9 @@ public class BatteryReddBlockEntity extends BlockEntity implements PowerEndpoint
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         if (this.level == null || this.level.getBlockEntity(this.worldPosition) != this) {
             return false;
         }
@@ -491,9 +493,57 @@ public class BatteryReddBlockEntity extends BlockEntity implements PowerEndpoint
 
     private record Port(BlockPos proxyPos, BlockPos connectorPos, Direction face) {
         private static Port fromLocal(BlockPos corePos, Direction facing, BlockPos localConnector, Direction localFace) {
-            BlockPos connector = corePos.offset(LegacyMachineGeometry.rotateModernNorth(localConnector, facing)).immutable();
-            Direction face = LegacyMachineGeometry.rotateDirection(localFace, facing, LargeMachineBlock.RotationBasis.MODERN_NORTH);
+            BlockPos connector = corePos.offset(mapBatteryReddConnector(facing, localConnector)).immutable();
+            Direction face = mapBatteryReddFace(facing, localFace);
             return new Port(connector.relative(face.getOpposite()).immutable(), connector, face);
         }
+    }
+
+    private static BlockPos mapBatteryReddConnector(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("REDD battery requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static Direction mapBatteryReddFace(Direction facing, Direction localFace) {
+        return switch (facing) {
+            case NORTH -> switch (localFace) {
+                case NORTH -> Direction.NORTH;
+                case EAST -> Direction.EAST;
+                case SOUTH -> Direction.SOUTH;
+                case WEST -> Direction.WEST;
+                case UP -> Direction.UP;
+                case DOWN -> Direction.DOWN;
+            };
+            case EAST -> switch (localFace) {
+                case NORTH -> Direction.EAST;
+                case EAST -> Direction.SOUTH;
+                case SOUTH -> Direction.WEST;
+                case WEST -> Direction.NORTH;
+                case UP -> Direction.UP;
+                case DOWN -> Direction.DOWN;
+            };
+            case SOUTH -> switch (localFace) {
+                case NORTH -> Direction.SOUTH;
+                case EAST -> Direction.WEST;
+                case SOUTH -> Direction.NORTH;
+                case WEST -> Direction.EAST;
+                case UP -> Direction.UP;
+                case DOWN -> Direction.DOWN;
+            };
+            case WEST -> switch (localFace) {
+                case NORTH -> Direction.WEST;
+                case EAST -> Direction.NORTH;
+                case SOUTH -> Direction.EAST;
+                case WEST -> Direction.SOUTH;
+                case UP -> Direction.UP;
+                case DOWN -> Direction.DOWN;
+            };
+            case UP, DOWN -> throw new IllegalArgumentException("REDD battery requires a horizontal facing: " + facing);
+        };
     }
 }

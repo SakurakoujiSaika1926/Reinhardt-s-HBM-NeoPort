@@ -37,6 +37,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.ARC_FURNACE.get(), ArcFurnaceScreen::new);
         event.register(HbmMenus.STORAGE_DRUM.get(), StorageDrumScreen::new);
         event.register(HbmMenus.COMPRESSOR.get(), CompressorScreen::new);
+        event.register(HbmMenus.CUSTOM_MACHINE.get(), CustomMachineScreen::new);
         event.register(HbmMenus.MIXER.get(), MixerScreen::new);
         event.register(HbmMenus.AMMO_PRESS.get(), AmmoPressScreen::new);
         event.register(HbmMenus.MACHINE_PRESS.get(), MachinePressScreen::new);
@@ -57,6 +58,7 @@ public final class HbmClientScreens {
         event.register(HbmMenus.EXCAVATOR.get(), ExcavatorScreen::new);
         event.register(HbmMenus.MINING_LASER.get(), MiningLaserScreen::new);
         event.register(HbmMenus.ORE_SLOPPER.get(), OreSlopperScreen::new);
+        event.register(HbmMenus.ROCK_MILL.get(), RockMillScreen::new);
         event.register(HbmMenus.BREEDER_REACTOR.get(), BreederReactorScreen::new);
         event.register(HbmMenus.TURRET_JEREMY.get(), TurretJeremyScreen::new);
         event.register(HbmMenus.TURRET_CHEKHOV.get(), TurretChekhovScreen::new);
@@ -64,7 +66,8 @@ public final class HbmClientScreens {
         event.register(HbmMenus.NUKE_BOY.get(), NukeBoyScreen::new);
         event.register(HbmMenus.LEGACY_NUKE.get(), LegacyNukeScreen::new);
         event.register(HbmMenus.BOMB_MULTI.get(), BombMultiScreen::new);
-        event.register(HbmMenus.SOYUZ_LAUNCHER.get(), SoyuzLauncherScreen::new);
+        event.register(HbmMenus.LAMBDA_LAUNCHPAD.get(), LambdaLaunchpadScreen::new);
+        event.register(HbmMenus.SOYUZ_LAUNCHPAD.get(), SoyuzLaunchpadScreen::new);
         event.register(HbmMenus.LAUNCHER.get(), LauncherScreen::new);
         event.register(HbmMenus.SOYUZ_CAPSULE.get(), SoyuzCapsuleScreen::new);
         event.register(HbmMenus.TOOLBOX.get(), ToolboxScreen::new);
@@ -125,17 +128,22 @@ public final class HbmClientScreens {
         event.register(HbmMenus.FORCEFIELD.get(), ForcefieldScreen::new);
         event.register(HbmMenus.SATELLITE_LINKER.get(), SatelliteLinkerScreen::new);
         event.register(HbmMenus.SAT_DOCK.get(), SatelliteDockScreen::new);
+        event.register(HbmMenus.TAPE_DRIVE.get(), TapeDriveScreen::new);
+        event.register(HbmMenus.SUPERCOMPUTER.get(), SupercomputerScreen::new);
         event.register(HbmMenus.AUTOCRAFTER.get(), AutocrafterScreen::new);
         event.register(HbmMenus.PYRO_OVEN.get(), PyroOvenScreen::new);
         event.register(HbmMenus.RADIOLYSIS.get(), RadiolysisScreen::new);
         event.register(HbmMenus.RADAR.get(), RadarScreen::new);
         event.register(HbmMenus.RADAR_SLOTS.get(), RadarSlotsScreen::new);
         event.register(HbmMenus.RADIOREC.get(), RadioRecScreen::new);
+        event.register(HbmMenus.RTTY_CONFIG.get(), RttyConfigScreen::new);
         event.register(HbmMenus.RADIO_TELEX.get(), RadioTelexScreen::new);
         event.register(HbmMenus.AUTOCAL.get(), AutocalScreen::new);
         event.register(HbmMenus.DRONE_CRATE.get(), DroneCrateScreen::new);
         event.register(HbmMenus.DRONE_DOCK.get(), DroneGridScreen::new);
         event.register(HbmMenus.DRONE_PROVIDER.get(), DroneGridScreen::new);
         event.register(HbmMenus.DRONE_REQUESTER.get(), DroneRequesterScreen::new);
+        event.register(HbmMenus.CRANE_MACHINE.get(), CraneMachineScreen::new);
+        event.register(HbmMenus.PNEUMATIC_STORAGE.get(), PneumaticStorageScreen::new);
     }
 }

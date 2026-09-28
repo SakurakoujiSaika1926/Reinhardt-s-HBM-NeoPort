@@ -4,6 +4,7 @@ import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -22,17 +23,30 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class RotaryFurnaceBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = rotaryFootprint();
 
     public RotaryFurnaceBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, RotaryFurnaceBlock::mapRotaryFurnaceOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        return state == null ? null : state.setValue(FACING, context.getHorizontalDirection().getOpposite());
+        net.minecraft.core.Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
     }
 
     @Nullable
@@ -89,6 +103,16 @@ public class RotaryFurnaceBlock extends LargeMachineBlock implements EntityBlock
             }
         }
         return new Footprint(List.copyOf(offsets));
+    }
+
+    private static BlockPos mapRotaryFurnaceOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Rotary furnace facing must be horizontal: " + facing);
+        };
     }
 }
 

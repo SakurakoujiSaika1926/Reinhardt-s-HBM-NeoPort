@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:blast_furnace",
+  "group": "blast.mingradeDust",
+  "input_a": { "tag": "c:dusts/copper" },
+  "input_b": { "tag": "c:dusts/redstone" },
+  "duration": 400,
+  "result": { "id": "reinhardtshbm:ingot_red_copper", "count": 2 }
+}

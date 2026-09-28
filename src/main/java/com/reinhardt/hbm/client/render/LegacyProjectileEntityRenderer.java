@@ -3,6 +3,7 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyArtilleryShellEntity;
 import com.reinhardt.hbm.entity.LegacyBulletEntity;
 import com.reinhardt.hbm.entity.LegacyHimarsRocketEntity;
@@ -13,11 +14,13 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -27,6 +30,18 @@ public final class LegacyProjectileEntityRenderer {
     private static final ModelResourceLocation ARTILLERY = MachineModelRenderer.standalone("entity/legacy_artillery_shell");
     private static final ModelResourceLocation[] HIMARS_MODELS = new ModelResourceLocation[LegacyProjectileUtil.HimarsType.values().length];
     private static final BlockState RENDER_STATE = Blocks.STONE.defaultBlockState();
+    private static final LegacyEntityObjMesh PROJECTILE_BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/projectiles/projectiles.obj"));
+    private static final LegacyEntityObjMesh RICHARD_BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/weapons/missile_launcher.obj"));
+    private static final LegacyEntityObjMesh HIMARS_BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/turrets/turret_himars.obj"));
+    private static final double RICHARD_RADIUS = buildRichardRadius();
+    private static final double ARTILLERY_RADIUS = buildArtilleryRadius();
+    private static final double HIMARS_STANDARD_RADIUS = rotationSafeRadius(
+            HIMARS_BOUNDS_MODEL.maximumGroupFaceRadius("RocketStandard"));
+    private static final double HIMARS_SINGLE_RADIUS = rotationSafeRadius(
+            HIMARS_BOUNDS_MODEL.maximumGroupFaceRadius("RocketSingle"));
 
     static {
         for (LegacyProjectileUtil.HimarsType type : LegacyProjectileUtil.HimarsType.values()) {
@@ -48,6 +63,12 @@ public final class LegacyProjectileEntityRenderer {
     static void renderRifleBullet(Entity entity, StandardAmmoItem.StandardAmmoType ammo, float partialTick,
                                   PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         renderTracer(entity, ammo, partialTick, poseStack, bufferSource, packedLight, 1.0D, false);
+    }
+
+    static double rifleBulletVisualRadius(Entity entity) {
+        double displacement = frameDisplacement(entity);
+        return Math.nextUp(displacement
+                + Math.sqrt(displacement * displacement + 2.0D * 0.03125D * 0.03125D));
     }
 
     private static void renderTracer(Entity entity, StandardAmmoItem.StandardAmmoType ammo, float partialTick,
@@ -222,6 +243,30 @@ public final class LegacyProjectileEntityRenderer {
         }
 
         @Override
+        public boolean shouldRender(LegacyBulletEntity entity, Frustum frustum,
+                                    double cameraX, double cameraY, double cameraZ) {
+            StandardAmmoItem.StandardAmmoType ammo = entity.ammoType();
+            if (ammo.family() == StandardAmmoItem.AmmoFamily.FLAME) {
+                return false;
+            }
+            double radius;
+            if (ammo.family() == StandardAmmoItem.AmmoFamily.ROCKET_ML) {
+                double displacement = frameDisplacement(entity);
+                double tracer = displacement
+                        + Math.sqrt(4.0D * displacement * displacement
+                        + 2.0D * 0.03125D * 0.03125D)
+                        + 0.375D;
+                radius = Math.max(RICHARD_RADIUS, Math.nextUp(tracer));
+            } else {
+                radius = rifleBulletVisualRadius(entity);
+            }
+            AABB bounds = EntityRenderBounds.radius(
+                    entity.getX(), entity.getY(), entity.getZ(), radius);
+            return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                    cameraX, cameraY, cameraZ);
+        }
+
+        @Override
         public ResourceLocation getTextureLocation(LegacyBulletEntity entity) {
             return net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS;
         }
@@ -236,6 +281,15 @@ public final class LegacyProjectileEntityRenderer {
         public void render(LegacyArtilleryShellEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
             renderArtilleryShell(entity, partialTick, poseStack, bufferSource, packedLight);
             super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        }
+
+        @Override
+        public boolean shouldRender(LegacyArtilleryShellEntity entity, Frustum frustum,
+                                    double cameraX, double cameraY, double cameraZ) {
+            AABB bounds = EntityRenderBounds.radius(
+                    entity.getX(), entity.getY(), entity.getZ(), ARTILLERY_RADIUS);
+            return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                    cameraX, cameraY, cameraZ);
         }
 
         @Override
@@ -256,8 +310,50 @@ public final class LegacyProjectileEntityRenderer {
         }
 
         @Override
+        public boolean shouldRender(LegacyHimarsRocketEntity entity, Frustum frustum,
+                                    double cameraX, double cameraY, double cameraZ) {
+            double radius = entity.rocketType().modelType() == 1
+                    ? HIMARS_SINGLE_RADIUS : HIMARS_STANDARD_RADIUS;
+            AABB bounds = EntityRenderBounds.radius(
+                    entity.getX(), entity.getY(), entity.getZ(), radius);
+            return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                    cameraX, cameraY, cameraZ);
+        }
+
+        @Override
         public ResourceLocation getTextureLocation(LegacyHimarsRocketEntity entity) {
             return net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS;
         }
+    }
+
+    private static double frameDisplacement(Entity entity) {
+        double dx = entity.getX() - entity.xo;
+        double dy = entity.getY() - entity.yo;
+        double dz = entity.getZ() - entity.zo;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    private static double buildRichardRadius() {
+        PoseStack poseStack = new PoseStack();
+        poseStack.scale(0.25F, 0.25F, 0.25F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        poseStack.translate(0.0D, -1.0D, -4.5D);
+        EntityRenderBounds.FloatBuilder bounds = new EntityRenderBounds.FloatBuilder();
+        RICHARD_BOUNDS_MODEL.includeGroupFacePositions("Missile", poseStack, bounds);
+        return rotationSafeRadius(bounds.maximumRadius());
+    }
+
+    private static double buildArtilleryRadius() {
+        PoseStack poseStack = new PoseStack();
+        poseStack.scale(2.5F, 5.0F, 2.5F);
+        EntityRenderBounds.FloatBuilder bounds = new EntityRenderBounds.FloatBuilder();
+        PROJECTILE_BOUNDS_MODEL.includeGroupFacePositions("Grenade", poseStack, bounds);
+        return rotationSafeRadius(bounds.maximumRadius());
+    }
+
+    private static double rotationSafeRadius(double radius) {
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
 }

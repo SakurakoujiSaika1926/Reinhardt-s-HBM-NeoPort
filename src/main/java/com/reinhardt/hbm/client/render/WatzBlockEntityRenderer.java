@@ -3,14 +3,13 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.blockentity.WatzBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class WatzBlockEntityRenderer implements BlockEntityRenderer<WatzBlockEntity> {
+public class WatzBlockEntityRenderer implements LongRangeBlockEntityRenderer<WatzBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/watz_world");
 
     public WatzBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -33,10 +32,10 @@ public class WatzBlockEntityRenderer implements BlockEntityRenderer<WatzBlockEnt
     public AABB getRenderBoundingBox(WatzBlockEntity blockEntity) {
         return new AABB(
                 blockEntity.getBlockPos().getX() - 3.0D,
-                blockEntity.getBlockPos().getY(),
+                blockEntity.getBlockPos().getY() - 0.0625D,
                 blockEntity.getBlockPos().getZ() - 3.0D,
                 blockEntity.getBlockPos().getX() + 4.0D,
-                blockEntity.getBlockPos().getY() + 3.0D,
+                blockEntity.getBlockPos().getY() + 3.0625D,
                 blockEntity.getBlockPos().getZ() + 4.0D
         );
     }

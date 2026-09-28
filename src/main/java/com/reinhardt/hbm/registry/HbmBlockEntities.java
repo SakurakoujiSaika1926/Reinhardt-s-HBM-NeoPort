@@ -10,6 +10,7 @@ import com.reinhardt.hbm.blockentity.ArcFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.AutocalBlockEntity;
 import com.reinhardt.hbm.blockentity.StorageDrumBlockEntity;
 import com.reinhardt.hbm.blockentity.SupplyCrateBlockEntity;
+import com.reinhardt.hbm.blockentity.SupercomputerBlockEntity;
 import com.reinhardt.hbm.blockentity.TaczAmmoAssemblerBlockEntity;
 import com.reinhardt.hbm.blockentity.VendingMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.AshpitBlockEntity;
@@ -44,7 +45,9 @@ import com.reinhardt.hbm.blockentity.PaintableCableBlockEntity;
 import com.reinhardt.hbm.blockentity.PowerGaugeBlockEntity;
 import com.reinhardt.hbm.blockentity.CombustionEngineBlockEntity;
 import com.reinhardt.hbm.blockentity.CompressorBlockEntity;
+import com.reinhardt.hbm.blockentity.CustomMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.ConveyorPressBlockEntity;
+import com.reinhardt.hbm.blockentity.CraneMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.CokerBlockEntity;
 import com.reinhardt.hbm.blockentity.CoolingTowerBlockEntity;
 import com.reinhardt.hbm.blockentity.CrystallizerBlockEntity;
@@ -78,6 +81,7 @@ import com.reinhardt.hbm.blockentity.FluidBarrelBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.blockentity.PipeAnchorBlockEntity;
 import com.reinhardt.hbm.blockentity.PistonInserterBlockEntity;
+import com.reinhardt.hbm.blockentity.PneumaticStorageBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidPumpBlockEntity;
 import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
 import com.reinhardt.hbm.blockentity.FractionSpacerBlockEntity;
@@ -131,6 +135,8 @@ import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineKeyForgeBlockEntity;
 import com.reinhardt.hbm.blockentity.SatelliteLinkerBlockEntity;
 import com.reinhardt.hbm.blockentity.SatelliteDockBlockEntity;
+import com.reinhardt.hbm.blockentity.SatelliteGroundStationBlockEntity;
+import com.reinhardt.hbm.blockentity.TapeDriveBlockEntity;
 import com.reinhardt.hbm.blockentity.SatelliteDockDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.MiningLaserBlockEntity;
 import com.reinhardt.hbm.blockentity.MixerBlockEntity;
@@ -141,8 +147,13 @@ import com.reinhardt.hbm.blockentity.BombMultiBlockEntity;
 import com.reinhardt.hbm.blockentity.CrashedBombBlockEntity;
 import com.reinhardt.hbm.blockentity.OilDerrickBlockEntity;
 import com.reinhardt.hbm.blockentity.OreSlopperBlockEntity;
+import com.reinhardt.hbm.blockentity.RockMillBlockEntity;
 import com.reinhardt.hbm.blockentity.ParticleAcceleratorBlockEntity;
 import com.reinhardt.hbm.blockentity.PileGraphiteBlockEntity;
+import com.reinhardt.hbm.blockentity.PileControlBlockEntity;
+import com.reinhardt.hbm.blockentity.PileLoaderBlockEntity;
+import com.reinhardt.hbm.blockentity.PileMk2CoreBlockEntity;
+import com.reinhardt.hbm.blockentity.PileVentBlockEntity;
 import com.reinhardt.hbm.blockentity.PowerPylonBlockEntity;
 import com.reinhardt.hbm.blockentity.PoleBlockEntity;
 import com.reinhardt.hbm.blockentity.PoweredSteamCondenserBlockEntity;
@@ -179,8 +190,8 @@ import com.reinhardt.hbm.blockentity.SolidifierBlockEntity;
 import com.reinhardt.hbm.blockentity.SolarBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.SolarMirrorBlockEntity;
 import com.reinhardt.hbm.blockentity.SoyuzCapsuleBlockEntity;
-import com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity;
-import com.reinhardt.hbm.blockentity.SoyuzStructCoreBlockEntity;
+import com.reinhardt.hbm.blockentity.LambdaLaunchpadBlockEntity;
+import com.reinhardt.hbm.blockentity.SoyuzLaunchpadBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamEngineBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamTurbineBlockEntity;
@@ -588,6 +599,15 @@ public final class HbmBlockEntities {
                     ).build(null)
             );
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CustomMachineBlockEntity>> CUSTOM_MACHINE =
+            BLOCK_ENTITIES.register(
+                    "custom_machine",
+                    () -> BlockEntityType.Builder.of(
+                            CustomMachineBlockEntity::new,
+                            HbmBlocks.CUSTOM_MACHINE.get()
+                    ).build(null)
+            );
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MixerBlockEntity>> MIXER =
             BLOCK_ENTITIES.register(
                     "machine_mixer",
@@ -735,6 +755,91 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             OreSlopperBlockEntity::new,
                             HbmBlocks.MACHINE_ORE_SLOPPER.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PneumaticStorageBlockEntity>> PNEUMATIC_STORAGE =
+            BLOCK_ENTITIES.register(
+                    "pneumatic_storage",
+                    () -> BlockEntityType.Builder.of(
+                            PneumaticStorageBlockEntity::new,
+                            HbmBlocks.PNEUMATIC_STORAGE_ACCESS.get(),
+                            HbmBlocks.PNEUMATIC_STORAGE_CLUTTER.get(),
+                            HbmBlocks.PNEUMATIC_STORAGE_MONO.get(),
+                            HbmBlocks.PNEUMATIC_STORAGE_IMPORTER.get(),
+                            HbmBlocks.PNEUMATIC_STORAGE_EXPORTER.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PileMk2CoreBlockEntity>> PILE_MK2_CORE =
+            BLOCK_ENTITIES.register(
+                    "pile_mk2_core",
+                    () -> BlockEntityType.Builder.of(
+                            PileMk2CoreBlockEntity::new,
+                            HbmBlocks.PILE_BLOCK.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PileLoaderBlockEntity>> PILE_MK2_LOADER =
+            BLOCK_ENTITIES.register(
+                    "pile_mk2_loader",
+                    () -> BlockEntityType.Builder.of(
+                            PileLoaderBlockEntity::new,
+                            HbmBlocks.PILE_LOADER.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PileVentBlockEntity>> PILE_MK2_VENT =
+            BLOCK_ENTITIES.register(
+                    "pile_mk2_vent",
+                    () -> BlockEntityType.Builder.of(
+                            PileVentBlockEntity::new,
+                            HbmBlocks.PILE_VENT.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PileControlBlockEntity>> PILE_MK2_CONTROL =
+            BLOCK_ENTITIES.register(
+                    "pile_mk2_control",
+                    () -> BlockEntityType.Builder.of(
+                            PileControlBlockEntity::new,
+                            HbmBlocks.PILE_CONTROL.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RockMillBlockEntity>> ROCK_MILL =
+            BLOCK_ENTITIES.register(
+                    "machine_rockmill",
+                    () -> BlockEntityType.Builder.of(
+                            RockMillBlockEntity::new,
+                            HbmBlocks.MACHINE_ROCKMILL.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SatelliteGroundStationBlockEntity>> SATELLITE_GROUND_STATION =
+            BLOCK_ENTITIES.register(
+                    "machine_satlink",
+                    () -> BlockEntityType.Builder.of(
+                            SatelliteGroundStationBlockEntity::new,
+                            HbmBlocks.MACHINE_SATLINK.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TapeDriveBlockEntity>> TAPE_DRIVE =
+            BLOCK_ENTITIES.register(
+                    "machine_tape_drive",
+                    () -> BlockEntityType.Builder.of(
+                            TapeDriveBlockEntity::new,
+                            HbmBlocks.MACHINE_TAPE_DRIVE.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SupercomputerBlockEntity>> SUPERCOMPUTER =
+            BLOCK_ENTITIES.register(
+                    "machine_supercomputer",
+                    () -> BlockEntityType.Builder.of(
+                            SupercomputerBlockEntity::new,
+                            HbmBlocks.MACHINE_SUPERCOMPUTER.get()
                     ).build(null)
             );
 
@@ -911,15 +1016,6 @@ public final class HbmBlockEntities {
                     ).build(null)
             );
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SoyuzLauncherBlockEntity>> SOYUZ_LAUNCHER =
-            BLOCK_ENTITIES.register(
-                    "soyuz_launcher",
-                    () -> BlockEntityType.Builder.of(
-                            SoyuzLauncherBlockEntity::new,
-                            HbmBlocks.SOYUZ_LAUNCHER.get()
-                    ).build(null)
-            );
-
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SoyuzCapsuleBlockEntity>> SOYUZ_CAPSULE =
             BLOCK_ENTITIES.register(
                     "soyuz_capsule",
@@ -1032,15 +1128,6 @@ public final class HbmBlockEntities {
                             ),
                             HbmBlocks.STRUCT_LAUNCHER_CORE.get(),
                             HbmBlocks.STRUCT_LAUNCHER_CORE_LARGE.get()
-                    ).build(null)
-            );
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SoyuzStructCoreBlockEntity>> SOYUZ_STRUCT_CORE =
-            BLOCK_ENTITIES.register(
-                    "soyuz_struct_core",
-                    () -> BlockEntityType.Builder.of(
-                            SoyuzStructCoreBlockEntity::new,
-                            HbmBlocks.STRUCT_SOYUZ_CORE.get()
                     ).build(null)
             );
 
@@ -1865,6 +1952,7 @@ public final class HbmBlockEntities {
                             HbmBlocks.LARGE_VEHICLE_DOOR.get(),
                             HbmBlocks.VAULT_DOOR.get(),
                             HbmBlocks.WATER_DOOR.get(),
+                            HbmBlocks.CARGO_DOOR.get(),
                             HbmBlocks.SILO_HATCH.get(),
                             HbmBlocks.SILO_HATCH_LARGE.get()
                     ).build(null)
@@ -1905,6 +1993,7 @@ public final class HbmBlockEntities {
                             HbmBlocks.RED_CONNECTOR.get(),
                             HbmBlocks.CONNECTOR_RED_SUPER.get(),
                             HbmBlocks.RED_PYLON.get(),
+                            HbmBlocks.RED_PYLON_STEEL.get(),
                             HbmBlocks.RED_PYLON_MEDIUM_WOOD.get(),
                             HbmBlocks.RED_PYLON_MEDIUM_WOOD_TRANSFORMER.get(),
                             HbmBlocks.RED_PYLON_MEDIUM_STEEL.get(),
@@ -2147,6 +2236,40 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             ConveyorPressBlockEntity::new,
                             HbmBlocks.MACHINE_CONVEYOR_PRESS.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LambdaLaunchpadBlockEntity>> LAMBDA_LAUNCHPAD =
+            BLOCK_ENTITIES.register(
+                    "launchpad_lambda",
+                    () -> BlockEntityType.Builder.of(
+                            LambdaLaunchpadBlockEntity::new,
+                            HbmBlocks.LAUNCHPAD_LAMBDA.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SoyuzLaunchpadBlockEntity>> SOYUZ_LAUNCHPAD =
+            BLOCK_ENTITIES.register(
+                    "launchpad_soyuz",
+                    () -> BlockEntityType.Builder.of(
+                            SoyuzLaunchpadBlockEntity::new,
+                            HbmBlocks.LAUNCHPAD_SOYUZ.get()
+                    ).build(null)
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraneMachineBlockEntity>> CRANE_MACHINE =
+            BLOCK_ENTITIES.register(
+                    "crane_machine",
+                    () -> BlockEntityType.Builder.of(
+                            CraneMachineBlockEntity::new,
+                            HbmBlocks.CRANE_BOXER.get(),
+                            HbmBlocks.CRANE_EXTRACTOR.get(),
+                            HbmBlocks.CRANE_GRABBER.get(),
+                            HbmBlocks.CRANE_INSERTER.get(),
+                            HbmBlocks.CRANE_PARTITIONER.get(),
+                            HbmBlocks.CRANE_ROUTER.get(),
+                            HbmBlocks.CRANE_SPLITTER.get(),
+                            HbmBlocks.CRANE_UNBOXER.get()
                     ).build(null)
             );
 

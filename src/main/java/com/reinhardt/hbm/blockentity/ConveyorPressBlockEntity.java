@@ -10,7 +10,6 @@ import com.reinhardt.hbm.recipe.PressRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -247,7 +246,7 @@ public final class ConveyorPressBlockEntity extends BlockEntity
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -413,7 +412,7 @@ public final class ConveyorPressBlockEntity extends BlockEntity
         Direction facing = this.getBlockState().hasProperty(LargeMachineBlock.FACING)
                 ? this.getBlockState().getValue(LargeMachineBlock.FACING)
                 : Direction.NORTH;
-        Direction travelDirection = LegacyMachineGeometry.forgeRotateUp(facing);
+        Direction travelDirection = conveyorPressTravelDirection(facing);
         double x = Mth.clamp(itemPos.x, this.worldPosition.getX(), this.worldPosition.getX() + 1.0D);
         double z = Mth.clamp(itemPos.z, this.worldPosition.getZ(), this.worldPosition.getZ() + 1.0D);
         double snappedX = travelDirection.getStepX() != 0 ? x : this.worldPosition.getX() + 0.5D;
@@ -426,6 +425,16 @@ public final class ConveyorPressBlockEntity extends BlockEntity
         );
         Vec3 delta = destination.subtract(itemPos);
         return delta.lengthSqr() <= 1.0E-12D ? destination : itemPos.add(delta.scale(speed / delta.length()));
+    }
+
+    private static Direction conveyorPressTravelDirection(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("Conveyor press requires a horizontal facing: " + facing);
+        };
     }
 
     private void tickClient() {

@@ -42,9 +42,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID)
 public final class LegacyMukeExplosion {
@@ -64,6 +67,7 @@ public final class LegacyMukeExplosion {
     });
     private static final CompletableFuture<List<RayDirection>> MINI_DIRECTIONS =
             CompletableFuture.supplyAsync(() -> createCubeDirections(MINI_RESOLUTION), PLANNER);
+    private static final AtomicBoolean MINI_DIRECTIONS_FAILURE_LOGGED = new AtomicBoolean();
 
     private LegacyMukeExplosion() {
     }
@@ -310,8 +314,29 @@ public final class LegacyMukeExplosion {
 
         private boolean tick(ServerLevel level) {
             if (this.destruction == null) {
+                if (this.directions.isEmpty()) {
+                    if (!MINI_DIRECTIONS.isDone()) {
+                        return false;
+                    }
+                    try {
+                        this.directions = MINI_DIRECTIONS.join();
+                        if (this.directions.isEmpty()) {
+                            if (MINI_DIRECTIONS_FAILURE_LOGGED.compareAndSet(false, true)) {
+                                ReinhardtsHBM.LOGGER.error("Mini-nuke ray planner returned no directions; terrain pass cancelled");
+                            }
+                            return true;
+                        }
+                    } catch (CancellationException exception) {
+                        logDirectionPlannerFailure("was cancelled", exception);
+                        return true;
+                    } catch (CompletionException exception) {
+                        logDirectionPlannerFailure("failed",
+                                exception.getCause() == null ? exception : exception.getCause());
+                        return true;
+                    }
+                }
                 scan(level);
-                if (this.nextRay < this.directions.size() || this.activeRay != null || this.directions.isEmpty()) {
+                if (this.nextRay < this.directions.size() || this.activeRay != null) {
                     return false;
                 }
                 this.firePositions = this.affectedBlocks.toLongArray();
@@ -331,12 +356,6 @@ public final class LegacyMukeExplosion {
         }
 
         private void scan(ServerLevel level) {
-            if (this.directions.isEmpty()) {
-                if (!MINI_DIRECTIONS.isDone()) {
-                    return;
-                }
-                this.directions = MINI_DIRECTIONS.join();
-            }
             long deadline = System.nanoTime() + RAY_TIME_PER_TICK;
             int steps = 0;
             while (steps < RAY_STEPS_PER_TICK && System.nanoTime() < deadline) {
@@ -351,6 +370,12 @@ public final class LegacyMukeExplosion {
                 if (this.activeRay.done) {
                     this.activeRay = null;
                 }
+            }
+        }
+
+        private static void logDirectionPlannerFailure(String reason, Throwable cause) {
+            if (MINI_DIRECTIONS_FAILURE_LOGGED.compareAndSet(false, true)) {
+                ReinhardtsHBM.LOGGER.error("Mini-nuke ray planner {}; terrain passes cancelled", reason, cause);
             }
         }
 

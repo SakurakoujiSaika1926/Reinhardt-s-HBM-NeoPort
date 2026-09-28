@@ -1,10 +1,9 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.LargeTurbineBlock;
 import com.reinhardt.hbm.blockentity.LargeTurbineBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
@@ -17,6 +16,7 @@ import org.joml.Quaternionf;
 public class LargeTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<LargeTurbineBlockEntity> {
     static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_large_turbine_body");
     static final ModelResourceLocation BLADES = MachineModelRenderer.standalone("block/machine_large_turbine_blades");
+    private static final AABB[] LOCAL_BOUNDS = buildLargeTurbineBounds();
 
     public LargeTurbineBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -29,12 +29,10 @@ public class LargeTurbineBlockEntityRenderer implements LongRangeBlockEntityRend
     @Override
     public void render(LargeTurbineBlockEntity turbine, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = turbine.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        Direction facing = largeTurbineFacing(state);
 
         poseStack.pushPose();
-        poseStack.translate(0.5D, 0.0D, 0.5D);
-        poseStack.mulPose(yawQuaternion(legacyYaw(facing)));
-        poseStack.translate(0.0D, 0.0D, -1.0D);
+        applyLargeTurbineTransform(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
@@ -49,19 +47,38 @@ public class LargeTurbineBlockEntityRenderer implements LongRangeBlockEntityRend
 
     @Override
     public AABB getRenderBoundingBox(LargeTurbineBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(5.0D, 3.0D, 5.0D);
+        Direction facing = largeTurbineFacing(blockEntity.getBlockState());
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
-    private static Quaternionf yawQuaternion(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
+    private static AABB[] buildLargeTurbineBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyLargeTurbineTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.625F, 0.0F, -2.5F, 1.625F, 2.5F, 2.5F);
+        }
+        return bounds;
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 90.0F;
-            case SOUTH -> 0.0F;
-            case WEST -> 270.0F;
-            default -> 180.0F;
-        };
+    private static void applyLargeTurbineTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> { }
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Large turbine facing must be horizontal: " + facing);
+        }
+        poseStack.translate(0.0F, 0.0F, -1.0F);
+    }
+
+    private static Direction largeTurbineFacing(BlockState state) {
+        if (!state.hasProperty(LargeTurbineBlock.FACING)) {
+            throw new IllegalStateException("Large turbine state is missing its owned facing property: " + state);
+        }
+        return state.getValue(LargeTurbineBlock.FACING);
     }
 }

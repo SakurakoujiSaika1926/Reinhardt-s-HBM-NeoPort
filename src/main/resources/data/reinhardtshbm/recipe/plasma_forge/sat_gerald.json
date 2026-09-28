@@ -1,9 +1,14 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
   "type": "reinhardtshbm:plasma_forge",
   "group": "plsm.gerald",
-  "blueprint_pools": [
-    "discover.gerald"
-  ],
   "duration": 12000,
   "power": 50000000,
   "ignition_temp": 25000000,
@@ -42,13 +47,37 @@
       "ingredient": {
         "item": "reinhardtshbm:part_generic_hde"
       },
-      "count": 4
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:part_generic_hde"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:part_generic_hde"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:part_generic_hde"
+      },
+      "count": 64
     },
     {
       "ingredient": {
         "item": "reinhardtshbm:circuit_controller_quantum"
       },
-      "count": 1
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:drive_disk_orbitdata_processed"
+      },
+      "count": 16
     },
     {
       "ingredient": {

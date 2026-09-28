@@ -3,15 +3,25 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.entity.TimedExplosiveEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /** Renders armed explosives as their exact block rather than vanilla TNT. */
 public final class TimedExplosiveEntityRenderer extends EntityRenderer<TimedExplosiveEntity> {
+    private static final Map<TimedExplosiveEntity.Kind, AABB> LOCAL_BOUNDS =
+            new EnumMap<>(TimedExplosiveEntity.Kind.class);
+
     public TimedExplosiveEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
         shadowRadius = 0.5F;
@@ -19,7 +29,35 @@ public final class TimedExplosiveEntityRenderer extends EntityRenderer<TimedExpl
 
     @Override
     public void render(TimedExplosiveEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        BlockState renderState = switch (entity.kind()) {
+        BlockState renderState = renderState(entity.kind());
+        poseStack.pushPose();
+        applyRenderPose(poseStack);
+        net.minecraft.client.Minecraft.getInstance().getBlockRenderer().renderSingleBlock(
+                renderState,
+                poseStack,
+                bufferSource,
+                packedLight,
+                OverlayTexture.NO_OVERLAY
+        );
+        poseStack.popPose();
+        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+    }
+
+    @Override
+    public boolean shouldRender(TimedExplosiveEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        AABB localBounds = localBounds(entity.kind());
+        return EntityRenderBounds.shouldRender(entity,
+                EntityRenderBounds.moveToEntity(localBounds, entity),
+                frustum, cameraX, cameraY, cameraZ);
+    }
+
+    static synchronized void invalidateBounds() {
+        LOCAL_BOUNDS.clear();
+    }
+
+    private static BlockState renderState(TimedExplosiveEntity.Kind kind) {
+        return switch (kind) {
             case DYNAMITE -> HbmBlocks.DYNAMITE.get().defaultBlockState();
             case TNT -> HbmBlocks.TNT_NTM.get().defaultBlockState();
             case C4 -> HbmBlocks.C4.get().defaultBlockState();
@@ -35,17 +73,23 @@ public final class TimedExplosiveEntityRenderer extends EntityRenderer<TimedExpl
             case TAINT_BARREL -> HbmBlocks.TAINT_BARREL.get().defaultBlockState();
             case YELLOW_BARREL -> HbmBlocks.YELLOW_BARREL.get().defaultBlockState();
         };
-        poseStack.pushPose();
+    }
+
+    private static synchronized AABB localBounds(TimedExplosiveEntity.Kind kind) {
+        AABB cached = LOCAL_BOUNDS.get(kind);
+        if (cached != null) {
+            return cached;
+        }
+        PoseStack poseStack = new PoseStack();
+        applyRenderPose(poseStack);
+        AABB bounds = BakedBlockGeometrySnapshot.build(
+                renderState(kind), List.of(poseStack), BlockPos.ZERO).bounds();
+        LOCAL_BOUNDS.put(kind, bounds);
+        return bounds;
+    }
+
+    private static void applyRenderPose(PoseStack poseStack) {
         poseStack.translate(-0.5D, -0.5D, -0.5D);
-        net.minecraft.client.Minecraft.getInstance().getBlockRenderer().renderSingleBlock(
-                renderState,
-                poseStack,
-                bufferSource,
-                packedLight,
-                OverlayTexture.NO_OVERLAY
-        );
-        poseStack.popPose();
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
     @Override

@@ -1,0 +1,7 @@
+{
+  "parent": "reinhardtshbm:item/material/scraps_dineutronium",
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "reinhardtshbm:item/scraps_liquid" },
+    { "predicate": { "custom_model_data": 2 }, "model": "reinhardtshbm:item/scraps_additive" }
+  ]
+}

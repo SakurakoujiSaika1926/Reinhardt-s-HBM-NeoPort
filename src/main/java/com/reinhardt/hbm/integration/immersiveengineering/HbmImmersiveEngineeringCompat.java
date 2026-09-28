@@ -74,7 +74,7 @@ public final class HbmImmersiveEngineeringCompat {
             }
         } catch (ClassNotFoundException ignored) {
             // IE is optional. Missing classes are expected when it is not installed.
-        } catch (ReflectiveOperationException | RuntimeException ex) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ex) {
             ReinhardtsHBM.LOGGER.warn("Could not apply HBM Immersive Engineering diesel generator balance", ex);
         }
     }
@@ -203,7 +203,7 @@ public final class HbmImmersiveEngineeringCompat {
         try {
             Method refresh = serverConfig.getMethod("refresh");
             refresh.invoke(null);
-        } catch (ReflectiveOperationException ex) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ex) {
             ReinhardtsHBM.LOGGER.debug("IE server config refresh was not available after HBM balance override", ex);
         }
     }

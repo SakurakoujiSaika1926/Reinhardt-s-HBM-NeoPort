@@ -19,13 +19,11 @@ import java.util.Map;
  * Optional TaCZ loot bridge for the weapon crate.
  *
  * <p>The bridge deliberately reads TaCZ's common runtime indexes instead of
- * hard-coding its built-in namespace. Consequently guns, ammunition and
- * attachments supplied by third-party gun packs enter the same flat pool.</p>
+ * hard-coding its built-in namespace. Consequently guns and attachments
+ * supplied by third-party gun packs enter the same category pools.</p>
  */
 public final class TaczWeaponCrateCompat {
     private static final String TACZ_MOD_ID = "tacz";
-    private static final int MIN_AMMO = 20;
-    private static final int MAX_AMMO = 120;
 
     private static volatile Api api;
     private static volatile boolean apiLookupFailed;
@@ -43,7 +41,6 @@ public final class TaczWeaponCrateCompat {
         PoolSnapshot taczPool = snapshotPool();
         int bucketCount = (hbmPool.isEmpty() ? 0 : 1)
                 + (taczPool.guns().isEmpty() ? 0 : 1)
-                + (taczPool.ammo().isEmpty() ? 0 : 1)
                 + (taczPool.attachments().isEmpty() ? 0 : 1);
         if (bucketCount == 0) {
             return;
@@ -52,11 +49,9 @@ public final class TaczWeaponCrateCompat {
         for (int roll = 0; roll < rolls; roll++) {
             // A gun pack can contribute hundreds of TaCZ definitions. Mixing
             // those definitions directly into the weighted HBM list makes the
-            // original crate contents and scarce ammo definitions statistically
-            // disappear. Select the independent content category first, then
-            // select uniformly inside that category. Ammo is deliberately not
-            // paired with a gun: other mods may provide several valid ammo
-            // families for the same weapon.
+            // original crate contents statistically disappear. Select the
+            // independent content category first, then select uniformly inside
+            // that category.
             int bucket = random.nextInt(bucketCount);
             if (!hbmPool.isEmpty() && bucket-- == 0) {
                 drops.add(hbmPool.get(random.nextInt(hbmPool.size())).copy());
@@ -64,10 +59,6 @@ public final class TaczWeaponCrateCompat {
             }
             if (!taczPool.guns().isEmpty() && bucket-- == 0) {
                 addRandomEntryDrops(registries, random, taczPool.guns(), drops);
-                continue;
-            }
-            if (!taczPool.ammo().isEmpty() && bucket-- == 0) {
-                addRandomEntryDrops(registries, random, taczPool.ammo(), drops);
                 continue;
             }
             addRandomEntryDrops(registries, random, taczPool.attachments(), drops);
@@ -80,7 +71,7 @@ public final class TaczWeaponCrateCompat {
             List<Entry> pool,
             List<ItemStack> drops
     ) {
-        addEntryDrops(registries, random, pool.get(random.nextInt(pool.size())), drops);
+        addEntryDrops(registries, pool.get(random.nextInt(pool.size())), drops);
     }
 
     private static PoolSnapshot snapshotPool() {
@@ -95,13 +86,11 @@ public final class TaczWeaponCrateCompat {
 
         List<Entry> entries = new ArrayList<>();
         addIndexEntries(entries, loadedApi.allGuns(), Type.GUN);
-        addIndexEntries(entries, loadedApi.allAmmo(), Type.AMMO);
         addIndexEntries(entries, loadedApi.allAttachments(), Type.ATTACHMENT);
         entries.sort(Comparator.comparing((Entry entry) -> entry.id().toString())
                 .thenComparing(entry -> entry.type().ordinal()));
         return new PoolSnapshot(
                 entries.stream().filter(entry -> entry.type() == Type.GUN).toList(),
-                entries.stream().filter(entry -> entry.type() == Type.AMMO).toList(),
                 entries.stream().filter(entry -> entry.type() == Type.ATTACHMENT).toList()
         );
     }
@@ -119,7 +108,6 @@ public final class TaczWeaponCrateCompat {
 
     private static void addEntryDrops(
             HolderLookup.Provider registries,
-            RandomSource random,
             Entry entry,
             List<ItemStack> drops
     ) {
@@ -132,21 +120,7 @@ public final class TaczWeaponCrateCompat {
         if (stack.isEmpty()) {
             return;
         }
-
-        if (entry.type() != Type.AMMO) {
-            drops.add(stack);
-            return;
-        }
-
-        int remaining = MIN_AMMO + random.nextInt(MAX_AMMO - MIN_AMMO + 1);
-        int stackLimit = Math.max(1, stack.getMaxStackSize());
-        while (remaining > 0) {
-            ItemStack split = stack.copy();
-            int amount = Math.min(remaining, stackLimit);
-            split.setCount(amount);
-            drops.add(split);
-            remaining -= amount;
-        }
+        drops.add(stack);
     }
 
     private static Api api() {
@@ -163,7 +137,7 @@ public final class TaczWeaponCrateCompat {
                 current = new Api();
                 api = current;
                 return current;
-            } catch (ReflectiveOperationException | LinkageError exception) {
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
                 apiLookupFailed = true;
                 ReinhardtsHBM.LOGGER.warn("TaCZ is installed, but its weapon-crate API could not be initialized", exception);
                 return null;
@@ -173,26 +147,23 @@ public final class TaczWeaponCrateCompat {
 
     private enum Type {
         GUN,
-        AMMO,
         ATTACHMENT
     }
 
     private record Entry(Type type, ResourceLocation id) {
     }
 
-    private record PoolSnapshot(List<Entry> guns, List<Entry> ammo, List<Entry> attachments) {
-        private static final PoolSnapshot EMPTY = new PoolSnapshot(List.of(), List.of(), List.of());
+    private record PoolSnapshot(List<Entry> guns, List<Entry> attachments) {
+        private static final PoolSnapshot EMPTY = new PoolSnapshot(List.of(), List.of());
     }
 
     private static final class Api {
         private final Method allGuns;
-        private final Method allAmmo;
         private final Method allAttachments;
         private final Method commonGunIndex;
         private final Method gunIndexData;
         private final Method gunDataFireModes;
         private final Builder gunBuilder;
-        private final Builder ammoBuilder;
         private final Builder attachmentBuilder;
 
         private Api() throws ReflectiveOperationException {
@@ -200,22 +171,16 @@ public final class TaczWeaponCrateCompat {
             Class<?> commonGunIndexClass = Class.forName("com.tacz.guns.resource.index.CommonGunIndex");
             Class<?> gunDataClass = Class.forName("com.tacz.guns.resource.pojo.data.gun.GunData");
             this.allGuns = timelessApi.getMethod("getAllCommonGunIndex");
-            this.allAmmo = timelessApi.getMethod("getAllCommonAmmoIndex");
             this.allAttachments = timelessApi.getMethod("getAllCommonAttachmentIndex");
             this.commonGunIndex = timelessApi.getMethod("getCommonGunIndex", ResourceLocation.class);
             this.gunIndexData = commonGunIndexClass.getMethod("getGunData");
             this.gunDataFireModes = gunDataClass.getMethod("getFireModeSet");
             this.gunBuilder = new Builder("com.tacz.guns.api.item.builder.GunItemBuilder", true);
-            this.ammoBuilder = new Builder("com.tacz.guns.api.item.builder.AmmoItemBuilder", false);
             this.attachmentBuilder = new Builder("com.tacz.guns.api.item.builder.AttachmentItemBuilder", false);
         }
 
         private Object allGuns() {
             return invokeIndex(allGuns);
-        }
-
-        private Object allAmmo() {
-            return invokeIndex(allAmmo);
         }
 
         private Object allAttachments() {
@@ -225,7 +190,7 @@ public final class TaczWeaponCrateCompat {
         private Object invokeIndex(Method method) {
             try {
                 return method.invoke(null);
-            } catch (IllegalAccessException | InvocationTargetException | RuntimeException exception) {
+            } catch (IllegalAccessException | InvocationTargetException | RuntimeException | LinkageError exception) {
                 ReinhardtsHBM.LOGGER.debug("Could not read TaCZ weapon-crate index {}", method.getName(), exception);
                 return List.of();
             }
@@ -235,7 +200,6 @@ public final class TaczWeaponCrateCompat {
             try {
                 return switch (entry.type()) {
                     case GUN -> gunBuilder.build(entry.id(), registries, defaultFireMode(entry.id()));
-                    case AMMO -> ammoBuilder.build(entry.id(), registries);
                     case ATTACHMENT -> attachmentBuilder.build(entry.id(), registries);
                 };
             } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {

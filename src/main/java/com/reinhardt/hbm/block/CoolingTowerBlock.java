@@ -3,9 +3,12 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.blockentity.CoolingTowerBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -18,8 +21,30 @@ public class CoolingTowerBlock extends LargeMachineBlock implements EntityBlock 
     private final Kind kind;
 
     public CoolingTowerBlock(Properties properties, Footprint footprint, VoxelShape shape, Kind kind) {
-        super(properties, footprint, shape, RotationBasis.MODERN_NORTH);
+        super(properties, footprint, shape, kind == Kind.SMALL
+                ? CoolingTowerBlock::mapSmallTowerOffset
+                : CoolingTowerBlock::mapLargeTowerOffset);
         this.kind = kind;
+    }
+
+    private static BlockPos mapSmallTowerOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            default -> throw new IllegalArgumentException("Small cooling tower facing must be horizontal: " + facing);
+        };
+    }
+
+    private static BlockPos mapLargeTowerOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            default -> throw new IllegalArgumentException("Large cooling tower facing must be horizontal: " + facing);
+        };
     }
 
     public Kind kind() {
@@ -28,8 +53,58 @@ public class CoolingTowerBlock extends LargeMachineBlock implements EntityBlock 
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        return state == null ? null : state;
+        return switch (this.kind) {
+            case SMALL -> smallTowerStateForPlacement(context);
+            case LARGE -> largeTowerStateForPlacement(context);
+        };
+    }
+
+    private BlockState smallTowerStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    private BlockState largeTowerStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.kind) {
+            case SMALL -> rotateSmallTower(state, rotation);
+            case LARGE -> rotateLargeTower(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case SMALL -> mirrorSmallTower(state, mirror);
+            case LARGE -> mirrorLargeTower(state, mirror);
+        };
+    }
+
+    private static BlockState rotateSmallTower(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateLargeTower(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSmallTower(BlockState state, Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorLargeTower(BlockState state, Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
     }
 
     @Nullable

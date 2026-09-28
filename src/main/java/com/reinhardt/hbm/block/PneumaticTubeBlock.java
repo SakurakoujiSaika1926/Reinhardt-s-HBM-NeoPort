@@ -1,8 +1,10 @@
 package com.reinhardt.hbm.block;
 
+import com.reinhardt.hbm.pneumatic.PneumaticNetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,9 +15,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-/** A small, connectable pneumatic transport tube. The legacy tube used a tile entity
- * for routing; this 1.21 block keeps the visible network geometry and connectivity
- * in block state so isolated tubes remain useful as decorative infrastructure. */
+/** A small, connectable pneumatic transport tube and cached-network link. */
 public class PneumaticTubeBlock extends Block {
     public static final BooleanProperty NORTH = BooleanProperty.create("north");
     public static final BooleanProperty SOUTH = BooleanProperty.create("south");
@@ -73,6 +73,22 @@ public class PneumaticTubeBlock extends Block {
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
                                   LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         return state.setValue(property(direction), canConnect(neighborState));
+    }
+
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (!state.is(oldState.getBlock())) {
+            PneumaticNetworkManager.invalidate(level, pos);
+        }
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock())) {
+            PneumaticNetworkManager.invalidate(level, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

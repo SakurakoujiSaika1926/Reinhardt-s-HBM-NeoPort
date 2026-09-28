@@ -6,6 +6,7 @@ import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.ChatFormatting;
@@ -37,9 +38,409 @@ import org.jetbrains.annotations.Nullable;
 public class LegacyMachineBlock extends LargeMachineBlock implements EntityBlock {
     private static final DustParticleOptions FORCEFIELD_DUST =
             new DustParticleOptions(new Vector3f(1.0F, 0.0F, 0.0F), 1.0F);
+    @Nullable
+    private final Kind kind;
 
-    public LegacyMachineBlock(BlockBehaviour.Properties properties, Footprint footprint, VoxelShape coreShape) {
-        super(properties, footprint, coreShape, RotationBasis.HBM_LEGACY_SOUTH);
+    public LegacyMachineBlock(BlockBehaviour.Properties properties, Footprint footprint, VoxelShape coreShape, Kind kind) {
+        super(properties, footprint, coreShape, offsetMapper(kind));
+        this.kind = kind;
+    }
+
+    protected LegacyMachineBlock(BlockBehaviour.Properties properties, Footprint footprint, VoxelShape coreShape,
+                                 OffsetMapper offsetMapper) {
+        super(properties, footprint, coreShape, offsetMapper);
+        this.kind = null;
+    }
+
+    public enum Kind {
+        ANNIHILATOR, AUTOCRAFTER, AUTOSAW, THRESHER, LPW2, FORCEFIELD,
+        MISSILE_ASSEMBLY, ORBUS, PRECASS, PYROOVEN, RADAR, RADAR_LARGE,
+        RADGEN, RADIOLYSIS, RTG_GREY, TELEPORTER, TURBOFAN
+    }
+
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        return switch (this.kind) {
+            case ANNIHILATOR -> annihilatorStateForPlacement(context);
+            case AUTOCRAFTER -> autocrafterStateForPlacement(context);
+            case AUTOSAW -> autosawStateForPlacement(context);
+            case THRESHER -> thresherStateForPlacement(context);
+            case LPW2 -> lpw2StateForPlacement(context);
+            case FORCEFIELD -> forcefieldStateForPlacement(context);
+            case MISSILE_ASSEMBLY -> missileAssemblyStateForPlacement(context);
+            case ORBUS -> orbusStateForPlacement(context);
+            case PRECASS -> precassStateForPlacement(context);
+            case PYROOVEN -> pyroovenStateForPlacement(context);
+            case RADAR -> radarStateForPlacement(context);
+            case RADAR_LARGE -> largeRadarStateForPlacement(context);
+            case RADGEN -> radgenStateForPlacement(context);
+            case RADIOLYSIS -> radiolysisStateForPlacement(context);
+            case RTG_GREY -> greyRtgStateForPlacement(context);
+            case TELEPORTER -> teleporterStateForPlacement(context);
+            case TURBOFAN -> turbofanStateForPlacement(context);
+        };
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return switch (this.kind) {
+            case ANNIHILATOR -> rotateAnnihilator(state, rotation);
+            case AUTOCRAFTER -> rotateAutocrafter(state, rotation);
+            case AUTOSAW -> rotateAutosaw(state, rotation);
+            case THRESHER -> rotateThresher(state, rotation);
+            case LPW2 -> rotateLpw2(state, rotation);
+            case FORCEFIELD -> rotateForcefield(state, rotation);
+            case MISSILE_ASSEMBLY -> rotateMissileAssembly(state, rotation);
+            case ORBUS -> rotateOrbus(state, rotation);
+            case PRECASS -> rotatePrecass(state, rotation);
+            case PYROOVEN -> rotatePyrooven(state, rotation);
+            case RADAR -> rotateRadar(state, rotation);
+            case RADAR_LARGE -> rotateLargeRadar(state, rotation);
+            case RADGEN -> rotateRadgen(state, rotation);
+            case RADIOLYSIS -> rotateRadiolysis(state, rotation);
+            case RTG_GREY -> rotateGreyRtg(state, rotation);
+            case TELEPORTER -> rotateTeleporter(state, rotation);
+            case TURBOFAN -> rotateTurbofan(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return switch (this.kind) {
+            case ANNIHILATOR -> mirrorAnnihilator(state, mirror);
+            case AUTOCRAFTER -> mirrorAutocrafter(state, mirror);
+            case AUTOSAW -> mirrorAutosaw(state, mirror);
+            case THRESHER -> mirrorThresher(state, mirror);
+            case LPW2 -> mirrorLpw2(state, mirror);
+            case FORCEFIELD -> mirrorForcefield(state, mirror);
+            case MISSILE_ASSEMBLY -> mirrorMissileAssembly(state, mirror);
+            case ORBUS -> mirrorOrbus(state, mirror);
+            case PRECASS -> mirrorPrecass(state, mirror);
+            case PYROOVEN -> mirrorPyrooven(state, mirror);
+            case RADAR -> mirrorRadar(state, mirror);
+            case RADAR_LARGE -> mirrorLargeRadar(state, mirror);
+            case RADGEN -> mirrorRadgen(state, mirror);
+            case RADIOLYSIS -> mirrorRadiolysis(state, mirror);
+            case RTG_GREY -> mirrorGreyRtg(state, mirror);
+            case TELEPORTER -> mirrorTeleporter(state, mirror);
+            case TURBOFAN -> mirrorTurbofan(state, mirror);
+        };
+    }
+
+    private BlockState annihilatorStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState autocrafterStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState autosawStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState thresherStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState lpw2StateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState forcefieldStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState missileAssemblyStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState orbusStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState precassStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState pyroovenStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState radarStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState largeRadarStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState radgenStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState radiolysisStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState greyRtgStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState teleporterStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState turbofanStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        BlockState state = this.defaultBlockState().setValue(FACING, facing);
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context) ? state : null;
+    }
+
+    private BlockState rotateAnnihilator(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateAutocrafter(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateAutosaw(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateThresher(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateLpw2(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateForcefield(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateMissileAssembly(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateOrbus(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotatePrecass(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotatePyrooven(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateRadar(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateLargeRadar(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateRadgen(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateRadiolysis(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateGreyRtg(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateTeleporter(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState rotateTurbofan(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorAnnihilator(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorAutocrafter(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorAutosaw(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorThresher(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorLpw2(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorForcefield(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorMissileAssembly(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorOrbus(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorPrecass(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorPyrooven(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorRadar(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorLargeRadar(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorRadgen(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorRadiolysis(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorGreyRtg(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorTeleporter(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private BlockState mirrorTurbofan(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private static OffsetMapper offsetMapper(Kind kind) {
+        return switch (kind) {
+            case ANNIHILATOR -> LegacyMachineBlock::mapAnnihilatorOffset;
+            case AUTOCRAFTER -> LegacyMachineBlock::mapAutocrafterOffset;
+            case AUTOSAW -> LegacyMachineBlock::mapAutosawOffset;
+            case THRESHER -> LegacyMachineBlock::mapThresherOffset;
+            case LPW2 -> LegacyMachineBlock::mapLpw2Offset;
+            case FORCEFIELD -> LegacyMachineBlock::mapForcefieldOffset;
+            case MISSILE_ASSEMBLY -> LegacyMachineBlock::mapMissileAssemblyOffset;
+            case ORBUS -> LegacyMachineBlock::mapOrbusOffset;
+            case PRECASS -> LegacyMachineBlock::mapPrecassOffset;
+            case PYROOVEN -> LegacyMachineBlock::mapPyroovenOffset;
+            case RADAR -> LegacyMachineBlock::mapRadarOffset;
+            case RADAR_LARGE -> LegacyMachineBlock::mapLargeRadarOffset;
+            case RADGEN -> LegacyMachineBlock::mapRadgenOffset;
+            case RADIOLYSIS -> LegacyMachineBlock::mapRadiolysisOffset;
+            case RTG_GREY -> LegacyMachineBlock::mapGreyRtgOffset;
+            case TELEPORTER -> LegacyMachineBlock::mapTeleporterOffset;
+            case TURBOFAN -> LegacyMachineBlock::mapTurbofanOffset;
+        };
+    }
+
+    private static BlockPos mapAnnihilatorOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Annihilator", facing); };
+    }
+    private static BlockPos mapAutocrafterOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Autocrafter", facing); };
+    }
+    private static BlockPos mapAutosawOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Autosaw", facing); };
+    }
+    private static BlockPos mapThresherOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Thresher", facing); };
+    }
+    private static BlockPos mapLpw2Offset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("LPW2", facing); };
+    }
+    private static BlockPos mapForcefieldOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Forcefield", facing); };
+    }
+    private static BlockPos mapMissileAssemblyOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Missile assembly", facing); };
+    }
+    private static BlockPos mapOrbusOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Orbus", facing); };
+    }
+    private static BlockPos mapPrecassOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Precass", facing); };
+    }
+    private static BlockPos mapPyroovenOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Pyrooven", facing); };
+    }
+    private static BlockPos mapRadarOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Radar", facing); };
+    }
+    private static BlockPos mapLargeRadarOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Large radar", facing); };
+    }
+    private static BlockPos mapRadgenOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Radgen", facing); };
+    }
+    private static BlockPos mapRadiolysisOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Radiolysis", facing); };
+    }
+    private static BlockPos mapGreyRtgOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Grey RTG", facing); };
+    }
+    private static BlockPos mapTeleporterOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Teleporter", facing); };
+    }
+    private static BlockPos mapTurbofanOffset(Direction facing, BlockPos offset) {
+        int x=offset.getX(), y=offset.getY(), z=offset.getZ(); return switch(facing) { case SOUTH -> new BlockPos(x,y,z); case EAST -> new BlockPos(z,y,-x); case NORTH -> new BlockPos(-x,y,-z); case WEST -> new BlockPos(-z,y,x); case UP,DOWN -> throw horizontal("Turbofan", facing); };
+    }
+
+    private static IllegalArgumentException horizontal(String machine, Direction facing) {
+        return new IllegalArgumentException(machine + " requires a horizontal facing: " + facing);
     }
 
     @Override

@@ -1,12 +1,15 @@
 package com.reinhardt.hbm.pollution;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,9 +49,17 @@ public final class HbmPollutionWorlds {
         void tick(HbmPollutionData data) {
             tickCounter++;
             if (inFlight != null && inFlight.isDone()) {
-                SolvedSnapshot solved = inFlight.join();
-                data.applySolvedSnapshot(solved.baseline(), solved.regions());
+                CompletableFuture<SolvedSnapshot> completed = inFlight;
                 inFlight = null;
+                try {
+                    SolvedSnapshot solved = completed.join();
+                    data.applySolvedSnapshot(solved.baseline(), solved.regions());
+                } catch (CancellationException exception) {
+                    ReinhardtsHBM.LOGGER.warn("Asynchronous pollution solve was cancelled; keeping authoritative pollution data");
+                } catch (CompletionException exception) {
+                    ReinhardtsHBM.LOGGER.error("Asynchronous pollution solve failed; keeping authoritative pollution data",
+                            exception.getCause() == null ? exception : exception.getCause());
+                }
             }
             if (inFlight != null || tickCounter % HbmPollutionConstants.SOLVE_RATE_TICKS != 0) {
                 return;

@@ -49,7 +49,6 @@ public class LegacyBulletEntity extends Entity {
 
     public LegacyBulletEntity(EntityType<? extends LegacyBulletEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyBulletEntity(Level level, double x, double y, double z, Vec3 direction, StandardAmmoItem.StandardAmmoType ammo, float baseDamage) {
@@ -69,15 +68,15 @@ public class LegacyBulletEntity extends Entity {
         setAmmoType(ammo);
         setBaseDamage(baseDamage * ammo.damageMultiplier());
         this.ownerUuid = owner == null ? null : owner.getUUID();
-        Vec3 normalized = direction.normalize().add(
+        Vec3 heading = direction.normalize().add(
                 random.nextGaussian() * 0.0075D * spread,
                 random.nextGaussian() * 0.0075D * spread,
                 random.nextGaussian() * 0.0075D * spread
-        ).normalize();
+        );
         double speed = ammo.projectileSpeed();
-        Vec3 motion = normalized.scale(speed);
+        Vec3 motion = heading.scale(speed);
         setDeltaMovement(motion);
-        updateRotationFromMotion(normalized);
+        updateRotationFromMotion(heading);
         this.yRotO = getYRot();
         this.xRotO = getXRot();
     }
@@ -132,33 +131,43 @@ public class LegacyBulletEntity extends Entity {
         StandardAmmoItem.StandardAmmoType ammo = ammoType();
         Vec3 motion = getDeltaMovement();
         updateRotationFromMotion(motion);
-        Vec3 start = position();
-        Vec3 end = start.add(motion);
-        HitResult blockHit = level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-        Vec3 entityEnd = blockHit.getType() == HitResult.Type.MISS ? end : blockHit.getLocation();
-        List<EntityHitResult> entityHits = findEntityHits(start, entityEnd);
+        // EntityThrowableInterp in 1.7.10 never performed collision prediction
+        // on the client.  In particular, a flame projectile remained alive
+        // client-side until the authoritative server removal arrived, so its
+        // onUpdate callback could emit one flame particle every tick.  Keep
+        // that behavior for flame projectiles; local collision prediction was
+        // deleting their visual trail before the server entity was finished.
+        boolean clientVisualFlame = level().isClientSide
+                && ammo.family() == StandardAmmoItem.AmmoFamily.FLAME;
+        if (!clientVisualFlame) {
+            Vec3 start = position();
+            Vec3 end = start.add(motion);
+            HitResult blockHit = level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+            Vec3 entityEnd = blockHit.getType() == HitResult.Type.MISS ? end : blockHit.getLocation();
+            List<EntityHitResult> entityHits = findEntityHits(start, entityEnd);
 
-        if (!entityHits.isEmpty()) {
-            if (ammo.penetrates()) {
-                for (EntityHitResult entityHit : entityHits) {
-                    if (impactEntity(ammo, entityHit)) {
-                        return;
+            if (!entityHits.isEmpty()) {
+                if (ammo.penetrates()) {
+                    for (EntityHitResult entityHit : entityHits) {
+                        if (impactEntity(ammo, entityHit)) {
+                            return;
+                        }
                     }
-                }
-                if (blockHit instanceof BlockHitResult blockResult && blockHit.getType() != HitResult.Type.MISS) {
-                    if (impactBlock(ammo, blockResult)) {
-                        return;
+                    if (blockHit instanceof BlockHitResult blockResult && blockHit.getType() != HitResult.Type.MISS) {
+                        if (impactBlock(ammo, blockResult)) {
+                            return;
+                        }
+                        motion = getDeltaMovement();
                     }
-                    motion = getDeltaMovement();
+                } else if (impactEntity(ammo, entityHits.getFirst())) {
+                    return;
                 }
-            } else if (impactEntity(ammo, entityHits.getFirst())) {
-                return;
+            } else if (blockHit instanceof BlockHitResult blockResult && blockHit.getType() != HitResult.Type.MISS) {
+                if (impactBlock(ammo, blockResult)) {
+                        return;
+                }
+                motion = getDeltaMovement();
             }
-        } else if (blockHit instanceof BlockHitResult blockResult && blockHit.getType() != HitResult.Type.MISS) {
-            if (impactBlock(ammo, blockResult)) {
-                return;
-            }
-            motion = getDeltaMovement();
         }
 
         setPos(getX() + motion.x, getY() + motion.y, getZ() + motion.z);

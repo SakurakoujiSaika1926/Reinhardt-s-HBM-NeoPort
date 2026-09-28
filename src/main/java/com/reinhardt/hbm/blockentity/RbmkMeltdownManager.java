@@ -25,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.ArrayDeque;
@@ -510,9 +509,10 @@ public final class RbmkMeltdownManager {
                                 || !HbmFluidNetworks.canPipeConnect(level, pipePos, direction, type)) {
                             continue;
                         }
-                        if (level.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite()) != null) {
-                            receivers.add(target.immutable());
-                        }
+                        // canPipeConnect already verifies that the adjacent face exposes a
+                        // live fluid capability. Do not query the third-party provider a
+                        // second time during the same scan.
+                        receivers.add(target.immutable());
                     }
                 }
             }

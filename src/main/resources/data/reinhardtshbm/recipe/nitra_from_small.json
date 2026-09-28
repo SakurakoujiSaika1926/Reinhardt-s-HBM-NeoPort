@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["XX", "XX"],
+  "key": {
+    "X": { "item": "reinhardtshbm:nitra_small" }
+  },
+  "result": { "id": "reinhardtshbm:nitra" }
+}

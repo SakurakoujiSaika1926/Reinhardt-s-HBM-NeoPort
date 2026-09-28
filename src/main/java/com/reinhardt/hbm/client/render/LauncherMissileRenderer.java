@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyLauncherMissileEntity;
+import com.reinhardt.hbm.blockentity.LauncherBlockEntity;
 import com.reinhardt.hbm.item.CustomMissileData;
 import com.reinhardt.hbm.item.CustomMissileItem;
 import com.reinhardt.hbm.item.LegacyMissileItem;
@@ -11,21 +12,27 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class LauncherMissileRenderer extends EntityRenderer<LegacyLauncherMissileEntity> {
+    private static final Map<String, Double> VISUAL_RADII = new ConcurrentHashMap<>();
     static final List<String> IDS = List.of("missile_test","missile_micro","missile_taint","missile_bhole",
             "missile_schrabidium","missile_emp","missile_generic","missile_incendiary","missile_cluster",
             "missile_buster","missile_decoy","missile_anti_ballistic","missile_stealth","missile_strong",
@@ -36,9 +43,15 @@ public final class LauncherMissileRenderer extends EntityRenderer<LegacyLauncher
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         for (String id : IDS) event.register(MachineModelRenderer.standalone("block/launcher_port/" + id));
     }
-    public static float yaw(Direction facing) {
-        return switch (facing) { case NORTH -> 90; case WEST -> 180; case SOUTH -> 270; case EAST -> 0;
-            default -> throw new IllegalArgumentException("Vertical launcher orientation"); };
+    private static void applyLegacyMissileEntityPose(PoseStack pose, Direction facing) {
+        switch (facing) {
+            case NORTH -> pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> pose.mulPose(Axis.YP.rotationDegrees(0.0F));
+            case SOUTH -> pose.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case WEST -> pose.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException(
+                    "Legacy launcher missile requires a horizontal launch facing: " + facing);
+        }
     }
     @Override public void render(LegacyLauncherMissileEntity entity, float yaw, float partial,
                                  PoseStack pose, MultiBufferSource buffers, int light) {
@@ -47,11 +60,23 @@ public final class LauncherMissileRenderer extends EntityRenderer<LegacyLauncher
         pose.mulPose(Axis.YP.rotationDegrees(heading));
         pose.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(partial, entity.xRotO, entity.getXRot())));
         pose.mulPose(Axis.YN.rotationDegrees(heading));
-        if (!(entity.missileItem().getItem() instanceof CustomMissileItem) && !entity.isAntiBallistic())
-            pose.mulPose(Axis.YP.rotationDegrees(yaw(entity.launchFacing())));
+        if (!(entity.missileItem().getItem() instanceof CustomMissileItem) && !entity.isAntiBallistic()) {
+            applyLegacyMissileEntityPose(pose, entity.launchFacing());
+        }
         renderAssembly(entity.missileItem(), Blocks.AIR.defaultBlockState(), pose, buffers, light, OverlayTexture.NO_OVERLAY);
         pose.popPose();
         super.render(entity, yaw, partial, pose, buffers, light);
+    }
+    @Override public boolean shouldRender(LegacyLauncherMissileEntity entity, Frustum frustum,
+                                          double cameraX, double cameraY, double cameraZ) {
+        ItemStack missile = entity.missileItem();
+        String signature = visualSignature(missile);
+        double radius = VISUAL_RADII.computeIfAbsent(signature,
+                ignored -> captureVisualRadius(missile));
+        AABB bounds = EntityRenderBounds.radius(
+                entity.getX(), entity.getY(), entity.getZ(), radius);
+        return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ);
     }
     public static void renderAssembly(ItemStack item, BlockState state, PoseStack pose,
                                       MultiBufferSource buffers, int light, int overlay) {
@@ -70,6 +95,27 @@ public final class LauncherMissileRenderer extends EntityRenderer<LegacyLauncher
         }
         pose.popPose();
     }
+
+    static void renderAssembly(LauncherBlockEntity.MissileRenderData missile, BlockState state, PoseStack pose,
+                               MultiBufferSource buffers, int light, int overlay) {
+        if (!missile.present()) {
+            return;
+        }
+        pose.pushPose();
+        if (missile.custom()) {
+            MissileMultipartRenderer.render(state, pose, buffers, light, overlay, missile);
+        } else if (IDS.contains(missile.legacyId())) {
+            if (missile.legacyTierTwo()) {
+                pose.scale(1.5F, 1.5F, 1.5F);
+            }
+            MachineModelRenderer.renderUnculled(
+                    MachineModelRenderer.model(MachineModelRenderer.standalone(
+                            "block/launcher_port/" + missile.legacyId())),
+                    pose, buffers, state, light, overlay);
+        }
+        pose.popPose();
+    }
+    static void invalidateEntityBounds() { VISUAL_RADII.clear(); }
     public static void renderGui(GuiGraphics graphics, int left, int top, ItemStack item) {
         PoseStack pose = graphics.pose();
         MultiBufferSource.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -96,6 +142,79 @@ public final class LauncherMissileRenderer extends EntityRenderer<LegacyLauncher
         renderAssembly(item, Blocks.AIR.defaultBlockState(), pose, buffers, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
         buffers.endBatch();
         pose.popPose();
+    }
+
+    private static String visualSignature(ItemStack missile) {
+        if (missile.getItem() instanceof CustomMissileItem) {
+            CustomMissileData data = CustomMissileData.read(missile);
+            if (data == null) return "invalid-custom";
+            return "custom|" + partId(data.warhead()) + '|' + partId(data.fuselage())
+                    + '|' + partId(data.fins()) + '|' + partId(data.thruster());
+        }
+        return BuiltInRegistries.ITEM.getKey(missile.getItem()).toString();
+    }
+
+    private static double captureVisualRadius(ItemStack missile) {
+        AABB bounds = null;
+        if (missile.getItem() instanceof CustomMissileItem) {
+            CustomMissileData data = CustomMissileData.read(missile);
+            if (data == null) return 0.0D;
+            float thrusterHeight = MissileMultipartRenderer.partHeight(partId(data.thruster()));
+            float fuselageHeight = MissileMultipartRenderer.partHeight(partId(data.fuselage()));
+            bounds = includePart(bounds, data.thruster(), 0.0F);
+            bounds = includePart(bounds, data.fins(), thrusterHeight);
+            bounds = includePart(bounds, data.fuselage(), thrusterHeight);
+            bounds = includePart(bounds, data.warhead(), thrusterHeight + fuselageHeight);
+        } else if (missile.getItem() instanceof LegacyMissileItem legacy) {
+            String id = BuiltInRegistries.ITEM.getKey(missile.getItem()).getPath();
+            if (!IDS.contains(id)) return 0.0D;
+            PoseStack poseStack = new PoseStack();
+            if (legacy.tier() == LegacyMissileItem.Tier.TIER2) {
+                poseStack.scale(1.5F, 1.5F, 1.5F);
+            }
+            bounds = captureModelBounds(
+                    MachineModelRenderer.standalone("block/launcher_port/" + id), poseStack);
+        }
+        return bounds == null ? 0.0D : rotationSafeRadius(boundsRadius(bounds));
+    }
+
+    private static AABB includePart(AABB accumulated, ItemStack part, float yOffset) {
+        if (part.isEmpty()) return accumulated;
+        String id = partId(part);
+        if (!MissileMultipartRenderer.partIds().contains(id)) return accumulated;
+        PoseStack poseStack = new PoseStack();
+        poseStack.translate(0.0F, yOffset, 0.0F);
+        AABB partBounds = captureModelBounds(MissileMultipartRenderer.model(id), poseStack);
+        return accumulated == null ? partBounds : accumulated.minmax(partBounds);
+    }
+
+    private static AABB captureModelBounds(net.minecraft.client.resources.model.ModelResourceLocation model,
+                                           PoseStack poseStack) {
+        return BakedBlockGeometrySnapshot.build(
+                MachineModelRenderer.model(model), Blocks.AIR.defaultBlockState(),
+                List.of(poseStack), BlockPos.ZERO).bounds();
+    }
+
+    private static String partId(ItemStack stack) {
+        return stack.isEmpty() ? "" : BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+    }
+
+    private static double boundsRadius(AABB bounds) {
+        double maximumSquared = 0.0D;
+        for (double x : new double[] {bounds.minX, bounds.maxX}) {
+            for (double y : new double[] {bounds.minY, bounds.maxY}) {
+                for (double z : new double[] {bounds.minZ, bounds.maxZ}) {
+                    maximumSquared = Math.max(maximumSquared, x * x + y * y + z * z);
+                }
+            }
+        }
+        return Math.sqrt(maximumSquared);
+    }
+
+    private static double rotationSafeRadius(double radius) {
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
     @Override public ResourceLocation getTextureLocation(LegacyLauncherMissileEntity entity) { return TextureAtlas.LOCATION_BLOCKS; }
 }

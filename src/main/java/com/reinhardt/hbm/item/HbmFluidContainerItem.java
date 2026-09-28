@@ -152,7 +152,7 @@ public class HbmFluidContainerItem extends Item {
         }
         HbmFluidDefinition fluid = fluid(stack);
         if (item.kind == Kind.CANISTER) {
-            return 0xFF000000 | parseColorOr(fluid.canisterColor(), fluid.color());
+            return 0xFF000000 | fluid.canisterColorRgbOr(fluid.color());
         }
         if (item.kind == Kind.GAS_TANK) {
             String[] colors = fluid.gasTankColors().split("/");
@@ -189,7 +189,7 @@ public class HbmFluidContainerItem extends Item {
         FLUID_TANK(1_000, "item.reinhardtshbm.fluid_tank_full.named", HbmFluidContainerItem::allowsRegularTank),
         LEAD_TANK(1_000, "item.reinhardtshbm.fluid_tank_lead_full.named", HbmFluidContainerItem::allowsLeadTank),
         FLUID_BARREL(16_000, "item.reinhardtshbm.fluid_barrel_full.named", HbmFluidContainerItem::allowsRegularTank),
-        FLUID_PACK(32_000, "item.reinhardtshbm.fluid_pack_full.named", HbmFluidContainerItem::allowsRegularTank),
+        FLUID_PACK(32_000, "item.reinhardtshbm.fluid_pack_full.named", HbmFluidContainerItem::allowsFluidPack),
         DISPERSER(2_000, "item.reinhardtshbm.disperser_canister.named", HbmFluidContainerItem::allowsDisperser),
         GLYPHID_GLAND(4_000, "item.reinhardtshbm.glyphid_gland.named", HbmFluidContainerItem::allowsGlyphidGland),
         CELL(1_000, "item.reinhardtshbm.cell_tritium.named", HbmFluidContainerItem::allowsLegacyCell);
@@ -248,6 +248,15 @@ public class HbmFluidContainerItem extends Item {
     }
 
     private static boolean allowsLeadTank(HbmFluidDefinition fluid) {
+        return !fluid.isNone() && !fluid.hasTrait(HbmFluidTrait.NO_CONTAINER);
+    }
+
+    /**
+     * Legacy fluid packs accept every container-capable fluid, including fluids which require a
+     * lead tank or an antimatter container for ordinary 1,000 mB storage. Their only exclusion is
+     * the explicit NO_CONTAINER trait used by internal process fluids and plasmas.
+     */
+    private static boolean allowsFluidPack(HbmFluidDefinition fluid) {
         return !fluid.isNone() && !fluid.hasTrait(HbmFluidTrait.NO_CONTAINER);
     }
 

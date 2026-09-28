@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:purex",
+  "group": "autoswitch.pile",
+  "duration": 40,
+  "power": 100,
+  "input_items": [
+    { "ingredient": { "item": "reinhardtshbm:pile_rod_thorium_fuel" }, "count": 1 }
+  ],
+  "input_fluids": [
+    { "fluid": "sulfuric_acid", "amount": 100 }
+  ],
+  "output_items": [
+    { "id": "reinhardtshbm:billet_thorium_fuel", "count": 2 },
+    { "id": "reinhardtshbm:billet_nuclear_waste" }
+  ]
+}

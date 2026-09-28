@@ -20,8 +20,10 @@ import com.reinhardt.hbm.menu.ChemicalFactoryMenu;
 import com.reinhardt.hbm.menu.ChemicalPlantMenu;
 import com.reinhardt.hbm.menu.CombustionEngineMenu;
 import com.reinhardt.hbm.menu.CompressorMenu;
+import com.reinhardt.hbm.menu.CustomMachineMenu;
 import com.reinhardt.hbm.menu.CokerMenu;
 import com.reinhardt.hbm.menu.CrystallizerMenu;
+import com.reinhardt.hbm.menu.CraneMachineMenu;
 import com.reinhardt.hbm.menu.CrucibleMenu;
 import com.reinhardt.hbm.menu.CyclotronMenu;
 import com.reinhardt.hbm.menu.DfcCoreMenu;
@@ -64,6 +66,7 @@ import com.reinhardt.hbm.menu.LegacyNukeMenu;
 import com.reinhardt.hbm.menu.BombMultiMenu;
 import com.reinhardt.hbm.menu.OilDerrickMenu;
 import com.reinhardt.hbm.menu.OreSlopperMenu;
+import com.reinhardt.hbm.menu.RockMillMenu;
 import com.reinhardt.hbm.menu.ParticleAcceleratorMenu;
 import com.reinhardt.hbm.menu.PurexMenu;
 import com.reinhardt.hbm.menu.IcfPressMenu;
@@ -84,11 +87,13 @@ import com.reinhardt.hbm.menu.SolderingStationMenu;
 import com.reinhardt.hbm.menu.SirenMenu;
 import com.reinhardt.hbm.menu.SmallBoilerMenu;
 import com.reinhardt.hbm.menu.SoyuzCapsuleMenu;
-import com.reinhardt.hbm.menu.SoyuzLauncherMenu;
+import com.reinhardt.hbm.menu.LambdaLaunchpadMenu;
+import com.reinhardt.hbm.menu.SoyuzLaunchpadMenu;
 import com.reinhardt.hbm.menu.LauncherMenu;
 import com.reinhardt.hbm.menu.SteamTurbineMenu;
 import com.reinhardt.hbm.menu.SteelFurnaceMenu;
 import com.reinhardt.hbm.menu.StorageCrateMenu;
+import com.reinhardt.hbm.menu.SupercomputerMenu;
 import com.reinhardt.hbm.menu.PortableCrateMenu;
 import com.reinhardt.hbm.menu.SafeMenu;
 import com.reinhardt.hbm.menu.MassStorageMenu;
@@ -112,6 +117,7 @@ import com.reinhardt.hbm.menu.ForcefieldMenu;
 import com.reinhardt.hbm.menu.OrbusMenu;
 import com.reinhardt.hbm.menu.SatelliteLinkerMenu;
 import com.reinhardt.hbm.menu.SatelliteDockMenu;
+import com.reinhardt.hbm.menu.TapeDriveMenu;
 import com.reinhardt.hbm.menu.TurbofanMenu;
 import com.reinhardt.hbm.menu.MissileAssemblyMenu;
 import com.reinhardt.hbm.menu.DroneCrateMenu;
@@ -119,8 +125,10 @@ import com.reinhardt.hbm.menu.DroneGridMenu;
 import com.reinhardt.hbm.menu.DroneRequesterMenu;
 import com.reinhardt.hbm.menu.RebarPlacerMenu;
 import com.reinhardt.hbm.menu.RadioRecMenu;
+import com.reinhardt.hbm.menu.RttyConfigMenu;
 import com.reinhardt.hbm.menu.RadioTelexMenu;
 import com.reinhardt.hbm.menu.AutocalMenu;
+import com.reinhardt.hbm.menu.PneumaticStorageMenu;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -137,6 +145,9 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<RadioRecMenu>> RADIOREC =
             MENUS.register("radiorec", () -> IMenuTypeExtension.create(RadioRecMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<RttyConfigMenu>> RTTY_CONFIG =
+            MENUS.register("rtty_config", () -> IMenuTypeExtension.create(RttyConfigMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<RadioTelexMenu>> RADIO_TELEX =
             MENUS.register("radio_telex", () -> IMenuTypeExtension.create(RadioTelexMenu::new));
@@ -207,6 +218,9 @@ public final class HbmMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<CompressorMenu>> COMPRESSOR =
             MENUS.register("compressor", () -> IMenuTypeExtension.create(CompressorMenu::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<CustomMachineMenu>> CUSTOM_MACHINE =
+            MENUS.register("custom_machine", () -> IMenuTypeExtension.create(CustomMachineMenu::new));
+
     public static final DeferredHolder<MenuType<?>, MenuType<MixerMenu>> MIXER =
             MENUS.register("mixer", () -> IMenuTypeExtension.create(MixerMenu::new));
 
@@ -249,6 +263,9 @@ public final class HbmMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<OreSlopperMenu>> ORE_SLOPPER =
             MENUS.register("machine_ore_slopper", () -> IMenuTypeExtension.create(OreSlopperMenu::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<RockMillMenu>> ROCK_MILL =
+            MENUS.register("machine_rockmill", () -> IMenuTypeExtension.create(RockMillMenu::new));
+
     public static final DeferredHolder<MenuType<?>, MenuType<ExcavatorMenu>> EXCAVATOR =
             MENUS.register("machine_excavator", () -> IMenuTypeExtension.create(ExcavatorMenu::new));
 
@@ -273,8 +290,11 @@ public final class HbmMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BombMultiMenu>> BOMB_MULTI =
             MENUS.register("bomb_multi", () -> IMenuTypeExtension.create(BombMultiMenu::new));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<SoyuzLauncherMenu>> SOYUZ_LAUNCHER =
-            MENUS.register("soyuz_launcher", () -> IMenuTypeExtension.create(SoyuzLauncherMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<LambdaLaunchpadMenu>> LAMBDA_LAUNCHPAD =
+            MENUS.register("launchpad_lambda", () -> IMenuTypeExtension.create(LambdaLaunchpadMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<SoyuzLaunchpadMenu>> SOYUZ_LAUNCHPAD =
+            MENUS.register("launchpad_soyuz", () -> IMenuTypeExtension.create(SoyuzLaunchpadMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<LauncherMenu>> LAUNCHER =
             MENUS.register("launcher", () -> IMenuTypeExtension.create(LauncherMenu::new));
@@ -486,6 +506,12 @@ public final class HbmMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<SatelliteDockMenu>> SAT_DOCK =
             MENUS.register("sat_dock", () -> IMenuTypeExtension.create(SatelliteDockMenu::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<TapeDriveMenu>> TAPE_DRIVE =
+            MENUS.register("machine_tape_drive", () -> IMenuTypeExtension.create(TapeDriveMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<SupercomputerMenu>> SUPERCOMPUTER =
+            MENUS.register("machine_supercomputer", () -> IMenuTypeExtension.create(SupercomputerMenu::new));
+
     public static final DeferredHolder<MenuType<?>, MenuType<AutocrafterMenu>> AUTOCRAFTER =
             MENUS.register("machine_autocrafter", () -> IMenuTypeExtension.create(AutocrafterMenu::new));
 
@@ -494,6 +520,12 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<RadiolysisMenu>> RADIOLYSIS =
             MENUS.register("machine_radiolysis", () -> IMenuTypeExtension.create(RadiolysisMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<CraneMachineMenu>> CRANE_MACHINE =
+            MENUS.register("crane_machine", () -> IMenuTypeExtension.create(CraneMachineMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<PneumaticStorageMenu>> PNEUMATIC_STORAGE =
+            MENUS.register("pneumatic_storage", () -> IMenuTypeExtension.create(PneumaticStorageMenu::new));
 
     private HbmMenus() {
     }

@@ -1,0 +1,39 @@
+{
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.sat_chip",
+  "duration": 100,
+  "consumption": 100,
+  "toppings": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_capacitor"
+      },
+      "count": 2
+    }
+  ],
+  "pcb": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_pcb"
+      },
+      "count": 2
+    }
+  ],
+  "solder": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:wire_lead"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:sat_chip"
+  }
+}

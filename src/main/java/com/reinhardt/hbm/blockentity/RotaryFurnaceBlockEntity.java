@@ -17,7 +17,7 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
+import com.reinhardt.hbm.util.FuelItemConsumption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -188,7 +188,7 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
 
     public int[] getSlotsForAccessor(BlockPos accessorPos, @Nullable Direction side) {
         Direction facing = getFacing();
-        Direction rotation = LegacyMachineGeometry.forgeRotateUp(facing);
+        Direction rotation = rotaryFurnaceUpSide(facing);
         if (side == facing.getOpposite()) {
             if (accessorPos.equals(this.worldPosition.relative(facing.getOpposite()).relative(rotation.getOpposite(), 2))) {
                 return new int[]{INPUT_A_SLOT};
@@ -285,7 +285,7 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -394,7 +394,7 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
         }
         if (this.burnTime > 0) {
             Direction facing = getFacing();
-            Direction rotation = LegacyMachineGeometry.forgeRotateDown(facing);
+            Direction rotation = rotaryFurnaceDownSide(facing);
             level.addParticle(
                     ParticleTypes.FLAME,
                     this.worldPosition.getX() + 0.5D + facing.getStepX() * 0.5D + rotation.getStepX()
@@ -408,7 +408,7 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
             );
         }
         if (this.venting && level.getGameTime() % 2L == 0L) {
-            Direction rotation = LegacyMachineGeometry.forgeRotateDown(getFacing());
+            Direction rotation = rotaryFurnaceDownSide(getFacing());
             double soot = 0x20 / 255.0D;
             level.addParticle(
                     HbmParticleTypes.ROTARY_FURNACE_TOWER.get(),
@@ -472,7 +472,7 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
         if (this.output == null || this.output.amount() <= 0) {
             return;
         }
-        Direction rotation = LegacyMachineGeometry.forgeRotateDown(getFacing());
+        Direction rotation = rotaryFurnaceDownSide(getFacing());
         List<FoundryMaterialStack> stack = new ArrayList<>(List.of(this.output));
         FoundryMaterialStack poured = CrucibleUtil.pourFullStack(
                 level,
@@ -551,9 +551,9 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
         this.burnHeat = fuelHeatMultiplier(fuel);
         this.burnTime = (int) (duration * fuelTimeMultiplier(fuel)) / 2;
         this.maxBurnTime = this.burnTime;
-        fuel.shrink(1);
+        ItemStack remainder = FuelItemConsumption.consumeOne(fuel);
         if (fuel.isEmpty()) {
-            this.items.set(FUEL_SLOT, ItemStack.EMPTY);
+            this.items.set(FUEL_SLOT, remainder);
         }
     }
 
@@ -610,7 +610,7 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
 
     private void sendSmoke(Level level) {
         Direction facing = getFacing();
-        Direction rot = LegacyMachineGeometry.forgeRotateDown(facing);
+        Direction rot = rotaryFurnaceDownSide(facing);
         BlockPos target = this.worldPosition.relative(rot).above(5);
         if (HbmPollution.sendSmoke(level, this.worldPosition, target, Direction.DOWN, this.smokeTank, this.smokeLeadedTank, this.smokePoisonTank)) {
             setChanged();
@@ -622,6 +622,26 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
         return state.hasProperty(com.reinhardt.hbm.block.LargeMachineBlock.FACING)
                 ? state.getValue(com.reinhardt.hbm.block.LargeMachineBlock.FACING)
                 : Direction.SOUTH;
+    }
+
+    private static Direction rotaryFurnaceUpSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Rotary furnace facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction rotaryFurnaceDownSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("Rotary furnace facing must be horizontal: " + facing);
+        };
     }
 
     private HbmFluidTank smokeTank(HbmPollutionType type) {
@@ -684,7 +704,7 @@ public class RotaryFurnaceBlockEntity extends BlockEntity implements MachineInve
 
     private List<FluidPortSpec> fluidPorts() {
         Direction facing = getFacing();
-        Direction rotation = LegacyMachineGeometry.forgeRotateDown(facing);
+        Direction rotation = rotaryFurnaceDownSide(facing);
         return List.of(
                 new FluidPortSpec(this.worldPosition.relative(facing.getOpposite()).relative(rotation.getOpposite()), facing.getOpposite(), FluidPort.STEAM),
                 new FluidPortSpec(this.worldPosition.relative(facing.getOpposite()).relative(rotation.getOpposite(), 2), facing.getOpposite(), FluidPort.STEAM),

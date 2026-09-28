@@ -1,0 +1,31 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.unpackagehbmfluid.egg",
+  "duration": 40,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": [
+          "reinhardtshbm:fluid_pack_full"
+        ],
+        "components": {
+          "minecraft:custom_data": {
+            "fluid": "egg"
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "egg",
+      "amount": 32000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fluid_pack_empty"
+  }
+}

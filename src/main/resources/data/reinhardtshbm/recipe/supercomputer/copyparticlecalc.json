@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.copyparticlecalc",
+  "duration": 18000,
+  "power": 10000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:drive_flash_particlesim" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:drive_flash_empty" }, "count": 1 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:drive_flash_particlesim", "count": 2 }, "weight": 95 },
+    { "result": { "id": "reinhardtshbm:drive_flash_broken", "count": 2 }, "weight": 5 }
+  ]
+}

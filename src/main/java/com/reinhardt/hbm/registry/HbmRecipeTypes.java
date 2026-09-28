@@ -15,6 +15,7 @@ import com.reinhardt.hbm.recipe.ChemicalPlantRecipe;
 import com.reinhardt.hbm.recipe.CokerRecipe;
 import com.reinhardt.hbm.recipe.CombinationOvenRecipe;
 import com.reinhardt.hbm.recipe.CompressorRecipe;
+import com.reinhardt.hbm.recipe.CustomMachineRecipe;
 import com.reinhardt.hbm.recipe.ConveyorExpressRecipe;
 import com.reinhardt.hbm.recipe.CrackingRecipe;
 import com.reinhardt.hbm.recipe.CrystallizerRecipe;
@@ -43,12 +44,17 @@ import com.reinhardt.hbm.recipe.RefineryRecipe;
 import com.reinhardt.hbm.recipe.ReformingRecipe;
 import com.reinhardt.hbm.recipe.HydrotreatingRecipe;
 import com.reinhardt.hbm.recipe.RbmkOutgasserRecipe;
+import com.reinhardt.hbm.recipe.RbmkFuelDisassemblyRecipe;
 import com.reinhardt.hbm.recipe.RotaryFurnaceRecipe;
+import com.reinhardt.hbm.recipe.RockMillRecipe;
 import com.reinhardt.hbm.recipe.ShredderRecipe;
 import com.reinhardt.hbm.recipe.SilexRecipe;
+import com.reinhardt.hbm.recipe.ScrapsSplitRecipe;
 import com.reinhardt.hbm.recipe.SolderingStationRecipe;
 import com.reinhardt.hbm.recipe.SolidificationRecipe;
 import com.reinhardt.hbm.recipe.StorageCrateUpgradeRecipe;
+import com.reinhardt.hbm.recipe.SupercomputerRecipe;
+import com.reinhardt.hbm.recipe.SpaceAssemblerRecipe;
 import com.reinhardt.hbm.recipe.VacuumDistillRecipe;
 import com.reinhardt.hbm.recipe.UniversalGrenadeRecipe;
 import com.reinhardt.hbm.recipe.ingredient.FoundryMaterialIngredient;
@@ -123,11 +129,23 @@ public final class HbmRecipeTypes {
     public static final DeferredHolder<RecipeType<?>, RecipeType<ArcWelderRecipe>> ARC_WELDER =
             RECIPE_TYPES.register("arc_welder", () -> RecipeType.simple(ReinhardtsHBM.id("arc_welder")));
 
+    public static final DeferredHolder<RecipeType<?>, RecipeType<RockMillRecipe>> ROCK_MILL =
+            RECIPE_TYPES.register("rock_mill", () -> RecipeType.simple(ReinhardtsHBM.id("rock_mill")));
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<SupercomputerRecipe>> SUPERCOMPUTER =
+            RECIPE_TYPES.register("supercomputer", () -> RecipeType.simple(ReinhardtsHBM.id("supercomputer")));
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<SpaceAssemblerRecipe>> SPACE_ASSEMBLER =
+            RECIPE_TYPES.register("space_assembler", () -> RecipeType.simple(ReinhardtsHBM.id("space_assembler")));
+
     public static final DeferredHolder<RecipeType<?>, RecipeType<ArcFurnaceRecipe>> ARC_FURNACE =
             RECIPE_TYPES.register("arc_furnace", () -> RecipeType.simple(ReinhardtsHBM.id("arc_furnace")));
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<CompressorRecipe>> COMPRESSOR =
             RECIPE_TYPES.register("compressor", () -> RecipeType.simple(ReinhardtsHBM.id("compressor")));
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<CustomMachineRecipe>> CUSTOM_MACHINE =
+            RECIPE_TYPES.register("custom_machine", () -> RecipeType.simple(ReinhardtsHBM.id("custom_machine")));
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<MixerRecipe>> MIXER =
             RECIPE_TYPES.register("mixer", () -> RecipeType.simple(ReinhardtsHBM.id("mixer")));
@@ -255,11 +273,23 @@ public final class HbmRecipeTypes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ArcWelderRecipe>> ARC_WELDER_SERIALIZER =
             RECIPE_SERIALIZERS.register("arc_welder", ArcWelderRecipe.Serializer::new);
 
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<RockMillRecipe>> ROCK_MILL_SERIALIZER =
+            RECIPE_SERIALIZERS.register("rock_mill", RockMillRecipe.Serializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SupercomputerRecipe>> SUPERCOMPUTER_SERIALIZER =
+            RECIPE_SERIALIZERS.register("supercomputer", SupercomputerRecipe.Serializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SpaceAssemblerRecipe>> SPACE_ASSEMBLER_SERIALIZER =
+            RECIPE_SERIALIZERS.register("space_assembler", SpaceAssemblerRecipe.Serializer::new);
+
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ArcFurnaceRecipe>> ARC_FURNACE_SERIALIZER =
             RECIPE_SERIALIZERS.register("arc_furnace", ArcFurnaceRecipe.Serializer::new);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CompressorRecipe>> COMPRESSOR_SERIALIZER =
             RECIPE_SERIALIZERS.register("compressor", CompressorRecipe.Serializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CustomMachineRecipe>> CUSTOM_MACHINE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("custom_machine", CustomMachineRecipe.Serializer::new);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MixerRecipe>> MIXER_SERIALIZER =
             RECIPE_SERIALIZERS.register("mixer", MixerRecipe.Serializer::new);
@@ -347,6 +377,11 @@ public final class HbmRecipeTypes {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<UniversalGrenadeRecipe>> UNIVERSAL_GRENADE_SERIALIZER =
             RECIPE_SERIALIZERS.register("universal_grenade", UniversalGrenadeRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<RbmkFuelDisassemblyRecipe>> RBMK_FUEL_DISASSEMBLY_SERIALIZER =
+            RECIPE_SERIALIZERS.register("rbmk_fuel_disassembly", RbmkFuelDisassemblyRecipe.Serializer::new);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ScrapsSplitRecipe>> SCRAPS_SPLIT_SERIALIZER =
+            RECIPE_SERIALIZERS.register("scraps_split", ScrapsSplitRecipe.Serializer::new);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<StorageCrateUpgradeRecipe>> CRATE_DESH_UPGRADE_SERIALIZER =
             RECIPE_SERIALIZERS.register("crate_desh_upgrade", StorageCrateUpgradeRecipe.DeshSerializer::new);

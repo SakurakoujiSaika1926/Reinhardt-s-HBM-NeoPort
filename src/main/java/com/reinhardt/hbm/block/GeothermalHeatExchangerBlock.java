@@ -4,6 +4,7 @@ import com.reinhardt.hbm.blockentity.GeothermalHeatExchangerBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -23,18 +24,43 @@ import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.Nullable;
 
 public final class GeothermalHeatExchangerBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = Footprint.box(-1, 1, 0, 11, -1, 1);
 
     public GeothermalHeatExchangerBlock(Properties properties) {
-        super(properties, FOOTPRINT, Shapes.block(), RotationBasis.MODERN_NORTH);
+        // No 1.7.10 geothermal block exists to establish an old basis. This private table only
+        // preserves the pre-migration MODERN_NORTH behavior; it is not claimed as legacy parity.
+        super(properties, FOOTPRINT, Shapes.block(), GeothermalHeatExchangerBlock::mapKnownGeothermalOffset);
     }
 
     @Override
     public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
-        if (!canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), net.minecraft.core.Direction.NORTH, FOOTPRINT, context)) {
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), Direction.NORTH, context)) {
             return null;
         }
         return defaultBlockState();
+    }
+
+    private static BlockPos mapKnownGeothermalOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Geothermal heat exchanger requires a horizontal facing: " + facing);
+        };
     }
 
     @Override

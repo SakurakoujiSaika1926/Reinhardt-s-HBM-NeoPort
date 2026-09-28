@@ -22,17 +22,37 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public final class HydrotreaterBlock extends LargeMachineBlock implements EntityBlock {
-    public static final Footprint FOOTPRINT = Footprint.legacySouthBox(6, 0, 1, 1, 1, 1);
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    public static final Footprint FOOTPRINT = Footprint.box(-1, 1, 0, 6, -1, 1);
 
     public HydrotreaterBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, HydrotreaterBlock::mapHydrotreaterOffset);
+    }
+
+    private static BlockPos mapHydrotreaterOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Hydrotreater requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        return LargeMachineBlock.canPlaceLegacyFootprint(context, facing, FOOTPRINT)
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)
                 ? this.defaultBlockState().setValue(FACING, facing)
                 : null;
     }

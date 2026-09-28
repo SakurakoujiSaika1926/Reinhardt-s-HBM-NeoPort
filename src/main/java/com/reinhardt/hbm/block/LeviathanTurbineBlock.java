@@ -25,20 +25,43 @@ import java.util.List;
 import java.util.Set;
 
 public class LeviathanTurbineBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = createFootprint();
 
     public LeviathanTurbineBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, shape, LeviathanTurbineBlock::mapLeviathanTurbineOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT)) {
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
             return null;
         }
         return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    private static BlockPos mapLeviathanTurbineOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Leviathan turbine requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable

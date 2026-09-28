@@ -71,7 +71,7 @@ public class DfcEmitterBlockEntity extends DfcInventoryBlockEntity implements Df
                 case 3 -> DfcEmitterBlockEntity.this.power = Integer.toUnsignedLong(value);
                 case 5 -> DfcEmitterBlockEntity.this.watts = value;
                 case 6 -> DfcEmitterBlockEntity.this.prev = Integer.toUnsignedLong(value);
-                case 7 -> DfcEmitterBlockEntity.this.beam = value;
+                case 7 -> DfcEmitterBlockEntity.this.setBeam(value, true);
                 case 8 -> DfcEmitterBlockEntity.this.on = value != 0;
                 case 9 -> DfcEmitterBlockEntity.this.lastInput = Integer.toUnsignedLong(value);
                 default -> {
@@ -92,6 +92,8 @@ public class DfcEmitterBlockEntity extends DfcInventoryBlockEntity implements Df
     public static void tick(Level level, BlockPos pos, BlockState state, DfcEmitterBlockEntity emitter) {
         if (!level.isClientSide) {
             emitter.tickServer(level);
+        } else {
+            emitter.refreshClientBeamSnapshotRevision();
         }
     }
 
@@ -180,7 +182,7 @@ public class DfcEmitterBlockEntity extends DfcInventoryBlockEntity implements Df
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -206,7 +208,7 @@ public class DfcEmitterBlockEntity extends DfcInventoryBlockEntity implements Df
         this.power = Math.max(0L, Math.min(MAX_POWER, tag.getLong("Power")));
         this.lastInput = Math.max(0L, tag.getLong("LastInput"));
         this.watts = clampWatts(tag.getInt("Watts"));
-        this.beam = tag.getInt("Beam");
+        setBeam(tag.getInt("Beam"), true);
         this.joules = Math.max(0L, tag.getLong("Joules"));
         this.prev = Math.max(0L, tag.getLong("Prev"));
         this.on = tag.getBoolean("On");
@@ -216,9 +218,11 @@ public class DfcEmitterBlockEntity extends DfcInventoryBlockEntity implements Df
         PowerNetworkManager.tickFromEndpoint(level, this);
         this.watts = clampWatts(this.watts);
         long demand = MAX_POWER * this.watts / 2000L;
+        int previousBeam = this.beam;
         this.beam = 0;
 
         if ((this.joules > 0L || this.prev > 0L) && !consumeCryogel(level)) {
+            finishBeamTick(level, previousBeam);
             return;
         }
 
@@ -238,7 +242,17 @@ public class DfcEmitterBlockEntity extends DfcInventoryBlockEntity implements Df
             this.prev = 0L;
         }
 
-        setChangedAndSync(level.getGameTime() % 10L == 0L || this.beam > 0);
+        finishBeamTick(level, previousBeam);
+    }
+
+    private void finishBeamTick(Level level, int previousBeam) {
+        publishBeamRenderSnapshot(this.beam, false);
+        setChangedAndSync(level.getGameTime() % 10L == 0L || this.beam > 0 || previousBeam != this.beam);
+    }
+
+    private void setBeam(int beam, boolean rebuildClientSection) {
+        this.beam = Math.max(0, beam);
+        publishBeamRenderSnapshot(this.beam, rebuildClientSection);
     }
 
     private void emitBeam(Level level, long energy) {

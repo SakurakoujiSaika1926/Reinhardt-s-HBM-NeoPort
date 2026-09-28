@@ -24,7 +24,7 @@
                         },
                         {
                             "ingredient":  {
-                                               "item":  "reinhardtshbm:circuit_analog"
+                                               "item":  "reinhardtshbm:circuit_basic"
                                            },
                             "count":  1
                         }

@@ -3,7 +3,6 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.DecoCrtBlockItem;
 import com.reinhardt.hbm.item.FilingCabinetBlockItem;
@@ -13,7 +12,6 @@ import com.reinhardt.hbm.block.DecoCrtBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
@@ -33,9 +31,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Renders complete OBJ machine items.  Legacy renderers with an explicit
- * 1.7.10 inventory pose are dispatched before the measured-bounds fallback;
- * those branches never receive a shared centering or offset.
+ * Renders complete OBJ machine items. Every item owns a literal pose; this
+ * class deliberately contains no shared bounds fitting or fallback pose.
  */
 public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final RandomSource BOUNDS_RANDOM = RandomSource.create();
@@ -54,9 +51,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             "deco_pipe_quad_green", "deco_pipe_quad_green_rusted", "deco_pipe_quad_red",
             "deco_pipe_quad_marked"
     );
-    private static final Map<String, Profile> PROFILES = createProfiles();
-    private static final Map<String, LegacyPose> LEGACY_POSES = createLegacyPoses();
-    private static final Map<String, Fit> FIT_CACHE = new LinkedHashMap<>();
+    private static final Map<String, ModelProfile> MODEL_PROFILES = createModelProfiles();
     private static final Set<String> DIAGNOSTICS = ConcurrentHashMap.newKeySet();
 
     public ObjMachineItemRenderer() {
@@ -64,14 +59,16 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     }
 
     public static Set<String> itemIds() {
-        return PROFILES.keySet();
+        return MODEL_PROFILES.keySet();
     }
 
     /** Inventory model keys are registry item keys, not CustomModelData variant names. */
     public static Set<String> inventoryModelIds() {
         java.util.LinkedHashSet<String> ids = new java.util.LinkedHashSet<>();
-        PROFILES.keySet().stream()
-                .filter(id -> !id.startsWith("battery_pack_")
+        MODEL_PROFILES.keySet().stream()
+                // The six capacitors are independent registry items. Only the
+                // remaining battery metadata profiles share battery_pack's model id.
+                .filter(id -> !id.startsWith("battery_pack_battery_")
                         && !id.startsWith("deco_crt_")
                         && !id.startsWith("filing_cabinet_")
                         && !id.startsWith("vending_machine_")
@@ -92,7 +89,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-        PROFILES.values().stream()
+        MODEL_PROFILES.values().stream()
                 .flatMap(profile -> profile.models().stream())
                 .distinct()
                 .forEach(event::register);
@@ -119,10 +116,22 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         if (id.equals("gear_large_steel")) {
             profileId = "gear_large";
         }
-        Profile profile = PROFILES.get(profileId);
+        ModelProfile profile = MODEL_PROFILES.get(profileId);
         if (LauncherBlockEntityRenderer.ITEM_IDS.contains(id)) {
             BlockState launcherState = ((BlockItem) stack.getItem()).getBlock().defaultBlockState();
-            LauncherBlockEntityRenderer.renderItem(id, launcherState, context, poseStack, bufferSource, packedLight, packedOverlay);
+            switch (id) {
+                case "launch_pad" -> LauncherBlockEntityRenderer.renderSmallLaunchPadItem(
+                        launcherState, context, poseStack, bufferSource, packedLight, packedOverlay);
+                case "launch_pad_rusted" -> LauncherBlockEntityRenderer.renderRustedLaunchPadItem(
+                        launcherState, context, poseStack, bufferSource, packedLight, packedOverlay);
+                case "compact_launcher" -> LauncherBlockEntityRenderer.renderCompactLauncherItem(
+                        launcherState, context, poseStack, bufferSource, packedLight, packedOverlay);
+                case "launch_pad_large" -> LauncherBlockEntityRenderer.renderLargeLaunchPadItem(
+                        launcherState, context, poseStack, bufferSource, packedLight, packedOverlay);
+                case "launch_table" -> LauncherBlockEntityRenderer.renderLaunchTableItem(
+                        launcherState, context, poseStack, bufferSource, packedLight, packedOverlay);
+                default -> throw new IllegalStateException("Unhandled launcher item: " + id);
+            }
             return;
         }
         if (profile == null) {
@@ -140,8 +149,36 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 .toList();
         logGeometryOnce(id, profileId, profile, models, state);
 
-        if (profileId.startsWith("deco_crt_")) {
-            renderCrtItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+        if (profileId.equals("machine_satlink")) {
+            SatelliteGroundStationBlockEntityRenderer.renderItem(
+                    context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("machine_tape_drive")) {
+            TapeDriveBlockEntityRenderer.renderItem(
+                    context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("machine_supercomputer")) {
+            SupercomputerBlockEntityRenderer.renderItem(
+                    context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+
+        if (profileId.equals("deco_crt_clean")) {
+            renderCleanCrtItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("deco_crt_broken")) {
+            renderBrokenCrtItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("deco_crt_blinking")) {
+            renderBlinkingCrtItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("deco_crt_bsod")) {
+            renderBsodCrtItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
         if (profileId.equals("deco_computer")) {
@@ -149,11 +186,11 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             return;
         }
         if (profileId.startsWith("deco_pipe")) {
-            renderDecorativePipeItem(models, state, poseStack, bufferSource, packedLight, packedOverlay);
+            dispatchDecorativePipeItem(profileId, models, state, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
         if (profileId.startsWith("battery_pack_")) {
-            renderBatteryPackItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            dispatchBatteryPackItem(profileId, models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
         if (profileId.equals("machine_battery_redd")) {
@@ -188,8 +225,20 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderBombMultiItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
-        if (profileId.startsWith("crashed_bomb_")) {
-            renderCrashedBombItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay, profileId);
+        if (profileId.equals("crashed_bomb_balefire")) {
+            renderBalefireCrashedBombItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("crashed_bomb_conventional")) {
+            renderConventionalCrashedBombItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("crashed_bomb_nuke")) {
+            renderNuclearCrashedBombItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("crashed_bomb_salted")) {
+            renderSaltedCrashedBombItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
         if (profileId.equals("machine_chungus")) {
@@ -229,7 +278,11 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             return;
         }
         if (profileId.equals("gear_large")) {
-            renderLargeGearItem(stack, models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            if (id.equals("gear_large_steel")) {
+                renderSteelLargeGearItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            } else {
+                renderLargeGearItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            }
             return;
         }
 
@@ -242,8 +295,12 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             renderFusionTorusItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
-        if (profileId.equals("fusion_klystron") || profileId.equals("fusion_klystron_creative")) {
+        if (profileId.equals("fusion_klystron")) {
             renderFusionKlystronItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("fusion_klystron_creative")) {
+            renderCreativeFusionKlystronItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
         if (profileId.equals("fusion_breeder")) {
@@ -271,51 +328,145 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             return;
         }
 
-        if (profileId.equals("dfc_emitter") || profileId.equals("dfc_receiver")
-                || profileId.equals("dfc_injector") || profileId.equals("dfc_stabilizer")) {
-            renderDfcComponentItem(models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+        if (profileId.equals("dfc_emitter")) {
+            renderDfcEmitterItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("dfc_receiver")) {
+            renderDfcReceiverItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("dfc_injector")) {
+            renderDfcInjectorItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
+            return;
+        }
+        if (profileId.equals("dfc_stabilizer")) {
+            renderDfcStabilizerItem(models.getFirst(), state, context, poseStack, bufferSource, packedLight, packedOverlay);
             return;
         }
 
-        LegacyPose legacyPose = LEGACY_POSES.get(profileId);
-        if (legacyPose != null) {
-            renderLegacyPose(profileId, models, state, context, poseStack, bufferSource, packedLight, packedOverlay, legacyPose);
-            return;
+        DedicatedItemRender itemRender = new DedicatedItemRender(
+                models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+        switch (profileId) {
+            case "nuke_boy" -> renderNukeBoyItem(itemRender);
+            case "nuke_gadget" -> renderNukeGadgetItem(itemRender);
+            case "nuke_man" -> renderNukeManItem(itemRender);
+            case "nuke_mike" -> renderNukeMikeItem(itemRender);
+            case "nuke_tsar" -> renderNukeTsarItem(itemRender);
+            case "nuke_fleija" -> renderNukeFleijaItem(itemRender);
+            case "nuke_prototype" -> renderNukePrototypeItem(itemRender);
+            case "nuke_solinium" -> renderNukeSoliniumItem(itemRender);
+            case "nuke_n2" -> renderNukeN2Item(itemRender);
+            case "nuke_custom" -> renderNukeCustomItem(itemRender);
+            case "nuke_fstbmb" -> renderNukeFstbmbItem(itemRender);
+            case "machine_arc_furnace" -> renderArcFurnaceItem(itemRender);
+            case "icf" -> renderIcfItem(itemRender);
+            case "machine_compressor" -> renderCompressorItem(itemRender);
+            case "machine_compressor_compact" -> renderCompactCompressorItem(itemRender);
+            case "machine_mixer" -> renderMixerItem(itemRender);
+            case "machine_electrolyser" -> renderElectrolyserItem(itemRender);
+            case "machine_arc_welder" -> renderArcWelderItem(itemRender);
+            case "machine_zirnox" -> renderZirnoxItem(itemRender);
+            case "machine_soldering_station" -> renderSolderingStationItem(itemRender);
+            case "machine_assembly_machine" -> renderAssemblyMachineItem(itemRender);
+            case "machine_tacz_ammo_assembler" -> renderTaczAmmoAssemblerItem(itemRender);
+            case "machine_ashpit" -> renderAshpitItem(itemRender);
+            case "heater_firebox" -> renderFireboxItem(itemRender);
+            case "heater_oven" -> renderHeatingOvenItem(itemRender);
+            case "heater_oilburner" -> renderOilburnerItem(itemRender);
+            case "heater_electric" -> renderElectricHeaterItem(itemRender);
+            case "heater_heatex" -> renderHeatExchangerItem(itemRender);
+            case "machine_cyclotron" -> renderCyclotronItem(itemRender);
+            case "machine_exposure_chamber" -> renderExposureChamberItem(itemRender);
+            case "pa_source" -> renderParticleSourceItem(itemRender);
+            case "pa_beamline" -> renderParticleBeamlineItem(itemRender);
+            case "pa_rfc" -> renderParticleRfcItem(itemRender);
+            case "pa_quadrupole" -> renderParticleQuadrupoleItem(itemRender);
+            case "pa_dipole" -> renderParticleDipoleItem(itemRender);
+            case "pa_detector" -> renderParticleDetectorItem(itemRender);
+            case "machine_battery_socket" -> renderBatterySocketItem(itemRender);
+            case "machine_excavator" -> renderExcavatorItem(itemRender);
+            case "machine_ore_slopper" -> renderOreSlopperItem(itemRender);
+            case "pile_loader" -> renderPileLoaderItem(itemRender);
+            case "pile_vent" -> renderPileVentItem(itemRender);
+            case "pile_control" -> renderPileControlItem(itemRender);
+            case "machine_rockmill" -> renderRockMillItem(itemRender);
+            case "machine_silex" -> renderSilexItem(itemRender);
+            case "machine_fel" -> renderFelItem(itemRender);
+            case "machine_crystallizer" -> renderCrystallizerItem(itemRender);
+            case "machine_rotary_furnace" -> renderRotaryFurnaceItem(itemRender);
+            case "machine_well" -> renderOilDerrickItem(itemRender);
+            case "machine_fracking_tower" -> renderFrackingTowerItem(itemRender);
+            case "machine_flare" -> renderFlareItem(itemRender);
+            case "machine_refinery" -> renderRefineryItem(itemRender);
+            case "machine_vacuum_distill" -> renderVacuumDistillItem(itemRender);
+            case "machine_coker" -> renderCokerItem(itemRender);
+            case "machine_fraction_tower" -> renderFractionTowerItem(itemRender);
+            case "fraction_spacer" -> renderFractionSpacerItem(itemRender);
+            case "machine_catalytic_cracker" -> renderCatalyticCrackerItem(itemRender);
+            case "machine_catalytic_reformer" -> renderCatalyticReformerItem(itemRender);
+            case "machine_liquefactor" -> renderLiquefactorItem(itemRender);
+            case "machine_solidifier" -> renderSolidifierItem(itemRender);
+            case "machine_hydrotreater" -> renderHydrotreaterItem(itemRender);
+            case "machine_crucible" -> renderCrucibleItem(itemRender);
+            case "furnace_combination" -> renderCombinationFurnaceItem(itemRender);
+            case "machine_strand_caster" -> renderStrandCasterItem(itemRender);
+            case "pipe_anchor" -> renderPipeAnchorItem(itemRender);
+            case "piston_inserter" -> renderPistonInserterItem(itemRender);
+            default -> dispatchFixedGeometryItem(profileId, itemRender);
         }
-        BlockState measuredState = state;
-        Fit fit = FIT_CACHE.computeIfAbsent(profileId, ignored -> Fit.measure(models, measuredState));
+    }
 
+    /** Exact RenderCRT#renderInventoryBlock transform owned by the clean CRT. */
+    private static void renderCleanCrtItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                           PoseStack poseStack,
+                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.5F, 0.5F);
-        if (profile.pitch() != 0.0F) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(profile.pitch()));
-        }
-        if (profile.yaw() != 0.0F) {
-            poseStack.mulPose(Axis.YP.rotationDegrees(profile.yaw()));
-        }
-        float target = context == ItemDisplayContext.GUI ? profile.guiTarget() : profile.otherTarget();
-        float scale = target / fit.longestSide();
-        poseStack.scale(scale, scale, scale);
-        poseStack.translate(-fit.centerX(), -fit.centerY(), -fit.centerZ());
-        poseStack.translate(profile.offsetX(), profile.offsetY(), profile.offsetZ());
+        applyCleanCrtItemDisplayPose(context, poseStack);
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
     }
 
-    /** Exact RenderCRT#renderInventoryBlock transform from 1.7.10. */
-    private static void renderCrtItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
-                                      PoseStack poseStack,
-                                      MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    /** Exact RenderCRT#renderInventoryBlock transform owned by the broken CRT. */
+    private static void renderBrokenCrtItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                            PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        applyLegacyBlockItemDisplayPose(context, poseStack);
+        applyBrokenCrtItemDisplayPose(context, poseStack);
         poseStack.translate(0.0F, -0.5F, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
-        // The legacy renderer submitted the Monitor and Screen groups from the
-        // same OBJ in one inventory pass.  The modern model keeps those groups
-        // as two explicit baked models so neither group can disappear when the
-        // OBJ visibility filter is applied.
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact RenderCRT#renderInventoryBlock transform owned by the blinking CRT. */
+    private static void renderBlinkingCrtItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyBlinkingCrtItemDisplayPose(context, poseStack);
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        for (BakedModel model : models) {
+            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        }
+        poseStack.popPose();
+    }
+
+    /** Exact RenderCRT#renderInventoryBlock transform owned by the BSOD CRT. */
+    private static void renderBsodCrtItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                          PoseStack poseStack,
+                                          MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyBsodCrtItemDisplayPose(context, poseStack);
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
         for (BakedModel model : models) {
             MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
@@ -327,7 +478,7 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                PoseStack poseStack,
                                                MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        applyLegacyBlockItemDisplayPose(context, poseStack);
+        applyDecoComputerItemDisplayPose(context, poseStack);
         // IBM 300PL was translated by +0.1 on Y and scaled by 1.2 in the
         // legacy inventory renderer.  This is deliberately per-item, not a
         // measured-bounds fit or a shared offset.
@@ -337,20 +488,14 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
-    /**
-     * Recreates the ordinary block-item display pose for the decorative OBJ
-     * renderers which bypass the baked-model camera transform.  ItemRenderer
-     * has already translated the pose by (-0.5, -0.5, -0.5) before entering
-     * BEWLR, so the first translation restores the origin expected by the
-     * legacy OBJ coordinates.  This is a display transform only; it does not
-     * center, fit, or otherwise offset shared geometry.
-     */
-    static void applyLegacyBlockItemDisplayPose(ItemDisplayContext context, PoseStack poseStack) {
+    private static void applyCleanCrtItemDisplayPose(ItemDisplayContext context, PoseStack poseStack) {
         poseStack.translate(0.5F, 0.5F, 0.5F);
         switch (context) {
             case GUI -> {
                 poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                // crt.obj's Screen group faces +X; the local -90 degree CRT
+                // turn therefore requires the +45 degree GUI basis.
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
                 poseStack.scale(0.625F, 0.625F, 0.625F);
             }
             case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> {
@@ -360,7 +505,8 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                 poseStack.scale(0.375F, 0.375F, 0.375F);
             }
             case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> {
-                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                // The CRT's local -90 degree turn maps its authored +X screen
+                // normal directly to +Z, facing the first-person camera.
                 poseStack.scale(0.4F, 0.4F, 0.4F);
             }
             case GROUND -> {
@@ -381,33 +527,619 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         }
     }
 
-    /** Exact RenderPipe#renderInventoryBlock path for all 24 decorative pipes. */
-    private static void renderDecorativePipeItem(List<BakedModel> models, BlockState state, PoseStack poseStack,
-                                                 MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        poseStack.pushPose();
-        // RenderPipe submitted its OBJ Top/Side (and Frame/Mesh) parts at the
-        // authored origin with no inventory translation, scale, or common
-        // machine pose.  Keep that identity transform for every pipe variant.
-        for (BakedModel model : models) {
-            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+    /** Mathless dispatch; every decorative-pipe kind owns its identity item pose. */
+    private static void dispatchDecorativePipeItem(String profileId, List<BakedModel> models,
+                                                   BlockState state, PoseStack poseStack,
+                                                   MultiBufferSource bufferSource, int packedLight,
+                                                   int packedOverlay) {
+        DedicatedItemRender item = new DedicatedItemRender(models, state, ItemDisplayContext.NONE, poseStack,
+                bufferSource, packedLight, packedOverlay);
+        switch (profileId) {
+            case "deco_pipe" -> renderPlainDecorativePipeItem(item);
+            case "deco_pipe_rusted" -> renderRustedDecorativePipeItem(item);
+            case "deco_pipe_green" -> renderGreenDecorativePipeItem(item);
+            case "deco_pipe_green_rusted" -> renderRustedGreenDecorativePipeItem(item);
+            case "deco_pipe_red" -> renderRedDecorativePipeItem(item);
+            case "deco_pipe_marked" -> renderMarkedDecorativePipeItem(item);
+            case "deco_pipe_rim" -> renderRimDecorativePipeItem(item);
+            case "deco_pipe_rim_rusted" -> renderRustedRimDecorativePipeItem(item);
+            case "deco_pipe_rim_green" -> renderGreenRimDecorativePipeItem(item);
+            case "deco_pipe_rim_green_rusted" -> renderRustedGreenRimDecorativePipeItem(item);
+            case "deco_pipe_rim_red" -> renderRedRimDecorativePipeItem(item);
+            case "deco_pipe_rim_marked" -> renderMarkedRimDecorativePipeItem(item);
+            case "deco_pipe_framed" -> renderFramedDecorativePipeItem(item);
+            case "deco_pipe_framed_rusted" -> renderRustedFramedDecorativePipeItem(item);
+            case "deco_pipe_framed_green" -> renderGreenFramedDecorativePipeItem(item);
+            case "deco_pipe_framed_green_rusted" -> renderRustedGreenFramedDecorativePipeItem(item);
+            case "deco_pipe_framed_red" -> renderRedFramedDecorativePipeItem(item);
+            case "deco_pipe_framed_marked" -> renderMarkedFramedDecorativePipeItem(item);
+            case "deco_pipe_quad" -> renderQuadDecorativePipeItem(item);
+            case "deco_pipe_quad_rusted" -> renderRustedQuadDecorativePipeItem(item);
+            case "deco_pipe_quad_green" -> renderGreenQuadDecorativePipeItem(item);
+            case "deco_pipe_quad_green_rusted" -> renderRustedGreenQuadDecorativePipeItem(item);
+            case "deco_pipe_quad_red" -> renderRedQuadDecorativePipeItem(item);
+            case "deco_pipe_quad_marked" -> renderMarkedQuadDecorativePipeItem(item);
+            default -> throw new IllegalStateException("Unhandled decorative pipe item: " + profileId);
         }
-        poseStack.popPose();
     }
 
-    /** Exact 1.7.10 ItemRenderBatteryPack inventory transform. */
-    private static void renderBatteryPackItem(List<BakedModel> models, BlockState state,
-                                               ItemDisplayContext context, PoseStack poseStack,
-                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
-        if (context == ItemDisplayContext.GUI) {
-            poseStack.translate(0.0F, -3.0F, 0.0F);
-            poseStack.scale(5.0F, 5.0F, 5.0F);
+    private static void applyBrokenCrtItemDisplayPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                // Broken CRT uses the same authored +X screen face.
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> {
+                // The variant shares crt.obj's +X screen normal.
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            default -> {
+            }
         }
-        for (BakedModel model : models) {
-            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+    }
+
+    private static void applyBlinkingCrtItemDisplayPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                // Blinking CRT uses the same authored +X screen face.
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> {
+                // The variant shares crt.obj's +X screen normal.
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            default -> {
+            }
         }
-        poseStack.popPose();
+    }
+
+    private static void applyBsodCrtItemDisplayPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                // BSOD CRT uses the same authored +X screen face.
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> {
+                // The variant shares crt.obj's +X screen normal.
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            default -> {
+            }
+        }
+    }
+
+    private static void applyDecoComputerItemDisplayPose(ItemDisplayContext context, PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                // puter.obj's monitor face is authored on +Z. The ordinary
+                // 225 degree block-item basis shows its rear, while 45 keeps
+                // that monitor face toward the GUI camera.
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> {
+                // puter.obj's monitor face is authored on +Z already, so no
+                // first-person Y turn is required to face the player.
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.5F, 0.5F, 0.5F);
+            }
+            case HEAD -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.scale(0.625F, 0.625F, 0.625F);
+            }
+            default -> {
+            }
+        }
+    }
+
+    private static void renderPlainDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderGreenDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedGreenDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderMarkedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRimDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedRimDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderGreenRimDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedGreenRimDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRedRimDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderMarkedRimDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderFramedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedFramedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderGreenFramedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedGreenFramedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRedFramedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderMarkedFramedDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderQuadDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedQuadDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderGreenQuadDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRustedGreenQuadDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderRedQuadDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderMarkedQuadDecorativePipeItem(DedicatedItemRender item) {
+        item.poseStack().pushPose();
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    /** Mathless dispatch; every battery/capacitor variant owns its item pose. */
+    private static void dispatchBatteryPackItem(String profileId, List<BakedModel> models, BlockState state,
+                                                ItemDisplayContext context, PoseStack poseStack,
+                                                MultiBufferSource bufferSource, int packedLight,
+                                                int packedOverlay) {
+        DedicatedItemRender item = new DedicatedItemRender(
+                models, state, context, poseStack, bufferSource, packedLight, packedOverlay);
+        switch (profileId) {
+            case "battery_pack_battery_redstone" -> renderRedstoneBatteryPackItem(item);
+            case "battery_pack_battery_lead" -> renderLeadBatteryPackItem(item);
+            case "battery_pack_battery_lithium" -> renderLithiumBatteryPackItem(item);
+            case "battery_pack_battery_sodium" -> renderSodiumBatteryPackItem(item);
+            case "battery_pack_battery_schrabidium" -> renderSchrabidiumBatteryPackItem(item);
+            case "battery_pack_battery_quantum" -> renderQuantumBatteryPackItem(item);
+            case "battery_pack_capacitor_copper" -> renderCopperCapacitorPackItem(item);
+            case "battery_pack_capacitor_gold" -> renderGoldCapacitorPackItem(item);
+            case "battery_pack_capacitor_niobium" -> renderNiobiumCapacitorPackItem(item);
+            case "battery_pack_capacitor_tantalum" -> renderTantalumCapacitorPackItem(item);
+            case "battery_pack_capacitor_bismuth" -> renderBismuthCapacitorPackItem(item);
+            case "battery_pack_capacitor_spark" -> renderSparkCapacitorPackItem(item);
+            default -> throw new IllegalStateException("Unhandled battery-pack item: " + profileId);
+        }
+    }
+
+    private static void renderRedstoneBatteryPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderLeadBatteryPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderLithiumBatteryPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderSodiumBatteryPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderSchrabidiumBatteryPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderQuantumBatteryPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderCopperCapacitorPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderGoldCapacitorPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderNiobiumCapacitorPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderTantalumCapacitorPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderBismuthCapacitorPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderSparkCapacitorPackItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
     }
 
     /** Exact 1.7.10 RenderBatteryREDD item renderer transform and assembly. */
@@ -415,7 +1147,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                               ItemDisplayContext context, PoseStack poseStack,
                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -3.0F, 0.0F);
             poseStack.scale(2.5F, 2.5F, 2.5F);
@@ -442,7 +1185,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                   ItemDisplayContext context, PoseStack poseStack,
                                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -4.0F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -458,7 +1212,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                        ItemDisplayContext context, PoseStack poseStack,
                                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.0F, 0.0F);
             poseStack.scale(2.0F, 2.0F, 2.0F);
@@ -474,7 +1239,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                            ItemDisplayContext context, PoseStack poseStack,
                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.5F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -488,7 +1264,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     private static void renderFanItem(List<BakedModel> models, ItemDisplayContext context, PoseStack poseStack,
                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.5F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -504,7 +1291,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     private static void renderFloodlightItem(List<BakedModel> models, ItemDisplayContext context, PoseStack poseStack,
                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.5F, 0.0F);
             poseStack.scale(6.5F, 6.5F, 6.5F);
@@ -524,7 +1322,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     private static void renderCargoElevatorItem(List<BakedModel> models, ItemDisplayContext context, PoseStack poseStack,
                                                 MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.75F, 0.0F);
             poseStack.scale(3.25F, 3.25F, 3.25F);
@@ -551,7 +1360,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                             PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                             int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.0F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -567,68 +1387,2013 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
-    /** Direct ItemRenderBase transform from RenderCrashedBomb, including each dud's authored offset. */
-    private static void renderCrashedBombItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
-                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
-                                              int packedOverlay, String profileId) {
+    /** Direct RenderCrashedBomb pose owned by the balefire dud. */
+    private static void renderBalefireCrashedBombItem(List<BakedModel> models, BlockState state,
+                                                      ItemDisplayContext context, PoseStack poseStack,
+                                                      MultiBufferSource bufferSource, int packedLight,
+                                                      int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, 3.0F, 0.0F);
             poseStack.scale(2.125F, 2.125F, 2.125F);
         }
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-        float offset = switch (profileId) {
-            case "crashed_bomb_conventional" -> -0.5F;
-            case "crashed_bomb_nuke" -> 1.25F;
-            case "crashed_bomb_salted" -> 0.5F;
-            default -> 0.0F;
-        };
-        poseStack.translate(0.0F, 0.0F, offset);
         MachineModelRenderer.renderUnculled(models.getFirst(), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    /**
-     * Direct translation of the individual 1.7.10 ItemRenderBase transforms.
-     * These machines deliberately do not use the generic bounds fit: their OBJ
-     * files use different authoring origins and the legacy item renderers gave
-     * each one a distinct inventory pose.
-     */
-    private static void renderLegacyPose(String profileId, List<BakedModel> models, BlockState state, ItemDisplayContext context,
-                                         PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
-                                         int packedOverlay, LegacyPose legacyPose) {
+    /** Direct RenderCrashedBomb pose owned by the conventional dud. */
+    private static void renderConventionalCrashedBombItem(List<BakedModel> models, BlockState state,
+                                                          ItemDisplayContext context, PoseStack poseStack,
+                                                          MultiBufferSource bufferSource, int packedLight,
+                                                          int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
         if (context == ItemDisplayContext.GUI) {
-            poseStack.translate(legacyPose.inventoryX(), legacyPose.inventoryY(), legacyPose.inventoryZ());
-            poseStack.scale(legacyPose.inventoryScale(), legacyPose.inventoryScale(), legacyPose.inventoryScale());
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
         }
-        if (legacyPose.rotateBeforeCommonTranslation() && legacyPose.commonYaw() != 0.0F) {
-            poseStack.mulPose(Axis.YP.rotationDegrees(legacyPose.commonYaw()));
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, 3.0F, 0.0F);
+            poseStack.scale(2.125F, 2.125F, 2.125F);
         }
-        poseStack.translate(legacyPose.commonX(), legacyPose.commonY(), legacyPose.commonZ());
-        if (!legacyPose.rotateBeforeCommonTranslation() && legacyPose.commonYaw() != 0.0F) {
-            poseStack.mulPose(Axis.YP.rotationDegrees(legacyPose.commonYaw()));
-        }
-        if (legacyPose.commonScale() != 1.0F) {
-            poseStack.scale(legacyPose.commonScale(), legacyPose.commonScale(), legacyPose.commonScale());
-        }
-        // The converted ashpit OBJ retains a half-block export origin shift;
-        // the 1.7.10 item renderer used the original heating_oven origin.
-        if ("machine_ashpit".equals(profileId)) {
-            poseStack.translate(-0.5F, 0.0F, -0.5F);
-        }
-        int modelCount = models.size();
-        if ("nuke_gadget".equals(profileId)
-                && Minecraft.getInstance().options.graphicsMode().get().getId() == 0) {
-            modelCount = 1;
-        }
-        for (int index = 0; index < modelCount; index++) {
-            BakedModel model = models.get(index);
-            MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
-        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.translate(0.0F, 0.0F, -0.5F);
+        MachineModelRenderer.renderUnculled(models.getFirst(), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    /** Direct RenderCrashedBomb pose owned by the nuclear dud. */
+    private static void renderNuclearCrashedBombItem(List<BakedModel> models, BlockState state,
+                                                     ItemDisplayContext context, PoseStack poseStack,
+                                                     MultiBufferSource bufferSource, int packedLight,
+                                                     int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, 3.0F, 0.0F);
+            poseStack.scale(2.125F, 2.125F, 2.125F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.translate(0.0F, 0.0F, 1.25F);
+        MachineModelRenderer.renderUnculled(models.getFirst(), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Direct RenderCrashedBomb pose owned by the salted dud. */
+    private static void renderSaltedCrashedBombItem(List<BakedModel> models, BlockState state,
+                                                    ItemDisplayContext context, PoseStack poseStack,
+                                                    MultiBufferSource bufferSource, int packedLight,
+                                                    int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, 3.0F, 0.0F);
+            poseStack.scale(2.125F, 2.125F, 2.125F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.translate(0.0F, 0.0F, 0.5F);
+        MachineModelRenderer.renderUnculled(models.getFirst(), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Every method below owns one machine's complete legacy item pose. */
+    private static void renderNukeBoyItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        pose.translate(-1.0F, 0.0F, 0.0F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeGadgetItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        int modelCount = Minecraft.getInstance().options.graphicsMode().get().getId() == 0
+                ? 1 : item.models().size();
+        renderModels(item, modelCount);
+        pose.popPose();
+    }
+
+    private static void renderNukeManItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(180.0F));
+        pose.translate(-0.75F, 0.0F, 0.0F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeMikeItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -5.0F, 0.0F);
+            pose.scale(2.25F, 2.25F, 2.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeTsarItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(2.25F, 2.25F, 2.25F);
+        }
+        pose.translate(1.5F, 0.0F, 0.0F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeFleijaItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(6.8F, 6.8F, 6.8F);
+        }
+        pose.translate(0.125F, 0.0F, 0.0F);
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukePrototypeItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, 0.125F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.translate(0.0F, 0.125F, 0.0F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeSoliniumItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -0.125F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.translate(0.0F, -0.125F, 0.0F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeN2Item(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -5.0F, 0.0F);
+            pose.scale(2.25F, 2.25F, 2.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeCustomItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        pose.translate(-1.0F, 0.0F, 0.0F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderNukeFstbmbItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(2.25F, 2.25F, 2.25F);
+        }
+        pose.translate(1.0F, 0.0F, 0.0F);
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        endDedicatedItem(item);
+    }
+
+    private static void renderArcFurnaceItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(3.5F, 3.5F, 3.5F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderIcfItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.5F, 0.0F);
+            pose.scale(2.125F, 2.125F, 2.125F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderCompressorItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.0F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderCompactCompressorItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(-1.0F, -1.0F, 0.0F);
+            pose.scale(2.75F, 2.75F, 2.75F);
+        }
+        pose.translate(0.5F, 0.0F, 0.0F);
+        pose.scale(0.75F, 0.75F, 0.75F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderMixerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -5.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(180.0F));
+        endDedicatedItem(item);
+    }
+
+    private static void renderElectrolyserItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(-1.0F, -1.0F, 0.0F);
+            pose.scale(2.5F, 2.5F, 2.5F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderArcWelderItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.0F, 0.0F);
+            pose.scale(4.0F, 4.0F, 4.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderZirnoxItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.0F, 0.0F);
+            pose.scale(2.8F, 2.8F, 2.8F);
+        }
+        pose.scale(0.75F, 0.75F, 0.75F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderSolderingStationItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderAssemblyMachineItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.75F, 0.0F);
+            pose.scale(4.5F, 4.5F, 4.5F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.75F, 0.75F, 0.75F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderTaczAmmoAssemblerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.75F, 0.0F);
+            pose.scale(4.5F, 4.5F, 4.5F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.75F, 0.75F, 0.75F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderAshpitItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        pose.translate(-0.5F, 0.0F, -0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderFireboxItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        pose.translate(-0.5F, 0.0F, -0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderHeatingOvenItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        pose.translate(-0.5F, 0.0F, -0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderOilburnerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.5F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        pose.translate(-0.5F, 0.0F, -0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderElectricHeaterItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.translate(-1.0F, 0.0F, -0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderHeatExchangerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        pose.translate(-0.5F, 0.0F, -0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderCyclotronItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(2.25F, 2.25F, 2.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderExposureChamberItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.5F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.translate(1.5F, 0.0F, 0.0F);
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderParticleSourceItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(4.0F, 4.0F, 4.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderParticleBeamlineItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(4.0F, 4.0F, 4.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        endDedicatedItem(item);
+    }
+
+    private static void renderParticleRfcItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(4.0F, 4.0F, 4.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderParticleQuadrupoleItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.5F, 0.0F);
+            pose.scale(4.0F, 4.0F, 4.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        endDedicatedItem(item);
+    }
+
+    private static void renderParticleDipoleItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(3.5F, 3.5F, 3.5F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderParticleDetectorItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderBatterySocketItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.0F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderExcavatorItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.0F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderOreSlopperItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(3.75F, 3.75F, 3.75F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    /** Exact RenderPileLoader item transform, adapted to modern item contexts. */
+    private static void renderPileLoaderItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+            pose.translate(0.0F, -3.5F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        pose.scale(2.0F, 2.0F, 2.0F);
+        endDedicatedItem(item);
+    }
+
+    /** Exact RenderPileLoader item transform for the vent metadata, flattened to its own item. */
+    private static void renderPileVentItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+            pose.translate(0.0F, -3.5F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        pose.scale(2.0F, 2.0F, 2.0F);
+        endDedicatedItem(item);
+    }
+
+    /** Exact RenderPileLoader item transform for the control metadata, flattened to its own item. */
+    private static void renderPileControlItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+            pose.translate(0.0F, -3.5F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        pose.scale(2.0F, 2.0F, 2.0F);
+        endDedicatedItem(item);
+    }
+
+    /** Exact legacy rock-mill item transform, adapted to modern item contexts. */
+    private static void renderRockMillItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+            pose.translate(0.0F, -1.5F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        pose.scale(0.75F, 0.75F, 0.75F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderSilexItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.5F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderFelItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.0F, 0.0F);
+            pose.scale(2.0F, 2.0F, 2.0F);
+        }
+        pose.translate(1.0F, 0.0F, 0.0F);
+        pose.mulPose(Axis.YP.rotationDegrees(-90.0F));
+        endDedicatedItem(item);
+    }
+
+    private static void renderCrystallizerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.0F, 0.0F);
+            pose.scale(2.0F, 2.0F, 2.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderRotaryFurnaceItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.0F, 0.0F);
+            pose.scale(3.5F, 3.5F, 3.5F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.625F, 0.625F, 0.625F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderOilDerrickItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.0F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderFrackingTowerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.5F, 0.0F);
+            pose.scale(2.5F, 2.5F, 2.5F);
+        }
+        pose.scale(0.25F, 0.25F, 0.25F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderFlareItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.0F, 0.0F);
+            pose.scale(2.25F, 2.25F, 2.25F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderRefineryItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.0F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.mulPose(Axis.YP.rotationDegrees(180.0F));
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderVacuumDistillItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.0F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderCokerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -5.0F, 0.0F);
+            pose.scale(2.75F, 2.75F, 2.75F);
+        }
+        pose.scale(0.25F, 0.25F, 0.25F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderFractionTowerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.5F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderFractionSpacerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderCatalyticCrackerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.5F, 0.0F);
+            pose.scale(1.8F, 1.8F, 1.8F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderCatalyticReformerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.0F, 0.0F);
+            pose.scale(3.5F, 3.5F, 3.5F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderLiquefactorItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.5F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderSolidifierItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.5F, 0.0F);
+            pose.scale(3.0F, 3.0F, 3.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderHydrotreaterItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -4.0F, 0.0F);
+            pose.scale(4.0F, 4.0F, 4.0F);
+        }
+        pose.scale(0.5F, 0.5F, 0.5F);
+        endDedicatedItem(item);
+    }
+
+    private static void renderCrucibleItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.5F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderCombinationFurnaceItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -1.5F, 0.0F);
+            pose.scale(3.25F, 3.25F, 3.25F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderStrandCasterItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(2.0F, 0.0F, 2.0F);
+            pose.scale(2.0F, 2.0F, 2.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderPipeAnchorItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -3.5F, 0.0F);
+            pose.scale(10.0F, 10.0F, 10.0F);
+        }
+        endDedicatedItem(item);
+    }
+
+    private static void renderPistonInserterItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+            pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+            pose.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            pose.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            pose.translate(0.5F, 0.25F, 0.0F);
+            pose.scale(0.25F, 0.25F, 0.25F);
+            if (item.context() != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (item.context() == ItemDisplayContext.GUI) {
+            pose.translate(0.0F, -2.5F, 0.0F);
+            pose.scale(5.0F, 5.0F, 5.0F);
+        }
+        pose.scale(2.0F, 2.0F, 2.0F);
+        endDedicatedItem(item);
+    }
+
+    private static void endDedicatedItem(DedicatedItemRender item) {
+        renderModels(item, item.models().size());
+        item.poseStack().popPose();
+    }
+
+    private static void renderModels(DedicatedItemRender item, int modelCount) {
+        for (int index = 0; index < modelCount; index++) {
+            MachineModelRenderer.renderUnculled(item.models().get(index), item.poseStack(), item.bufferSource(),
+                    item.state(), item.packedLight(), item.packedOverlay());
+        }
+    }
+
+    /** Mathless dispatch only; every fixed-geometry item owns its pose below. */
+    private static void dispatchFixedGeometryItem(String profileId, DedicatedItemRender item) {
+        switch (profileId) {
+            case "transition_seal" -> renderTransitionSealItem(item);
+            case "boltgun" -> renderBoltgunItem(item);
+            case "machine_ammo_press" -> renderAmmoPressItem(item);
+            case "machine_radar" -> renderRadarItem(item);
+            case "machine_radar_large" -> renderLargeRadarItem(item);
+            case "machine_radgen" -> renderRadgenItem(item);
+            case "machine_blast_furnace" -> renderBlastFurnaceItem(item);
+            case "tesla" -> renderTeslaItem(item);
+            case "spotlight_incandescent" -> renderIncandescentSpotlightItem(item);
+            case "spotlight_incandescent_off" -> renderUnlitIncandescentSpotlightItem(item);
+            case "spotlight_fluoro" -> renderFluorescentSpotlightItem(item);
+            case "spotlight_fluoro_off" -> renderUnlitFluorescentSpotlightItem(item);
+            case "spotlight_halogen" -> renderHalogenSpotlightItem(item);
+            case "spotlight_halogen_off" -> renderUnlitHalogenSpotlightItem(item);
+            case "sat_dock" -> renderSatelliteDockItem(item);
+            case "vending_machine_soda" -> renderSodaVendingMachineItem(item);
+            case "vending_machine_snacks" -> renderSnackVendingMachineItem(item);
+            case "tape_recorder" -> renderTapeRecorderItem(item);
+            case "skeleton_holder" -> renderSkeletonHolderItem(item);
+            case "chimney_brick" -> renderBrickChimneyItem(item);
+            case "chimney_industrial" -> renderIndustrialChimneyItem(item);
+            case "machine_boiler" -> renderBoilerItem(item);
+            case "machine_industrial_boiler" -> renderIndustrialBoilerItem(item);
+            case "machine_condenser_powered" -> renderPoweredCondenserItem(item);
+            case "machine_tower_small" -> renderSmallCoolingTowerItem(item);
+            case "machine_tower_large" -> renderLargeCoolingTowerItem(item);
+            case "barrel_corroded" -> renderCorrodedBarrelItem(item);
+            case "barrel_antimatter" -> renderAntimatterBarrelItem(item);
+            case "boat" -> renderBoatItem(item);
+            default -> throw new IllegalStateException("Missing dedicated OBJ item pose: " + profileId);
+        }
+    }
+
+    private static void renderTransitionSealItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 30.1927032F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-3.29187918F, -15.0963478F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderBoltgunItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 8.25F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -0.0410540104F, -0.375F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderAmmoPressItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.92F : 0.85F) / 3.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -1.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderRadarItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 3.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.0625F, -1.125F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderLargeRadarItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.YP.rotationDegrees(180.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 10.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -5.0F, -0.171875F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderRadgenItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 6.125F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.4375F, -1.5F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderBlastFurnaceItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 7.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -3.5F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderTeslaItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.YP.rotationDegrees(180.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 1.9375F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -0.96875F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderIncandescentSpotlightItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 0.5F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.1015625F, 0.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderUnlitIncandescentSpotlightItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 0.5F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.1015625F, 0.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderFluorescentSpotlightItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 0.75F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.0625F, 0.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderUnlitFluorescentSpotlightItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 0.75F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.0625F, 0.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderHalogenSpotlightItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 0.625F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.15625F, 0.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderUnlitHalogenSpotlightItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 0.625F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.15625F, 0.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderSatelliteDockItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 3.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -0.375F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderSodaVendingMachineItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 2.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -1.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderSnackVendingMachineItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 2.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -1.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderTapeRecorderItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0625F, -0.5F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderSkeletonHolderItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.88F : 0.85F) / 1.42579401F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0847695023F, -0.712897003F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderBrickChimneyItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 13.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.5F, -6.5F, -0.5F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderIndustrialChimneyItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 23.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.5F, -11.5F, -0.5F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderBoilerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 4.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -2.0F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderIndustrialBoilerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(315.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 5.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -2.5F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderPoweredCondenserItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 7.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -1.5F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderSmallCoolingTowerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 19.5F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -9.75F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderLargeCoolingTowerItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.82F : 0.85F) / 13.0F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -6.5F, 0.0F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderCorrodedBarrelItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = item.context() == ItemDisplayContext.GUI ? 0.78F : 0.82F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.5F, -0.5F, -0.5F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderAntimatterBarrelItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        pose.mulPose(Axis.XP.rotationDegrees(30.0F));
+        pose.mulPose(Axis.YP.rotationDegrees(225.0F));
+        float scale = item.context() == ItemDisplayContext.GUI ? 0.78F : 0.82F;
+        pose.scale(scale, scale, scale);
+        pose.translate(-0.5F, -0.5F, -0.5F);
+        renderModels(item, item.models().size());
+        pose.popPose();
+    }
+
+    private static void renderBoatItem(DedicatedItemRender item) {
+        PoseStack pose = item.poseStack();
+        pose.pushPose();
+        pose.translate(0.5F, 0.5F, 0.5F);
+        float scale = (item.context() == ItemDisplayContext.GUI ? 0.92F : 0.85F) / 21.75F;
+        pose.scale(scale, scale, scale);
+        pose.translate(0.0F, -2.86756134F, -2.375F);
+        renderModels(item, item.models().size());
+        pose.popPose();
     }
 
     /** Exact 1.7.10 RenderDrain item renderer transform. */
@@ -636,7 +3401,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                         PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                         int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(-1.0F, -1.0F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -652,7 +3428,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                            ItemDisplayContext context, PoseStack poseStack,
                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
@@ -671,7 +3458,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                             PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                             int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.5F, 0.0F, 0.0F);
             poseStack.scale(2.5F, 2.5F, 2.5F);
@@ -693,7 +3491,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                    PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                    int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.0F, 0.0F);
             poseStack.scale(2.75F, 2.75F, 2.75F);
@@ -711,7 +3520,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -4.0F, 0.0F);
             poseStack.scale(6.25F, 6.25F, 6.25F);
@@ -725,7 +3545,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                              int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(6.0F, 6.0F, 6.0F);
@@ -740,7 +3571,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                               int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.5F, 0.0F);
             poseStack.scale(3.25F, 3.25F, 3.25F);
@@ -754,7 +3596,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                               int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -3.0F, 0.0F);
             poseStack.scale(8.0F, 8.0F, 8.0F);
@@ -772,7 +3625,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                               int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -788,7 +3652,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.5F, 0.0F);
             poseStack.scale(3.25F, 3.25F, 3.25F);
@@ -797,12 +3672,23 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
-    /** Exact ItemRenderLibrary transform and material selection for both 1.7.10 large gears. */
-    private static void renderLargeGearItem(ItemStack stack, List<BakedModel> models, BlockState state,
+    /** Exact ItemRenderLibrary transform owned by the ordinary large gear. */
+    private static void renderLargeGearItem(List<BakedModel> models, BlockState state,
                                             ItemDisplayContext context, PoseStack poseStack,
                                             MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -7.0F, 0.0F);
             poseStack.scale(6.0F, 6.0F, 6.0F);
@@ -813,8 +3699,40 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
             poseStack.translate(0.0F, -1.375F, 0.0F);
         }
         poseStack.translate(0.0F, 0.0F, -0.875F);
-        int modelIndex = stack.is(HbmItems.GEAR_LARGE_STEEL.get()) ? 1 : 0;
-        MachineModelRenderer.renderUnculled(models.get(modelIndex), poseStack, bufferSource,
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact ItemRenderLibrary transform owned by the steel large gear. */
+    private static void renderSteelLargeGearItem(List<BakedModel> models, BlockState state,
+                                                 ItemDisplayContext context, PoseStack poseStack,
+                                                 MultiBufferSource bufferSource, int packedLight,
+                                                 int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -7.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.translate(0.0F, 1.375F, 0.0F);
+            poseStack.mulPose(Axis.ZP.rotationDegrees((System.currentTimeMillis() % 3600L) * 0.1F));
+            poseStack.translate(0.0F, -1.375F, 0.0F);
+        }
+        poseStack.translate(0.0F, 0.0F, -0.875F);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource,
                 state, packedLight, packedOverlay);
         poseStack.popPose();
     }
@@ -824,7 +3742,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                               int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.scale(2.0F, 2.0F, 2.0F);
         }
@@ -843,7 +3772,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                  PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                  int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -3.0F, 1.0F);
             poseStack.scale(3.5F, 3.5F, 3.5F);
@@ -866,7 +3806,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                 PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                 int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -3.0F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -883,7 +3834,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                   PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                   int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -900,7 +3862,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.0F, 0.0F);
             poseStack.scale(3.5F, 3.5F, 3.5F);
@@ -917,7 +3890,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                              int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.scale(2.5F, 2.5F, 2.5F);
             poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
@@ -939,7 +3923,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                 PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                 int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -3.0F, 0.0F);
             poseStack.scale(6.0F, 6.0F, 6.0F);
@@ -956,7 +3951,18 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
                                                     PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                                     int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -1.0F, 0.0F);
             poseStack.scale(2.75F, 2.75F, 2.75F);
@@ -972,23 +3978,150 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         poseStack.popPose();
     }
 
-    /** Exact RenderCoreComponent#getRenderer item transform for all four DFC components. */
-    private static void renderDfcComponentItem(List<BakedModel> models, BlockState state, ItemDisplayContext context,
-                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
-                                               int packedOverlay) {
+    /** Exact legacy item transform owned by the DFC emitter. */
+    private static void renderDfcEmitterItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                             PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                             int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -2.5F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
         }
         poseStack.scale(2.0F, 2.0F, 2.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static void logGeometryOnce(String itemId, String profileId, Profile profile,
+    /** Exact creative-klystron item pose, kept independent from the ordinary klystron. */
+    private static void renderCreativeFusionKlystronItem(List<BakedModel> models, BlockState state,
+                                                         ItemDisplayContext context, PoseStack poseStack,
+                                                         MultiBufferSource bufferSource, int packedLight,
+                                                         int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -3.0F, 1.0F);
+            poseStack.scale(3.5F, 3.5F, 3.5F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(models.get(0), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 2.5F, 0.0F);
+        poseStack.mulPose(Axis.XP.rotationDegrees((System.currentTimeMillis() / 10L) % 360L));
+        poseStack.translate(0.0F, -2.5F, 0.0F);
+        MachineModelRenderer.renderUnculled(models.get(1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+        poseStack.popPose();
+    }
+
+    /** Exact legacy item transform owned by the DFC receiver. */
+    private static void renderDfcReceiverItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                              int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
+        poseStack.scale(2.0F, 2.0F, 2.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact legacy item transform owned by the DFC injector. */
+    private static void renderDfcInjectorItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                              PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                              int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
+        poseStack.scale(2.0F, 2.0F, 2.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /** Exact legacy item transform owned by the DFC stabilizer. */
+    private static void renderDfcStabilizerItem(BakedModel model, BlockState state, ItemDisplayContext context,
+                                                PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                                int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        }
+        poseStack.scale(2.0F, 2.0F, 2.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void logGeometryOnce(String itemId, String profileId, ModelProfile profile,
                                         List<BakedModel> models, BlockState state) {
         if (!DIAGNOSTICS.add(profileId)) {
             return;
@@ -1013,557 +4146,175 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
         }
     }
 
-    private static Map<String, Profile> createProfiles() {
-        Map<String, Profile> profiles = new LinkedHashMap<>();
-        // Registration only: these IDs take the explicit legacy renderer before all fitting code.
-        add(profiles, "launch_pad", 0F, 1F, "block/launch_pad_world");
-        add(profiles, "launch_pad_rusted", 0F, 1F, "block/launch_pad_rusted_world");
-        add(profiles, "launch_pad_large", 0F, 1F, "block/launcher_port/pad_base");
-        add(profiles, "compact_launcher", 0F, 1F, "block/compact_launcher_world");
-        add(profiles, "launch_table", 0F, 1F, "block/launch_table_base");
-
-        // These are static item assemblies. Every path below points at a real
-        // baked OBJ model; empty blockstates used by dummyable machines are
-        // deliberately excluded.
-        add(profiles, "machine_arc_furnace", 0.0F, 0.92F,
-                "block/machine_arc_furnace", "block/machine_arc_furnace_lid",
-                "block/machine_arc_furnace_ring1", "block/machine_arc_furnace_ring2",
-                "block/machine_arc_furnace_ring3", "block/machine_arc_furnace_electrode1",
-                "block/machine_arc_furnace_electrode2", "block/machine_arc_furnace_electrode3",
-                "block/machine_arc_furnace_cable1", "block/machine_arc_furnace_cable2",
-                "block/machine_arc_furnace_cable3");
-        // This animated 23x13 door has no compact block mesh.  Render the real
-        // closed OBJ assembly in item space and fit it from its measured bounds.
-        add(profiles, "transition_seal", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/transition_seal");
-        add(profiles, "boltgun", 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/boltgun");
-        add(profiles, "icf", 0.0F, 0.90F, "block/icf");
-        add(profiles, "bomb_multi", 0.0F, 0.90F, "block/bomb_multi_world");
-        add(profiles, "nuke_boy", 0.0F, 0.90F, "block/nuke_boy_world");
-        add(profiles, "nuke_gadget", 0.0F, 0.90F,
-                "block/nuke_gadget_body", "block/nuke_gadget_wires");
-        add(profiles, "nuke_man", 180.0F, 0.90F, "block/nuke_man_world");
-        add(profiles, "nuke_mike", 0.0F, 0.90F, "block/nuke_mike_world");
-        add(profiles, "nuke_tsar", 0.0F, 0.90F, "block/nuke_tsar_world");
-        add(profiles, "nuke_fleija", 90.0F, 0.90F, "block/nuke_fleija_world");
-        add(profiles, "nuke_prototype", 90.0F, 0.90F, "block/nuke_prototype_world");
-        add(profiles, "nuke_solinium", 90.0F, 0.90F, "block/nuke_solinium_world");
-        add(profiles, "nuke_n2", 0.0F, 0.90F, "block/nuke_n2_world");
-        add(profiles, "nuke_custom", 0.0F, 0.90F, "block/nuke_custom_world");
-        add(profiles, "nuke_fstbmb", 0.0F, 0.90F, "block/nuke_fstbmb_world");
-        add(profiles, "crashed_bomb_balefire", 0.0F, 0.90F, "block/crashed_bomb_balefire");
-        add(profiles, "crashed_bomb_conventional", 0.0F, 0.90F, "block/crashed_bomb_conventional");
-        add(profiles, "crashed_bomb_nuke", 0.0F, 0.90F, "block/crashed_bomb_nuke");
-        add(profiles, "crashed_bomb_salted", 0.0F, 0.90F, "block/crashed_bomb_salted");
-        // These inventory entries are builtin/entity markers.  The actual
-        // OBJ geometry must therefore come from the independent block model.
-        add(profiles, "machine_ammo_press", 90.0F, 0.92F, "block/machine_ammo_press");
-        add(profiles, "machine_ashpit", 0.0F, 0.92F,
-                "block/machine_ashpit_world", "block/machine_ashpit_door");
-        add(profiles, "machine_compressor", 0.0F, 0.92F,
-                "block/machine_compressor_world", "block/machine_compressor_pump", "block/machine_compressor_fan");
-        add(profiles, "machine_compressor_compact", 0.0F, 0.92F,
-                "block/machine_compressor_compact_world", "block/machine_compressor_compact_fan1",
-                "block/machine_compressor_compact_fan2");
-        add(profiles, "machine_mixer", 180.0F, 0.92F,
-                "block/machine_mixer_world", "block/machine_mixer_blade");
-        add(profiles, "machine_electrolyser", 0.0F, 0.92F, "block/machine_electrolyser_world");
-        add(profiles, "machine_arc_welder", 0.0F, 0.90F, "block/machine_arc_welder_world");
-        add(profiles, "machine_zirnox", 0.0F, 0.90F, "block/machine_zirnox_world");
-        add(profiles, "machine_drain", 0.0F, 0.90F, "block/machine_drain");
-        add(profiles, "machine_soldering_station", 0.0F, 0.80F,
-                "block/machine_soldering_station_world");
-        add(profiles, "machine_assembly_machine", 90.0F, 0.61F,
-                "block/machine_assembly_machine");
-        add(profiles, "machine_tacz_ammo_assembler", 90.0F, 0.61F,
-                "block/machine_assembly_machine");
-        add(profiles, "machine_cyclotron", 0.0F, 0.90F,
-                "block/machine_cyclotron_body", "block/machine_cyclotron_b1",
-                "block/machine_cyclotron_b2", "block/machine_cyclotron_b3", "block/machine_cyclotron_b4");
-        add(profiles, "machine_exposure_chamber", 90.0F, 0.88F,
-                "block/machine_exposure_chamber_chamber", "block/machine_exposure_chamber_magnets",
-                "block/machine_exposure_chamber_core");
-        add(profiles, "machine_radar", 0.0F, 0.90F,
-                "block/machine_radar_base", "block/machine_radar_dish");
-        add(profiles, "machine_radar_large", 180.0F, 0.90F,
-                "block/machine_radar_large_base", "block/machine_radar_large_dish");
-        add(profiles, "machine_radgen", 0.0F, 0.82F,
-                "block/machine_radgen_base", "block/machine_radgen_rotor",
-                "block/machine_radgen_light", "block/machine_radgen_glass");
-        add(profiles, "pa_source", 90.0F, 0.90F, "block/pa_source");
-        add(profiles, "pa_beamline", 90.0F, 0.90F, "block/pa_beamline_body");
-        add(profiles, "pa_rfc", 90.0F, 0.90F, "block/pa_rfc");
-        add(profiles, "pa_quadrupole", 90.0F, 0.90F, "block/pa_quadrupole");
-        add(profiles, "pa_dipole", 0.0F, 0.90F, "block/pa_dipole");
-        add(profiles, "pa_detector", 90.0F, 0.90F, "block/pa_detector");
-        add(profiles, "machine_chungus", 0.0F, 0.90F,
-                "block/machine_chungus_body", "block/machine_chungus_lever", "block/machine_chungus_blades");
-        add(profiles, "machine_combustion_engine", 90.0F, 0.54F, "block/machine_combustion_engine");
-        add(profiles, "machine_battery_socket", 0.0F, 0.86F,
-                "block/machine_battery_socket_socket");
-        add(profiles, "machine_battery_redd", -90.0F, 0.90F,
-                "block/machine_battery_redd_base", "block/machine_battery_redd_wheel",
-                "block/machine_battery_redd_lights");
-        add(profiles, "machine_reactor_small", 0.0F, 0.90F,
-                "block/machine_reactor_small_base", "block/machine_reactor_small_rods");
-        add(profiles, "watz", 0.0F, 0.90F, "block/watz_world");
-        add(profiles, "watz_pump", 0.0F, 0.90F, "block/watz_pump_world");
-        add(profiles, "fusion_torus", 0.0F, 0.90F,
-                "block/fusion_torus_torus", "block/fusion_torus_magnet");
-        add(profiles, "fusion_klystron", 0.0F, 0.90F,
-                "block/fusion_klystron_body", "block/fusion_klystron_rotor");
-        add(profiles, "fusion_klystron_creative", 0.0F, 0.90F,
-                "block/fusion_klystron_creative_body", "block/fusion_klystron_creative_rotor");
-        add(profiles, "fusion_breeder", 0.0F, 0.90F, "block/fusion_breeder");
-        add(profiles, "fusion_collector", 0.0F, 0.90F, "block/fusion_collector");
-        add(profiles, "fusion_boiler", 0.0F, 0.90F, "block/fusion_boiler");
-        add(profiles, "fusion_mhdt", 0.0F, 0.90F,
-                "block/fusion_mhdt_turbine", "block/fusion_mhdt_coils");
-        add(profiles, "fusion_coupler", 0.0F, 0.90F, "block/fusion_coupler");
-        add(profiles, "fusion_plasma_forge", 0.0F, 0.90F,
-                "block/fusion_plasma_forge_body", "block/fusion_plasma_forge_slider_striker",
-                "block/fusion_plasma_forge_arm_lower_striker", "block/fusion_plasma_forge_arm_upper_striker",
-                "block/fusion_plasma_forge_striker_mount", "block/fusion_plasma_forge_striker_left",
-                "block/fusion_plasma_forge_striker_right", "block/fusion_plasma_forge_piston_left",
-                "block/fusion_plasma_forge_piston_right", "block/fusion_plasma_forge_slider_jet",
-                "block/fusion_plasma_forge_arm_lower_jet", "block/fusion_plasma_forge_arm_upper_jet",
-                "block/fusion_plasma_forge_jet", "block/fusion_plasma_forge_plasma");
-        add(profiles, "dfc_emitter", 0.0F, 0.90F, "block/dfc_emitter");
-        add(profiles, "dfc_receiver", 0.0F, 0.90F, "block/dfc_receiver");
-        add(profiles, "dfc_injector", 0.0F, 0.90F, "block/dfc_injector");
-        add(profiles, "dfc_stabilizer", 0.0F, 0.90F, "block/dfc_stabilizer");
-        add(profiles, "machine_excavator", 90.0F, 0.90F,
-                "block/machine_excavator_main", "block/machine_excavator_crusher1",
-                "block/machine_excavator_crusher2", "block/machine_excavator_drillbit", "block/machine_excavator_shaft");
-        add(profiles, "machine_blast_furnace", 0.0F, 0.90F, "block/machine_blast_furnace");
-        // These entries use the literal 1.7.10 inventory render paths below;
-        // they must not go through the measured bounds fit.
-        add(profiles, "machine_crucible", 0.0F, 0.90F, "block/machine_crucible_world");
-        add(profiles, "machine_strand_caster", 0.0F, 0.90F, "block/machine_strand_caster_item");
-        add(profiles, "machine_rtg_grey", 0.0F, 0.90F, "block/machine_rtg_grey_world");
-        add(profiles, "machine_crystallizer", 0.0F, 0.90F,
-                "block/machine_crystallizer_body", "block/machine_crystallizer_spinner");
-        add(profiles, "machine_ore_slopper", 0.0F, 0.90F,
-                "block/machine_ore_slopper_base", "block/machine_ore_slopper_slider",
-                "block/machine_ore_slopper_hydraulics", "block/machine_ore_slopper_bucket",
-                "block/machine_ore_slopper_blades_left", "block/machine_ore_slopper_blades_right",
-                "block/machine_ore_slopper_fan");
-        add(profiles, "machine_silex", 90.0F, 0.90F, "block/machine_silex");
-        add(profiles, "machine_fel", 90.0F, 0.90F, "block/machine_fel");
-        add(profiles, "machine_rotary_furnace", 90.0F, 0.90F, "block/machine_rotary_furnace");
-        add(profiles, "tesla", 180.0F, 0.90F, "block/tesla");
-        add(profiles, "fan", 0.0F, 0.90F, "block/fan_frame", "block/fan_blades");
-        add(profiles, "floodlight", 0.0F, 0.90F,
-                "block/floodlight_base", "block/floodlight_lights", "block/floodlight_lamps");
-        addThermalObj(profiles, "spotlight_incandescent", "block/spotlight_incandescent_world");
-        addThermalObj(profiles, "spotlight_incandescent_off", "block/spotlight_incandescent_off_world");
-        addThermalObj(profiles, "spotlight_fluoro", "block/spotlight_fluoro_single_world");
-        addThermalObj(profiles, "spotlight_fluoro_off", "block/spotlight_fluoro_single_off_world");
-        addThermalObj(profiles, "spotlight_halogen", "block/spotlight_halogen_world");
-        addThermalObj(profiles, "spotlight_halogen_off", "block/spotlight_halogen_off_world");
-        add(profiles, "cargo_elevator", 0.0F, 0.82F,
-                "block/cargo_elevator_base", "block/cargo_elevator_piston",
-                "block/cargo_elevator_guides", "block/cargo_elevator_platform");
-        add(profiles, "sat_dock", 0.0F, 0.90F, "block/sat_dock");
-        add(profiles, "radio_autocal", 0.0F, 0.90F, "block/radio_autocal");
-        add(profiles, "radio_telex", 0.0F, 0.90F, "block/radio_telex_item");
-        add(profiles, "vending_machine_soda", 0.0F, 0.90F, "block/vending_machine_soda");
-        add(profiles, "vending_machine_snacks", 0.0F, 0.90F, "block/vending_machine_snacks");
-        addThermalObj(profiles, "tape_recorder", "block/tape_recorder");
-        add(profiles, "skeleton_holder", 90.0F, 0.88F, "block/skeleton_holder_world");
-        // Thermal equipment uses world-scale OBJ files. Inventory rendering
-        // must fit the baked geometry, rather than inherit world transforms.
-        addThermalObj(profiles, "chimney_brick", "block/chimney_brick");
-        addThermalObj(profiles, "chimney_industrial", "block/chimney_industrial");
-        add(profiles, "heater_firebox", 0.0F, 0.90F,
-                "block/heater_firebox_world", "block/heater_firebox_door");
-        add(profiles, "heater_oven", 0.0F, 0.90F,
-                "block/heater_oven_world", "block/heater_oven_door");
-        add(profiles, "heater_oilburner", 0.0F, 0.90F, "block/heater_oilburner");
-        add(profiles, "heater_electric", 0.0F, 0.90F, "block/heater_electric");
-        add(profiles, "heater_heatex", 0.0F, 0.90F, "block/heater_heatex");
-        addThermalObj(profiles, "machine_boiler", "block/heat_boiler_world");
-        add(profiles, "machine_industrial_boiler", 315.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, "block/machine_industrial_boiler_world");
-        add(profiles, "machine_solar_boiler", 0.0F, 0.90F, "block/machine_solar_boiler_world");
-        add(profiles, "pipe_anchor", 0.0F, 0.90F, "block/pipe_anchor");
-        add(profiles, "piston_inserter", 0.0F, 0.90F, "block/piston_inserter");
-        add(profiles, "solar_mirror", 0.0F, 0.90F,
-                "block/solar_mirror_base", "block/solar_mirror_mirror");
-        addThermalObj(profiles, "machine_condenser_powered", "block/machine_condenser_powered");
-        addThermalObj(profiles, "machine_tower_small", "block/machine_tower_small_world");
-        addThermalObj(profiles, "machine_tower_large", "block/machine_tower_large_world");
-        addThermalObj(profiles, "machine_blast_furnace", "block/machine_blast_furnace");
-        add(profiles, "furnace_combination", 0.0F, 0.90F, "block/furnace_combination");
-        add(profiles, "furnace_iron", 0.0F, 0.90F,
-                "block/furnace_iron_main", "block/furnace_iron_off");
-        add(profiles, "furnace_steel", 0.0F, 0.90F, "block/furnace_steel");
-        add(profiles, "gear_large", 0.0F, 0.90F,
-                "block/gear_large_1710", "block/gear_large_steel_1710");
-        // The three craftable barrels have their own direct RenderBarrel port
-        // in FluidBarrelItemRenderer. Only the two non-craftable variants
-        // remain on this older OBJ item path.
-        addInventoryBarrel(profiles, "barrel_corroded", "block/barrel_corroded");
-        addInventoryBarrel(profiles, "barrel_antimatter", "block/barrel_antimatter");
-
-        // ItemRenderBatteryPack in 1.7.10 renders these exact BatterySocket
-        // OBJ groups rather than a generated item icon.  Unlike the original
-        // screen-space renderer, their modern pose is centered from measured
-        // geometry so every variant remains inside its inventory slot.
+    private static Map<String, ModelProfile> createModelProfiles() {
+        Map<String, ModelProfile> profiles = new LinkedHashMap<>();
+        models(profiles, "launch_pad", "block/launch_pad_world");
+        models(profiles, "launch_pad_rusted", "block/launch_pad_rusted_world");
+        models(profiles, "launch_pad_large", "block/launcher_port/pad_base");
+        models(profiles, "compact_launcher", "block/compact_launcher_world");
+        models(profiles, "launch_table", "block/launch_table_base");
+        models(profiles, "machine_arc_furnace", "block/machine_arc_furnace", "block/machine_arc_furnace_lid", "block/machine_arc_furnace_ring1", "block/machine_arc_furnace_ring2", "block/machine_arc_furnace_ring3", "block/machine_arc_furnace_electrode1", "block/machine_arc_furnace_electrode2", "block/machine_arc_furnace_electrode3", "block/machine_arc_furnace_cable1", "block/machine_arc_furnace_cable2", "block/machine_arc_furnace_cable3");
+        models(profiles, "transition_seal", "block/transition_seal");
+        models(profiles, "boltgun", "block/boltgun");
+        models(profiles, "icf", "block/icf");
+        models(profiles, "bomb_multi", "block/bomb_multi_world");
+        models(profiles, "nuke_boy", "block/nuke_boy_world");
+        models(profiles, "nuke_gadget", "block/nuke_gadget_body", "block/nuke_gadget_wires");
+        models(profiles, "nuke_man", "block/nuke_man_world");
+        models(profiles, "nuke_mike", "block/nuke_mike_world");
+        models(profiles, "nuke_tsar", "block/nuke_tsar_world");
+        models(profiles, "nuke_fleija", "block/nuke_fleija_world");
+        models(profiles, "nuke_prototype", "block/nuke_prototype_world");
+        models(profiles, "nuke_solinium", "block/nuke_solinium_world");
+        models(profiles, "nuke_n2", "block/nuke_n2_world");
+        models(profiles, "nuke_custom", "block/nuke_custom_world");
+        models(profiles, "nuke_fstbmb", "block/nuke_fstbmb_world");
+        models(profiles, "crashed_bomb_balefire", "block/crashed_bomb_balefire");
+        models(profiles, "crashed_bomb_conventional", "block/crashed_bomb_conventional");
+        models(profiles, "crashed_bomb_nuke", "block/crashed_bomb_nuke");
+        models(profiles, "crashed_bomb_salted", "block/crashed_bomb_salted");
+        models(profiles, "machine_ammo_press", "block/machine_ammo_press");
+        models(profiles, "machine_ashpit", "block/machine_ashpit_world", "block/machine_ashpit_door");
+        models(profiles, "machine_compressor", "block/machine_compressor_world", "block/machine_compressor_pump", "block/machine_compressor_fan");
+        models(profiles, "machine_compressor_compact", "block/machine_compressor_compact_world", "block/machine_compressor_compact_fan1", "block/machine_compressor_compact_fan2");
+        models(profiles, "machine_mixer", "block/machine_mixer_world", "block/machine_mixer_blade");
+        models(profiles, "machine_electrolyser", "block/machine_electrolyser_world");
+        models(profiles, "machine_arc_welder", "block/machine_arc_welder_world");
+        models(profiles, "machine_zirnox", "block/machine_zirnox_world");
+        models(profiles, "machine_drain", "block/machine_drain");
+        models(profiles, "machine_soldering_station", "block/machine_soldering_station_world");
+        models(profiles, "machine_assembly_machine", "block/machine_assembly_machine");
+        models(profiles, "machine_tacz_ammo_assembler", "block/machine_assembly_machine");
+        models(profiles, "machine_cyclotron", "block/machine_cyclotron_body", "block/machine_cyclotron_b1", "block/machine_cyclotron_b2", "block/machine_cyclotron_b3", "block/machine_cyclotron_b4");
+        models(profiles, "machine_exposure_chamber", "block/machine_exposure_chamber_chamber", "block/machine_exposure_chamber_magnets", "block/machine_exposure_chamber_core");
+        models(profiles, "machine_radar", "block/machine_radar_base", "block/machine_radar_dish");
+        models(profiles, "machine_radar_large", "block/machine_radar_large_base", "block/machine_radar_large_dish");
+        models(profiles, "machine_radgen", "block/machine_radgen_base", "block/machine_radgen_rotor", "block/machine_radgen_light", "block/machine_radgen_glass");
+        models(profiles, "pa_source", "block/pa_source");
+        models(profiles, "pa_beamline", "block/pa_beamline_body");
+        models(profiles, "pa_rfc", "block/pa_rfc");
+        models(profiles, "pa_quadrupole", "block/pa_quadrupole");
+        models(profiles, "pa_dipole", "block/pa_dipole");
+        models(profiles, "pa_detector", "block/pa_detector");
+        models(profiles, "machine_chungus", "block/machine_chungus_body", "block/machine_chungus_lever", "block/machine_chungus_blades");
+        models(profiles, "machine_combustion_engine", "block/machine_combustion_engine");
+        models(profiles, "machine_battery_socket", "block/machine_battery_socket_socket");
+        models(profiles, "machine_battery_redd", "block/machine_battery_redd_base", "block/machine_battery_redd_wheel", "block/machine_battery_redd_lights");
+        models(profiles, "machine_reactor_small", "block/machine_reactor_small_base", "block/machine_reactor_small_rods");
+        models(profiles, "watz", "block/watz_world");
+        models(profiles, "watz_pump", "block/watz_pump_world");
+        models(profiles, "fusion_torus", "block/fusion_torus_torus", "block/fusion_torus_magnet");
+        models(profiles, "fusion_klystron", "block/fusion_klystron_body", "block/fusion_klystron_rotor");
+        models(profiles, "fusion_klystron_creative", "block/fusion_klystron_creative_body", "block/fusion_klystron_creative_rotor");
+        models(profiles, "fusion_breeder", "block/fusion_breeder");
+        models(profiles, "fusion_collector", "block/fusion_collector");
+        models(profiles, "fusion_boiler", "block/fusion_boiler");
+        models(profiles, "fusion_mhdt", "block/fusion_mhdt_turbine", "block/fusion_mhdt_coils");
+        models(profiles, "fusion_coupler", "block/fusion_coupler");
+        models(profiles, "fusion_plasma_forge", "block/fusion_plasma_forge_body", "block/fusion_plasma_forge_slider_striker", "block/fusion_plasma_forge_arm_lower_striker", "block/fusion_plasma_forge_arm_upper_striker", "block/fusion_plasma_forge_striker_mount", "block/fusion_plasma_forge_striker_left", "block/fusion_plasma_forge_striker_right", "block/fusion_plasma_forge_piston_left", "block/fusion_plasma_forge_piston_right", "block/fusion_plasma_forge_slider_jet", "block/fusion_plasma_forge_arm_lower_jet", "block/fusion_plasma_forge_arm_upper_jet", "block/fusion_plasma_forge_jet", "block/fusion_plasma_forge_plasma");
+        models(profiles, "dfc_emitter", "block/dfc_emitter");
+        models(profiles, "dfc_receiver", "block/dfc_receiver");
+        models(profiles, "dfc_injector", "block/dfc_injector");
+        models(profiles, "dfc_stabilizer", "block/dfc_stabilizer");
+        models(profiles, "machine_excavator", "block/machine_excavator_main", "block/machine_excavator_crusher1", "block/machine_excavator_crusher2", "block/machine_excavator_drillbit", "block/machine_excavator_shaft");
+        models(profiles, "machine_blast_furnace", "block/machine_blast_furnace");
+        models(profiles, "machine_crucible", "block/machine_crucible_world");
+        models(profiles, "machine_strand_caster", "block/machine_strand_caster_item");
+        models(profiles, "machine_crystallizer", "block/machine_crystallizer_body", "block/machine_crystallizer_spinner");
+        models(profiles, "machine_ore_slopper", "block/machine_ore_slopper_base", "block/machine_ore_slopper_slider", "block/machine_ore_slopper_hydraulics", "block/machine_ore_slopper_bucket", "block/machine_ore_slopper_blades_left", "block/machine_ore_slopper_blades_right", "block/machine_ore_slopper_fan");
+        models(profiles, "pile_loader", "block/pile_loader_all");
+        models(profiles, "pile_vent", "block/pile_vent_all");
+        models(profiles, "pile_control", "block/pile_control_all");
+        models(profiles, "machine_rockmill", "block/machine_rockmill_base", "block/machine_rockmill_frame", "block/machine_rockmill_wheel");
+        models(profiles, "machine_satlink", "block/machine_satlink_base", "block/machine_satlink_rotor", "block/machine_satlink_dish");
+        models(profiles, "machine_tape_drive", "block/machine_tape_drive_frame");
+        models(profiles, "machine_supercomputer", "block/machine_supercomputer_computer", "block/machine_supercomputer_lights");
+        models(profiles, "machine_silex", "block/machine_silex");
+        models(profiles, "machine_fel", "block/machine_fel");
+        models(profiles, "machine_rotary_furnace", "block/machine_rotary_furnace");
+        models(profiles, "tesla", "block/tesla");
+        models(profiles, "fan", "block/fan_frame", "block/fan_blades");
+        models(profiles, "floodlight", "block/floodlight_base", "block/floodlight_lights", "block/floodlight_lamps");
+        models(profiles, "spotlight_incandescent", "block/spotlight_incandescent_world");
+        models(profiles, "spotlight_incandescent_off", "block/spotlight_incandescent_off_world");
+        models(profiles, "spotlight_fluoro", "block/spotlight_fluoro_single_world");
+        models(profiles, "spotlight_fluoro_off", "block/spotlight_fluoro_single_off_world");
+        models(profiles, "spotlight_halogen", "block/spotlight_halogen_world");
+        models(profiles, "spotlight_halogen_off", "block/spotlight_halogen_off_world");
+        models(profiles, "cargo_elevator", "block/cargo_elevator_base", "block/cargo_elevator_piston", "block/cargo_elevator_guides", "block/cargo_elevator_platform");
+        models(profiles, "sat_dock", "block/sat_dock");
+        models(profiles, "radio_autocal", "block/radio_autocal");
+        models(profiles, "radio_telex", "block/radio_telex_item");
+        models(profiles, "vending_machine_soda", "block/vending_machine_soda");
+        models(profiles, "vending_machine_snacks", "block/vending_machine_snacks");
+        models(profiles, "tape_recorder", "block/tape_recorder");
+        models(profiles, "skeleton_holder", "block/skeleton_holder_world");
+        models(profiles, "chimney_brick", "block/chimney_brick");
+        models(profiles, "chimney_industrial", "block/chimney_industrial");
+        models(profiles, "heater_firebox", "block/heater_firebox_world", "block/heater_firebox_door");
+        models(profiles, "heater_oven", "block/heater_oven_world", "block/heater_oven_door");
+        models(profiles, "heater_oilburner", "block/heater_oilburner");
+        models(profiles, "heater_electric", "block/heater_electric");
+        models(profiles, "heater_heatex", "block/heater_heatex");
+        models(profiles, "machine_boiler", "block/heat_boiler_world");
+        models(profiles, "machine_industrial_boiler", "block/machine_industrial_boiler_world");
+        models(profiles, "machine_solar_boiler", "block/machine_solar_boiler_base");
+        models(profiles, "pipe_anchor", "block/pipe_anchor");
+        models(profiles, "piston_inserter", "block/piston_inserter");
+        models(profiles, "solar_mirror", "block/solar_mirror_base", "block/solar_mirror_mirror");
+        models(profiles, "machine_condenser_powered", "block/machine_condenser_powered");
+        models(profiles, "machine_tower_small", "block/machine_tower_small_world");
+        models(profiles, "machine_tower_large", "block/machine_tower_large_world");
+        models(profiles, "machine_blast_furnace", "block/machine_blast_furnace");
+        models(profiles, "furnace_combination", "block/furnace_combination");
+        models(profiles, "furnace_iron", "block/furnace_iron_main", "block/furnace_iron_off");
+        models(profiles, "furnace_steel", "block/furnace_steel");
+        models(profiles, "gear_large", "block/gear_large_1710", "block/gear_large_steel_1710");
+        models(profiles, "barrel_corroded", "block/barrel_corroded");
+        models(profiles, "barrel_antimatter", "block/barrel_antimatter");
+        models(profiles, "machine_well", "block/machine_well");
+        models(profiles, "machine_pumpjack", "block/machine_pumpjack");
+        models(profiles, "machine_fracking_tower", "block/machine_fracking_tower");
+        models(profiles, "machine_refinery", "block/machine_refinery");
+        models(profiles, "machine_vacuum_distill", "block/machine_vacuum_distill");
+        models(profiles, "machine_coker", "block/machine_coker");
+        models(profiles, "machine_flare", "block/machine_flare");
+        models(profiles, "machine_solidifier", "block/machine_solidifier");
+        models(profiles, "machine_liquefactor", "block/machine_liquefactor");
+        models(profiles, "machine_fraction_tower", "block/machine_fraction_tower");
+        models(profiles, "fraction_spacer", "block/fraction_spacer");
+        models(profiles, "machine_catalytic_cracker", "block/machine_catalytic_cracker");
+        models(profiles, "machine_catalytic_reformer", "block/machine_catalytic_reformer");
+        models(profiles, "machine_hydrotreater", "block/machine_hydrotreater");
+        models(profiles, "deco_computer", "block/deco_computer");
+        models(profiles, "boat", "block/boat");
+        models(profiles, "deco_crt_clean", "block/deco_crt_clean_monitor", "block/deco_crt_clean_screen");
+        models(profiles, "deco_crt_broken", "block/deco_crt_broken_monitor", "block/deco_crt_broken_screen");
+        models(profiles, "deco_crt_blinking", "block/deco_crt_blinking_monitor", "block/deco_crt_blinking_screen");
+        models(profiles, "deco_crt_bsod", "block/deco_crt_bsod_monitor", "block/deco_crt_bsod_screen");
         for (String variant : BATTERY_PACK_VARIANTS) {
-            addBatteryVariant(profiles, variant);
+            models(profiles, "battery_pack_" + variant, "block/machine_battery_socket_" + variant);
         }
-
-        add(profiles, "machine_well", "block/machine_well", 0.0F, 0.90F);
-        add(profiles, "machine_pumpjack", "block/machine_pumpjack", 0.0F, 0.90F);
-        add(profiles, "machine_fracking_tower", "block/machine_fracking_tower", 0.0F, 0.90F);
-        add(profiles, "machine_refinery", "block/machine_refinery", 0.0F, 0.90F);
-        add(profiles, "machine_vacuum_distill", "block/machine_vacuum_distill", 0.0F, 0.90F);
-        add(profiles, "machine_coker", "block/machine_coker", 0.0F, 0.90F);
-        add(profiles, "machine_flare", "block/machine_flare", 0.0F, 0.90F);
-        add(profiles, "machine_solidifier", "block/machine_solidifier", 0.0F, 0.90F);
-        add(profiles, "machine_liquefactor", "block/machine_liquefactor", 0.0F, 0.90F);
-        add(profiles, "machine_fraction_tower", "block/machine_fraction_tower", 0.0F, 0.90F);
-        add(profiles, "fraction_spacer", "block/fraction_spacer", 0.0F, 0.90F);
-        add(profiles, "machine_catalytic_cracker", "block/machine_catalytic_cracker", 0.0F, 0.90F);
-        add(profiles, "machine_catalytic_reformer", "block/machine_catalytic_reformer", 0.0F, 0.90F);
-        add(profiles, "machine_hydrotreater", "block/machine_hydrotreater", 0.0F, 0.90F);
-
-        add(profiles, "deco_computer", 0.0F, 0.90F, "block/deco_computer");
-        add(profiles, "boat", 0.0F, 0.92F, "block/boat");
-        add(profiles, "deco_crt_clean", 0.0F, 0.90F,
-                "block/deco_crt_clean_monitor", "block/deco_crt_clean_screen");
-        add(profiles, "deco_crt_broken", 0.0F, 0.90F,
-                "block/deco_crt_broken_monitor", "block/deco_crt_broken_screen");
-        add(profiles, "deco_crt_blinking", 0.0F, 0.90F,
-                "block/deco_crt_blinking_monitor", "block/deco_crt_blinking_screen");
-        add(profiles, "deco_crt_bsod", 0.0F, 0.90F,
-                "block/deco_crt_bsod_monitor", "block/deco_crt_bsod_screen");
         for (String id : DECORATIVE_PIPE_IDS) {
-            add(profiles, id, 0.0F, 0.90F, "block/" + id);
+            models(profiles, id, "block/" + id);
         }
-
         return Map.copyOf(profiles);
     }
 
-    private static Map<String, LegacyPose> createLegacyPoses() {
-        Map<String, LegacyPose> poses = new LinkedHashMap<>();
-
-        // ItemRenderLibrary and each RenderNuke* IItemRendererProvider entry.
-        // These values are the old renderer's inventory transform followed by
-        // its common transform; do not replace them with bounds fitting.
-        legacy(poses, "nuke_boy", 0.0F, 0.0F, 0.0F, 5.0F,
-                -1.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "nuke_gadget", 0.0F, -3.0F, 0.0F, 5.0F,
-                0.0F, 0.0F, 0.0F, -90.0F, 1.0F);
-        legacy(poses, "nuke_man", 0.0F, -2.0F, 0.0F, 5.0F,
-                -0.75F, 0.0F, 0.0F, 180.0F, 1.0F, true);
-        legacy(poses, "nuke_mike", 0.0F, -5.0F, 0.0F, 2.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "nuke_tsar", 0.0F, 0.0F, 0.0F, 2.25F,
-                1.5F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "nuke_fleija", 0.0F, 0.0F, 0.0F, 6.8F,
-                0.125F, 0.0F, 0.0F, 90.0F, 1.0F);
-        legacy(poses, "nuke_prototype", 0.0F, 0.125F, 0.0F, 3.0F,
-                0.0F, 0.125F, 0.0F, 90.0F, 1.0F, true);
-        legacy(poses, "nuke_solinium", 0.0F, -0.125F, 0.0F, 5.0F,
-                0.0F, -0.125F, 0.0F, 90.0F, 1.0F, true);
-        legacy(poses, "nuke_n2", 0.0F, -5.0F, 0.0F, 2.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "nuke_custom", 0.0F, 0.0F, 0.0F, 5.0F,
-                -1.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "nuke_fstbmb", 0.0F, 0.0F, 0.0F, 2.25F,
-                1.0F, 0.0F, 0.0F, 90.0F, 1.0F);
-
-        // RenderArcFurnace#getRenderer
-        legacy(poses, "machine_arc_furnace", 0.0F, -3.0F, 0.0F, 3.5F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        // RenderICF#getRenderer
-        legacy(poses, "icf", 0.0F, -1.5F, 0.0F, 2.125F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
-        // RenderCompressor#getRenderer and RenderCompressorCompact#getRenderer
-        legacy(poses, "machine_compressor", 0.0F, -4.0F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        legacy(poses, "machine_compressor_compact", -1.0F, -1.0F, 0.0F, 2.75F,
-                0.5F, 0.0F, 0.0F, 0.0F, 0.75F);
-        // RenderMixer#getRenderer
-        legacy(poses, "machine_mixer", 0.0F, -5.0F, 0.0F, 5.0F,
-                0.0F, 0.0F, 0.0F, 180.0F, 1.0F);
-        // RenderElectrolyser#getRenderer
-        legacy(poses, "machine_electrolyser", -1.0F, -1.0F, 0.0F, 2.5F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        // RenderArcWelder#getRenderer
-        legacy(poses, "machine_arc_welder", 0.0F, -2.0F, 0.0F, 4.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // ItemRenderLibrary#machine_zirnox
-        legacy(poses, "machine_zirnox", 0.0F, -2.0F, 0.0F, 2.8F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.75F);
-        // RenderSolderingStation#getRenderer and RenderAssemblyMachine#getRenderer
-        legacy(poses, "machine_soldering_station", 0.0F, -1.0F, 0.0F, 5.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "machine_assembly_machine", 0.0F, -2.75F, 0.0F, 4.5F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.75F);
-        legacy(poses, "machine_tacz_ammo_assembler", 0.0F, -2.75F, 0.0F, 4.5F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.75F);
-        // RenderAshpit#getRenderer
-        legacy(poses, "machine_ashpit", 0.0F, -1.0F, 0.0F, 3.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // RenderFirebox#getRenderer
-        legacy(poses, "heater_firebox", 0.0F, -1.0F, 0.0F, 3.25F,
-                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
-        // RenderHeatingOven#getRenderer
-        legacy(poses, "heater_oven", 0.0F, -1.0F, 0.0F, 3.25F,
-                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
-        // RenderOilburner#getRenderer
-        legacy(poses, "heater_oilburner", 0.0F, -1.5F, 0.0F, 3.25F,
-                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
-        // RenderElectricHeater#getRenderer: the renderer's -0.5 X plus the
-        // converted OBJ's half-block export-origin difference.
-        legacy(poses, "heater_electric", 0.0F, 0.0F, 0.0F, 3.0F,
-                -1.0F, 0.0F, -0.5F, 0.0F, 1.0F);
-        // RenderHeaterHeatex#getRenderer
-        legacy(poses, "heater_heatex", 0.0F, -1.0F, 0.0F, 3.25F,
-                -0.5F, 0.0F, -0.5F, 0.0F, 1.0F);
-        // ItemRenderLibrary#machine_cyclotron
-        legacy(poses, "machine_cyclotron", 0.0F, 0.0F, 0.0F, 2.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // RenderExposureChamber#getRenderer
-        legacy(poses, "machine_exposure_chamber", 0.0F, -1.5F, 0.0F, 3.0F,
-                1.5F, 0.0F, 0.0F, 90.0F, 0.5F);
-        // RenderPASource/Beamline/RFC/Quadrupole/Dipole/Detector#getRenderer
-        legacy(poses, "pa_source", 0.0F, -1.0F, 0.0F, 4.0F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
-        legacy(poses, "pa_beamline", 0.0F, 0.0F, 0.0F, 4.0F,
-                0.0F, 0.0F, 0.0F, 90.0F, 1.0F);
-        legacy(poses, "pa_rfc", 0.0F, -1.0F, 0.0F, 4.0F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
-        legacy(poses, "pa_quadrupole", 0.0F, -3.5F, 0.0F, 4.0F,
-                0.0F, 0.0F, 0.0F, 90.0F, 1.0F);
-        legacy(poses, "pa_dipole", 0.0F, -3.0F, 0.0F, 3.5F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "pa_detector", 0.0F, -1.0F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
-        // RenderBatterySocket/Excavator/OreSlopper/CombustionEngine#getRenderer
-        legacy(poses, "machine_battery_socket", 0.0F, -2.0F, 0.0F, 5.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "machine_excavator", 0.0F, -2.0F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
-        legacy(poses, "machine_ore_slopper", 0.0F, -3.0F, 0.0F, 3.75F,
-                0.0F, 0.0F, 0.0F, -90.0F, 0.5F);
-        // ItemRenderLibrary#machine_silex and #machine_fel
-        legacy(poses, "machine_silex", 0.0F, -2.5F, 0.0F, 3.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "machine_fel", 0.0F, -1.0F, 0.0F, 2.0F,
-                1.0F, 0.0F, 0.0F, -90.0F, 1.0F);
-        // RenderCrystallizer#getRenderer
-        legacy(poses, "machine_crystallizer", 0.0F, -4.0F, 0.0F, 2.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // RenderRotaryFurnace#getRenderer
-        legacy(poses, "machine_rotary_furnace", 0.0F, -2.0F, 0.0F, 3.5F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.625F);
-        // RenderDerrick#getRenderer overrides the older ItemRenderLibrary
-        // entry in 1.7.10: it uses a 3x inventory pose and rotates the OBJ
-        // assembly by +90 degrees in its common renderer.
-        legacy(poses, "machine_well", 0.0F, -4.0F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 90.0F, 0.5F);
-        // RenderFrackingTower has no item-provider override.
-        legacy(poses, "machine_fracking_tower", 0.0F, -4.5F, 0.0F, 2.5F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.25F);
-        // ItemRenderLibrary#machine_flare
-        legacy(poses, "machine_flare", 0.0F, -4.0F, 0.0F, 2.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        // ItemRenderLibrary#machine_refinery
-        legacy(poses, "machine_refinery", 0.0F, -4.0F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 180.0F, 0.5F);
-        // RenderVacuumDistill#getRenderer
-        legacy(poses, "machine_vacuum_distill", 0.0F, -4.0F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        // RenderCoker#getRenderer
-        legacy(poses, "machine_coker", 0.0F, -5.0F, 0.0F, 2.75F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.25F);
-        // ItemRenderLibrary#machine_fraction_tower and #fraction_spacer
-        legacy(poses, "machine_fraction_tower", 0.0F, -2.5F, 0.0F, 3.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "fraction_spacer", 0.0F, 0.0F, 0.0F, 3.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // ItemRenderLibrary#machine_catalytic_cracker
-        legacy(poses, "machine_catalytic_cracker", 0.0F, -3.5F, 0.0F, 1.8F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        // RenderCatalyticReformer#getRenderer
-        legacy(poses, "machine_catalytic_reformer", 0.0F, -3.0F, 0.0F, 3.5F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        // ItemRenderLibrary#machine_liquefactor and #machine_solidifier
-        legacy(poses, "machine_liquefactor", 0.0F, -2.5F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "machine_solidifier", 0.0F, -2.5F, 0.0F, 3.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // RenderHydrotreater#getRenderer
-        legacy(poses, "machine_hydrotreater", 0.0F, -4.0F, 0.0F, 4.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 0.5F);
-        // RenderCrucible#getRenderer: translate(0,-1.5,0), scale(3.25).
-        legacy(poses, "machine_crucible", 0.0F, -1.5F, 0.0F, 3.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // RenderFurnaceCombination#getRenderer
-        legacy(poses, "furnace_combination", 0.0F, -1.5F, 0.0F, 3.25F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        // RenderStrandCaster#getRenderer: translate(2,0,2), scale(2).
-        legacy(poses, "machine_strand_caster", 2.0F, 0.0F, 2.0F, 2.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "pipe_anchor", 0.0F, -3.5F, 0.0F, 10.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 1.0F);
-        legacy(poses, "piston_inserter", 0.0F, -2.5F, 0.0F, 5.0F,
-                0.0F, 0.0F, 0.0F, 0.0F, 2.0F);
-
-        return Map.copyOf(poses);
-    }
-
-    private static void legacy(Map<String, LegacyPose> poses, String id, float inventoryX, float inventoryY,
-                               float inventoryZ, float inventoryScale, float commonX, float commonY,
-                               float commonZ, float commonYaw, float commonScale) {
-        legacy(poses, id, inventoryX, inventoryY, inventoryZ, inventoryScale, commonX, commonY,
-                commonZ, commonYaw, commonScale, false);
-    }
-
-    private static void legacy(Map<String, LegacyPose> poses, String id, float inventoryX, float inventoryY,
-                               float inventoryZ, float inventoryScale, float commonX, float commonY,
-                               float commonZ, float commonYaw, float commonScale, boolean rotateBeforeCommonTranslation) {
-        poses.put(id, new LegacyPose(inventoryX, inventoryY, inventoryZ, inventoryScale,
-                commonX, commonY, commonZ, commonYaw, commonScale, rotateBeforeCommonTranslation));
-    }
-
-    private static void add(Map<String, Profile> profiles, String id, String modelPath, float yaw, float guiTarget) {
-        add(profiles, id, yaw, guiTarget, modelPath);
-    }
-
-    private static void add(Map<String, Profile> profiles, String id, float yaw, float guiTarget, String... modelPaths) {
-        add(profiles, id, yaw, guiTarget, 0.0F, 0.0F, 0.0F, modelPaths);
-    }
-
-    private static void add(Map<String, Profile> profiles, String id, float yaw, float guiTarget,
-                            float offsetX, float offsetY, float offsetZ, String... modelPaths) {
-        add(profiles, id, yaw, 0.0F, guiTarget, 0.85F, offsetX, offsetY, offsetZ, modelPaths);
-    }
-
-    private static void addInventoryBarrel(Map<String, Profile> profiles, String id, String modelPath) {
-        add(profiles, id, 225.0F, 30.0F, 0.78F, 0.82F,
-                0.0F, 0.0F, 0.0F, modelPath);
-    }
-
-    private static void addThermalObj(Map<String, Profile> profiles, String id, String modelPath) {
-        add(profiles, id, 225.0F, 30.0F, 0.82F, 0.85F,
-                0.0F, 0.0F, 0.0F, modelPath);
-    }
-
-    private static void add(Map<String, Profile> profiles, String id, float yaw, float pitch,
-                            float guiTarget, float otherTarget, float offsetX, float offsetY,
-                            float offsetZ, String... modelPaths) {
-        profiles.put(id, new Profile(
-                List.of(modelPaths).stream()
+    private static void models(Map<String, ModelProfile> profiles, String id, String... modelPaths) {
+        profiles.put(id, new ModelProfile(
+                java.util.Arrays.stream(modelPaths)
                         .map(path -> ModelResourceLocation.standalone(ReinhardtsHBM.id(path)))
-                .toList(),
-                yaw,
-                pitch,
-                guiTarget,
-                otherTarget,
-                offsetX,
-                offsetY,
-                offsetZ
+                        .toList()
         ));
     }
 
-    private static void addBatteryVariant(Map<String, Profile> profiles, String variant) {
-        profiles.put("battery_pack_" + variant, new Profile(
-                List.of(ModelResourceLocation.standalone(
-                        ReinhardtsHBM.id("block/machine_battery_socket_" + variant)
-                )),
-                225.0F,
-                30.0F,
-                0.58F,
-                0.85F,
-                0.0F,
-                0.0F,
-                0.0F
-        ));
+    private record ModelProfile(List<ModelResourceLocation> models) {
     }
 
-    private record Profile(List<ModelResourceLocation> models, float yaw, float pitch, float guiTarget, float otherTarget,
-                           float offsetX, float offsetY, float offsetZ) {
+    private record DedicatedItemRender(List<BakedModel> models, BlockState state, ItemDisplayContext context,
+                                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                       int packedOverlay) {
     }
 
-    private record LegacyPose(float inventoryX, float inventoryY, float inventoryZ, float inventoryScale,
-                              float commonX, float commonY, float commonZ, float commonYaw, float commonScale,
-                              boolean rotateBeforeCommonTranslation) {
-    }
-
-    private record Fit(float centerX, float centerY, float centerZ, float longestSide) {
-        private static Fit measure(List<BakedModel> models, BlockState state) {
-            Bounds bounds = new Bounds();
-            for (BakedModel model : models) {
-                add(bounds, model.getQuads(state, null, seededRandom()));
-                for (Direction side : Direction.values()) {
-                    add(bounds, model.getQuads(state, side, seededRandom()));
-                }
-            }
-            if (!bounds.valid()) {
-                return new Fit(0.5F, 0.5F, 0.5F, 1.0F);
-            }
-            float sizeX = bounds.maxX - bounds.minX;
-            float sizeY = bounds.maxY - bounds.minY;
-            float sizeZ = bounds.maxZ - bounds.minZ;
-            float longest = Math.max(sizeX, Math.max(sizeY, sizeZ));
-            if (longest <= 0.0001F) {
-                return new Fit(0.5F, 0.5F, 0.5F, 1.0F);
-            }
-            return new Fit(
-                    (bounds.minX + bounds.maxX) * 0.5F,
-                    (bounds.minY + bounds.maxY) * 0.5F,
-                    (bounds.minZ + bounds.maxZ) * 0.5F,
-                    longest
-            );
-        }
-
-        private static RandomSource seededRandom() {
-            BOUNDS_RANDOM.setSeed(42L);
-            return BOUNDS_RANDOM;
-        }
-
-        private static void add(Bounds bounds, List<BakedQuad> quads) {
-            for (BakedQuad quad : quads) {
-                int[] vertices = quad.getVertices();
-                int stride = vertices.length / 4;
-                for (int vertex = 0; vertex < 4; vertex++) {
-                    int offset = vertex * stride;
-                    bounds.add(
-                            Float.intBitsToFloat(vertices[offset]),
-                            Float.intBitsToFloat(vertices[offset + 1]),
-                            Float.intBitsToFloat(vertices[offset + 2])
-                    );
-                }
-            }
-        }
-    }
-
-    private static final class Bounds {
-        private float minX = Float.POSITIVE_INFINITY;
-        private float minY = Float.POSITIVE_INFINITY;
-        private float minZ = Float.POSITIVE_INFINITY;
-        private float maxX = Float.NEGATIVE_INFINITY;
-        private float maxY = Float.NEGATIVE_INFINITY;
-        private float maxZ = Float.NEGATIVE_INFINITY;
-
-        private void add(float x, float y, float z) {
-            this.minX = Math.min(this.minX, x);
-            this.minY = Math.min(this.minY, y);
-            this.minZ = Math.min(this.minZ, z);
-            this.maxX = Math.max(this.maxX, x);
-            this.maxY = Math.max(this.maxY, y);
-            this.maxZ = Math.max(this.maxZ, z);
-        }
-
-        private boolean valid() {
-            return Float.isFinite(this.minX) && Float.isFinite(this.minY) && Float.isFinite(this.minZ)
-                    && Float.isFinite(this.maxX) && Float.isFinite(this.maxY) && Float.isFinite(this.maxZ);
-        }
-    }
 }

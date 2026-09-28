@@ -77,6 +77,8 @@ public class DfcReceiverBlockEntity extends DfcInventoryBlockEntity implements D
     public static void tick(Level level, BlockPos pos, BlockState state, DfcReceiverBlockEntity receiver) {
         if (!level.isClientSide) {
             receiver.tickServer(level);
+        } else {
+            receiver.refreshClientBeamSnapshotRevision();
         }
     }
 
@@ -151,7 +153,7 @@ public class DfcReceiverBlockEntity extends DfcInventoryBlockEntity implements D
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

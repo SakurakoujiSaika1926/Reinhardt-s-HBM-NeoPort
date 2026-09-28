@@ -5,7 +5,9 @@ import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.foundry.FoundryMaterialStack;
 import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.item.ScrapsItem;
+import com.reinhardt.hbm.block.FoundryOutletBlock;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
+import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class FoundryTankBlockEntity extends BlockEntity implements CrucibleAcceptor, MachineInventory {
+public class FoundryTankBlockEntity extends BlockEntity implements CrucibleAcceptor, MachineInventory, ClientRenderNeighborSnapshot {
     public static final int CAPACITY = FoundryShape.BLOCK.q(4);
     private static final Direction[] HORIZONTALS = {
             Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST
@@ -36,6 +38,7 @@ public class FoundryTankBlockEntity extends BlockEntity implements CrucibleAccep
     private FoundryMaterial type;
     private int amount;
     private int nextUpdate;
+    private volatile RenderNeighborSnapshot renderNeighborSnapshot = RenderNeighborSnapshot.EMPTY;
 
     public FoundryTankBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.FOUNDRY_TANK.get(), pos, state);
@@ -74,6 +77,39 @@ public class FoundryTankBlockEntity extends BlockEntity implements CrucibleAccep
 
     public int capacity() {
         return CAPACITY;
+    }
+
+    public RenderNeighborSnapshot renderNeighborSnapshot() {
+        return this.renderNeighborSnapshot;
+    }
+
+    @Override
+    public void refreshClientRenderNeighborSnapshot() {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        int tanks = 0;
+        int outlets = 0;
+        for (Direction direction : Direction.values()) {
+            BlockState neighbor = this.level.getBlockState(this.worldPosition.relative(direction));
+            int bit = 1 << direction.ordinal();
+            if (neighbor.is(HbmBlocks.FOUNDRY_TANK.get())) {
+                tanks |= bit;
+            }
+            if (direction.getAxis().isHorizontal()
+                    && neighbor.is(HbmBlocks.FOUNDRY_OUTLET.get())
+                    && neighbor.hasProperty(FoundryOutletBlock.FACING)
+                    && neighbor.getValue(FoundryOutletBlock.FACING) == direction) {
+                outlets |= bit;
+            }
+        }
+        this.renderNeighborSnapshot = new RenderNeighborSnapshot(tanks, outlets);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        refreshClientRenderNeighborSnapshot();
     }
 
     public boolean scrape(Player player) {
@@ -278,5 +314,17 @@ public class FoundryTankBlockEntity extends BlockEntity implements CrucibleAccep
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    public record RenderNeighborSnapshot(int tankMask, int outletMask) {
+        private static final RenderNeighborSnapshot EMPTY = new RenderNeighborSnapshot(0, 0);
+
+        public boolean tank(Direction direction) {
+            return (tankMask & 1 << direction.ordinal()) != 0;
+        }
+
+        public boolean outlet(Direction direction) {
+            return (outletMask & 1 << direction.ordinal()) != 0;
+        }
     }
 }

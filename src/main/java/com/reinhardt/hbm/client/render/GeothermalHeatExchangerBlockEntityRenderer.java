@@ -14,12 +14,21 @@ import org.joml.Quaternionf;
 
 public final class GeothermalHeatExchangerBlockEntityRenderer
         implements LongRangeBlockEntityRenderer<GeothermalHeatExchangerBlockEntity> {
+    /*
+     * max hypot(x,z) of every face-used baked-float Rotor vertex.  Multiplying
+     * by (1 + 16*2^-23), then rounding upward to float, is the outward interval
+     * for AxisAngle4f -> Quaternionf -> Matrix4f's float sin/cos and multiply-
+     * add chain (two component roundings plus six matrix arithmetic roundings).
+     */
+    private static final float ROTOR_SWEEP_RADIUS = Math.nextUp((float)
+            (3.0397118126837444D * (1.0D + 16.0D * Math.scalb(1.0D, -23))));
     private static final ModelResourceLocation MAIN = MachineModelRenderer.standalone("block/machine_hephaestus_main");
     private static final ModelResourceLocation ROTOR = MachineModelRenderer.standalone("block/machine_hephaestus_rotor");
     private static final ModelResourceLocation CORE_COBBLESTONE =
             MachineModelRenderer.standalone("block/machine_hephaestus_core_cobblestone");
     private static final ModelResourceLocation CORE_LAVA =
             MachineModelRenderer.standalone("block/machine_hephaestus_core_lava");
+    private static final AABB LOCAL_RENDER_BOUNDS = buildLocalRenderBounds();
 
     public GeothermalHeatExchangerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -69,23 +78,17 @@ public final class GeothermalHeatExchangerBlockEntityRenderer
 
     @Override
     public AABB getRenderBoundingBox(GeothermalHeatExchangerBlockEntity exchanger) {
-        return new AABB(
-                exchanger.getBlockPos().getX() - 3.0D,
-                exchanger.getBlockPos().getY(),
-                exchanger.getBlockPos().getZ() - 3.0D,
-                exchanger.getBlockPos().getX() + 4.0D,
-                exchanger.getBlockPos().getY() + 12.0D,
-                exchanger.getBlockPos().getZ() + 4.0D);
+        return LOCAL_RENDER_BOUNDS.move(exchanger.getBlockPos());
     }
 
-    @Override
-    public int getViewDistance() {
-        return 256;
-    }
-
-    @Override
-    public boolean shouldRenderOffScreen(GeothermalHeatExchangerBlockEntity exchanger) {
-        return true;
+    private static AABB buildLocalRenderBounds() {
+        PoseStack pose = new PoseStack();
+        pose.translate(0.5F, 0.0F, 0.5F);
+        // Main/Core are inside X/Z +/-1.75.  The Rotor's complete legal yaw
+        // sweep is the larger radius above; all groups share Y 0..12.
+        return RenderBounds.transformedBox(net.minecraft.core.BlockPos.ZERO, pose,
+                -ROTOR_SWEEP_RADIUS, 0.0F, -ROTOR_SWEEP_RADIUS,
+                ROTOR_SWEEP_RADIUS, 12.0F, ROTOR_SWEEP_RADIUS);
     }
 
     private static Quaternionf yaw(float degrees) {

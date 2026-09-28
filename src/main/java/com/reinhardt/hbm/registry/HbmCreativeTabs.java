@@ -3,10 +3,10 @@ package com.reinhardt.hbm.registry;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.integration.createbigcannons.HbmCreateBigCannonsCompat;
 import com.reinhardt.hbm.item.BedrockOreItem;
+import com.reinhardt.hbm.item.BatteryPackItem;
 import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.item.ConcreteColoredBlockItem;
 import com.reinhardt.hbm.item.CokeBlockItem;
-import com.reinhardt.hbm.item.DrillbitItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
@@ -19,7 +19,6 @@ import com.reinhardt.hbm.item.NuclearWasteItem;
 import com.reinhardt.hbm.item.OreBasaltBlockItem;
 import com.reinhardt.hbm.item.SellafieldBlockItem;
 import com.reinhardt.hbm.item.ToasterBlockItem;
-import com.reinhardt.hbm.item.FoundryMoldItem;
 import com.reinhardt.hbm.item.FusionComponentBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -119,8 +118,6 @@ public final class HbmCreativeTabs {
                             }
                             if (material == HbmItems.FALLOUT_ITEM) {
                                 output.accept(material);
-                            } else if (material.get() instanceof com.reinhardt.hbm.item.ScrapsItem scraps) {
-                                scraps.addCreativeVariants(output);
                             } else if (material.get() instanceof NuclearWasteItem waste) {
                                 waste.addCreativeVariants(output);
                             } else if (material.get() instanceof LegacyVariantItem variantItem) {
@@ -190,8 +187,6 @@ public final class HbmCreativeTabs {
                                 variantItem.addCreativeVariants(output);
                             } else if (component.get() instanceof com.reinhardt.hbm.item.LegacyMetaUpgradeItem upgrade) {
                                 upgrade.addCreativeVariants(output);
-                            } else if (component.get() instanceof DrillbitItem drillbit) {
-                                drillbit.addCreativeVariants(output);
                             } else {
                                 output.accept(component);
                             }
@@ -221,6 +216,7 @@ public final class HbmCreativeTabs {
                         output.accept(HbmBlocks.RED_CONNECTOR);
                         output.accept(HbmBlocks.CONNECTOR_RED_SUPER);
                         output.accept(HbmBlocks.RED_PYLON);
+                        output.accept(HbmBlocks.RED_PYLON_STEEL);
                         output.accept(HbmBlocks.RED_PYLON_MEDIUM_WOOD);
                         output.accept(HbmBlocks.RED_PYLON_MEDIUM_WOOD_TRANSFORMER);
                         output.accept(HbmBlocks.RED_PYLON_MEDIUM_STEEL);
@@ -267,12 +263,12 @@ public final class HbmCreativeTabs {
                         output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "battery_sodium"));
                         output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "battery_schrabidium"));
                         output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "battery_quantum"));
-                        output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_copper"));
-                        output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_gold"));
-                        output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_niobium"));
-                        output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_tantalum"));
-                        output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_bismuth"));
-                        output.accept(LegacyVariantItem.stackFor(HbmItems.BATTERY_PACK, "capacitor_spark"));
+                        acceptFullyCharged(output, HbmItems.CAPACITOR_COPPER);
+                        acceptFullyCharged(output, HbmItems.CAPACITOR_GOLD);
+                        acceptFullyCharged(output, HbmItems.CAPACITOR_NIOBIUM);
+                        acceptFullyCharged(output, HbmItems.CAPACITOR_TANTALUM);
+                        acceptFullyCharged(output, HbmItems.CAPACITOR_BISMUTH);
+                        acceptFullyCharged(output, HbmItems.CAPACITOR_SPARK);
                         ((com.reinhardt.hbm.item.SelfChargingBatteryItem) HbmItems.BATTERY_SC.get()).addCreativeVariants(output);
                         output.accept(HbmItems.BATTERY_CREATIVE);
                         output.accept(HbmItems.BATTERY_POTATO);
@@ -284,6 +280,12 @@ public final class HbmCreativeTabs {
                     })
                     .build()
     );
+
+    private static void acceptFullyCharged(CreativeModeTab.Output output, Supplier<? extends Item> item) {
+        ItemStack full = new ItemStack(item.get());
+        BatteryPackItem.setStoredCharge(full, BatteryPackItem.capacity(full));
+        output.accept(full);
+    }
 
     public static final Supplier<CreativeModeTab> REACTORS = TABS.register(
             "reactors",
@@ -565,11 +567,7 @@ public final class HbmCreativeTabs {
                             acceptBlock(output, block);
                         }
                         for (var item : HbmItems.FOUNDRY_ITEMS) {
-                            if (item.get() instanceof FoundryMoldItem mold) {
-                                mold.addCreativeVariants(output);
-                            } else {
-                                output.accept(item);
-                            }
+                            output.accept(item);
                         }
                     })
                     .build()
@@ -792,6 +790,9 @@ public final class HbmCreativeTabs {
                     .title(Component.translatable("creative_tab.reinhardtshbm.miscellaneous"))
                     .icon(() -> new ItemStack(HbmItems.INGOT_ADVANCED_ALLOY.get()))
                     .displayItems((parameters, output) -> {
+                        for (var crop : HbmItems.CROP_ITEMS) {
+                            output.accept(crop);
+                        }
                         for (var item : HbmItems.PORTED_PLAIN_ITEMS) {
                             if (!HbmItems.isHiddenPortedPlainItem(item)
                                     && !isPetroleumLegacyItem(item)
@@ -824,9 +825,19 @@ public final class HbmCreativeTabs {
     private HbmCreativeTabs() {
     }
 
-    /** Hidden structure-only blocks have no item and must not abort tab/search rebuilding. */
+    /**
+     * Resolve a block item by registry id instead of {@link Block#asItem()}.
+     *
+     * <p>Several ported blocks use a dedicated BlockItem registered separately
+     * from the block (for example the radiation-sealed fluid duct).  Their
+     * block-to-item map is not a reliable source while creative tab contents
+     * are being assembled, even though the item registry entry already exists.
+     * Looking up the shared id keeps those legitimate items visible to both
+     * the creative inventory and JEI while still skipping structure-only
+     * blocks which intentionally have no item.</p>
+     */
     private static void acceptBlock(CreativeModeTab.Output output, DeferredBlock<? extends Block> block) {
-        Item item = block.get().asItem();
+        Item item = BuiltInRegistries.ITEM.get(block.getId());
         if (item != null && item != Items.AIR) {
             output.accept(item);
         }

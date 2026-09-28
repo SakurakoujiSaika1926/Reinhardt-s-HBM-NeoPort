@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.chemical_dye",
+  "ingredient": { "tag": "c:dusts/cobalt" },
+  "acid": { "fluid": "lightoil", "amount": 100 },
+  "duration": 20,
+  "result": { "id": "reinhardtshbm:chemical_dye_blue", "count": 4 }
+}

@@ -2,6 +2,7 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.LegacyDisplayStandBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyPedestalRecipes;
+import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -18,6 +19,8 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
@@ -43,6 +46,17 @@ public final class LegacyDisplayStandBlock extends Block implements EntityBlock 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case PEDESTAL -> pedestalStateForPlacement(context);
+            case SKELETON_HOLDER -> skeletonHolderStateForPlacement(context);
+        };
+    }
+
+    private BlockState pedestalStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState skeletonHolderStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
@@ -50,6 +64,18 @@ public final class LegacyDisplayStandBlock extends Block implements EntityBlock 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new LegacyDisplayStandBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
+                                                                  BlockEntityType<T> type) {
+        if (!level.isClientSide || type != HbmBlockEntities.LEGACY_DISPLAY_STAND.get()) {
+            return null;
+        }
+        return (tickerLevel, tickerPos, tickerState, blockEntity) ->
+                LegacyDisplayStandBlockEntity.clientTick(tickerLevel, tickerPos, tickerState,
+                        (LegacyDisplayStandBlockEntity) blockEntity);
     }
 
     @Override
@@ -109,11 +135,33 @@ public final class LegacyDisplayStandBlock extends Block implements EntityBlock 
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case PEDESTAL -> rotatePedestal(state, rotation);
+            case SKELETON_HOLDER -> rotateSkeletonHolder(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case PEDESTAL -> mirrorPedestal(state, mirror);
+            case SKELETON_HOLDER -> mirrorSkeletonHolder(state, mirror);
+        };
+    }
+
+    private static BlockState rotatePedestal(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateSkeletonHolder(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorPedestal(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSkeletonHolder(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

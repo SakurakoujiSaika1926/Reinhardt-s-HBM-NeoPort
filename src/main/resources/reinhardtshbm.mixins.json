@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.reinhardt.hbm.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "sable.SubLevelAssemblyHelperMixin",
+    "sable.SableCommonEventsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

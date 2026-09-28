@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:liquefaction",
+  "group": "liquefactor.ethanol",
+  "ingredient": {
+    "item": "reinhardtshbm:plant_hemp"
+  },
+  "output": {
+    "fluid": "ethanol",
+    "amount": 100
+  }
+}

@@ -15,6 +15,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -52,7 +54,100 @@ public class DetonatableBlock extends Block {
 
     @Override
     public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
-        return withNeighborConnections(this.defaultBlockState(), context.getLevel(), context.getClickedPos());
+        return switch (this.kind) {
+            case CORD -> cordStateForPlacement(context);
+            case CHARGE -> chargeStateForPlacement(context);
+            case NUKE -> nukeStateForPlacement(context);
+            case MINER -> minerStateForPlacement(context);
+        };
+    }
+
+    private BlockState cordStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        BlockState updated = this.defaultBlockState();
+        for (Direction direction : Direction.values()) {
+            updated = updated.setValue(propertyFor(direction),
+                    canConnectToDetCord(context.getLevel(), context.getClickedPos(), direction));
+        }
+        return updated;
+    }
+
+    private BlockState chargeStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        BlockState updated = this.defaultBlockState();
+        for (Direction direction : Direction.values()) {
+            updated = updated.setValue(propertyFor(direction),
+                    canConnectToDetCord(context.getLevel(), context.getClickedPos(), direction));
+        }
+        return updated;
+    }
+
+    private BlockState nukeStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        BlockState updated = this.defaultBlockState();
+        for (Direction direction : Direction.values()) {
+            updated = updated.setValue(propertyFor(direction),
+                    canConnectToDetCord(context.getLevel(), context.getClickedPos(), direction));
+        }
+        return updated;
+    }
+
+    private BlockState minerStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        BlockState updated = this.defaultBlockState();
+        for (Direction direction : Direction.values()) {
+            updated = updated.setValue(propertyFor(direction),
+                    canConnectToDetCord(context.getLevel(), context.getClickedPos(), direction));
+        }
+        return updated;
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.kind) {
+            case CORD -> rotateCord(state, rotation);
+            case CHARGE -> rotateCharge(state, rotation);
+            case NUKE -> rotateNuke(state, rotation);
+            case MINER -> rotateMiner(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case CORD -> mirrorCord(state, mirror);
+            case CHARGE -> mirrorCharge(state, mirror);
+            case NUKE -> mirrorNuke(state, mirror);
+            case MINER -> mirrorMiner(state, mirror);
+        };
+    }
+
+    private static BlockState rotateCord(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateCharge(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateNuke(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateMiner(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState mirrorCord(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorCharge(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorNuke(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorMiner(BlockState state, Mirror mirror) {
+        return state;
     }
 
     @Override
@@ -154,14 +249,6 @@ public class DetonatableBlock extends Block {
             }
         }
         return false;
-    }
-
-    private static BlockState withNeighborConnections(BlockState state, LevelAccessor level, BlockPos pos) {
-        BlockState updated = state;
-        for (Direction direction : Direction.values()) {
-            updated = updated.setValue(propertyFor(direction), canConnectToDetCord(level, pos, direction));
-        }
-        return updated;
     }
 
     public static boolean canConnectToDetCord(LevelAccessor level, BlockPos pos, Direction direction) {

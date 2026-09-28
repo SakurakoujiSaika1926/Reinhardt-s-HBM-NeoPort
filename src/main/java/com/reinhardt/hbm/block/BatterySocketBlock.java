@@ -4,6 +4,7 @@ import com.reinhardt.hbm.blockentity.BatterySocketBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -18,6 +19,25 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class BatterySocketBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = Footprint.fromOffsets(
             BlockPos.ZERO,
             new BlockPos(0, 0, 1),
@@ -30,7 +50,17 @@ public class BatterySocketBlock extends LargeMachineBlock implements EntityBlock
     );
 
     public BatterySocketBlock(Properties properties) {
-        super(properties, FOOTPRINT, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, BatterySocketBlock::mapBatterySocketOffset);
+    }
+
+    private static BlockPos mapBatterySocketOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Battery socket requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable

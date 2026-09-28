@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "reinhardtshbm:platemetal",
+    "reinhardtshbm:platemetal_black",
+    "reinhardtshbm:platemetal_white",
+    "reinhardtshbm:platemetal_red",
+    "reinhardtshbm:platemetal_green",
+    "reinhardtshbm:platemetal_light_gray",
+    "reinhardtshbm:platemetal_blue",
+    "reinhardtshbm:platemetal_purple",
+    "reinhardtshbm:platemetal_cyan",
+    "reinhardtshbm:platemetal_pink",
+    "reinhardtshbm:platemetal_lime",
+    "reinhardtshbm:platemetal_yellow",
+    "reinhardtshbm:platemetal_light_blue",
+    "reinhardtshbm:platemetal_magenta",
+    "reinhardtshbm:platemetal_orange"
+  ]
+}

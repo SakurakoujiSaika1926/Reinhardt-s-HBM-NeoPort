@@ -1,0 +1,74 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_mes_7",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_mes"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  7
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "visible",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_schrabidium_fuel"
+                                 },
+                        "weight":  50
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_long_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  2
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  7
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_short_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  2
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  10
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_long_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  4
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  7
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_short_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  7
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  10
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:powder_coal_tiny"
+                                 },
+                        "weight":  16
+                    }
+                ]
+}

@@ -1,9 +1,4 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "reinhardtshbm:enable_528_mode"
-    }
-  ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.excircuit",
   "duration": 400,

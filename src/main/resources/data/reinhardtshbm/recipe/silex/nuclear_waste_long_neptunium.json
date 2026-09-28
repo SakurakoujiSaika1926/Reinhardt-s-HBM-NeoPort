@@ -1,0 +1,50 @@
+{
+  "type": "reinhardtshbm:silex",
+  "group": "silex.nuclear_waste_long_neptunium",
+  "ingredient": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:nuclear_waste_long"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "waste_class": 2
+      }
+    }
+  },
+  "fluid_produced": 900,
+  "fluid_consumed": 100,
+  "wavelength": "ir",
+  "outputs": [
+    {
+      "item": {
+        "id": "reinhardtshbm:nugget_u238"
+      },
+      "weight": 15
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:nugget_pu239"
+      },
+      "weight": 40
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:nugget_pu240"
+      },
+      "weight": 15
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:nugget_technetium"
+      },
+      "weight": 15
+    },
+    {
+      "item": {
+        "id": "reinhardtshbm:nuclear_waste_tiny"
+      },
+      "weight": 15
+    }
+  ]
+}

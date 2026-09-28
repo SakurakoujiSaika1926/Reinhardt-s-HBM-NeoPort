@@ -20,9 +20,9 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:item_expensive_lead_plating"
+        "item": "reinhardtshbm:item_expensive_cmb_tubes"
       },
-      "count": 32
+      "count": 8
     },
     {
       "ingredient": {
@@ -32,9 +32,9 @@
     },
     {
       "ingredient": {
-        "tag": "c:ingots/hard_plastic"
+        "item": "reinhardtshbm:item_expensive_plastic"
       },
-      "count": 16
+      "count": 8
     },
     {
       "ingredient": {

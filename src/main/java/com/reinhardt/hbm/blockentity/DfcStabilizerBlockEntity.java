@@ -55,7 +55,7 @@ public class DfcStabilizerBlockEntity extends DfcInventoryBlockEntity implements
             switch (index) {
                 case 0 -> DfcStabilizerBlockEntity.this.power = Integer.toUnsignedLong(value);
                 case 2 -> DfcStabilizerBlockEntity.this.watts = value;
-                case 3 -> DfcStabilizerBlockEntity.this.beam = value;
+                case 3 -> DfcStabilizerBlockEntity.this.setBeam(value, true);
                 case 7 -> DfcStabilizerBlockEntity.this.lastInput = Integer.toUnsignedLong(value);
                 default -> {
                 }
@@ -75,6 +75,8 @@ public class DfcStabilizerBlockEntity extends DfcInventoryBlockEntity implements
     public static void tick(Level level, BlockPos pos, BlockState state, DfcStabilizerBlockEntity stabilizer) {
         if (!level.isClientSide) {
             stabilizer.tickServer(level);
+        } else {
+            stabilizer.refreshClientBeamSnapshotRevision();
         }
     }
 
@@ -139,7 +141,7 @@ public class DfcStabilizerBlockEntity extends DfcInventoryBlockEntity implements
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -157,12 +159,13 @@ public class DfcStabilizerBlockEntity extends DfcInventoryBlockEntity implements
         this.power = Math.max(0L, Math.min(MAX_POWER, tag.getLong("Power")));
         this.lastInput = Math.max(0L, tag.getLong("LastInput"));
         this.watts = clampWatts(tag.getInt("Watts"));
-        this.beam = tag.getInt("Beam");
+        setBeam(tag.getInt("Beam"), true);
     }
 
     private void tickServer(Level level) {
         PowerNetworkManager.tickFromEndpoint(level, this);
         this.watts = clampWatts(this.watts);
+        int previousBeam = this.beam;
         this.beam = 0;
 
         long demand = demand();
@@ -190,7 +193,13 @@ public class DfcStabilizerBlockEntity extends DfcInventoryBlockEntity implements
             }
         }
 
-        setChangedAndSync(level.getGameTime() % 10L == 0L || this.beam > 0);
+        publishBeamRenderSnapshot(this.beam, false);
+        setChangedAndSync(level.getGameTime() % 10L == 0L || this.beam > 0 || previousBeam != this.beam);
+    }
+
+    private void setBeam(int beam, boolean rebuildClientSection) {
+        this.beam = Math.max(0, beam);
+        publishBeamRenderSnapshot(this.beam, rebuildClientSection);
     }
 
     private long demand() {

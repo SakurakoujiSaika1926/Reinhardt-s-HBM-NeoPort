@@ -3,6 +3,14 @@
   "group": "chem.uf6",
   "duration": 100,
   "power": 500,
+  "icon": {
+    "id": "reinhardtshbm:fluid_icon",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "uf6"
+      }
+    }
+  },
   "input_items": [
     {
       "ingredient": {

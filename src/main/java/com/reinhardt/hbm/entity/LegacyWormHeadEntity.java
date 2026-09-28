@@ -53,7 +53,6 @@ public final class LegacyWormHeadEntity extends Monster {
         super(type, level);
         noPhysics = true;
         setNoGravity(true);
-        noCulling = true;
         xpReward = 1000;
     }
 

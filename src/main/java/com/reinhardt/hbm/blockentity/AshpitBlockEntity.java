@@ -226,7 +226,7 @@ public class AshpitBlockEntity extends BlockEntity implements WorldlyContainer, 
 
     @Override
     public boolean stillValid(net.minecraft.world.entity.player.Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

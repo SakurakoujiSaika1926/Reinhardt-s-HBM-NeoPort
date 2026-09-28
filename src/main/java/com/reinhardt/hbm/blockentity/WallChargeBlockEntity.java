@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class WallChargeBlockEntity extends BlockEntity {
+    public static final int MAX_TIMER_TICKS = 6_000;
     private int timer;
     private boolean started;
 
@@ -62,7 +63,7 @@ public final class WallChargeBlockEntity extends BlockEntity {
 
     public void arm(int fuse) {
         if (fuse > 0) {
-            timer = fuse;
+            timer = Math.min(MAX_TIMER_TICKS, fuse);
             started = true;
             sync();
         }
@@ -101,7 +102,7 @@ public final class WallChargeBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        timer = tag.getInt("Timer");
+        timer = Math.max(0, Math.min(MAX_TIMER_TICKS, tag.getInt("Timer")));
         started = tag.getBoolean("Started");
     }
 

@@ -12,6 +12,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class GasFlareBlockEntityRenderer implements LongRangeBlockEntityRenderer<GasFlareBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_flare_world");
+    private static final AABB LOCAL_BOUNDS = buildGasFlareBounds();
 
     public GasFlareBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -31,7 +32,7 @@ public class GasFlareBlockEntityRenderer implements LongRangeBlockEntityRenderer
     ) {
         BlockState state = flare.getBlockState();
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, 180.0F);
+        applyGasFlareTransform(poseStack);
         MachineModelRenderer.renderUnculled(
                 MachineModelRenderer.model(WORLD),
                 poseStack,
@@ -45,13 +46,18 @@ public class GasFlareBlockEntityRenderer implements LongRangeBlockEntityRenderer
 
     @Override
     public AABB getRenderBoundingBox(GasFlareBlockEntity flare) {
-        BlockPosBounds bounds = new BlockPosBounds(flare.getBlockPos().getX(), flare.getBlockPos().getY(), flare.getBlockPos().getZ());
-        return bounds.asBox();
+        return LOCAL_BOUNDS.move(flare.getBlockPos());
     }
 
-    private record BlockPosBounds(int x, int y, int z) {
-        private AABB asBox() {
-            return new AABB(this.x - 2.0D, this.y, this.z - 2.0D, this.x + 3.0D, this.y + 13.0D, this.z + 3.0D);
-        }
+    private static AABB buildGasFlareBounds() {
+        PoseStack poseStack = new PoseStack();
+        applyGasFlareTransform(poseStack);
+        return RenderBounds.transformedBox(net.minecraft.core.BlockPos.ZERO, poseStack,
+                -1.5F, 0.0F, -1.5F, 1.875F, 12.0F, 1.875F);
+    }
+
+    private static void applyGasFlareTransform(PoseStack poseStack) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
     }
 }

@@ -1,87 +1,42 @@
 package com.reinhardt.hbm.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.CustomModelData;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.function.Supplier;
 
 public class DrillbitItem extends Item {
-    private static final String TYPE = "type";
+    private final DrillType type;
 
-    public DrillbitItem(Properties properties) {
+    public DrillbitItem(Properties properties, DrillType type) {
         super(properties);
-    }
-
-    @Override
-    public Component getName(ItemStack stack) {
-        return Component.translatable("item.reinhardtshbm.drillbit." + type(stack).id());
+        this.type = type;
     }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        DrillType type = type(stack);
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.speed", (int) (type.speed() * 100.0D)).withStyle(ChatFormatting.YELLOW));
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.tier", type.tier()).withStyle(ChatFormatting.YELLOW));
-        if (type.fortune() > 0) {
-            tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.fortune", type.fortune()).withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.speed", (int) (this.type.speed() * 100.0D)).withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.tier", this.type.tier()).withStyle(ChatFormatting.YELLOW));
+        if (this.type.fortune() > 0) {
+            tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.fortune", this.type.fortune()).withStyle(ChatFormatting.LIGHT_PURPLE));
         }
-        if (type.vein()) {
+        if (this.type.vein()) {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.vein").withStyle(ChatFormatting.GREEN));
         }
-        if (type.silk()) {
+        if (this.type.silk()) {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.drillbit.silk").withStyle(ChatFormatting.GREEN));
         }
     }
 
-    public void addCreativeVariants(CreativeModeTab.Output output) {
-        for (DrillType type : DrillType.values()) {
-            output.accept(stackFor(this, type));
-        }
-    }
-
-    public DrillType type(ItemStack stack) {
-        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        if (tag.contains(TYPE)) {
-            return DrillType.byId(tag.getString(TYPE));
-        }
-        CustomModelData modelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
-        if (modelData != null) {
-            return DrillType.byModelData(modelData.value());
-        }
-        return DrillType.STEEL;
+    public DrillType type() {
+        return this.type;
     }
 
     public static DrillType typeOf(ItemStack stack) {
-        return stack.getItem() instanceof DrillbitItem drillbit ? drillbit.type(stack) : null;
-    }
-
-    public static ItemStack stackFor(Supplier<? extends Item> item, DrillType type) {
-        return stackFor(item.get(), type);
-    }
-
-    public static ItemStack stackFor(Item item, DrillType type) {
-        ItemStack stack = new ItemStack(item);
-        if (item instanceof DrillbitItem drillbit) {
-            drillbit.setType(stack, type);
-        }
-        return stack;
-    }
-
-    private void setType(ItemStack stack, DrillType type) {
-        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        tag.putString(TYPE, type.id());
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(type.ordinal()));
+        return stack.getItem() instanceof DrillbitItem drillbit ? drillbit.type() : null;
     }
 
     public enum DrillType {
@@ -110,10 +65,6 @@ public class DrillbitItem extends Item {
             this.silk = silk;
         }
 
-        public String id() {
-            return name().toLowerCase(Locale.ROOT);
-        }
-
         public double speed() {
             return this.speed;
         }
@@ -134,20 +85,5 @@ public class DrillbitItem extends Item {
             return this.silk;
         }
 
-        private static DrillType byId(String id) {
-            if (id != null && !id.isBlank()) {
-                for (DrillType type : values()) {
-                    if (type.id().equals(id) || type.name().equalsIgnoreCase(id)) {
-                        return type;
-                    }
-                }
-            }
-            return STEEL;
-        }
-
-        private static DrillType byModelData(int modelData) {
-            DrillType[] values = values();
-            return modelData >= 0 && modelData < values.length ? values[modelData] : STEEL;
-        }
     }
 }

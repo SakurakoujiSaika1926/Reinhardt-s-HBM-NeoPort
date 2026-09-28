@@ -6,7 +6,6 @@ import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.block.LegacyVariantBlock;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -33,7 +32,7 @@ public final class IcfStructBlockEntity extends BlockEntity {
         }
         BlockState core = HbmBlocks.ICF.get().defaultBlockState().setValue(LargeMachineBlock.FACING, facing);
         level.setBlock(pos, core, Block.UPDATE_ALL);
-        LargeMachineBlock.placeDummies(level, pos, facing, IcfCoreBlock.FOOTPRINT, LargeMachineBlock.RotationBasis.HBM_LEGACY_SOUTH);
+        LargeMachineBlock.placeDummies(level, pos, facing, IcfCoreBlock.FOOTPRINT, IcfCoreBlock::mapIcfCoreOffset);
         IcfCoreBlock.refreshPorts(level, pos, facing);
     }
 
@@ -72,11 +71,22 @@ public final class IcfStructBlockEntity extends BlockEntity {
     }
 
     private static boolean component(Level level, BlockPos origin, Direction facing, int width, int y, int length, int variant) {
-        Direction side = LegacyMachineGeometry.forgeRotateUp(facing);
-        BlockPos pos = origin.relative(side, length).relative(facing, width).above(y);
+        BlockPos authoredOffset = new BlockPos(-length, y, width);
+        BlockPos pos = origin.offset(mapIcfStructureOffset(facing, authoredOffset));
         BlockState state = level.getBlockState(pos);
         return state.is(HbmBlocks.ICF_COMPONENT.get())
                 && state.hasProperty(LegacyVariantBlock.VARIANT)
                 && state.getValue(LegacyVariantBlock.VARIANT) == variant;
+    }
+
+    private static BlockPos mapIcfStructureOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX(); int y = offset.getY(); int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("ICF structure requires a horizontal facing: " + facing);
+        };
     }
 }

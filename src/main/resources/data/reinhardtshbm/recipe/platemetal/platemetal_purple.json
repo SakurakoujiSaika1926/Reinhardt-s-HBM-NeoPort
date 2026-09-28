@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "PPP",
+    "PDP",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "reinhardtshbm:platemetal"
+    },
+    "D": {
+      "tag": "c:dyes/purple"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:platemetal_purple",
+    "count": 8
+  }
+}

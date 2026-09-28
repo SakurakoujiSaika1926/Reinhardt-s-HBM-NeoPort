@@ -55,7 +55,7 @@ public class GroundwaterPumpBlockItem extends BlockItem {
         if (!level.getBlockState(corePos).canBeReplaced(placeContext)) {
             return InteractionResult.FAIL;
         }
-        if (!LargeMachineBlock.canPlaceFootprintAt(level, corePos, facing, GroundwaterPumpBlock.FOOTPRINT, placeContext)) {
+        if (!pumpBlock.canPlaceMachineFootprintAt(level, corePos, facing, placeContext)) {
             return InteractionResult.FAIL;
         }
 

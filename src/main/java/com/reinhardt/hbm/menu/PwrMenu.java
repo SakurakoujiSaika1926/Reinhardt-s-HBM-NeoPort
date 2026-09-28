@@ -2,6 +2,7 @@ package com.reinhardt.hbm.menu;
 
 import com.reinhardt.hbm.blockentity.PwrControllerBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmMenus;
 import net.minecraft.core.BlockPos;
@@ -44,9 +45,12 @@ public class PwrMenu extends AbstractContainerMenu {
         this.data = data;
         this.blockPos = blockPos.immutable();
 
-        addSlot(new ValidatedSlot(container, PwrControllerBlockEntity.SLOT_INPUT, 35, 35));
-        addSlot(new TakeOnlySlot(container, PwrControllerBlockEntity.SLOT_OUTPUT, 35, 71));
-        addSlot(new ValidatedSlot(container, PwrControllerBlockEntity.SLOT_UPGRADE, 143, 71));
+        // Exact 1.7.10 ContainerPWR positions.  The GUI texture was authored
+        // around these coordinates; moving the slots makes every panel appear
+        // unrelated to the item it represents.
+        addSlot(new ValidatedSlot(container, PwrControllerBlockEntity.SLOT_INPUT, 53, 5));
+        addSlot(new TakeOnlySlot(container, PwrControllerBlockEntity.SLOT_OUTPUT, 89, 32));
+        addSlot(new ValidatedSlot(container, PwrControllerBlockEntity.SLOT_IDENTIFIER, 8, 59));
         addPlayerInventory(playerInventory, 8, 106);
         addDataSlots(data);
     }
@@ -62,6 +66,11 @@ public class PwrMenu extends AbstractContainerMenu {
         moved = stack.copy();
         if (index < MACHINE_SLOT_COUNT) {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (stack.getItem() instanceof FluidIdentifierItem) {
+            if (!moveItemStackTo(stack, PwrControllerBlockEntity.SLOT_IDENTIFIER,
+                    PwrControllerBlockEntity.SLOT_IDENTIFIER + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else if (container.canPlaceItem(PwrControllerBlockEntity.SLOT_INPUT, stack)) {

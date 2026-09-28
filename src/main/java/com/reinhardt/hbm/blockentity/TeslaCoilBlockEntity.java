@@ -12,6 +12,7 @@ import com.reinhardt.hbm.entity.LegacyTeslaCrabEntity;
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -19,6 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.monster.Creeper;
@@ -45,14 +47,25 @@ public final class TeslaCoilBlockEntity extends BlockEntity implements PowerEndp
     public static final double EMITTER_OFFSET = 1.75D;
 
     private long power;
-    private List<Vec3> targets = List.of();
+    /** Immutable publication consumed by both the render and section-compile threads. */
+    private volatile List<Vec3> targets = List.of();
+    private volatile RenderSnapshot renderSnapshot;
 
     public TeslaCoilBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.TESLA_COIL.get(), pos, state);
+        this.renderSnapshot = new RenderSnapshot(state, emitter(), List.of(), 0L,
+                new AABB(pos.getX(), pos.getY(), pos.getZ(),
+                        pos.getX() + 1.0D, pos.getY() + 1.9375D, pos.getZ() + 1.0D));
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, TeslaCoilBlockEntity tesla) {
         if (level.isClientSide) {
+            if (!tesla.renderSnapshot.targets().equals(tesla.targets)
+                    || tesla.renderSnapshot.blockState() != state) {
+                tesla.publishRenderSnapshot(true);
+            } else {
+                tesla.publishClientTime(level.getGameTime());
+            }
             return;
         }
         long powerBefore = tesla.power;
@@ -78,6 +91,10 @@ public final class TeslaCoilBlockEntity extends BlockEntity implements PowerEndp
 
     public List<Vec3> targets() {
         return this.targets;
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
     }
 
     public static List<Vec3> zap(Level level, Vec3 origin, double range, @Nullable LivingEntity source) {
@@ -207,6 +224,9 @@ public final class TeslaCoilBlockEntity extends BlockEntity implements PowerEndp
         super.loadAdditional(tag, registries);
         this.power = Math.clamp(tag.getLong("Power"), 0L, MAX_POWER);
         this.targets = loadTargets(tag.getList("Targets", Tag.TAG_COMPOUND));
+        if (this.level != null && this.level.isClientSide) {
+            publishRenderSnapshot(true);
+        }
     }
 
     @Override
@@ -247,6 +267,117 @@ public final class TeslaCoilBlockEntity extends BlockEntity implements PowerEndp
         setChanged();
         if (this.level != null) {
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private void publishClientTime(long gameTime) {
+        RenderSnapshot previous = this.renderSnapshot;
+        if (previous.gameTime() != gameTime) {
+            this.renderSnapshot = new RenderSnapshot(previous.blockState(), previous.emitter(),
+                    previous.targets(), gameTime, previous.bounds());
+        }
+    }
+
+    private void publishRenderSnapshot(boolean rebuildClientSection) {
+        RenderSnapshot previous = this.renderSnapshot;
+        BlockState state = getBlockState();
+        Vec3 emitter = emitter();
+        List<Vec3> immutableTargets = List.copyOf(this.targets);
+        AABB bounds = calculateRenderBounds(emitter, immutableTargets);
+        RenderSnapshot next = new RenderSnapshot(state, emitter, immutableTargets,
+                this.level == null ? 0L : this.level.getGameTime(), bounds);
+        this.renderSnapshot = next;
+        if (rebuildClientSection && this.level != null && this.level.isClientSide
+                && previous != null && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+            this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private AABB calculateRenderBounds(Vec3 origin, List<Vec3> targetPoints) {
+        // tesla.obj after (+0.5, 0, +0.5) * rotateY(180); face-used baked
+        // vertices remain within this exact float envelope.
+        double[] bounds = {
+                worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(),
+                worldPosition.getX() + 1.0D, worldPosition.getY() + 1.9375D, worldPosition.getZ() + 1.0D
+        };
+        for (Vec3 target : targetPoints) {
+            includeBeamTimeEnvelope(bounds, target.subtract(origin));
+        }
+        return new AABB(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]);
+    }
+
+    /** Exact all-phase envelope for the random beam's authored offsets. */
+    private void includeBeamTimeEnvelope(double[] bounds, Vec3 end) {
+        double length = end.length();
+        if (length <= 1.0E-5D) {
+            return;
+        }
+        Vec3 axis = end.scale(1.0D / length);
+        Vec3 side = new Vec3(axis.z, 0.0D, -axis.x);
+        side = side.lengthSqr() < 1.0E-5D ? new Vec3(1.0D, 0.0D, 0.0D) : side.normalize();
+        Vec3 vertical = side.cross(axis).normalize();
+        double quad = 0.03125D;
+        includeRenderedLocal(bounds, side.scale(quad).add(vertical.scale(quad)));
+        includeRenderedLocal(bounds, side.scale(-quad).add(vertical.scale(quad)));
+        includeRenderedLocal(bounds, vertical.scale(quad));
+        includeRenderedLocal(bounds, vertical.scale(-quad));
+        includeRenderedLocal(bounds, end.subtract(side.scale(quad)).subtract(vertical.scale(quad)));
+        includeRenderedLocal(bounds, end.add(side.scale(quad)).subtract(vertical.scale(quad)));
+        includeRenderedLocal(bounds, end.subtract(vertical.scale(quad)));
+        includeRenderedLocal(bounds, end.add(vertical.scale(quad)));
+        int segments = Math.max(1, (int) Math.ceil(length * 5.0D));
+        double interiorRadius = 0.15625D;
+        for (int index = 1; index < segments; index++) {
+            Vec3 center = end.scale(index / (double) segments);
+            double dx = interiorRadius * (Math.abs(side.x) + Math.abs(vertical.x));
+            double dy = interiorRadius * (Math.abs(side.y) + Math.abs(vertical.y));
+            double dz = interiorRadius * (Math.abs(side.z) + Math.abs(vertical.z));
+            includeRenderedLocal(bounds, center.x - dx, center.y - dy, center.z - dz);
+            includeRenderedLocal(bounds, center.x + dx, center.y + dy, center.z + dz);
+        }
+    }
+
+    private void includeRenderedLocal(double[] bounds, Vec3 point) {
+        includeRenderedLocal(bounds, point.x, point.y, point.z);
+    }
+
+    /** Mirrors vertex(float,float,float) followed by the PoseStack translation. */
+    private void includeRenderedLocal(double[] bounds, double x, double y, double z) {
+        float renderedX = (float) x + 0.5F;
+        float renderedY = (float) y + (float) EMITTER_OFFSET;
+        float renderedZ = (float) z + 0.5F;
+        double worldX = worldPosition.getX() + renderedX;
+        double worldY = worldPosition.getY() + renderedY;
+        double worldZ = worldPosition.getZ() + renderedZ;
+        bounds[0] = Math.min(bounds[0], worldX);
+        bounds[1] = Math.min(bounds[1], worldY);
+        bounds[2] = Math.min(bounds[2], worldZ);
+        bounds[3] = Math.max(bounds[3], worldX);
+        bounds[4] = Math.max(bounds[4], worldY);
+        bounds[5] = Math.max(bounds[5], worldZ);
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(first.minY) == section(second.minY)
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RenderSnapshot(BlockState blockState, Vec3 emitter, List<Vec3> targets,
+                                 long gameTime, AABB bounds) {
+        public RenderSnapshot {
+            targets = List.copyOf(targets);
         }
     }
 }

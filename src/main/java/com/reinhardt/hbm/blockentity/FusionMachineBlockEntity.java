@@ -16,6 +16,7 @@ import com.reinhardt.hbm.menu.FusionMachineMenu;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.recipe.FusionRecipe;
+import com.reinhardt.hbm.recipe.MachineRecipeCache;
 import com.reinhardt.hbm.recipe.PlasmaForgeRecipe;
 import com.reinhardt.hbm.recipe.RbmkOutgasserRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -23,7 +24,9 @@ import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -35,6 +38,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -52,6 +56,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -60,9 +65,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.Random;
+import java.util.function.Consumer;
 
-public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoint, WorldlyContainer, MachineInventory, MenuProvider {
+public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoint, WorldlyContainer, MachineInventory,
+        MenuProvider, RttyValueProvider, RttyInteractive {
+    private static volatile Consumer<FusionMachineBlockEntity> clientRenderSnapshotUpdater = ignored -> { };
+    private static volatile long clientRenderSnapshotRevision;
     public static final int BATTERY_SLOT = 0;
     public static final int BLUEPRINT_SLOT = 1;
     public static final int OUTPUT_SLOT = 2;
@@ -175,6 +185,10 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     private int booster;
     private int maxBooster;
     private int torusConnectionMask;
+    private boolean lastPublishedPlasmaForgeConnected;
+    private int lastPublishedTorusConnectionMask;
+    private volatile RenderSnapshot renderSnapshot;
+    private boolean clientRenderSnapshotDirty = true;
     private ResourceLocation selectedFusionRecipe;
     private ResourceLocation selectedPlasmaForgeRecipe;
     private float rotor;
@@ -195,6 +209,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     public FusionMachineBlockEntity(BlockPos pos, BlockState blockState, FusionMachineBlock.Kind kind) {
         super(HbmBlockEntities.FUSION_MACHINE.get(), pos, blockState);
         this.kind = kind;
+        this.renderSnapshot = RenderSnapshot.empty(pos, blockState);
         this.tanks = createTanks(kind);
         if (kind == FusionMachineBlock.Kind.KLYSTRON) {
             this.outputTarget = 0L;
@@ -214,6 +229,46 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     public FusionMachineBlock.Kind kind() {
         return this.kind;
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
+    }
+
+    /** Installed by the client renderer without linking client-only model classes on a server. */
+    public static void setClientRenderSnapshotUpdater(Consumer<FusionMachineBlockEntity> updater) {
+        clientRenderSnapshotUpdater = Objects.requireNonNull(updater);
+        clientRenderSnapshotRevision++;
+    }
+
+    public static long clientRenderSnapshotRevision() {
+        return clientRenderSnapshotRevision;
+    }
+
+    public void refreshClientRenderSnapshot() {
+        RenderSnapshot snapshot = this.renderSnapshot;
+        if (snapshot == null) {
+            return;
+        }
+        if (snapshot.revision() != clientRenderSnapshotRevision
+                || snapshot.recipeGeneration() != MachineRecipeCache.generation()) {
+            this.clientRenderSnapshotDirty = true;
+        }
+        if (this.clientRenderSnapshotDirty && this.level != null && this.level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientRenderSnapshot(RenderSnapshot snapshot) {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        RenderSnapshot previous = this.renderSnapshot;
+        this.renderSnapshot = Objects.requireNonNull(snapshot);
+        this.clientRenderSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.renderBounds(), snapshot.renderBounds())) {
+            this.level.sendBlockUpdated(this.worldPosition, snapshot.blockState(), snapshot.blockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     public boolean hasMenu() {
@@ -261,6 +316,100 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         return this.output;
     }
 
+    @Override
+    public String[] rttyFunctionInfo() {
+        return switch (this.kind) {
+            case KLYSTRON -> new String[] {
+                    RttyInfo.PREFIX_VALUE + "output",
+                    RttyInfo.PREFIX_VALUE + "target",
+                    RttyInfo.PREFIX_FUNCTION + "settarget" + RttyInteractive.NAME_SEPARATOR + "target"
+            };
+            case MHDT -> new String[] {RttyInfo.PREFIX_VALUE + "output"};
+            case TORUS -> new String[] {
+                    RttyInfo.PREFIX_VALUE + "plasma",
+                    RttyInfo.PREFIX_VALUE + "consumption",
+                    RttyInfo.PREFIX_VALUE + "progress",
+                    RttyInfo.PREFIX_VALUE + "recipe",
+                    RttyInfo.PREFIX_VALUE + "active",
+                    RttyInfo.PREFIX_VALUE + "temp",
+                    RttyInfo.PREFIX_FUNCTION + "setrecipe" + RttyInteractive.NAME_SEPARATOR + "name"
+            };
+            case PLASMA_FORGE -> new String[] {
+                    RttyInfo.PREFIX_VALUE + "progress",
+                    RttyInfo.PREFIX_VALUE + "recipe",
+                    RttyInfo.PREFIX_VALUE + "active",
+                    RttyInfo.PREFIX_VALUE + "booster",
+                    RttyInfo.PREFIX_VALUE + "plasma"
+            };
+            default -> new String[0];
+        };
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (this.kind == FusionMachineBlock.Kind.KLYSTRON) {
+            if (name.equals(RttyInfo.PREFIX_VALUE + "output")) return Long.toString(this.output);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "target")) return Long.toString(this.outputTarget);
+        }
+        if (this.kind == FusionMachineBlock.Kind.MHDT
+                && name.equals(RttyInfo.PREFIX_VALUE + "output")) {
+            return Long.toString(this.power);
+        }
+        if (this.kind == FusionMachineBlock.Kind.TORUS) {
+            if (name.equals(RttyInfo.PREFIX_VALUE + "plasma")) return Long.toString(this.plasmaEnergy);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "consumption")) {
+                return Integer.toString((int) (this.fuelConsumption * 100.0D));
+            }
+            if (name.equals(RttyInfo.PREFIX_VALUE + "progress")) {
+                return Long.toString(Math.round(this.progress * 100.0D));
+            }
+            if (name.equals(RttyInfo.PREFIX_VALUE + "recipe")) return rttyRecipeName(this.selectedFusionRecipe);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "active")) return this.didProcess ? "1" : "0";
+            if (name.equals(RttyInfo.PREFIX_VALUE + "temp")) return Integer.toString((int) this.temperature);
+        }
+        if (this.kind == FusionMachineBlock.Kind.PLASMA_FORGE) {
+            if (name.equals(RttyInfo.PREFIX_VALUE + "progress")) {
+                return Long.toString(Math.round(this.progress * 100.0D));
+            }
+            if (name.equals(RttyInfo.PREFIX_VALUE + "recipe")) return rttyRecipeName(this.selectedPlasmaForgeRecipe);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "active")) return this.didProcess ? "1" : "0";
+            if (name.equals(RttyInfo.PREFIX_VALUE + "booster")) return Integer.toString(this.booster);
+            if (name.equals(RttyInfo.PREFIX_VALUE + "plasma")) return Long.toString(this.plasmaEnergy);
+        }
+        return null;
+    }
+
+    @Override
+    public String runRttyFunction(String name, String[] params) {
+        if (this.kind == FusionMachineBlock.Kind.KLYSTRON
+                && name.equals(RttyInfo.PREFIX_FUNCTION + "settarget") && params.length == 1) {
+            setOutputTarget(RttyInteractive.parseInt(params[0], 0, (int) KLYSTRON_MAX_OUTPUT));
+        }
+        if (this.kind == FusionMachineBlock.Kind.TORUS
+                && name.equals(RttyInfo.PREFIX_FUNCTION + "setrecipe") && params.length == 1
+                && this.level != null) {
+            String requested = params[0];
+            availableFusionRecipes(this.level).stream()
+                    .filter(holder -> rttyRecipeMatches(holder.id(), requested))
+                    .findFirst()
+                    .ifPresent(holder -> setSelectedFusionRecipe(holder.id()));
+        }
+        return null;
+    }
+
+    private static String rttyRecipeName(@Nullable ResourceLocation recipe) {
+        if (recipe == null) return "";
+        String path = recipe.getPath();
+        int separator = path.lastIndexOf('/');
+        return separator >= 0 ? path.substring(separator + 1) : path;
+    }
+
+    private static boolean rttyRecipeMatches(ResourceLocation recipe, String requested) {
+        return recipe.toString().equals(requested)
+                || recipe.getPath().equals(requested)
+                || rttyRecipeName(recipe).equals(requested);
+    }
+
     public double progress() {
         return this.progress;
     }
@@ -291,6 +440,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         this.selectedPlasmaForgeRecipe = recipeId;
         this.progress = 0.0D;
         configurePlasmaForgeTank(selectedPlasmaForgeRecipe(this.level).map(RecipeHolder::value).orElse(null));
+        this.clientRenderSnapshotDirty = true;
         setChangedAndSync(true);
     }
 
@@ -354,6 +504,15 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
             this.progress = 0.0D;
         }
         return recipe;
+    }
+
+    /** Read-only recipe resolution for the event-driven client render snapshot. */
+    public Optional<RecipeHolder<PlasmaForgeRecipe>> plasmaForgeRecipeForRender(@Nullable Level level) {
+        if (level == null || this.selectedPlasmaForgeRecipe == null) {
+            return Optional.empty();
+        }
+        return findPlasmaForgeRecipe(level, this.selectedPlasmaForgeRecipe)
+                .filter(holder -> holder.value().isVisibleForPool(installedBlueprintPool()));
     }
 
     public float rotor(float partialTick) {
@@ -440,9 +599,25 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
             case COUPLER -> tickCoupler(level);
             case PLASMA_FORGE -> tickPlasmaForge(level);
         }
-        if (level.getGameTime() % 10L == 0L) {
+        if (renderGeometryChanged()) {
+            // A connection can add geometry outside the owning render section.
+            // Publish it immediately so SectionCompiler recalculates global membership.
+            setChangedAndSync(true);
+        } else if (level.getGameTime() % 10L == 0L) {
             setChangedAndSync(false);
         }
+    }
+
+    private boolean renderGeometryChanged() {
+        boolean plasmaForgeConnected = this.kind == FusionMachineBlock.Kind.PLASMA_FORGE && this.connected;
+        int connectionMask = this.kind == FusionMachineBlock.Kind.TORUS ? this.torusConnectionMask : 0;
+        if (plasmaForgeConnected == this.lastPublishedPlasmaForgeConnected
+                && connectionMask == this.lastPublishedTorusConnectionMask) {
+            return false;
+        }
+        this.lastPublishedPlasmaForgeConnected = plasmaForgeConnected;
+        this.lastPublishedTorusConnectionMask = connectionMask;
+        return true;
     }
 
     private void tickKlystron(Level level, boolean creative) {
@@ -515,6 +690,11 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
                 this.plasmaGreen = g;
                 this.plasmaBlue = b;
                 this.didProcess = true;
+                if (level instanceof ServerLevel serverLevel && level.getGameTime() % 20L == 15L) {
+                    com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                            serverLevel, this.worldPosition,
+                            com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_PARTICLE, 200);
+                }
                 if (this.progress >= 1.0D) {
                     produceTorusOutput(recipe);
                     this.progress = canProcessTorus(recipe, factor) ? this.progress - 1.0D : 0.0D;
@@ -1031,52 +1211,156 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     public List<FusionNetwork.Node> klystronProviderNodes() {
-        Direction facing = facing();
         return switch (this.kind) {
-            case KLYSTRON, KLYSTRON_CREATIVE -> List.of(node(facing.getOpposite(), 4, 2));
-            case COUPLER -> {
-                Direction dir = facing.getOpposite();
-                Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
-                yield List.of(node(rot, 1, 2));
-            }
+            case KLYSTRON -> klystronProviderNodesForKlystron();
+            case KLYSTRON_CREATIVE -> klystronProviderNodesForCreativeKlystron();
+            case COUPLER -> klystronProviderNodesForCoupler();
             default -> List.of();
         };
     }
 
     public List<FusionNetwork.Node> klystronReceiverNodes() {
-        if (this.kind != FusionMachineBlock.Kind.TORUS) {
-            return List.of();
-        }
-        return cardinalNodes(7, 2);
+        return switch (this.kind) {
+            case TORUS -> klystronReceiverNodesForTorus();
+            default -> List.of();
+        };
     }
 
     public List<FusionNetwork.Node> plasmaProviderNodes() {
         return switch (this.kind) {
-            case TORUS -> cardinalNodes(7, 2);
-            case PLASMA_FORGE -> {
-                Direction rot = LegacyMachineGeometry.forgeRotateUp(facing());
-                yield List.of(node(rot.getOpposite(), 5, 2));
-            }
+            case TORUS -> plasmaProviderNodesForTorus();
+            case PLASMA_FORGE -> plasmaProviderNodesForPlasmaForge();
             default -> List.of();
         };
     }
 
     public List<FusionNetwork.Node> plasmaReceiverNodes() {
-        Direction facing = facing();
         return switch (this.kind) {
-            case BOILER -> List.of(node(facing.getOpposite(), 4, 2));
-            case MHDT -> List.of(node(facing.getOpposite(), 6, 2));
-            case BREEDER, COLLECTOR -> List.of(node(facing.getOpposite(), 2, 2));
-            case COUPLER -> {
-                Direction dir = facing.getOpposite();
-                Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
-                yield List.of(node(rot.getOpposite(), 1, 2));
-            }
-            case PLASMA_FORGE -> {
-                Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
-                yield List.of(node(rot, 5, 2));
-            }
+            case BOILER -> plasmaReceiverNodesForBoiler();
+            case MHDT -> plasmaReceiverNodesForMhdt();
+            case BREEDER -> plasmaReceiverNodesForBreeder();
+            case COLLECTOR -> plasmaReceiverNodesForCollector();
+            case COUPLER -> plasmaReceiverNodesForCoupler();
+            case PLASMA_FORGE -> plasmaReceiverNodesForPlasmaForge();
             default -> List.of();
+        };
+    }
+
+    private List<FusionNetwork.Node> klystronProviderNodesForKlystron() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 4), Direction.SOUTH));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -4), Direction.NORTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(4, 2, 0), Direction.EAST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-4, 2, 0), Direction.WEST));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion klystron requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> klystronProviderNodesForCreativeKlystron() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 4), Direction.SOUTH));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -4), Direction.NORTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(4, 2, 0), Direction.EAST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-4, 2, 0), Direction.WEST));
+            case UP, DOWN -> throw new IllegalArgumentException("Creative fusion klystron requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> klystronProviderNodesForCoupler() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-1, 2, 0), Direction.WEST));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(1, 2, 0), Direction.EAST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -1), Direction.NORTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 1), Direction.SOUTH));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion coupler requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> klystronReceiverNodesForTorus() {
+        return List.of(
+                new FusionNetwork.Node(this.worldPosition.offset(0, 2, -7), Direction.NORTH),
+                new FusionNetwork.Node(this.worldPosition.offset(0, 2, 7), Direction.SOUTH),
+                new FusionNetwork.Node(this.worldPosition.offset(-7, 2, 0), Direction.WEST),
+                new FusionNetwork.Node(this.worldPosition.offset(7, 2, 0), Direction.EAST)
+        );
+    }
+
+    private List<FusionNetwork.Node> plasmaProviderNodesForTorus() {
+        return List.of(
+                new FusionNetwork.Node(this.worldPosition.offset(0, 2, -7), Direction.NORTH),
+                new FusionNetwork.Node(this.worldPosition.offset(0, 2, 7), Direction.SOUTH),
+                new FusionNetwork.Node(this.worldPosition.offset(-7, 2, 0), Direction.WEST),
+                new FusionNetwork.Node(this.worldPosition.offset(7, 2, 0), Direction.EAST)
+        );
+    }
+
+    private List<FusionNetwork.Node> plasmaProviderNodesForPlasmaForge() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-5, 2, 0), Direction.WEST));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(5, 2, 0), Direction.EAST));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 5), Direction.SOUTH));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -5), Direction.NORTH));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion plasma forge requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> plasmaReceiverNodesForBoiler() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 4), Direction.SOUTH));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -4), Direction.NORTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(4, 2, 0), Direction.EAST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-4, 2, 0), Direction.WEST));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion boiler requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> plasmaReceiverNodesForMhdt() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 6), Direction.SOUTH));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -6), Direction.NORTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(6, 2, 0), Direction.EAST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-6, 2, 0), Direction.WEST));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion MHDT requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> plasmaReceiverNodesForBreeder() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 2), Direction.SOUTH));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -2), Direction.NORTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(2, 2, 0), Direction.EAST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-2, 2, 0), Direction.WEST));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion breeder requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> plasmaReceiverNodesForCollector() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 2), Direction.SOUTH));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -2), Direction.NORTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(2, 2, 0), Direction.EAST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-2, 2, 0), Direction.WEST));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion collector requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> plasmaReceiverNodesForCoupler() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(1, 2, 0), Direction.EAST));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-1, 2, 0), Direction.WEST));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 1), Direction.SOUTH));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -1), Direction.NORTH));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion coupler requires a horizontal facing: " + facing());
+        };
+    }
+
+    private List<FusionNetwork.Node> plasmaReceiverNodesForPlasmaForge() {
+        return switch (facing()) {
+            case NORTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(5, 2, 0), Direction.EAST));
+            case SOUTH -> List.of(new FusionNetwork.Node(this.worldPosition.offset(-5, 2, 0), Direction.WEST));
+            case WEST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, -5), Direction.NORTH));
+            case EAST -> List.of(new FusionNetwork.Node(this.worldPosition.offset(0, 2, 5), Direction.SOUTH));
+            case UP, DOWN -> throw new IllegalArgumentException("Fusion plasma forge requires a horizontal facing: " + facing());
         };
     }
 
@@ -1086,20 +1370,6 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     public boolean acceptsPlasmaNode(FusionNetwork.Node provider) {
         return plasmaReceiverNodes().stream().anyMatch(receiver -> receiver.connectsTo(provider));
-    }
-
-    private List<FusionNetwork.Node> cardinalNodes(int distance, int y) {
-        ArrayList<FusionNetwork.Node> nodes = new ArrayList<>(4);
-        nodes.add(node(Direction.NORTH, distance, y));
-        nodes.add(node(Direction.SOUTH, distance, y));
-        nodes.add(node(Direction.WEST, distance, y));
-        nodes.add(node(Direction.EAST, distance, y));
-        return List.copyOf(nodes);
-    }
-
-    private FusionNetwork.Node node(Direction direction, int distance, int y) {
-        BlockPos pos = this.worldPosition.offset(direction.getStepX() * distance, y, direction.getStepZ() * distance);
-        return new FusionNetwork.Node(pos, direction);
     }
 
     @Nullable
@@ -1126,7 +1396,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
             return List.of();
         }
         ArrayList<BlockPos> connectors = new ArrayList<>();
-        for (Port port : portsFor(this.worldPosition, facing(), this.kind)) {
+        for (Port port : currentPorts()) {
             if (port.power()) {
                 connectors.add(port.connectorPos().immutable());
             }
@@ -1139,7 +1409,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         if (!this.kind.hasPowerPorts()) {
             return false;
         }
-        for (Port port : portsFor(this.worldPosition, facing(), this.kind)) {
+        for (Port port : currentPorts()) {
             if (port.power() && port.connectorPos().equals(connectorPos) && port.face() == machineSide) {
                 return true;
             }
@@ -1215,6 +1485,9 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     public ItemStack removeItem(int slot, int amount) {
         ItemStack removed = ContainerHelper.removeItem(this.items, slot, amount);
         if (!removed.isEmpty()) {
+            if (this.kind == FusionMachineBlock.Kind.PLASMA_FORGE && slot == BLUEPRINT_SLOT) {
+                this.clientRenderSnapshotDirty = true;
+            }
             setChangedAndSync(true);
         }
         return removed;
@@ -1222,7 +1495,11 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
-        return ContainerHelper.takeItem(this.items, slot);
+        ItemStack removed = ContainerHelper.takeItem(this.items, slot);
+        if (!removed.isEmpty() && this.kind == FusionMachineBlock.Kind.PLASMA_FORGE && slot == BLUEPRINT_SLOT) {
+            this.clientRenderSnapshotDirty = true;
+        }
+        return removed;
     }
 
     @Override
@@ -1233,6 +1510,9 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         this.items.set(slot, stack);
         if (!stack.isEmpty() && stack.getCount() > getMaxStackSize(stack)) {
             stack.setCount(getMaxStackSize(stack));
+        }
+        if (this.kind == FusionMachineBlock.Kind.PLASMA_FORGE && slot == BLUEPRINT_SLOT) {
+            this.clientRenderSnapshotDirty = true;
         }
         setChangedAndSync(true);
     }
@@ -1324,12 +1604,15 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
     public void clearContent() {
         this.items.replaceAll(stack -> ItemStack.EMPTY);
+        if (this.kind == FusionMachineBlock.Kind.PLASMA_FORGE) {
+            this.clientRenderSnapshotDirty = true;
+        }
         setChangedAndSync(true);
     }
 
@@ -1387,6 +1670,10 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        boolean previousConnected = this.connected;
+        int previousConnectionMask = this.torusConnectionMask;
+        ResourceLocation previousPlasmaForgeRecipe = this.selectedPlasmaForgeRecipe;
+        ItemStack previousBlueprint = this.items.get(BLUEPRINT_SLOT).copy();
         ContainerHelper.loadAllItems(tag, this.items, registries);
         for (int index = 0; index < this.tanks.length; index++) {
             this.tanks[index].load(tag.getCompound("Tank" + index));
@@ -1418,6 +1705,33 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         this.rotor = tag.getFloat("Rotor");
         this.prevRotor = tag.getFloat("PrevRotor");
         this.rotorSpeed = tag.getFloat("RotorSpeed");
+        boolean plasmaForgeRenderChanged = this.kind == FusionMachineBlock.Kind.PLASMA_FORGE
+                && (previousConnected != this.connected
+                || !Objects.equals(previousPlasmaForgeRecipe, this.selectedPlasmaForgeRecipe)
+                || !ItemStack.isSameItemSameComponents(previousBlueprint, this.items.get(BLUEPRINT_SLOT)));
+        boolean torusRenderChanged = this.kind == FusionMachineBlock.Kind.TORUS
+                && previousConnectionMask != this.torusConnectionMask;
+        if (plasmaForgeRenderChanged || torusRenderChanged) {
+            this.clientRenderSnapshotDirty = true;
+        }
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        this.clientRenderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (this.renderSnapshot != null && previous != state) {
+            this.clientRenderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
+        }
     }
 
     @Override
@@ -1434,6 +1748,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private void tickClient() {
+        refreshClientRenderSnapshot();
         this.prevRotor = this.rotor;
         updateLegacyFusionRotor();
         this.rotor += this.rotorSpeed;
@@ -1442,6 +1757,52 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
             this.prevRotor -= 360.0F;
         }
         FusionMachineClientSounds.tick(this);
+    }
+
+    /**
+     * One atomic publication for every state that can change emitted geometry or its culling envelope.
+     * The model token is intentionally typed as Object so the common block-entity class has no client-only link.
+     */
+    public record RenderSnapshot(BlockState blockState, boolean plasmaForgeConnected, int torusConnectionMask,
+                                 boolean plasmaForgeBeamVisible, @Nullable ResourceLocation plasmaForgeRecipeId,
+                                 ItemStack sourceItem, ItemStack renderedItem, Object modelToken, Object geometryToken,
+                                 AABB iconBounds, AABB renderBounds, long recipeGeneration, long revision) {
+        public RenderSnapshot {
+            Objects.requireNonNull(blockState);
+            sourceItem = sourceItem.copy();
+            renderedItem = renderedItem.copy();
+            Objects.requireNonNull(iconBounds);
+            Objects.requireNonNull(renderBounds);
+        }
+
+        public boolean torusConnection(int index) {
+            return index >= 0 && index < 4 && (this.torusConnectionMask & (1 << index)) != 0;
+        }
+
+        private static RenderSnapshot empty(BlockPos pos, BlockState state) {
+            AABB blockBounds = new AABB(pos.getX(), pos.getY(), pos.getZ(),
+                    pos.getX(), pos.getY(), pos.getZ());
+            return new RenderSnapshot(state, false, 0, false, null,
+                    ItemStack.EMPTY, ItemStack.EMPTY, null, null, blockBounds, blockBounds,
+                    Long.MIN_VALUE, -1L);
+        }
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return sectionMin(first.minX) == sectionMin(second.minX)
+                && sectionMin(first.minY) == sectionMin(second.minY)
+                && sectionMin(first.minZ) == sectionMin(second.minZ)
+                && sectionMax(first.maxX) == sectionMax(second.maxX)
+                && sectionMax(first.maxY) == sectionMax(second.maxY)
+                && sectionMax(first.maxZ) == sectionMax(second.maxZ);
+    }
+
+    private static int sectionMin(double value) {
+        return net.minecraft.util.Mth.floor(value) >> 4;
+    }
+
+    private static int sectionMax(double value) {
+        return net.minecraft.util.Mth.floor(Math.nextDown(value)) >> 4;
     }
 
     private void updateLegacyFusionRotor() {
@@ -1529,7 +1890,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private boolean allowsPort(BlockPos queriedPos, @Nullable Direction side) {
-        for (Port port : portsFor(this.worldPosition, facing(), this.kind)) {
+        for (Port port : currentPorts()) {
             if (port.fluid() && port.proxyPos().equals(queriedPos) && (side == null || side == port.face())) {
                 return true;
             }
@@ -1540,6 +1901,21 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     private Direction facing() {
         BlockState state = getBlockState();
         return state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.SOUTH;
+    }
+
+    private List<Port> currentPorts() {
+        Direction facing = facing();
+        return switch (this.kind) {
+            case TORUS -> torusPortsFor(this.worldPosition, facing);
+            case KLYSTRON -> klystronPortsFor(this.worldPosition, facing);
+            case KLYSTRON_CREATIVE -> creativeKlystronPortsFor(this.worldPosition, facing);
+            case BOILER -> boilerPortsFor(this.worldPosition, facing);
+            case MHDT -> mhdtPortsFor(this.worldPosition, facing);
+            case BREEDER -> breederPortsFor(this.worldPosition, facing);
+            case COLLECTOR -> collectorPortsFor(this.worldPosition, facing);
+            case COUPLER -> couplerPortsFor(this.worldPosition, facing);
+            case PLASMA_FORGE -> plasmaForgePortsFor(this.worldPosition, facing);
+        };
     }
 
     private void setChangedAndSync(boolean immediate) {
@@ -1559,12 +1935,11 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
                 .findFirst();
     }
 
+    @SuppressWarnings("unchecked")
     private static Optional<RecipeHolder<PlasmaForgeRecipe>> findPlasmaForgeRecipe(Level level, ResourceLocation recipeId) {
-        return level.getRecipeManager()
-                .getAllRecipesFor(HbmRecipeTypes.PLASMA_FORGE.get())
-                .stream()
-                .filter(holder -> holder.id().equals(recipeId))
-                .findFirst();
+        return level.getRecipeManager().byKey(recipeId)
+                .filter(holder -> holder.value() instanceof PlasmaForgeRecipe)
+                .map(holder -> (RecipeHolder<PlasmaForgeRecipe>) (RecipeHolder<?>) holder);
     }
 
     private Optional<String> installedBlueprintPool() {
@@ -1737,24 +2112,127 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         return FusionMachineBlock.Kind.TORUS;
     }
 
-    public static List<Port> portsFor(BlockPos corePos, Direction facing, FusionMachineBlock.Kind kind) {
-        if (!kind.hasPowerPorts() && !kind.hasFluidPorts()) {
-            return List.of();
-        }
-
+    public static List<Port> torusPortsFor(BlockPos corePos, Direction facing) {
         java.util.HashSet<BlockPos> occupied = new java.util.HashSet<>();
-        for (BlockPos offset : kind.footprint().offsets()) {
-            occupied.add(corePos.offset(LegacyMachineGeometry.rotateLegacySouth(offset, facing)));
+        for (BlockPos offset : FusionMachineBlock.Kind.TORUS.footprint().offsets()) {
+            occupied.add(corePos.offset(FusionMachineBlock.mapTorusOffset(facing, offset)));
         }
 
         ArrayList<Port> ports = new ArrayList<>();
-        for (FusionMachineBlock.LocalPort local : kind.localPorts()) {
-            FusionMachineBlock.LocalPort rotated = local.rotate(facing);
+        for (FusionMachineBlock.LocalPort local : FusionMachineBlock.torusLocalPorts()) {
+            FusionMachineBlock.LocalPort rotated = FusionMachineBlock.rotateTorusPort(local, facing);
             BlockPos proxy = corePos.offset(rotated.offset());
             Direction face = rotated.face();
             BlockPos connector = proxy.relative(face);
             if (!occupied.contains(connector)) {
-                ports.add(new Port(proxy.immutable(), connector.immutable(), face, kind.hasPowerPorts(), kind.hasFluidPorts()));
+                ports.add(new Port(proxy.immutable(), connector.immutable(), face, true, true));
+            }
+        }
+        return List.copyOf(ports);
+    }
+
+    public static List<Port> klystronPortsFor(BlockPos corePos, Direction facing) {
+        java.util.HashSet<BlockPos> occupied = new java.util.HashSet<>();
+        for (BlockPos offset : FusionMachineBlock.Kind.KLYSTRON.footprint().offsets()) {
+            occupied.add(corePos.offset(FusionMachineBlock.mapKlystronOffset(facing, offset)));
+        }
+
+        ArrayList<Port> ports = new ArrayList<>();
+        for (FusionMachineBlock.LocalPort local : FusionMachineBlock.klystronLocalPorts()) {
+            FusionMachineBlock.LocalPort rotated = FusionMachineBlock.rotateKlystronPort(local, facing);
+            BlockPos proxy = corePos.offset(rotated.offset());
+            Direction face = rotated.face();
+            BlockPos connector = proxy.relative(face);
+            if (!occupied.contains(connector)) {
+                ports.add(new Port(proxy.immutable(), connector.immutable(), face, true, true));
+            }
+        }
+        return List.copyOf(ports);
+    }
+
+    public static List<Port> creativeKlystronPortsFor(BlockPos corePos, Direction facing) {
+        return List.of();
+    }
+
+    public static List<Port> boilerPortsFor(BlockPos corePos, Direction facing) {
+        java.util.HashSet<BlockPos> occupied = new java.util.HashSet<>();
+        for (BlockPos offset : FusionMachineBlock.Kind.BOILER.footprint().offsets()) {
+            occupied.add(corePos.offset(FusionMachineBlock.mapBoilerOffset(facing, offset)));
+        }
+
+        ArrayList<Port> ports = new ArrayList<>();
+        for (FusionMachineBlock.LocalPort local : FusionMachineBlock.boilerLocalPorts()) {
+            FusionMachineBlock.LocalPort rotated = FusionMachineBlock.rotateBoilerPort(local, facing);
+            BlockPos proxy = corePos.offset(rotated.offset());
+            Direction face = rotated.face();
+            BlockPos connector = proxy.relative(face);
+            if (!occupied.contains(connector)) {
+                ports.add(new Port(proxy.immutable(), connector.immutable(), face, false, true));
+            }
+        }
+        return List.copyOf(ports);
+    }
+
+    public static List<Port> mhdtPortsFor(BlockPos corePos, Direction facing) {
+        java.util.HashSet<BlockPos> occupied = new java.util.HashSet<>();
+        for (BlockPos offset : FusionMachineBlock.Kind.MHDT.footprint().offsets()) {
+            occupied.add(corePos.offset(FusionMachineBlock.mapMhdtOffset(facing, offset)));
+        }
+
+        ArrayList<Port> ports = new ArrayList<>();
+        for (FusionMachineBlock.LocalPort local : FusionMachineBlock.mhdtLocalPorts()) {
+            FusionMachineBlock.LocalPort rotated = FusionMachineBlock.rotateMhdtPort(local, facing);
+            BlockPos proxy = corePos.offset(rotated.offset());
+            Direction face = rotated.face();
+            BlockPos connector = proxy.relative(face);
+            if (!occupied.contains(connector)) {
+                ports.add(new Port(proxy.immutable(), connector.immutable(), face, true, true));
+            }
+        }
+        return List.copyOf(ports);
+    }
+
+    public static List<Port> breederPortsFor(BlockPos corePos, Direction facing) {
+        java.util.HashSet<BlockPos> occupied = new java.util.HashSet<>();
+        for (BlockPos offset : FusionMachineBlock.Kind.BREEDER.footprint().offsets()) {
+            occupied.add(corePos.offset(FusionMachineBlock.mapBreederOffset(facing, offset)));
+        }
+
+        ArrayList<Port> ports = new ArrayList<>();
+        for (FusionMachineBlock.LocalPort local : FusionMachineBlock.breederLocalPorts()) {
+            FusionMachineBlock.LocalPort rotated = FusionMachineBlock.rotateBreederPort(local, facing);
+            BlockPos proxy = corePos.offset(rotated.offset());
+            Direction face = rotated.face();
+            BlockPos connector = proxy.relative(face);
+            if (!occupied.contains(connector)) {
+                ports.add(new Port(proxy.immutable(), connector.immutable(), face, false, true));
+            }
+        }
+        return List.copyOf(ports);
+    }
+
+    public static List<Port> collectorPortsFor(BlockPos corePos, Direction facing) {
+        return List.of();
+    }
+
+    public static List<Port> couplerPortsFor(BlockPos corePos, Direction facing) {
+        return List.of();
+    }
+
+    public static List<Port> plasmaForgePortsFor(BlockPos corePos, Direction facing) {
+        java.util.HashSet<BlockPos> occupied = new java.util.HashSet<>();
+        for (BlockPos offset : FusionMachineBlock.Kind.PLASMA_FORGE.footprint().offsets()) {
+            occupied.add(corePos.offset(FusionMachineBlock.mapPlasmaForgeOffset(facing, offset)));
+        }
+
+        ArrayList<Port> ports = new ArrayList<>();
+        for (FusionMachineBlock.LocalPort local : FusionMachineBlock.plasmaForgeLocalPorts()) {
+            FusionMachineBlock.LocalPort rotated = FusionMachineBlock.rotatePlasmaForgePort(local, facing);
+            BlockPos proxy = corePos.offset(rotated.offset());
+            Direction face = rotated.face();
+            BlockPos connector = proxy.relative(face);
+            if (!occupied.contains(connector)) {
+                ports.add(new Port(proxy.immutable(), connector.immutable(), face, true, true));
             }
         }
         return List.copyOf(ports);

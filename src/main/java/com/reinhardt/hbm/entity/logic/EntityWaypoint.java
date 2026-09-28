@@ -35,7 +35,6 @@ public final class EntityWaypoint extends Entity {
     public EntityWaypoint(EntityType<? extends EntityWaypoint> type, Level level) {
         super(type, level);
         noPhysics = true;
-        noCulling = true;
     }
 
     public int getWaypointType() {

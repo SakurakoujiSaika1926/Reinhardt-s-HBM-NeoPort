@@ -79,8 +79,11 @@ final class CableModelGeometry {
         for (Vertex vertex : vertices) {
             baker.addVertex(vertex.x, vertex.y, vertex.z);
             baker.setColor(255, 255, 255, 255);
-            baker.setUv(sprite.getU(minU + (maxU - minU) * vertex.u),
-                    sprite.getV(minV + (maxV - minV) * vertex.v));
+            // TextureAtlasSprite#getU/getV take a normalized 0..1 position in
+            // 1.21.1.  This helper deliberately accepts the legacy 0..16
+            // pixel-space coordinates used by the cable renderers.
+            baker.setUv(sprite.getU((minU + (maxU - minU) * vertex.u) / 16.0F),
+                    sprite.getV((minV + (maxV - minV) * vertex.v) / 16.0F));
             baker.setLight(0);
             baker.setNormal(face.getStepX(), face.getStepY(), face.getStepZ());
         }

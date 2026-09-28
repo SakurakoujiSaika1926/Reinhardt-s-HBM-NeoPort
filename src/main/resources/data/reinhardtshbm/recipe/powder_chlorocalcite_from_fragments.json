@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:bedrock_ore_fragment_chlorocalcite"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:powder_chlorocalcite"
+  }
+}

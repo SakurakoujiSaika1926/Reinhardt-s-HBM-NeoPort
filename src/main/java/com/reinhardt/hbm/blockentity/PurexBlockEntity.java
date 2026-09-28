@@ -515,7 +515,7 @@ public class PurexBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
         if (slot == BATTERY_SLOT) {
-            return stack.getItem() instanceof BatteryPackItem;
+            return BatteryPackItem.isBattery(stack);
         }
         if (slot >= UPGRADE_START && slot < UPGRADE_END) {
             return MachineUpgradeItem.isMachineUpgrade(stack);
@@ -563,7 +563,7 @@ public class PurexBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

@@ -26,6 +26,7 @@ import com.reinhardt.hbm.blockentity.PoweredSteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.PowerGaugeBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
+import com.reinhardt.hbm.blockentity.SatelliteGroundStationBlockEntity;
 import com.reinhardt.hbm.blockentity.SolarBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamEngineBlockEntity;
@@ -38,7 +39,6 @@ import com.reinhardt.hbm.blockentity.WandStructureBlockEntity;
 import com.reinhardt.hbm.blockentity.WandTandemBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.FoundryMoldItem;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -148,6 +148,7 @@ public final class HbmLookOverlay {
                 || entity instanceof StrandCasterBlockEntity
                 || entity instanceof ConveyorPressBlockEntity
                 || entity instanceof RotaryFurnaceBlockEntity
+                || entity instanceof SatelliteGroundStationBlockEntity
                 || entity instanceof LegacyMachineBlockEntity
                 || entity instanceof RbmkComponentBlockEntity
                 || entity instanceof WandStructureBlockEntity
@@ -228,6 +229,9 @@ public final class HbmLookOverlay {
         if (entity instanceof ConveyorPressBlockEntity press) {
             return conveyorPressOverlay(state, press);
         }
+        if (entity instanceof SatelliteGroundStationBlockEntity station) {
+            return satelliteGroundStationOverlay(state, station);
+        }
         if (entity instanceof LegacyMachineBlockEntity machine) {
             return legacyMachineOverlay(state, machine);
         }
@@ -250,6 +254,23 @@ public final class HbmLookOverlay {
             return wandLogicOverlay(state, logic);
         }
         return null;
+    }
+
+    private static OverlayData satelliteGroundStationOverlay(BlockState state,
+                                                              SatelliteGroundStationBlockEntity station) {
+        List<OverlayLine> lines = new ArrayList<>();
+        lines.add(OverlayLine.white(Component.translatable(
+                "overlay.reinhardtshbm.satellite_ground_station.frequency", station.frequency()).getString()));
+        int connectionColor = station.connected() ? 0x00FF00 : 0xFF0000;
+        lines.add(new OverlayLine(Component.translatable(
+                "overlay.reinhardtshbm.satellite_ground_station.connected",
+                Component.translatable(station.connected()
+                        ? "overlay.reinhardtshbm.satellite_ground_station.yes"
+                        : "overlay.reinhardtshbm.satellite_ground_station.no")).getString(), connectionColor));
+        for (Component component : station.satelliteInfo()) {
+            lines.add(OverlayLine.white(component.getString()));
+        }
+        return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
 
     @Nullable
@@ -454,7 +475,7 @@ public final class HbmLookOverlay {
         Direction facing = state.hasProperty(LargeMachineBlock.FACING)
                 ? state.getValue(LargeMachineBlock.FACING)
                 : Direction.SOUTH;
-        Direction turn = LegacyMachineGeometry.forgeRotateDown(facing);
+        Direction turn = rotaryFurnacePortTurn(facing);
         BlockPos steamNear = corePos.relative(facing.getOpposite()).relative(turn.getOpposite());
         BlockPos steamFar = corePos.relative(facing.getOpposite()).relative(turn.getOpposite(), 2);
         BlockPos additiveFront = corePos.relative(facing).relative(turn, 2);
@@ -473,6 +494,17 @@ public final class HbmLookOverlay {
             return null;
         }
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+    }
+
+    /** Exact ForgeDirection#getRotation(DOWN) table used only by MachineRotaryFurnace#printHook. */
+    private static Direction rotaryFurnacePortTurn(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> facing;
+        };
     }
 
     /** MachineTurbineGas#printHook from 1.7.10: only service dummies expose an overlay. */

@@ -24,6 +24,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -54,16 +55,26 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.WeakHashMap;
+import java.util.function.Consumer;
 
-public class RbmkComponentBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer, NeutronFluxProvider, MenuProvider, PowerEndpoint {
+public class RbmkComponentBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer,
+        NeutronFluxProvider, MenuProvider, PowerEndpoint, ClientRenderNeighborSnapshot {
+    private static volatile Consumer<RbmkComponentBlockEntity> clientRenderSnapshotUpdater = ignored -> { };
+    private static volatile Consumer<RbmkComponentBlockEntity> clientGpuCacheDisposer = ignored -> { };
+    private static volatile long clientRenderSnapshotRevision;
+    private static final Set<RbmkComponentBlockEntity> LOADED_CLIENT_INSTANCES =
+            Collections.newSetFromMap(new WeakHashMap<>());
     public static final int SLOT_FUEL = 0;
     public static final int SLOT_BUFFER = 1;
     public static final int AUTOLOADER_INPUT_START = 0;
@@ -218,6 +229,15 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     private boolean autoloaderRetracting = true;
     private boolean meltingDown;
     private BlockPos linkedReactor;
+    /**
+     * Renderer-visible state is published as one immutable object.  Section
+     * compilation may call the renderer's bounding-box method off-thread, so
+     * neither that method nor the render pass may assemble crane geometry by
+     * independently reading these mutable simulation fields.
+     */
+    private volatile RenderSnapshot renderSnapshot;
+    private boolean loadedOnClient;
+    private int clientHiddenHorizontalFaceMask;
     private final net.minecraft.world.inventory.ContainerData dataAccess = new net.minecraft.world.inventory.ContainerData() {
         @Override
         public int get(int index) {
@@ -286,6 +306,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 || block.kind() == RbmkComponentBlock.Kind.DISPLAY)) {
             linkedReactor = BlockPos.ZERO;
         }
+        renderSnapshot = buildRenderSnapshot(false).withGeometry(
+                null, zeroVolumeBounds(pos), clientRenderSnapshotRevision);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, RbmkComponentBlockEntity rbmk) {
@@ -336,13 +358,13 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         // tick. Keep this pass outside the conversion methods so existing
         // output is still delivered on idle/full ticks.
         if (kind == RbmkComponentBlock.Kind.BOILER) {
-            rbmk.pushRbmkFluid(level, rbmk.steam, false);
+            rbmk.pushBoilerFluid(level);
         } else if (kind == RbmkComponentBlock.Kind.HEATER) {
-            rbmk.pushRbmkFluid(level, rbmk.heaterOutput, false);
+            rbmk.pushHeaterFluid(level);
         } else if (kind == RbmkComponentBlock.Kind.COOLER) {
-            rbmk.pushRbmkFluid(level, rbmk.coolerOutput, false);
+            rbmk.pushCoolerFluid(level);
         } else if (kind == RbmkComponentBlock.Kind.OUTGASSER) {
-            rbmk.pushRbmkFluid(level, rbmk.outgasserGas, true);
+            rbmk.pushOutgasserFluid(level);
         } else if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
             rbmk.pushReasimOutlet(level);
         }
@@ -401,16 +423,36 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
      */
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
-        return isReasimControlKind()
-                ? List.of(worldPosition.below().immutable())
-                : List.of();
+        return switch (kind()) {
+            case CONTROL_REASIM -> reasimControlPowerConnectorPositions();
+            case CONTROL_REASIM_AUTO -> automaticReasimControlPowerConnectorPositions();
+            default -> List.of();
+        };
     }
 
     @Override
     public boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
-        return isReasimControlKind()
-                && machineSide == Direction.DOWN
-                && worldPosition.below().equals(connectorPos);
+        return switch (kind()) {
+            case CONTROL_REASIM -> canConnectReasimControlPower(connectorPos, machineSide);
+            case CONTROL_REASIM_AUTO -> canConnectAutomaticReasimControlPower(connectorPos, machineSide);
+            default -> false;
+        };
+    }
+
+    private List<BlockPos> reasimControlPowerConnectorPositions() {
+        return List.of(worldPosition.below().immutable());
+    }
+
+    private List<BlockPos> automaticReasimControlPowerConnectorPositions() {
+        return List.of(worldPosition.below().immutable());
+    }
+
+    private boolean canConnectReasimControlPower(BlockPos connectorPos, Direction machineSide) {
+        return machineSide == Direction.DOWN && worldPosition.below().equals(connectorPos);
+    }
+
+    private boolean canConnectAutomaticReasimControlPower(BlockPos connectorPos, Direction machineSide) {
+        return machineSide == Direction.DOWN && worldPosition.below().equals(connectorPos);
     }
 
     @Override
@@ -1058,6 +1100,11 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         return isCraneLoadableTarget(target);
     }
 
+    /** One atomic renderer view, including the envelope derived from it. */
+    public RenderSnapshot renderSnapshot() {
+        return renderSnapshot;
+    }
+
     public boolean isPlayerInCraneOperationArea(Player player) {
         if (kind() != RbmkComponentBlock.Kind.CRANE_CONSOLE) {
             return false;
@@ -1217,51 +1264,199 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
      */
     @Nullable
     public IFluidHandler fluidHandler(BlockPos exposedPos, @Nullable Direction side) {
-        RbmkComponentBlock.Kind kind = kind();
-        if (!kind.hasFluid() && kind != RbmkComponentBlock.Kind.OUTGASSER) {
-            return null;
-        }
-        if (!hasPotentialFluidPort(exposedPos, side)) {
-            return null;
-        }
-        return new RbmkFluidHandler(exposedPos.immutable(), side);
+        return switch (kind()) {
+            case BOILER -> boilerFluidHandler(exposedPos, side);
+            case HEATER -> heaterFluidHandler(exposedPos, side);
+            case COOLER -> coolerFluidHandler(exposedPos, side);
+            case LOADER -> loaderFluidHandler(exposedPos, side);
+            case STEAM_INLET -> steamInletFluidHandler(exposedPos, side);
+            case STEAM_OUTLET -> steamOutletFluidHandler(exposedPos, side);
+            case OUTGASSER -> outgasserFluidHandler(exposedPos, side);
+            default -> null;
+        };
     }
 
-    private boolean hasPotentialFluidPort(BlockPos exposedPos, @Nullable Direction side) {
-        RbmkComponentBlock.Kind kind = kind();
-        if (side == null || kind == RbmkComponentBlock.Kind.STEAM_INLET
-                || kind == RbmkComponentBlock.Kind.STEAM_OUTLET
-                || kind == RbmkComponentBlock.Kind.LOADER) {
+    @Nullable
+    private IFluidHandler boilerFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+        return hasPotentialBoilerFluidPort(exposedPos, side)
+                ? new RbmkFluidHandler(exposedPos.immutable(), side) : null;
+    }
+
+    @Nullable
+    private IFluidHandler heaterFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+        return hasPotentialHeaterFluidPort(exposedPos, side)
+                ? new RbmkFluidHandler(exposedPos.immutable(), side) : null;
+    }
+
+    @Nullable
+    private IFluidHandler coolerFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+        return hasPotentialCoolerFluidPort(exposedPos, side)
+                ? new RbmkFluidHandler(exposedPos.immutable(), side) : null;
+    }
+
+    @Nullable
+    private IFluidHandler loaderFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+        return hasPotentialLoaderFluidPort(exposedPos, side)
+                ? new RbmkFluidHandler(exposedPos.immutable(), side) : null;
+    }
+
+    @Nullable
+    private IFluidHandler steamInletFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+        return hasPotentialSteamInletFluidPort(exposedPos, side)
+                ? new RbmkFluidHandler(exposedPos.immutable(), side) : null;
+    }
+
+    @Nullable
+    private IFluidHandler steamOutletFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+        return hasPotentialSteamOutletFluidPort(exposedPos, side)
+                ? new RbmkFluidHandler(exposedPos.immutable(), side) : null;
+    }
+
+    @Nullable
+    private IFluidHandler outgasserFluidHandler(BlockPos exposedPos, @Nullable Direction side) {
+        return hasPotentialOutgasserFluidPort(exposedPos, side)
+                ? new RbmkFluidHandler(exposedPos.immutable(), side) : null;
+    }
+
+    private boolean hasPotentialBoilerFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        if (side == null) {
             return true;
         }
-        if (kind == RbmkComponentBlock.Kind.BOILER
-                || kind == RbmkComponentBlock.Kind.HEATER
-                || kind == RbmkComponentBlock.Kind.COOLER
-                || kind == RbmkComponentBlock.Kind.OUTGASSER) {
-            if (exposedPos.equals(worldPosition) && side == Direction.DOWN) {
-                return true;
-            }
-            if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
-                    && side == Direction.DOWN) {
-                return true;
-            }
-            if (kind == RbmkComponentBlock.Kind.OUTGASSER
-                    && !hasRbmkLoaderBelow()
-                    && exposedPos.equals(worldPosition.below())
-                    && side == Direction.UP) {
-                return true;
-            }
-            return isAnyLoaderOutputPort(exposedPos, side);
+        if (exposedPos.equals(worldPosition) && side == Direction.DOWN) {
+            return true;
         }
-        return false;
+        if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                && side == Direction.DOWN) {
+            return true;
+        }
+        return isBoilerLoaderOutputPort(exposedPos, side);
     }
 
-    private boolean hasRbmkLoaderBelow() {
+    private boolean hasPotentialHeaterFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        if (side == null) {
+            return true;
+        }
+        if (exposedPos.equals(worldPosition) && side == Direction.DOWN) {
+            return true;
+        }
+        if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                && side == Direction.DOWN) {
+            return true;
+        }
+        return isHeaterLoaderOutputPort(exposedPos, side);
+    }
+
+    private boolean hasPotentialCoolerFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        if (side == null) {
+            return true;
+        }
+        if (exposedPos.equals(worldPosition) && side == Direction.DOWN) {
+            return true;
+        }
+        if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                && side == Direction.DOWN) {
+            return true;
+        }
+        return isCoolerLoaderOutputPort(exposedPos, side);
+    }
+
+    private boolean hasPotentialLoaderFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        return true;
+    }
+
+    private boolean hasPotentialSteamInletFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        return true;
+    }
+
+    private boolean hasPotentialSteamOutletFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        return true;
+    }
+
+    private boolean hasPotentialOutgasserFluidPort(BlockPos exposedPos, @Nullable Direction side) {
+        if (side == null) {
+            return true;
+        }
+        if (exposedPos.equals(worldPosition) && side == Direction.DOWN) {
+            return true;
+        }
+        if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                && side == Direction.DOWN) {
+            return true;
+        }
+        if (!hasOutgasserLoaderBelow()
+                && exposedPos.equals(worldPosition.below())
+                && side == Direction.UP) {
+            return true;
+        }
+        return isOutgasserLoaderOutputPort(exposedPos, side);
+    }
+
+    private boolean hasOutgasserLoaderBelow() {
         return level != null && (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())
                 || level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get()));
     }
 
-    private boolean isAnyLoaderOutputPort(BlockPos exposedPos, Direction side) {
+    private boolean isBoilerLoaderOutputPort(BlockPos exposedPos, Direction side) {
+        if (level == null) {
+            return false;
+        }
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader == null) {
+            return false;
+        }
+        return (exposedPos.equals(loader.east()) && side == Direction.WEST)
+                || (exposedPos.equals(loader.west()) && side == Direction.EAST)
+                || (exposedPos.equals(loader.south()) && side == Direction.NORTH)
+                || (exposedPos.equals(loader.north()) && side == Direction.SOUTH)
+                || (exposedPos.equals(loader.below()) && side == Direction.UP);
+    }
+
+    private boolean isHeaterLoaderOutputPort(BlockPos exposedPos, Direction side) {
+        if (level == null) {
+            return false;
+        }
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader == null) {
+            return false;
+        }
+        return (exposedPos.equals(loader.east()) && side == Direction.WEST)
+                || (exposedPos.equals(loader.west()) && side == Direction.EAST)
+                || (exposedPos.equals(loader.south()) && side == Direction.NORTH)
+                || (exposedPos.equals(loader.north()) && side == Direction.SOUTH)
+                || (exposedPos.equals(loader.below()) && side == Direction.UP);
+    }
+
+    private boolean isCoolerLoaderOutputPort(BlockPos exposedPos, Direction side) {
+        if (level == null) {
+            return false;
+        }
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader == null) {
+            return false;
+        }
+        return (exposedPos.equals(loader.east()) && side == Direction.WEST)
+                || (exposedPos.equals(loader.west()) && side == Direction.EAST)
+                || (exposedPos.equals(loader.south()) && side == Direction.NORTH)
+                || (exposedPos.equals(loader.north()) && side == Direction.SOUTH)
+                || (exposedPos.equals(loader.below()) && side == Direction.UP);
+    }
+
+    private boolean isOutgasserLoaderOutputPort(BlockPos exposedPos, Direction side) {
         if (level == null) {
             return false;
         }
@@ -1297,6 +1492,11 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         NeutronFluxProvider.NeutronFlux flux = rbmkIncomingSpectrum(level, pos);
         lastFlux = flux.total();
         lastFluxFastRatio = flux.fastRatio();
+        if (lastFlux > 0.0D && level instanceof ServerLevel serverLevel && level.getGameTime() % 200L == 0L) {
+            com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                    serverLevel, pos,
+                    com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_NUCLEAR, 300);
+        }
         if (!(fuel.getItem() instanceof RbmkFuelRodItem rod)) {
             emittedFlux = 0.0D;
             emittedFastRatio = 0.0D;
@@ -1898,14 +2098,14 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         // the total four-block column, so this is base.y + height (y + 4).
         outputs.add(base.above(height));
         if (level.getBlockState(base.below()).is(HbmBlocks.RBMK_LOADER.get())) {
-            addLoaderOutputPositions(outputs, base, 1);
+            addBoilerLoaderOutputPositions(outputs, base, 1);
         } else if (level.getBlockState(base.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
-            addLoaderOutputPositions(outputs, base, 2);
+            addBoilerLoaderOutputPositions(outputs, base, 2);
         }
         return outputs;
     }
 
-    private static void addLoaderOutputPositions(List<BlockPos> outputs, BlockPos base, int offsetBelow) {
+    private static void addBoilerLoaderOutputPositions(List<BlockPos> outputs, BlockPos base, int offsetBelow) {
         BlockPos loader = base.below(offsetBelow);
         outputs.add(loader.east());
         outputs.add(loader.west());
@@ -1921,14 +2121,38 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
      * coordinates.  The side is the receiving face (the opposite of the
      * sender's ForgeDirection).
      */
-    private void pushRbmkFluid(Level level, HbmFluidTank tank, boolean outgasser) {
-        if (tank.amount() <= 0 || tank.type().isNone()) {
+    private void pushBoilerFluid(Level level) {
+        if (steam.amount() <= 0 || steam.type().isNone()) {
             return;
         }
-        List<RbmkFluidOutput> outputs = new ArrayList<>();
-        int height = RbmkComponentBlock.columnHeight(level);
-        outputs.add(new RbmkFluidOutput(worldPosition.above(height), Direction.DOWN));
+        pushFluidThroughPorts(level, steam, boilerFluidOutputPorts(level));
+    }
 
+    private void pushHeaterFluid(Level level) {
+        if (heaterOutput.amount() <= 0 || heaterOutput.type().isNone()) {
+            return;
+        }
+        pushFluidThroughPorts(level, heaterOutput, heaterFluidOutputPorts(level));
+    }
+
+    private void pushCoolerFluid(Level level) {
+        if (coolerOutput.amount() <= 0 || coolerOutput.type().isNone()) {
+            return;
+        }
+        pushFluidThroughPorts(level, coolerOutput, coolerFluidOutputPorts(level));
+    }
+
+    private void pushOutgasserFluid(Level level) {
+        if (outgasserGas.amount() <= 0 || outgasserGas.type().isNone()) {
+            return;
+        }
+        pushFluidThroughPorts(level, outgasserGas, outgasserFluidOutputPorts(level));
+    }
+
+    private List<RbmkFluidOutput> boilerFluidOutputPorts(Level level) {
+        List<RbmkFluidOutput> outputs = new ArrayList<>();
+        outputs.add(new RbmkFluidOutput(
+                worldPosition.above(RbmkComponentBlock.columnHeight(level)), Direction.DOWN));
         BlockPos loader = null;
         if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
             loader = worldPosition.below();
@@ -1936,19 +2160,78 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             loader = worldPosition.below(2);
         }
         if (loader != null) {
-            // Exact TileEntityRBMK* getOutputPos() order: +X, -X, +Z,
-            // -Z, then the block below the loader.
             outputs.add(new RbmkFluidOutput(loader.east(), Direction.WEST));
             outputs.add(new RbmkFluidOutput(loader.west(), Direction.EAST));
             outputs.add(new RbmkFluidOutput(loader.south(), Direction.NORTH));
             outputs.add(new RbmkFluidOutput(loader.north(), Direction.SOUTH));
             outputs.add(new RbmkFluidOutput(loader.below(), Direction.UP));
-        } else if (outgasser) {
-            // Outgasser has one additional downward output when no loader is
-            // installed; boiler/heater/cooler do not.
+        }
+        return outputs;
+    }
+
+    private List<RbmkFluidOutput> heaterFluidOutputPorts(Level level) {
+        List<RbmkFluidOutput> outputs = new ArrayList<>();
+        outputs.add(new RbmkFluidOutput(
+                worldPosition.above(RbmkComponentBlock.columnHeight(level)), Direction.DOWN));
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader != null) {
+            outputs.add(new RbmkFluidOutput(loader.east(), Direction.WEST));
+            outputs.add(new RbmkFluidOutput(loader.west(), Direction.EAST));
+            outputs.add(new RbmkFluidOutput(loader.south(), Direction.NORTH));
+            outputs.add(new RbmkFluidOutput(loader.north(), Direction.SOUTH));
+            outputs.add(new RbmkFluidOutput(loader.below(), Direction.UP));
+        }
+        return outputs;
+    }
+
+    private List<RbmkFluidOutput> coolerFluidOutputPorts(Level level) {
+        List<RbmkFluidOutput> outputs = new ArrayList<>();
+        outputs.add(new RbmkFluidOutput(
+                worldPosition.above(RbmkComponentBlock.columnHeight(level)), Direction.DOWN));
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader != null) {
+            outputs.add(new RbmkFluidOutput(loader.east(), Direction.WEST));
+            outputs.add(new RbmkFluidOutput(loader.west(), Direction.EAST));
+            outputs.add(new RbmkFluidOutput(loader.south(), Direction.NORTH));
+            outputs.add(new RbmkFluidOutput(loader.north(), Direction.SOUTH));
+            outputs.add(new RbmkFluidOutput(loader.below(), Direction.UP));
+        }
+        return outputs;
+    }
+
+    private List<RbmkFluidOutput> outgasserFluidOutputPorts(Level level) {
+        List<RbmkFluidOutput> outputs = new ArrayList<>();
+        outputs.add(new RbmkFluidOutput(
+                worldPosition.above(RbmkComponentBlock.columnHeight(level)), Direction.DOWN));
+        BlockPos loader = null;
+        if (level.getBlockState(worldPosition.below()).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below();
+        } else if (level.getBlockState(worldPosition.below(2)).is(HbmBlocks.RBMK_LOADER.get())) {
+            loader = worldPosition.below(2);
+        }
+        if (loader != null) {
+            outputs.add(new RbmkFluidOutput(loader.east(), Direction.WEST));
+            outputs.add(new RbmkFluidOutput(loader.west(), Direction.EAST));
+            outputs.add(new RbmkFluidOutput(loader.south(), Direction.NORTH));
+            outputs.add(new RbmkFluidOutput(loader.north(), Direction.SOUTH));
+            outputs.add(new RbmkFluidOutput(loader.below(), Direction.UP));
+        } else {
             outputs.add(new RbmkFluidOutput(worldPosition.below(), Direction.UP));
         }
+        return outputs;
+    }
 
+    private void pushFluidThroughPorts(Level level, HbmFluidTank tank, List<RbmkFluidOutput> outputs) {
         for (RbmkFluidOutput output : outputs) {
             if (tank.amount() <= 0) {
                 break;
@@ -2031,7 +2314,8 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         // Apply that identifier exactly once per server tick before the
         // exchanger examines the tank type.
         ItemStack identifier = items.get(SLOT_FUEL);
-        if (identifier.getItem() instanceof FluidIdentifierItem) {
+        if ((heat <= 50.0D || heaterInput.amount() <= 0)
+                && identifier.getItem() instanceof FluidIdentifierItem) {
             HbmFluidDefinition selected = FluidIdentifierItem.primary(identifier);
             if (heaterInput.type() != selected) {
                 heaterInput.setType(selected);
@@ -2194,6 +2478,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             craneLastTiltLeft = craneTiltLeft;
             craneTiltFront = 0.0D;
             craneTiltLeft = 0.0D;
+            publishRenderSnapshot(false);
             return;
         }
         if (kind.isControl()) {
@@ -2203,6 +2488,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             lastControlLevel = controlLevel;
         }
         if (kind != RbmkComponentBlock.Kind.AUTOLOADER) {
+            publishRenderSnapshot(false);
             return;
         }
         double previous = autoloaderLastPiston;
@@ -2227,6 +2513,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                 );
             }
         }
+        publishRenderSnapshot(false);
     }
 
     /** Apply only the legacy client-side crane tilt prediction. */
@@ -2245,6 +2532,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         } else if (!left && right) {
             craneTiltLeft = -30.0D;
         }
+        publishRenderSnapshot(false);
     }
 
     public double autoloaderPiston(float partialTick) {
@@ -2907,7 +3195,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             double value = 0.0D;
             int count = 0;
             for (int index : consoleScreenColumns[slot]) {
-                if (index < 0 || index >= CONSOLE_COLUMN_COUNT || consoleKinds[index] < 0) {
+                if (index < 0 || index >= CONSOLE_COLUMN_COUNT
+                        || consoleKinds[index] < 0
+                        || consoleKinds[index] >= RbmkComponentBlock.Kind.values().length) {
                     continue;
                 }
                 RbmkComponentBlock.Kind columnKind = RbmkComponentBlock.Kind.values()[consoleKinds[index]];
@@ -3228,6 +3518,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private void setSteamCompression(int value) {
+        if (heat > 50.0D && water.amount() > 0) {
+            return;
+        }
         int next = Math.max(0, Math.min(3, value));
         if (steamCompression == next) {
             return;
@@ -3364,11 +3657,242 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
     }
 
+    @Override
+    public void refreshClientRenderNeighborSnapshot() {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        int hiddenMask = 0;
+        if (kind().isColumn()) {
+            for (Direction direction : Direction.Plane.HORIZONTAL) {
+                if (this.level.getBlockEntity(this.worldPosition.relative(direction))
+                        instanceof RbmkComponentBlockEntity other && other.kind().isColumn()) {
+                    hiddenMask |= 1 << direction.ordinal();
+                }
+            }
+        }
+        this.clientHiddenHorizontalFaceMask = hiddenMask;
+        publishRenderSnapshot(false);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (level != null && level.isClientSide) {
+            loadedOnClient = true;
+            synchronized (LOADED_CLIENT_INSTANCES) {
+                LOADED_CLIENT_INSTANCES.add(this);
+            }
+        }
+        refreshClientRenderNeighborSnapshot();
+        refreshAdjacentClientColumnSnapshots();
+        if (level != null && level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        Level currentLevel = this.level;
+        boolean notifyColumns = currentLevel != null && currentLevel.isClientSide && kind().isColumn();
+        if (loadedOnClient) {
+            loadedOnClient = false;
+            synchronized (LOADED_CLIENT_INSTANCES) {
+                LOADED_CLIENT_INSTANCES.remove(this);
+            }
+            clientGpuCacheDisposer.accept(this);
+        }
+        super.setRemoved();
+        if (notifyColumns) {
+            refreshAdjacentClientColumnSnapshots(currentLevel);
+        }
+    }
+
+    private void refreshAdjacentClientColumnSnapshots() {
+        if (this.level != null && this.level.isClientSide && kind().isColumn()) {
+            refreshAdjacentClientColumnSnapshots(this.level);
+        }
+    }
+
+    private void refreshAdjacentClientColumnSnapshots(Level clientLevel) {
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            ClientRenderNeighborSnapshot.refreshAt(clientLevel, this.worldPosition.relative(direction));
+        }
+    }
+
     private void setChangedAndSync() {
         setChanged();
         if (level != null) {
             BlockState state = getBlockState();
+            if (level.isClientSide) {
+                publishRenderSnapshot(true);
+            }
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private void publishRenderSnapshot(boolean rebuildClientSection) {
+        if (level != null && level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+            return;
+        }
+        this.renderSnapshot = buildRenderSnapshot(false).withGeometry(
+                null, zeroVolumeBounds(worldPosition), clientRenderSnapshotRevision);
+    }
+
+    /** Captures all state used by the client renderer before geometry is attached atomically. */
+    public RenderSnapshot captureClientRenderInputs() {
+        return buildRenderSnapshot(true);
+    }
+
+    /** Installed by the client renderer without linking client-only classes on a dedicated server. */
+    public static void setClientRenderSnapshotUpdater(Consumer<RbmkComponentBlockEntity> updater) {
+        clientRenderSnapshotUpdater = Objects.requireNonNull(updater);
+    }
+
+    /** Installed by the client renderer so an unloaded instance releases only its own GPU buffers. */
+    public static void setClientGpuCacheDisposer(Consumer<RbmkComponentBlockEntity> disposer) {
+        clientGpuCacheDisposer = Objects.requireNonNull(disposer);
+    }
+
+    /** Refreshes every loaded client instance after one post-bake geometry generation is published. */
+    public static void invalidateClientRenderSnapshotsAfterBake() {
+        clientRenderSnapshotRevision++;
+        ArrayList<RbmkComponentBlockEntity> loaded;
+        synchronized (LOADED_CLIENT_INSTANCES) {
+            loaded = new ArrayList<>(LOADED_CLIENT_INSTANCES);
+        }
+        for (RbmkComponentBlockEntity rbmk : loaded) {
+            clientRenderSnapshotUpdater.accept(rbmk);
+        }
+    }
+
+    public static long clientRenderSnapshotRevision() {
+        return clientRenderSnapshotRevision;
+    }
+
+    public void publishClientRenderSnapshot(RenderSnapshot next) {
+        if (level == null || !level.isClientSide) {
+            return;
+        }
+        RenderSnapshot previous = this.renderSnapshot;
+        this.renderSnapshot = Objects.requireNonNull(next);
+        if (previous != null && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private RenderSnapshot buildRenderSnapshot(boolean queryClientWorld) {
+        BlockState state = getBlockState();
+        RbmkComponentBlock.Kind snapshotKind = state.getBlock() instanceof RbmkComponentBlock block
+                ? block.kind() : RbmkComponentBlock.Kind.BLANK;
+        Direction facing = state.hasProperty(RbmkComponentBlock.FACING)
+                ? state.getValue(RbmkComponentBlock.FACING) : Direction.NORTH;
+        int columnHeight = RbmkComponentBlock.columnHeight();
+        boolean aboveValidTarget = queryClientWorld && level != null && level.isClientSide
+                && snapshotKind == RbmkComponentBlock.Kind.CRANE_CONSOLE && craneAboveValidTarget();
+        return new RenderSnapshot(
+                state, snapshotKind, facing, columnHeight,
+                autoloaderLastPiston, autoloaderPiston,
+                craneCenter == null ? null : craneCenter.immutable(),
+                craneSpanF, craneSpanB, craneSpanL, craneSpanR, craneHeight, craneRotationOffset,
+                craneLastTiltFront, craneTiltFront, craneLastTiltLeft, craneTiltLeft,
+                craneLastPosFront, cranePosFront, craneLastPosLeft, cranePosLeft,
+                craneLastProgress, craneProgress,
+                !craneLoadedItem.isEmpty(), craneProgress != 1.0D, aboveValidTarget,
+                craneLoadedHeat, craneLoadedEnrichment,
+                this.clientHiddenHorizontalFaceMask,
+                lastControlLevel, controlLevel,
+                hasLid(), lidType(), hasFuelRod(), fuelChannelColor(), lastFlux, colorGroup,
+                null, zeroVolumeBounds(worldPosition), clientRenderSnapshotRevision
+        );
+    }
+
+    private static AABB zeroVolumeBounds(BlockPos pos) {
+        return new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(first.minY) == section(second.minY)
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RenderSnapshot(
+            BlockState blockState, RbmkComponentBlock.Kind kind, Direction facing, int columnHeight,
+            double previousAutoloaderPiston, double autoloaderPiston,
+            @Nullable BlockPos craneCenter,
+            int craneSpanF, int craneSpanB, int craneSpanL, int craneSpanR,
+            int craneHeight, int craneRotationOffset,
+            double previousCraneTiltFront, double craneTiltFront,
+            double previousCraneTiltLeft, double craneTiltLeft,
+            double previousCranePosFront, double cranePosFront,
+            double previousCranePosLeft, double cranePosLeft,
+            double previousCraneProgress, double craneProgress,
+            boolean craneHasLoadedItem, boolean craneIsLoading, boolean craneAboveValidTarget,
+            double craneLoadedHeat, double craneLoadedEnrichment,
+            int hiddenHorizontalFaceMask,
+            double previousControlLevel, double controlLevel,
+            boolean hasLid, LidType lidType, boolean hasFuelRod, int fuelChannelColor,
+            double lastFlux, int colorGroup,
+            Object geometryToken, AABB bounds, long geometryRevision
+    ) {
+        public RenderSnapshot withGeometry(Object token, AABB renderedBounds, long revision) {
+            return new RenderSnapshot(
+                    blockState, kind, facing, columnHeight,
+                    previousAutoloaderPiston, autoloaderPiston,
+                    craneCenter, craneSpanF, craneSpanB, craneSpanL, craneSpanR,
+                    craneHeight, craneRotationOffset,
+                    previousCraneTiltFront, craneTiltFront,
+                    previousCraneTiltLeft, craneTiltLeft,
+                    previousCranePosFront, cranePosFront,
+                    previousCranePosLeft, cranePosLeft,
+                    previousCraneProgress, craneProgress,
+                    craneHasLoadedItem, craneIsLoading, craneAboveValidTarget,
+                    craneLoadedHeat, craneLoadedEnrichment, hiddenHorizontalFaceMask,
+                    previousControlLevel, controlLevel,
+                    hasLid, lidType, hasFuelRod, fuelChannelColor, lastFlux, colorGroup,
+                    token, renderedBounds, revision);
+        }
+
+        public double autoloaderPiston(float partialTick) {
+            return previousAutoloaderPiston + (autoloaderPiston - previousAutoloaderPiston) * partialTick;
+        }
+
+        public double craneTiltFront(float partialTick) {
+            return previousCraneTiltFront + (craneTiltFront - previousCraneTiltFront) * partialTick;
+        }
+
+        public double craneTiltLeft(float partialTick) {
+            return previousCraneTiltLeft + (craneTiltLeft - previousCraneTiltLeft) * partialTick;
+        }
+
+        public double cranePosFront(float partialTick) {
+            return previousCranePosFront + (cranePosFront - previousCranePosFront) * partialTick;
+        }
+
+        public double cranePosLeft(float partialTick) {
+            return previousCranePosLeft + (cranePosLeft - previousCranePosLeft) * partialTick;
+        }
+
+        public double craneProgress(float partialTick) {
+            return previousCraneProgress + (craneProgress - previousCraneProgress) * partialTick;
+        }
+
+        public boolean hiddenHorizontalFace(Direction direction) {
+            return (hiddenHorizontalFaceMask & 1 << direction.ordinal()) != 0;
         }
     }
 
@@ -3417,6 +3941,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         // TileEntityMachineBase/TileEntityRBMKActiveBase used the same
         // 128-block-squared menu validity check for every RBMK GUI in 1.7.10.
         double maxDistance = 128.0D;
@@ -3853,6 +4380,9 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         craneLoadedEnrichment = clientUpdate ? tag.getDouble("craneLoadedEnrichment") : 0.0D;
         craneLoadedItem = ItemStack.parseOptional(registries,
                 tag.contains("craneLoadedItem") ? tag.getCompound("craneLoadedItem") : tag.getCompound("held"));
+        if (level == null || level.isClientSide) {
+            publishRenderSnapshot(true);
+        }
     }
 
     private static void loadIntArray(CompoundTag tag, String key, int[] target, int fallback) {
@@ -4162,28 +4692,60 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
 
         private boolean canFillPort() {
-            RbmkComponentBlock.Kind kind = kind();
-            if (kind == RbmkComponentBlock.Kind.STEAM_INLET) {
-                return true;
-            }
-            return (kind == RbmkComponentBlock.Kind.BOILER
-                    || kind == RbmkComponentBlock.Kind.HEATER
-                    || kind == RbmkComponentBlock.Kind.COOLER)
-                    && exposedPos.equals(worldPosition)
-                    && (side == null || side == Direction.DOWN);
+            return switch (kind()) {
+                case BOILER -> canFillBoilerPort();
+                case HEATER -> canFillHeaterPort();
+                case COOLER -> canFillCoolerPort();
+                case LOADER -> canFillLoaderPort();
+                case STEAM_INLET -> canFillSteamInletPort();
+                case STEAM_OUTLET -> canFillSteamOutletPort();
+                case OUTGASSER -> canFillOutgasserPort();
+                default -> false;
+            };
         }
 
         private boolean canDrainPort() {
-            RbmkComponentBlock.Kind kind = kind();
-            if (kind == RbmkComponentBlock.Kind.STEAM_OUTLET) {
-                return true;
-            }
-            if (!(kind == RbmkComponentBlock.Kind.BOILER
-                    || kind == RbmkComponentBlock.Kind.HEATER
-                    || kind == RbmkComponentBlock.Kind.COOLER
-                    || kind == RbmkComponentBlock.Kind.OUTGASSER)) {
-                return false;
-            }
+            return switch (kind()) {
+                case BOILER -> canDrainBoilerPort();
+                case HEATER -> canDrainHeaterPort();
+                case COOLER -> canDrainCoolerPort();
+                case LOADER -> canDrainLoaderPort();
+                case STEAM_INLET -> canDrainSteamInletPort();
+                case STEAM_OUTLET -> canDrainSteamOutletPort();
+                case OUTGASSER -> canDrainOutgasserPort();
+                default -> false;
+            };
+        }
+
+        private boolean canFillBoilerPort() {
+            return exposedPos.equals(worldPosition) && (side == null || side == Direction.DOWN);
+        }
+
+        private boolean canFillHeaterPort() {
+            return exposedPos.equals(worldPosition) && (side == null || side == Direction.DOWN);
+        }
+
+        private boolean canFillCoolerPort() {
+            return exposedPos.equals(worldPosition) && (side == null || side == Direction.DOWN);
+        }
+
+        private boolean canFillLoaderPort() {
+            return false;
+        }
+
+        private boolean canFillSteamInletPort() {
+            return true;
+        }
+
+        private boolean canFillSteamOutletPort() {
+            return false;
+        }
+
+        private boolean canFillOutgasserPort() {
+            return false;
+        }
+
+        private boolean canDrainBoilerPort() {
             if (side == null) {
                 return true;
             }
@@ -4191,13 +4753,57 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
                     && side == Direction.DOWN) {
                 return true;
             }
-            if (kind == RbmkComponentBlock.Kind.OUTGASSER
-                    && !hasRbmkLoaderBelow()
+            return isBoilerLoaderOutputPort(exposedPos, side);
+        }
+
+        private boolean canDrainHeaterPort() {
+            if (side == null) {
+                return true;
+            }
+            if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                    && side == Direction.DOWN) {
+                return true;
+            }
+            return isHeaterLoaderOutputPort(exposedPos, side);
+        }
+
+        private boolean canDrainCoolerPort() {
+            if (side == null) {
+                return true;
+            }
+            if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                    && side == Direction.DOWN) {
+                return true;
+            }
+            return isCoolerLoaderOutputPort(exposedPos, side);
+        }
+
+        private boolean canDrainLoaderPort() {
+            return false;
+        }
+
+        private boolean canDrainSteamInletPort() {
+            return false;
+        }
+
+        private boolean canDrainSteamOutletPort() {
+            return true;
+        }
+
+        private boolean canDrainOutgasserPort() {
+            if (side == null) {
+                return true;
+            }
+            if (exposedPos.equals(worldPosition.above(RbmkComponentBlock.columnHeight(level)))
+                    && side == Direction.DOWN) {
+                return true;
+            }
+            if (!hasOutgasserLoaderBelow()
                     && exposedPos.equals(worldPosition.below())
                     && side == Direction.UP) {
                 return true;
             }
-            return isAnyLoaderOutputPort(exposedPos, side);
+            return isOutgasserLoaderOutputPort(exposedPos, side);
         }
 
         /** Exact 1.7.10 RBMKLoader.canConnect direction/type rule. */

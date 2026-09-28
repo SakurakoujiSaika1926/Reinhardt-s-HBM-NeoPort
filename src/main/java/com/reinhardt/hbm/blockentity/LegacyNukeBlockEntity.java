@@ -83,7 +83,7 @@ public final class LegacyNukeBlockEntity extends BlockEntity implements MachineI
     @Override public int[] getSlotsForFace(Direction side) { return NO_AUTOMATION; }
     @Override public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) { return false; }
     @Override public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) { return false; }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    @Override public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
 
     public boolean slotHasExpectedItem(int slot) {
         return valid(slot) && matches(items.get(slot), definition().expected(slot));
@@ -92,7 +92,7 @@ public final class LegacyNukeBlockEntity extends BlockEntity implements MachineI
     public boolean isReady() {
         LegacyNukeDefinition def = definition();
         if (def.isCustom()) return hasCustomPayload();
-        int requiredSlots = def == LegacyNukeDefinition.TSAR ? 5 : def.slotCount();
+        int requiredSlots = hasStagedYield(def) ? 5 : def.slotCount();
         for (int slot = 0; slot < requiredSlots; slot++) {
             if (!slotHasExpectedItem(slot)) return false;
         }
@@ -101,12 +101,18 @@ public final class LegacyNukeBlockEntity extends BlockEntity implements MachineI
 
     public boolean isFilled() {
         LegacyNukeDefinition def = definition();
-        return def == LegacyNukeDefinition.TSAR ? isReady() && slotHasExpectedItem(5) : isReady();
+        if (!isReady()) return false;
+        if (!hasStagedYield(def)) return true;
+        for (int slot = 5; slot < def.slotCount(); slot++) {
+            if (!slotHasExpectedItem(slot)) return false;
+        }
+        return true;
     }
 
     public void detonate() {
         if (!(level instanceof ServerLevel serverLevel) || !isReady()) return;
         LegacyNukeDefinition def = definition();
+        boolean filled = isFilled();
         refreshCustomPayload();
         clearContent();
         serverLevel.removeBlock(worldPosition, false);
@@ -116,10 +122,29 @@ public final class LegacyNukeBlockEntity extends BlockEntity implements MachineI
             NukeExplosionManager.scheduleCustomNuke(serverLevel, worldPosition.getX() + 0.5D,
                     worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D,
                     tnt, nuke, hydro, amat, dirty, schrab, euph);
-        } else {
-            NukeExplosionManager.scheduleLegacyNuke(serverLevel, worldPosition.getX() + 0.5D,
+        } else if (def == LegacyNukeDefinition.FLEIJA || def == LegacyNukeDefinition.PROTOTYPE) {
+            NukeExplosionManager.scheduleFleijaNuke(serverLevel, worldPosition.getX() + 0.5D,
                     worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D, def.radius());
+        } else if (def == LegacyNukeDefinition.SOLINIUM) {
+            NukeExplosionManager.scheduleSoliniumNuke(serverLevel, worldPosition.getX() + 0.5D,
+                    worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D, def.radius());
+        } else if (def == LegacyNukeDefinition.N2) {
+            NukeExplosionManager.scheduleMk5NoRadiation(serverLevel, worldPosition.getX() + 0.5D,
+                    worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D, def.radius());
+        } else {
+            // In 1.7.10 a partially loaded Tsar used the Fat Man radius. Ivy
+            // Mike also accepted its first five slots, but its legacy block
+            // ignored the passed fallback radius and always used mikeRadius.
+            int radius = def == LegacyNukeDefinition.TSAR && !filled
+                    ? LegacyNukeDefinition.MAN.radius()
+                    : def.radius();
+            NukeExplosionManager.scheduleLegacyNuke(serverLevel, worldPosition.getX() + 0.5D,
+                    worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D, radius);
         }
+    }
+
+    private static boolean hasStagedYield(LegacyNukeDefinition definition) {
+        return definition == LegacyNukeDefinition.MIKE || definition == LegacyNukeDefinition.TSAR;
     }
 
     private boolean hasCustomPayload() {

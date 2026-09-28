@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.processflight_water",
+  "duration": 36000,
+  "power": 10000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_flightdata" }, "count": 1 }
+  ],
+  "input_fluids": [
+    { "fluid": "water", "amount": 16000 }
+  ],
+  "output_fluids": [
+    { "fluid": "spentsteam", "amount": 16000 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:drive_disk_flightdata_processed" }, "weight": 99 },
+    { "result": { "id": "reinhardtshbm:drive_disk_broken" }, "weight": 1 }
+  ]
+}

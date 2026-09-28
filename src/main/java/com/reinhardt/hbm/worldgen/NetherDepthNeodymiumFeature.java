@@ -5,7 +5,6 @@ import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -30,7 +29,7 @@ public class NetherDepthNeodymiumFeature extends Feature<NoneFeatureConfiguratio
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
-        if ((context.level().getLevel() != null && context.level().getLevel().dimension() != Level.NETHER)
+        if (!WorldgenDimensionClassifier.isNetherLike(context.level(), context.origin())
                 || !HbmConfig.ENABLE_NETHER_ORES.get()) {
             return false;
         }

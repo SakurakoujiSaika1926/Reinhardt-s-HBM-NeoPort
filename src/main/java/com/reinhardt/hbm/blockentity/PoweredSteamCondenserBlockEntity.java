@@ -11,7 +11,6 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.util.FluidCopiable;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -316,7 +315,7 @@ public class PoweredSteamCondenserBlockEntity extends BlockEntity implements Pow
     }
 
     public static List<Port> portsFor(BlockPos corePos, Direction facing) {
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
+        Direction rot = condenserUpSide(facing);
         return List.of(
                 Port.fromConnector(corePos.relative(rot, 4).above(), rot),
                 Port.fromConnector(corePos.relative(rot.getOpposite(), 4).above(), rot.getOpposite()),
@@ -325,6 +324,16 @@ public class PoweredSteamCondenserBlockEntity extends BlockEntity implements Pow
                 Port.fromConnector(corePos.relative(facing.getOpposite(), 2).relative(rot.getOpposite()).above(), facing.getOpposite()),
                 Port.fromConnector(corePos.relative(facing.getOpposite(), 2).relative(rot).above(), facing.getOpposite())
         );
+    }
+
+    private static Direction condenserUpSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Powered condenser facing must be horizontal: " + facing);
+        };
     }
 
     private Direction facing(LevelAccessor level) {

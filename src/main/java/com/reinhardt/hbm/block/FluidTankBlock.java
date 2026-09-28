@@ -6,6 +6,7 @@ import com.reinhardt.hbm.item.BlowtorchItem;
 import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -32,8 +33,40 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class FluidTankBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public FluidTankBlock(Properties properties, Footprint footprint, VoxelShape shape) {
-        super(properties, footprint, shape, RotationBasis.MODERN_NORTH);
+        super(properties, footprint, shape, FluidTankBlock::mapFluidTankOffset);
+    }
+
+    private static BlockPos mapFluidTankOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Fluid tank requires a horizontal facing: " + facing);
+        };
     }
 
     @Override
@@ -46,6 +79,7 @@ public class FluidTankBlock extends LargeMachineBlock implements EntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank) {
             tank.loadFromItem(stack);
+            tank.refreshConnectionsAfterPlacement();
         }
     }
 

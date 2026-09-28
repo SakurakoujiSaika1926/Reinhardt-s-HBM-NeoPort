@@ -30,7 +30,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndpoint {
@@ -117,7 +116,16 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         return new PumpFluidHandler(queriedPos.immutable(), side);
     }
 
-    public List<Port> ports(LevelAccessor level) {
+    public List<Port> steamPumpPorts(LevelAccessor level) {
+        return List.of(
+                new Port(this.worldPosition.relative(Direction.EAST), Direction.EAST),
+                new Port(this.worldPosition.relative(Direction.WEST), Direction.WEST),
+                new Port(this.worldPosition.relative(Direction.SOUTH), Direction.SOUTH),
+                new Port(this.worldPosition.relative(Direction.NORTH), Direction.NORTH)
+        );
+    }
+
+    public List<Port> electricPumpPorts(LevelAccessor level) {
         return List.of(
                 new Port(this.worldPosition.relative(Direction.EAST), Direction.EAST),
                 new Port(this.worldPosition.relative(Direction.WEST), Direction.WEST),
@@ -136,11 +144,12 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         if (kind() != GroundwaterPumpBlock.Kind.ELECTRIC) {
             return List.of();
         }
-        List<BlockPos> connectors = new ArrayList<>(4);
-        for (Port port : ports(level)) {
-            connectors.add(port.pos().relative(port.face()).immutable());
-        }
-        return List.copyOf(connectors);
+        return List.of(
+                this.worldPosition.offset(2, 0, 0).immutable(),
+                this.worldPosition.offset(-2, 0, 0).immutable(),
+                this.worldPosition.offset(0, 0, 2).immutable(),
+                this.worldPosition.offset(0, 0, -2).immutable()
+        );
     }
 
     @Override
@@ -211,11 +220,12 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
 
         if (kind() == GroundwaterPumpBlock.Kind.ELECTRIC) {
             PowerNetworkManager.tickFromEndpoint(level, this);
+            pushElectricWater(level);
         } else {
             pullSteam(level);
-            pushTank(level, this.spentSteamTank);
+            pushSteamPumpSpentSteam(level);
+            pushSteamPumpWater(level);
         }
-        pushTank(level, this.waterTank);
 
         boolean oldActive = this.active;
         this.active = false;
@@ -352,7 +362,7 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         if (this.steamTank.amount() >= this.steamTank.capacity()) {
             return;
         }
-        for (Port port : ports(level)) {
+        for (Port port : steamPumpPorts(level)) {
             int space = this.steamTank.capacity() - this.steamTank.amount();
             if (space <= 0) {
                 break;
@@ -372,27 +382,58 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         }
     }
 
-    private void pushTank(Level level, HbmFluidTank tank) {
+    private void pushSteamPumpSpentSteam(Level level) {
+        HbmFluidTank tank = this.spentSteamTank;
         if (tank.amount() <= 0 || tank.type().isNone()) {
             return;
         }
-        for (Port port : ports(level)) {
+        for (Port port : steamPumpPorts(level)) {
             if (tank.amount() <= 0) {
                 break;
             }
-            int amount = Math.min(PUSH_PER_PORT, tank.amount());
-            FluidStack stack = HbmFluids.toNeoStack(tank.type(), amount);
-            int accepted = HbmFluidNetworks.fillInto(
-                    level,
-                    port.pos().relative(port.face()),
-                    port.face().getOpposite(),
-                    stack,
-                    this.worldPosition,
-                    true
-            );
-            if (accepted > 0) {
-                tank.drain(tank.type(), accepted, false);
+            pushTankThroughPort(level, tank, port);
+        }
+    }
+
+    private void pushSteamPumpWater(Level level) {
+        HbmFluidTank tank = this.waterTank;
+        if (tank.amount() <= 0 || tank.type().isNone()) {
+            return;
+        }
+        for (Port port : steamPumpPorts(level)) {
+            if (tank.amount() <= 0) {
+                break;
             }
+            pushTankThroughPort(level, tank, port);
+        }
+    }
+
+    private void pushElectricWater(Level level) {
+        HbmFluidTank tank = this.waterTank;
+        if (tank.amount() <= 0 || tank.type().isNone()) {
+            return;
+        }
+        for (Port port : electricPumpPorts(level)) {
+            if (tank.amount() <= 0) {
+                break;
+            }
+            pushTankThroughPort(level, tank, port);
+        }
+    }
+
+    private void pushTankThroughPort(Level level, HbmFluidTank tank, Port port) {
+        int amount = Math.min(PUSH_PER_PORT, tank.amount());
+        FluidStack stack = HbmFluids.toNeoStack(tank.type(), amount);
+        int accepted = HbmFluidNetworks.fillInto(
+                level,
+                port.pos().relative(port.face()),
+                port.face().getOpposite(),
+                stack,
+                this.worldPosition,
+                true
+        );
+        if (accepted > 0) {
+            tank.drain(tank.type(), accepted, false);
         }
     }
 
@@ -418,7 +459,23 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         if (this.level == null) {
             return false;
         }
-        for (Port port : ports(this.level)) {
+        return switch (kind()) {
+            case STEAM -> allowsSteamPumpPort(queriedPos, side);
+            case ELECTRIC -> allowsElectricPumpPort(queriedPos, side);
+        };
+    }
+
+    private boolean allowsSteamPumpPort(BlockPos queriedPos, @Nullable Direction side) {
+        for (Port port : steamPumpPorts(this.level)) {
+            if (port.pos().equals(queriedPos) && (side == null || side == port.face())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean allowsElectricPumpPort(BlockPos queriedPos, @Nullable Direction side) {
+        for (Port port : electricPumpPorts(this.level)) {
             if (port.pos().equals(queriedPos) && (side == null || side == port.face())) {
                 return true;
             }
@@ -431,8 +488,14 @@ public class GroundwaterPumpBlockEntity extends BlockEntity implements PowerEndp
         if (this.level != null && !this.level.isClientSide) {
             this.level.invalidateCapabilities(this.worldPosition);
             this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-            for (Port port : ports(this.level)) {
-                this.level.invalidateCapabilities(port.pos());
+            if (kind() == GroundwaterPumpBlock.Kind.STEAM) {
+                for (Port port : steamPumpPorts(this.level)) {
+                    this.level.invalidateCapabilities(port.pos());
+                }
+            } else {
+                for (Port port : electricPumpPorts(this.level)) {
+                    this.level.invalidateCapabilities(port.pos());
+                }
             }
         }
     }

@@ -1,12 +1,12 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.screen.widget.SearchEditBox;
 import com.reinhardt.hbm.menu.FusionMachineMenu;
 import com.reinhardt.hbm.recipe.FusionRecipe;
 import com.reinhardt.hbm.util.HbmFluidTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -39,7 +39,7 @@ public final class FusionRecipeSelectorScreen extends Screen {
 
     @Nullable
     private ResourceLocation selectedRecipeId;
-    private EditBox search;
+    private SearchEditBox search;
     private int leftPos;
     private int topPos;
     private int pageIndex;
@@ -59,7 +59,7 @@ public final class FusionRecipeSelectorScreen extends Screen {
     protected void init() {
         this.leftPos = (this.width - IMAGE_WIDTH) / 2;
         this.topPos = (this.height - IMAGE_HEIGHT) / 2;
-        this.search = new EditBox(this.font, this.leftPos + 28, this.topPos + 111, 102, 12,
+        this.search = new SearchEditBox(this.font, this.leftPos + 28, this.topPos + 111, 102, 12,
                 Component.translatable("container.reinhardtshbm.recipe_selector.search"));
         this.search.setTextColor(0xFFFFFF);
         this.search.setTextColorUneditable(0xFFFFFF);
@@ -319,7 +319,9 @@ public final class FusionRecipeSelectorScreen extends Screen {
         FusionRecipe recipe = holder.value();
         List<Component> lines = new ArrayList<>();
         lines.add(recipe.displayIcon().getHoverName().copy().withStyle(ChatFormatting.YELLOW));
-        lines.add(Component.literal("" + HbmFluidTooltip.shortNumber(recipe.duration()) + " ticks").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("gui.recipe.duration")
+                .append(Component.literal(": " + recipe.duration() / 20.0D + "s"))
+                .withStyle(ChatFormatting.GRAY));
         lines.add(Component.literal(HbmFluidTooltip.shortNumber(recipe.power()) + " HE/t").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("gui.recipe.fusion.input", HbmFluidTooltip.shortNumber(recipe.ignitionTemp()))
                 .withStyle(ChatFormatting.LIGHT_PURPLE));

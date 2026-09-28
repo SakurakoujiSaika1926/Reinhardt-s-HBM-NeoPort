@@ -1,6 +1,6 @@
 param(
     [string]$ProjectRoot = $PSScriptRoot + "\\..",
-    [string]$LegacyRoot = "E:\\MC\\Modsource\\HBM_1.7.10",
+    [string]$LegacyRoot = "E:\\MC\\Modsource\\HBM_1.7.10新",
     [string]$OutputPath = $PSScriptRoot + "\\..\\docs\\machine-prefix-audit.md"
 )
 
@@ -30,7 +30,7 @@ $oldTileMappings = Read-Utf8 $oldTileMappingsPath
 # These are source-level renames already used by the 1.21.1 port.
 $renames = @{
     'machine_difurnace_extension' = 'machine_difurnace_ext'
-    'machine_turbinegas' = 'machine_turbine_gas'
+    'machine_rtg' = 'machine_rtg_grey'
     'machine_fensu' = 'machine_battery_redd'
     'machine_bigasstank' = 'machine_bat9000'
     'machine_boiler' = 'machine_boiler_off'
@@ -41,6 +41,15 @@ $renames = @{
 # commented out.  It is an in-game memorial rather than a port target.
 $retiredInLegacy = @{
     'machine_industrial_generator' = '1.7.10 memorial only; recipe, GUI, multiblock and tick logic are commented out'
+}
+
+# These active legacy registrations are deliberately superseded by explicit
+# modern architecture or by a user-requested subsystem removal. They must stay
+# reviewable here rather than disappearing through a fake rename.
+$replacedInPort = @{
+    'machine_converter_he_rf' = 'Replaced by the bidirectional native FE boundary in PowerNetworkManager; a converter block would duplicate the same bridge'
+    'machine_converter_rf_he' = 'Replaced by the bidirectional native FE boundary in PowerNetworkManager; a converter block would duplicate the same bridge'
+    'machine_weapon_table' = 'HBM firearm subsystem was explicitly removed; TACZ is the supported soft-integration firearm system'
 }
 
 $declarations = [regex]::Matches(
@@ -99,6 +108,9 @@ foreach ($declaration in $declarations) {
         $be = '-'
     } elseif ($retiredInLegacy.ContainsKey($id)) {
         $status = 'Retired in 1.7.10 - not ported'
+        $be = '-'
+    } elseif ($replacedInPort.ContainsKey($id)) {
+        $status = 'Replaced in 1.21.1 - ' + $replacedInPort[$id]
         $be = '-'
     } elseif ($registeredIds.Contains($modernId)) {
         $status = if ($modernId -eq $id) { 'Complete registration' } else { 'Complete registration (renamed)' }

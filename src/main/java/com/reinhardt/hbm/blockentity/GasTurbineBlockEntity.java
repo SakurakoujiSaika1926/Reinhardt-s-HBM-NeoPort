@@ -18,7 +18,6 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.util.FluidCopiable;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -280,19 +279,19 @@ public class GasTurbineBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     public static List<Port> portsFor(BlockPos corePos, Direction facing) {
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
         return List.of(
-                connectorPort(corePos, facing, -2, rot, 1, 0, facing.getOpposite(), PortKind.FUEL_LUBE),
-                connectorPort(corePos, facing, 2, rot, 1, 0, facing, PortKind.FUEL_LUBE),
-                connectorPort(corePos, facing, -2, rot, -4, 0, facing.getOpposite(), PortKind.WATER),
-                connectorPort(corePos, facing, 2, rot, -4, 0, facing, PortKind.WATER),
-                connectorPort(corePos, facing, 0, rot.getOpposite(), 6, 1, rot.getOpposite(), PortKind.STEAM)
+                connectorPort(corePos, facing, new BlockPos(-1, 0, -2), Direction.NORTH, PortKind.FUEL_LUBE),
+                connectorPort(corePos, facing, new BlockPos(-1, 0, 2), Direction.SOUTH, PortKind.FUEL_LUBE),
+                connectorPort(corePos, facing, new BlockPos(4, 0, -2), Direction.NORTH, PortKind.WATER),
+                connectorPort(corePos, facing, new BlockPos(4, 0, 2), Direction.SOUTH, PortKind.WATER),
+                connectorPort(corePos, facing, new BlockPos(6, 1, 0), Direction.EAST, PortKind.STEAM)
         );
     }
 
-    private static Port connectorPort(BlockPos corePos, Direction facing, int exDir, Direction rot, int exRot, int exY, Direction face, PortKind kind) {
-        BlockPos connector = corePos.offset(LegacyMachineGeometry.legacyOffset(facing, exDir, rot, exRot, exY));
-        return Port.fromConnector(connector, face, kind);
+    private static Port connectorPort(BlockPos corePos, Direction facing, BlockPos authoredOffset,
+                                      Direction authoredFace, PortKind kind) {
+        BlockPos connector = corePos.offset(mapGasTurbinePortOffset(facing, authoredOffset));
+        return Port.fromConnector(connector, mapGasTurbinePortFace(facing, authoredFace), kind);
     }
 
     @Override
@@ -309,13 +308,54 @@ public class GasTurbineBlockEntity extends BlockEntity implements PowerEndpoint,
     @Override
     public boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
         Direction facing = facing(level);
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
-        return connectorPos.equals(this.worldPosition.relative(rot, 5).above()) && machineSide == rot;
+        Direction face = mapGasTurbinePortFace(facing, Direction.WEST);
+        return connectorPos.equals(this.worldPosition.offset(mapGasTurbinePortOffset(facing, new BlockPos(-5, 1, 0))))
+                && machineSide == face;
     }
 
     public static List<BlockPos> powerConnectors(BlockPos corePos, Direction facing) {
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
-        return List.of(corePos.relative(rot, 5).above().immutable());
+        return List.of(corePos.offset(mapGasTurbinePortOffset(facing, new BlockPos(-5, 1, 0))).immutable());
+    }
+
+    private static BlockPos mapGasTurbinePortOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("Gas turbine requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static Direction mapGasTurbinePortFace(Direction facing, Direction face) {
+        return switch (facing) {
+            case SOUTH -> face;
+            case EAST -> switch (face) {
+                case SOUTH -> Direction.EAST;
+                case EAST -> Direction.NORTH;
+                case NORTH -> Direction.WEST;
+                case WEST -> Direction.SOUTH;
+                default -> face;
+            };
+            case NORTH -> switch (face) {
+                case SOUTH -> Direction.NORTH;
+                case EAST -> Direction.WEST;
+                case NORTH -> Direction.SOUTH;
+                case WEST -> Direction.EAST;
+                default -> face;
+            };
+            case WEST -> switch (face) {
+                case SOUTH -> Direction.WEST;
+                case WEST -> Direction.NORTH;
+                case NORTH -> Direction.EAST;
+                case EAST -> Direction.SOUTH;
+                default -> face;
+            };
+            case UP, DOWN -> throw new IllegalArgumentException("Gas turbine requires a horizontal facing: " + facing);
+        };
     }
 
     @Override
@@ -431,7 +471,7 @@ public class GasTurbineBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

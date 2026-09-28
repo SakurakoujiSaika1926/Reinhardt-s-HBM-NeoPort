@@ -1,7 +1,7 @@
 {
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.schrabidic",
-  "duration": 100,
+  "duration": 60,
   "power": 5000,
   "input_items": [
     {
@@ -14,18 +14,18 @@
   "input_fluids": [
     {
       "fluid": "sas3",
-      "amount": 8000
+      "amount": 2000
     },
     {
       "fluid": "peroxide",
-      "amount": 6000
+      "amount": 2000
     }
   ],
   "output_items": [],
   "output_fluids": [
     {
       "fluid": "schrabidic",
-      "amount": 16000
+      "amount": 2000
     }
   ]
 }

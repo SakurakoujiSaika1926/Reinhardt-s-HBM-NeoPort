@@ -210,6 +210,7 @@
                    "reinhardtshbm:machine_mixer",
                    "reinhardtshbm:machine_orbus",
                    "reinhardtshbm:machine_ore_slopper",
+                   "reinhardtshbm:machine_rockmill",
                    "reinhardtshbm:machine_precass",
                    "reinhardtshbm:machine_press",
                    "reinhardtshbm:machine_pumpjack",
@@ -322,6 +323,9 @@
                    "reinhardtshbm:ore_deepslate_beryllium",
                    "reinhardtshbm:ore_deepslate_rare",
                    "reinhardtshbm:ore_meteor",
-                   "reinhardtshbm:machine_icf_press"
+                   "reinhardtshbm:machine_icf_press",
+                   "reinhardtshbm:machine_satlink",
+                   "reinhardtshbm:machine_tape_drive",
+                   "reinhardtshbm:machine_supercomputer"
                ]
 }

@@ -8,6 +8,7 @@ import com.reinhardt.hbm.entity.LegacyUfoEntity;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -15,13 +16,18 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Original UFO OBJ, its 2x legacy render scale, and the three layered beam passes. */
 public final class LegacyUfoEntityRenderer extends EntityRenderer<LegacyUfoEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("entity/ufo");
+    private static final LegacyEntityObjMesh BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/entity/ufo.obj"));
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/entity/ufo.png");
     private static final BlockState RENDER_STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final double BODY_RADIUS = rotationSafeRadius(
+            BOUNDS_MODEL.maximumFaceRadius(0.0D, 0.0D, 0.0D) * 2.0D);
 
     public LegacyUfoEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -47,6 +53,23 @@ public final class LegacyUfoEntityRenderer extends EntityRenderer<LegacyUfoEntit
             renderBeam(entity, poseStack, bufferSource);
         }
         super.render(entity, yaw, partialTick, poseStack, bufferSource, packedLight);
+    }
+
+    @Override
+    public boolean shouldRender(LegacyUfoEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        AABB bounds = EntityRenderBounds.radius(
+                entity.getX(), entity.getY() + 1.0D, entity.getZ(), BODY_RADIUS);
+        if (entity.beamActive() && entity.beamGroundY() < entity.getY()) {
+            // prism() emits no vertex farther than 1.5 blocks from the
+            // vertical centerline and spans exactly beamGroundY..entityY.
+            AABB beam = new AABB(
+                    entity.getX() - 1.5D, entity.beamGroundY(), entity.getZ() - 1.5D,
+                    entity.getX() + 1.5D, entity.getY(), entity.getZ() + 1.5D);
+            bounds = bounds.minmax(beam);
+        }
+        return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ);
     }
 
     private static void renderBeam(LegacyUfoEntity entity, PoseStack poseStack, MultiBufferSource bufferSource) {
@@ -84,5 +107,13 @@ public final class LegacyUfoEntityRenderer extends EntityRenderer<LegacyUfoEntit
     @Override
     public ResourceLocation getTextureLocation(LegacyUfoEntity entity) {
         return TEXTURE;
+    }
+
+    private static double rotationSafeRadius(double radius) {
+        // The body goes through a float quaternion/PoseStack path. gamma(64)
+        // is a proved forward-error envelope, not a visual padding estimate.
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
 }

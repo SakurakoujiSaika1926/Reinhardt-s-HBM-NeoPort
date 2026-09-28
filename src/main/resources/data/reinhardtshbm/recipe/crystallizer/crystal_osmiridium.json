@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.crystal",
+  "ingredient": { "item": "reinhardtshbm:powder_impure_osmiridium" },
+  "acid": { "fluid": "schrabidic", "amount": 1000 },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:crystal_osmiridium" }
+}

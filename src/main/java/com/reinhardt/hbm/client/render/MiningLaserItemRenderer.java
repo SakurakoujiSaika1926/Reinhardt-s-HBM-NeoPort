@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -18,7 +19,10 @@ public final class MiningLaserItemRenderer extends BlockEntityWithoutLevelRender
         poseStack.pushPose();
         if (context == ItemDisplayContext.GUI) {
             // ItemRenderLibrary#machine_mining_laser in HBM 1.7.10.
-            LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
             poseStack.translate(0.0D, -0.5D, 0.0D);
             poseStack.scale(3.0F, 3.0F, 3.0F);
         } else {
@@ -34,7 +38,7 @@ public final class MiningLaserItemRenderer extends BlockEntityWithoutLevelRender
                 poseStack, bufferSource, net.minecraft.world.level.block.Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay
         );
         poseStack.translate(0.0D, -1.0D, 0.75D);
-        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(90.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
         MachineModelRenderer.renderUnculled(
                 MachineModelRenderer.model(MiningLaserBlockEntityRenderer.LASER),
                 poseStack, bufferSource, net.minecraft.world.level.block.Blocks.IRON_BLOCK.defaultBlockState(), packedLight, packedOverlay

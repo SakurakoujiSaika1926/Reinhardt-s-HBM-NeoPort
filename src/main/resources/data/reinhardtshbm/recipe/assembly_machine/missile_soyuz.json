@@ -2,7 +2,7 @@
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.soyuz",
   "duration": 6000,
-  "power": 100,
+  "power": 25000,
   "ingredients": [
     {
       "ingredient": {
@@ -45,6 +45,12 @@
         "item": "reinhardtshbm:part_generic_lde"
       },
       "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:drive_flash_flightsim"
+      },
+      "count": 4
     }
   ],
   "result": {
@@ -52,6 +58,6 @@
     "count": 1
   },
   "blueprint_pools": [
-    "discover.soyuz"
+    "528.soyuz"
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "CCC",
+    "PPP"
+  ],
+  "key": {
+    "P": { "tag": "c:ingots/plastic" },
+    "C": { "item": "reinhardtshbm:circuit_pcb" }
+  },
+  "result": { "id": "reinhardtshbm:machine_tape_drive" }
+}

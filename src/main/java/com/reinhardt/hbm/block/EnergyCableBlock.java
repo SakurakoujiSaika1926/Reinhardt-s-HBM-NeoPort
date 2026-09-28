@@ -3,6 +3,7 @@ package com.reinhardt.hbm.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import com.reinhardt.hbm.power.PowerNetworkManager;
+import com.reinhardt.hbm.blockentity.ClientRenderNeighborSnapshot;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -112,6 +113,7 @@ public class EnergyCableBlock extends Block {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (!state.is(newState.getBlock())) {
             PowerNetworkManager.markDirty(level);
+            refreshAdjacentRenderSnapshots(level, pos);
         }
     }
 
@@ -156,6 +158,13 @@ public class EnergyCableBlock extends Block {
         BlockState next = cable.withNeighborConnections(state, level, pos);
         if (next != state) {
             level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            refreshAdjacentRenderSnapshots(level, pos);
+        }
+    }
+
+    private static void refreshAdjacentRenderSnapshots(LevelAccessor level, BlockPos cablePos) {
+        for (Direction direction : Direction.values()) {
+            ClientRenderNeighborSnapshot.refreshAtOrDummyCore(level, cablePos.relative(direction));
         }
     }
 

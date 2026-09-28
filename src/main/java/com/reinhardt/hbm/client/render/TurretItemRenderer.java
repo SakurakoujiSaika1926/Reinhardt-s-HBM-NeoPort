@@ -76,18 +76,17 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         BlockState state = block.defaultBlockState();
 
         poseStack.pushPose();
-        boolean inventory = applyLegacyItemContext(context, poseStack);
         if (block == HbmBlocks.TURRET_JEREMY.get()) {
-            renderJeremy(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderJeremy(context, poseStack, bufferSource, state, packedLight, packedOverlay);
         } else if (block == HbmBlocks.TURRET_CHEKHOV.get()) {
-            renderChekhov(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderChekhov(context, poseStack, bufferSource, state, packedLight, packedOverlay);
         } else if (block instanceof LegacyTurretBlock turretBlock) {
-            renderLegacy(turretBlock.type(), inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderLegacy(turretBlock.type(), context, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
     }
 
-    private static boolean applyLegacyItemContext(ItemDisplayContext context, PoseStack poseStack) {
+    private static boolean applyJeremyItemContext(ItemDisplayContext context, PoseStack poseStack) {
         if (context != ItemDisplayContext.GUI) {
             poseStack.translate(0.5F, 0.0F, 0.5F);
         }
@@ -134,7 +133,572 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         return false;
     }
 
-    private static void renderJeremy(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static boolean applyChekhovItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyFriendlyItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyFritzItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyHowardItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyHowardDamagedItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyMaxwellItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyRichardItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyTauonItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyArtyItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applyHimarsItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applySentryItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static boolean applySentryDamagedItemContext(ItemDisplayContext context, PoseStack poseStack) {
+        if (context != ItemDisplayContext.GUI) {
+            poseStack.translate(0.5F, 0.0F, 0.5F);
+        }
+        switch (context) {
+            case GUI -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.scale(0.0620F, 0.0620F, 0.0620F);
+                poseStack.translate(0.0F, 11.3F, -11.3F);
+                return true;
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.2F, 0.2F, 0.2F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND, HEAD -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 0.25F, 0.0F);
+                poseStack.scale(0.1875F, 0.1875F, 0.1875F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.125F, 0.125F, 0.125F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case FIXED -> {
+                poseStack.translate(0.0F, 0.3F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            default -> {
+            }
+        }
+        return false;
+    }
+
+    private static void renderJeremy(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyJeremyItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(2.5F, 2.5F, 2.5F);
@@ -145,7 +709,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(JEREMY_GUN, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderChekhov(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderChekhov(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyChekhovItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -3.0F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -157,23 +722,24 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(CHEKHOV_BARRELS, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderLegacy(LegacyTurretType type, boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderLegacy(LegacyTurretType type, ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         switch (type) {
-            case FRIENDLY -> renderFriendly(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case FRITZ -> renderFritz(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case HOWARD -> renderHoward(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case HOWARD_DAMAGED -> renderHowardDamaged(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case MAXWELL -> renderMaxwell(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case RICHARD -> renderRichard(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case TAUON -> renderTauon(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case ARTY -> renderArty(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case HIMARS -> renderHimars(inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SENTRY -> renderSentry(false, inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
-            case SENTRY_DAMAGED -> renderSentry(true, inventory, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case FRIENDLY -> renderFriendly(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case FRITZ -> renderFritz(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case HOWARD -> renderHoward(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case HOWARD_DAMAGED -> renderHowardDamaged(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case MAXWELL -> renderMaxwell(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case RICHARD -> renderRichard(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case TAUON -> renderTauon(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case ARTY -> renderArty(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case HIMARS -> renderHimars(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case SENTRY -> renderSentry(context, poseStack, bufferSource, state, packedLight, packedOverlay);
+            case SENTRY_DAMAGED -> renderSentryDamaged(context, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
     }
 
-    private static void renderFriendly(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderFriendly(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyFriendlyItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -3.0F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -185,7 +751,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(CHEKHOV_BARRELS, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderFritz(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderFritz(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyFritzItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -195,7 +762,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(FRITZ_GUN, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderHoward(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderHoward(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyHowardItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -4.5F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -208,7 +776,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(HOWARD_BARRELS_BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderHowardDamaged(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderHowardDamaged(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyHowardDamagedItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -4.5F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -221,7 +790,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(HOWARD_DAMAGED_BARRELS_BOTTOM, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderMaxwell(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderMaxwell(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyMaxwellItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(-1.0F, -3.0F, 0.0F);
             poseStack.scale(4.0F, 4.0F, 4.0F);
@@ -231,7 +801,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(MAXWELL_MICROWAVE, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderRichard(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderRichard(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyRichardItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -241,7 +812,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(RICHARD_LAUNCHER, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderTauon(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderTauon(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyTauonItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(5.0F, 5.0F, 5.0F);
@@ -252,7 +824,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(TAUON_ROTOR, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderArty(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderArty(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyArtyItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(-3.0F, -4.0F, 0.0F);
             poseStack.scale(3.5F, 3.5F, 3.5F);
@@ -268,7 +841,8 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(ARTY_BARREL, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderHimars(boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderHimars(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applyHimarsItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -2.0F, 0.0F);
             poseStack.scale(3.5F, 3.5F, 3.5F);
@@ -282,18 +856,34 @@ public final class TurretItemRenderer extends BlockEntityWithoutLevelRenderer {
         renderPart(HIMARS_TUBE_STANDARD, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderSentry(boolean damaged, boolean inventory, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderSentry(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applySentryItemContext(context, poseStack);
         if (inventory) {
             poseStack.translate(0.0F, -4.0F, 0.0F);
             poseStack.scale(7.0F, 7.0F, 7.0F);
         }
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-        renderPart(damaged ? SENTRY_DAMAGED_BASE : SENTRY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderPart(damaged ? SENTRY_DAMAGED_PIVOT : SENTRY_PIVOT, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderPart(damaged ? SENTRY_DAMAGED_BODY : SENTRY_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderPart(damaged ? SENTRY_DAMAGED_DRUM : SENTRY_DRUM, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderPart(damaged ? SENTRY_DAMAGED_BARREL_L : SENTRY_BARREL_L, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderPart(damaged ? SENTRY_DAMAGED_BARREL_R : SENTRY_BARREL_R, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_PIVOT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DRUM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_BARREL_L, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_BARREL_R, poseStack, bufferSource, state, packedLight, packedOverlay);
+    }
+
+    private static void renderSentryDamaged(ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+        boolean inventory = applySentryDamagedItemContext(context, poseStack);
+        if (inventory) {
+            poseStack.translate(0.0F, -4.0F, 0.0F);
+            poseStack.scale(7.0F, 7.0F, 7.0F);
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        renderPart(SENTRY_DAMAGED_BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DAMAGED_PIVOT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DAMAGED_BODY, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DAMAGED_DRUM, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DAMAGED_BARREL_L, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderPart(SENTRY_DAMAGED_BARREL_R, poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
     private static void renderPart(ModelResourceLocation location, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {

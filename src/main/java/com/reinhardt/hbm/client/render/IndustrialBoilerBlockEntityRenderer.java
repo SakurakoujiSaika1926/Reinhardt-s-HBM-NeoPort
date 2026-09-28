@@ -31,6 +31,8 @@ public class IndustrialBoilerBlockEntityRenderer implements LongRangeBlockEntity
 
     @Override
     public AABB getRenderBoundingBox(IndustrialBoilerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 5.0D, 3.0D);
+        // Face-used industrial_boiler.obj vertices after the renderer's (+.5, 0, +.5) translation.
+        return RenderBounds.localFloatVertices(blockEntity.getBlockPos(),
+                -1.0D, 0.0D, -1.0D, 2.0D, 5.0D, 2.0D);
     }
 }

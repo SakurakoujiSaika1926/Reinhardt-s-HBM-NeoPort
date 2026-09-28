@@ -1,0 +1,46 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_heu235_4",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_heu235"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  4
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "ir",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_u235"
+                                 },
+                        "weight":  10
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_long_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  0
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  36
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_short_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  0
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  54
+                    }
+                ]
+}

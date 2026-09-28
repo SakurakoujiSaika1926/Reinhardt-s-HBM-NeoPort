@@ -1,0 +1,80 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.nitra",
+  "duration": 200,
+  "power": 500,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:nitra"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:casing_shotshell"
+  },
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:casing_shotshell"
+      },
+      "weight": 20
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:casing_buckshot"
+      },
+      "weight": 10
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:casing_small",
+        "count": 2
+      },
+      "weight": 20
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:casing_large"
+      },
+      "weight": 10
+    },
+    {
+      "result": {
+        "id": "minecraft:gunpowder"
+      },
+      "weight": 30
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:cordite"
+      },
+      "weight": 20
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:ballistite"
+      },
+      "weight": 20
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:grenade_shell_frag"
+      },
+      "weight": 5
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:grenade_shell_stick"
+      },
+      "weight": 5
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:grenade_fuze_s3"
+      },
+      "weight": 10
+    }
+  ]
+}

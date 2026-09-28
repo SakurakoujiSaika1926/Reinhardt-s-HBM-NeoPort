@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "tag": "c:nuggets/polonium" }, { "tag": "c:nuggets/polonium" }, { "tag": "c:nuggets/polonium" },
+    { "tag": "c:nuggets/beryllium" }, { "tag": "c:nuggets/beryllium" }, { "tag": "c:nuggets/beryllium" }
+  ],
+  "result": { "id": "reinhardtshbm:billet_po210be" }
+}

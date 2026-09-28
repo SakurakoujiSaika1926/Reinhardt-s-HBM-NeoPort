@@ -175,12 +175,6 @@
       "resource": "reinhardtshbm:models/thegadget3_"
     },
     {
-      "type": "neoforge:namespaced_directory",
-      "namespace": "reinhardtshbm",
-      "source": "models/soyuz_launcher",
-      "prefix": "models/soyuz_launcher/"
-    },
-    {
       "type": "single",
       "resource": "reinhardtshbm:models/model_radio_receiver"
     },
@@ -263,6 +257,62 @@
     {
       "type": "single",
       "resource": "reinhardtshbm:entity/taintcrab"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/blockspider"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/cart"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:entity/cart_destroyer"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:item/polaroid_memento"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/no9"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/no9_insignia"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/ncrpa_chest"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/ncrpa_helmet"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/ncrpa_arm"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/ncrpa_leg"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/trenchmaster_chest"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/trenchmaster_helmet"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/trenchmaster_arm"
+    },
+    {
+      "type": "single",
+      "resource": "reinhardtshbm:armor/trenchmaster_leg"
     }
   ]
 }

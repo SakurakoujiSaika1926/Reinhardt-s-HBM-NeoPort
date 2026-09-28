@@ -292,7 +292,7 @@ public class StrandCasterBlockEntity extends BlockEntity implements CrucibleAcce
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -518,12 +518,12 @@ public class StrandCasterBlockEntity extends BlockEntity implements CrucibleAcce
         Direction facing = getFacing();
         BlockPos relative = queriedPos.subtract(this.worldPosition);
         for (BlockPos offset : UNROTATED_BOTTOM_FLUID_PORTS) {
-            if (com.reinhardt.hbm.util.LegacyMachineGeometry.rotateLegacySouth(offset, facing).equals(relative)) {
+            if (StrandCasterBlock.mapStrandCasterOffset(facing, offset).equals(relative)) {
                 return offset;
             }
         }
         for (BlockPos offset : UNROTATED_TOP_POUR_PORTS) {
-            if (com.reinhardt.hbm.util.LegacyMachineGeometry.rotateLegacySouth(offset, facing).equals(relative)) {
+            if (StrandCasterBlock.mapStrandCasterOffset(facing, offset).equals(relative)) {
                 return offset;
             }
         }
@@ -531,12 +531,12 @@ public class StrandCasterBlockEntity extends BlockEntity implements CrucibleAcce
     }
 
     private Direction portSide(BlockPos unrotatedOffset) {
-        Direction local = switch (unrotatedOffset.getX()) {
-            case -1 -> Direction.WEST;
-            case 0 -> Direction.EAST;
+        boolean positiveRot = switch (unrotatedOffset.getX()) {
+            case -1 -> true;
+            case 0 -> false;
             default -> throw new IllegalArgumentException("Unexpected strand caster fluid port " + unrotatedOffset);
         };
-        return com.reinhardt.hbm.util.LegacyMachineGeometry.rotateDirection(local, getFacing(), LargeMachineBlock.RotationBasis.HBM_LEGACY_SOUTH);
+        return StrandCasterBlock.localSideDirection(unrotatedOffset, getFacing(), positiveRot);
     }
 
     private Direction getFacing() {

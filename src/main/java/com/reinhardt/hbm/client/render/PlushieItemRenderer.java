@@ -1,7 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.PlushieType;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.item.PlushieBlockItem;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.Minecraft;
@@ -32,29 +32,142 @@ public final class PlushieItemRenderer extends BlockEntityWithoutLevelRenderer {
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        PlushieType type = PlushieBlockItem.type(stack);
+        switch (PlushieBlockItem.type(stack)) {
+            case YOMI -> renderYomiItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+            case NUMBER_NINE -> renderNumberNineItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+            case HUNDUN -> renderHundunItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+            case DERG -> renderDergItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+            case NONE -> renderNoneItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        }
+    }
+
+    private static void renderYomiItem(ItemDisplayContext context, PoseStack poseStack,
+                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        // ItemRenderBase applied this common transform before the plushie's
-        // own inventory/hand branch.  Keep it explicit here so the legacy
-        // per-type scales below are not applied to raw OBJ coordinates.
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -6.0F, 0.0F);
             poseStack.scale(6.0F, 6.0F, 6.0F);
         }
         poseStack.translate(0.0F, 0.25F, 0.0F);
-        if (type == PlushieType.YOMI) {
-            poseStack.scale(1.25F, 1.25F, 1.25F);
-        } else if (type == PlushieType.NUMBER_NINE) {
-            poseStack.translate(0.0F, 0.25F, 0.25F);
-            poseStack.scale(1.25F, 1.25F, 1.25F);
-        } else if (type == PlushieType.HUNDUN) {
-            poseStack.translate(0.5F, 0.5F, 0.0F);
-            poseStack.scale(1.25F, 1.25F, 1.25F);
-        } else if (type == PlushieType.DERG) {
-            poseStack.scale(1.5F, 1.5F, 1.5F);
+        poseStack.scale(1.25F, 1.25F, 1.25F);
+        PlushieBlockEntityRenderer.renderYomiItem(HbmBlocks.PLUSHIE.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderNumberNineItem(ItemDisplayContext context, PoseStack poseStack,
+                                             MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
         }
-        PlushieBlockEntityRenderer.renderItem(type, HbmBlocks.PLUSHIE.get().defaultBlockState(), poseStack,
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -6.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+        }
+        poseStack.translate(0.0F, 0.25F, 0.0F);
+        poseStack.translate(0.0F, 0.25F, 0.25F);
+        poseStack.scale(1.25F, 1.25F, 1.25F);
+        PlushieBlockEntityRenderer.renderNumberNineItem(HbmBlocks.PLUSHIE.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderHundunItem(ItemDisplayContext context, PoseStack poseStack,
+                                         MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -6.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+        }
+        poseStack.translate(0.0F, 0.25F, 0.0F);
+        poseStack.translate(0.5F, 0.5F, 0.0F);
+        poseStack.scale(1.25F, 1.25F, 1.25F);
+        PlushieBlockEntityRenderer.renderHundunItem(HbmBlocks.PLUSHIE.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderDergItem(ItemDisplayContext context, PoseStack poseStack,
+                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -6.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+        }
+        poseStack.translate(0.0F, 0.25F, 0.0F);
+        poseStack.scale(1.5F, 1.5F, 1.5F);
+        PlushieBlockEntityRenderer.renderDergItem(HbmBlocks.PLUSHIE.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderNoneItem(ItemDisplayContext context, PoseStack poseStack,
+                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.0F, -6.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+        }
+        poseStack.translate(0.0F, 0.25F, 0.0F);
+        PlushieBlockEntityRenderer.renderNoneItem(HbmBlocks.PLUSHIE.get().defaultBlockState(), poseStack,
                 bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }

@@ -36,7 +36,6 @@ public final class LegacyWormBodyEntity extends Monster {
         super(type, level);
         noPhysics = true;
         setNoGravity(true);
-        noCulling = true;
     }
 
     public static AttributeSupplier.Builder createAttributes() {

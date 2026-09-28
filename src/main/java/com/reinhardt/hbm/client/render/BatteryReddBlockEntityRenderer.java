@@ -2,7 +2,7 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.BatteryReddBlock;
 import com.reinhardt.hbm.blockentity.BatteryReddBlockEntity;
 import com.reinhardt.hbm.client.sound.BatteryReddClientSounds;
 import net.minecraft.client.Minecraft;
@@ -10,22 +10,29 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-import java.util.Random;
-
-public class BatteryReddBlockEntityRenderer implements BlockEntityRenderer<BatteryReddBlockEntity> {
+public class BatteryReddBlockEntityRenderer implements LongRangeBlockEntityRenderer<BatteryReddBlockEntity> {
+    private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
+    private static final long JAVA_RANDOM_ADDEND = 0xBL;
+    private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
+    /*
+     * The rotating OBJ union is dominated by fensu2_wheel's face-used baked
+     * vertex (y=4.622091F,z=4.413535F), whose radius about y=5.5 is the value
+     * below.  gamma(32) bounds the float quaternion/matrix/translation path;
+     * nextUp converts that analytic continuous sweep to an outward float.
+     */
+    private static final float WHEEL_SWEEP_EXTENT = wheelSweepExtent();
+    private static final AABB[] LOCAL_BOUNDS = buildLocalBounds();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_battery_redd_base");
     private static final ModelResourceLocation WHEEL = MachineModelRenderer.standalone("block/machine_battery_redd_wheel");
     private static final ModelResourceLocation LIGHTS = MachineModelRenderer.standalone("block/machine_battery_redd_lights");
@@ -47,15 +54,15 @@ public class BatteryReddBlockEntityRenderer implements BlockEntityRenderer<Batte
     public void render(BatteryReddBlockEntity battery, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BatteryReddClientSounds.tick(battery);
         BlockState state = battery.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        Direction facing = batteryReddFacing(state);
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyYaw(facing));
+        applyBatteryReddTransform(poseStack, facing);
         MachineModelRenderer.renderUnculledCutoutNoCull(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0F, 5.5F, 0.0F);
         float rotation = Mth.lerp(partialTick, battery.prevRotation, battery.rotation);
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rotation), 1.0F, 0.0F, 0.0F)));
+        poseStack.mulPose(new Quaternionf().rotationX((float) Math.toRadians(rotation)));
         poseStack.translate(0.0F, -5.5F, 0.0F);
         MachineModelRenderer.renderUnculledCutoutNoCull(MachineModelRenderer.model(WHEEL), poseStack, bufferSource, state, packedLight, packedOverlay);
         MachineModelRenderer.renderUnculledCutoutNoCullFullBright(MachineModelRenderer.model(LIGHTS), poseStack, bufferSource, state, packedOverlay);
@@ -73,16 +80,57 @@ public class BatteryReddBlockEntityRenderer implements BlockEntityRenderer<Batte
 
     @Override
     public AABB getRenderBoundingBox(BatteryReddBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(6.0D, 5.0D, 6.0D);
+        BlockState state = blockEntity.getBlockState();
+        Direction facing = batteryReddFacing(state);
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 270.0F;
-            case SOUTH -> 180.0F;
-            case WEST -> 90.0F;
-            default -> 0.0F;
-        };
+    private static AABB[] buildLocalBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {
+                Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST
+        }) {
+            /*
+             * Base faces supply y=0..10.25.  Exhaustively evaluating the
+             * four legacy zap skeletons for all 20 legal phase seeds gives
+             * x=-3.4346895F..3.4346895F and z inside +/-3.9587097F.  The
+             * continuous wheel sweep therefore supplies the final Z extent.
+             */
+            PoseStack poseStack = new PoseStack();
+            applyBatteryReddTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    BlockPos.ZERO, poseStack,
+                    -3.4346895F, 0.0F, -WHEEL_SWEEP_EXTENT,
+                    3.4346895F, 10.25F, WHEEL_SWEEP_EXTENT);
+        }
+        return bounds;
+    }
+
+    private static float wheelSweepExtent() {
+        double radius = Math.nextUp(4.500001863689191D);
+        double unitRoundoff = 0x1.0p-24;
+        double gamma32 = 32.0D * unitRoundoff / (1.0D - 32.0D * unitRoundoff);
+        double matrixError = (5.5D + radius) * gamma32;
+        return Math.nextUp((float) (radius + matrixError));
+    }
+
+    private static void applyBatteryReddTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            // RenderBatteryREDD metadata 2/3/4/5: 270/90/0/180 degrees.
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case WEST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("REDD battery facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction batteryReddFacing(BlockState state) {
+        if (!state.hasProperty(BatteryReddBlock.FACING)) {
+            throw new IllegalStateException("REDD battery state is missing its owned facing property: " + state);
+        }
+        return state.getValue(BatteryReddBlock.FACING);
     }
 
     private static void renderSparkle(BatteryReddBlockEntity battery, float speed, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedOverlay) {
@@ -128,17 +176,16 @@ public class BatteryReddBlockEntityRenderer implements BlockEntityRenderer<Batte
     }
 
     private static void wheelStreakSegment(VertexConsumer consumer, PoseStack.Pose pose, double x, double len, double width, double fromDegrees, double toDegrees, int fromAlpha, int toAlpha) {
-        Vec3 from = wheelVector(fromDegrees);
-        Vec3 to = wheelVector(toDegrees);
-        lightningVertex(consumer, pose, x, from.y * len - from.y * width, from.z * len - from.z * width, 255, 255, 0, fromAlpha);
-        lightningVertex(consumer, pose, x, from.y * len + from.y * width, from.z * len + from.z * width, 255, 255, 0, fromAlpha);
-        lightningVertex(consumer, pose, x, to.y * len + to.y * width, to.z * len + to.z * width, 255, 255, 0, toAlpha);
-        lightningVertex(consumer, pose, x, to.y * len - to.y * width, to.z * len - to.z * width, 255, 255, 0, toAlpha);
-    }
-
-    private static Vec3 wheelVector(double degrees) {
-        double radians = Math.toRadians(degrees);
-        return new Vec3(0.0D, Math.cos(radians), Math.sin(radians));
+        double fromRadians = Math.toRadians(fromDegrees);
+        double fromY = Math.cos(fromRadians);
+        double fromZ = Math.sin(fromRadians);
+        double toRadians = Math.toRadians(toDegrees);
+        double toY = Math.cos(toRadians);
+        double toZ = Math.sin(toRadians);
+        lightningVertex(consumer, pose, x, fromY * len - fromY * width, fromZ * len - fromZ * width, 255, 255, 0, fromAlpha);
+        lightningVertex(consumer, pose, x, fromY * len + fromY * width, fromZ * len + fromZ * width, 255, 255, 0, fromAlpha);
+        lightningVertex(consumer, pose, x, toY * len + toY * width, toZ * len + toZ * width, 255, 255, 0, toAlpha);
+        lightningVertex(consumer, pose, x, toY * len - toY * width, toZ * len - toZ * width, 255, 255, 0, toAlpha);
     }
 
     private static void renderZaps(BatteryReddBlockEntity battery, PoseStack poseStack, MultiBufferSource bufferSource) {
@@ -147,74 +194,171 @@ public class BatteryReddBlockEntityRenderer implements BlockEntityRenderer<Batte
         }
         Level level = battery.getLevel();
         long time = level == null ? System.currentTimeMillis() / 50L : level.getGameTime();
-        Random random = new Random(time / 5L);
-        random.nextBoolean();
+        long randomState = javaRandomInitialState(time / 5L);
+        randomState = javaRandomNextState(randomState); // Legacy code discarded its first nextBoolean().
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.lightning());
         int phase = (int) (System.currentTimeMillis() % 1000L) / 50;
-        if (random.nextBoolean()) {
-            renderLegacyZap(poseStack.last(), consumer, new Vec3(3.125D, 5.5D, 0.0D), new Vec3(-1.375D, -2.625D, 3.75D), phase);
+        randomState = javaRandomNextState(randomState);
+        if (javaRandomBoolean(randomState)) {
+            renderLegacyZap(poseStack.last(), consumer, 3.125D, 5.5D, 0.0D, -1.375D, -2.625D, 3.75D, phase);
         }
-        if (random.nextBoolean()) {
-            renderLegacyZap(poseStack.last(), consumer, new Vec3(-3.125D, 5.5D, 0.0D), new Vec3(1.375D, -2.625D, 3.75D), phase);
+        randomState = javaRandomNextState(randomState);
+        if (javaRandomBoolean(randomState)) {
+            renderLegacyZap(poseStack.last(), consumer, -3.125D, 5.5D, 0.0D, 1.375D, -2.625D, 3.75D, phase);
         }
-        if (random.nextBoolean()) {
-            renderLegacyZap(poseStack.last(), consumer, new Vec3(3.125D, 5.5D, 0.0D), new Vec3(-1.375D, -2.625D, -3.75D), phase);
+        randomState = javaRandomNextState(randomState);
+        if (javaRandomBoolean(randomState)) {
+            renderLegacyZap(poseStack.last(), consumer, 3.125D, 5.5D, 0.0D, -1.375D, -2.625D, -3.75D, phase);
         }
-        if (random.nextBoolean()) {
-            renderLegacyZap(poseStack.last(), consumer, new Vec3(-3.125D, 5.5D, 0.0D), new Vec3(1.375D, -2.625D, -3.75D), phase);
+        randomState = javaRandomNextState(randomState);
+        if (javaRandomBoolean(randomState)) {
+            renderLegacyZap(poseStack.last(), consumer, -3.125D, 5.5D, 0.0D, 1.375D, -2.625D, -3.75D, phase);
         }
     }
 
-    private static void renderLegacyZap(PoseStack.Pose pose, VertexConsumer consumer, Vec3 start, Vec3 skeleton, int phase) {
-        renderLegacyBeam(pose, consumer, start, skeleton, phase, 15, 0.25D, 3, 0.0625D);
-        renderLegacyBeam(pose, consumer, start, skeleton, phase, 1, 0.0D, 3, 0.0625D);
+    private static long javaRandomInitialState(long seed) {
+        return (seed ^ JAVA_RANDOM_MULTIPLIER) & JAVA_RANDOM_MASK;
     }
 
-    private static void renderLegacyBeam(PoseStack.Pose pose, VertexConsumer consumer, Vec3 start, Vec3 skeleton, int phase, int segments, double size, int layers, double thickness) {
-        Vec3 axisY = skeleton.normalize();
-        Vec3 axisX = new Vec3(axisY.z, 0.0D, -axisY.x);
-        if (axisX.lengthSqr() < 1.0E-5D) {
-            axisX = new Vec3(1.0D, 0.0D, 0.0D);
+    private static long javaRandomNextState(long state) {
+        return (state * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+    }
+
+    private static boolean javaRandomBoolean(long state) {
+        return (state >>> 47) != 0L;
+    }
+
+    private static float javaRandomFloat(long state) {
+        return (float) (state >>> 24) / 16777216.0F;
+    }
+
+    private static void renderLegacyZap(PoseStack.Pose pose, VertexConsumer consumer,
+                                        double startX, double startY, double startZ,
+                                        double skeletonX, double skeletonY, double skeletonZ,
+                                        int phase) {
+        renderLegacyBeam(pose, consumer, startX, startY, startZ, skeletonX, skeletonY, skeletonZ, phase, 15, 0.25D, 3, 0.0625D);
+        renderLegacyBeam(pose, consumer, startX, startY, startZ, skeletonX, skeletonY, skeletonZ, phase, 1, 0.0D, 3, 0.0625D);
+    }
+
+    private static void renderLegacyBeam(PoseStack.Pose pose, VertexConsumer consumer,
+                                         double startX, double startY, double startZ,
+                                         double skeletonX, double skeletonY, double skeletonZ,
+                                         int phase, int segments, double size, int layers, double thickness) {
+        double length = Math.sqrt(skeletonX * skeletonX + skeletonY * skeletonY + skeletonZ * skeletonZ);
+        double axisYX = skeletonX / length;
+        double axisYY = skeletonY / length;
+        double axisYZ = skeletonZ / length;
+
+        double axisXX = axisYZ;
+        double axisXY = 0.0D;
+        double axisXZ = -axisYX;
+        double axisXLengthSqr = axisXX * axisXX + axisXZ * axisXZ;
+        if (axisXLengthSqr < 1.0E-5D) {
+            axisXX = 1.0D;
+            axisXZ = 0.0D;
+        } else {
+            double inverseAxisXLength = 1.0D / Math.sqrt(axisXLengthSqr);
+            axisXX *= inverseAxisXLength;
+            axisXZ *= inverseAxisXLength;
         }
-        axisX = axisX.normalize();
-        Vec3 axisZ = axisX.cross(axisY).normalize();
-        Random beamRandom = new Random(phase);
-        double length = skeleton.length();
+
+        double axisZX = axisXY * axisYZ - axisXZ * axisYY;
+        double axisZY = axisXZ * axisYX - axisXX * axisYZ;
+        double axisZZ = axisXX * axisYY - axisXY * axisYX;
+        double inverseAxisZLength = 1.0D / Math.sqrt(axisZX * axisZX + axisZY * axisZY + axisZZ * axisZZ);
+        axisZX *= inverseAxisZLength;
+        axisZY *= inverseAxisZLength;
+        axisZZ *= inverseAxisZLength;
+
+        long randomState = javaRandomInitialState(phase);
         double segmentLength = length / segments;
-        Vec3 previous = null;
+        double previousX = 0.0D;
+        double previousY = 0.0D;
+        double previousZ = 0.0D;
         for (int i = 0; i <= segments; i++) {
-            double angle = Math.PI * 2.0D * beamRandom.nextFloat();
-            angle += Math.PI * 2.0D * beamRandom.nextFloat();
-            Vec3 spinner = axisX.scale(Math.cos(angle) * size).add(axisZ.scale(Math.sin(angle) * size));
-            Vec3 point = start.add(axisY.scale(segmentLength * i)).add(spinner);
-            if (previous != null) {
-                renderLegacyBeamSegment(pose, consumer, previous, point, axisX, axisZ, layers, thickness);
+            randomState = javaRandomNextState(randomState);
+            double angle = Math.PI * 2.0D * javaRandomFloat(randomState);
+            randomState = javaRandomNextState(randomState);
+            angle += Math.PI * 2.0D * javaRandomFloat(randomState);
+            double radialX = Math.cos(angle) * size;
+            double radialZ = Math.sin(angle) * size;
+            double spinnerX = axisXX * radialX + axisZX * radialZ;
+            double spinnerY = axisXY * radialX + axisZY * radialZ;
+            double spinnerZ = axisXZ * radialX + axisZZ * radialZ;
+            double distance = segmentLength * i;
+            double pointX = startX + axisYX * distance + spinnerX;
+            double pointY = startY + axisYY * distance + spinnerY;
+            double pointZ = startZ + axisYZ * distance + spinnerZ;
+            if (i > 0) {
+                renderLegacyBeamSegment(pose, consumer,
+                        previousX, previousY, previousZ,
+                        pointX, pointY, pointZ,
+                        axisXX, axisXY, axisXZ,
+                        axisZX, axisZY, axisZZ,
+                        layers, thickness);
             }
-            previous = point;
+            previousX = pointX;
+            previousY = pointY;
+            previousZ = pointZ;
         }
     }
 
-    private static void renderLegacyBeamSegment(PoseStack.Pose pose, VertexConsumer consumer, Vec3 previous, Vec3 point, Vec3 axisX, Vec3 axisZ, int layers, double thickness) {
+    private static void renderLegacyBeamSegment(PoseStack.Pose pose, VertexConsumer consumer,
+                                                double previousX, double previousY, double previousZ,
+                                                double pointX, double pointY, double pointZ,
+                                                double axisXX, double axisXY, double axisXZ,
+                                                double axisZX, double axisZY, double axisZZ,
+                                                int layers, double thickness) {
         double radiusStep = thickness / layers;
         for (int layer = 1; layer <= layers; layer++) {
             double interpolation = layers == 1 ? 1.0D : (layer - 1.0D) / (layers - 1.0D);
             int red = Mth.clamp((int) Math.round(64.0D + (0.0D - 64.0D) * interpolation), 0, 255);
             int green = Mth.clamp((int) Math.round(64.0D + (32.0D - 64.0D) * interpolation), 0, 255);
             int blue = 64;
-            Vec3 x = axisX.scale(radiusStep * layer);
-            Vec3 z = axisZ.scale(radiusStep * layer);
-            zapQuad(consumer, pose, previous.add(x).add(z), previous.add(x).subtract(z), point.add(x).subtract(z), point.add(x).add(z), red, green, blue);
-            zapQuad(consumer, pose, previous.subtract(x).add(z), previous.subtract(x).subtract(z), point.subtract(x).subtract(z), point.subtract(x).add(z), red, green, blue);
-            zapQuad(consumer, pose, previous.add(x).add(z), previous.subtract(x).add(z), point.subtract(x).add(z), point.add(x).add(z), red, green, blue);
-            zapQuad(consumer, pose, previous.add(x).subtract(z), previous.subtract(x).subtract(z), point.subtract(x).subtract(z), point.add(x).subtract(z), red, green, blue);
+            double radius = radiusStep * layer;
+            double xX = axisXX * radius;
+            double xY = axisXY * radius;
+            double xZ = axisXZ * radius;
+            double zX = axisZX * radius;
+            double zY = axisZY * radius;
+            double zZ = axisZZ * radius;
+            zapQuad(consumer, pose,
+                    previousX + xX + zX, previousY + xY + zY, previousZ + xZ + zZ,
+                    previousX + xX - zX, previousY + xY - zY, previousZ + xZ - zZ,
+                    pointX + xX - zX, pointY + xY - zY, pointZ + xZ - zZ,
+                    pointX + xX + zX, pointY + xY + zY, pointZ + xZ + zZ,
+                    red, green, blue);
+            zapQuad(consumer, pose,
+                    previousX - xX + zX, previousY - xY + zY, previousZ - xZ + zZ,
+                    previousX - xX - zX, previousY - xY - zY, previousZ - xZ - zZ,
+                    pointX - xX - zX, pointY - xY - zY, pointZ - xZ - zZ,
+                    pointX - xX + zX, pointY - xY + zY, pointZ - xZ + zZ,
+                    red, green, blue);
+            zapQuad(consumer, pose,
+                    previousX + xX + zX, previousY + xY + zY, previousZ + xZ + zZ,
+                    previousX - xX + zX, previousY - xY + zY, previousZ - xZ + zZ,
+                    pointX - xX + zX, pointY - xY + zY, pointZ - xZ + zZ,
+                    pointX + xX + zX, pointY + xY + zY, pointZ + xZ + zZ,
+                    red, green, blue);
+            zapQuad(consumer, pose,
+                    previousX + xX - zX, previousY + xY - zY, previousZ + xZ - zZ,
+                    previousX - xX - zX, previousY - xY - zY, previousZ - xZ - zZ,
+                    pointX - xX - zX, pointY - xY - zY, pointZ - xZ - zZ,
+                    pointX + xX - zX, pointY + xY - zY, pointZ + xZ - zZ,
+                    red, green, blue);
         }
     }
 
-    private static void zapQuad(VertexConsumer consumer, PoseStack.Pose pose, Vec3 a, Vec3 b, Vec3 c, Vec3 d, int red, int green, int blue) {
-        lightningVertex(consumer, pose, a.x, a.y, a.z, red, green, blue, 255);
-        lightningVertex(consumer, pose, b.x, b.y, b.z, red, green, blue, 255);
-        lightningVertex(consumer, pose, c.x, c.y, c.z, red, green, blue, 255);
-        lightningVertex(consumer, pose, d.x, d.y, d.z, red, green, blue, 255);
+    private static void zapQuad(VertexConsumer consumer, PoseStack.Pose pose,
+                                double ax, double ay, double az,
+                                double bx, double by, double bz,
+                                double cx, double cy, double cz,
+                                double dx, double dy, double dz,
+                                int red, int green, int blue) {
+        lightningVertex(consumer, pose, ax, ay, az, red, green, blue, 255);
+        lightningVertex(consumer, pose, bx, by, bz, red, green, blue, 255);
+        lightningVertex(consumer, pose, cx, cy, cz, red, green, blue, 255);
+        lightningVertex(consumer, pose, dx, dy, dz, red, green, blue, 255);
     }
 
     private static void lightningVertex(VertexConsumer consumer, PoseStack.Pose pose, double x, double y, double z, int red, int green, int blue, int alpha) {

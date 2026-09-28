@@ -4,9 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.block.LargeFluidTankBlock;
 import com.reinhardt.hbm.blockentity.LargeFluidTankBlockEntity;
-import net.minecraft.core.BlockPos;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -35,19 +33,18 @@ public class LargeFluidTankBlockEntityRenderer implements LongRangeBlockEntityRe
     @Override
     public void render(LargeFluidTankBlockEntity tank, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState state = tank.getBlockState();
-        Direction facing = state.hasProperty(LargeFluidTankBlock.FACING)
-                ? state.getValue(LargeFluidTankBlock.FACING)
-                : Direction.SOUTH;
+        LargeFluidTankBlockEntity.RenderSnapshot snapshot = tank.renderSnapshot();
+        BlockState state = snapshot.blockState();
+        Direction facing = snapshot.facing();
 
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        if (tank.tilted()) {
+        if (snapshot.tilted()) {
             poseStack.translate(0.0D, -1.0D, 0.0D);
             poseStack.mulPose(Axis.ZP.rotationDegrees(10.0F));
             poseStack.mulPose(Axis.YP.rotationDegrees(5.0F));
         }
-        poseStack.mulPose(Axis.YP.rotationDegrees(legacyYaw(facing)));
+        applyLargeFluidTankOrientation(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
                 state, packedLight, packedOverlay);
         renderFluidWindows(tank, partialTick, poseStack, bufferSource, packedOverlay);
@@ -57,10 +54,7 @@ public class LargeFluidTankBlockEntityRenderer implements LongRangeBlockEntityRe
 
     @Override
     public AABB getRenderBoundingBox(LargeFluidTankBlockEntity tank) {
-        BlockPos pos = tank.getBlockPos();
-        // The 1.7.10 renderer covers y..y+5; the upper bound is exclusive.
-        return new AABB(pos.getX() - 6.0D, pos.getY(), pos.getZ() - 6.0D,
-                pos.getX() + 7.0D, pos.getY() + 5.0D, pos.getZ() + 7.0D);
+        return tank.renderSnapshot().bounds();
     }
 
     private static void renderFluidWindows(LargeFluidTankBlockEntity tank, float partialTick,
@@ -134,14 +128,14 @@ public class LargeFluidTankBlockEntityRenderer implements LongRangeBlockEntityRe
         poseStack.popPose();
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> 270.0F;
-            case EAST -> 180.0F;
-            case SOUTH -> 90.0F;
-            case WEST -> 0.0F;
-            default -> 0.0F;
-        };
+    private static void applyLargeFluidTankOrientation(PoseStack poseStack, Direction facing) {
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case WEST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Large fluid tank facing must be horizontal: " + facing);
+        }
     }
 
     private record BlockPosBounds(net.minecraft.core.BlockPos min, net.minecraft.core.BlockPos max) {

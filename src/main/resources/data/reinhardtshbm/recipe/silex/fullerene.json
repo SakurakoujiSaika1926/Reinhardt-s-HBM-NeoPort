@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:silex",
+  "group": "silex.fullerene",
+  "fluid_input": "fullerene",
+  "fluid_produced": 1000,
+  "fluid_consumed": 1000,
+  "wavelength": "visible",
+  "outputs": [
+    {
+      "item": {
+        "id": "reinhardtshbm:powder_ash_fullerene"
+      },
+      "weight": 1
+    }
+  ]
+}

@@ -21,6 +21,7 @@ public final class HbmFluidDefinition {
     private final Set<HbmFluidTrait> traits;
     private final String rawTraits;
     private final String canisterColor;
+    private final int canisterColorRgb;
     private final String gasTankColors;
     private final int niceOrder;
 
@@ -54,6 +55,7 @@ public final class HbmFluidDefinition {
         );
         this.rawTraits = rawTraits == null ? "" : rawTraits;
         this.canisterColor = canisterColor == null ? "" : canisterColor;
+        this.canisterColorRgb = parseColorOrMissing(this.canisterColor);
         this.gasTankColors = gasTankColors == null ? "" : gasTankColors;
         this.niceOrder = niceOrder;
     }
@@ -110,8 +112,28 @@ public final class HbmFluidDefinition {
         return canisterColor;
     }
 
+    /** Returns the legacy CD_Canister RGB value without reparsing it in render paths. */
+    public int canisterColorRgbOr(int fallback) {
+        return this.canisterColorRgb >= 0 ? this.canisterColorRgb : fallback;
+    }
+
     public String gasTankColors() {
         return gasTankColors;
+    }
+
+    private static int parseColorOrMissing(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return -1;
+        }
+        String clean = raw.trim();
+        try {
+            long parsed = clean.startsWith("0x") || clean.startsWith("0X")
+                    ? Long.parseLong(clean.substring(2), 16)
+                    : Long.parseLong(clean);
+            return parsed >= 0L && parsed <= 0xFFFFFFL ? (int) parsed : -1;
+        } catch (NumberFormatException ignored) {
+            return -1;
+        }
     }
 
     public boolean hasTrait(HbmFluidTrait trait) {

@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.klaus",
+  "duration": 72000,
+  "power": 5000000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_empty" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_empty" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_empty" }, "count": 64 }
+  ],
+  "input_fluids": [
+    { "fluid": "water", "amount": 1000000 }
+  ],
+  "output_fluids": [
+    { "fluid": "slop", "amount": 1000 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:drive_klaus" }, "weight": 1 }
+  ]
+}

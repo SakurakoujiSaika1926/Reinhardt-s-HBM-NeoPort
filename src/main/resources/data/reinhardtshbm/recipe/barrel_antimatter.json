@@ -8,7 +8,7 @@
   ],
   "key": {
     "I": { "tag": "c:plates/saturnite" },
-    "P": { "item": "reinhardtshbm:coil_gold_torus" }
+    "P": { "tag": "c:wires_dense/bscco" }
   },
   "result": {
     "id": "reinhardtshbm:barrel_antimatter"

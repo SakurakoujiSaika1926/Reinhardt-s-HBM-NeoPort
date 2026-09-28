@@ -1,0 +1,30 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_balefire_1",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_balefire"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  1
+                                      }
+                   },
+    "fluid_produced":  400,
+    "fluid_consumed":  100,
+    "wavelength":  "uv",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:powder_balefire"
+                                 },
+                        "weight":  70
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_tiny"
+                                 },
+                        "weight":  30
+                    }
+                ]
+}

@@ -24,6 +24,8 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -66,6 +68,18 @@ public final class SnowglobeBlock extends Block implements EntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new SnowglobeBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide && type == HbmBlockEntities.SNOWGLOBE.get()
+                ? (tickerLevel, tickerPos, tickerState, entity) -> {
+                    if (entity instanceof SnowglobeBlockEntity globe) {
+                        SnowglobeBlockEntity.clientTick(tickerLevel, tickerPos, tickerState, globe);
+                    }
+                }
+                : null;
     }
 
     @Override

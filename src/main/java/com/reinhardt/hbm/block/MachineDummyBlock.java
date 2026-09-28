@@ -1,8 +1,9 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
+import com.reinhardt.hbm.blockentity.MachineDummyMenuAccess;
+import com.reinhardt.hbm.blockentity.ClientRenderNeighborSnapshot;
 import com.reinhardt.hbm.event.LegacyMobSpawnEvents;
-import com.reinhardt.hbm.blockentity.BigAssTankBlockEntity;
 import com.reinhardt.hbm.blockentity.CatalyticCrackerBlockEntity;
 import com.reinhardt.hbm.blockentity.CentrifugeBlockEntity;
 import com.reinhardt.hbm.blockentity.CombustionEngineBlockEntity;
@@ -25,6 +26,7 @@ import com.reinhardt.hbm.blockentity.LeviathanTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyTurretBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyTurretType;
 import com.reinhardt.hbm.blockentity.LegacyMachineBlockEntity;
+import com.reinhardt.hbm.blockentity.OreSlopperBlockEntity;
 import com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity;
 import com.reinhardt.hbm.blockentity.RadarScreenBlockEntity;
 import com.reinhardt.hbm.blockentity.RefineryBlockEntity;
@@ -181,18 +183,26 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                 && level.getBlockEntity(part.getCorePos()) instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher) {
             if (level.isClientSide) return InteractionResult.SUCCESS;
             if (player.isCrouching()) return InteractionResult.PASS;
-            if (player instanceof ServerPlayer serverPlayer) serverPlayer.openMenu(launcher, buffer -> buffer.writeBlockPos(launcher.getBlockPos()));
-            return InteractionResult.CONSUME;
-        }
-        if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity launcherPart
-                && level.getBlockEntity(launcherPart.getCorePos()) instanceof com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity soyuz) {
-            if (level.isClientSide) return InteractionResult.SUCCESS;
-            if (player.isCrouching()) return InteractionResult.PASS;
             if (player instanceof ServerPlayer serverPlayer) {
-                com.reinhardt.hbm.event.LegacyMobSpawnEvents.markFbi(serverPlayer);
-                serverPlayer.openMenu(soyuz, buffer -> buffer.writeBlockPos(soyuz.getBlockPos()));
+                serverPlayer.openMenu(launcher, buffer -> buffer.writeBlockPos(launcher.getBlockPos()));
+                MachineDummyMenuAccess.record(serverPlayer, pos, launcher.getBlockPos());
             }
             return InteractionResult.CONSUME;
+        }
+        if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity tankPart
+                && level.getBlockEntity(tankPart.getCorePos()) instanceof FluidTankBlockEntity tank) {
+            if (player.isShiftKeyDown() || tank.isDamaged()) {
+                return InteractionResult.PASS;
+            }
+            if (level.isClientSide) {
+                return InteractionResult.SUCCESS;
+            }
+            if (player instanceof ServerPlayer serverPlayer) {
+                serverPlayer.openMenu(tank, buffer -> buffer.writeBlockPos(tank.getBlockPos()));
+                MachineDummyMenuAccess.record(serverPlayer, pos, tank.getBlockPos());
+                return InteractionResult.CONSUME;
+            }
+            return InteractionResult.PASS;
         }
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof LegacyTurretBlockEntity turret
@@ -230,6 +240,7 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                         && !player.isShiftKeyDown()
                         && player instanceof ServerPlayer serverPlayer) {
                     serverPlayer.openMenu(menuProvider, buffer -> buffer.writeBlockPos(corePos));
+                    MachineDummyMenuAccess.record(serverPlayer, pos, corePos);
                     return InteractionResult.CONSUME;
                 }
                 // A legacy dummy forwarded a sneaking RBMK click to
@@ -246,7 +257,7 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             }
             if (coreEntity instanceof RadarScreenBlockEntity screen
                     && player instanceof ServerPlayer serverPlayer) {
-                screen.openLinkedRadar(serverPlayer);
+                screen.openLinkedRadar(serverPlayer, pos, corePos);
                 return InteractionResult.CONSUME;
             }
             if (coreEntity instanceof LegacyMachineBlockEntity machine
@@ -268,6 +279,7 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             if (coreEntity instanceof FusionMachineBlockEntity fusion) {
                 if (coreEntity instanceof MenuProvider menuProvider && player instanceof ServerPlayer serverPlayer) {
                     serverPlayer.openMenu(menuProvider, buffer -> buffer.writeBlockPos(corePos));
+                    MachineDummyMenuAccess.record(serverPlayer, pos, corePos);
                     return InteractionResult.CONSUME;
                 }
                 fusion.printInfo(player);
@@ -285,13 +297,16 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                     buffer.writeBlockPos(corePos);
                     buffer.writeVarInt(heater.kind().ordinal());
                 });
+                MachineDummyMenuAccess.record(serverPlayer, pos, corePos);
             } else if (coreEntity instanceof ElectrolyzerBlockEntity electrolyzer && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.openMenu(electrolyzer, buffer -> {
                     buffer.writeBlockPos(corePos);
                     buffer.writeVarInt(electrolyzer.selectedGui());
                 });
+                MachineDummyMenuAccess.record(serverPlayer, pos, corePos);
             } else if (coreEntity instanceof MenuProvider menuProvider && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.openMenu(menuProvider, buffer -> buffer.writeBlockPos(corePos));
+                MachineDummyMenuAccess.record(serverPlayer, pos, corePos);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -307,6 +322,12 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
+        if (stack.getItem() instanceof com.reinhardt.hbm.item.SatelliteChipItem
+                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
+                && level.getBlockEntity(dummy.getCorePos()) instanceof com.reinhardt.hbm.blockentity.SatelliteGroundStationBlockEntity) {
+            return SatelliteGroundStationBlock.setFrequencyFromChip(
+                    level, dummy.getCorePos(), player, stack);
+        }
         if (stack.getItem() instanceof WiringRedCopperItem) {
             return WiringRedCopperItem.useItemOnBlock(stack, level, player, pos);
         }
@@ -422,22 +443,14 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (stack.getItem() instanceof FluidIdentifierItem
+        if (player.isShiftKeyDown()
+                && stack.getItem() instanceof FluidIdentifierItem
                 && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof FluidTankBlockEntity tank) {
             if (!level.isClientSide) {
                 if (!tank.isDamaged()) {
                     tank.setType(FluidIdentifierItem.primary(stack));
                 }
-                level.playSound(null, dummy.getCorePos(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.25F, 1.2F);
-            }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
-        }
-        if (stack.getItem() instanceof FluidIdentifierItem
-                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
-                && level.getBlockEntity(dummy.getCorePos()) instanceof BigAssTankBlockEntity tank) {
-            if (!level.isClientSide) {
-                tank.setType(FluidIdentifierItem.primary(stack));
                 level.playSound(null, dummy.getCorePos(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.25F, 1.2F);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
@@ -552,10 +565,11 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             BlockState coreState = level.getBlockState(corePos);
             boolean playerRemoval = dummy.isPlayerRemovalArmed();
             boolean dropCore = dummy.consumeDropCoreWhenRemoved();
+            BlockPos logicalOffset = pos.subtract(corePos);
             if (level.getBlockEntity(corePos) instanceof RbmkComponentBlockEntity rbmk
-                    && pos.getX() == corePos.getX()
-                    && pos.getZ() == corePos.getZ()
-                    && pos.getY() - corePos.getY() == RbmkComponentBlock.columnHeight(level)
+                    && logicalOffset.getX() == 0
+                    && logicalOffset.getZ() == 0
+                    && logicalOffset.getY() == RbmkComponentBlock.columnHeight(level)
                     && rbmk.hasLid()
                     && playerRemoval) {
                 ItemStack lid = rbmk.removeLidStack();
@@ -569,8 +583,10 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                     || coreState.getBlock() instanceof LargeFluidTankBlock
                     || coreState.getBlock() instanceof GasTurbineBlock
                     || coreState.getBlock() instanceof ElectrolyzerBlock
+                    || coreState.getBlock() instanceof MiningLaserBlock
                     || coreState.getBlock() instanceof StirlingGeneratorBlock
                     || coreState.getBlock() instanceof WoodBurnerBlock
+                    || coreState.getBlock() instanceof WatzPumpBlock
                     || coreState.getBlock() instanceof PowerPylonBlock
                     || coreState.getBlock() instanceof TurretChekhovBlock
                     || coreState.getBlock() instanceof TurretJeremyBlock
@@ -591,6 +607,7 @@ public class MachineDummyBlock extends Block implements EntityBlock {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
                                    BlockPos fromPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+        refreshCoreRenderNeighborSnapshot(level, pos);
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher) {
             // LaunchPad's old BlockDummyable received redstone updates on every
@@ -600,6 +617,22 @@ public class MachineDummyBlock extends Block implements EntityBlock {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockState(dummy.getCorePos()).is(com.reinhardt.hbm.registry.HbmBlocks.MACHINE_ZIRNOX.get())) {
             ZirnoxReactorBlock.updateRedstone(level, dummy.getCorePos());
+        }
+    }
+
+    @Override
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighborPos) {
+        if (level instanceof Level actual) {
+            refreshCoreRenderNeighborSnapshot(actual, pos);
+        }
+    }
+
+    private static void refreshCoreRenderNeighborSnapshot(Level level, BlockPos dummyPos) {
+        if (!level.isClientSide) {
+            return;
+        }
+        if (level.getBlockEntity(dummyPos) instanceof MachineDummyBlockEntity dummy) {
+            ClientRenderNeighborSnapshot.refreshAt(level, dummy.getCorePos());
         }
     }
 
@@ -651,28 +684,42 @@ public class MachineDummyBlock extends Block implements EntityBlock {
     private static VoxelShape shapeFor(BlockGetter level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy) {
             BlockPos corePos = dummy.getCorePos();
-            int yOffset = pos.getY() - corePos.getY();
+            BlockState coreState = level.getBlockState(corePos);
+            BlockPos offsetFromCore = pos.subtract(corePos);
+            int yOffset = offsetFromCore.getY();
             BlockEntity core = level.getBlockEntity(corePos);
             if (core instanceof LegacyMachineBlockEntity machine && machine.machineId().equals("machine_sawmill")) {
-                BlockState coreState = level.getBlockState(corePos);
-                return SawmillBlock.shapeForPart(coreState.getValue(LargeMachineBlock.FACING), pos.subtract(corePos));
+                return SawmillBlock.shapeForPart(
+                        coreState.getValue(LargeMachineBlock.FACING), offsetFromCore);
             }
             if (core instanceof GasFlareBlockEntity) {
-                return GasFlareBlock.shapeForPart(pos.subtract(corePos));
+                return GasFlareBlock.shapeForPart(offsetFromCore);
+            }
+            if (core instanceof OreSlopperBlockEntity) {
+                return OreSlopperBlock.shapeForPart(
+                        level.getBlockState(corePos).getValue(LargeMachineBlock.FACING), pos.subtract(corePos));
             }
             if (core instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher
                     && launcher.kind() == com.reinhardt.hbm.blockentity.LauncherBlockEntity.Kind.PAD_SMALL) {
-                return LaunchPadBlock.shapeForPart(LaunchPadBlock.Kind.SILO, pos.subtract(corePos));
+                return LaunchPadBlock.siloShapeForPart(
+                        level.getBlockState(corePos).getValue(LargeMachineBlock.FACING), pos.subtract(corePos));
             }
             if (core instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher
                     && launcher.kind() == com.reinhardt.hbm.blockentity.LauncherBlockEntity.Kind.PAD_RUSTED) {
-                return LaunchPadBlock.shapeForPart(LaunchPadBlock.Kind.RUSTED, pos.subtract(corePos));
+                return LaunchPadBlock.rustedPadShapeForPart(
+                        level.getBlockState(corePos).getValue(LargeMachineBlock.FACING), pos.subtract(corePos));
             }
             if (core instanceof com.reinhardt.hbm.blockentity.LauncherBlockEntity launcher
                     && launcher.kind() == com.reinhardt.hbm.blockentity.LauncherBlockEntity.Kind.PAD_LARGE) {
-                return LaunchPadBlock.shapeForPart(LaunchPadBlock.Kind.LARGE, pos.subtract(corePos));
+                return LaunchPadBlock.largePadShapeForPart(
+                        level.getBlockState(corePos).getValue(LargeMachineBlock.FACING), pos.subtract(corePos));
             }
-            if (pos.getX() == corePos.getX() && pos.getZ() == corePos.getZ() && yOffset >= 1) {
+            if (offsetFromCore.getX() == 0 && offsetFromCore.getZ() == 0 && yOffset >= 1) {
+                if (core instanceof RbmkComponentBlockEntity rbmk
+                        && rbmk.kind() == RbmkComponentBlock.Kind.AUTOLOADER
+                        && yOffset <= RbmkComponentBlock.AUTOLOADER_TOP_OFFSET) {
+                    return RbmkComponentBlock.autoloaderSegmentShape(yOffset);
+                }
                 if (core instanceof RbmkComponentBlockEntity rbmk && yOffset < RbmkComponentBlock.columnHeight(level)) {
                     return RbmkComponentBlock.columnSegmentShape(
                             rbmk.kind(),
@@ -692,7 +739,7 @@ public class MachineDummyBlock extends Block implements EntityBlock {
                     return GAS_CENTRIFUGE_TOWER;
                 }
             }
-            if (corePos.getY() < pos.getY()
+            if (yOffset > 0
                     && level.getBlockEntity(corePos) instanceof RbmkComponentBlockEntity rbmk
                     && rbmk.kind() == RbmkComponentBlock.Kind.CRANE_CONSOLE) {
                 return HALF_BLOCK;
@@ -703,6 +750,7 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             if (core instanceof LegacyTurretBlockEntity turret && turret.type().layout() == LegacyTurretType.Layout.NT) {
                 return HALF_BLOCK;
             }
+            return FULL_BLOCK;
         }
         return FULL_BLOCK;
     }

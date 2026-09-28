@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.rpahelmet",
+  "blueprint_pools": ["discover..rpa"],
+  "duration": 3600,
+  "power": 25000,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/armor_ajr" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:plate_cast_saturnite" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_advanced" }, "count": 4 },
+    { "ingredient": { "tag": "c:plates/kevlar" }, "count": 8 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:rpa_helmet" }, "weight": 100 }
+  ]
+}

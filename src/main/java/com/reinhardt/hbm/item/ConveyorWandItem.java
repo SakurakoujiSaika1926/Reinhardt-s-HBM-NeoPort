@@ -4,7 +4,6 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.ConveyorBlock;
 import com.reinhardt.hbm.block.CraneMachineBlock;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -55,10 +54,18 @@ public final class ConveyorWandItem extends LegacyVariantItem {
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
+        return switch (type(context.getItemInHand())) {
+            case REGULAR -> useRegular(context, player);
+            case EXPRESS -> useExpress(context, player);
+            case DOUBLE -> useDouble(context, player);
+            case TRIPLE -> useTriple(context, player);
+        };
+    }
+
+    private InteractionResult useRegular(UseOnContext context, Player player) {
         ItemStack stack = context.getItemInHand();
         Level level = context.getLevel();
-        ConveyorType type = type(stack);
-        if (player.isShiftKeyDown() && !selecting(data(stack))) return placeSingle(context, type);
+        if (player.isShiftKeyDown() && !selecting(data(stack))) return placeRegularSingle(context);
 
         BlockPos clicked = context.getClickedPos();
         Direction side = context.getClickedFace();
@@ -73,13 +80,13 @@ public final class ConveyorWandItem extends LegacyVariantItem {
             tag.putInt(START_Y, clicked.getY());
             tag.putInt(START_Z, clicked.getZ());
             tag.putInt(START_SIDE, side.get3DDataValue());
-            tag.putInt(COUNT, player.getAbilities().instabuild ? 256 : countAvailable(player, type));
+            tag.putInt(COUNT, player.getAbilities().instabuild ? 256 : countAvailable(player, ConveyorType.REGULAR));
             save(stack, tag);
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
         BlockPos start = new BlockPos(tag.getInt(START_X), tag.getInt(START_Y), tag.getInt(START_Z));
-        List<Placement> placements = buildPath(level, type, player, start, direction(tag.getInt(START_SIDE)), clicked, side, tag.getInt(COUNT));
+        List<Placement> placements = buildRegularPath(level, player, start, Direction.from3DDataValue(tag.getInt(START_SIDE)), clicked, side, tag.getInt(COUNT));
         tag.remove(SELECTING);
         save(stack, tag);
         if (!level.isClientSide) {
@@ -88,33 +95,198 @@ public final class ConveyorWandItem extends LegacyVariantItem {
             else {
                 for (Placement placement : placements) level.setBlock(placement.pos(), placement.state(), Block.UPDATE_ALL);
                 refreshPlacedConveyors(level, placements);
-                if (!player.getAbilities().instabuild) consume(player, type, placements.size());
+                if (!player.getAbilities().instabuild) consume(player, ConveyorType.REGULAR, placements.size());
                 player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.built"), true);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    private InteractionResult placeSingle(UseOnContext context, ConveyorType type) {
+    private InteractionResult useExpress(UseOnContext context, Player player) {
+        ItemStack stack = context.getItemInHand();
+        Level level = context.getLevel();
+        if (player.isShiftKeyDown() && !selecting(data(stack))) return placeExpressSingle(context);
+
+        BlockPos clicked = context.getClickedPos();
+        Direction side = context.getClickedFace();
+        CompoundTag tag = data(stack);
+        if (level.getBlockState(clicked).getBlock() instanceof ConveyorBlock conveyor && conveyor.kind().bendable()) {
+            Direction snap = selecting(tag) ? conveyor.inputDirection(level.getBlockState(clicked)) : conveyor.outputDirection(level.getBlockState(clicked));
+            if (isReplaceable(level, clicked.relative(snap))) side = snap;
+        }
+        if (!selecting(tag)) {
+            tag.putBoolean(SELECTING, true);
+            tag.putInt(START_X, clicked.getX());
+            tag.putInt(START_Y, clicked.getY());
+            tag.putInt(START_Z, clicked.getZ());
+            tag.putInt(START_SIDE, side.get3DDataValue());
+            tag.putInt(COUNT, player.getAbilities().instabuild ? 256 : countAvailable(player, ConveyorType.EXPRESS));
+            save(stack, tag);
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+
+        BlockPos start = new BlockPos(tag.getInt(START_X), tag.getInt(START_Y), tag.getInt(START_Z));
+        List<Placement> placements = buildExpressPath(level, player, start, Direction.from3DDataValue(tag.getInt(START_SIDE)), clicked, side, tag.getInt(COUNT));
+        tag.remove(SELECTING);
+        save(stack, tag);
+        if (!level.isClientSide) {
+            if (placements == null) player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.obstructed"), true);
+            else if (placements.isEmpty()) player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.not_enough"), true);
+            else {
+                for (Placement placement : placements) level.setBlock(placement.pos(), placement.state(), Block.UPDATE_ALL);
+                refreshPlacedConveyors(level, placements);
+                if (!player.getAbilities().instabuild) consume(player, ConveyorType.EXPRESS, placements.size());
+                player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.built"), true);
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult useDouble(UseOnContext context, Player player) {
+        ItemStack stack = context.getItemInHand();
+        Level level = context.getLevel();
+        if (player.isShiftKeyDown() && !selecting(data(stack))) return placeDoubleSingle(context);
+
+        BlockPos clicked = context.getClickedPos();
+        Direction side = context.getClickedFace();
+        CompoundTag tag = data(stack);
+        if (level.getBlockState(clicked).getBlock() instanceof ConveyorBlock conveyor && conveyor.kind().bendable()) {
+            Direction snap = selecting(tag) ? conveyor.inputDirection(level.getBlockState(clicked)) : conveyor.outputDirection(level.getBlockState(clicked));
+            if (isReplaceable(level, clicked.relative(snap))) side = snap;
+        }
+        if (!selecting(tag)) {
+            tag.putBoolean(SELECTING, true);
+            tag.putInt(START_X, clicked.getX());
+            tag.putInt(START_Y, clicked.getY());
+            tag.putInt(START_Z, clicked.getZ());
+            tag.putInt(START_SIDE, side.get3DDataValue());
+            tag.putInt(COUNT, player.getAbilities().instabuild ? 256 : countAvailable(player, ConveyorType.DOUBLE));
+            save(stack, tag);
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+
+        BlockPos start = new BlockPos(tag.getInt(START_X), tag.getInt(START_Y), tag.getInt(START_Z));
+        List<Placement> placements = buildDoublePath(level, player, start, Direction.from3DDataValue(tag.getInt(START_SIDE)), clicked, side, tag.getInt(COUNT));
+        tag.remove(SELECTING);
+        save(stack, tag);
+        if (!level.isClientSide) {
+            if (placements == null) player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.obstructed"), true);
+            else if (placements.isEmpty()) player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.not_enough"), true);
+            else {
+                for (Placement placement : placements) level.setBlock(placement.pos(), placement.state(), Block.UPDATE_ALL);
+                refreshPlacedConveyors(level, placements);
+                if (!player.getAbilities().instabuild) consume(player, ConveyorType.DOUBLE, placements.size());
+                player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.built"), true);
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult useTriple(UseOnContext context, Player player) {
+        ItemStack stack = context.getItemInHand();
+        Level level = context.getLevel();
+        if (player.isShiftKeyDown() && !selecting(data(stack))) return placeTripleSingle(context);
+
+        BlockPos clicked = context.getClickedPos();
+        Direction side = context.getClickedFace();
+        CompoundTag tag = data(stack);
+        if (level.getBlockState(clicked).getBlock() instanceof ConveyorBlock conveyor && conveyor.kind().bendable()) {
+            Direction snap = selecting(tag) ? conveyor.inputDirection(level.getBlockState(clicked)) : conveyor.outputDirection(level.getBlockState(clicked));
+            if (isReplaceable(level, clicked.relative(snap))) side = snap;
+        }
+        if (!selecting(tag)) {
+            tag.putBoolean(SELECTING, true);
+            tag.putInt(START_X, clicked.getX());
+            tag.putInt(START_Y, clicked.getY());
+            tag.putInt(START_Z, clicked.getZ());
+            tag.putInt(START_SIDE, side.get3DDataValue());
+            tag.putInt(COUNT, player.getAbilities().instabuild ? 256 : countAvailable(player, ConveyorType.TRIPLE));
+            save(stack, tag);
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+
+        BlockPos start = new BlockPos(tag.getInt(START_X), tag.getInt(START_Y), tag.getInt(START_Z));
+        List<Placement> placements = buildTriplePath(level, player, start, Direction.from3DDataValue(tag.getInt(START_SIDE)), clicked, side, tag.getInt(COUNT));
+        tag.remove(SELECTING);
+        save(stack, tag);
+        if (!level.isClientSide) {
+            if (placements == null) player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.obstructed"), true);
+            else if (placements.isEmpty()) player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.not_enough"), true);
+            else {
+                for (Placement placement : placements) level.setBlock(placement.pos(), placement.state(), Block.UPDATE_ALL);
+                refreshPlacedConveyors(level, placements);
+                if (!player.getAbilities().instabuild) consume(player, ConveyorType.TRIPLE, placements.size());
+                player.displayClientMessage(Component.translatable("chat.reinhardtshbm.conveyor.built"), true);
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult placeRegularSingle(UseOnContext context) {
         Level level = context.getLevel();
         ItemStack stack = context.getItemInHand();
         BlockPos clicked = context.getClickedPos();
         Direction face = context.getClickedFace();
         BlockState clickedState = level.getBlockState(clicked);
-        Block toPlace = blockFor(type);
-        if (type == ConveyorType.REGULAR && clickedState.is(HbmBlocks.CONVEYOR.get()) && clickedState.getValue(ConveyorBlock.CURVE) == 0) {
+        Block toPlace = HbmBlocks.CONVEYOR.get();
+        if (clickedState.is(HbmBlocks.CONVEYOR.get()) && clickedState.getValue(ConveyorBlock.CURVE) == 0) {
             if (face == Direction.UP) level.setBlock(clicked, HbmBlocks.CONVEYOR_LIFT.get().defaultBlockState().setValue(ConveyorBlock.FACING, clickedState.getValue(ConveyorBlock.FACING)), Block.UPDATE_ALL);
             else if (face == Direction.DOWN) level.setBlock(clicked, HbmBlocks.CONVEYOR_CHUTE.get().defaultBlockState().setValue(ConveyorBlock.FACING, clickedState.getValue(ConveyorBlock.FACING)), Block.UPDATE_ALL);
             clickedState = level.getBlockState(clicked);
         }
-        if (type == ConveyorType.REGULAR && clickedState.getBlock() instanceof ConveyorBlock conveyor) {
+        if (clickedState.getBlock() instanceof ConveyorBlock conveyor) {
             if (conveyor.kind() == ConveyorBlock.Kind.LIFT && face == Direction.UP) toPlace = HbmBlocks.CONVEYOR_LIFT.get();
             if (conveyor.kind() == ConveyorBlock.Kind.CHUTE && face == Direction.DOWN) toPlace = HbmBlocks.CONVEYOR_CHUTE.get();
         }
         BlockPos target = clicked.relative(face);
         if (!isReplaceable(level, target)) return InteractionResult.FAIL;
         if (!level.isClientSide) {
-            level.setBlock(target, placementState(toPlace, context.getHorizontalDirection().getOpposite(), 0), Block.UPDATE_ALL);
+            level.setBlock(target, regularPlacementState(toPlace, context.getHorizontalDirection().getOpposite(), 0), Block.UPDATE_ALL);
+            ConveyorBlock.refreshVisualStateAt(level, clicked);
+            ConveyorBlock.refreshVisualStateAt(level, target);
+            if (!context.getPlayer().getAbilities().instabuild) stack.shrink(1);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult placeExpressSingle(UseOnContext context) {
+        Level level = context.getLevel();
+        ItemStack stack = context.getItemInHand();
+        BlockPos clicked = context.getClickedPos();
+        BlockPos target = clicked.relative(context.getClickedFace());
+        if (!isReplaceable(level, target)) return InteractionResult.FAIL;
+        if (!level.isClientSide) {
+            level.setBlock(target, expressPlacementState(context.getHorizontalDirection().getOpposite(), 0), Block.UPDATE_ALL);
+            ConveyorBlock.refreshVisualStateAt(level, clicked);
+            ConveyorBlock.refreshVisualStateAt(level, target);
+            if (!context.getPlayer().getAbilities().instabuild) stack.shrink(1);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult placeDoubleSingle(UseOnContext context) {
+        Level level = context.getLevel();
+        ItemStack stack = context.getItemInHand();
+        BlockPos clicked = context.getClickedPos();
+        BlockPos target = clicked.relative(context.getClickedFace());
+        if (!isReplaceable(level, target)) return InteractionResult.FAIL;
+        if (!level.isClientSide) {
+            level.setBlock(target, doublePlacementState(context.getHorizontalDirection().getOpposite(), 0), Block.UPDATE_ALL);
+            ConveyorBlock.refreshVisualStateAt(level, clicked);
+            ConveyorBlock.refreshVisualStateAt(level, target);
+            if (!context.getPlayer().getAbilities().instabuild) stack.shrink(1);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult placeTripleSingle(UseOnContext context) {
+        Level level = context.getLevel();
+        ItemStack stack = context.getItemInHand();
+        BlockPos clicked = context.getClickedPos();
+        BlockPos target = clicked.relative(context.getClickedFace());
+        if (!isReplaceable(level, target)) return InteractionResult.FAIL;
+        if (!level.isClientSide) {
+            level.setBlock(target, triplePlacementState(context.getHorizontalDirection().getOpposite(), 0), Block.UPDATE_ALL);
             ConveyorBlock.refreshVisualStateAt(level, clicked);
             ConveyorBlock.refreshVisualStateAt(level, target);
             if (!context.getPlayer().getAbilities().instabuild) stack.shrink(1);
@@ -158,54 +330,73 @@ public final class ConveyorWandItem extends LegacyVariantItem {
         breakExtra(level, player, pos.relative(output), depth);
     }
 
-    private static List<Placement> buildPath(Level level, ConveyorType type, Player player, BlockPos first, Direction firstSide,
-                                             BlockPos target, Direction targetSide, int max) {
+    private static List<Placement> buildRegularPath(Level level, Player player, BlockPos first, Direction firstSide,
+                                                    BlockPos target, Direction targetSide, int max) {
         if (max <= 0) return List.of();
         if (first.equals(target) && firstSide == targetSide && firstSide.getAxis().isVertical()) {
             BlockPos pos = first.relative(firstSide);
-            return isReplaceable(level, pos) ? List.of(new Placement(pos, placementState(blockFor(type), player.getDirection().getOpposite(), 0))) : null;
+            return isReplaceable(level, pos) ? List.of(new Placement(pos, regularPlacementState(HbmBlocks.CONVEYOR.get(), player.getDirection().getOpposite(), 0))) : null;
         }
-        boolean vertical = type == ConveyorType.REGULAR;
         BlockPos finalTarget = target.relative(targetSide);
         BlockPos current = first.relative(firstSide);
-        Direction direction = firstSide.getAxis().isVertical() ? targetDirection(current, target, target, null, false, vertical) : firstSide;
+        Direction direction = firstSide.getAxis().isVertical() ? regularTargetDirection(current, target, target, null, false) : firstSide;
         BlockState targetState = level.getBlockState(target);
         boolean turnToTarget = targetSide.getAxis().isHorizontal()
                 || isLegacyCraneBase(targetState)
                 || (targetState.getBlock() instanceof ConveyorBlock conveyor
                 && (conveyor.kind() == ConveyorBlock.Kind.LIFT || conveyor.kind() == ConveyorBlock.Kind.CHUTE));
         Direction horizontal = direction.getAxis().isVertical() ? player.getDirection() : direction;
-        if (vertical && current.getY() > finalTarget.getY() && isReplaceable(level, current.below())) direction = Direction.DOWN;
+        if (current.getY() > finalTarget.getY() && isReplaceable(level, current.below())) direction = Direction.DOWN;
         List<Placement> placements = new ArrayList<>();
         for (int depth = 1; depth <= max; depth++) {
             if (!isReplaceable(level, current)) return null;
-            Block block = blockForDirection(type, direction);
-            Direction facing = conveyorFacing(block, direction, targetSide, horizontal);
+            Block block = regularBlockForDirection(direction);
+            Direction facing = regularConveyorFacing(block, direction, targetSide, horizontal);
             int curve = 0;
             BlockPos next = current.relative(direction);
-            int fromDistance = manhattan(current, finalTarget);
-            int toDistance = manhattan(next, finalTarget);
-            int finalDistance = manhattan(next, target);
+            int fromDistance = regularManhattan(current, finalTarget);
+            int toDistance = regularManhattan(next, finalTarget);
+            int finalDistance = regularManhattan(next, target);
             boolean notAtTarget = (turnToTarget ? finalDistance : fromDistance) > 0;
             boolean obstructed = notAtTarget && !isReplaceable(level, next);
             if ((toDistance >= fromDistance && notAtTarget) || obstructed) {
-                Direction nextDirection = targetDirection(current, turnToTarget ? target : finalTarget, finalTarget, direction, obstructed, vertical);
+                Direction nextDirection = regularTargetDirection(current, turnToTarget ? target : finalTarget, finalTarget, direction, obstructed);
                 if (nextDirection == Direction.UP) block = HbmBlocks.CONVEYOR_LIFT.get();
                 else if (nextDirection == Direction.DOWN) block = HbmBlocks.CONVEYOR_CHUTE.get();
-                else if (LegacyMachineGeometry.forgeRotateUp(direction) == nextDirection) curve = 2;
-                else if (LegacyMachineGeometry.forgeRotateDown(direction) == nextDirection) curve = 1;
+                else if (direction.getAxis().isHorizontal() && regularCurveTwoDirection(direction) == nextDirection) curve = 2;
+                else if (direction.getAxis().isHorizontal() && regularCurveOneDirection(direction) == nextDirection) curve = 1;
                 direction = nextDirection;
                 if (direction.getAxis().isHorizontal()) horizontal = direction;
             }
-            placements.add(new Placement(current, placementState(block, facing, curve)));
+            placements.add(new Placement(current, regularPlacementState(block, facing, curve)));
             if (current.equals(finalTarget)) return placements;
             current = current.relative(direction);
         }
         return List.of();
     }
 
-    private static Direction targetDirection(BlockPos from, BlockPos target, BlockPos finalTarget, Direction heading, boolean obstructed, boolean vertical) {
-        if (vertical && (from.getY() != target.getY() || from.getY() != finalTarget.getY())
+    private static Direction regularCurveTwoDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("Regular conveyor wand curve requires a horizontal direction: " + direction);
+        };
+    }
+
+    private static Direction regularCurveOneDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.WEST;
+            case EAST -> Direction.NORTH;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Regular conveyor wand curve requires a horizontal direction: " + direction);
+        };
+    }
+
+    private static Direction regularTargetDirection(BlockPos from, BlockPos target, BlockPos finalTarget, Direction heading, boolean obstructed) {
+        if ((from.getY() != target.getY() || from.getY() != finalTarget.getY())
                 && (obstructed || (from.getX() == target.getX() && from.getZ() == target.getZ()) || (from.getX() == finalTarget.getX() && from.getZ() == finalTarget.getZ()))) {
             return from.getY() > target.getY() ? Direction.DOWN : Direction.UP;
         }
@@ -217,29 +408,264 @@ public final class ConveyorWandItem extends LegacyVariantItem {
         return from.getZ() > target.getZ() ? Direction.NORTH : Direction.SOUTH;
     }
 
-    private static Block blockForDirection(ConveyorType type, Direction direction) {
+    private static Block regularBlockForDirection(Direction direction) {
         if (direction == Direction.UP) return HbmBlocks.CONVEYOR_LIFT.get();
         if (direction == Direction.DOWN) return HbmBlocks.CONVEYOR_CHUTE.get();
-        return blockFor(type);
+        return HbmBlocks.CONVEYOR.get();
     }
 
-    private static Direction conveyorFacing(Block block, Direction direction, Direction targetSide, Direction horizontal) {
+    private static Direction regularConveyorFacing(Block block, Direction direction, Direction targetSide, Direction horizontal) {
         if (block == HbmBlocks.CONVEYOR_LIFT.get() || block == HbmBlocks.CONVEYOR_CHUTE.get()) return targetSide.getAxis().isVertical() ? horizontal.getOpposite() : targetSide;
         return direction.getOpposite();
     }
 
-    private static BlockState placementState(Block block, Direction facing, int curve) {
+    private static BlockState regularPlacementState(Block block, Direction facing, int curve) {
         BlockState state = block.defaultBlockState().setValue(ConveyorBlock.FACING, facing);
         return state.hasProperty(ConveyorBlock.CURVE) ? state.setValue(ConveyorBlock.CURVE, curve) : state;
     }
 
-    private static Block blockFor(ConveyorType type) {
-        return switch (type) {
-            case REGULAR -> HbmBlocks.CONVEYOR.get();
-            case EXPRESS -> HbmBlocks.CONVEYOR_EXPRESS.get();
-            case DOUBLE -> HbmBlocks.CONVEYOR_DOUBLE.get();
-            case TRIPLE -> HbmBlocks.CONVEYOR_TRIPLE.get();
+    private static int regularManhattan(BlockPos one, BlockPos two) {
+        return Math.abs(one.getX() - two.getX()) + Math.abs(one.getY() - two.getY()) + Math.abs(one.getZ() - two.getZ());
+    }
+
+    private static List<Placement> buildExpressPath(Level level, Player player, BlockPos first, Direction firstSide,
+                                                    BlockPos target, Direction targetSide, int max) {
+        if (max <= 0) return List.of();
+        if (first.equals(target) && firstSide == targetSide && firstSide.getAxis().isVertical()) {
+            BlockPos pos = first.relative(firstSide);
+            return isReplaceable(level, pos) ? List.of(new Placement(pos, expressPlacementState(player.getDirection().getOpposite(), 0))) : null;
+        }
+        BlockPos finalTarget = target.relative(targetSide);
+        BlockPos current = first.relative(firstSide);
+        Direction direction = firstSide.getAxis().isVertical() ? expressTargetDirection(current, target, target, null) : firstSide;
+        BlockState targetState = level.getBlockState(target);
+        boolean turnToTarget = targetSide.getAxis().isHorizontal()
+                || isLegacyCraneBase(targetState)
+                || (targetState.getBlock() instanceof ConveyorBlock conveyor
+                && (conveyor.kind() == ConveyorBlock.Kind.LIFT || conveyor.kind() == ConveyorBlock.Kind.CHUTE));
+        List<Placement> placements = new ArrayList<>();
+        for (int depth = 1; depth <= max; depth++) {
+            if (!isReplaceable(level, current)) return null;
+            Direction facing = expressConveyorFacing(direction);
+            int curve = 0;
+            BlockPos next = current.relative(direction);
+            int fromDistance = expressManhattan(current, finalTarget);
+            int toDistance = expressManhattan(next, finalTarget);
+            int finalDistance = expressManhattan(next, target);
+            boolean notAtTarget = (turnToTarget ? finalDistance : fromDistance) > 0;
+            boolean obstructed = notAtTarget && !isReplaceable(level, next);
+            if ((toDistance >= fromDistance && notAtTarget) || obstructed) {
+                Direction nextDirection = expressTargetDirection(current, turnToTarget ? target : finalTarget, finalTarget, direction);
+                if (direction.getAxis().isHorizontal() && expressCurveTwoDirection(direction) == nextDirection) curve = 2;
+                else if (direction.getAxis().isHorizontal() && expressCurveOneDirection(direction) == nextDirection) curve = 1;
+                direction = nextDirection;
+            }
+            placements.add(new Placement(current, expressPlacementState(facing, curve)));
+            if (current.equals(finalTarget)) return placements;
+            current = current.relative(direction);
+        }
+        return List.of();
+    }
+
+    private static Direction expressCurveTwoDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("Express conveyor wand curve requires a horizontal direction: " + direction);
         };
+    }
+
+    private static Direction expressCurveOneDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.WEST;
+            case EAST -> Direction.NORTH;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Express conveyor wand curve requires a horizontal direction: " + direction);
+        };
+    }
+
+    private static Direction expressTargetDirection(BlockPos from, BlockPos target, BlockPos finalTarget, Direction heading) {
+        if (Math.abs(from.getX() - target.getX()) > Math.abs(from.getZ() - target.getZ())) {
+            if (heading == Direction.EAST || heading == Direction.WEST) return from.getZ() > target.getZ() ? Direction.NORTH : Direction.SOUTH;
+            return from.getX() > target.getX() ? Direction.WEST : Direction.EAST;
+        }
+        if (heading == Direction.NORTH || heading == Direction.SOUTH) return from.getX() > target.getX() ? Direction.WEST : Direction.EAST;
+        return from.getZ() > target.getZ() ? Direction.NORTH : Direction.SOUTH;
+    }
+
+    private static Direction expressConveyorFacing(Direction direction) { return direction.getOpposite(); }
+
+    private static BlockState expressPlacementState(Direction facing, int curve) {
+        return HbmBlocks.CONVEYOR_EXPRESS.get().defaultBlockState()
+                .setValue(ConveyorBlock.FACING, facing)
+                .setValue(ConveyorBlock.CURVE, curve);
+    }
+
+    private static int expressManhattan(BlockPos one, BlockPos two) {
+        return Math.abs(one.getX() - two.getX()) + Math.abs(one.getY() - two.getY()) + Math.abs(one.getZ() - two.getZ());
+    }
+
+    private static List<Placement> buildDoublePath(Level level, Player player, BlockPos first, Direction firstSide,
+                                                   BlockPos target, Direction targetSide, int max) {
+        if (max <= 0) return List.of();
+        if (first.equals(target) && firstSide == targetSide && firstSide.getAxis().isVertical()) {
+            BlockPos pos = first.relative(firstSide);
+            return isReplaceable(level, pos) ? List.of(new Placement(pos, doublePlacementState(player.getDirection().getOpposite(), 0))) : null;
+        }
+        BlockPos finalTarget = target.relative(targetSide);
+        BlockPos current = first.relative(firstSide);
+        Direction direction = firstSide.getAxis().isVertical() ? doubleTargetDirection(current, target, target, null) : firstSide;
+        BlockState targetState = level.getBlockState(target);
+        boolean turnToTarget = targetSide.getAxis().isHorizontal()
+                || isLegacyCraneBase(targetState)
+                || (targetState.getBlock() instanceof ConveyorBlock conveyor
+                && (conveyor.kind() == ConveyorBlock.Kind.LIFT || conveyor.kind() == ConveyorBlock.Kind.CHUTE));
+        List<Placement> placements = new ArrayList<>();
+        for (int depth = 1; depth <= max; depth++) {
+            if (!isReplaceable(level, current)) return null;
+            Direction facing = doubleConveyorFacing(direction);
+            int curve = 0;
+            BlockPos next = current.relative(direction);
+            int fromDistance = doubleManhattan(current, finalTarget);
+            int toDistance = doubleManhattan(next, finalTarget);
+            int finalDistance = doubleManhattan(next, target);
+            boolean notAtTarget = (turnToTarget ? finalDistance : fromDistance) > 0;
+            boolean obstructed = notAtTarget && !isReplaceable(level, next);
+            if ((toDistance >= fromDistance && notAtTarget) || obstructed) {
+                Direction nextDirection = doubleTargetDirection(current, turnToTarget ? target : finalTarget, finalTarget, direction);
+                if (direction.getAxis().isHorizontal() && doubleCurveTwoDirection(direction) == nextDirection) curve = 2;
+                else if (direction.getAxis().isHorizontal() && doubleCurveOneDirection(direction) == nextDirection) curve = 1;
+                direction = nextDirection;
+            }
+            placements.add(new Placement(current, doublePlacementState(facing, curve)));
+            if (current.equals(finalTarget)) return placements;
+            current = current.relative(direction);
+        }
+        return List.of();
+    }
+
+    private static Direction doubleCurveTwoDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("Double conveyor wand curve requires a horizontal direction: " + direction);
+        };
+    }
+
+    private static Direction doubleCurveOneDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.WEST;
+            case EAST -> Direction.NORTH;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Double conveyor wand curve requires a horizontal direction: " + direction);
+        };
+    }
+
+    private static Direction doubleTargetDirection(BlockPos from, BlockPos target, BlockPos finalTarget, Direction heading) {
+        if (Math.abs(from.getX() - target.getX()) > Math.abs(from.getZ() - target.getZ())) {
+            if (heading == Direction.EAST || heading == Direction.WEST) return from.getZ() > target.getZ() ? Direction.NORTH : Direction.SOUTH;
+            return from.getX() > target.getX() ? Direction.WEST : Direction.EAST;
+        }
+        if (heading == Direction.NORTH || heading == Direction.SOUTH) return from.getX() > target.getX() ? Direction.WEST : Direction.EAST;
+        return from.getZ() > target.getZ() ? Direction.NORTH : Direction.SOUTH;
+    }
+
+    private static Direction doubleConveyorFacing(Direction direction) { return direction.getOpposite(); }
+
+    private static BlockState doublePlacementState(Direction facing, int curve) {
+        return HbmBlocks.CONVEYOR_DOUBLE.get().defaultBlockState()
+                .setValue(ConveyorBlock.FACING, facing)
+                .setValue(ConveyorBlock.CURVE, curve);
+    }
+
+    private static int doubleManhattan(BlockPos one, BlockPos two) {
+        return Math.abs(one.getX() - two.getX()) + Math.abs(one.getY() - two.getY()) + Math.abs(one.getZ() - two.getZ());
+    }
+
+    private static List<Placement> buildTriplePath(Level level, Player player, BlockPos first, Direction firstSide,
+                                                   BlockPos target, Direction targetSide, int max) {
+        if (max <= 0) return List.of();
+        if (first.equals(target) && firstSide == targetSide && firstSide.getAxis().isVertical()) {
+            BlockPos pos = first.relative(firstSide);
+            return isReplaceable(level, pos) ? List.of(new Placement(pos, triplePlacementState(player.getDirection().getOpposite(), 0))) : null;
+        }
+        BlockPos finalTarget = target.relative(targetSide);
+        BlockPos current = first.relative(firstSide);
+        Direction direction = firstSide.getAxis().isVertical() ? tripleTargetDirection(current, target, target, null) : firstSide;
+        BlockState targetState = level.getBlockState(target);
+        boolean turnToTarget = targetSide.getAxis().isHorizontal()
+                || isLegacyCraneBase(targetState)
+                || (targetState.getBlock() instanceof ConveyorBlock conveyor
+                && (conveyor.kind() == ConveyorBlock.Kind.LIFT || conveyor.kind() == ConveyorBlock.Kind.CHUTE));
+        List<Placement> placements = new ArrayList<>();
+        for (int depth = 1; depth <= max; depth++) {
+            if (!isReplaceable(level, current)) return null;
+            Direction facing = tripleConveyorFacing(direction);
+            int curve = 0;
+            BlockPos next = current.relative(direction);
+            int fromDistance = tripleManhattan(current, finalTarget);
+            int toDistance = tripleManhattan(next, finalTarget);
+            int finalDistance = tripleManhattan(next, target);
+            boolean notAtTarget = (turnToTarget ? finalDistance : fromDistance) > 0;
+            boolean obstructed = notAtTarget && !isReplaceable(level, next);
+            if ((toDistance >= fromDistance && notAtTarget) || obstructed) {
+                Direction nextDirection = tripleTargetDirection(current, turnToTarget ? target : finalTarget, finalTarget, direction);
+                if (direction.getAxis().isHorizontal() && tripleCurveTwoDirection(direction) == nextDirection) curve = 2;
+                else if (direction.getAxis().isHorizontal() && tripleCurveOneDirection(direction) == nextDirection) curve = 1;
+                direction = nextDirection;
+            }
+            placements.add(new Placement(current, triplePlacementState(facing, curve)));
+            if (current.equals(finalTarget)) return placements;
+            current = current.relative(direction);
+        }
+        return List.of();
+    }
+
+    private static Direction tripleCurveTwoDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("Triple conveyor wand curve requires a horizontal direction: " + direction);
+        };
+    }
+
+    private static Direction tripleCurveOneDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> Direction.WEST;
+            case EAST -> Direction.NORTH;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Triple conveyor wand curve requires a horizontal direction: " + direction);
+        };
+    }
+
+    private static Direction tripleTargetDirection(BlockPos from, BlockPos target, BlockPos finalTarget, Direction heading) {
+        if (Math.abs(from.getX() - target.getX()) > Math.abs(from.getZ() - target.getZ())) {
+            if (heading == Direction.EAST || heading == Direction.WEST) return from.getZ() > target.getZ() ? Direction.NORTH : Direction.SOUTH;
+            return from.getX() > target.getX() ? Direction.WEST : Direction.EAST;
+        }
+        if (heading == Direction.NORTH || heading == Direction.SOUTH) return from.getX() > target.getX() ? Direction.WEST : Direction.EAST;
+        return from.getZ() > target.getZ() ? Direction.NORTH : Direction.SOUTH;
+    }
+
+    private static Direction tripleConveyorFacing(Direction direction) { return direction.getOpposite(); }
+
+    private static BlockState triplePlacementState(Direction facing, int curve) {
+        return HbmBlocks.CONVEYOR_TRIPLE.get().defaultBlockState()
+                .setValue(ConveyorBlock.FACING, facing)
+                .setValue(ConveyorBlock.CURVE, curve);
+    }
+
+    private static int tripleManhattan(BlockPos one, BlockPos two) {
+        return Math.abs(one.getX() - two.getX()) + Math.abs(one.getY() - two.getY()) + Math.abs(one.getZ() - two.getZ());
     }
 
     private static boolean isReplaceable(Level level, BlockPos pos) {
@@ -279,8 +705,6 @@ public final class ConveyorWandItem extends LegacyVariantItem {
         }
     }
 
-    private static int manhattan(BlockPos one, BlockPos two) { return Math.abs(one.getX() - two.getX()) + Math.abs(one.getY() - two.getY()) + Math.abs(one.getZ() - two.getZ()); }
-    private static Direction direction(int value) { return Direction.from3DDataValue(value); }
     private static CompoundTag data(ItemStack stack) { return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag(); }
     private static void save(ItemStack stack, CompoundTag tag) { stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag)); }
     private static boolean selecting(CompoundTag tag) { return tag.getBoolean(SELECTING); }

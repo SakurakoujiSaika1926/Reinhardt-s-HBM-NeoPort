@@ -6,7 +6,6 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -36,7 +35,7 @@ public class NetherOreLegacyFeature extends Feature<NoneFeatureConfiguration> {
 
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
-        if (context.level().getLevel() != null && context.level().getLevel().dimension() != Level.NETHER) {
+        if (!WorldgenDimensionClassifier.isNetherLike(context.level(), context.origin())) {
             return false;
         }
         WorldGenLevel level = context.level();

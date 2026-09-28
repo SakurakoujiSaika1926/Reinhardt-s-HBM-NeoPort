@@ -3,7 +3,6 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.blockentity.CatalyticCrackerBlockEntity;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -29,17 +28,28 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class CatalyticCrackerBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = createFootprint();
 
     public CatalyticCrackerBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, CatalyticCrackerBlock::mapCatalyticCrackerOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        return LargeMachineBlock.canPlaceLegacyFootprint(context, facing, FOOTPRINT)
+        return LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT,
+                CatalyticCrackerBlock::mapCatalyticCrackerOffset)
                 ? this.defaultBlockState().setValue(FACING, facing)
                 : null;
     }
@@ -133,7 +143,7 @@ public class CatalyticCrackerBlock extends LargeMachineBlock implements EntityBl
         if (level.isClientSide) {
             return;
         }
-        Direction facing = state.hasProperty(FACING) ? state.getValue(FACING) : Direction.NORTH;
+        Direction facing = state.getValue(FACING);
         for (CatalyticCrackerBlockEntity.Port port : CatalyticCrackerBlockEntity.portsFor(corePos, facing)) {
             BlockPos connectorPos = port.connectorPos();
             refreshDuctsAtPort(level, port.pos(), connectorPos);
@@ -178,6 +188,16 @@ public class CatalyticCrackerBlock extends LargeMachineBlock implements EntityBl
                 }
             }
         }
+    }
+
+    private static BlockPos mapCatalyticCrackerOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Catalytic cracker requires a horizontal facing: " + facing);
+        };
     }
 }
 

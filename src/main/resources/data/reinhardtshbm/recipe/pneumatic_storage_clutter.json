@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["TST", "SCS", "TST"],
+  "key": {
+    "T": { "item": "reinhardtshbm:pneumatic_tube" },
+    "S": { "tag": "c:plates/steel" },
+    "C": { "item": "reinhardtshbm:crate_steel" }
+  },
+  "result": { "id": "reinhardtshbm:pneumatic_storage_clutter" }
+}

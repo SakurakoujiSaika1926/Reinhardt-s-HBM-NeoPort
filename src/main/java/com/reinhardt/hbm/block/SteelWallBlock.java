@@ -61,10 +61,19 @@ public class SteelWallBlock extends Block {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        // The wall is only two pixels thick. Put that plate on the edge of the
-        // target block farthest from the player so it can be applied cleanly
-        // as an exterior facade. Structure loading bypasses this method and
-        // continues to use the legacy metadata mapping below.
+        return switch (this.kind) {
+            case WALL -> wallStateForPlacement(context);
+            case CORNER -> cornerStateForPlacement(context);
+        };
+    }
+
+    private BlockState wallStateForPlacement(BlockPlaceContext context) {
+        // Player-placed walls use the far edge; structure loading bypasses placement.
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+    }
+
+    private BlockState cornerStateForPlacement(BlockPlaceContext context) {
+        // Player-placed corners retain the exact same far-edge convention.
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection());
     }
 
@@ -116,11 +125,33 @@ public class SteelWallBlock extends Block {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case WALL -> rotateWall(state, rotation);
+            case CORNER -> rotateCorner(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case WALL -> mirrorWall(state, mirror);
+            case CORNER -> mirrorCorner(state, mirror);
+        };
+    }
+
+    private static BlockState rotateWall(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateCorner(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorWall(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorCorner(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

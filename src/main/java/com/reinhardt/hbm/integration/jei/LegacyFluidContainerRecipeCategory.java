@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
-/** JEI-only view of the 1.7.10 fixed barrel container conversions. */
+/** JEI-only view of the 1.7.10 fixed fluid-container conversions. */
 public final class LegacyFluidContainerRecipeCategory implements IRecipeCategory<LegacyFluidContainerJeiRecipe> {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/nei/gui_nei.png");
 

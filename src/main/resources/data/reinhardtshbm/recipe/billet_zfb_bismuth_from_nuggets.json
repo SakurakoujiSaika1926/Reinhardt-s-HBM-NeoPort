@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "tag": "c:nuggets/zirconium" }, { "tag": "c:nuggets/zirconium" }, { "tag": "c:nuggets/zirconium" },
+    { "tag": "c:nuggets/uranium" }, { "tag": "c:nuggets/pu241" }, { "tag": "c:nuggets/bismuth" }
+  ],
+  "result": { "id": "reinhardtshbm:billet_zfb_bismuth" }
+}

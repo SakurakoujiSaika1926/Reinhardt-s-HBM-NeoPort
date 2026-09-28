@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.oilelectrodes",
+  "duration": 600,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "heatingoil",
+      "amount": 4000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:arc_electrode_graphite"
+    }
+  ],
+  "output_fluids": []
+}

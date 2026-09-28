@@ -31,7 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
+public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider,
+        ClientRenderNeighborSnapshot {
     public static final int SLOT_BATTERY = 0;
     public static final int SLOT_COUNT = 1;
     private static final int MODE_INPUT = 0;
@@ -48,6 +49,7 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
     private PowerEndpoint.ConnectionPriority priority = PowerEndpoint.ConnectionPriority.LOW;
     private long lastOutput;
     private long lastInput;
+    private volatile RenderNeighborSnapshot renderNeighborSnapshot = RenderNeighborSnapshot.EMPTY;
 
     public BatterySocketBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.BATTERY_SOCKET.get(), pos, blockState);
@@ -78,7 +80,7 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
         Direction dir = facing();
-        Direction rot = dir.getClockWise();
+        Direction rot = batterySocketRightSide(dir);
         return List.of(
                 this.worldPosition.relative(dir),
                 this.worldPosition.relative(dir).relative(rot),
@@ -177,6 +179,25 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
 
     public ItemStack batteryStack() {
         return this.items.get(SLOT_BATTERY);
+    }
+
+    public RenderNeighborSnapshot renderNeighborSnapshot() {
+        return this.renderNeighborSnapshot;
+    }
+
+    @Override
+    public void refreshClientRenderNeighborSnapshot() {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        this.renderNeighborSnapshot = new RenderNeighborSnapshot(
+                !this.level.getBlockState(this.worldPosition.above(2)).isAir());
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        refreshClientRenderNeighborSnapshot();
     }
 
     public int relevantMode() {
@@ -304,6 +325,9 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         return this.level != null && this.level.getBlockEntity(this.worldPosition) == this
                 && player.distanceToSqr(this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 0.5D, this.worldPosition.getZ() + 0.5D) <= 64.0D;
     }
@@ -325,9 +349,23 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
         return Component.translatable("container.reinhardtshbm.battery_socket");
     }
 
+    private static Direction batterySocketRightSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Battery socket requires a horizontal facing: " + facing);
+        };
+    }
+
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new BatterySocketMenu(containerId, playerInventory, this);
+    }
+
+    public record RenderNeighborSnapshot(boolean supportsVisible) {
+        private static final RenderNeighborSnapshot EMPTY = new RenderNeighborSnapshot(false);
     }
 }

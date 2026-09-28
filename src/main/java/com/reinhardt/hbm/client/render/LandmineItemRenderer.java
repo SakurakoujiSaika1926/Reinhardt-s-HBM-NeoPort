@@ -31,35 +31,131 @@ public final class LandmineItemRenderer extends BlockEntityWithoutLevelRenderer 
             return;
         }
         Block block = blockItem.getBlock();
-        BlockState state = block.defaultBlockState();
-
-        poseStack.pushPose();
-        applyLegacyBaseTransform(context, poseStack);
         if (block == HbmBlocks.MINE_AP.get()) {
-            applyApTransform(context, poseStack);
-            render(AP, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderApMineItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         } else if (block == HbmBlocks.MINE_HE.get()) {
-            applyHeTransform(context, poseStack);
-            render(HE, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderHeMineItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         } else if (block == HbmBlocks.MINE_SHRAP.get()) {
-            applyApTransform(context, poseStack);
-            render(SHRAPNEL, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderShrapnelMineItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         } else if (block == HbmBlocks.MINE_NAVAL.get()) {
-            applyNavalTransform(context, poseStack);
-            render(NAVAL, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderNavalMineItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         } else if (block == HbmBlocks.MINE_FAT.get()) {
-            applyNuclearTransform(context, poseStack);
-            render(NUCLEAR, poseStack, bufferSource, state, packedLight, packedOverlay);
+            renderNuclearMineItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         }
+    }
+
+    private static void renderApMineItem(ItemDisplayContext context, PoseStack poseStack,
+                                         MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyApMineItemPose(context, poseStack);
+        render(AP, poseStack, bufferSource, HbmBlocks.MINE_AP.get().defaultBlockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static void applyLegacyBaseTransform(ItemDisplayContext context, PoseStack poseStack) {
+    private static void applyApMineItemPose(ItemDisplayContext context, PoseStack poseStack) {
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.5D, 0.625D, 0.0D);
             poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
             poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
             poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
+            poseStack.scale(8.0F, 8.0F, 8.0F);
+            poseStack.scale(1.25F, 1.25F, 1.25F);
+            return;
+        }
+        if (context == ItemDisplayContext.GROUND) {
+            poseStack.scale(1.5F, 1.5F, 1.5F);
+        } else {
+            poseStack.translate(0.5D, 0.25D, 0.0D);
+        }
+        poseStack.scale(0.25F, 0.25F, 0.25F);
+        if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                && context != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(1.25F, 1.25F, 1.25F);
+    }
+
+    private static void renderHeMineItem(ItemDisplayContext context, PoseStack poseStack,
+                                         MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyHeMineItemPose(context, poseStack);
+        render(HE, poseStack, bufferSource, HbmBlocks.MINE_HE.get().defaultBlockState(), packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyHeMineItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.5D, 0.625D, 0.0D);
+            poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+            poseStack.scale(4.0F, 4.0F, 4.0F);
+            return;
+        }
+        if (context == ItemDisplayContext.GROUND) {
+            poseStack.scale(1.5F, 1.5F, 1.5F);
+        } else {
+            poseStack.translate(0.5D, 0.25D, 0.0D);
+        }
+        poseStack.scale(0.25F, 0.25F, 0.25F);
+        if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                && context != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.translate(0.25D, 0.625D, 0.0D);
+        poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-15.0F));
+        poseStack.scale(4.0F, 4.0F, 4.0F);
+    }
+
+    private static void renderShrapnelMineItem(ItemDisplayContext context, PoseStack poseStack,
+                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyShrapnelMineItemPose(context, poseStack);
+        render(SHRAPNEL, poseStack, bufferSource, HbmBlocks.MINE_SHRAP.get().defaultBlockState(), packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyShrapnelMineItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.5D, 0.625D, 0.0D);
+            poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
+            poseStack.scale(8.0F, 8.0F, 8.0F);
+            poseStack.scale(1.25F, 1.25F, 1.25F);
+            return;
+        }
+        if (context == ItemDisplayContext.GROUND) {
+            poseStack.scale(1.5F, 1.5F, 1.5F);
+        } else {
+            poseStack.translate(0.5D, 0.25D, 0.0D);
+        }
+        poseStack.scale(0.25F, 0.25F, 0.25F);
+        if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                && context != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(1.25F, 1.25F, 1.25F);
+    }
+
+    private static void renderNavalMineItem(ItemDisplayContext context, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyNavalMineItemPose(context, poseStack);
+        render(NAVAL, poseStack, bufferSource, HbmBlocks.MINE_NAVAL.get().defaultBlockState(), packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyNavalMineItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.translate(0.5D, 0.625D, 0.0D);
+            poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+            poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
+            poseStack.translate(0.0D, 2.0D, -1.0D);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
             return;
         }
         if (context == ItemDisplayContext.GROUND) {
@@ -74,35 +170,35 @@ public final class LandmineItemRenderer extends BlockEntityWithoutLevelRenderer 
         }
     }
 
-    private static void applyApTransform(ItemDisplayContext context, PoseStack poseStack) {
-        if (context == ItemDisplayContext.GUI) {
-            poseStack.scale(8.0F, 8.0F, 8.0F);
-        }
-        poseStack.scale(1.25F, 1.25F, 1.25F);
+    private static void renderNuclearMineItem(ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyNuclearMineItemPose(context, poseStack);
+        render(NUCLEAR, poseStack, bufferSource, HbmBlocks.MINE_FAT.get().defaultBlockState(), packedLight, packedOverlay);
+        poseStack.popPose();
     }
 
-    private static void applyHeTransform(ItemDisplayContext context, PoseStack poseStack) {
+    private static void applyNuclearMineItemPose(ItemDisplayContext context, PoseStack poseStack) {
         if (context == ItemDisplayContext.GUI) {
-            poseStack.scale(6.0F, 6.0F, 6.0F);
-        } else {
-            poseStack.translate(0.25D, 0.625D, 0.0D);
+            poseStack.translate(0.5D, 0.625D, 0.0D);
+            poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
             poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(-15.0F));
-        }
-        poseStack.scale(4.0F, 4.0F, 4.0F);
-    }
-
-    private static void applyNavalTransform(ItemDisplayContext context, PoseStack poseStack) {
-        if (context == ItemDisplayContext.GUI) {
-            poseStack.translate(0.0D, 2.0D, -1.0D);
-            poseStack.scale(5.0F, 5.0F, 5.0F);
-        }
-    }
-
-    private static void applyNuclearTransform(ItemDisplayContext context, PoseStack poseStack) {
-        if (context == ItemDisplayContext.GUI) {
+            poseStack.scale(-1.0F / 16.0F, -1.0F / 16.0F, -1.0F / 16.0F);
             poseStack.translate(0.0D, -1.0D, 0.0D);
             poseStack.scale(7.0F, 7.0F, 7.0F);
+            poseStack.translate(0.25D, 0.0D, 0.0D);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            return;
+        }
+        if (context == ItemDisplayContext.GROUND) {
+            poseStack.scale(1.5F, 1.5F, 1.5F);
+        } else {
+            poseStack.translate(0.5D, 0.25D, 0.0D);
+        }
+        poseStack.scale(0.25F, 0.25F, 0.25F);
+        if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                && context != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         }
         poseStack.translate(0.25D, 0.0D, 0.0D);
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));

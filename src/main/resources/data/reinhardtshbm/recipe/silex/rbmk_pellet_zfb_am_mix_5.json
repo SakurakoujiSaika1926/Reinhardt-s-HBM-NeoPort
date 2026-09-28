@@ -1,0 +1,42 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_zfb_am_mix_5",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_zfb_am_mix"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  5
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "visible",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:powder_xe135_tiny"
+                                 },
+                        "weight":  3
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_pu241"
+                                 },
+                        "weight":  100
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_am_mix"
+                                 },
+                        "weight":  50
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_zirconium"
+                                 },
+                        "weight":  147
+                    }
+                ]
+}

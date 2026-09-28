@@ -1,11 +1,10 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.block.TurretJeremyBlock;
 import com.reinhardt.hbm.blockentity.TurretJeremyBlockEntity;
-import com.reinhardt.hbm.power.PowerNetworkManager;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
@@ -13,14 +12,29 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import org.joml.AxisAngle4f;
-import org.joml.Quaternionf;
 
-public class TurretJeremyBlockEntityRenderer implements BlockEntityRenderer<TurretJeremyBlockEntity> {
+public class TurretJeremyBlockEntityRenderer implements LongRangeBlockEntityRenderer<TurretJeremyBlockEntity> {
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/turret_jeremy_base");
     private static final ModelResourceLocation CARRIAGE = MachineModelRenderer.standalone("block/turret_jeremy_carriage");
     private static final ModelResourceLocation GUN = MachineModelRenderer.standalone("block/turret_jeremy_gun");
     private static final ModelResourceLocation CONNECTORS = MachineModelRenderer.standalone("block/turret_jeremy_connectors");
+    /* Exact OBJ envelope across full yaw and the machine's legal -45..30 degree pitch. */
+    private static final double HORIZONTAL_RADIUS = 4.628799115321381D;
+    private static final double MIN_Y = -1.9029513844602601D;
+    private static final double MAX_Y = 4.858757210636101D;
+    // The block entity owns world-space connector positions.  Rendering uses
+    // only these invariant side/offset fields, so keep an immutable renderer-
+    // local table instead of rebuilding eight BlockPos/record objects per frame.
+    private static final RenderConnectorSpec[] RENDER_CONNECTORS = {
+            new RenderConnectorSpec(Direction.WEST, 0.0F, 0.0F),
+            new RenderConnectorSpec(Direction.WEST, 0.0F, -1.0F),
+            new RenderConnectorSpec(Direction.SOUTH, 0.0F, -1.0F),
+            new RenderConnectorSpec(Direction.SOUTH, 0.0F, 0.0F),
+            new RenderConnectorSpec(Direction.EAST, 0.0F, -1.0F),
+            new RenderConnectorSpec(Direction.EAST, 0.0F, 0.0F),
+            new RenderConnectorSpec(Direction.NORTH, 0.0F, -1.0F),
+            new RenderConnectorSpec(Direction.NORTH, 0.0F, 0.0F)
+    };
 
     public TurretJeremyBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -35,33 +49,22 @@ public class TurretJeremyBlockEntityRenderer implements BlockEntityRenderer<Turr
     @Override
     public void render(TurretJeremyBlockEntity turret, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = turret.getBlockState();
-        Direction facing = state.hasProperty(TurretJeremyBlock.FACING) ? state.getValue(TurretJeremyBlock.FACING) : Direction.NORTH;
-        float posX = switch (facing) {
-            case NORTH -> 1.0F;
-            case WEST -> 1.0F;
-            case EAST, SOUTH -> 0.0F;
-            default -> 0.0F;
-        };
-        float posZ = switch (facing) {
-            case NORTH -> 1.0F;
-            case WEST -> 0.0F;
-            case EAST -> 1.0F;
-            case SOUTH -> 0.0F;
-            default -> 0.0F;
-        };
+        Direction facing = jeremyFacing(state);
+        float posX = jeremyOriginX(facing);
+        float posZ = jeremyOriginZ(facing);
 
         poseStack.pushPose();
         poseStack.translate(posX, 0.0F, posZ);
-        renderConnectors(turret, poseStack, bufferSource, state, packedLight, packedOverlay, posX, posZ);
+        renderConnectors(turret, poseStack, bufferSource, state, packedLight, packedOverlay);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         double yaw = -Math.toDegrees(turret.renderYaw(partialTick)) - 90.0D;
         double pitch = Math.toDegrees(turret.renderPitch(partialTick));
-        poseStack.mulPose(yaw((float) yaw));
+        poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CARRIAGE), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0F, 1.5F, 0.0F);
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(pitch), 0.0F, 0.0F, 1.0F)));
+        poseStack.mulPose(Axis.ZP.rotationDegrees((float) pitch));
         poseStack.translate(0.0F, -1.5F, 0.0F);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GUN), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
@@ -69,17 +72,18 @@ public class TurretJeremyBlockEntityRenderer implements BlockEntityRenderer<Turr
 
     @Override
     public AABB getRenderBoundingBox(TurretJeremyBlockEntity blockEntity) {
-        return AABB.INFINITE;
-    }
-
-    @Override
-    public boolean shouldRenderOffScreen(TurretJeremyBlockEntity blockEntity) {
-        return true;
-    }
-
-    @Override
-    public int getViewDistance() {
-        return 256;
+        BlockPos pos = blockEntity.getBlockPos();
+        Direction facing = jeremyFacing(blockEntity.getBlockState());
+        double centerX = jeremyOriginX(facing);
+        double centerZ = jeremyOriginZ(facing);
+        return new AABB(
+                pos.getX() + centerX - HORIZONTAL_RADIUS,
+                pos.getY() + MIN_Y,
+                pos.getZ() + centerZ - HORIZONTAL_RADIUS,
+                pos.getX() + centerX + HORIZONTAL_RADIUS,
+                pos.getY() + MAX_Y,
+                pos.getZ() + centerZ + HORIZONTAL_RADIUS
+        );
     }
 
     static void renderItem(PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
@@ -99,50 +103,68 @@ public class TurretJeremyBlockEntityRenderer implements BlockEntityRenderer<Turr
             MultiBufferSource bufferSource,
             BlockState state,
             int packedLight,
-            int packedOverlay,
-            float posX,
-            float posZ
+            int packedOverlay
     ) {
-        if (turret.getLevel() == null) {
-            return;
-        }
-        Direction facing = state.hasProperty(TurretJeremyBlock.FACING) ? state.getValue(TurretJeremyBlock.FACING) : Direction.NORTH;
-        for (TurretJeremyBlockEntity.ConnectorSpec spec : TurretJeremyBlockEntity.connectorSpecs(turret.getBlockPos(), facing)) {
-            renderConnectorIfPresent(turret, poseStack, bufferSource, state, packedLight, packedOverlay, spec);
+        TurretJeremyBlockEntity.ConnectorRenderSnapshot connectors = turret.connectorRenderSnapshot();
+        for (int index = 0; index < RENDER_CONNECTORS.length; index++) {
+            renderConnectorIfPresent(poseStack, bufferSource, state, packedLight, packedOverlay,
+                    RENDER_CONNECTORS[index], connectors.connected(index));
         }
     }
 
     private static void renderConnectorIfPresent(
-            TurretJeremyBlockEntity turret,
             PoseStack poseStack,
             MultiBufferSource bufferSource,
             BlockState state,
             int packedLight,
             int packedOverlay,
-            TurretJeremyBlockEntity.ConnectorSpec spec
+            RenderConnectorSpec spec,
+            boolean connected
     ) {
         Direction side = spec.machineSide();
-        if (!PowerNetworkManager.canCableConnectTo(turret.getLevel(), spec.pos(), side.getOpposite())) {
+        if (!connected) {
             return;
         }
         poseStack.pushPose();
-        poseStack.mulPose(yaw(sideToDegrees(side)));
+        applyJeremyConnectorOrientation(poseStack, side);
         poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CONNECTORS), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static Quaternionf yaw(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
+    private static Direction jeremyFacing(BlockState state) {
+        if (!state.hasProperty(TurretJeremyBlock.FACING)) {
+            throw new IllegalStateException("Jeremy turret state is missing its owned facing property: " + state);
+        }
+        return state.getValue(TurretJeremyBlock.FACING);
     }
 
-    private static float sideToDegrees(Direction side) {
-        return switch (side) {
-            case WEST -> 0.0F;
-            case SOUTH -> 90.0F;
-            case EAST -> 180.0F;
-            case NORTH -> 270.0F;
-            default -> 0.0F;
+    private static float jeremyOriginX(Direction facing) {
+        return switch (facing) {
+            case NORTH, WEST -> 1.0F;
+            case EAST, SOUTH -> 0.0F;
+            case UP, DOWN -> throw new IllegalArgumentException("Jeremy turret facing must be horizontal: " + facing);
         };
+    }
+
+    private static float jeremyOriginZ(Direction facing) {
+        return switch (facing) {
+            case NORTH, EAST -> 1.0F;
+            case WEST, SOUTH -> 0.0F;
+            case UP, DOWN -> throw new IllegalArgumentException("Jeremy turret facing must be horizontal: " + facing);
+        };
+    }
+
+    private static void applyJeremyConnectorOrientation(PoseStack poseStack, Direction side) {
+        switch (side) {
+            case WEST -> { }
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Jeremy connector side must be horizontal: " + side);
+        }
+    }
+
+    private record RenderConnectorSpec(Direction machineSide, float renderOffsetX, float renderOffsetZ) {
     }
 }

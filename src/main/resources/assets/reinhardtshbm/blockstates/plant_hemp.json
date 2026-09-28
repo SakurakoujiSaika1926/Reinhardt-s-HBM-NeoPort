@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "age=0,half=lower": { "model": "reinhardtshbm:block/plant_flower_weed" },
+    "age=0,half=upper": { "model": "reinhardtshbm:block/plant_tall_weed_upper" },
+    "age=1,half=lower": { "model": "reinhardtshbm:block/plant_tall_weed_lower" },
+    "age=1,half=upper": { "model": "reinhardtshbm:block/plant_tall_weed_upper" }
+  }
+}

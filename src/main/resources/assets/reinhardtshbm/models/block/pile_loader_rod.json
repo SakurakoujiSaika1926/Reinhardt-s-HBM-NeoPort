@@ -1,0 +1,10 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/pile/pile_loader.obj",
+  "mtl_override": "reinhardtshbm:models/obj/pile/pile_loader.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "visibility": { "Loader": false, "Lever": false, "Slider": false, "Rod": true },
+  "textures": { "particle": "reinhardtshbm:models/pile/pile_loader" }
+}

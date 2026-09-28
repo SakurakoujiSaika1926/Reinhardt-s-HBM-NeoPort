@@ -1,6 +1,5 @@
 package com.reinhardt.hbm.item;
 
-import com.reinhardt.hbm.blockentity.SoyuzLauncherBlockEntity;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -28,10 +27,6 @@ public final class LegacyCoordinateDesignatorItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if (context.getLevel().getBlockEntity(context.getClickedPos()) instanceof SoyuzLauncherBlockEntity) {
-            return InteractionResult.PASS;
-        }
-
         ItemStack stack = context.getItemInHand();
         if (!context.getLevel().isClientSide) {
             BlockPos target = context.getClickedPos();

@@ -70,6 +70,12 @@ public final class DecorativeCtmBlockModel implements IDynamicBakedModel {
             new Submap(true, 0, 8, 8, 8),
             new Submap(true, 8, 8, 8, 8)
     };
+    private static final String[] PLATEMETAL_IDS = {
+            "platemetal", "platemetal_black", "platemetal_white", "platemetal_red",
+            "platemetal_green", "platemetal_light_gray", "platemetal_blue", "platemetal_purple",
+            "platemetal_cyan", "platemetal_pink", "platemetal_lime", "platemetal_yellow",
+            "platemetal_light_blue", "platemetal_magenta", "platemetal_orange"
+    };
     private static final List<Entry> ENTRIES = List.of(
             same("block_actinium"),
             same("block_advanced_alloy"),
@@ -116,7 +122,21 @@ public final class DecorativeCtmBlockModel implements IDynamicBakedModel {
             same("hadron_coil_schrabidium"),
             same("hadron_coil_starmetal"),
             ctmVariants("icf_block", "icf_block_ct", "icf_block_port", "icf_block_port_ct", "icf_block", "icf_controller"),
-            same("red_wire_sealed"),
+            entry("platemetal", "platemetal_ctm", PLATEMETAL_IDS),
+            entry("platemetal_black", "platemetal_black_ctm", PLATEMETAL_IDS),
+            entry("platemetal_white", "platemetal_white_ctm", PLATEMETAL_IDS),
+            entry("platemetal_red", "platemetal_red_ctm", PLATEMETAL_IDS),
+            entry("platemetal_green", "platemetal_green_ctm", PLATEMETAL_IDS),
+            entry("platemetal_light_gray", "platemetal_light_gray_ctm", PLATEMETAL_IDS),
+            entry("platemetal_blue", "platemetal_blue_ctm", PLATEMETAL_IDS),
+            entry("platemetal_purple", "platemetal_purple_ctm", PLATEMETAL_IDS),
+            entry("platemetal_cyan", "platemetal_cyan_ctm", PLATEMETAL_IDS),
+            entry("platemetal_pink", "platemetal_pink_ctm", PLATEMETAL_IDS),
+            entry("platemetal_lime", "platemetal_lime_ctm", PLATEMETAL_IDS),
+            entry("platemetal_yellow", "platemetal_yellow_ctm", PLATEMETAL_IDS),
+            entry("platemetal_light_blue", "platemetal_light_blue_ctm", PLATEMETAL_IDS),
+            entry("platemetal_magenta", "platemetal_magenta_ctm", PLATEMETAL_IDS),
+            entry("platemetal_orange", "platemetal_orange_ctm", PLATEMETAL_IDS),
             same("reinforced_brick"),
             cutout("reinforced_glass"),
             translucent("reinforced_laminate"),

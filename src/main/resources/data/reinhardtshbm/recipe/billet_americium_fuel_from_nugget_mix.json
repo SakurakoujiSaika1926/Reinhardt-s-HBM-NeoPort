@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "tag": "c:nuggets/am_mix" }, { "tag": "c:nuggets/am_mix" },
+    { "tag": "c:nuggets/u238" }, { "tag": "c:nuggets/u238" },
+    { "tag": "c:nuggets/u238" }, { "tag": "c:nuggets/u238" }
+  ],
+  "result": { "id": "reinhardtshbm:billet_americium_fuel" }
+}

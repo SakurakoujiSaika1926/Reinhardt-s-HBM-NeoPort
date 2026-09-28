@@ -1,13 +1,13 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.block.MachineBlastFurnaceBlock;
 import com.reinhardt.hbm.blockentity.MachineBlastFurnaceBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -16,6 +16,10 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 public class MachineBlastFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<MachineBlastFurnaceBlockEntity> {
     private static final ModelResourceLocation OFF = MachineModelRenderer.standalone("block/machine_blast_furnace");
     private static final ModelResourceLocation ON = MachineModelRenderer.standalone("block/machine_blast_furnace");
+    private static final AABB NORTH_BOUNDS = createBlastFurnaceLocalBounds(Direction.NORTH);
+    private static final AABB SOUTH_BOUNDS = createBlastFurnaceLocalBounds(Direction.SOUTH);
+    private static final AABB WEST_BOUNDS = createBlastFurnaceLocalBounds(Direction.WEST);
+    private static final AABB EAST_BOUNDS = createBlastFurnaceLocalBounds(Direction.EAST);
 
     public MachineBlastFurnaceBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -28,26 +32,51 @@ public class MachineBlastFurnaceBlockEntityRenderer implements LongRangeBlockEnt
     @Override
     public void render(MachineBlastFurnaceBlockEntity furnace, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = furnace.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        Direction facing = blastFurnaceFacing(state);
         boolean lit = state.hasProperty(MachineBlastFurnaceBlock.LIT) && state.getValue(MachineBlastFurnaceBlock.LIT);
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyBlastFurnaceYaw(facing));
+        applyBlastFurnacePose(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(lit ? ON : OFF), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(MachineBlastFurnaceBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 7.0D, 3.0D);
+        Direction facing = blastFurnaceFacing(blockEntity.getBlockState());
+        // Exact face-used blast_furnace_1710.obj envelope for each authored pose.
+        AABB local = switch (facing) {
+            case NORTH -> NORTH_BOUNDS;
+            case SOUTH -> SOUTH_BOUNDS;
+            case WEST -> WEST_BOUNDS;
+            case EAST -> EAST_BOUNDS;
+            case UP, DOWN -> throw new IllegalArgumentException("Blast furnace facing must be horizontal: " + facing);
+        };
+        return local.move(blockEntity.getBlockPos());
     }
 
-    private static float legacyBlastFurnaceYaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> 90.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            default -> 0.0F;
-        };
+    private static void applyBlastFurnacePose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5D, 0.0D, 0.5D);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Blast furnace facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction blastFurnaceFacing(BlockState state) {
+        if (!state.hasProperty(MachineBlastFurnaceBlock.FACING)) {
+            throw new IllegalStateException("Blast furnace state is missing its owned facing property: " + state);
+        }
+        return state.getValue(MachineBlastFurnaceBlock.FACING);
+    }
+
+    private static AABB createBlastFurnaceLocalBounds(Direction facing) {
+        PoseStack poseStack = new PoseStack();
+        applyBlastFurnacePose(poseStack, facing);
+        return RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
+                -1.5F, 0.0F, -1.5F, 1.5F, 7.0F, 1.5F);
     }
 }

@@ -1,0 +1,23 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.capacitorniobium",
+  "duration": 100,
+  "power": 1000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "tag": "c:wires_dense/niobium"
+      },
+      "count": 24
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:battery_pack_capacitor_niobium"
+  }
+}

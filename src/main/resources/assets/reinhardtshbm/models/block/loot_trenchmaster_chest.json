@@ -1,6 +1,7 @@
 {
   "loader": "neoforge:obj",
   "model": "reinhardtshbm:models/obj/loot/trenchmaster.obj",
+  "mtl_override": "reinhardtshbm:models/obj/loot/trenchmaster.mtl",
   "automatic_culling": false,
   "shade_quads": true,
   "flip_v": true,
@@ -8,5 +9,5 @@
     "LeftBoot": false, "RightBoot": false, "Light": false, "RightLeg": false,
     "LeftLeg": false, "RightArm": false, "LeftArm": false, "Helmet": false, "Chest": true
   },
-  "textures": { "particle": "reinhardtshbm:armor/trenchmaster_chest" }
+  "textures": { "default": "reinhardtshbm:armor/trenchmaster_chest", "particle": "reinhardtshbm:armor/trenchmaster_chest" }
 }

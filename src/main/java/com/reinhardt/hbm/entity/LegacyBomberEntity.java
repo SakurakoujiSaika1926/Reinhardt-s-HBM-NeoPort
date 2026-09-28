@@ -45,7 +45,6 @@ public final class LegacyBomberEntity extends Entity {
 
     public LegacyBomberEntity(EntityType<? extends LegacyBomberEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public static LegacyBomberEntity create(Level level, BlockPos target, LegacyBombCallerItem.Type type) {

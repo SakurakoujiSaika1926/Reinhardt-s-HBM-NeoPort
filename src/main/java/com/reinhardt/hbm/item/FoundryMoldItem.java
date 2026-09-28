@@ -5,76 +5,47 @@ import com.reinhardt.hbm.foundry.FoundryMaterialShapes;
 import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
 public class FoundryMoldItem extends Item {
-    private static final String MOLD_ID = "mold_id";
     private static final List<Mold> MOLDS = new ArrayList<>();
+    private final Mold mold;
 
-    public FoundryMoldItem(Properties properties) {
+    public FoundryMoldItem(Properties properties, int moldId) {
         super(properties);
         bootstrap();
-    }
-
-    @Override
-    public Component getName(ItemStack stack) {
-        return Component.translatable("item.reinhardtshbm.mold")
-                .append(Component.literal(" - "))
-                .append(mold(stack).title());
+        this.mold = moldById(moldId);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        Mold mold = mold(stack);
-        tooltip.add(mold.size() == 0
+        tooltip.add(this.mold.size() == 0
                 ? Component.translatable("block.reinhardtshbm.foundry_mold").withStyle(ChatFormatting.GOLD)
                 : Component.translatable("block.reinhardtshbm.foundry_basin").withStyle(ChatFormatting.RED));
     }
 
-    public void addCreativeVariants(CreativeModeTab.Output output) {
-        bootstrap();
-        MOLDS.stream()
-                .sorted(Comparator.comparingInt(Mold::order))
-                .map(mold -> stackFor(this, mold.id()))
-                .forEach(output::accept);
-    }
-
     public static Mold mold(ItemStack stack) {
-        bootstrap();
-        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        int id = tag.contains(MOLD_ID) ? tag.getInt(MOLD_ID) : modelData(stack);
-        for (Mold mold : MOLDS) {
-            if (mold.id() == id) {
-                return mold;
-            }
+        if (stack.getItem() instanceof FoundryMoldItem moldItem) {
+            return moldItem.mold;
         }
-        return MOLDS.getFirst();
+        throw new IllegalArgumentException("Item stack is not a foundry mold: " + stack);
     }
 
-    public static ItemStack stackFor(Item item, int moldId) {
-        bootstrap();
-        ItemStack stack = new ItemStack(item);
-        CompoundTag tag = new CompoundTag();
-        tag.putInt(MOLD_ID, moldId);
-        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(moldId));
-        return stack;
+    public static ItemStack stackFor(int moldId) {
+        return new ItemStack(HbmItems.foundryMoldItem(moldId).get());
     }
 
     public static List<Mold> molds() {
@@ -82,9 +53,11 @@ public class FoundryMoldItem extends Item {
         return List.copyOf(MOLDS);
     }
 
-    private static int modelData(ItemStack stack) {
-        CustomModelData data = stack.get(DataComponents.CUSTOM_MODEL_DATA);
-        return data == null ? 0 : data.value();
+    private static Mold moldById(int moldId) {
+        return MOLDS.stream()
+                .filter(candidate -> candidate.id() == moldId)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown foundry mold id: " + moldId));
     }
 
     private static void bootstrap() {
@@ -140,22 +113,102 @@ public class FoundryMoldItem extends Item {
         if (material.name().equals("sodium") && shape == FoundryShape.INGOT) {
             return item("powder_sodium", count);
         }
+        if (shape == FoundryShape.BLOCK) {
+            if (material.name().equals("stone")) {
+                return new ItemStack(Items.STONE, count);
+            }
+            if (material.name().equals("obsidian")) {
+                return new ItemStack(Items.OBSIDIAN, count);
+            }
+        }
         if (!FoundryMaterialShapes.supports(shape, material)) {
             return ItemStack.EMPTY;
         }
+
+        ItemStack preferred;
         if (isIndependentFoundryShape(shape)) {
-            return item(HbmItems.independentFoundryItemPath(shape, material), count);
+            preferred = item(HbmItems.independentFoundryItemPath(shape, material), count);
+        } else {
+            String prefix = switch (shape) {
+                case NUGGET -> "nugget";
+                case BILLET -> "billet";
+                case INGOT -> "ingot";
+                case PIPE -> "pipe";
+                case SHELL -> "shell";
+                case BLOCK -> "block";
+                default -> shape.key();
+            };
+            preferred = item(prefix + "_" + material.itemSuffix(), count);
         }
-        String prefix = switch (shape) {
-            case NUGGET -> "nugget";
-            case BILLET -> "billet";
-            case INGOT -> "ingot";
-            case PIPE -> "pipe";
-            case SHELL -> "shell";
-            case BLOCK -> "block";
-            default -> shape.key();
+        if (!preferred.isEmpty()) {
+            return preferred;
+        }
+
+        ItemStack vanilla = vanillaOutput(shape, material, count);
+        if (!vanilla.isEmpty()) {
+            return vanilla;
+        }
+
+        String commonPath = commonTagPath(shape, material);
+        if (commonPath == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack common = taggedItem("c", commonPath, count);
+        return common.isEmpty() ? taggedItem("forge", commonPath, count) : common;
+    }
+
+    private static ItemStack vanillaOutput(FoundryShape shape, FoundryMaterial material, int count) {
+        Item item = switch (shape) {
+            case NUGGET -> switch (material.name()) {
+                case "iron" -> Items.IRON_NUGGET;
+                case "gold" -> Items.GOLD_NUGGET;
+                default -> Items.AIR;
+            };
+            case INGOT -> switch (material.name()) {
+                case "iron" -> Items.IRON_INGOT;
+                case "gold" -> Items.GOLD_INGOT;
+                case "copper" -> Items.COPPER_INGOT;
+                default -> Items.AIR;
+            };
+            case BLOCK -> switch (material.name()) {
+                case "iron" -> Items.IRON_BLOCK;
+                case "gold" -> Items.GOLD_BLOCK;
+                case "copper" -> Items.COPPER_BLOCK;
+                default -> Items.AIR;
+            };
+            default -> Items.AIR;
         };
-        return item(prefix + "_" + material.itemSuffix(), count);
+        return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item, count);
+    }
+
+    private static String commonTagPath(FoundryShape shape, FoundryMaterial material) {
+        String suffix = material.itemSuffix();
+        return switch (shape) {
+            case NUGGET -> "nuggets/" + suffix;
+            case BILLET -> "billets/" + suffix;
+            case INGOT -> "ingots/" + suffix;
+            case PLATE -> "plates/" + suffix;
+            case CAST_PLATE -> "plates/cast_" + suffix;
+            case WELDED_PLATE -> "plates/welded_" + suffix;
+            case WIRE -> "wires/" + suffix;
+            case DENSE_WIRE -> "wires_dense/" + suffix;
+            case BOLT -> "bolts/" + suffix;
+            case PIPE -> "pipes/" + suffix;
+            case SHELL -> "shells/" + suffix;
+            case BLOCK -> "storage_blocks/" + suffix;
+            default -> null;
+        };
+    }
+
+    private static ItemStack taggedItem(String namespace, String path, int count) {
+        TagKey<Item> tag = TagKey.create(
+                Registries.ITEM,
+                ResourceLocation.fromNamespaceAndPath(namespace, path)
+        );
+        return BuiltInRegistries.ITEM.getTag(tag)
+                .flatMap(entries -> entries.stream().findFirst())
+                .map(entry -> new ItemStack(entry.value(), count))
+                .orElse(ItemStack.EMPTY);
     }
 
     private static boolean isIndependentFoundryShape(FoundryShape shape) {
@@ -184,7 +237,8 @@ public class FoundryMoldItem extends Item {
         }
 
         public Component title() {
-            return Component.translatable("shape.reinhardtshbm." + this.name).append(Component.literal(" x" + this.count));
+            return Component.translatable("shape.reinhardtshbm." + this.name)
+                    .append(Component.literal(" x" + this.count));
         }
 
         public Optional<ItemStack> outputFor(FoundryMaterial material) {

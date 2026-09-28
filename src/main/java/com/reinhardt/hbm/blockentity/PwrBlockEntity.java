@@ -38,6 +38,23 @@ public class PwrBlockEntity extends BlockEntity {
         setChanged();
     }
 
+    /** Rewrites the persisted controller link after a Create contraption move. */
+    public void transformAssemblyLink(java.util.function.UnaryOperator<BlockPos> transform) {
+        if (!assembledPart) {
+            return;
+        }
+        this.corePos = transform.apply(this.corePos).immutable();
+        setChanged();
+    }
+
+    public BlockPos controllerPos() {
+        return this.corePos;
+    }
+
+    public boolean isAssembledPart() {
+        return assembledPart;
+    }
+
     public boolean isPort() {
         return assembledPart && originalKind == PwrBlock.Kind.PORT;
     }

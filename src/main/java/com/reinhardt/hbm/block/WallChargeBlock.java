@@ -21,7 +21,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -75,15 +77,99 @@ public final class WallChargeBlock extends BaseEntityBlock implements EntityBloc
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case DYNAMITE -> dynamiteStateForPlacement(context);
+            case MINER -> minerStateForPlacement(context);
+            case C4 -> c4StateForPlacement(context);
+            case SEMTEX -> semtexStateForPlacement(context);
+        };
+    }
+
+    private BlockState dynamiteStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState state = defaultBlockState().setValue(FACING, facing);
+        return state.canSurvive(context.getLevel(), context.getClickedPos()) ? state : null;
+    }
+
+    private BlockState minerStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState state = defaultBlockState().setValue(FACING, facing);
+        return state.canSurvive(context.getLevel(), context.getClickedPos()) ? state : null;
+    }
+
+    private BlockState c4StateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState state = defaultBlockState().setValue(FACING, facing);
+        return state.canSurvive(context.getLevel(), context.getClickedPos()) ? state : null;
+    }
+
+    private BlockState semtexStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getClickedFace();
         BlockState state = defaultBlockState().setValue(FACING, facing);
         return state.canSurvive(context.getLevel(), context.getClickedPos()) ? state : null;
     }
 
     @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.kind) {
+            case DYNAMITE -> rotateDynamite(state, rotation);
+            case MINER -> rotateMiner(state, rotation);
+            case C4 -> rotateC4(state, rotation);
+            case SEMTEX -> rotateSemtex(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case DYNAMITE -> mirrorDynamite(state, mirror);
+            case MINER -> mirrorMiner(state, mirror);
+            case C4 -> mirrorC4(state, mirror);
+            case SEMTEX -> mirrorSemtex(state, mirror);
+        };
+    }
+
+    private static BlockState rotateDynamite(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateMiner(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateC4(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateSemtex(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState mirrorDynamite(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorMiner(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorC4(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorSemtex(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        BlockPos supportPos = pos.relative(state.getValue(FACING).getOpposite());
-        return level.getBlockState(supportPos).isFaceSturdy(level, supportPos, state.getValue(FACING));
+        Direction facing = state.getValue(FACING);
+        return switch (kind) {
+            case DYNAMITE -> dynamiteCanSurvive(level, pos, facing);
+            case MINER -> minerCanSurvive(level, pos, facing);
+            case C4 -> c4CanSurvive(level, pos, facing);
+            case SEMTEX -> semtexCanSurvive(level, pos, facing);
+        };
     }
 
     @Override
@@ -105,13 +191,12 @@ public final class WallChargeBlock extends BaseEntityBlock implements EntityBloc
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return switch (state.getValue(FACING)) {
-            case DOWN -> DOWN;
-            case NORTH -> NORTH;
-            case SOUTH -> SOUTH;
-            case WEST -> WEST;
-            case EAST -> EAST;
-            case UP -> UP;
+        Direction facing = state.getValue(FACING);
+        return switch (kind) {
+            case DYNAMITE -> dynamiteShape(facing);
+            case MINER -> minerShape(facing);
+            case C4 -> c4Shape(facing);
+            case SEMTEX -> semtexShape(facing);
         };
     }
 
@@ -195,6 +280,98 @@ public final class WallChargeBlock extends BaseEntityBlock implements EntityBloc
 
     private WallChargeBlockEntity charge(Level level, BlockPos pos) {
         return level.getBlockEntity(pos) instanceof WallChargeBlockEntity charge ? charge : null;
+    }
+
+    private static boolean dynamiteCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+    }
+
+    private static boolean minerCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+    }
+
+    private static boolean c4CanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+    }
+
+    private static boolean semtexCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+    }
+
+    private static VoxelShape dynamiteShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> DOWN;
+            case UP -> UP;
+            case NORTH -> NORTH;
+            case SOUTH -> SOUTH;
+            case WEST -> WEST;
+            case EAST -> EAST;
+        };
+    }
+
+    private static VoxelShape minerShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> DOWN;
+            case UP -> UP;
+            case NORTH -> NORTH;
+            case SOUTH -> SOUTH;
+            case WEST -> WEST;
+            case EAST -> EAST;
+        };
+    }
+
+    private static VoxelShape c4Shape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> DOWN;
+            case UP -> UP;
+            case NORTH -> NORTH;
+            case SOUTH -> SOUTH;
+            case WEST -> WEST;
+            case EAST -> EAST;
+        };
+    }
+
+    private static VoxelShape semtexShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> DOWN;
+            case UP -> UP;
+            case NORTH -> NORTH;
+            case SOUTH -> SOUTH;
+            case WEST -> WEST;
+            case EAST -> EAST;
+        };
     }
 
     public enum Kind {

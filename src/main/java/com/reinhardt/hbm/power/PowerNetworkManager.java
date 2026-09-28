@@ -5,6 +5,7 @@ import com.reinhardt.hbm.block.EnergyCableBlock;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.integration.sable.HbmSablePowerCompat;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -33,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -172,9 +175,16 @@ public final class PowerNetworkManager {
         if (!realLevel.isLoaded(touchingPos)) {
             return false;
         }
-        IEnergyStorage storage = realLevel.getCapability(
-                Capabilities.EnergyStorage.BLOCK, touchingPos, direction.getOpposite());
-        return storage != null && (storage.canReceive() || storage.canExtract());
+        Direction capabilitySide = direction.getOpposite();
+        try {
+            IEnergyStorage storage = realLevel.getCapability(
+                    Capabilities.EnergyStorage.BLOCK, touchingPos, capabilitySide);
+            return storage != null && (storage.canReceive() || storage.canExtract());
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(realLevel, touchingPos, capabilitySide,
+                    "Forge Energy", "cable connection probe", failure);
+            return false;
+        }
     }
 
     /** Resolves a native HBM endpoint at a core or multiblock dummy position. */
@@ -198,16 +208,12 @@ public final class PowerNetworkManager {
         return network(level, clickedPos).diagnostics(level, clickedPos);
     }
 
-    /**
-     * 1.7.10's power gauge reads PowerNetMK2.energyTracker for its own shared
-     * cable network. The solver already owns that value, so this only walks a
-     * bounded local graph to find the matching endpoint record.
-     */
+    /** 1.7.10's power gauge reads PowerNetMK2.energyTracker for its own shared cable network. */
     public static long transferredPowerAt(Level level, BlockPos clickedPos) {
         if (level.isClientSide) {
             return 0L;
         }
-        return network(level, clickedPos).transferredPowerAt(level, clickedPos);
+        return network(level, clickedPos).transferredPowerAt(clickedPos);
     }
 
     public record NetworkDiagnostics(String id, int links, int providers, int receivers, List<BlockPos> linkPositions) {
@@ -256,6 +262,7 @@ public final class PowerNetworkManager {
         private long lastPruneTick = Long.MIN_VALUE;
         private long lastForeignScan = Long.MIN_VALUE;
         private long lastSolveSubmitted = Long.MIN_VALUE;
+        private long nextSolveAttemptTick = Long.MIN_VALUE;
         private long fastSolveUntil = Long.MIN_VALUE;
         private long lastAppliedTransfer;
         private boolean dirty = true;
@@ -299,6 +306,7 @@ public final class PowerNetworkManager {
             this.activeEndpointInstances = Map.of();
             this.transferredPower = Map.of();
             this.lastSolveSubmitted = Long.MIN_VALUE;
+            this.nextSolveAttemptTick = Long.MIN_VALUE;
             this.fastSolveUntil = this.lastTick == Long.MIN_VALUE
                     ? FAST_SOLVE_TICKS_AFTER_CHANGE
                     : this.lastTick + FAST_SOLVE_TICKS_AFTER_CHANGE;
@@ -319,11 +327,19 @@ public final class PowerNetworkManager {
             }
 
             if (this.inFlight != null && this.inFlight.isDone()) {
-                SolveResult result = this.inFlight.join();
+                CompletableFuture<SolveResult> completed = this.inFlight;
                 this.inFlight = null;
-                if (result.graphVersion == this.graphVersion) {
-                    this.activeAllocations = result.allocations;
-                    this.activeEndpointInstances = result.endpointInstances;
+                try {
+                    SolveResult result = completed.join();
+                    this.nextSolveAttemptTick = Long.MIN_VALUE;
+                    if (result.graphVersion == this.graphVersion) {
+                        this.activeAllocations = result.allocations;
+                        this.activeEndpointInstances = result.endpointInstances;
+                    }
+                } catch (CancellationException exception) {
+                    discardFailedSolve("was cancelled", exception);
+                } catch (CompletionException exception) {
+                    discardFailedSolve("failed", exception.getCause() == null ? exception : exception.getCause());
                 }
             }
 
@@ -349,11 +365,29 @@ public final class PowerNetworkManager {
         }
 
         private boolean shouldSubmitSolve() {
+            if (this.lastTick < this.nextSolveAttemptTick) {
+                return false;
+            }
             if (this.lastSolveSubmitted == Long.MIN_VALUE) {
                 return true;
             }
             long interval = this.lastTick <= this.fastSolveUntil ? 1L : this.lastAppliedTransfer > 0L ? 2L : 4L;
             return this.lastTick - this.lastSolveSubmitted >= interval;
+        }
+
+        private void discardFailedSolve(String reason, Throwable cause) {
+            // Never apply a stale allocation after a failed worker pass. Keep
+            // the server tick alive, rebuild the main-thread snapshot, and use
+            // a short retry delay so deterministic bad input cannot create an
+            // exception/log storm every tick.
+            this.activeAllocations = Map.of();
+            this.activeEndpointInstances = Map.of();
+            this.transferredPower = Map.of();
+            this.lastAppliedTransfer = 0L;
+            this.dirty = true;
+            this.nextSolveAttemptTick = this.lastTick + 20L;
+            ReinhardtsHBM.LOGGER.error("Asynchronous power-network solve {} for {}; transfer plan discarded",
+                    reason, this.key, cause);
         }
 
         private void transferForeignEnergy(Level level) {
@@ -387,12 +421,19 @@ public final class PowerNetworkManager {
                             continue;
                         }
                         Direction capabilitySide = direction.getOpposite();
-                        IEnergyStorage storage = level.getCapability(
-                                Capabilities.EnergyStorage.BLOCK, neighborPos, capabilitySide);
+                        IEnergyStorage storage;
+                        try {
+                            storage = level.getCapability(
+                                    Capabilities.EnergyStorage.BLOCK, neighborPos, capabilitySide);
+                        } catch (RuntimeException | LinkageError failure) {
+                            ExternalCapabilitySafety.report(level, neighborPos, capabilitySide,
+                                    "Forge Energy", "network boundary discovery", failure);
+                            continue;
+                        }
                         if (storage != null) {
                             cablesToRefresh.add(cable);
                             connections.add(new ForeignConnection(
-                                    cable.immutable(), neighborPos.immutable(), storage));
+                                    cable.immutable(), neighborPos.immutable(), capabilitySide, storage));
                         }
                     }
                 }
@@ -415,32 +456,55 @@ public final class PowerNetworkManager {
                 }
             }
 
+            Map<Integer, Long> transferredByComponent = new HashMap<>();
             for (Map.Entry<Integer, List<ForeignConnection>> entry : grouped.entrySet()) {
                 NetworkComponent component = this.components.get(entry.getKey());
+                long transferred = 0L;
                 if (component.unrestricted) {
-                    transferForeignGroup(level, entry.getValue());
-                    continue;
+                    transferred = transferForeignGroup(level, entry.getValue());
+                } else {
+                    // Directed networks can expose different providers and
+                    // receivers at each boundary, so retain boundary-local
+                    // decisions while still reusing cached routes/capabilities.
+                    for (ForeignConnection connection : entry.getValue()) {
+                        transferred = saturatedAdd(transferred,
+                                transferForeignGroup(level, List.of(connection)));
+                    }
                 }
-                // Directed networks can expose different providers and
-                // receivers at each boundary, so retain boundary-local
-                // decisions while still reusing cached routes/capabilities.
-                for (ForeignConnection connection : entry.getValue()) {
-                    transferForeignGroup(level, List.of(connection));
+                if (transferred > 0L) {
+                    transferredByComponent.put(entry.getKey(), transferred);
                 }
+            }
+
+            if (!transferredByComponent.isEmpty()) {
+                Map<BlockPos, Long> transferred = new HashMap<>(this.transferredPower);
+                long foreignTotal = 0L;
+                for (Map.Entry<Integer, Long> entry : transferredByComponent.entrySet()) {
+                    long amount = entry.getValue();
+                    foreignTotal = saturatedAdd(foreignTotal, amount);
+                    for (BlockPos node : this.components.get(entry.getKey()).nodes) {
+                        transferred.put(node, saturatedAdd(transferred.getOrDefault(node, 0L), amount));
+                    }
+                }
+                this.lastAppliedTransfer = saturatedAdd(this.lastAppliedTransfer, foreignTotal);
+                this.transferredPower = Map.copyOf(transferred);
             }
         }
 
-        private void transferForeignGroup(Level level, List<ForeignConnection> connections) {
+        private long transferForeignGroup(Level level, List<ForeignConnection> connections) {
             if (connections.isEmpty()) {
-                return;
+                return 0L;
             }
             BlockPos routeCable = connections.getFirst().cable;
             long demand = externalCapacity(level, routeCable, true);
             long supply = externalCapacity(level, routeCable, false);
+            long transferred = 0L;
             if (demand > supply) {
                 long remaining = demand - supply;
                 for (ForeignConnection connection : connections) {
-                    remaining -= pullFromForeignStorage(level, connection.cable, connection.storage, remaining);
+                    long moved = pullFromForeignStorage(level, connection, remaining);
+                    remaining -= moved;
+                    transferred = saturatedAdd(transferred, moved);
                     if (remaining <= 0L) {
                         break;
                     }
@@ -448,69 +512,127 @@ public final class PowerNetworkManager {
             } else if (supply > demand) {
                 long remaining = supply - demand;
                 for (ForeignConnection connection : connections) {
-                    remaining -= pushToForeignStorage(level, connection.cable, connection.storage, remaining);
+                    long moved = pushToForeignStorage(level, connection, remaining);
+                    remaining -= moved;
+                    transferred = saturatedAdd(transferred, moved);
                     if (remaining <= 0L) {
                         break;
                     }
                 }
             }
+            return transferred;
         }
 
-        private record ForeignConnection(BlockPos cable, BlockPos neighbor, IEnergyStorage storage) {
+        private record ForeignConnection(BlockPos cable, BlockPos neighbor, Direction side, IEnergyStorage storage) {
         }
 
-        private long pullFromForeignStorage(Level level, BlockPos cable, IEnergyStorage storage, long maxHe) {
+        private long pullFromForeignStorage(Level level, ForeignConnection connection, long maxHe) {
             double rate = HbmConfig.HE_TO_FE_CONVERSION_RATE.get();
-            if (maxHe <= 0L || rate <= 0D || !storage.canExtract()) {
+            if (maxHe <= 0L || rate <= 0D) {
                 return 0L;
             }
-            int maxExtractFe = storage.extractEnergy(Integer.MAX_VALUE, true);
+            boolean canExtract;
+            try {
+                canExtract = connection.storage.canExtract();
+            } catch (RuntimeException | LinkageError failure) {
+                discardForeignConnection(level, connection, "extract support probe", failure);
+                return 0L;
+            }
+            if (!canExtract) {
+                return 0L;
+            }
+            int maxExtractFe;
+            try {
+                maxExtractFe = connection.storage.extractEnergy(Integer.MAX_VALUE, true);
+            } catch (RuntimeException | LinkageError failure) {
+                discardForeignConnection(level, connection, "simulated extraction", failure);
+                return 0L;
+            }
             long heBudget = Math.min(maxHe, (long) Math.floor(maxExtractFe / rate));
             if (heBudget <= 0L) {
                 return 0L;
             }
-            long acceptedHe = externalTransfer(level, cable, heBudget, true, true);
+            long acceptedHe = externalTransfer(level, connection.cable, heBudget, true, true);
             if (acceptedHe <= 0L) {
                 return 0L;
             }
             int feToExtract = (int) Math.min(maxExtractFe, Math.min(Integer.MAX_VALUE,
                     Math.round(acceptedHe * rate)));
-            int extractedFe = storage.extractEnergy(feToExtract, false);
+            int extractedFe;
+            try {
+                extractedFe = connection.storage.extractEnergy(feToExtract, false);
+            } catch (RuntimeException | LinkageError failure) {
+                discardForeignConnection(level, connection, "executed extraction", failure);
+                return 0L;
+            }
             if (extractedFe <= 0) {
                 return 0L;
             }
             long injectedHe = Math.min(acceptedHe, (long) Math.floor(extractedFe / rate));
             if (injectedHe > 0L) {
-                return externalTransfer(level, cable, injectedHe, true, false);
+                return externalTransfer(level, connection.cable, injectedHe, true, false);
             }
             return 0L;
         }
 
-        private long pushToForeignStorage(Level level, BlockPos cable, IEnergyStorage storage, long maxHe) {
+        private long pushToForeignStorage(Level level, ForeignConnection connection, long maxHe) {
             double rate = HbmConfig.HE_TO_FE_CONVERSION_RATE.get();
-            if (maxHe <= 0L || rate <= 0D || !storage.canReceive()) {
+            if (maxHe <= 0L || rate <= 0D) {
                 return 0L;
             }
-            int freeSpaceFe = storage.receiveEnergy(Integer.MAX_VALUE, true);
+            boolean canReceive;
+            try {
+                canReceive = connection.storage.canReceive();
+            } catch (RuntimeException | LinkageError failure) {
+                discardForeignConnection(level, connection, "receive support probe", failure);
+                return 0L;
+            }
+            if (!canReceive) {
+                return 0L;
+            }
+            int freeSpaceFe;
+            try {
+                freeSpaceFe = connection.storage.receiveEnergy(Integer.MAX_VALUE, true);
+            } catch (RuntimeException | LinkageError failure) {
+                discardForeignConnection(level, connection, "simulated insertion", failure);
+                return 0L;
+            }
             long heBudget = Math.min(maxHe, (long) Math.floor(freeSpaceFe / rate));
             if (heBudget <= 0L) {
                 return 0L;
             }
-            long extractedHe = externalTransfer(level, cable, heBudget, false, true);
+            long extractedHe = externalTransfer(level, connection.cable, heBudget, false, true);
             if (extractedHe <= 0L) {
                 return 0L;
             }
             int feToSend = (int) Math.min(freeSpaceFe, Math.min(Integer.MAX_VALUE,
                     Math.round(extractedHe * rate)));
-            int receivedFe = storage.receiveEnergy(feToSend, false);
+            int receivedFe;
+            try {
+                receivedFe = connection.storage.receiveEnergy(feToSend, false);
+            } catch (RuntimeException | LinkageError failure) {
+                discardForeignConnection(level, connection, "executed insertion", failure);
+                return 0L;
+            }
             if (receivedFe <= 0) {
                 return 0L;
             }
             long usedHe = Math.min(extractedHe, (long) Math.floor(receivedFe / rate));
             if (usedHe > 0L) {
-                return externalTransfer(level, cable, usedHe, false, false);
+                return externalTransfer(level, connection.cable, usedHe, false, false);
             }
             return 0L;
+        }
+
+        private void discardForeignConnection(Level level, ForeignConnection connection,
+                                              String operation, Throwable failure) {
+            this.foreignConnections = this.foreignConnections.stream()
+                    .filter(candidate -> !candidate.cable.equals(connection.cable)
+                            || !candidate.neighbor.equals(connection.neighbor)
+                            || candidate.side != connection.side)
+                    .toList();
+            ExternalCapabilitySafety.report(level, connection.neighbor, connection.side,
+                    "Forge Energy", operation, failure);
         }
 
         private long externalCapacity(Level level, BlockPos cable, boolean receive) {
@@ -701,35 +823,8 @@ public final class PowerNetworkManager {
             return new NetworkDiagnostics(id, links.size(), providers, receivers, List.copyOf(links));
         }
 
-        long transferredPowerAt(Level level, BlockPos clickedPos) {
-            Long direct = this.transferredPower.get(clickedPos);
-            if (direct != null) {
-                return direct;
-            }
-
-            Set<BlockPos> visited = new HashSet<>();
-            ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-            BlockPos start = clickedPos.immutable();
-            if (!isPowerNode(level, start)) {
-                return 0L;
-            }
-            visited.add(start);
-            queue.add(start);
-
-            while (!queue.isEmpty() && visited.size() < MAX_COMPONENT_NODES) {
-                BlockPos current = queue.removeFirst();
-                Long transferred = this.transferredPower.get(current);
-                if (transferred != null) {
-                    return transferred;
-                }
-                for (BlockPos next : adjacentGraphNodes(level, current)) {
-                    BlockPos immutable = next.immutable();
-                    if (visited.add(immutable) && isPowerNode(level, immutable)) {
-                        queue.addLast(immutable);
-                    }
-                }
-            }
-            return 0L;
+        long transferredPowerAt(BlockPos clickedPos) {
+            return this.transferredPower.getOrDefault(clickedPos, 0L);
         }
 
         private void pruneInvalidEndpoints(Level level) {
@@ -882,7 +977,12 @@ public final class PowerNetworkManager {
                     if (endpoint != null && this.activeEndpointInstances.get(pos) == endpoint) {
                         endpoint.applyPower(providers.getOrDefault(pos, 0L), consumers.getOrDefault(pos, 0L));
                     }
-                    transferred.put(pos, componentTransferred);
+                }
+                // PowerNetMK2.energyTracker belonged to the cable network,
+                // not to one arbitrary endpoint. Cache the same value on all
+                // graph nodes so a gauge performs an O(1), unambiguous read.
+                for (BlockPos node : component.nodes) {
+                    transferred.put(node, componentTransferred);
                 }
                 totalTransferred = saturatedAdd(totalTransferred, componentTransferred);
             }
@@ -998,11 +1098,11 @@ public final class PowerNetworkManager {
     private static List<BlockPos> powerConnectorPositions(LevelAccessor level, BlockEntity blockEntity) {
         if (blockEntity instanceof PowerEndpoint endpoint) {
             return endpoint.getPowerConnectorPositions(level);
-        }
-        if (blockEntity instanceof PowerGraphNode graphNode) {
+        } else if (blockEntity instanceof PowerGraphNode graphNode) {
             return graphNode.getPowerConnectorPositions(level);
+        } else {
+            return List.of();
         }
-        return List.of();
     }
 
     private static BlockPos powerCoreForConnector(LevelAccessor level, BlockPos connectorPos, BlockPos touchingPos, Direction machineSide) {

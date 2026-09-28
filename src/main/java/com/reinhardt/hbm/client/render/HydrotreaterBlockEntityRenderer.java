@@ -34,6 +34,8 @@ public final class HydrotreaterBlockEntityRenderer implements LongRangeBlockEnti
 
     @Override
     public AABB getRenderBoundingBox(HydrotreaterBlockEntity machine) {
-        return new AABB(machine.getBlockPos()).inflate(4.0D, 7.0D, 4.0D);
+        // Face-used hydrotreater.obj vertices after the renderer's (+.5, 0, +.5) translation.
+        return RenderBounds.localFloatVertices(machine.getBlockPos(),
+                -1.0D, 0.0D, -1.0D, 2.0D, 7.0D, 2.0D);
     }
 }

@@ -34,8 +34,7 @@ public final class GeigerBlockEntityRenderer implements BlockEntityRenderer<Geig
     public static void renderAssembly(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                       int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack,
-                legacyYaw(state.getValue(GeigerBlock.FACING)));
+        applyGeigerTransform(poseStack, geigerFacing(state));
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
                 state, packedLight, packedOverlay);
         poseStack.popPose();
@@ -45,27 +44,50 @@ public final class GeigerBlockEntityRenderer implements BlockEntityRenderer<Geig
                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = HbmBlocks.GEIGER.get().defaultBlockState().setValue(GeigerBlock.FACING, Direction.NORTH);
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             // RenderGeiger#getRenderer#renderInventory
             poseStack.scale(10.0F, 10.0F, 10.0F);
         }
         // RenderGeiger#getRenderer#renderCommon
         poseStack.translate(0.2F, 0.0F, 0.0F);
-        poseStack.mulPose(MachineModelRenderer.yawQuaternion(90.0F));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
                 state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> 0.0F;
-            case WEST -> 90.0F;
-            case SOUTH -> 180.0F;
-            case EAST -> 270.0F;
-            default -> 0.0F;
-        };
+    private static void applyGeigerTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> { }
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Geiger counter facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction geigerFacing(BlockState state) {
+        if (!state.hasProperty(GeigerBlock.FACING)) {
+            throw new IllegalStateException("Geiger counter state is missing its facing property: " + state);
+        }
+        Direction facing = state.getValue(GeigerBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Geiger counter state has a vertical facing: " + facing);
+        }
+        return facing;
     }
 
 }

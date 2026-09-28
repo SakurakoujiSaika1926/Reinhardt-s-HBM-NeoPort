@@ -1,3 +1,6 @@
 {
-  "elements": []
+  "elements": [],
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/radar_screen"
+  }
 }

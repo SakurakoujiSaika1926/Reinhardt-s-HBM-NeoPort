@@ -6,6 +6,7 @@ import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -197,16 +198,24 @@ public class FluidBarrelBlock extends Block implements EntityBlock {
     private static boolean canConnect(LevelAccessor level, BlockPos pos, Direction direction, FluidTankBlockEntity tank) {
         BlockPos target = pos.relative(direction);
         if (level instanceof Level realLevel) {
-            IFluidHandler handler = realLevel.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite());
-            if (handler == null) {
-                return false;
-            }
-            FluidStack probe = HbmFluids.toNeoStack(tank.tank().type(), 1);
-            for (int i = 0; i < handler.getTanks(); i++) {
-                FluidStack stored = handler.getFluidInTank(i);
-                if ((stored.isEmpty() || FluidStack.isSameFluidSameComponents(stored, probe)) && handler.isFluidValid(i, probe)) {
-                    return true;
+            Direction capabilitySide = direction.getOpposite();
+            try {
+                IFluidHandler handler = realLevel.getCapability(Capabilities.FluidHandler.BLOCK, target, capabilitySide);
+                if (handler == null) {
+                    return false;
                 }
+                FluidStack probe = HbmFluids.toNeoStack(tank.tank().type(), 1);
+                int tanks = handler.getTanks();
+                for (int i = 0; i < tanks; i++) {
+                    FluidStack stored = handler.getFluidInTank(i);
+                    if ((stored.isEmpty() || FluidStack.isSameFluidSameComponents(stored, probe))
+                            && handler.isFluidValid(i, probe)) {
+                        return true;
+                    }
+                }
+            } catch (RuntimeException | LinkageError failure) {
+                ExternalCapabilitySafety.report(realLevel, target, capabilitySide,
+                        "fluid handler", "fluid-barrel connection probe", failure);
             }
         }
         return false;

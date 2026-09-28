@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": {
+    "tag": "c:dusts/australium"
+  },
+  "result": {
+    "id": "reinhardtshbm:ingot_australium"
+  },
+  "experience": 5.0,
+  "cookingtime": 200
+}

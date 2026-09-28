@@ -1,0 +1,12 @@
+{
+  "type": "reinhardtshbm:soldering_station", "group": "soldering.upgrade", "duration": 200, "consumption": 1000,
+  "toppings": [
+    { "ingredient": { "item": "reinhardtshbm:circuit_vacuum_tube" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_capacitor" }, "count": 1 }
+  ],
+  "pcb": [
+    { "ingredient": { "item": "reinhardtshbm:upgrade_template" }, "count": 1 },
+    { "ingredient": { "tag": "c:dusts/emerald" }, "count": 4 }
+  ],
+  "solder": [], "result": { "id": "reinhardtshbm:upgrade_effect_1" }
+}

@@ -1,0 +1,48 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_pu238be_3",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_pu238be"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  3
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "ir",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_pu238"
+                                 },
+                        "weight":  15
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_beryllium"
+                                 },
+                        "weight":  15
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_lead"
+                                 },
+                        "weight":  18
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_tiny"
+                                 },
+                        "weight":  17
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:powder_coal_tiny"
+                                 },
+                        "weight":  35
+                    }
+                ]
+}

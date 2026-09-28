@@ -1,0 +1,48 @@
+# recipe type	normal mode count	528 mode count	audited source
+reinhardtshbm:ammo_press	32	32	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:arc_furnace	78	78	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:arc_welder	42	42	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:assembly_machine	668	647	Frozen runtime registry count after the complete latest-upstream fluid-pack/unpack family and removal of the deprecated projection-built struct_soyuz_core recipe; 104 normal-only routes are replaced by 83 explicit 528 routes, with one additional soft-dependency recipe absent from both audit instances
+reinhardtshbm:blast_furnace	21	21	Runtime count without optional Immersive Engineering; two extra alloy routes load only when that soft dependency is present
+reinhardtshbm:blast_furnace_fuel	12	12	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:breeder_reactor	32	32	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:centrifuge	166	166	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:chemical_plant	77	77	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:coking	33	33	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:combination_oven	53	53	Exact latest-upstream table including coal, lignite and wood briquette coking routes
+reinhardtshbm:compressor	5	5	Exact latest-legacy table guarded by validateLegacyRecipes
+reinhardtshbm:custom_machine	1	1	Exact latest-legacy custom-machine table; paper press recipe from _hbmCustomMachines.json
+reinhardtshbm:cracking	12	12	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:crucible	14	14	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:crystallizer	318	318	Frozen runtime registry count after flattened-material migration
+reinhardtshbm:cyclotron	42	42	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:electrolyzer_fluid	8	8	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:electrolyzer_metal	36	36	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:exposure_chamber	5	5	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:fraction_tower	19	19	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:fuel_pool	31	31	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:fusion	10	10	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:fusion_breeder_fluid	3	3	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:fusion_breeder_item	2	2	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:gas_centrifuge	7	7	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:hydrotreating	6	6	Exact latest-legacy table guarded by validateLegacyRecipes
+reinhardtshbm:liquefaction	35	35	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:mixer	50	50	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:particle_accelerator	11	11	Exact latest-legacy table guarded by validateLegacyRecipes
+reinhardtshbm:plasma_forge	56	47	Frozen runtime registry count; nine normal-mode fallback recipes move to 528 progression
+reinhardtshbm:precision_assembler	8	48	Frozen runtime registry count; forty precision recipes are intentionally 528-only
+reinhardtshbm:press	48	48	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:purex	57	57	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:pyrolysis	13	13	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:rbmk_outgasser	19	19	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:refinery	4	4	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:reforming	9	9	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:rock_mill	9	9	Frozen runtime registry count for the latest-upstream rock-mill family
+reinhardtshbm:rotary_furnace	12	12	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:shredder	319	319	Frozen runtime registry count after flattened-material migration
+reinhardtshbm:silex	267	267	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:soldering_station	27	14	Frozen runtime registry count; thirteen normal-mode fallback recipes are hidden in 528 mode
+reinhardtshbm:solidification	47	47	Frozen runtime registry count; source parity is reviewed independently
+reinhardtshbm:supercomputer	18	18	Frozen runtime registry count for the latest-upstream supercomputer family
+reinhardtshbm:space_assembler	1	1	Exact latest-legacy orbital assembler table exported from hbmSpaceAssembler.json
+reinhardtshbm:vacuum_distill	2	2	Frozen runtime registry count; source parity is reviewed independently

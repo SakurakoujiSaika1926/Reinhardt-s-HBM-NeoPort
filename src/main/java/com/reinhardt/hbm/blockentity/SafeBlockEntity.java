@@ -91,7 +91,7 @@ public final class SafeBlockEntity extends BlockEntity implements MenuProvider, 
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) { return valid(slot) && !locked; }
 
     @Override
-    public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
 
     @Override
     public void clearContent() { items.clear(); setChanged(); }

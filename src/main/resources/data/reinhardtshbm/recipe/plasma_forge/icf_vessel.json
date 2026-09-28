@@ -1,12 +1,20 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
   "type": "reinhardtshbm:plasma_forge",
   "group": "plsm.icfvessel",
   "blueprint_pools": [
     "528.chlorophyte"
   ],
   "duration": 800,
-  "power": 1000000,
-  "ignition_temp": 10000000,
+  "power": 10000000,
+  "ignition_temp": 1000000,
   "input_items": [
     {
       "ingredient": {

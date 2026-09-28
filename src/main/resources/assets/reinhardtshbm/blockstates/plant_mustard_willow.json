@@ -1,0 +1,14 @@
+{
+  "variants": {
+    "age=0,half=lower": { "model": "reinhardtshbm:block/plant_flower_cd0" },
+    "age=0,half=upper": { "model": "reinhardtshbm:block/plant_tall_cd2_upper" },
+    "age=1,half=lower": { "model": "reinhardtshbm:block/plant_flower_cd1" },
+    "age=1,half=upper": { "model": "reinhardtshbm:block/plant_tall_cd2_upper" },
+    "age=2,half=lower": { "model": "reinhardtshbm:block/plant_tall_cd2_lower" },
+    "age=2,half=upper": { "model": "reinhardtshbm:block/plant_tall_cd2_upper" },
+    "age=3,half=lower": { "model": "reinhardtshbm:block/plant_tall_cd3_lower" },
+    "age=3,half=upper": { "model": "reinhardtshbm:block/plant_tall_cd3_upper" },
+    "age=4,half=lower": { "model": "reinhardtshbm:block/plant_tall_cd4_lower" },
+    "age=4,half=upper": { "model": "reinhardtshbm:block/plant_tall_cd4_upper" }
+  }
+}

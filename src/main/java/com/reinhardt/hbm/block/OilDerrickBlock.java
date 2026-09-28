@@ -29,17 +29,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OilDerrickBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = createFootprint();
 
     public OilDerrickBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, shape, OilDerrickBlock::mapOilDerrickOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT)) {
+        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT, OilDerrickBlock::mapOilDerrickOffset)) {
             return null;
         }
         return this.defaultBlockState().setValue(FACING, facing);
@@ -128,11 +138,10 @@ public class OilDerrickBlock extends LargeMachineBlock implements EntityBlock {
             return;
         }
         Direction facing = machineState.hasProperty(FACING) ? machineState.getValue(FACING) : Direction.NORTH;
-        OilDerrickBlockEntity.Kind kind = machineState.is(HbmBlocks.MACHINE_PUMPJACK.get())
-                ? OilDerrickBlockEntity.Kind.PUMPJACK
-                : OilDerrickBlockEntity.Kind.DERRICK;
-        for (OilDerrickBlockEntity.Port port : OilDerrickBlockEntity.portsFor(
-                kind, corePos, facing)) {
+        List<OilDerrickBlockEntity.Port> ports = machineState.is(HbmBlocks.MACHINE_PUMPJACK.get())
+                ? OilDerrickBlockEntity.pumpjackPorts(corePos, facing)
+                : OilDerrickBlockEntity.derrickPorts(corePos);
+        for (OilDerrickBlockEntity.Port port : ports) {
             refreshConnector(level, port.pos());
             refreshConnector(level, port.accessPos());
         }
@@ -170,6 +179,16 @@ public class OilDerrickBlock extends LargeMachineBlock implements EntityBlock {
             }
         }
         return new Footprint(List.copyOf(offsets));
+    }
+
+    private static BlockPos mapOilDerrickOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            default -> throw new IllegalArgumentException("Oil derrick facing must be horizontal: " + facing);
+        };
     }
 }
 

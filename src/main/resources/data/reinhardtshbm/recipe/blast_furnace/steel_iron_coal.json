@@ -1,7 +1,10 @@
 {
   "type": "reinhardtshbm:blast_furnace",
-  "input_a": { "tag": "reinhardtshbm:blast_furnace/iron_equivalent" },
-  "input_b": { "tag": "reinhardtshbm:blast_furnace/coal_equivalent" },
-  "duration": 400,
-  "result": { "id": "reinhardtshbm:ingot_steel" }
+  "group": "blast.steelFromIngot",
+  "input_a": { "tag": "c:ingots/iron" },
+  "input_a_count": 2,
+  "input_b": { "tag": "c:sands" },
+  "duration": 800,
+  "result": { "id": "reinhardtshbm:ingot_steel", "count": 2 },
+  "byproduct": { "id": "reinhardtshbm:ingot_raw_slag" }
 }

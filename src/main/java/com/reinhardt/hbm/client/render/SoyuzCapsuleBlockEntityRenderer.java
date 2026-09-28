@@ -29,15 +29,9 @@ public class SoyuzCapsuleBlockEntityRenderer implements BlockEntityRenderer<Soyu
 
     @Override
     public AABB getRenderBoundingBox(SoyuzCapsuleBlockEntity capsule) {
-        // soyuz_capsule.obj spans x/z -5..+5 and y 0..13.607275.
+        // MODEL deliberately resolves block/soyuz_capsule.json, a cube_all
+        // model. The large soyuz_capsule_world OBJ is not rendered here.
         BlockPos pos = capsule.getBlockPos();
-        return new AABB(
-                pos.getX() - 5.0D,
-                pos.getY(),
-                pos.getZ() - 5.0D,
-                pos.getX() + 5.0D,
-                pos.getY() + 14.0D,
-                pos.getZ() + 5.0D
-        );
+        return new AABB(pos);
     }
 }

@@ -176,7 +176,7 @@ public class BreederReactorBlockEntity extends BlockEntity implements MachineInv
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

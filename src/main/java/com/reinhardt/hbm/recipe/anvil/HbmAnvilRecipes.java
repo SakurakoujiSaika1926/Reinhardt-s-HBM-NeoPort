@@ -8,6 +8,7 @@ import com.reinhardt.hbm.foundry.FoundryShape;
 import com.reinhardt.hbm.item.FilingCabinetBlockItem;
 import com.reinhardt.hbm.item.FoundryMoldItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.item.LegacyHotItem;
 import com.reinhardt.hbm.item.PowerCableBoxBlockItem;
 import com.reinhardt.hbm.item.SirenTrackItem;
 import com.reinhardt.hbm.item.ToasterBlockItem;
@@ -123,6 +124,7 @@ public final class HbmAnvilRecipes {
             addAnvilUpgrade(baseAnvil, "ingot_osmiridium", HbmBlocks.ANVIL_OSMIRIDIUM.get());
         }
 
+        registerChainsteelSmithingRecipes();
         addHotSmithing(3, item("ingot_meteorite_forged", 1), ingredient("ingot_meteorite", 1), ingredient("ingot_meteorite", 1));
         addHotSmithing(3, item("blade_meteorite", 1), ingredient("ingot_meteorite_forged", 1), ingredient("ingot_meteorite_forged", 1));
         addHotSmithing(3, item("meteorite_sword_reforged", 1), ingredient("meteorite_sword_seared", 1), ingredient("ingot_meteorite_forged", 1));
@@ -135,11 +137,32 @@ public final class HbmAnvilRecipes {
         registerMoldSmithingRecipes();
     }
 
+    private static void registerChainsteelSmithingRecipes() {
+        for (int grade = 0; grade < 9; grade++) {
+            Optional<ItemStack> input = steelDustedStack(grade);
+            addHotSmithing(3, steelDustedStack(grade + 1),
+                    input.flatMap(stack -> AnvilIngredient.ofStacks(1, stack)),
+                    input.flatMap(stack -> AnvilIngredient.ofStacks(1, stack)));
+        }
+        Optional<ItemStack> finalInput = steelDustedStack(9);
+        addHotSmithing(3, item("ingot_chainsteel", 1),
+                finalInput.flatMap(stack -> AnvilIngredient.ofStacks(1, stack)),
+                finalInput.flatMap(stack -> AnvilIngredient.ofStacks(1, stack)));
+    }
+
+    private static Optional<ItemStack> steelDustedStack(int grade) {
+        return item("ingot_steel_dusted", 1).map(stack -> {
+            stack.setDamageValue(grade);
+            return LegacyHotItem.heatUp(stack);
+        });
+    }
+
     private static void registerConstruction() {
         Set<String> plateMaterials = new LinkedHashSet<>();
         addLegacyBat9000RecyclingRecipe();
         addLegacyDecorationApplianceRecyclingRecipes();
         addLegacyMachineAndReactorRecyclingRecipes();
+        addPlatemetalRecipes();
         addRedCopperCableBoxRecipes();
         addFluidDuctBoxRecipes();
         addExhaustDuctRecipes();
@@ -327,8 +350,8 @@ public final class HbmAnvilRecipes {
                 List.of(
                         plateIngredient("steel", 16),
                         ingotIngredient("beryllium", 6),
-                        ingotIngredient("copper", 8, mc("copper_ingot")),
-                        ingredient("coil_gold", 16),
+                        ingotIngredient("copper", 4, mc("copper_ingot")),
+                        ingredient("coil_gold", 8),
                         ingredient("gear_large", 1)
                 ),
                 blockItem("machine_stirling_steel", 1),
@@ -360,10 +383,21 @@ public final class HbmAnvilRecipes {
                 List.of(output("tank_steel", 1), output("plate_lead", 2), output("nuclear_waste_vitrified", 10))
         );
         registerStampConstructionRecipes();
+        registerFoundryMoldConstructionRecipes();
         addConstruction(
                 List.of(ingredient(mc("stone_bricks"), 4), ingotIngredient("firebrick", 32), plateIngredient("copper", 8)),
                 blockItem("machine_blast_furnace", 1),
                 1
+        );
+        addConstruction(
+                List.of(
+                        tagIngredient(commonTag("stones"), 16, mc("stone")),
+                        plateIngredient("steel", 4),
+                        tagIngredient(commonTag("pipes/copper"), 1, hbm("pipe_copper")),
+                        ingredient("motor", 1)
+                ),
+                blockItem("machine_rockmill", 1),
+                2
         );
         addConstruction(
                 List.of(
@@ -626,6 +660,26 @@ public final class HbmAnvilRecipes {
 
     private static void registerPileRecipes() {
         addConstruction(
+                List.of(ingredient("billet_ra226be", 3)),
+                item("pile_rod_ra226be", 1),
+                2
+        );
+        addConstruction(
+                List.of(ingredient("billet_po210be", 3)),
+                item("pile_rod_po210be", 1),
+                2
+        );
+        addConstruction(
+                List.of(tagIngredient(commonTag("billets/zirconium"), 3, hbm("billet_zirconium"))),
+                item("pile_rod_zr", 1),
+                2
+        );
+        addConstruction(
+                List.of(tagIngredient(commonTag("billets/uranium"), 3, hbm("billet_uranium"))),
+                item("pile_rod_nu", 1),
+                2
+        );
+        addConstruction(
                 List.of(ingredient("billet_uranium", 3), plateIngredient("iron", 2)),
                 item("pile_rod_uranium", 1),
                 2
@@ -659,7 +713,7 @@ public final class HbmAnvilRecipes {
             );
             addConstruction(
                     List.of(ingredient("billet_pu239", 1), ingredient("billet_pu_mix", 1), ingredient("billet_uranium", 1), plateIngredient("iron", 2)),
-                    item("pile_rod_pu239", 1),
+                    item("pile_rod_pu239_graphite", 1),
                     2
             );
             return;
@@ -672,7 +726,7 @@ public final class HbmAnvilRecipes {
         );
         addConstruction(
                 List.of(ingredient("billet_pu239", 1), ingredient("billet_pu_mix", 1), ingredient("billet_nuclear_waste", 1), plateIngredient("iron", 2)),
-                item("pile_rod_pu239", 1),
+                item("pile_rod_pu239_graphite", 1),
                 2
         );
     }
@@ -695,8 +749,9 @@ public final class HbmAnvilRecipes {
         addMoldSmithing(11, tagIngredient(commonTag("plates/iron"), 9, hbm("plate_iron")), blank, MoldReferenceShape.PLATE, 9);
         addMoldSmithing(12, ingredient(mc("iron_block"), 1), blank, MoldReferenceShape.BLOCK, 1);
         addMoldSmithing(13, ingredient("pipes_steel", 1), blank);
-        addMoldSmithing(20, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "advanced_alloy", 1), blank, MoldReferenceShape.DENSE_WIRE, 1);
-        addMoldSmithing(21, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "advanced_alloy", 9), blank, MoldReferenceShape.DENSE_WIRE, 9);
+        // HBM 1.7.10 uses MINGRADE here; FoundryMaterial aliases MINGRADE to red copper.
+        addMoldSmithing(20, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "red_copper", 1), blank, MoldReferenceShape.DENSE_WIRE, 1);
+        addMoldSmithing(21, foundryShapeIngredient(FoundryShape.DENSE_WIRE, "red_copper", 9), blank, MoldReferenceShape.DENSE_WIRE, 9);
     }
 
     private static void registerStampConstructionRecipes() {
@@ -726,6 +781,20 @@ public final class HbmAnvilRecipes {
                 List.of(ingredient("stamp_desh_flat", 1), ingotIngredient("weaponsteel", 4)),
                 item("stamp_desh_50", 1),
                 4
+        );
+    }
+
+    /**
+     * HBM 1.7.10 AnvilRecipes#registerConstructionAmmo: the mechanism mold is
+     * constructed directly from one blank mold and four steel ingots on a
+     * tier-two anvil. It cannot use the reference-copy smithing path because
+     * every mechanism output requires this mold in the first place.
+     */
+    private static void registerFoundryMoldConstructionRecipes() {
+        addConstruction(
+                List.of(ingredient("mold_base", 1), ingotIngredient("steel", 4)),
+                Optional.of(FoundryMoldItem.stackFor(26)),
+                2
         );
     }
 
@@ -804,7 +873,7 @@ public final class HbmAnvilRecipes {
         if (reference.isPresent() && moldBase.isPresent()) {
             SMITHING.add(new AnvilMoldSmithingRecipe(
                     1,
-                    FoundryMoldItem.stackFor(HbmItems.MOLD.get(), moldId),
+                    FoundryMoldItem.stackFor(moldId),
                     reference.get(),
                     moldBase.get()
             ));
@@ -819,7 +888,7 @@ public final class HbmAnvilRecipes {
         if (reference.isPresent() && moldBase.isPresent()) {
             SMITHING.add(new AnvilMoldSmithingRecipe(
                     1,
-                    FoundryMoldItem.stackFor(HbmItems.MOLD.get(), moldId),
+                    FoundryMoldItem.stackFor(moldId),
                     reference.get(),
                     moldBase.get(),
                     leftMatcher
@@ -1109,6 +1178,20 @@ public final class HbmAnvilRecipes {
         }
     }
 
+    /** Latest upstream: one iron plate constructs four base platemetal blocks; four base blocks recycle to one plate. */
+    private static void addPlatemetalRecipes() {
+        addConstruction(
+                List.of(plateIngredient("iron", 1)),
+                blockItem("platemetal", 4),
+                1
+        );
+        addLegacyRecyclingRecipe(
+                ingredientOptional("platemetal", 4),
+                1,
+                List.of(output("plate_iron", 1))
+        );
+    }
+
     /**
      * Direct ports of the remaining 1.7.10 {@code registerConstructionRecycling}
      * entries.  Keep these explicit: several outputs are not obtainable from the
@@ -1148,8 +1231,8 @@ public final class HbmAnvilRecipes {
         addLegacyRecyclingRecipe(
                 ingredientOptional("machine_stirling_steel", 1),
                 2,
-                List.of(output("plate_steel", 16), output("ingot_beryllium", 6), output(new ItemStack(Items.COPPER_INGOT, 8)),
-                        output("coil_gold", 16), output("gear_large_steel", 1))
+                List.of(output("plate_steel", 16), output("ingot_beryllium", 6), output(new ItemStack(Items.COPPER_INGOT, 4)),
+                        output("coil_gold", 8), output("gear_large_steel", 1))
         );
         addLegacyRecyclingRecipe(
                 ingredientOptional("gear_large_steel", 1),

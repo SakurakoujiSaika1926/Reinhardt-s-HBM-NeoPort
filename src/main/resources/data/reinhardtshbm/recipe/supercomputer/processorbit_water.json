@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.processorbit_water",
+  "duration": 72000,
+  "power": 10000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_orbitdata" }, "count": 1 }
+  ],
+  "input_fluids": [
+    { "fluid": "water", "amount": 16000 }
+  ],
+  "output_fluids": [
+    { "fluid": "spentsteam", "amount": 16000 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:drive_disk_orbitdata_processed" }, "weight": 75 },
+    { "result": { "id": "reinhardtshbm:drive_disk_broken" }, "weight": 25 }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.deathray",
+  "duration": 1200,
+  "power": 25000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:shell_weaponsteel"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_pu_mix"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:battery_pack_capacitor_bismuth"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:gems/emerald"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:part_generic_lde"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_controller_advanced"
+      },
+      "count": 5
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:satellite_death_ray"
+  }
+}

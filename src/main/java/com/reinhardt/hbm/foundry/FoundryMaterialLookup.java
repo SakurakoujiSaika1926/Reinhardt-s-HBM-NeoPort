@@ -189,16 +189,28 @@ final class FoundryMaterialLookup {
             return Optional.empty();
         }
 
+        String materialName = path[1];
         FoundryShape shape = switch (path[0]) {
             case "ingots" -> FoundryShape.INGOT;
             case "nuggets" -> FoundryShape.NUGGET;
             case "dusts", "powders" -> FoundryShape.DUST;
-            case "plates" -> FoundryShape.PLATE;
+            case "plates" -> {
+                if (materialName.startsWith("cast_")) {
+                    materialName = materialName.substring("cast_".length());
+                    yield FoundryShape.CAST_PLATE;
+                }
+                if (materialName.startsWith("welded_")) {
+                    materialName = materialName.substring("welded_".length());
+                    yield FoundryShape.WELDED_PLATE;
+                }
+                yield FoundryShape.PLATE;
+            }
             case "wires" -> FoundryShape.WIRE;
-            case "dense_wires" -> FoundryShape.DENSE_WIRE;
+            case "wires_dense", "dense_wires" -> FoundryShape.DENSE_WIRE;
             case "bolts" -> FoundryShape.BOLT;
             case "billets" -> FoundryShape.BILLET;
             case "pipes" -> FoundryShape.PIPE;
+            case "shells" -> FoundryShape.SHELL;
             case "storage_blocks" -> FoundryShape.BLOCK;
             case "raw_materials" -> FoundryShape.INGOT;
             default -> null;
@@ -207,7 +219,7 @@ final class FoundryMaterialLookup {
             return Optional.empty();
         }
 
-        return FoundryMaterial.byName(canonicalMaterialName(path[1]))
+        return FoundryMaterial.byName(canonicalMaterialName(materialName))
                 .filter(material -> FoundryMaterialShapes.supports(shape, material))
                 .map(material -> new FoundryMaterialStack(material, shape.q(1)));
     }
@@ -215,6 +227,9 @@ final class FoundryMaterialLookup {
     private static String canonicalMaterialName(String materialName) {
         return switch (materialName) {
             case "aluminum" -> "aluminium";
+            case "wroughtiron" -> "wrought_iron";
+            case "pigiron" -> "pig_iron";
+            case "meteoriciron" -> "meteoric_iron";
             // HBM 1.7.10 keeps graphite as a carbon conversion material. Its
             // ICF pellet press accepts a graphite ingot as the carbon fuel.
             case "graphite" -> "carbon";
@@ -227,9 +242,13 @@ final class FoundryMaterialLookup {
             return Optional.empty();
         }
         return switch (path) {
+            case "stone", "cobblestone" -> stack("stone", FoundryShape.BLOCK);
+            case "obsidian" -> stack("obsidian", FoundryShape.BLOCK);
             case "iron_ingot" -> stack("iron", FoundryShape.INGOT);
             case "gold_ingot" -> stack("gold", FoundryShape.INGOT);
             case "copper_ingot" -> stack("copper", FoundryShape.INGOT);
+            case "iron_block" -> stack("iron", FoundryShape.BLOCK);
+            case "gold_block" -> stack("gold", FoundryShape.BLOCK);
             case "copper_block" -> stack("copper", FoundryShape.BLOCK);
             case "iron_nugget" -> stack("iron", FoundryShape.NUGGET);
             case "gold_nugget" -> stack("gold", FoundryShape.NUGGET);
@@ -242,6 +261,36 @@ final class FoundryMaterialLookup {
     private static Optional<FoundryMaterialStack> hbmMaterial(String path) {
         if (path.equals("lithium")) {
             return stack("lithium", FoundryShape.INGOT);
+        }
+        if (path.equals("blade_titanium")) {
+            return stack("titanium", FoundryShape.INGOT, 3);
+        }
+        if (path.equals("blade_tungsten")) {
+            return stack("tungsten", FoundryShape.INGOT, 3);
+        }
+        if (path.equals("blades_steel")) {
+            return stack("steel", FoundryShape.INGOT, 4);
+        }
+        if (path.equals("blades_titanium")) {
+            return stack("titanium", FoundryShape.INGOT, 4);
+        }
+        if (path.equals("blades_advanced_alloy")) {
+            return stack("advanced_alloy", FoundryShape.INGOT, 4);
+        }
+        if (path.equals("stamp_stone_flat")) {
+            return stack("stone", FoundryShape.INGOT, 3);
+        }
+        if (path.equals("stamp_iron_flat")) {
+            return stack("iron", FoundryShape.INGOT, 3);
+        }
+        if (path.equals("stamp_steel_flat")) {
+            return stack("steel", FoundryShape.INGOT, 3);
+        }
+        if (path.equals("stamp_titanium_flat")) {
+            return stack("titanium", FoundryShape.INGOT, 3);
+        }
+        if (path.equals("stamp_obsidian_flat")) {
+            return stack("obsidian", FoundryShape.INGOT, 3);
         }
         if (path.equals("plate_cast_steel")) {
             return stack("steel", FoundryShape.CAST_PLATE);

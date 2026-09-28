@@ -46,7 +46,12 @@ public final class FluidBarrelBlockEntityRenderer implements BlockEntityRenderer
 
     @Override
     public AABB getRenderBoundingBox(FluidBarrelBlockEntity barrel) {
-        return new AABB(barrel.getBlockPos()).inflate(0.1D);
+        /* Four cardinal labels: outer translate(.5), local X=.4/.41,
+         * local Y=.30 + .25*[-.5,.5]. The diamond's local Z is narrower,
+         * so rotating X=.41 supplies both horizontal extrema. */
+        return RenderBounds.localFloatVertices(barrel.getBlockPos(),
+                0.09D, 0.675D, 0.09D,
+                0.91D, 0.925D, 0.91D);
     }
 
     static void renderDiamond(HbmFluidDefinition fluid, PoseStack poseStack, VertexConsumer consumer, int light, int overlay) {

@@ -81,7 +81,7 @@ public final class CuriosIntegration {
                 findCurios = handlerClass.getMethod("findCurios", Predicate.class);
                 slotResultStack = slotResultClass.getMethod("stack");
                 available = true;
-            } catch (ReflectiveOperationException | LinkageError ignored) {
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
                 available = false;
             }
             initialized = true;

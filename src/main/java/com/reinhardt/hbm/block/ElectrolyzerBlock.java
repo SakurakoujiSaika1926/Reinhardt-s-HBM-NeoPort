@@ -5,7 +5,6 @@ import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -206,7 +205,7 @@ public class ElectrolyzerBlock extends Block implements EntityBlock {
             return;
         }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
-            for (BlockPos pos : oldElectrolyzerPositions(corePos, facing)) {
+            for (BlockPos pos : occupiedPositions(corePos, facing)) {
                 if (pos.equals(corePos)) {
                     continue;
                 }
@@ -219,25 +218,61 @@ public class ElectrolyzerBlock extends Block implements EntityBlock {
         });
     }
 
-    private static Set<BlockPos> oldElectrolyzerPositions(BlockPos corePos, Direction facing) {
+    public static Set<BlockPos> occupiedPositions(BlockPos corePos, Direction facing) {
+        LinkedHashSet<BlockPos> authoredOffsets = new LinkedHashSet<>();
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 0, 0, 5, 5, 1, 3);
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 2, -1, 5, 5, 1, 1);
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 3, -3, 5, 5, 0, 0);
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 3, -1, 4, -4, -3, 3);
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 3, -1, 2, -2, -3, 3);
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 3, -1, 0, 0, -3, 3);
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 3, -1, -2, 2, -3, 3);
+        addSouthBox(authoredOffsets, BlockPos.ZERO, 3, -1, -4, 4, -3, 3);
+        addSouthBox(authoredOffsets, new BlockPos(0, 3, 4), 0, 0, 0, 0, -1, 2);
+        addSouthBox(authoredOffsets, new BlockPos(0, 3, 2), 0, 0, 0, 0, -1, 2);
+        addSouthBox(authoredOffsets, new BlockPos(0, 3, 0), 0, 0, 0, 0, -1, 2);
+        addSouthBox(authoredOffsets, new BlockPos(0, 3, -2), 0, 0, 0, 0, -1, 2);
+        addSouthBox(authoredOffsets, new BlockPos(0, 3, -4), 0, 0, 0, 0, -1, 2);
         LinkedHashSet<BlockPos> positions = new LinkedHashSet<>();
-        addRotatedBox(positions, corePos, facing, 0, 0, 5, 5, 1, 3);
-        addRotatedBox(positions, corePos, facing, 2, -1, 5, 5, 1, 1);
-        addRotatedBox(positions, corePos, facing, 3, -3, 5, 5, 0, 0);
-        addRotatedBox(positions, corePos, facing, 3, -1, 4, -4, -3, 3);
-        addRotatedBox(positions, corePos, facing, 3, -1, 2, -2, -3, 3);
-        addRotatedBox(positions, corePos, facing, 3, -1, 0, 0, -3, 3);
-        addRotatedBox(positions, corePos, facing, 3, -1, -2, 2, -3, 3);
-        addRotatedBox(positions, corePos, facing, 3, -1, -4, 4, -3, 3);
-        addRotatedBox(positions, corePos.relative(facing, 4).above(3), facing, 0, 0, 0, 0, -1, 2);
-        addRotatedBox(positions, corePos.relative(facing, 2).above(3), facing, 0, 0, 0, 0, -1, 2);
-        addRotatedBox(positions, corePos.above(3), facing, 0, 0, 0, 0, -1, 2);
-        addRotatedBox(positions, corePos.relative(facing, -2).above(3), facing, 0, 0, 0, 0, -1, 2);
-        addRotatedBox(positions, corePos.relative(facing, -4).above(3), facing, 0, 0, 0, 0, -1, 2);
+        for (BlockPos offset : authoredOffsets) {
+            positions.add(corePos.offset(mapElectrolyzerOffset(facing, offset)).immutable());
+        }
         return Set.copyOf(positions);
     }
 
-    private static void addRotatedBox(Set<BlockPos> positions, BlockPos corePos, Direction facing, int up, int down, int north, int south, int west, int east) {
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, up, down, north, south, west, east);
+    private static Set<BlockPos> oldElectrolyzerPositions(BlockPos corePos, Direction facing) {
+        return occupiedPositions(corePos, facing);
+    }
+
+    private static void addSouthBox(Set<BlockPos> positions, BlockPos origin, int up, int down,
+                                    int north, int south, int west, int east) {
+        for (int x = -west; x <= east; x++) {
+            for (int y = -down; y <= up; y++) {
+                for (int z = -north; z <= south; z++) {
+                    positions.add(origin.offset(x, y, z));
+                }
+            }
+        }
+    }
+
+    public static BlockPos mapElectrolyzerOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX(); int y = offset.getY(); int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("Electrolyzer requires a horizontal facing: " + facing);
+        };
+    }
+
+    public static Direction mapElectrolyzerFace(Direction facing, Direction face) {
+        return switch (facing) {
+            case SOUTH -> face;
+            case EAST -> face == Direction.SOUTH ? Direction.EAST : face == Direction.NORTH ? Direction.WEST : face;
+            case NORTH -> face == Direction.SOUTH ? Direction.NORTH : face == Direction.NORTH ? Direction.SOUTH : face;
+            case WEST -> face == Direction.SOUTH ? Direction.WEST : face == Direction.NORTH ? Direction.EAST : face;
+            case UP, DOWN -> throw new IllegalArgumentException("Electrolyzer requires a horizontal facing: " + facing);
+        };
     }
 }

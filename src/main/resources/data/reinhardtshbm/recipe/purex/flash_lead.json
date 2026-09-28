@@ -1,0 +1,30 @@
+{
+  "type": "reinhardtshbm:purex",
+  "duration": 600,
+  "power": 1000,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_pb209"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_balefire_gold"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "amat",
+      "amount": 1000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:billet_flashlead"
+    }
+  ]
+}

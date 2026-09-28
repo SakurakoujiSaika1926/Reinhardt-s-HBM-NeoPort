@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["##"],
+  "key": { "#": { "tag": "c:ingots/neptunium_fuel" } },
+  "result": { "id": "reinhardtshbm:billet_neptunium_fuel", "count": 3 }
+}

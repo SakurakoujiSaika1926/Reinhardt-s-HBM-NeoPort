@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,7 +21,18 @@ public final class TeslaArmorModItemRenderer extends BlockEntityWithoutLevelRend
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+        }
         if (context == ItemDisplayContext.GUI) {
             poseStack.translate(0.0F, -3.0F, 0.0F);
             poseStack.scale(2.6F, 2.6F, 2.6F);

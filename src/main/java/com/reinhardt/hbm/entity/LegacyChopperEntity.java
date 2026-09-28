@@ -61,7 +61,6 @@ public final class LegacyChopperEntity extends Monster {
     public LegacyChopperEntity(EntityType<? extends LegacyChopperEntity> type, Level level) {
         super(type, level);
         setNoGravity(true);
-        noCulling = true;
         xpReward = 500;
     }
 

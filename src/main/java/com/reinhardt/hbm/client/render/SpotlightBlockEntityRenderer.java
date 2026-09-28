@@ -5,18 +5,17 @@ import com.mojang.math.Axis;
 import com.reinhardt.hbm.block.SpotlightBlock;
 import com.reinhardt.hbm.blockentity.SpotlightBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.event.ModelEvent;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 import java.util.List;
 
-/** Renders the original 1.7.10 spotlight OBJ parts and orientation. */
-public final class SpotlightBlockEntityRenderer implements BlockEntityRenderer<SpotlightBlockEntity> {
+/** Renders each original 1.7.10 spotlight kind with its own verified world pose. */
+public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityRenderer<SpotlightBlockEntity> {
     private static final ModelResourceLocation INCANDESCENT_ON = model("spotlight_incandescent_world");
     private static final ModelResourceLocation INCANDESCENT_OFF = model("spotlight_incandescent_off_world");
     private static final ModelResourceLocation HALOGEN_ON = model("spotlight_halogen_world");
@@ -35,6 +34,13 @@ public final class SpotlightBlockEntityRenderer implements BlockEntityRenderer<S
     );
 
     public SpotlightBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        SpotlightBlockEntity.setClientRenderSnapshotUpdater(
+                SpotlightBlockEntityRenderer::updateRenderSnapshot);
+    }
+
+    static void invalidateRenderSnapshotsAfterBake() {
+        SpotlightBlockEntity.setClientRenderSnapshotUpdater(
+                SpotlightBlockEntityRenderer::updateRenderSnapshot);
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
@@ -44,17 +50,75 @@ public final class SpotlightBlockEntityRenderer implements BlockEntityRenderer<S
     @Override
     public void render(SpotlightBlockEntity spotlight, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        SpotlightBlockEntity.RenderSnapshot snapshot = spotlight.renderSnapshot();
+        BlockState state = snapshot.blockState();
+        if (!(state.getBlock() instanceof SpotlightBlock block)) {
+            return;
+        }
+        Direction facing = state.getValue(SpotlightBlock.FACING);
+        switch (block.kind()) {
+            case INCANDESCENT -> renderIncandescent(snapshot, facing, poseStack, bufferSource,
+                    packedLight, packedOverlay);
+            case FLUORESCENT -> renderFluorescent(snapshot, facing, poseStack, bufferSource,
+                    packedLight, packedOverlay);
+            case HALOGEN -> renderHalogen(snapshot, facing, poseStack, bufferSource,
+                    packedLight, packedOverlay);
+        }
+    }
+
+    private static void renderIncandescent(SpotlightBlockEntity.RenderSnapshot snapshot, Direction facing,
+                                           PoseStack poseStack, MultiBufferSource bufferSource,
+                                           int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyIncandescentPose(poseStack, facing);
+        BakedBlockGeometrySnapshot.renderCutoutNoCull(
+                snapshot.modelToken(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderFluorescent(SpotlightBlockEntity.RenderSnapshot snapshot, Direction facing,
+                                          PoseStack poseStack, MultiBufferSource bufferSource,
+                                          int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyFluorescentPose(poseStack, facing, snapshot.connectionDirection());
+        BakedBlockGeometrySnapshot.renderCutoutNoCull(
+                snapshot.modelToken(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderHalogen(SpotlightBlockEntity.RenderSnapshot snapshot, Direction facing,
+                                      PoseStack poseStack, MultiBufferSource bufferSource,
+                                      int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyHalogenPose(poseStack, facing);
+        BakedBlockGeometrySnapshot.renderCutoutNoCull(
+                snapshot.modelToken(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(SpotlightBlockEntity spotlight) {
+        return spotlight.renderSnapshot().bounds();
+    }
+
+    private static void updateRenderSnapshot(SpotlightBlockEntity spotlight) {
+        if (spotlight.getLevel() == null) {
+            return;
+        }
         BlockState state = spotlight.getBlockState();
-        SpotlightBlock block = (SpotlightBlock) state.getBlock();
+        if (!(state.getBlock() instanceof SpotlightBlock block)) {
+            return;
+        }
         Direction facing = state.getValue(SpotlightBlock.FACING);
         Direction connectionDirection = null;
         int connectionCount = 0;
-        if (block.kind().fluorescent() && spotlight.getLevel() != null) {
+        if (block.kind() == SpotlightBlock.Kind.FLUORESCENT) {
             for (Direction direction : Direction.values()) {
                 if (direction == facing || direction == facing.getOpposite()) {
                     continue;
                 }
-                if (block.canConnectTo(spotlight.getLevel().getBlockState(spotlight.getBlockPos().relative(direction)))) {
+                if (block.canConnectTo(spotlight.getLevel().getBlockState(
+                        spotlight.getBlockPos().relative(direction)))) {
                     connectionDirection = direction;
                     connectionCount++;
                     if (block.canConnectTo(spotlight.getLevel().getBlockState(
@@ -66,78 +130,231 @@ public final class SpotlightBlockEntityRenderer implements BlockEntityRenderer<S
             }
         }
 
-        poseStack.pushPose();
-        poseStack.translate(
-                0.5F - facing.getStepX() * 0.5F,
-                0.5F - facing.getStepY() * 0.5F,
-                0.5F - facing.getStepZ() * 0.5F
-        );
-        // RenderLight used Vec3.rotateAroundX/Z.  Those legacy methods have
-        // the opposite sign from a positive modern PoseStack axis rotation;
-        // Y rotation is already the same convention.  Preserve each old axis
-        // operation explicitly rather than applying a shared orientation.
-        poseStack.mulPose(Axis.XP.rotationDegrees(-modularRoll(connectionDirection, facing)));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(-pitch(facing)));
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw(facing)));
-
-        ModelResourceLocation model = switch (block.kind()) {
-            case INCANDESCENT -> block.isLit() ? INCANDESCENT_ON : INCANDESCENT_OFF;
-            case HALOGEN -> block.isLit() ? HALOGEN_ON : HALOGEN_OFF;
-            case FLUORESCENT -> fluoroModel(connectionCount, block.isLit());
-        };
-        MachineModelRenderer.renderUnculledCutoutNoCull(
-                MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay
-        );
-        poseStack.popPose();
-    }
-
-    private static ModelResourceLocation fluoroModel(int connections, boolean lit) {
-        ModelResourceLocation single = lit ? FLUORO_SINGLE_ON : FLUORO_SINGLE_OFF;
-        ModelResourceLocation cap = lit ? FLUORO_CAP_ON : FLUORO_CAP_OFF;
-        ModelResourceLocation mid = lit ? FLUORO_MID_ON : FLUORO_MID_OFF;
-        return connections == 0 ? single : connections == 1 ? cap : mid;
-    }
-
-    private static float pitch(Direction direction) {
-        return switch (direction) {
-            case UP -> -90.0F;
-            case DOWN -> 90.0F;
-            default -> 0.0F;
-        };
-    }
-
-    private static float yaw(Direction direction) {
-        return switch (direction) {
-            case NORTH -> 90.0F;
-            case SOUTH -> -90.0F;
-            case WEST -> 180.0F;
-            default -> 0.0F;
-        };
-    }
-
-    private static float modularRoll(Direction connectionDirection, Direction axis) {
-        if (connectionDirection == null) {
-            return 0.0F;
+        long revision = spotlight.clientRenderSnapshotRevision();
+        SpotlightBlockEntity.RenderSnapshot previous = spotlight.renderSnapshot();
+        if (previous.revision() == revision
+                && previous.blockState() == state
+                && previous.connectionDirection() == connectionDirection
+                && previous.connectionCount() == connectionCount) {
+            return;
         }
-        float flipX = axis == Direction.DOWN || axis == Direction.NORTH || axis == Direction.WEST ? -0.5F : 0.5F;
-        float addX = axis == Direction.NORTH || axis == Direction.SOUTH ? -0.5F : 0.0F;
-        boolean flipNS = axis == Direction.WEST;
-        return switch (connectionDirection) {
-            case NORTH -> flipNS ? 180.0F : 0.0F;
-            case SOUTH -> !flipNS ? 180.0F : 0.0F;
-            case EAST -> 180.0F * (flipX + addX);
-            case WEST -> 180.0F * (-flipX + addX);
-            case UP -> -90.0F;
-            case DOWN -> 90.0F;
-        };
+
+        switch (block.kind()) {
+            case INCANDESCENT -> updateIncandescentSnapshot(
+                    spotlight, block, state, facing, revision);
+            case FLUORESCENT -> updateFluorescentSnapshot(
+                    spotlight, block, state, facing, connectionDirection, connectionCount, revision);
+            case HALOGEN -> updateHalogenSnapshot(
+                    spotlight, block, state, facing, revision);
+        }
+    }
+
+    private static void updateIncandescentSnapshot(SpotlightBlockEntity spotlight, SpotlightBlock block,
+                                                   BlockState state, Direction facing, long revision) {
+        ModelResourceLocation model = block.isLit() ? INCANDESCENT_ON : INCANDESCENT_OFF;
+        PoseStack geometryPose = new PoseStack();
+        applyIncandescentPose(geometryPose, facing);
+        BakedBlockGeometrySnapshot.Result geometry = BakedBlockGeometrySnapshot.build(
+                MachineModelRenderer.model(model), state, List.of(geometryPose), spotlight.getBlockPos());
+        spotlight.publishRenderSnapshot(new SpotlightBlockEntity.RenderSnapshot(
+                state, null, 0, geometry.modelToken(), geometry.bounds(), revision));
+    }
+
+    private static void updateFluorescentSnapshot(SpotlightBlockEntity spotlight, SpotlightBlock block,
+                                                  BlockState state, Direction facing,
+                                                  Direction connectionDirection, int connectionCount,
+                                                  long revision) {
+        ModelResourceLocation model = fluorescentModel(connectionCount, block.isLit());
+        PoseStack geometryPose = new PoseStack();
+        applyFluorescentPose(geometryPose, facing, connectionDirection);
+        BakedBlockGeometrySnapshot.Result geometry = BakedBlockGeometrySnapshot.build(
+                MachineModelRenderer.model(model), state, List.of(geometryPose), spotlight.getBlockPos());
+        spotlight.publishRenderSnapshot(new SpotlightBlockEntity.RenderSnapshot(
+                state, connectionDirection, connectionCount,
+                geometry.modelToken(), geometry.bounds(), revision));
+    }
+
+    private static void updateHalogenSnapshot(SpotlightBlockEntity spotlight, SpotlightBlock block,
+                                              BlockState state, Direction facing, long revision) {
+        ModelResourceLocation model = block.isLit() ? HALOGEN_ON : HALOGEN_OFF;
+        PoseStack geometryPose = new PoseStack();
+        applyHalogenPose(geometryPose, facing);
+        BakedBlockGeometrySnapshot.Result geometry = BakedBlockGeometrySnapshot.build(
+                MachineModelRenderer.model(model), state, List.of(geometryPose), spotlight.getBlockPos());
+        spotlight.publishRenderSnapshot(new SpotlightBlockEntity.RenderSnapshot(
+                state, null, 0, geometry.modelToken(), geometry.bounds(), revision));
+    }
+
+    private static ModelResourceLocation fluorescentModel(int connections, boolean lit) {
+        if (connections == 0) {
+            return lit ? FLUORO_SINGLE_ON : FLUORO_SINGLE_OFF;
+        }
+        if (connections == 1) {
+            return lit ? FLUORO_CAP_ON : FLUORO_CAP_OFF;
+        }
+        return lit ? FLUORO_MID_ON : FLUORO_MID_OFF;
+    }
+
+    private static void applyIncandescentPose(PoseStack poseStack, Direction facing) {
+        switch (facing) {
+            case DOWN -> {
+                poseStack.translate(0.5F, 1.0F, 0.5F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+            }
+            case UP -> {
+                poseStack.translate(0.5F, 0.0F, 0.5F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+            }
+            case NORTH -> {
+                poseStack.translate(0.5F, 0.5F, 1.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case SOUTH -> {
+                poseStack.translate(0.5F, 0.5F, 0.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+            }
+            case WEST -> {
+                poseStack.translate(1.0F, 0.5F, 0.5F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case EAST -> poseStack.translate(0.0F, 0.5F, 0.5F);
+        }
+    }
+
+    private static void applyHalogenPose(PoseStack poseStack, Direction facing) {
+        switch (facing) {
+            case DOWN -> {
+                poseStack.translate(0.5F, 1.0F, 0.5F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+            }
+            case UP -> {
+                poseStack.translate(0.5F, 0.0F, 0.5F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+            }
+            case NORTH -> {
+                poseStack.translate(0.5F, 0.5F, 1.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case SOUTH -> {
+                poseStack.translate(0.5F, 0.5F, 0.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+            }
+            case WEST -> {
+                poseStack.translate(1.0F, 0.5F, 0.5F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            }
+            case EAST -> poseStack.translate(0.0F, 0.5F, 0.5F);
+        }
+    }
+
+    private static void applyFluorescentPose(PoseStack poseStack, Direction facing,
+                                             Direction connectionDirection) {
+        switch (facing) {
+            case DOWN -> {
+                poseStack.translate(0.5F, 1.0F, 0.5F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+                applyFluorescentDownRoll(poseStack, connectionDirection);
+            }
+            case UP -> {
+                poseStack.translate(0.5F, 0.0F, 0.5F);
+                poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+                applyFluorescentUpRoll(poseStack, connectionDirection);
+            }
+            case NORTH -> {
+                poseStack.translate(0.5F, 0.5F, 1.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                applyFluorescentNorthRoll(poseStack, connectionDirection);
+            }
+            case SOUTH -> {
+                poseStack.translate(0.5F, 0.5F, 0.0F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+                applyFluorescentSouthRoll(poseStack, connectionDirection);
+            }
+            case WEST -> {
+                poseStack.translate(1.0F, 0.5F, 0.5F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                applyFluorescentWestRoll(poseStack, connectionDirection);
+            }
+            case EAST -> {
+                poseStack.translate(0.0F, 0.5F, 0.5F);
+                applyFluorescentEastRoll(poseStack, connectionDirection);
+            }
+        }
+    }
+
+    private static void applyFluorescentDownRoll(PoseStack poseStack, Direction connectionDirection) {
+        if (connectionDirection == null) return;
+        switch (connectionDirection) {
+            case NORTH -> { }
+            case SOUTH -> poseStack.mulPose(Axis.XP.rotationDegrees(-180.0F));
+            case EAST -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case WEST -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        }
+    }
+
+    private static void applyFluorescentUpRoll(PoseStack poseStack, Direction connectionDirection) {
+        if (connectionDirection == null) return;
+        switch (connectionDirection) {
+            case NORTH -> { }
+            case SOUTH -> poseStack.mulPose(Axis.XP.rotationDegrees(-180.0F));
+            case EAST -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            case WEST -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        }
+    }
+
+    private static void applyFluorescentNorthRoll(PoseStack poseStack, Direction connectionDirection) {
+        if (connectionDirection == null) return;
+        switch (connectionDirection) {
+            case NORTH -> { }
+            case SOUTH -> poseStack.mulPose(Axis.XP.rotationDegrees(-180.0F));
+            case EAST -> poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+            case WEST -> { }
+            case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        }
+    }
+
+    private static void applyFluorescentSouthRoll(PoseStack poseStack, Direction connectionDirection) {
+        if (connectionDirection == null) return;
+        switch (connectionDirection) {
+            case NORTH -> { }
+            case SOUTH -> poseStack.mulPose(Axis.XP.rotationDegrees(-180.0F));
+            case EAST -> { }
+            case WEST -> poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+            case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        }
+    }
+
+    private static void applyFluorescentWestRoll(PoseStack poseStack, Direction connectionDirection) {
+        if (connectionDirection == null) return;
+        switch (connectionDirection) {
+            case NORTH -> poseStack.mulPose(Axis.XP.rotationDegrees(-180.0F));
+            case SOUTH -> { }
+            case EAST -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case WEST -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        }
+    }
+
+    private static void applyFluorescentEastRoll(PoseStack poseStack, Direction connectionDirection) {
+        if (connectionDirection == null) return;
+        switch (connectionDirection) {
+            case NORTH -> { }
+            case SOUTH -> poseStack.mulPose(Axis.XP.rotationDegrees(-180.0F));
+            case EAST -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            case WEST -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        }
     }
 
     private static ModelResourceLocation model(String name) {
         return MachineModelRenderer.standalone("block/" + name);
-    }
-
-    @Override
-    public AABB getRenderBoundingBox(SpotlightBlockEntity spotlight) {
-        return new AABB(spotlight.getBlockPos());
     }
 }

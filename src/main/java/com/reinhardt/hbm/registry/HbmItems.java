@@ -29,6 +29,7 @@ import com.reinhardt.hbm.item.LegacyShacklesArmorModItem;
 import com.reinhardt.hbm.item.LegacyShieldArmorModItem;
 import com.reinhardt.hbm.item.LegacyOreDensityScannerItem;
 import com.reinhardt.hbm.item.LegacyPotatosBatteryItem;
+import com.reinhardt.hbm.item.PortableCapacitorItem;
 import com.reinhardt.hbm.item.LegacySurveyScannerItem;
 import com.reinhardt.hbm.item.LegacyTeslaArmorModItem;
 import com.reinhardt.hbm.item.BatteryPackItem;
@@ -146,6 +147,7 @@ import com.reinhardt.hbm.item.LegacyStructureExportToolItem;
 import com.reinhardt.hbm.item.LegacyRebarPlacerItem;
 import com.reinhardt.hbm.item.LegacyHolotapeImageItem;
 import com.reinhardt.hbm.item.LegacyRttyPagerItem;
+import com.reinhardt.hbm.item.RttyDesignatorItem;
 import com.reinhardt.hbm.item.LegacyRubberBoatItem;
 import com.reinhardt.hbm.item.LegacyDuckSpawnItem;
 import com.reinhardt.hbm.item.LegacyBossSpawnItem;
@@ -162,6 +164,8 @@ import com.reinhardt.hbm.item.LegacySpecialFoodItem;
 import com.reinhardt.hbm.item.LegacyStarterKitItem;
 import com.reinhardt.hbm.item.LegacyStarmetalItem;
 import com.reinhardt.hbm.item.LegacySyringeItem;
+import com.reinhardt.hbm.item.ExperienceBagItem;
+import com.reinhardt.hbm.item.EternalCoalItem;
 import com.reinhardt.hbm.item.HealthArmorModItem;
 import com.reinhardt.hbm.item.HbmRecordItem;
 import com.reinhardt.hbm.item.FusionCoreItem;
@@ -183,6 +187,7 @@ import com.reinhardt.hbm.item.OilTarItem;
 import com.reinhardt.hbm.item.PACoilItem;
 import com.reinhardt.hbm.item.ParticleCapsuleItem;
 import com.reinhardt.hbm.item.PileRodItem;
+import com.reinhardt.hbm.item.PileRodMk2Item;
 import com.reinhardt.hbm.item.PlateFuelItem;
 import com.reinhardt.hbm.item.PollutionDetectorItem;
 import com.reinhardt.hbm.item.PwrFuelItem;
@@ -245,6 +250,7 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -292,6 +298,7 @@ public final class HbmItems {
     public static final List<DeferredItem<Item>> MACHINE_COMPONENTS = new ArrayList<>();
     public static final List<DeferredItem<Item>> TOOL_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> FOUNDRY_ITEMS = new ArrayList<>();
+    private static final Map<Integer, DeferredItem<Item>> FOUNDRY_MOLD_ITEMS = new LinkedHashMap<>();
     public static final List<DeferredItem<Item>> ARMOR_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> FLUID_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> REACTOR_ITEMS = new ArrayList<>();
@@ -305,6 +312,8 @@ public final class HbmItems {
     public static final List<DeferredItem<Item>> TURRET_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> SATELLITE_ITEMS = new ArrayList<>();
     public static final List<DeferredItem<Item>> PORTED_PLAIN_ITEMS = new ArrayList<>();
+    /** Flat, independently registered items for the legacy crop block states. */
+    public static final List<DeferredItem<Item>> CROP_ITEMS = new ArrayList<>();
     /** Filled legacy cells backed by the fluid capability (1.7.10 registry parity). */
     public static final List<DeferredItem<Item>> LEGACY_FLUID_CELL_ITEMS = new ArrayList<>();
     /** Concrete Glyphid spawn eggs exposed by the 1.7.10 mob mappings. */
@@ -475,6 +484,11 @@ public final class HbmItems {
     );
 
     public static final DeferredItem<Item> INGOT_URANIUM = ingot("ingot_uranium");
+    /** Hidden latest-upstream secret item; intentionally absent from creative tabs and JEI. */
+    public static final DeferredItem<Item> COAL_ETERNAL = coreItem(
+            "coal_eternal",
+            () -> new EternalCoalItem(new Item.Properties())
+    );
     public static final DeferredItem<Item> INGOT_U235 = ingot("ingot_u235");
     public static final DeferredItem<Item> INGOT_U238 = ingot("ingot_u238");
     public static final DeferredItem<Item> INGOT_PLUTONIUM = ingot("ingot_plutonium", Rarity.UNCOMMON);
@@ -494,6 +508,19 @@ public final class HbmItems {
             "arc_electrode",
             (id, variant) -> machineComponent(id, () -> new ArcElectrodeItem(new Item.Properties(), variant)),
             "graphite", "lanthanium", "desh", "saturnite"
+    );
+    private static final Set<String> FLATTENED_DRILLBIT_ITEM_IDS = Set.of(
+            "drillbit_steel", "drillbit_steel_diamond",
+            "drillbit_hss", "drillbit_hss_diamond",
+            "drillbit_desh", "drillbit_desh_diamond",
+            "drillbit_tcalloy", "drillbit_tcalloy_diamond",
+            "drillbit_ferro", "drillbit_ferro_diamond"
+    );
+    private static final Set<String> FLATTENED_FOUNDRY_MOLD_ITEM_IDS = Set.of(
+            "mold_nugget", "mold_billet", "mold_ingot", "mold_plate", "mold_wire",
+            "mold_blade", "mold_blades", "mold_stamp", "mold_shell", "mold_pipe",
+            "mold_ingots", "mold_plates", "mold_block", "mold_pipes", "mold_plates_cast",
+            "mold_plate_cast", "mold_wire_dense", "mold_wires_dense", "mold_mechanism"
     );
     public static final Map<String, DeferredItem<Item>> ARC_ELECTRODE_BURNT_ITEMS = variantItems(
             "arc_electrode_burnt",
@@ -517,6 +544,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> PIPE_LEAD = material(MISC_MATERIALS, "pipe_lead");
     public static final DeferredItem<Item> PIPE_STEEL = material(MISC_MATERIALS, "pipe_steel");
+    public static final DeferredItem<Item> PIPES_STEEL = material(MISC_MATERIALS, "pipes_steel");
     public static final DeferredItem<Item> PIPE_DURA_STEEL = material(MISC_MATERIALS, "pipe_dura_steel");
     public static final DeferredItem<Item> TANK_STEEL = material(
             MISC_MATERIALS,
@@ -547,7 +575,20 @@ public final class HbmItems {
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER = material(MISC_MATERIALS, "circuit_controller");
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER_ADVANCED = material(MISC_MATERIALS, "circuit_controller_advanced");
     public static final DeferredItem<Item> CIRCUIT_CONTROLLER_QUANTUM = material(MISC_MATERIALS, "circuit_controller_quantum");
+    public static final DeferredItem<Item> CIRCUIT_CRYSTAL = material(MISC_MATERIALS, "circuit_crystal");
     public static final DeferredItem<Item> CRT_DISPLAY = material(MISC_MATERIALS, "crt_display");
+    /** Flat replacements for the latest legacy metadata-backed data-drive item. */
+    public static final DeferredItem<Item> DRIVE_FLASH_EMPTY = material(MACHINE_COMPONENTS, "drive_flash_empty");
+    public static final DeferredItem<Item> DRIVE_DISK_EMPTY = material(MACHINE_COMPONENTS, "drive_disk_empty");
+    public static final DeferredItem<Item> DRIVE_FLASH_BROKEN = material(MACHINE_COMPONENTS, "drive_flash_broken");
+    public static final DeferredItem<Item> DRIVE_DISK_BROKEN = material(MACHINE_COMPONENTS, "drive_disk_broken");
+    public static final DeferredItem<Item> DRIVE_FLASH_FLIGHTSIM = material(MACHINE_COMPONENTS, "drive_flash_flightsim");
+    public static final DeferredItem<Item> DRIVE_FLASH_PARTICLESIM = material(MACHINE_COMPONENTS, "drive_flash_particlesim");
+    public static final DeferredItem<Item> DRIVE_DISK_FLIGHTDATA = material(MACHINE_COMPONENTS, "drive_disk_flightdata");
+    public static final DeferredItem<Item> DRIVE_DISK_FLIGHTDATA_PROCESSED = material(MACHINE_COMPONENTS, "drive_disk_flightdata_processed");
+    public static final DeferredItem<Item> DRIVE_DISK_ORBITDATA = material(MACHINE_COMPONENTS, "drive_disk_orbitdata");
+    public static final DeferredItem<Item> DRIVE_DISK_ORBITDATA_PROCESSED = material(MACHINE_COMPONENTS, "drive_disk_orbitdata_processed");
+    public static final DeferredItem<Item> DRIVE_KLAUS = material(MACHINE_COMPONENTS, "drive_klaus");
     public static final DeferredItem<Item> MOTOR = material(MISC_MATERIALS, "motor");
     public static final DeferredItem<Item> MOTOR_BISMUTH = material(MISC_MATERIALS, "motor_bismuth");
     public static final DeferredItem<Item> MOTOR_DESH = material(MISC_MATERIALS, "motor_desh");
@@ -577,6 +618,16 @@ public final class HbmItems {
             "plant_item",
             "tobacco", "rope", "mustardwillow"
     );
+    public static final DeferredItem<Item> PLANT_FOXGLOVE = cropItem(
+            "plant_foxglove", () -> HbmBlocks.PLANT_FOXGLOVE.get());
+    public static final DeferredItem<Item> PLANT_TOBACCO = cropItem(
+            "plant_tobacco", () -> HbmBlocks.PLANT_TOBACCO.get());
+    public static final DeferredItem<Item> PLANT_NIGHTSHADE = cropItem(
+            "plant_nightshade", () -> HbmBlocks.PLANT_NIGHTSHADE.get());
+    public static final DeferredItem<Item> PLANT_HEMP = cropItem(
+            "plant_hemp", () -> HbmBlocks.PLANT_HEMP.get());
+    public static final DeferredItem<Item> PLANT_MUSTARD_WILLOW = cropItem(
+            "plant_mustard_willow", () -> HbmBlocks.PLANT_MUSTARD_WILLOW.get());
     public static final DeferredItem<Item> SOLID_FUEL = material(MISC_MATERIALS, "solid_fuel");
     public static final DeferredItem<Item> SOLID_FUEL_BF = material(MISC_MATERIALS, "solid_fuel_bf");
     public static final DeferredItem<Item> ROCKET_FUEL = material(ROCKET_MISSILE_ITEMS, "rocket_fuel");
@@ -589,6 +640,11 @@ public final class HbmItems {
             ROCKET_MISSILE_ITEMS,
             "missile_soyuz_lander",
             () -> new OrbitalModuleItem()
+    );
+    public static final DeferredItem<Item> MISSILE_LAMBDA = material(
+            ROCKET_MISSILE_ITEMS,
+            "missile_lambda",
+            () -> new Item(new Item.Properties().stacksTo(1))
     );
     public static final DeferredItem<Item> CORDITE = material(MISC_MATERIALS, "cordite");
     public static final DeferredItem<Item> BALLISTITE = material(MISC_MATERIALS, "ballistite");
@@ -765,15 +821,21 @@ public final class HbmItems {
                     "battery_lithium",
                     "battery_sodium",
                     "battery_schrabidium",
-                    "battery_quantum",
-                    "capacitor_copper",
-                    "capacitor_gold",
-                    "capacitor_niobium",
-                    "capacitor_tantalum",
-                    "capacitor_bismuth",
-                    "capacitor_spark"
+                    "battery_quantum"
             ))
     );
+    public static final DeferredItem<Item> CAPACITOR_COPPER = portableCapacitor(
+            "battery_pack_capacitor_copper", "capacitor_copper", 1_000L);
+    public static final DeferredItem<Item> CAPACITOR_GOLD = portableCapacitor(
+            "battery_pack_capacitor_gold", "capacitor_gold", 10_000L);
+    public static final DeferredItem<Item> CAPACITOR_NIOBIUM = portableCapacitor(
+            "battery_pack_capacitor_niobium", "capacitor_niobium", 100_000L);
+    public static final DeferredItem<Item> CAPACITOR_TANTALUM = portableCapacitor(
+            "battery_pack_capacitor_tantalum", "capacitor_tantalum", 500_000L);
+    public static final DeferredItem<Item> CAPACITOR_BISMUTH = portableCapacitor(
+            "battery_pack_capacitor_bismuth", "capacitor_bismuth", 2_500_000L);
+    public static final DeferredItem<Item> CAPACITOR_SPARK = portableCapacitor(
+            "battery_pack_capacitor_spark", "capacitor_spark", 10_000_000L);
     public static final DeferredItem<Item> BATTERY_SC = material(
             MACHINE_COMPONENTS,
             "battery_sc",
@@ -817,7 +879,8 @@ public final class HbmItems {
     public static final Map<String, DeferredItem<Item>> PART_GENERIC_ITEMS = materialVariants(
             MACHINE_COMPONENTS,
             "part_generic",
-            "piston_pneumatic", "piston_hydraulic", "piston_electric", "lde", "hde", "glass_polarized"
+            "piston_pneumatic", "piston_hydraulic", "piston_electric", "lde", "hde", "glass_polarized",
+            "alclad"
     );
     public static final DeferredItem<Item> PELLET_GAS = machineComponent(
             "pellet_gas",
@@ -946,11 +1009,8 @@ public final class HbmItems {
             "fluid_duct",
             () -> new HbmFluidDuctItem(new Item.Properties(), "fluid_duct")
     );
-    public static final DeferredItem<Item> SCRAPS = material(
-            MISC_MATERIALS,
-            "scraps",
-            () -> new ScrapsItem(new Item.Properties())
-    );
+    /** Flat replacements for the legacy metadata-backed scraps item. */
+    public static final Map<String, DeferredItem<Item>> SCRAPS_ITEMS = scrapsItems();
     public static final DeferredItem<Item> SCRAP = material(MISC_MATERIALS, "scrap");
     public static final DeferredItem<Item> DUST = material(POWDER_MATERIALS, "dust");
     public static final DeferredItem<Item> DUST_TINY = material(POWDER_MATERIALS, "dust_tiny");
@@ -1038,10 +1098,6 @@ public final class HbmItems {
             () -> new WiringRedCopperItem(new Item.Properties())
     );
     public static final DeferredItem<Item> RBMK_FUEL_EMPTY = rbmkFuelRodItem("rbmk_fuel_empty");
-    public static final DeferredItem<Item> RBMK_FUEL = rbmkFuelRodItem(
-            "rbmk_fuel",
-            () -> new RbmkFuelRodItem(new Item.Properties())
-    );
     public static final DeferredItem<Item> RBMK_LID = rbmkReactorItem(
             "rbmk_lid",
             () -> new RbmkLidItem(new Item.Properties(), com.reinhardt.hbm.blockentity.RbmkComponentBlockEntity.LidType.NORMAL)
@@ -1122,6 +1178,10 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> PILE_ROD_PU239 = reactorItem(
             "pile_rod_pu239",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.PU239)
+    );
+    public static final DeferredItem<Item> PILE_ROD_PU239_GRAPHITE = reactorItem(
+            "pile_rod_pu239_graphite",
             () -> new PileRodItem(new Item.Properties(), PileRodItem.Kind.PU239)
     );
     public static final DeferredItem<Item> PILE_ROD_PLUTONIUM = reactorItem(
@@ -1143,6 +1203,38 @@ public final class HbmItems {
     public static final DeferredItem<Item> PILE_ROD_DETECTOR = reactorItem(
             "pile_rod_detector",
             () -> new PileRodItem(new Item.Properties(), PileRodItem.Kind.DETECTOR)
+    );
+    public static final DeferredItem<Item> PILE_ROD_RA226BE = reactorItem(
+            "pile_rod_ra226be",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.RA226BE)
+    );
+    public static final DeferredItem<Item> PILE_ROD_PO210BE = reactorItem(
+            "pile_rod_po210be",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.PO210BE)
+    );
+    public static final DeferredItem<Item> PILE_ROD_ZR = reactorItem(
+            "pile_rod_zr",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.ZR)
+    );
+    public static final DeferredItem<Item> PILE_ROD_NU = reactorItem(
+            "pile_rod_nu",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.NU)
+    );
+    public static final DeferredItem<Item> PILE_ROD_RGP = reactorItem(
+            "pile_rod_rgp",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.RGP)
+    );
+    public static final DeferredItem<Item> PILE_ROD_WASTE = reactorItem(
+            "pile_rod_waste",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.WASTE)
+    );
+    public static final DeferredItem<Item> PILE_ROD_THORIUM = reactorItem(
+            "pile_rod_thorium",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.THORIUM)
+    );
+    public static final DeferredItem<Item> PILE_ROD_THORIUM_FUEL = reactorItem(
+            "pile_rod_thorium_fuel",
+            () -> new PileRodMk2Item(new Item.Properties(), PileRodMk2Item.Kind.THORIUM_FUEL)
     );
     public static final DeferredItem<Item> AMS_LENS = reactorItem(
             "ams_lens",
@@ -1295,10 +1387,16 @@ public final class HbmItems {
             "drill_titanium",
             () -> new Item(new Item.Properties())
     );
-    public static final DeferredItem<Item> DRILLBIT = machineComponent(
-            "drillbit",
-            () -> new DrillbitItem(new Item.Properties())
-    );
+    public static final DeferredItem<Item> DRILLBIT_STEEL = drillbit("drillbit_steel", DrillbitItem.DrillType.STEEL);
+    public static final DeferredItem<Item> DRILLBIT_STEEL_DIAMOND = drillbit("drillbit_steel_diamond", DrillbitItem.DrillType.STEEL_DIAMOND);
+    public static final DeferredItem<Item> DRILLBIT_HSS = drillbit("drillbit_hss", DrillbitItem.DrillType.HSS);
+    public static final DeferredItem<Item> DRILLBIT_HSS_DIAMOND = drillbit("drillbit_hss_diamond", DrillbitItem.DrillType.HSS_DIAMOND);
+    public static final DeferredItem<Item> DRILLBIT_DESH = drillbit("drillbit_desh", DrillbitItem.DrillType.DESH);
+    public static final DeferredItem<Item> DRILLBIT_DESH_DIAMOND = drillbit("drillbit_desh_diamond", DrillbitItem.DrillType.DESH_DIAMOND);
+    public static final DeferredItem<Item> DRILLBIT_TCALLOY = drillbit("drillbit_tcalloy", DrillbitItem.DrillType.TCALLOY);
+    public static final DeferredItem<Item> DRILLBIT_TCALLOY_DIAMOND = drillbit("drillbit_tcalloy_diamond", DrillbitItem.DrillType.TCALLOY_DIAMOND);
+    public static final DeferredItem<Item> DRILLBIT_FERRO = drillbit("drillbit_ferro", DrillbitItem.DrillType.FERRO);
+    public static final DeferredItem<Item> DRILLBIT_FERRO_DIAMOND = drillbit("drillbit_ferro_diamond", DrillbitItem.DrillType.FERRO_DIAMOND);
     public static final DeferredItem<Item> CATALYTIC_CONVERTER = machineComponent(
             "catalytic_converter",
             () -> new Item(new Item.Properties().stacksTo(1))
@@ -1307,7 +1405,7 @@ public final class HbmItems {
             "item_expensive",
             (id, variant) -> machineComponent(id, () -> new Item(new Item.Properties())),
             "steel_plating", "heavy_frame", "circuit", "lead_plating", "ferro_plating",
-            "computer", "bronze_tubes", "plastic", "gold_dust", "degenerate_matter"
+            "computer", "bronze_tubes", "plastic", "gold_dust", "degenerate_matter", "cmb_tubes"
     );
 
     public static final DeferredItem<Item> SCREWDRIVER = toolItem(
@@ -1420,6 +1518,10 @@ public final class HbmItems {
             "rangefinder",
             () -> new RangefinderItem(new Item.Properties())
     );
+    public static final DeferredItem<Item> RTTY_DESIGNATOR = toolItem(
+            "rtty_designator",
+            () -> new RttyDesignatorItem(new Item.Properties())
+    );
     public static final DeferredItem<Item> DESIGNATOR_ARTY_RANGE = rocketMissileItem(
             "designator_arty_range",
             () -> new ArtilleryDesignatorItem(new Item.Properties())
@@ -1484,10 +1586,25 @@ public final class HbmItems {
             "mold_base",
             () -> new Item(new Item.Properties())
     );
-    public static final DeferredItem<Item> MOLD = foundryItem(
-            "mold",
-            () -> new FoundryMoldItem(new Item.Properties().stacksTo(1))
-    );
+    public static final DeferredItem<Item> MOLD_NUGGET = foundryMold("mold_nugget", 0);
+    public static final DeferredItem<Item> MOLD_BILLET = foundryMold("mold_billet", 1);
+    public static final DeferredItem<Item> MOLD_INGOT = foundryMold("mold_ingot", 2);
+    public static final DeferredItem<Item> MOLD_PLATE = foundryMold("mold_plate", 3);
+    public static final DeferredItem<Item> MOLD_WIRE = foundryMold("mold_wire", 4);
+    public static final DeferredItem<Item> MOLD_BLADE = foundryMold("mold_blade", 5);
+    public static final DeferredItem<Item> MOLD_BLADES = foundryMold("mold_blades", 6);
+    public static final DeferredItem<Item> MOLD_STAMP = foundryMold("mold_stamp", 7);
+    public static final DeferredItem<Item> MOLD_SHELL = foundryMold("mold_shell", 8);
+    public static final DeferredItem<Item> MOLD_PIPE = foundryMold("mold_pipe", 9);
+    public static final DeferredItem<Item> MOLD_INGOTS = foundryMold("mold_ingots", 10);
+    public static final DeferredItem<Item> MOLD_PLATES = foundryMold("mold_plates", 11);
+    public static final DeferredItem<Item> MOLD_BLOCK = foundryMold("mold_block", 12);
+    public static final DeferredItem<Item> MOLD_PIPES = foundryMold("mold_pipes", 13);
+    public static final DeferredItem<Item> MOLD_PLATES_CAST = foundryMold("mold_plates_cast", 15);
+    public static final DeferredItem<Item> MOLD_PLATE_CAST = foundryMold("mold_plate_cast", 19);
+    public static final DeferredItem<Item> MOLD_WIRE_DENSE = foundryMold("mold_wire_dense", 20);
+    public static final DeferredItem<Item> MOLD_WIRES_DENSE = foundryMold("mold_wires_dense", 21);
+    public static final DeferredItem<Item> MOLD_MECHANISM = foundryMold("mold_mechanism", 26);
 
     public static final DeferredItem<Item> GAS_MASK = armorItem(
             "gas_mask",
@@ -2114,6 +2231,23 @@ public final class HbmItems {
     public static final DeferredItem<Item> SAT_RELAY = satelliteItem("sat_relay", "");
     public static final DeferredItem<Item> SAT_RESONATOR = satelliteItem("sat_resonator", "item.reinhardtshbm.satellite.resonator");
     public static final DeferredItem<Item> SAT_SCANNER = satelliteItem("sat_scanner", "item.reinhardtshbm.satellite.scanner");
+    /** Flat replacements for the latest 1.7.10 metadata-backed satellite item. */
+    public static final DeferredItem<Item> SATELLITE_SPY = satelliteItem("satellite_spy", "");
+    public static final DeferredItem<Item> SATELLITE_SCANNER = satelliteItem("satellite_scanner", "");
+    public static final DeferredItem<Item> SATELLITE_RADAR = satelliteItem("satellite_radar", "");
+    public static final DeferredItem<Item> SATELLITE_MINER_ASTRO = satelliteItem("satellite_miner_astro", "");
+    public static final DeferredItem<Item> SATELLITE_MINER_LUNAR = satelliteItem("satellite_miner_lunar", "");
+    public static final DeferredItem<Item> SATELLITE_PRECISION_LASER = satelliteItem("satellite_precision_laser", "");
+    public static final DeferredItem<Item> SATELLITE_DEATH_RAY = satelliteItem("satellite_death_ray", "");
+    public static final DeferredItem<Item> SATELLITE_XENIUM_RESONATOR = satelliteItem("satellite_xenium_resonator", "");
+    public static final DeferredItem<Item> SATELLITE_RELAY = satelliteItem("satellite_relay", "");
+    public static final DeferredItem<Item> SATELLITE_DETECTOR = satelliteItem("satellite_detector", "");
+    public static final DeferredItem<Item> SATELLITE_RAY_SCAN = satelliteItem("satellite_ray_scan", "");
+    public static final DeferredItem<Item> SATELLITE_SCIENCE = satelliteItem("satellite_science", "");
+    public static final DeferredItem<Item> SATELLITE_SCIENCE_ASSEMBLER = satelliteItem("satellite_science_assembler", "");
+    public static final DeferredItem<Item> SATELLITE_SCIENCE_SENSOR = satelliteItem("satellite_science_sensor", "");
+    /** Latest 1.7.10 orbital-assembly payload; it carries the destination frequency. */
+    public static final DeferredItem<Item> ORBITAL_ASSEMBLY_CRYSTAL_CIRCUIT = satelliteItem("orbital_assembly_crystal_circuit", "");
 
     // Direct 1.7.10 metadata items. Do not leave these behind as generic
     // catalog entries: recipes and creative tabs use every individual state.
@@ -2204,8 +2338,12 @@ public final class HbmItems {
     public static final DeferredItem<Item> GLOWING_STEW = legacySoup("glowing_stew");
     public static final DeferredItem<Item> IV_BLOOD = legacyMedical("iv_blood");
     public static final DeferredItem<Item> IV_EMPTY = legacyMedical("iv_empty");
-    public static final DeferredItem<Item> IV_XP = legacyMedical("iv_xp");
-    public static final DeferredItem<Item> IV_XP_EMPTY = legacyMedical("iv_xp_empty");
+    public static final DeferredItem<Item> IV_XP = legacyItem(
+            "iv_xp", () -> new ExperienceBagItem(new Item.Properties(), true)
+    );
+    public static final DeferredItem<Item> IV_XP_EMPTY = legacyItem(
+            "iv_xp_empty", () -> new ExperienceBagItem(new Item.Properties(), false)
+    );
     public static final DeferredItem<Item> LEMON = legacyLemon("lemon");
     public static final DeferredItem<Item> LOOP_STEW = legacyLemon("loop_stew");
     public static final DeferredItem<Item> LOOPS = legacyLemon("loops");
@@ -2376,6 +2514,42 @@ public final class HbmItems {
         return Collections.unmodifiableMap(result);
     }
 
+    private static Map<String, DeferredItem<Item>> scrapsItems() {
+        Map<String, DeferredItem<Item>> result = new LinkedHashMap<>();
+        for (FoundryMaterial foundryMaterial : FoundryMaterial.ordered()) {
+            if (!isObtainableScrapsMaterial(foundryMaterial)) {
+                continue;
+            }
+            String name = scrapsItemPath(foundryMaterial);
+            DeferredItem<Item> item = material(
+                    MISC_MATERIALS,
+                    name,
+                    () -> new ScrapsItem(new Item.Properties(), foundryMaterial)
+            );
+            if (result.put(foundryMaterial.name(), item) != null) {
+                throw new IllegalStateException("Duplicate scraps material: " + foundryMaterial.name());
+            }
+        }
+        return Collections.unmodifiableMap(result);
+    }
+
+    private static boolean isObtainableScrapsMaterial(FoundryMaterial material) {
+        return material.behavior() == FoundryMaterial.SmeltingBehavior.SMELTABLE
+                || material.behavior() == FoundryMaterial.SmeltingBehavior.ADDITIVE;
+    }
+
+    public static String scrapsItemPath(FoundryMaterial material) {
+        return "scraps_" + material.itemSuffix();
+    }
+
+    public static DeferredItem<Item> scrapsItem(FoundryMaterial material) {
+        DeferredItem<Item> item = SCRAPS_ITEMS.get(material.name());
+        if (item == null) {
+            throw new IllegalArgumentException("Material cannot be represented as scraps: " + material.name());
+        }
+        return item;
+    }
+
     private static DeferredItem<Item> ingot(String name) {
         return ingot(name, Rarity.COMMON);
     }
@@ -2495,6 +2669,10 @@ public final class HbmItems {
 
     private static DeferredItem<Item> machineComponent(String name) {
         return machineComponent(name, () -> legacyMachineComponent(name));
+    }
+
+    private static DeferredItem<Item> drillbit(String name, DrillbitItem.DrillType type) {
+        return machineComponent(name, () -> new DrillbitItem(new Item.Properties().stacksTo(1), type));
     }
 
     private static Item legacyMachineComponent(String id) {
@@ -2627,6 +2805,25 @@ public final class HbmItems {
         return registered;
     }
 
+    private static DeferredItem<Item> foundryMold(String name, int moldId) {
+        DeferredItem<Item> registered = foundryItem(
+                name,
+                () -> new FoundryMoldItem(new Item.Properties().stacksTo(1), moldId)
+        );
+        if (FOUNDRY_MOLD_ITEMS.put(moldId, registered) != null) {
+            throw new IllegalStateException("Duplicate foundry mold id: " + moldId);
+        }
+        return registered;
+    }
+
+    public static DeferredItem<Item> foundryMoldItem(int moldId) {
+        DeferredItem<Item> item = FOUNDRY_MOLD_ITEMS.get(moldId);
+        if (item == null) {
+            throw new IllegalArgumentException("Unknown foundry mold id: " + moldId);
+        }
+        return item;
+    }
+
     private static DeferredItem<Item> turretItem(String name, Supplier<Item> item) {
         DeferredItem<Item> registered = coreItem(name, item);
         TURRET_ITEMS.add(registered);
@@ -2748,6 +2945,16 @@ public final class HbmItems {
     private static DeferredItem<Item> coreItem(String name, Supplier<Item> item) {
         CORE_ITEM_IDS.add(name);
         return ITEMS.register(name, item);
+    }
+
+    private static DeferredItem<Item> cropItem(String name, Supplier<? extends Block> block) {
+        DeferredItem<Item> registered = coreItem(name, () -> new BlockItem(block.get(), new Item.Properties()));
+        CROP_ITEMS.add(registered);
+        return registered;
+    }
+
+    private static DeferredItem<Item> portableCapacitor(String name, String socketVariant, long transferRate) {
+        return coreItem(name, () -> new PortableCapacitorItem(new Item.Properties(), socketVariant, transferRate));
     }
 
     private static ArmorInsertItem armorInsert(
@@ -3249,6 +3456,7 @@ public final class HbmItems {
             if (CORE_ITEM_IDS.contains(id)
                     || blockIds.contains(id)
                     || RETIRED_LEGACY_CATALOG_ITEM_IDS.contains(id)
+                    || isFlattenedLegacyItemPort(id)
                     || FLUID_BUCKET_ITEM_IDS.contains(id)
                     || isOptionalInfiniteWaterItem(id)
                     || id.startsWith("gun_")) {
@@ -3261,6 +3469,19 @@ public final class HbmItems {
                     "Missing recursive 1.7.10 item port(s): " + String.join(", ", unported)
             );
         }
+    }
+
+    private static boolean isFlattenedLegacyItemPort(String id) {
+        return (id.equals("drillbit") && CORE_ITEM_IDS.containsAll(FLATTENED_DRILLBIT_ITEM_IDS))
+                || (id.equals("mold") && CORE_ITEM_IDS.containsAll(FLATTENED_FOUNDRY_MOLD_ITEM_IDS))
+                || (id.equals("scraps") && hasAllFlattenedScrapsItems());
+    }
+
+    private static boolean hasAllFlattenedScrapsItems() {
+        return FoundryMaterial.ordered().stream()
+                .filter(HbmItems::isObtainableScrapsMaterial)
+                .map(HbmItems::scrapsItemPath)
+                .allMatch(CORE_ITEM_IDS::contains);
     }
 
     private static boolean isOptionalInfiniteWaterItem(String id) {

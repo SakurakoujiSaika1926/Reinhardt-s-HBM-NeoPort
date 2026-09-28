@@ -399,7 +399,7 @@ public final class HbmHazardSystem {
     }
 
     private static HbmHazardData rbmkFuelRodHazards(ItemStack stack, RbmkFuelRodItem rod) {
-        String id = rod.variant(stack).id();
+        String id = rod.fuelId(stack);
         double depletion = Math.max(0.0D, Math.min(1.0D, RbmkFuelRodItem.depletion(stack)));
         double freshRadiation = rbmkFreshRadiation(id);
         double wasteRadiation = rbmkWasteRadiation(id);

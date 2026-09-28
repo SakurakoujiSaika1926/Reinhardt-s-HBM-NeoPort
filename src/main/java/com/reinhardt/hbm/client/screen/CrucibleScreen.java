@@ -145,7 +145,7 @@ public class CrucibleScreen extends net.minecraft.client.gui.screens.inventory.A
 
     private List<Component> materialStackTooltip(List<FoundryMaterialStack> stacks) {
         if (stacks.isEmpty()) {
-            return List.of(Component.literal("Empty").withStyle(ChatFormatting.RED));
+            return List.of(Component.translatable("gui.reinhardtshbm.empty").withStyle(ChatFormatting.RED));
         }
         return stacks.stream()
                 .map(stack -> Component.translatable(stack.material().translationKey())

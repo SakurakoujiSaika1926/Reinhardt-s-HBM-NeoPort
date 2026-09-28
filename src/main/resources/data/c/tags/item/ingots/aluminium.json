@@ -1,6 +1,10 @@
 {
     "replace":  false,
     "values":  [
-                   "reinhardtshbm:ingot_aluminium"
+                   "reinhardtshbm:ingot_aluminium",
+                   {
+                       "id": "immersiveengineering:ingot_aluminum",
+                       "required": false
+                   }
                ]
 }

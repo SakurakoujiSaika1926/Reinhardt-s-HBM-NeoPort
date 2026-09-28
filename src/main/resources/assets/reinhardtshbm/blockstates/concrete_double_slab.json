@@ -5,6 +5,8 @@
     "variant=2": { "model": "reinhardtshbm:block/concrete_asbestos_double_slab" },
     "variant=3": { "model": "reinhardtshbm:block/ducrete_smooth_double_slab" },
     "variant=4": { "model": "reinhardtshbm:block/ducrete_double_slab" },
-    "variant=5": { "model": "reinhardtshbm:block/asphalt_slab_double" }
+    "variant=5": { "model": "reinhardtshbm:block/asphalt_slab_double" },
+    "variant=6": { "model": "reinhardtshbm:block/asphalt_slab_double" },
+    "variant=7": { "model": "reinhardtshbm:block/asphalt_slab_double" }
   }
 }

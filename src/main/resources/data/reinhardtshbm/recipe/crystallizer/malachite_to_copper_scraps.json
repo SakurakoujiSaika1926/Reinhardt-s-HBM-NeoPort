@@ -1,0 +1,17 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.malachite",
+  "ingredient": { "tag": "c:ingots/malachite" },
+  "acid": {
+    "fluid": "sulfuric_acid",
+    "amount": 250
+  },
+  "duration": 300,
+  "result": {
+    "id": "reinhardtshbm:scraps_copper",
+    "components": {
+      "minecraft:custom_data": { "amount": 72, "liquid": false },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

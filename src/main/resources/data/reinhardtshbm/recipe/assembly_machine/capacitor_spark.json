@@ -1,0 +1,47 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.capacitorspark",
+  "duration": 100,
+  "power": 100000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:plates/cast_combine_steel"
+      },
+      "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:powder_spark_mix"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:pellet_charged"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_quantum"
+      },
+      "count": 16
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "perfluoromethyl_cold",
+      "amount": 8000
+    }
+  ],
+  "output_fluids": [
+    {
+      "fluid": "perfluoromethyl",
+      "amount": 8000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:battery_pack_capacitor_spark"
+  }
+}

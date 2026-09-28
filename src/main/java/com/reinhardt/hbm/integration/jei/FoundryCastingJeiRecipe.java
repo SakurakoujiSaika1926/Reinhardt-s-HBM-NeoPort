@@ -5,7 +5,6 @@ import com.reinhardt.hbm.foundry.FoundryMaterialStack;
 import com.reinhardt.hbm.item.FoundryMoldItem;
 import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ public record FoundryCastingJeiRecipe(ItemStack input, ItemStack mold, ItemStack
                 }
                 recipes.add(new FoundryCastingJeiRecipe(
                         ScrapsItem.create(new FoundryMaterialStack(material, mold.cost()), true),
-                        FoundryMoldItem.stackFor(HbmItems.MOLD.get(), mold.id()),
+                        FoundryMoldItem.stackFor(mold.id()),
                         castingBlockFor(mold),
                         output.copy()
                 ));

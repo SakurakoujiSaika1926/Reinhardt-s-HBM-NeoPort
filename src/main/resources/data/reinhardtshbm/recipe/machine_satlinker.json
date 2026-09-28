@@ -7,8 +7,8 @@
     "PSP"
   ],
   "key": {
-    "P": { "tag": "c:plates/steel" },
-    "S": { "tag": "c:ingots/starmetal" },
+    "P": { "tag": "c:ingots/resistant_alloy" },
+    "S": { "tag": "c:ingots/plastic" },
     "C": { "item": "reinhardtshbm:sat_chip" }
   },
   "result": { "id": "reinhardtshbm:machine_satlinker" }

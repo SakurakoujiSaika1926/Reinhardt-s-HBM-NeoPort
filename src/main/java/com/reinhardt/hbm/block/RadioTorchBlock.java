@@ -1,11 +1,15 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.RadioTorchBlockEntity;
+import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
@@ -72,6 +76,47 @@ public final class RadioTorchBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case SENDER -> senderStateForPlacement(context);
+            case RECEIVER -> receiverStateForPlacement(context);
+            case COUNTER -> counterStateForPlacement(context);
+            case LOGIC -> logicStateForPlacement(context);
+            case READER -> readerStateForPlacement(context);
+            case CONTROLLER -> controllerStateForPlacement(context);
+        };
+    }
+
+    private BlockState senderStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState placed = defaultBlockState().setValue(FACING, facing);
+        return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
+    }
+
+    private BlockState receiverStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState placed = defaultBlockState().setValue(FACING, facing);
+        return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
+    }
+
+    private BlockState counterStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState placed = defaultBlockState().setValue(FACING, facing);
+        return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
+    }
+
+    private BlockState logicStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState placed = defaultBlockState().setValue(FACING, facing);
+        return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
+    }
+
+    private BlockState readerStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState placed = defaultBlockState().setValue(FACING, facing);
+        return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
+    }
+
+    private BlockState controllerStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getClickedFace();
         BlockState placed = defaultBlockState().setValue(FACING, facing);
         return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
@@ -79,10 +124,15 @@ public final class RadioTorchBlock extends Block implements EntityBlock {
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        BlockPos support = pos.relative(state.getValue(FACING).getOpposite());
-        BlockState supportState = level.getBlockState(support);
-        return supportState.isFaceSturdy(level, support, state.getValue(FACING))
-                || !supportState.isAir();
+        Direction facing = state.getValue(FACING);
+        return switch (kind) {
+            case SENDER -> senderCanSurvive(level, pos, facing);
+            case RECEIVER -> receiverCanSurvive(level, pos, facing);
+            case COUNTER -> counterCanSurvive(level, pos, facing);
+            case LOGIC -> logicCanSurvive(level, pos, facing);
+            case READER -> readerCanSurvive(level, pos, facing);
+            case CONTROLLER -> controllerCanSurvive(level, pos, facing);
+        };
     }
 
     @Override
@@ -96,7 +146,15 @@ public final class RadioTorchBlock extends Block implements EntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapeFor(state.getValue(FACING));
+        Direction facing = state.getValue(FACING);
+        return switch (kind) {
+            case SENDER -> senderShape(facing);
+            case RECEIVER -> receiverShape(facing);
+            case COUNTER -> counterShape(facing);
+            case LOGIC -> logicShape(facing);
+            case READER -> readerShape(facing);
+            case CONTROLLER -> controllerShape(facing);
+        };
     }
 
     @Override
@@ -128,7 +186,14 @@ public final class RadioTorchBlock extends Block implements EntityBlock {
                                                BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof RadioTorchBlockEntity radio) {
             if (!level.isClientSide) {
-                radio.interact(player);
+                if ((kind == Kind.READER || kind == Kind.CONTROLLER) && player instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.openMenu(radio, buffer -> {
+                        buffer.writeBlockPos(pos);
+                        buffer.writeEnum(kind);
+                    });
+                } else {
+                    radio.interact(player);
+                }
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
@@ -152,11 +217,73 @@ public final class RadioTorchBlock extends Block implements EntityBlock {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case SENDER -> rotateSender(state, rotation);
+            case RECEIVER -> rotateReceiver(state, rotation);
+            case COUNTER -> rotateCounter(state, rotation);
+            case LOGIC -> rotateLogic(state, rotation);
+            case READER -> rotateReader(state, rotation);
+            case CONTROLLER -> rotateController(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case SENDER -> mirrorSender(state, mirror);
+            case RECEIVER -> mirrorReceiver(state, mirror);
+            case COUNTER -> mirrorCounter(state, mirror);
+            case LOGIC -> mirrorLogic(state, mirror);
+            case READER -> mirrorReader(state, mirror);
+            case CONTROLLER -> mirrorController(state, mirror);
+        };
+    }
+
+    private static BlockState rotateSender(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateReceiver(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateCounter(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateLogic(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateReader(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateController(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSender(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorReceiver(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorCounter(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorLogic(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorReader(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorController(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
@@ -165,13 +292,151 @@ public final class RadioTorchBlock extends Block implements EntityBlock {
         builder.add(FACING, POWERED);
     }
 
-    private static VoxelShape shapeFor(Direction facing) {
-        double minX = facing == Direction.EAST ? 0.0D : 0.375D;
-        double maxX = facing == Direction.WEST ? 1.0D : 0.625D;
-        double minY = facing == Direction.UP ? 0.0D : 0.375D;
-        double maxY = facing == Direction.DOWN ? 1.0D : 0.625D;
-        double minZ = facing == Direction.SOUTH ? 0.0D : 0.375D;
-        double maxZ = facing == Direction.NORTH ? 1.0D : 0.625D;
-        return Shapes.box(minX, minY, minZ, maxX, maxY, maxZ);
+    private static boolean senderCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        BlockState supportState = level.getBlockState(support);
+        return supportState.isFaceSturdy(level, support, facing) || !supportState.isAir();
+    }
+
+    private static boolean receiverCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        BlockState supportState = level.getBlockState(support);
+        return supportState.isFaceSturdy(level, support, facing) || !supportState.isAir();
+    }
+
+    private static boolean counterCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        BlockState supportState = level.getBlockState(support);
+        return supportState.isFaceSturdy(level, support, facing) || !supportState.isAir();
+    }
+
+    private static boolean logicCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        BlockState supportState = level.getBlockState(support);
+        return supportState.isFaceSturdy(level, support, facing) || !supportState.isAir();
+    }
+
+    private static boolean readerCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return resolveAttachedTarget(level, support) instanceof RttyValueProvider;
+    }
+
+    private static boolean controllerCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return resolveAttachedTarget(level, support) instanceof RttyInteractive;
+    }
+
+    @Nullable
+    private static BlockEntity resolveAttachedTarget(LevelReader level, BlockPos support) {
+        BlockEntity target = level.getBlockEntity(support);
+        return target instanceof MachineDummyBlockEntity dummy ? dummy.core() : target;
+    }
+
+    private static VoxelShape senderShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 1.0D, 0.625D);
+            case UP -> Shapes.box(0.375D, 0.0D, 0.375D, 0.625D, 0.625D, 0.625D);
+            case NORTH -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 0.625D, 1.0D);
+            case SOUTH -> Shapes.box(0.375D, 0.375D, 0.0D, 0.625D, 0.625D, 0.625D);
+            case WEST -> Shapes.box(0.375D, 0.375D, 0.375D, 1.0D, 0.625D, 0.625D);
+            case EAST -> Shapes.box(0.0D, 0.375D, 0.375D, 0.625D, 0.625D, 0.625D);
+        };
+    }
+
+    private static VoxelShape receiverShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 1.0D, 0.625D);
+            case UP -> Shapes.box(0.375D, 0.0D, 0.375D, 0.625D, 0.625D, 0.625D);
+            case NORTH -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 0.625D, 1.0D);
+            case SOUTH -> Shapes.box(0.375D, 0.375D, 0.0D, 0.625D, 0.625D, 0.625D);
+            case WEST -> Shapes.box(0.375D, 0.375D, 0.375D, 1.0D, 0.625D, 0.625D);
+            case EAST -> Shapes.box(0.0D, 0.375D, 0.375D, 0.625D, 0.625D, 0.625D);
+        };
+    }
+
+    private static VoxelShape counterShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 1.0D, 0.625D);
+            case UP -> Shapes.box(0.375D, 0.0D, 0.375D, 0.625D, 0.625D, 0.625D);
+            case NORTH -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 0.625D, 1.0D);
+            case SOUTH -> Shapes.box(0.375D, 0.375D, 0.0D, 0.625D, 0.625D, 0.625D);
+            case WEST -> Shapes.box(0.375D, 0.375D, 0.375D, 1.0D, 0.625D, 0.625D);
+            case EAST -> Shapes.box(0.0D, 0.375D, 0.375D, 0.625D, 0.625D, 0.625D);
+        };
+    }
+
+    private static VoxelShape logicShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 1.0D, 0.625D);
+            case UP -> Shapes.box(0.375D, 0.0D, 0.375D, 0.625D, 0.625D, 0.625D);
+            case NORTH -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 0.625D, 1.0D);
+            case SOUTH -> Shapes.box(0.375D, 0.375D, 0.0D, 0.625D, 0.625D, 0.625D);
+            case WEST -> Shapes.box(0.375D, 0.375D, 0.375D, 1.0D, 0.625D, 0.625D);
+            case EAST -> Shapes.box(0.0D, 0.375D, 0.375D, 0.625D, 0.625D, 0.625D);
+        };
+    }
+
+    private static VoxelShape readerShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 1.0D, 0.625D);
+            case UP -> Shapes.box(0.375D, 0.0D, 0.375D, 0.625D, 0.625D, 0.625D);
+            case NORTH -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 0.625D, 1.0D);
+            case SOUTH -> Shapes.box(0.375D, 0.375D, 0.0D, 0.625D, 0.625D, 0.625D);
+            case WEST -> Shapes.box(0.375D, 0.375D, 0.375D, 1.0D, 0.625D, 0.625D);
+            case EAST -> Shapes.box(0.0D, 0.375D, 0.375D, 0.625D, 0.625D, 0.625D);
+        };
+    }
+
+    private static VoxelShape controllerShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 1.0D, 0.625D);
+            case UP -> Shapes.box(0.375D, 0.0D, 0.375D, 0.625D, 0.625D, 0.625D);
+            case NORTH -> Shapes.box(0.375D, 0.375D, 0.375D, 0.625D, 0.625D, 1.0D);
+            case SOUTH -> Shapes.box(0.375D, 0.375D, 0.0D, 0.625D, 0.625D, 0.625D);
+            case WEST -> Shapes.box(0.375D, 0.375D, 0.375D, 1.0D, 0.625D, 0.625D);
+            case EAST -> Shapes.box(0.0D, 0.375D, 0.375D, 0.625D, 0.625D, 0.625D);
+        };
     }
 }

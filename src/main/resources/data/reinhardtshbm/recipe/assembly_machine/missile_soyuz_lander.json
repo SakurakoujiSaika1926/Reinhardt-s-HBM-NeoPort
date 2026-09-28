@@ -2,7 +2,7 @@
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.lander",
   "duration": 2400,
-  "power": 100,
+  "power": 25000,
   "ingredients": [
     {
       "ingredient": {
@@ -39,6 +39,12 @@
         "item": "reinhardtshbm:part_generic_lde"
       },
       "count": 12
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:drive_flash_flightsim"
+      },
+      "count": 8
     }
   ],
   "result": {
@@ -46,6 +52,6 @@
     "count": 1
   },
   "blueprint_pools": [
-    "discover.soyuz"
+    "528.soyuz"
   ]
 }

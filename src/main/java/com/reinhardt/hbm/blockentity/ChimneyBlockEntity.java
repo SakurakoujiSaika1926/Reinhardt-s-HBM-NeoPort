@@ -47,20 +47,42 @@ public class ChimneyBlockEntity extends BlockEntity {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ChimneyBlockEntity chimney) {
-        if (!level.isClientSide && level.getGameTime() % 20L == 0L) {
-            chimney.refreshLegacyPortDucts(level);
-            chimney.pullSmokeFromLegacyPorts(level);
+        if (chimney.industrial) {
+            chimney.tickIndustrialChimney(level, pos);
+        } else {
+            chimney.tickBrickChimney(level, pos);
         }
-        if (chimney.onTicks > 0) {
-            chimney.onTicks--;
-            if (level instanceof ServerLevel serverLevel && level.getGameTime() % 2L == 0L) {
-                double y = pos.getY() + (chimney.industrial ? 22.0D : 12.0D);
-                serverLevel.sendParticles(chimney.industrial
-                                ? HbmParticleTypes.CHIMNEY_SMOKE_INDUSTRIAL.get()
-                                : HbmParticleTypes.CHIMNEY_SMOKE_BRICK.get(),
-                        pos.getX() + 0.5D, y, pos.getZ() + 0.5D, 1,
-                        0.0D, 0.0D, 0.0D, 0.0D);
-            }
+    }
+
+    private void tickBrickChimney(Level level, BlockPos pos) {
+        if (!level.isClientSide && level.getGameTime() % 20L == 0L) {
+            refreshBrickChimneyPortDucts(level);
+            pullBrickChimneySmoke(level);
+        }
+        if (this.onTicks <= 0) {
+            return;
+        }
+        this.onTicks--;
+        if (level instanceof ServerLevel serverLevel && level.getGameTime() % 2L == 0L) {
+            serverLevel.sendParticles(HbmParticleTypes.CHIMNEY_SMOKE_BRICK.get(),
+                    pos.getX() + 0.5D, pos.getY() + 12.0D, pos.getZ() + 0.5D, 1,
+                    0.0D, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
+    private void tickIndustrialChimney(Level level, BlockPos pos) {
+        if (!level.isClientSide && level.getGameTime() % 20L == 0L) {
+            refreshIndustrialChimneyPortDucts(level);
+            pullIndustrialChimneySmoke(level);
+        }
+        if (this.onTicks <= 0) {
+            return;
+        }
+        this.onTicks--;
+        if (level instanceof ServerLevel serverLevel && level.getGameTime() % 2L == 0L) {
+            serverLevel.sendParticles(HbmParticleTypes.CHIMNEY_SMOKE_INDUSTRIAL.get(),
+                    pos.getX() + 0.5D, pos.getY() + 22.0D, pos.getZ() + 0.5D, 1,
+                    0.0D, 0.0D, 0.0D, 0.0D);
         }
     }
 
@@ -79,17 +101,22 @@ public class ChimneyBlockEntity extends BlockEntity {
     }
 
     public boolean canConnectLegacyExhaustPort(BlockPos queriedPos, @Nullable Direction side, HbmFluidDefinition fluid) {
-        return isAcceptedSmokeFluid(fluid) && allowsFluidPort(queriedPos, side);
+        if (!isAcceptedSmokeFluid(fluid)) {
+            return false;
+        }
+        return this.industrial
+                ? allowsIndustrialChimneyFluidPort(queriedPos, side)
+                : allowsBrickChimneyFluidPort(queriedPos, side);
     }
 
-    private void refreshLegacyPortDucts(Level level) {
-        refreshLegacyPortDuct(level, Direction.EAST);
-        refreshLegacyPortDuct(level, Direction.WEST);
-        refreshLegacyPortDuct(level, Direction.SOUTH);
-        refreshLegacyPortDuct(level, Direction.NORTH);
+    private void refreshBrickChimneyPortDucts(Level level) {
+        refreshBrickChimneyPortDuct(level, Direction.EAST);
+        refreshBrickChimneyPortDuct(level, Direction.WEST);
+        refreshBrickChimneyPortDuct(level, Direction.SOUTH);
+        refreshBrickChimneyPortDuct(level, Direction.NORTH);
     }
 
-    private void refreshLegacyPortDuct(Level level, Direction portDirection) {
+    private void refreshBrickChimneyPortDuct(Level level, Direction portDirection) {
         BlockPos pipePos = this.worldPosition.relative(portDirection, 2);
         BlockState pipeState = level.getBlockState(pipePos);
         if (pipeState.getBlock() instanceof FluidDuctBlock duct && duct.kind().isExhaust()) {
@@ -97,44 +124,94 @@ public class ChimneyBlockEntity extends BlockEntity {
         }
     }
 
-    private void pullSmokeFromLegacyPorts(Level level) {
+    private void refreshIndustrialChimneyPortDucts(Level level) {
+        refreshIndustrialChimneyPortDuct(level, Direction.EAST);
+        refreshIndustrialChimneyPortDuct(level, Direction.WEST);
+        refreshIndustrialChimneyPortDuct(level, Direction.SOUTH);
+        refreshIndustrialChimneyPortDuct(level, Direction.NORTH);
+    }
+
+    private void refreshIndustrialChimneyPortDuct(Level level, Direction portDirection) {
+        BlockPos pipePos = this.worldPosition.relative(portDirection, 2);
+        BlockState pipeState = level.getBlockState(pipePos);
+        if (pipeState.getBlock() instanceof FluidDuctBlock duct && duct.kind().isExhaust()) {
+            duct.refreshConnections(level, pipePos);
+        }
+    }
+
+    private void pullBrickChimneySmoke(Level level) {
         for (String name : ACCEPTED_FLUIDS) {
             HbmFluidDefinition fluid = HbmFluids.byName(name).orElse(HbmFluids.none());
             if (fluid.isNone()) {
                 continue;
             }
-            pullFromLegacyPort(level, Direction.EAST, fluid);
-            pullFromLegacyPort(level, Direction.WEST, fluid);
-            pullFromLegacyPort(level, Direction.SOUTH, fluid);
-            pullFromLegacyPort(level, Direction.NORTH, fluid);
+            pullFromBrickChimneyPort(level, Direction.EAST, fluid);
+            pullFromBrickChimneyPort(level, Direction.WEST, fluid);
+            pullFromBrickChimneyPort(level, Direction.SOUTH, fluid);
+            pullFromBrickChimneyPort(level, Direction.NORTH, fluid);
         }
     }
 
-    private void pullFromLegacyPort(Level level, Direction portDirection, HbmFluidDefinition fluid) {
+    private void pullFromBrickChimneyPort(Level level, Direction portDirection, HbmFluidDefinition fluid) {
         BlockPos pipePos = this.worldPosition.relative(portDirection, 2);
         Direction pipeAccessSide = portDirection.getOpposite();
         FluidStack drained = HbmFluidNetworks.drainFrom(level, pipePos, pipeAccessSide, fluid, SUBSCRIBE_AMOUNT, this.worldPosition, true);
         if (!drained.isEmpty()) {
-            acceptSmoke(drained);
+            acceptBrickChimneySmoke(drained);
+        }
+    }
+
+    private void pullIndustrialChimneySmoke(Level level) {
+        for (String name : ACCEPTED_FLUIDS) {
+            HbmFluidDefinition fluid = HbmFluids.byName(name).orElse(HbmFluids.none());
+            if (fluid.isNone()) {
+                continue;
+            }
+            pullFromIndustrialChimneyPort(level, Direction.EAST, fluid);
+            pullFromIndustrialChimneyPort(level, Direction.WEST, fluid);
+            pullFromIndustrialChimneyPort(level, Direction.SOUTH, fluid);
+            pullFromIndustrialChimneyPort(level, Direction.NORTH, fluid);
+        }
+    }
+
+    private void pullFromIndustrialChimneyPort(Level level, Direction portDirection, HbmFluidDefinition fluid) {
+        BlockPos pipePos = this.worldPosition.relative(portDirection, 2);
+        Direction pipeAccessSide = portDirection.getOpposite();
+        FluidStack drained = HbmFluidNetworks.drainFrom(level, pipePos, pipeAccessSide, fluid, SUBSCRIBE_AMOUNT, this.worldPosition, true);
+        if (!drained.isEmpty()) {
+            acceptIndustrialChimneySmoke(drained);
         }
     }
 
     @Nullable
     public IFluidHandler fluidHandler(BlockPos queriedPos, @Nullable Direction side) {
-        if (!allowsFluidPort(queriedPos, side)) {
-            return null;
+        if (this.industrial) {
+            return allowsIndustrialChimneyFluidPort(queriedPos, side)
+                    ? new IndustrialChimneySmokeHandler()
+                    : null;
         }
-        return new SmokeHandler();
+        return allowsBrickChimneyFluidPort(queriedPos, side)
+                ? new BrickChimneySmokeHandler()
+                : null;
     }
 
-    private boolean allowsFluidPort(BlockPos queriedPos, @Nullable Direction side) {
+    private boolean allowsBrickChimneyFluidPort(BlockPos queriedPos, @Nullable Direction side) {
         if (side == null || side.getAxis().isVertical()) {
             return false;
         }
         BlockPos diff = queriedPos.subtract(this.worldPosition);
-        // A pipe asks for the capability from the outward face of the outer
-        // dummy it is attached to. The legacy chimney accepts smoke through
-        // its four horizontal base dummies only.
+        return diff.getY() == 0
+                && ((diff.getX() == 1 && diff.getZ() == 0 && side == Direction.EAST)
+                || (diff.getX() == -1 && diff.getZ() == 0 && side == Direction.WEST)
+                || (diff.getX() == 0 && diff.getZ() == 1 && side == Direction.SOUTH)
+                || (diff.getX() == 0 && diff.getZ() == -1 && side == Direction.NORTH));
+    }
+
+    private boolean allowsIndustrialChimneyFluidPort(BlockPos queriedPos, @Nullable Direction side) {
+        if (side == null || side.getAxis().isVertical()) {
+            return false;
+        }
+        BlockPos diff = queriedPos.subtract(this.worldPosition);
         return diff.getY() == 0
                 && ((diff.getX() == 1 && diff.getZ() == 0 && side == Direction.EAST)
                 || (diff.getX() == -1 && diff.getZ() == 0 && side == Direction.WEST)
@@ -178,19 +255,37 @@ public class ChimneyBlockEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    private double pollutionModifier() {
-        return HbmConfig.smokestackPollutionModifier(industrial);
+    private double brickChimneyPollutionModifier() {
+        return HbmConfig.smokestackPollutionModifier(false);
     }
 
-    private int acceptSmoke(FluidStack resource) {
+    private double industrialChimneyPollutionModifier() {
+        return HbmConfig.smokestackPollutionModifier(true);
+    }
+
+    private int acceptBrickChimneySmoke(FluidStack resource) {
         HbmPollutionType type = smokeType(resource);
         if (type == null || resource.isEmpty() || level == null) {
             return 0;
         }
         int amount = resource.getAmount();
         onTicks = 20;
-        captureAsh(type, amount);
-        HbmPollution.emitSmoke(level, worldPosition, type, amount / 100.0D, pollutionModifier());
+        captureBrickChimneyAsh(amount);
+        HbmPollution.emitSmoke(level, worldPosition, type, amount / 100.0D, brickChimneyPollutionModifier());
+        setChanged();
+        syncStatus();
+        return amount;
+    }
+
+    private int acceptIndustrialChimneySmoke(FluidStack resource) {
+        HbmPollutionType type = smokeType(resource);
+        if (type == null || resource.isEmpty() || level == null) {
+            return 0;
+        }
+        int amount = resource.getAmount();
+        onTicks = 20;
+        captureIndustrialChimneyAsh(type, amount);
+        HbmPollution.emitSmoke(level, worldPosition, type, amount / 100.0D, industrialChimneyPollutionModifier());
         setChanged();
         syncStatus();
         return amount;
@@ -204,17 +299,24 @@ public class ChimneyBlockEntity extends BlockEntity {
         this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_CLIENTS);
     }
 
-    private void captureAsh(HbmPollutionType type, int amount) {
+    private void captureBrickChimneyAsh(int amount) {
         if (level == null || !(level.getBlockEntity(worldPosition.below()) instanceof AshpitBlockEntity ashpit)) {
             return;
         }
         ashpit.addFlyAsh(amount);
-        if (industrial && type == HbmPollutionType.SOOT) {
+    }
+
+    private void captureIndustrialChimneyAsh(HbmPollutionType type, int amount) {
+        if (level == null || !(level.getBlockEntity(worldPosition.below()) instanceof AshpitBlockEntity ashpit)) {
+            return;
+        }
+        ashpit.addFlyAsh(amount);
+        if (type == HbmPollutionType.SOOT) {
             ashpit.addSoot(amount);
         }
     }
 
-    private final class SmokeHandler implements IFluidHandler {
+    private abstract class ChimneySmokeHandler implements IFluidHandler {
         @Override
         public int getTanks() {
             return 1;
@@ -235,16 +337,9 @@ public class ChimneyBlockEntity extends BlockEntity {
             return tank == 0 && smokeType(stack) != null;
         }
 
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        protected final boolean canFill(FluidStack resource) {
             HbmPollutionType type = smokeType(resource);
-            if (type == null || resource.isEmpty()) {
-                return 0;
-            }
-            if (action.execute()) {
-                return acceptSmoke(resource);
-            }
-            return resource.getAmount();
+            return type != null && !resource.isEmpty();
         }
 
         @Override
@@ -255,6 +350,26 @@ public class ChimneyBlockEntity extends BlockEntity {
         @Override
         public FluidStack drain(int maxDrain, FluidAction action) {
             return FluidStack.EMPTY;
+        }
+    }
+
+    private final class BrickChimneySmokeHandler extends ChimneySmokeHandler {
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            if (!canFill(resource)) {
+                return 0;
+            }
+            return action.execute() ? acceptBrickChimneySmoke(resource) : resource.getAmount();
+        }
+    }
+
+    private final class IndustrialChimneySmokeHandler extends ChimneySmokeHandler {
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            if (!canFill(resource)) {
+                return 0;
+            }
+            return action.execute() ? acceptIndustrialChimneySmoke(resource) : resource.getAmount();
         }
     }
 

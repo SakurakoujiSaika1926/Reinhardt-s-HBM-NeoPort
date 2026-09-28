@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.cargodoor",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:steel_beam" }, "count": 32 },
+    { "ingredient": { "tag": "c:plates/steel" }, "count": 4 },
+    { "ingredient": { "tag": "c:bolts/dura_steel" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 },
+    { "ingredient": { "tag": "c:dyes/gray" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:cargo_door" }
+}

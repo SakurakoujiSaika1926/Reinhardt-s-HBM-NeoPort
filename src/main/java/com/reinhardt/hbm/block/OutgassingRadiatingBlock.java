@@ -14,18 +14,9 @@ public class OutgassingRadiatingBlock extends RadiatingBlock {
     }
 
     @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        super.onPlace(state, level, pos, oldState, movedByPiston);
-        if (!level.isClientSide && oldState.getBlock() != state.getBlock()) {
-            level.scheduleTick(pos, this, 1);
-        }
-    }
-
-    @Override
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        super.tick(state, level, pos, random);
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        super.randomTick(state, level, pos, random);
         emitRadon(level, pos, Direction.values()[random.nextInt(Direction.values().length)]);
-        level.scheduleTick(pos, this, 1);
     }
 
     @Override

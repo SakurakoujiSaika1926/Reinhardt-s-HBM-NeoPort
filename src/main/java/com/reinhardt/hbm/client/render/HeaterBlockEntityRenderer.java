@@ -1,11 +1,10 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.HeaterBlock;
 import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -16,7 +15,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class HeaterBlockEntityRenderer implements BlockEntityRenderer<HeaterBlockEntity> {
+public class HeaterBlockEntityRenderer implements LongRangeBlockEntityRenderer<HeaterBlockEntity> {
     private static final ModelResourceLocation FIREBOX_WORLD = MachineModelRenderer.standalone("block/heater_firebox_world");
     private static final ModelResourceLocation FIREBOX_DOOR = MachineModelRenderer.standalone("block/heater_firebox_door");
     private static final ModelResourceLocation FIREBOX_INNER_EMPTY = MachineModelRenderer.standalone("block/heater_firebox_inner_empty");
@@ -28,6 +27,10 @@ public class HeaterBlockEntityRenderer implements BlockEntityRenderer<HeaterBloc
     private static final ModelResourceLocation OILBURNER = MachineModelRenderer.standalone("block/heater_oilburner");
     private static final ModelResourceLocation ELECTRIC = MachineModelRenderer.standalone("block/heater_electric");
     private static final ModelResourceLocation HEATEX = MachineModelRenderer.standalone("block/heater_heatex");
+    private static final AABB[] FIREBOX_BOUNDS = buildFireboxBounds();
+    private static final AABB[] OVEN_BOUNDS = buildOvenBounds();
+    private static final AABB[] ELECTRIC_BOUNDS = buildElectricHeaterBounds();
+    private static final AABB[] HEATEX_BOUNDS = buildHeatExchangerBounds();
 
     public HeaterBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -49,7 +52,6 @@ public class HeaterBlockEntityRenderer implements BlockEntityRenderer<HeaterBloc
     @Override
     public void render(HeaterBlockEntity heater, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = heater.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
         // The old TESRs lit the shell and door with the world's normal light.
         // Keep full-bright exclusively for the burning inner mesh.
         int worldLight = heater.getLevel() == null
@@ -59,21 +61,21 @@ public class HeaterBlockEntityRenderer implements BlockEntityRenderer<HeaterBloc
         switch (heater.kind()) {
             case FIREBOX -> {
                 poseStack.pushPose();
-                MachineModelRenderer.orientLegacyHeaterParts(poseStack, facing);
+                applyFireboxTransform(poseStack, fireboxFacing(state));
                 renderStatic(FIREBOX_WORLD, poseStack, bufferSource, state, worldLight, packedOverlay);
                 renderFirebox(heater, partialTick, poseStack, bufferSource, state, worldLight, packedOverlay);
                 poseStack.popPose();
             }
             case OVEN -> {
                 poseStack.pushPose();
-                MachineModelRenderer.orientLegacyHeaterParts(poseStack, facing);
+                applyOvenTransform(poseStack, ovenFacing(state));
                 renderStatic(OVEN_WORLD, poseStack, bufferSource, state, worldLight, packedOverlay);
                 renderOven(heater, partialTick, poseStack, bufferSource, state, worldLight, packedOverlay);
                 poseStack.popPose();
             }
             case ELECTRIC -> {
                 poseStack.pushPose();
-                MachineModelRenderer.orientLegacyHeaterParts(poseStack, facing);
+                applyElectricHeaterTransform(poseStack, electricHeaterFacing(state));
                 // The legacy TESR used normal world lighting for the electric heater.
                 // This model needs the block renderer path so ambient occlusion is retained.
                 renderLitStatic(ELECTRIC, poseStack, bufferSource, state, worldLight, packedOverlay);
@@ -81,7 +83,7 @@ public class HeaterBlockEntityRenderer implements BlockEntityRenderer<HeaterBloc
             }
             case HEATEX -> {
                 poseStack.pushPose();
-                MachineModelRenderer.orientLegacyHeaterParts(poseStack, facing);
+                applyHeatExchangerTransform(poseStack, heatExchangerFacing(state));
                 renderStatic(HEATEX, poseStack, bufferSource, state, worldLight, packedOverlay);
                 poseStack.popPose();
             }
@@ -95,7 +97,140 @@ public class HeaterBlockEntityRenderer implements BlockEntityRenderer<HeaterBloc
 
     @Override
     public AABB getRenderBoundingBox(HeaterBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 2.0D, 3.0D);
+        BlockState state = blockEntity.getBlockState();
+        return switch (blockEntity.kind()) {
+            case FIREBOX -> FIREBOX_BOUNDS[fireboxFacing(state).ordinal()].move(blockEntity.getBlockPos());
+            case OVEN -> OVEN_BOUNDS[ovenFacing(state).ordinal()].move(blockEntity.getBlockPos());
+            case ELECTRIC -> ELECTRIC_BOUNDS[electricHeaterFacing(state).ordinal()].move(blockEntity.getBlockPos());
+            case HEATEX -> HEATEX_BOUNDS[heatExchangerFacing(state).ordinal()].move(blockEntity.getBlockPos());
+            // The oil burner is the sole heater variant rendered without an orientation transform.
+            case OILBURNER -> RenderBounds.localFloatVertices(blockEntity.getBlockPos(),
+                    -1.0D, 0.0D, -1.0D, 2.0D, 2.0D, 2.000001D);
+        };
+    }
+
+    private static AABB[] buildFireboxBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyFireboxTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.0F, 0.0F, -1.0F, (float) 2.6275996611745187D, 1.0F, 2.0F);
+        }
+        return bounds;
+    }
+
+    private static AABB[] buildOvenBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyOvenTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.0F, 0.0F, -1.0F, 2.1875F, 1.0F, 2.0F);
+        }
+        return bounds;
+    }
+
+    private static AABB[] buildElectricHeaterBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyElectricHeaterTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.125F, 0.0F, -1.125F, 3.0F, 1.0F, 2.125F);
+        }
+        return bounds;
+    }
+
+    private static AABB[] buildHeatExchangerBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyHeatExchangerTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.0F, 0.0F, -1.0F, 2.0F, 1.0F, 2.0F);
+        }
+        return bounds;
+    }
+
+    private static Direction fireboxFacing(BlockState state) {
+        if (!state.hasProperty(HeaterBlock.FACING)) {
+            throw new IllegalStateException("Firebox heater state is missing its dedicated facing property");
+        }
+        return state.getValue(HeaterBlock.FACING);
+    }
+
+    private static Direction ovenFacing(BlockState state) {
+        if (!state.hasProperty(HeaterBlock.FACING)) {
+            throw new IllegalStateException("Oven heater state is missing its dedicated facing property");
+        }
+        return state.getValue(HeaterBlock.FACING);
+    }
+
+    private static Direction electricHeaterFacing(BlockState state) {
+        if (!state.hasProperty(HeaterBlock.FACING)) {
+            throw new IllegalStateException("Electric heater state is missing its dedicated facing property");
+        }
+        return state.getValue(HeaterBlock.FACING);
+    }
+
+    private static Direction heatExchangerFacing(BlockState state) {
+        if (!state.hasProperty(HeaterBlock.FACING)) {
+            throw new IllegalStateException("Heat exchanger state is missing its dedicated facing property");
+        }
+        return state.getValue(HeaterBlock.FACING);
+    }
+
+    private static void applyFireboxTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Firebox heater facing must be horizontal: " + facing);
+        }
+        poseStack.translate(-0.5F, 0.0F, -0.5F);
+    }
+
+    private static void applyOvenTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Oven heater facing must be horizontal: " + facing);
+        }
+        poseStack.translate(-0.5F, 0.0F, -0.5F);
+    }
+
+    private static void applyElectricHeaterTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Electric heater facing must be horizontal: " + facing);
+        }
+        poseStack.translate(-0.5F, 0.0F, -0.5F);
+    }
+
+    private static void applyHeatExchangerTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> { }
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Heat exchanger facing must be horizontal: " + facing);
+        }
+        poseStack.translate(-0.5F, 0.0F, -0.5F);
     }
 
     private static void renderStatic(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {

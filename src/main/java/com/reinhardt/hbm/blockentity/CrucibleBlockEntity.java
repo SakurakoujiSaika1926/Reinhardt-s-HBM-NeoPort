@@ -69,6 +69,7 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
     private ResourceLocation selectedRecipe;
     private int heat;
     private int progress;
+    private volatile MoltenRenderSnapshot moltenRenderSnapshot = MoltenRenderSnapshot.empty();
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -149,6 +150,27 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
         return List.copyOf(this.wasteStack);
     }
 
+    public MoltenRenderSnapshot moltenRenderSnapshot() {
+        return this.moltenRenderSnapshot;
+    }
+
+    /** Reproduces the legacy renderer's list order and colour-selection rules once per state update. */
+    private void publishMoltenRenderSnapshot() {
+        int totalMass = 0;
+        int color = 0xFFB65434;
+        for (FoundryMaterialStack stack : this.recipeStack) {
+            totalMass += stack.amount();
+            color = 0xFF000000 | stack.material().moltenColor();
+        }
+        for (FoundryMaterialStack stack : this.wasteStack) {
+            totalMass += stack.amount();
+            if (color == 0xFFB65434) {
+                color = 0xFF000000 | stack.material().moltenColor();
+            }
+        }
+        this.moltenRenderSnapshot = new MoltenRenderSnapshot(totalMass, color);
+    }
+
     public int heat() {
         return this.heat;
     }
@@ -190,6 +212,7 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
         }
         this.recipeStack.clear();
         this.wasteStack.clear();
+        publishMoltenRenderSnapshot();
         setChanged();
         syncToClient();
     }
@@ -315,7 +338,7 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -722,6 +745,7 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
         this.recipeStack.addAll(loadMaterialList(tag.getList("RecipeStack", Tag.TAG_COMPOUND)));
         this.wasteStack.clear();
         this.wasteStack.addAll(loadMaterialList(tag.getList("WasteStack", Tag.TAG_COMPOUND)));
+        publishMoltenRenderSnapshot();
     }
 
     private static ListTag saveMaterialList(List<FoundryMaterialStack> stacks) {
@@ -754,5 +778,11 @@ public class CrucibleBlockEntity extends BlockEntity implements CrucibleAcceptor
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    public record MoltenRenderSnapshot(int totalMass, int color) {
+        private static MoltenRenderSnapshot empty() {
+            return new MoltenRenderSnapshot(0, 0xFFB65434);
+        }
     }
 }

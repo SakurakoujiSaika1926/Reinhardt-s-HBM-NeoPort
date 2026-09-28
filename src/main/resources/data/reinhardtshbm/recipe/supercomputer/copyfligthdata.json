@@ -1,0 +1,14 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.copyfligthdata",
+  "duration": 18000,
+  "power": 10000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_flightdata_processed" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_empty" }, "count": 1 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:drive_disk_flightdata_processed", "count": 2 }, "weight": 75 },
+    { "result": { "id": "reinhardtshbm:drive_disk_broken", "count": 2 }, "weight": 25 }
+  ]
+}

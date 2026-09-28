@@ -51,7 +51,7 @@ public final class CrashedBombBlock extends Block implements EntityBlock {
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                     BlockEntityType<T> type) {
-        if (level.isClientSide || type != HbmBlockEntities.CRASHED_BOMB.get()) {
+        if (type != HbmBlockEntities.CRASHED_BOMB.get()) {
             return null;
         }
         return (tickerLevel, tickerPos, tickerState, blockEntity) -> {

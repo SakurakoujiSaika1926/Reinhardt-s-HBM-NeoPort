@@ -2,11 +2,11 @@ package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.client.search.JechSearchCompat;
+import com.reinhardt.hbm.client.screen.widget.SearchEditBox;
 import com.reinhardt.hbm.menu.AssemblyMachineMenu;
 import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -34,7 +34,7 @@ public class AssemblyRecipeSelectorScreen extends Screen {
 
     @Nullable
     private ResourceLocation selectedRecipeId;
-    private EditBox search;
+    private SearchEditBox search;
     private int leftPos;
     private int topPos;
     private int pageIndex;
@@ -55,7 +55,7 @@ public class AssemblyRecipeSelectorScreen extends Screen {
         this.leftPos = (this.width - IMAGE_WIDTH) / 2;
         this.topPos = (this.height - IMAGE_HEIGHT) / 2;
 
-        this.search = new EditBox(this.font, this.leftPos + 28, this.topPos + 111, 102, 12, Component.translatable("container.reinhardtshbm.recipe_selector.search"));
+        this.search = new SearchEditBox(this.font, this.leftPos + 28, this.topPos + 111, 102, 12, Component.translatable("container.reinhardtshbm.recipe_selector.search"));
         this.search.setTextColor(0xFFFFFF);
         this.search.setTextColorUneditable(0xFFFFFF);
         this.search.setBordered(false);

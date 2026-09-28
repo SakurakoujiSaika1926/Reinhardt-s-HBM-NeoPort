@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.blockentity.LanternBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -13,7 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Direct port of RenderLantern, including separate opaque and light OBJ groups. */
-public final class LanternBlockEntityRenderer implements BlockEntityRenderer<LanternBlockEntity> {
+public final class LanternBlockEntityRenderer implements LongRangeBlockEntityRenderer<LanternBlockEntity> {
     static final ModelResourceLocation BODY = model("block/trinkets/lantern");
     static final ModelResourceLocation LIGHT = model("block/trinkets/lantern_light");
     private static final net.minecraft.resources.ResourceLocation BODY_TEXTURE = texture("lantern.png");
@@ -71,6 +70,8 @@ public final class LanternBlockEntityRenderer implements BlockEntityRenderer<Lan
 
     @Override
     public AABB getRenderBoundingBox(LanternBlockEntity lantern) {
-        return new AABB(lantern.getBlockPos()).expandTowards(0.0D, 5.0D, 0.0D);
+        // Face-used body/light union after the renderer's (+0.5, 0, +0.5) translation.
+        return RenderBounds.localFloatVertices(lantern.getBlockPos(),
+                0.1308D, -0.25D, 0.125D, 0.875D, 5.5D, 0.875D);
     }
 }

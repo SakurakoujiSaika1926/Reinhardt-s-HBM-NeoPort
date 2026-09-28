@@ -41,7 +41,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,6 +85,14 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
             INPUT_CONTAINER_RESULT_SLOT,
             OUTPUT_CONTAINER_RESULT_SLOT
     };
+    private static final int[] NO_AUTOMATION_SLOTS = {};
+    private static final int[] BOTTOM_AUTOMATION_SLOTS = {
+            FUEL_SLOT,
+            OUTPUT_SLOT,
+            BYPRODUCT_SLOT
+    };
+    private static final int[] UPPER_INPUT_AUTOMATION_SLOT = {UPPER_INPUT_SLOT};
+    private static final int[] LOWER_INPUT_AUTOMATION_SLOT = {LOWER_INPUT_SLOT};
 
     private ItemStack fuelStack = ItemStack.EMPTY;
     private ItemStack upperInputStack = ItemStack.EMPTY;
@@ -229,28 +236,111 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
     }
 
     public static List<Port> fluidPortsFor(BlockPos pos, Direction facing) {
-        Direction dir = horizontal(facing);
-        List<Port> ports = new ArrayList<>(6);
-        ports.add(new Port(pos.east(), Direction.EAST));
-        ports.add(new Port(pos.west(), Direction.WEST));
-        ports.add(new Port(pos.south(), Direction.SOUTH));
-        ports.add(new Port(pos.relative(dir).above(3), dir));
-        ports.add(new Port(pos.relative(dir).above(5), dir));
-        ports.add(new Port(pos.above(6), Direction.UP));
-        return List.copyOf(ports);
+        return switch (facing) {
+            case NORTH -> northBlastFurnaceFluidPorts(pos);
+            case EAST -> eastBlastFurnaceFluidPorts(pos);
+            case SOUTH -> southBlastFurnaceFluidPorts(pos);
+            case WEST -> westBlastFurnaceFluidPorts(pos);
+            case UP, DOWN -> throw new IllegalArgumentException("Blast furnace facing must be horizontal: " + facing);
+        };
     }
 
     public static List<Port> automationPortsFor(BlockPos pos, Direction facing) {
-        Direction dir = horizontal(facing);
-        List<Port> ports = new ArrayList<>(7);
-        ports.add(new Port(pos.east(), Direction.EAST));
-        ports.add(new Port(pos.west(), Direction.WEST));
-        ports.add(new Port(pos.south(), Direction.SOUTH));
-        ports.add(new Port(pos.north(), Direction.NORTH));
-        ports.add(new Port(pos.relative(dir).above(3), dir));
-        ports.add(new Port(pos.relative(dir).above(5), dir));
-        ports.add(new Port(pos.above(6), Direction.UP));
-        return List.copyOf(ports);
+        return switch (facing) {
+            case NORTH -> northBlastFurnaceAutomationPorts(pos);
+            case EAST -> eastBlastFurnaceAutomationPorts(pos);
+            case SOUTH -> southBlastFurnaceAutomationPorts(pos);
+            case WEST -> westBlastFurnaceAutomationPorts(pos);
+            case UP, DOWN -> throw new IllegalArgumentException("Blast furnace facing must be horizontal: " + facing);
+        };
+    }
+
+    private static List<Port> northBlastFurnaceFluidPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.north().above(3), Direction.NORTH),
+                new Port(pos.north().above(5), Direction.NORTH),
+                new Port(pos.above(6), Direction.UP)
+        );
+    }
+
+    private static List<Port> eastBlastFurnaceFluidPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.east().above(3), Direction.EAST),
+                new Port(pos.east().above(5), Direction.EAST),
+                new Port(pos.above(6), Direction.UP)
+        );
+    }
+
+    private static List<Port> southBlastFurnaceFluidPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.south().above(3), Direction.SOUTH),
+                new Port(pos.south().above(5), Direction.SOUTH),
+                new Port(pos.above(6), Direction.UP)
+        );
+    }
+
+    private static List<Port> westBlastFurnaceFluidPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.west().above(3), Direction.WEST),
+                new Port(pos.west().above(5), Direction.WEST),
+                new Port(pos.above(6), Direction.UP)
+        );
+    }
+
+    private static List<Port> northBlastFurnaceAutomationPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.north(), Direction.NORTH),
+                new Port(pos.north().above(3), Direction.NORTH),
+                new Port(pos.north().above(5), Direction.NORTH)
+        );
+    }
+
+    private static List<Port> eastBlastFurnaceAutomationPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.north(), Direction.NORTH),
+                new Port(pos.east().above(3), Direction.EAST),
+                new Port(pos.east().above(5), Direction.EAST)
+        );
+    }
+
+    private static List<Port> southBlastFurnaceAutomationPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.north(), Direction.NORTH),
+                new Port(pos.south().above(3), Direction.SOUTH),
+                new Port(pos.south().above(5), Direction.SOUTH)
+        );
+    }
+
+    private static List<Port> westBlastFurnaceAutomationPorts(BlockPos pos) {
+        return List.of(
+                new Port(pos.east(), Direction.EAST),
+                new Port(pos.west(), Direction.WEST),
+                new Port(pos.south(), Direction.SOUTH),
+                new Port(pos.north(), Direction.NORTH),
+                new Port(pos.west().above(3), Direction.WEST),
+                new Port(pos.west().above(5), Direction.WEST)
+        );
     }
 
     public boolean allowsFluidPort(BlockPos queriedPos, @Nullable Direction side) {
@@ -275,6 +365,83 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
             }
         }
         return false;
+    }
+
+    public int[] getSlotsForAccessor(BlockPos accessorPos, @Nullable Direction side) {
+        if (!allowsAutomationPort(accessorPos, side)) {
+            return NO_AUTOMATION_SLOTS;
+        }
+        return switch (facing()) {
+            case NORTH -> northBlastFurnaceSlotsForAccessor(accessorPos);
+            case EAST -> eastBlastFurnaceSlotsForAccessor(accessorPos);
+            case SOUTH -> southBlastFurnaceSlotsForAccessor(accessorPos);
+            case WEST -> westBlastFurnaceSlotsForAccessor(accessorPos);
+            case UP, DOWN -> throw new IllegalStateException("Blast furnace facing must be horizontal");
+        };
+    }
+
+    private int[] northBlastFurnaceSlotsForAccessor(BlockPos accessorPos) {
+        if (accessorPos.equals(this.worldPosition.north().above(5))) {
+            return UPPER_INPUT_AUTOMATION_SLOT;
+        }
+        if (accessorPos.equals(this.worldPosition.north().above(3))) {
+            return LOWER_INPUT_AUTOMATION_SLOT;
+        }
+        return isBottomBlastFurnaceAccessor(accessorPos) ? BOTTOM_AUTOMATION_SLOTS : NO_AUTOMATION_SLOTS;
+    }
+
+    private int[] eastBlastFurnaceSlotsForAccessor(BlockPos accessorPos) {
+        if (accessorPos.equals(this.worldPosition.east().above(5))) {
+            return UPPER_INPUT_AUTOMATION_SLOT;
+        }
+        if (accessorPos.equals(this.worldPosition.east().above(3))) {
+            return LOWER_INPUT_AUTOMATION_SLOT;
+        }
+        return isBottomBlastFurnaceAccessor(accessorPos) ? BOTTOM_AUTOMATION_SLOTS : NO_AUTOMATION_SLOTS;
+    }
+
+    private int[] southBlastFurnaceSlotsForAccessor(BlockPos accessorPos) {
+        if (accessorPos.equals(this.worldPosition.south().above(5))) {
+            return UPPER_INPUT_AUTOMATION_SLOT;
+        }
+        if (accessorPos.equals(this.worldPosition.south().above(3))) {
+            return LOWER_INPUT_AUTOMATION_SLOT;
+        }
+        return isBottomBlastFurnaceAccessor(accessorPos) ? BOTTOM_AUTOMATION_SLOTS : NO_AUTOMATION_SLOTS;
+    }
+
+    private int[] westBlastFurnaceSlotsForAccessor(BlockPos accessorPos) {
+        if (accessorPos.equals(this.worldPosition.west().above(5))) {
+            return UPPER_INPUT_AUTOMATION_SLOT;
+        }
+        if (accessorPos.equals(this.worldPosition.west().above(3))) {
+            return LOWER_INPUT_AUTOMATION_SLOT;
+        }
+        return isBottomBlastFurnaceAccessor(accessorPos) ? BOTTOM_AUTOMATION_SLOTS : NO_AUTOMATION_SLOTS;
+    }
+
+    private boolean isBottomBlastFurnaceAccessor(BlockPos accessorPos) {
+        return accessorPos.equals(this.worldPosition.east())
+                || accessorPos.equals(this.worldPosition.west())
+                || accessorPos.equals(this.worldPosition.south())
+                || accessorPos.equals(this.worldPosition.north());
+    }
+
+    private static boolean containsSlot(int[] slots, int slot) {
+        for (int candidate : slots) {
+            if (candidate == slot) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean canPlaceItemThroughAccessor(BlockPos accessorPos, int slot, ItemStack stack, @Nullable Direction side) {
+        return containsSlot(getSlotsForAccessor(accessorPos, side), slot) && canPlaceItem(slot, stack);
+    }
+
+    public boolean canTakeItemThroughAccessor(BlockPos accessorPos, int slot, ItemStack stack, Direction side) {
+        return containsSlot(getSlotsForAccessor(accessorPos, side), slot) && canTakeItemThroughFace(slot, stack, side);
     }
 
     @Override
@@ -381,7 +548,7 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -613,6 +780,7 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
         }
 
         addToOutput(OUTPUT_SLOT, match.result().copy());
+        addToOutput(BYPRODUCT_SLOT, match.byproduct().copy());
         addToOutput(OUTPUT_SLOT, craftingRemaining(usedUpper, match.upperCount()));
         addToOutput(OUTPUT_SLOT, craftingRemaining(usedLower, match.lowerCount()));
     }
@@ -621,6 +789,10 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
         ItemStack simulated = this.outputStack.copy();
         simulated = simulateAdd(simulated, match.result());
         if (simulated == null) {
+            return false;
+        }
+        ItemStack simulatedByproduct = simulateAdd(this.byproductStack.copy(), match.byproduct());
+        if (simulatedByproduct == null) {
             return false;
         }
         simulated = simulateAdd(simulated, craftingRemaining(upper, match.upperCount()));
@@ -806,12 +978,7 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
     }
 
     private Direction facing() {
-        BlockState state = getBlockState();
-        return state.hasProperty(MachineBlastFurnaceBlock.FACING) ? state.getValue(MachineBlastFurnaceBlock.FACING) : Direction.NORTH;
-    }
-
-    private static Direction horizontal(Direction direction) {
-        return direction.getAxis().isHorizontal() ? direction : Direction.NORTH;
+        return getBlockState().getValue(MachineBlastFurnaceBlock.FACING);
     }
 
     private static void drop(Level level, BlockPos pos, ItemStack stack) {

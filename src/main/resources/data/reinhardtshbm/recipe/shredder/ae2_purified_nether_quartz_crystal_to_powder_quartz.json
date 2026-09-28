@@ -7,7 +7,7 @@
     }
   ],
   "ingredient": {
-    "item": "ae2:purified_nether_quartz_crystal"
+    "tag": "ae2:all_nether_quartz"
   },
   "result": {
     "id": "reinhardtshbm:powder_quartz"

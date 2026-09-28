@@ -7,9 +7,9 @@ import com.reinhardt.hbm.blockentity.ChargerBlockEntity;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -17,7 +17,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 /** Direct model-part port of 1.7.10 RenderCharger. */
-public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<ChargerBlockEntity> {
+public final class ChargerBlockEntityRenderer implements LongRangeBlockEntityRenderer<ChargerBlockEntity> {
     private static final ModelResourceLocation BASE = part("charger_base");
     private static final ModelResourceLocation LEFT = part("charger_left");
     private static final ModelResourceLocation RIGHT = part("charger_right");
@@ -36,6 +36,7 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
             {2, 4, 6}, {0, 1, 2}, {2, 3, 4},
             {4, 5, 6}, {6, 7, 0}, {0, 2, 6}
     };
+    private static final AABB[] LOCAL_BOUNDS = buildChargerBounds();
 
     public ChargerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -61,7 +62,7 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = charger.getBlockState();
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, worldYaw(state));
+        applyChargerTransform(poseStack, chargerFacing(state));
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource,
                 state, packedLight, packedOverlay);
 
@@ -111,7 +112,16 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
 
     @Override
     public AABB getRenderBoundingBox(ChargerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos());
+        /*
+         * Face-used baked-float vertices were evaluated through the exact
+         * renderer matrices.  The only global extrema outside Base/Light are
+         * Slide at full extension (time=.5); interval extrema of both +/-30
+         * degree arm sweeps are strictly inside this union.  In particular,
+         * the fixed ten-degree Z rotation puts Slide at y=-0.007054962f, so a
+         * vanilla unit box is not sufficient.
+         */
+        Direction facing = chargerFacing(blockEntity.getBlockState());
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
     private static ModelResourceLocation part(String name) {
@@ -141,13 +151,39 @@ public final class ChargerBlockEntityRenderer implements BlockEntityRenderer<Cha
         return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 0.0F, 1.0F));
     }
 
-    private static float worldYaw(BlockState state) {
-        return switch (state.getValue(ChargerBlock.FACING)) {
-            case SOUTH -> 90.0F;
-            case EAST -> 180.0F;
-            case NORTH -> 270.0F;
-            case WEST -> 0.0F;
-            default -> 90.0F;
-        };
+    private static AABB[] buildChargerBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyChargerTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -0.5F, -0.007054962F, -0.1875F,
+                    -0.23878747F, 0.75F, 0.1875F);
+        }
+        return bounds;
+    }
+
+    private static void applyChargerTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            // RenderCharger: fixed 90 degrees, then metadata 2/3/4/5 adds 0/180/90/270.
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Charger facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction chargerFacing(BlockState state) {
+        if (!state.hasProperty(ChargerBlock.FACING)) {
+            throw new IllegalStateException("Charger block state is missing its facing property: " + state);
+        }
+        Direction facing = state.getValue(ChargerBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Charger block state has a vertical facing: " + facing);
+        }
+        return facing;
     }
 }

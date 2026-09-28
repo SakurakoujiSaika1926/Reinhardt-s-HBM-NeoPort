@@ -17,7 +17,7 @@ public final class HbmFluidDefinitions {
             definition(4, 8, "SUPERHOTSTEAM", "superhotsteam", 0xE7B7B7, 4, 0, 0, HbmFluidSymbol.NONE, 450, "GASEOUS|UNSIPHONABLE", "", ""),
             definition(5, 9, "ULTRAHOTSTEAM", "ultrahotsteam", 0xE39393, 4, 0, 0, HbmFluidSymbol.NONE, 600, "GASEOUS|UNSIPHONABLE", "", ""),
             definition(48, 10, "SPENTSTEAM", "spentsteam", 0x445772, 2, 0, 0, HbmFluidSymbol.NONE, 20, "GASEOUS|NOCON", "", ""),
-            definition(160, 10, "FLUE", "flue", 0x4D4D4D, 2, 0, 0, HbmFluidSymbol.NONE, 120, "GASEOUS|NOCON", "", ""),
+            definition(160, 10, "FLUE", "flue", 0x131313, 1, 4, 1, HbmFluidSymbol.NONE, 20, "GASEOUS|FLAMMABLE:25000", "", "0xFF4545/0xFFE97F"),
             definition(161, 10, "CORIUM_FLUID", "corium_fluid", 0xFF5A00, 4, 0, 4, HbmFluidSymbol.RADIATION, 1500, "LIQUID|VISCOUS|NOCON|RADIATION:5", "", ""),
             definition(162, 11, "VOLCANIC_LAVA_FLUID", "volcanic_lava_fluid", 0xFF3300, 4, 0, 0, HbmFluidSymbol.NOWATER, 1300, "LIQUID|VISCOUS|NOCON", "", ""),
             definition(163, 12, "MUD_FLUID", "mud_fluid", 0x5B5A32, 4, 0, 2, HbmFluidSymbol.ACID, 2500, "LIQUID|VISCOUS|POISON:true:4", "", ""),

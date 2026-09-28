@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["###", "###"],
+  "key": { "#": { "tag": "c:nuggets/australium_greater" } },
+  "result": { "id": "reinhardtshbm:billet_australium_greater" }
+}

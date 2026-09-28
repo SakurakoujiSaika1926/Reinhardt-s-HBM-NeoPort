@@ -10,6 +10,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
+import org.joml.Vector3f;
 
 /** Exact ModelPylon box geometry and UV layout from 1.7.10. */
 public final class LegacyRedPylonModel {
@@ -42,5 +43,19 @@ public final class LegacyRedPylonModel {
 
     public void render(PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay) {
         this.root.render(poseStack, consumer, packedLight, packedOverlay);
+    }
+
+    /** Walks the exact ModelPart cubes and float poses consumed by {@link #render}. */
+    void includeRenderedVertices(RenderBounds.FloatBuilder bounds, PoseStack poseStack) {
+        this.root.visit(poseStack, (cubePose, path, cubeIndex, cube) -> {
+            for (float x : new float[]{cube.minX, cube.maxX}) {
+                for (float y : new float[]{cube.minY, cube.maxY}) {
+                    for (float z : new float[]{cube.minZ, cube.maxZ}) {
+                        bounds.include(cubePose.pose().transformPosition(new Vector3f(
+                                x / 16.0F, y / 16.0F, z / 16.0F)));
+                    }
+                }
+            }
+        });
     }
 }

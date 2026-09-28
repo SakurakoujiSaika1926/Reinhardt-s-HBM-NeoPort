@@ -1,16 +1,16 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.block.OreSlopperBlock;
 import com.reinhardt.hbm.blockentity.OreSlopperBlockEntity;
 import com.reinhardt.hbm.item.BedrockOreItem;
 import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -18,10 +18,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import org.joml.AxisAngle4f;
-import org.joml.Quaternionf;
 
-public class OreSlopperBlockEntityRenderer implements BlockEntityRenderer<OreSlopperBlockEntity> {
+public class OreSlopperBlockEntityRenderer implements LongRangeBlockEntityRenderer<OreSlopperBlockEntity> {
+    private static volatile ItemStack renderedLiftedOre = ItemStack.EMPTY;
+    private static volatile AABB[] liftedOreBounds = emptyLiftedOreBounds();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_ore_slopper_base");
     private static final ModelResourceLocation SLIDER = MachineModelRenderer.standalone("block/machine_ore_slopper_slider");
     private static final ModelResourceLocation HYDRAULICS = MachineModelRenderer.standalone("block/machine_ore_slopper_hydraulics");
@@ -29,8 +29,39 @@ public class OreSlopperBlockEntityRenderer implements BlockEntityRenderer<OreSlo
     private static final ModelResourceLocation BLADES_LEFT = MachineModelRenderer.standalone("block/machine_ore_slopper_blades_left");
     private static final ModelResourceLocation BLADES_RIGHT = MachineModelRenderer.standalone("block/machine_ore_slopper_blades_right");
     private static final ModelResourceLocation FAN = MachineModelRenderer.standalone("block/machine_ore_slopper_fan");
+    private static final AABB[] MACHINE_BOUNDS = buildOreSlopperBounds();
 
     public OreSlopperBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        rebuildLiftedOreGeometryAfterBake();
+    }
+
+    static void rebuildLiftedOreGeometryAfterBake() {
+        ItemStack candidate = BedrockOreItem.stackFor(HbmItems.BEDROCK_ORE_NEW,
+                BedrockOreItem.Grade.BASE, BedrockOreItem.Type.LIGHT_METAL);
+        try {
+            if (Minecraft.getInstance().getItemRenderer().getModel(candidate, null, null, 0).isCustomRenderer()) {
+                renderedLiftedOre = ItemStack.EMPTY;
+                liftedOreBounds = emptyLiftedOreBounds();
+                return;
+            }
+        } catch (RuntimeException malformedModel) {
+            renderedLiftedOre = ItemStack.EMPTY;
+            liftedOreBounds = emptyLiftedOreBounds();
+            return;
+        }
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            AABB envelope = null;
+            for (float slide : new float[]{0.0F, -3.0F}) {
+                for (float bucketY : new float[]{0.0F, -2.5F}) {
+                    AABB candidateBounds = captureLiftedOre(candidate, facing, slide, bucketY);
+                    envelope = envelope == null ? candidateBounds : envelope.minmax(candidateBounds);
+                }
+            }
+            bounds[facing.ordinal()] = envelope;
+        }
+        renderedLiftedOre = candidate.copy();
+        liftedOreBounds = bounds;
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
@@ -46,12 +77,10 @@ public class OreSlopperBlockEntityRenderer implements BlockEntityRenderer<OreSlo
     @Override
     public void render(OreSlopperBlockEntity slopper, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = slopper.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-        Direction legacyDir = OreSlopperBlock.legacyDirFromFacing(facing);
+        Direction facing = oreSlopperFacing(state);
 
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        rotateY(poseStack, legacyYaw(legacyDir));
+        applyOreSlopperTransform(poseStack, facing);
 
         renderPart(BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
 
@@ -67,7 +96,7 @@ public class OreSlopperBlockEntityRenderer implements BlockEntityRenderer<OreSlo
         poseStack.translate(0.0F, -Mth.clamp(extend, 0.0F, 1.25F), 0.0F);
         renderPart(BUCKET, poseStack, bufferSource, state, packedLight, packedOverlay);
         if (slopper.clientLifting()) {
-            renderLiftedOre(poseStack, bufferSource, packedLight, packedOverlay);
+            renderLiftedOre(renderedLiftedOre, poseStack, bufferSource, packedLight, packedOverlay);
         }
         poseStack.popPose();
         poseStack.popPose();
@@ -75,21 +104,21 @@ public class OreSlopperBlockEntityRenderer implements BlockEntityRenderer<OreSlo
         float blades = slopper.blades(partialTick);
         poseStack.pushPose();
         poseStack.translate(0.375F, 2.75F, 0.0F);
-        rotateZ(poseStack, blades);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(blades));
         poseStack.translate(-0.375F, -2.75F, 0.0F);
         renderPart(BLADES_LEFT, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(-0.375F, 2.75F, 0.0F);
-        rotateZ(poseStack, -blades);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-blades));
         poseStack.translate(0.375F, -2.75F, 0.0F);
         renderPart(BLADES_RIGHT, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0F, 1.875F, -1.0F);
-        rotateX(poseStack, -slopper.fan(partialTick));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-slopper.fan(partialTick)));
         poseStack.translate(0.0F, -1.875F, 1.0F);
         renderPart(FAN, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
@@ -99,15 +128,27 @@ public class OreSlopperBlockEntityRenderer implements BlockEntityRenderer<OreSlo
 
     @Override
     public AABB getRenderBoundingBox(OreSlopperBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(5.0D, 5.0D, 5.0D);
+        Direction facing = oreSlopperFacing(blockEntity.getBlockState());
+        /*
+         * Face-used union after every legal animation extreme:
+         * base X -1.982091..1.5 and Z -3.5..3.5; slider Y reaches 5.8125;
+         * bucket translations reach -2.5 Y and -3 Z; full blade/fan rotations
+         * and the 1.75x lifted generated-item model remain inside that union.
+         */
+        AABB machine = MACHINE_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
+        AABB item = liftedOreBounds[facing.ordinal()].move(blockEntity.getBlockPos());
+        return machine.minmax(item);
     }
 
-    private static void renderLiftedOre(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        ItemStack stack = BedrockOreItem.stackFor(HbmItems.BEDROCK_ORE_NEW, BedrockOreItem.Grade.BASE, BedrockOreItem.Type.LIGHT_METAL);
+    private static void renderLiftedOre(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource,
+                                        int packedLight, int packedOverlay) {
+        if (stack.isEmpty()) {
+            return;
+        }
         poseStack.pushPose();
         poseStack.translate(0.0625F, 4.3125F, 2.0F);
-        rotateY(poseStack, 90.0F);
-        rotateX(poseStack, -90.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
         poseStack.scale(1.75F, 1.75F, 1.75F);
         Minecraft.getInstance().getItemRenderer().renderStatic(
                 stack,
@@ -122,28 +163,56 @@ public class OreSlopperBlockEntityRenderer implements BlockEntityRenderer<OreSlo
         poseStack.popPose();
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 90.0F;
-            case SOUTH -> 0.0F;
-            case WEST -> 270.0F;
-            default -> 180.0F;
-        };
+    private static AABB captureLiftedOre(ItemStack stack, Direction facing, float slide, float bucketY) {
+        PoseStack poseStack = new PoseStack();
+        applyOreSlopperTransform(poseStack, facing);
+        poseStack.translate(0.0F, bucketY, slide);
+        GeometryCaptureBufferSource capture = new GeometryCaptureBufferSource();
+        renderLiftedOre(stack, poseStack, capture, 0, 0);
+        return capture.bounds(BlockPos.ZERO);
+    }
+
+    private static AABB[] emptyLiftedOreBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        java.util.Arrays.fill(bounds, new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D));
+        return bounds;
+    }
+
+    private static AABB[] buildOreSlopperBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyOreSlopperTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    BlockPos.ZERO, poseStack,
+                    -1.982091F, 0.0F, -3.5F, 1.5F, 5.8125F, 3.5F);
+        }
+        return bounds;
+    }
+
+    private static void applyOreSlopperTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> { }
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Ore slopper facing must be horizontal: " + facing);
+        }
     }
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void rotateX(PoseStack poseStack, float degrees) {
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 1.0F, 0.0F, 0.0F)));
-    }
-
-    private static void rotateY(PoseStack poseStack, float degrees) {
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F)));
-    }
-
-    private static void rotateZ(PoseStack poseStack, float degrees) {
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 0.0F, 1.0F)));
+    private static Direction oreSlopperFacing(BlockState state) {
+        if (!state.hasProperty(OreSlopperBlock.FACING)) {
+            throw new IllegalStateException("Ore slopper block state is missing its facing property: " + state);
+        }
+        Direction facing = state.getValue(OreSlopperBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Ore slopper block state has a vertical facing: " + facing);
+        }
+        return facing;
     }
 }

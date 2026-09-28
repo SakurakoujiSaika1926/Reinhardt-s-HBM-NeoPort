@@ -18,7 +18,6 @@ import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.util.FluidCopiable;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -323,7 +322,7 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
         }
 
         this.power -= SOURCE_USAGE;
-        Direction axis = beamAxis();
+        Direction axis = sourceBeamAxis(facing());
         BlockPos start = this.worldPosition.relative(axis, 5);
         this.particle = new Particle(start, axis, first.copyWithCount(1), second.copyWithCount(1));
         this.items.set(INPUT_A_SLOT, ItemStack.EMPTY);
@@ -372,14 +371,43 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
     }
 
     private boolean canParticleEnter(Particle particle, Direction direction, BlockPos particlePos) {
-        Direction axis = beamAxis();
         return switch (this.kind) {
-            case BEAMLINE, QUADRUPOLE -> particlePos.equals(this.worldPosition.relative(axis, -1)) && direction == axis;
-            case RFC, DETECTOR -> particlePos.equals(this.worldPosition.relative(axis, -4)) && direction == axis;
-            case DIPOLE -> particlePos.getY() == this.worldPosition.getY()
-                    && (particlePos.getX() == this.worldPosition.getX() || particlePos.getZ() == this.worldPosition.getZ());
-            case SOURCE -> false;
+            case SOURCE -> canParticleEnterSource(particle, direction, particlePos);
+            case BEAMLINE -> canParticleEnterBeamline(particle, direction, particlePos);
+            case RFC -> canParticleEnterRfc(particle, direction, particlePos);
+            case QUADRUPOLE -> canParticleEnterQuadrupole(particle, direction, particlePos);
+            case DIPOLE -> canParticleEnterDipole(particle, direction, particlePos);
+            case DETECTOR -> canParticleEnterDetector(particle, direction, particlePos);
         };
+    }
+
+    private boolean canParticleEnterSource(Particle particle, Direction direction, BlockPos particlePos) {
+        return false;
+    }
+
+    private boolean canParticleEnterBeamline(Particle particle, Direction direction, BlockPos particlePos) {
+        Direction axis = beamlineBeamAxis(facing());
+        return particlePos.equals(this.worldPosition.relative(axis, -1)) && direction == axis;
+    }
+
+    private boolean canParticleEnterRfc(Particle particle, Direction direction, BlockPos particlePos) {
+        Direction axis = rfcBeamAxis(facing());
+        return particlePos.equals(this.worldPosition.relative(axis, -4)) && direction == axis;
+    }
+
+    private boolean canParticleEnterQuadrupole(Particle particle, Direction direction, BlockPos particlePos) {
+        Direction axis = quadrupoleBeamAxis(facing());
+        return particlePos.equals(this.worldPosition.relative(axis, -1)) && direction == axis;
+    }
+
+    private boolean canParticleEnterDipole(Particle particle, Direction direction, BlockPos particlePos) {
+        return particlePos.getY() == this.worldPosition.getY()
+                && (particlePos.getX() == this.worldPosition.getX() || particlePos.getZ() == this.worldPosition.getZ());
+    }
+
+    private boolean canParticleEnterDetector(Particle particle, Direction direction, BlockPos particlePos) {
+        Direction axis = detectorBeamAxis(facing());
+        return particlePos.equals(this.worldPosition.relative(axis, -4)) && direction == axis;
     }
 
     private void onEnter(Particle particle, Direction direction, ParticleAcceleratorBlockEntity source) {
@@ -497,6 +525,16 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
                     HbmAdvancements.awardNearby(serverLevel, area, "omega12");
                 }
             }
+            if (this.level instanceof ServerLevel serverLevel) {
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRadiation(
+                        serverLevel,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_MEDIUM_DURATION,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.MEDIUM,
+                        this.worldPosition.getX(), this.worldPosition.getZ());
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                        serverLevel, this.worldPosition,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_PARTICLE, 600);
+            }
             particle.crash(source, PAState.SUCCESS);
             sync();
             return;
@@ -547,15 +585,41 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
     @Nullable
     private BlockPos getExitPos(Particle particle) {
         return switch (this.kind) {
-            case BEAMLINE, QUADRUPOLE -> this.worldPosition.relative(beamAxis(), 2);
-            case RFC, DETECTOR -> this.kind == ParticleAcceleratorBlock.Kind.RFC ? this.worldPosition.relative(beamAxis(), 5) : null;
-            case DIPOLE -> {
-                Direction exit = getExitDirection();
-                particle.direction = exit;
-                yield this.worldPosition.relative(exit, 2);
-            }
-            case SOURCE -> null;
+            case SOURCE -> sourceExitPos(particle);
+            case BEAMLINE -> beamlineExitPos(particle);
+            case RFC -> rfcExitPos(particle);
+            case QUADRUPOLE -> quadrupoleExitPos(particle);
+            case DIPOLE -> dipoleExitPos(particle);
+            case DETECTOR -> detectorExitPos(particle);
         };
+    }
+
+    @Nullable
+    private BlockPos sourceExitPos(Particle particle) {
+        return null;
+    }
+
+    private BlockPos beamlineExitPos(Particle particle) {
+        return this.worldPosition.relative(beamlineBeamAxis(facing()), 2);
+    }
+
+    private BlockPos rfcExitPos(Particle particle) {
+        return this.worldPosition.relative(rfcBeamAxis(facing()), 5);
+    }
+
+    private BlockPos quadrupoleExitPos(Particle particle) {
+        return this.worldPosition.relative(quadrupoleBeamAxis(facing()), 2);
+    }
+
+    private BlockPos dipoleExitPos(Particle particle) {
+        Direction exit = getExitDirection();
+        particle.direction = exit;
+        return this.worldPosition.relative(exit, 2);
+    }
+
+    @Nullable
+    private BlockPos detectorExitPos(Particle particle) {
+        return null;
     }
 
     private Direction getExitDirection() {
@@ -579,7 +643,7 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
         if (this.level == null) {
             return false;
         }
-        for (PAConnector connector : connectorSpecs(this.worldPosition, facing(), this.kind)) {
+        for (PAConnector connector : currentConnectorSpecs()) {
             if (this.level.hasNeighborSignal(connector.pos())) {
                 return true;
             }
@@ -638,83 +702,121 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
                 : Direction.SOUTH;
     }
 
-    private Direction beamAxis() {
-        return LegacyMachineGeometry.forgeRotateDown(facing());
+    public static List<BlockPos> sourceConnectorPositions(BlockPos corePos, Direction facing) {
+        return sourceConnectorSpecs(corePos, facing).stream().map(PAConnector::pos).toList();
     }
 
-    public static List<BlockPos> connectorPositions(BlockPos corePos, Direction facing) {
-        ArrayList<BlockPos> positions = new ArrayList<>();
-        for (ParticleAcceleratorBlock.Kind kind : ParticleAcceleratorBlock.Kind.values()) {
-            for (PAConnector connector : connectorSpecs(corePos, facing, kind)) {
-                if (!positions.contains(connector.pos())) {
-                    positions.add(connector.pos());
-                }
-            }
-        }
-        return List.copyOf(positions);
+    public static List<BlockPos> beamlineConnectorPositions(BlockPos corePos, Direction facing) {
+        return beamlineConnectorSpecs(corePos, facing).stream().map(PAConnector::pos).toList();
     }
 
-    public static List<BlockPos> connectorPositions(BlockPos corePos, Direction facing, ParticleAcceleratorBlock.Kind kind) {
-        return connectorSpecs(corePos, facing, kind).stream()
-                .map(PAConnector::pos)
-                .toList();
+    public static List<BlockPos> rfcConnectorPositions(BlockPos corePos, Direction facing) {
+        return rfcConnectorSpecs(corePos, facing).stream().map(PAConnector::pos).toList();
     }
 
-    private static List<PAConnector> connectorSpecs(BlockPos corePos, Direction facing, ParticleAcceleratorBlock.Kind kind) {
-        Direction dir = facing;
-        Direction rotUp = LegacyMachineGeometry.forgeRotateUp(facing);
-        Direction rotDown = LegacyMachineGeometry.forgeRotateDown(facing);
-        return switch (kind) {
-            case SOURCE -> List.of(
-                    new PAConnector(corePos.relative(dir, 2), dir),
-                    new PAConnector(corePos.relative(dir, 2).relative(rotUp, 2), dir),
-                    new PAConnector(corePos.relative(dir, 2).relative(rotUp, -2), dir),
-                    new PAConnector(corePos.relative(dir, -2), dir.getOpposite()),
-                    new PAConnector(corePos.relative(dir, -2).relative(rotUp, 2), dir.getOpposite()),
-                    new PAConnector(corePos.relative(dir, -2).relative(rotUp, -2), dir.getOpposite()),
-                    new PAConnector(corePos.relative(rotUp, 5), rotUp)
-            );
-            case RFC -> List.of(
-                    new PAConnector(corePos.relative(rotUp, 3).above(2), Direction.UP),
-                    new PAConnector(corePos.relative(rotUp, -3).above(2), Direction.UP),
-                    new PAConnector(corePos.above(2), Direction.UP),
-                    new PAConnector(corePos.relative(rotUp, 3).below(2), Direction.DOWN),
-                    new PAConnector(corePos.relative(rotUp, -3).below(2), Direction.DOWN),
-                    new PAConnector(corePos.below(2), Direction.DOWN)
-            );
-            case QUADRUPOLE -> List.of(
-                    new PAConnector(corePos.above(2), Direction.UP),
-                    new PAConnector(corePos.below(2), Direction.DOWN),
-                    new PAConnector(corePos.relative(dir, 2), dir),
-                    new PAConnector(corePos.relative(dir, -2), dir.getOpposite())
-            );
-            case DIPOLE -> List.of(
-                    new PAConnector(corePos.east().above(2), Direction.UP),
-                    new PAConnector(corePos.west().above(2), Direction.UP),
-                    new PAConnector(corePos.south().above(2), Direction.UP),
-                    new PAConnector(corePos.north().above(2), Direction.UP),
-                    new PAConnector(corePos.east().below(2), Direction.DOWN),
-                    new PAConnector(corePos.west().below(2), Direction.DOWN),
-                    new PAConnector(corePos.south().below(2), Direction.DOWN),
-                    new PAConnector(corePos.north().below(2), Direction.DOWN)
-            );
-            case DETECTOR -> List.of(
-                    new PAConnector(corePos.relative(rotDown, 5), rotDown),
-                    new PAConnector(corePos.relative(rotDown, 5).above(), rotDown),
-                    new PAConnector(corePos.relative(rotDown, 5).below(), rotDown),
-                    new PAConnector(corePos.relative(rotDown, 5).relative(dir), rotDown),
-                    new PAConnector(corePos.relative(rotDown, 5).relative(dir, -1), rotDown)
-            );
-            case BEAMLINE -> List.of();
+    public static List<BlockPos> quadrupoleConnectorPositions(BlockPos corePos, Direction facing) {
+        return quadrupoleConnectorSpecs(corePos, facing).stream().map(PAConnector::pos).toList();
+    }
+
+    public static List<BlockPos> dipoleConnectorPositions(BlockPos corePos, Direction facing) {
+        return dipoleConnectorSpecs(corePos, facing).stream().map(PAConnector::pos).toList();
+    }
+
+    public static List<BlockPos> detectorConnectorPositions(BlockPos corePos, Direction facing) {
+        return detectorConnectorSpecs(corePos, facing).stream().map(PAConnector::pos).toList();
+    }
+
+    private List<PAConnector> currentConnectorSpecs() {
+        Direction facing = facing();
+        return switch (this.kind) {
+            case SOURCE -> sourceConnectorSpecs(this.worldPosition, facing);
+            case BEAMLINE -> beamlineConnectorSpecs(this.worldPosition, facing);
+            case RFC -> rfcConnectorSpecs(this.worldPosition, facing);
+            case QUADRUPOLE -> quadrupoleConnectorSpecs(this.worldPosition, facing);
+            case DIPOLE -> dipoleConnectorSpecs(this.worldPosition, facing);
+            case DETECTOR -> detectorConnectorSpecs(this.worldPosition, facing);
         };
     }
 
+    private static List<PAConnector> sourceConnectorSpecs(BlockPos corePos, Direction facing) {
+        Direction dir = facing;
+        Direction side = sourceConnectorSide(facing);
+        return List.of(
+                new PAConnector(corePos.relative(dir, 2), dir),
+                new PAConnector(corePos.relative(dir, 2).relative(side, 2), dir),
+                new PAConnector(corePos.relative(dir, 2).relative(side, -2), dir),
+                new PAConnector(corePos.relative(dir, -2), dir.getOpposite()),
+                new PAConnector(corePos.relative(dir, -2).relative(side, 2), dir.getOpposite()),
+                new PAConnector(corePos.relative(dir, -2).relative(side, -2), dir.getOpposite()),
+                new PAConnector(corePos.relative(side, 5), side)
+        );
+    }
+
+    private static List<PAConnector> beamlineConnectorSpecs(BlockPos corePos, Direction facing) {
+        return List.of();
+    }
+
+    private static List<PAConnector> rfcConnectorSpecs(BlockPos corePos, Direction facing) {
+        Direction side = rfcConnectorSide(facing);
+        return List.of(
+                new PAConnector(corePos.relative(side, 3).above(2), Direction.UP),
+                new PAConnector(corePos.relative(side, -3).above(2), Direction.UP),
+                new PAConnector(corePos.above(2), Direction.UP),
+                new PAConnector(corePos.relative(side, 3).below(2), Direction.DOWN),
+                new PAConnector(corePos.relative(side, -3).below(2), Direction.DOWN),
+                new PAConnector(corePos.below(2), Direction.DOWN)
+        );
+    }
+
+    private static List<PAConnector> quadrupoleConnectorSpecs(BlockPos corePos, Direction facing) {
+        Direction dir = facing;
+        return List.of(
+                new PAConnector(corePos.above(2), Direction.UP),
+                new PAConnector(corePos.below(2), Direction.DOWN),
+                new PAConnector(corePos.relative(dir, 2), dir),
+                new PAConnector(corePos.relative(dir, -2), dir.getOpposite())
+        );
+    }
+
+    private static List<PAConnector> dipoleConnectorSpecs(BlockPos corePos, Direction facing) {
+        return List.of(
+                new PAConnector(corePos.east().above(2), Direction.UP),
+                new PAConnector(corePos.west().above(2), Direction.UP),
+                new PAConnector(corePos.south().above(2), Direction.UP),
+                new PAConnector(corePos.north().above(2), Direction.UP),
+                new PAConnector(corePos.east().below(2), Direction.DOWN),
+                new PAConnector(corePos.west().below(2), Direction.DOWN),
+                new PAConnector(corePos.south().below(2), Direction.DOWN),
+                new PAConnector(corePos.north().below(2), Direction.DOWN)
+        );
+    }
+
+    private static List<PAConnector> detectorConnectorSpecs(BlockPos corePos, Direction facing) {
+        Direction dir = facing;
+        Direction beamSide = detectorConnectorSide(facing);
+        return List.of(
+                new PAConnector(corePos.relative(beamSide, 5), beamSide),
+                new PAConnector(corePos.relative(beamSide, 5).above(), beamSide),
+                new PAConnector(corePos.relative(beamSide, 5).below(), beamSide),
+                new PAConnector(corePos.relative(beamSide, 5).relative(dir), beamSide),
+                new PAConnector(corePos.relative(beamSide, 5).relative(dir, -1), beamSide)
+        );
+    }
+
     private List<BlockPos> connectorPositions() {
-        return connectorPositions(this.worldPosition, facing(), this.kind);
+        Direction facing = facing();
+        return switch (this.kind) {
+            case SOURCE -> sourceConnectorPositions(this.worldPosition, facing);
+            case BEAMLINE -> beamlineConnectorPositions(this.worldPosition, facing);
+            case RFC -> rfcConnectorPositions(this.worldPosition, facing);
+            case QUADRUPOLE -> quadrupoleConnectorPositions(this.worldPosition, facing);
+            case DIPOLE -> dipoleConnectorPositions(this.worldPosition, facing);
+            case DETECTOR -> detectorConnectorPositions(this.worldPosition, facing);
+        };
     }
 
     private boolean hasConnector(BlockPos connectorPos, @Nullable Direction machineSide) {
-        for (PAConnector connector : connectorSpecs(this.worldPosition, facing(), this.kind)) {
+        for (PAConnector connector : currentConnectorSpecs()) {
             if (connector.pos().equals(connectorPos) && (machineSide == null || connector.face() == machineSide)) {
                 return true;
             }
@@ -851,7 +953,7 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
 
     private int[] sourceSlotsForAccessor(BlockPos accessor, @Nullable Direction side) {
         Direction dir = facing();
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
+        Direction rot = sourceInventorySide(dir);
         if (accessor.equals(this.worldPosition.relative(dir).relative(rot, -2))
                 || accessor.equals(this.worldPosition.relative(dir, -1).relative(rot, 2))) {
             return SOURCE_YELLOW;
@@ -861,6 +963,96 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
             return SOURCE_RED;
         }
         return SOURCE_OUTPUTS;
+    }
+
+    private static Direction sourceConnectorSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("PA source connector facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction rfcConnectorSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("PA RFC connector facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction detectorConnectorSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("PA detector connector facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction sourceInventorySide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("PA source inventory facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction sourceBeamAxis(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("PA source beam facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction beamlineBeamAxis(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("PA beamline beam facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction rfcBeamAxis(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("PA RFC beam facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction quadrupoleBeamAxis(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("PA quadrupole beam facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction detectorBeamAxis(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            default -> throw new IllegalArgumentException("PA detector beam facing must be horizontal: " + facing);
+        };
     }
 
     @Override
@@ -875,7 +1067,7 @@ public class ParticleAcceleratorBlockEntity extends BlockEntity implements Power
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

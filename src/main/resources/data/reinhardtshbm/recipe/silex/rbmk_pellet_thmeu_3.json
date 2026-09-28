@@ -1,0 +1,41 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_thmeu_3",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_thmeu"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  3
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "ir",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_thorium_fuel"
+                                 },
+                        "weight":  24
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_u233"
+                                 },
+                        "weight":  18
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nuclear_waste_long_tiny",
+                                     "components":  {
+                                                        "minecraft:custom_data":  {
+                                                                                      "waste_class":  3
+                                                                                  }
+                                                    }
+                                 },
+                        "weight":  58
+                    }
+                ]
+}

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "PCP",
+    "IPI"
+  ],
+  "key": {
+    "I": { "tag": "c:ingots/steel" },
+    "P": { "tag": "c:plates/steel" },
+    "C": { "item": "reinhardtshbm:circuit_basic" }
+  },
+  "result": { "id": "reinhardtshbm:custom_machine" }
+}

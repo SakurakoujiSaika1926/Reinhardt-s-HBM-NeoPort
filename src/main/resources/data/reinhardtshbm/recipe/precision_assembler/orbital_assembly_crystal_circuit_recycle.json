@@ -1,0 +1,60 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_528_mode"
+      }
+    }
+  ],
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.recycle",
+  "duration": 600,
+  "power": 20000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "type": "neoforge:components",
+        "items": "reinhardtshbm:broken_item",
+        "components": {
+          "minecraft:custom_data": {
+            "item_id": "reinhardtshbm:orbital_assembly_crystal_circuit",
+            "item_count": 1
+          }
+        }
+      },
+      "count": 1
+    }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_chip_quantum",
+        "count": 4
+      },
+      "weight": 100
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:ingot_cft",
+        "count": 4
+      },
+      "weight": 100
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:circuit_pcb",
+        "count": 16
+      },
+      "weight": 100
+    },
+    {
+      "result": {
+        "id": "reinhardtshbm:wire_gold",
+        "count": 32
+      },
+      "weight": 100
+    }
+  ],
+  "output_mode": "independent"
+}

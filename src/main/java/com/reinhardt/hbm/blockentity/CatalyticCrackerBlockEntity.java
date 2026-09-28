@@ -9,7 +9,6 @@ import com.reinhardt.hbm.recipe.CrackingRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -27,7 +26,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -100,18 +98,15 @@ public class CatalyticCrackerBlockEntity extends BlockEntity {
     }
 
     public static List<Port> portsFor(BlockPos pos, Direction facing) {
-        Direction dir = horizontal(facing);
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
-        List<Port> ports = new ArrayList<>(8);
-        addConnector(ports, pos, dir, 4, rot, 1, dir);
-        addConnector(ports, pos, dir, 4, rot, -2, dir);
-        addConnector(ports, pos, dir, -4, rot, 1, dir.getOpposite());
-        addConnector(ports, pos, dir, -4, rot, -2, dir.getOpposite());
-        addConnector(ports, pos, dir, 2, rot, 3, rot);
-        addConnector(ports, pos, dir, 2, rot, -4, rot);
-        addConnector(ports, pos, dir, -2, rot, 3, rot.getOpposite());
-        addConnector(ports, pos, dir, -2, rot, -4, rot.getOpposite());
-        return List.copyOf(ports);
+        return switch (facing) {
+            case NORTH -> northCatalyticCrackerPorts(pos);
+            case EAST -> eastCatalyticCrackerPorts(pos);
+            case SOUTH -> southCatalyticCrackerPorts(pos);
+            case WEST -> westCatalyticCrackerPorts(pos);
+            case UP, DOWN -> throw new IllegalArgumentException(
+                    "Catalytic cracker requires a horizontal facing: " + facing
+            );
+        };
     }
 
     @Override
@@ -280,31 +275,64 @@ public class CatalyticCrackerBlockEntity extends BlockEntity {
     private void sync() {
         setChanged();
         if (this.level != null && !this.level.isClientSide) {
-            this.level.invalidateCapabilities(this.worldPosition);
             this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-            for (Port port : ports(this.level)) {
-                this.level.invalidateCapabilities(port.pos());
-                this.level.invalidateCapabilities(port.connectorPos());
-            }
         }
     }
 
     private Direction facing() {
-        BlockState state = getBlockState();
-        return state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        return getBlockState().getValue(LargeMachineBlock.FACING);
     }
 
-    private static void addConnector(List<Port> ports, BlockPos core, Direction first, int firstDistance, Direction second, int secondDistance, Direction face) {
-        BlockPos connector = core.offset(
-                first.getStepX() * firstDistance + second.getStepX() * secondDistance,
-                0,
-                first.getStepZ() * firstDistance + second.getStepZ() * secondDistance
+    private static List<Port> northCatalyticCrackerPorts(BlockPos core) {
+        return List.of(
+                Port.fromConnector(core.offset(1, 0, -4), Direction.NORTH),
+                Port.fromConnector(core.offset(-2, 0, -4), Direction.NORTH),
+                Port.fromConnector(core.offset(1, 0, 4), Direction.SOUTH),
+                Port.fromConnector(core.offset(-2, 0, 4), Direction.SOUTH),
+                Port.fromConnector(core.offset(3, 0, -2), Direction.EAST),
+                Port.fromConnector(core.offset(-4, 0, -2), Direction.WEST),
+                Port.fromConnector(core.offset(3, 0, 2), Direction.EAST),
+                Port.fromConnector(core.offset(-4, 0, 2), Direction.WEST)
         );
-        ports.add(Port.fromConnector(connector, face));
     }
 
-    private static Direction horizontal(Direction direction) {
-        return direction.getAxis().isHorizontal() ? direction : Direction.NORTH;
+    private static List<Port> eastCatalyticCrackerPorts(BlockPos core) {
+        return List.of(
+                Port.fromConnector(core.offset(4, 0, 1), Direction.EAST),
+                Port.fromConnector(core.offset(4, 0, -2), Direction.EAST),
+                Port.fromConnector(core.offset(-4, 0, 1), Direction.WEST),
+                Port.fromConnector(core.offset(-4, 0, -2), Direction.WEST),
+                Port.fromConnector(core.offset(2, 0, 3), Direction.SOUTH),
+                Port.fromConnector(core.offset(2, 0, -4), Direction.NORTH),
+                Port.fromConnector(core.offset(-2, 0, 3), Direction.SOUTH),
+                Port.fromConnector(core.offset(-2, 0, -4), Direction.NORTH)
+        );
+    }
+
+    private static List<Port> southCatalyticCrackerPorts(BlockPos core) {
+        return List.of(
+                Port.fromConnector(core.offset(-1, 0, 4), Direction.SOUTH),
+                Port.fromConnector(core.offset(2, 0, 4), Direction.SOUTH),
+                Port.fromConnector(core.offset(-1, 0, -4), Direction.NORTH),
+                Port.fromConnector(core.offset(2, 0, -4), Direction.NORTH),
+                Port.fromConnector(core.offset(-3, 0, 2), Direction.WEST),
+                Port.fromConnector(core.offset(4, 0, 2), Direction.EAST),
+                Port.fromConnector(core.offset(-3, 0, -2), Direction.WEST),
+                Port.fromConnector(core.offset(4, 0, -2), Direction.EAST)
+        );
+    }
+
+    private static List<Port> westCatalyticCrackerPorts(BlockPos core) {
+        return List.of(
+                Port.fromConnector(core.offset(-4, 0, -1), Direction.WEST),
+                Port.fromConnector(core.offset(-4, 0, 2), Direction.WEST),
+                Port.fromConnector(core.offset(4, 0, -1), Direction.EAST),
+                Port.fromConnector(core.offset(4, 0, 2), Direction.EAST),
+                Port.fromConnector(core.offset(-2, 0, -3), Direction.NORTH),
+                Port.fromConnector(core.offset(-2, 0, 4), Direction.SOUTH),
+                Port.fromConnector(core.offset(2, 0, -3), Direction.NORTH),
+                Port.fromConnector(core.offset(2, 0, 4), Direction.SOUTH)
+        );
     }
 
     private static HbmFluidDefinition bitumen() {

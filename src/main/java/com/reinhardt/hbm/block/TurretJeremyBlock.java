@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.blockentity.TurretJeremyBlockEntity;
+import com.reinhardt.hbm.blockentity.ClientRenderNeighborSnapshot;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -18,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -96,7 +98,7 @@ public class TurretJeremyBlock extends HorizontalDirectionalBlock implements Ent
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         if (!level.isClientSide && !state.is(oldState.getBlock())) {
-            placeDummies(level, pos);
+            placeDummies(level, pos, state);
             PowerNetworkManager.markDirty(level);
         }
     }
@@ -116,11 +118,23 @@ public class TurretJeremyBlock extends HorizontalDirectionalBlock implements Ent
                 inventory.dropContents(level, pos);
             }
             if (!level.isClientSide) {
-                removeDummies(level, pos, state.getValue(FACING));
+                removeDummies(level, pos, state.getValue(FACING), state);
             }
             PowerNetworkManager.markDirty(level);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        ClientRenderNeighborSnapshot.refreshAt(level, pos);
+    }
+
+    @Override
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighborPos) {
+        ClientRenderNeighborSnapshot.refreshAt(level, pos);
     }
 
     @Override
@@ -166,8 +180,8 @@ public class TurretJeremyBlock extends HorizontalDirectionalBlock implements Ent
         return true;
     }
 
-    private static void placeDummies(Level level, BlockPos corePos) {
-        Direction facing = level.getBlockState(corePos).getValue(FACING);
+    private static void placeDummies(Level level, BlockPos corePos, BlockState coreState) {
+        Direction facing = coreState.getValue(FACING);
         for (BlockPos pos : TurretJeremyBlockEntity.occupiedPositions(corePos, facing)) {
             if (pos.equals(corePos)) {
                 continue;
@@ -179,7 +193,8 @@ public class TurretJeremyBlock extends HorizontalDirectionalBlock implements Ent
         }
     }
 
-    private static void removeDummies(Level level, BlockPos corePos, Direction facing) {
+    private static void removeDummies(Level level, BlockPos corePos, Direction facing,
+                                      BlockState coreState) {
         if (level.getBlockEntity(corePos) == null) {
             return;
         }

@@ -1,0 +1,29 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.flashdrive",
+  "duration": 100,
+  "power": 250,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/plastic"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/gold"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:drive_flash_empty"
+  }
+}

@@ -22,7 +22,6 @@ import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.util.FluidCopiable;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -264,15 +263,20 @@ public class ElectrolyzerBlockEntity extends BlockEntity implements PowerEndpoin
 
     public static List<Port> portsFor(BlockPos pos, BlockState state) {
         Direction facing = state.hasProperty(ElectrolyzerBlock.FACING) ? state.getValue(ElectrolyzerBlock.FACING) : Direction.NORTH;
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
         return List.of(
-                Port.fromConnector(pos.offset(LegacyMachineGeometry.legacyOffset(facing, -6, rot, 0, 0)).immutable(), facing.getOpposite()),
-                Port.fromConnector(pos.offset(LegacyMachineGeometry.legacyOffset(facing, -6, rot, 1, 0)).immutable(), facing.getOpposite()),
-                Port.fromConnector(pos.offset(LegacyMachineGeometry.legacyOffset(facing, -6, rot, -1, 0)).immutable(), facing.getOpposite()),
-                Port.fromConnector(pos.offset(LegacyMachineGeometry.legacyOffset(facing, 6, rot, 0, 0)).immutable(), facing),
-                Port.fromConnector(pos.offset(LegacyMachineGeometry.legacyOffset(facing, 6, rot, 1, 0)).immutable(), facing),
-                Port.fromConnector(pos.offset(LegacyMachineGeometry.legacyOffset(facing, 6, rot, -1, 0)).immutable(), facing)
+                mappedElectrolyzerPort(pos, facing, new BlockPos(0, 0, -6), Direction.NORTH),
+                mappedElectrolyzerPort(pos, facing, new BlockPos(-1, 0, -6), Direction.NORTH),
+                mappedElectrolyzerPort(pos, facing, new BlockPos(1, 0, -6), Direction.NORTH),
+                mappedElectrolyzerPort(pos, facing, new BlockPos(0, 0, 6), Direction.SOUTH),
+                mappedElectrolyzerPort(pos, facing, new BlockPos(-1, 0, 6), Direction.SOUTH),
+                mappedElectrolyzerPort(pos, facing, new BlockPos(1, 0, 6), Direction.SOUTH)
         );
+    }
+
+    private static Port mappedElectrolyzerPort(BlockPos corePos, Direction facing, BlockPos authoredOffset,
+                                               Direction authoredFace) {
+        BlockPos connector = corePos.offset(ElectrolyzerBlock.mapElectrolyzerOffset(facing, authoredOffset)).immutable();
+        return Port.fromConnector(connector, ElectrolyzerBlock.mapElectrolyzerFace(facing, authoredFace));
     }
 
     @Override
@@ -380,7 +384,7 @@ public class ElectrolyzerBlockEntity extends BlockEntity implements PowerEndpoin
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

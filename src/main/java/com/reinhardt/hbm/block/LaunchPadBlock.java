@@ -2,6 +2,7 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.LauncherBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
@@ -24,7 +25,15 @@ public class LaunchPadBlock extends LargeMachineBlock implements EntityBlock {
         RUSTED
     }
 
-    private static final List<Box> SMALL_BOXES = List.of(
+    private static final List<Box> SILO_BOXES = List.of(
+            new Box(-1.5D, 0.0D, -1.5D, -0.5D, 1.0D, -0.5D),
+            new Box(0.5D, 0.0D, -1.5D, 1.5D, 1.0D, -0.5D),
+            new Box(-1.5D, 0.0D, 0.5D, -0.5D, 1.0D, 1.5D),
+            new Box(0.5D, 0.0D, 0.5D, 1.5D, 1.0D, 1.5D),
+            new Box(-0.5D, 0.5D, -1.5D, 0.5D, 1.0D, 1.5D),
+            new Box(-1.5D, 0.5D, -0.5D, 1.5D, 1.0D, 0.5D)
+    );
+    private static final List<Box> RUSTED_BOXES = List.of(
             new Box(-1.5D, 0.0D, -1.5D, -0.5D, 1.0D, -0.5D),
             new Box(0.5D, 0.0D, -1.5D, 1.5D, 1.0D, -0.5D),
             new Box(-1.5D, 0.0D, 0.5D, -0.5D, 1.0D, 1.5D),
@@ -42,9 +51,21 @@ public class LaunchPadBlock extends LargeMachineBlock implements EntityBlock {
 
     public LaunchPadBlock(Properties properties, Kind kind) {
         super(properties,
-                kind == Kind.LARGE ? Footprint.centered(4, 1, 4) : Footprint.centered(1, 1, 1),
-                shapeForPart(kind, BlockPos.ZERO),
-                RotationBasis.MODERN_NORTH);
+                switch (kind) {
+                    case SILO -> siloFootprint();
+                    case LARGE -> largePadFootprint();
+                    case RUSTED -> rustedPadFootprint();
+                },
+                switch (kind) {
+                    case SILO -> siloShapeForPart(Direction.NORTH, BlockPos.ZERO);
+                    case LARGE -> largePadShapeForPart(Direction.NORTH, BlockPos.ZERO);
+                    case RUSTED -> rustedPadShapeForPart(Direction.NORTH, BlockPos.ZERO);
+                },
+                switch (kind) {
+                    case SILO -> LaunchPadBlock::mapSiloOffset;
+                    case LARGE -> LaunchPadBlock::mapLargePadOffset;
+                    case RUSTED -> LaunchPadBlock::mapRustedPadOffset;
+                });
         this.kind = kind;
     }
 
@@ -53,11 +74,149 @@ public class LaunchPadBlock extends LargeMachineBlock implements EntityBlock {
     }
 
     @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        return switch (this.kind) {
+            case SILO -> siloStateForPlacement(context);
+            case LARGE -> largePadStateForPlacement(context);
+            case RUSTED -> rustedPadStateForPlacement(context);
+        };
+    }
+
+    private BlockState siloStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    private BlockState largePadStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    private BlockState rustedPadStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return switch (this.kind) {
+            case SILO -> rotateSilo(state, rotation);
+            case LARGE -> rotateLargePad(state, rotation);
+            case RUSTED -> rotateRustedPad(state, rotation);
+        };
+    }
+
+    private static BlockState rotateSilo(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateLargePad(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRustedPad(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return switch (this.kind) {
+            case SILO -> mirrorSilo(state, mirror);
+            case LARGE -> mirrorLargePad(state, mirror);
+            case RUSTED -> mirrorRustedPad(state, mirror);
+        };
+    }
+
+    private static BlockState mirrorSilo(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorLargePad(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRustedPad(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.LivingEntity placer, net.minecraft.world.item.ItemStack stack) {
         if (!level.isClientSide) {
-            placeDummies(level, pos, state.getValue(FACING), this.machineFootprint(), this.machineRotationBasis());
-            pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), this.machineFootprint(), placer);
+            switch (this.kind) {
+                case SILO -> placeSiloDummies(level, pos, state.getValue(FACING), placer);
+                case LARGE -> placeLargePadDummies(level, pos, state.getValue(FACING), placer);
+                case RUSTED -> placeRustedPadDummies(level, pos, state.getValue(FACING), placer);
+            }
         }
+    }
+
+    private void placeSiloDummies(Level level, BlockPos pos, Direction facing,
+                                  net.minecraft.world.entity.LivingEntity placer) {
+        placeDummies(level, pos, facing, this.machineFootprint(), LaunchPadBlock::mapSiloOffset);
+        pushEntitiesOutOfFootprint(level, pos, facing, this.machineFootprint(), placer,
+                LaunchPadBlock::mapSiloOffset);
+    }
+
+    private void placeLargePadDummies(Level level, BlockPos pos, Direction facing,
+                                      net.minecraft.world.entity.LivingEntity placer) {
+        placeDummies(level, pos, facing, this.machineFootprint(), LaunchPadBlock::mapLargePadOffset);
+        pushEntitiesOutOfFootprint(level, pos, facing, this.machineFootprint(), placer,
+                LaunchPadBlock::mapLargePadOffset);
+    }
+
+    private void placeRustedPadDummies(Level level, BlockPos pos, Direction facing,
+                                       net.minecraft.world.entity.LivingEntity placer) {
+        placeDummies(level, pos, facing, this.machineFootprint(), LaunchPadBlock::mapRustedPadOffset);
+        pushEntitiesOutOfFootprint(level, pos, facing, this.machineFootprint(), placer,
+                LaunchPadBlock::mapRustedPadOffset);
+    }
+
+    private static BlockPos mapSiloOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Launch silo requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static BlockPos mapLargePadOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Large launch pad requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static BlockPos mapRustedPadOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Rusted launch pad requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable
@@ -71,10 +230,80 @@ public class LaunchPadBlock extends LargeMachineBlock implements EntityBlock {
         return new LauncherBlockEntity(pos, state, launcherKind);
     }
 
-    public static VoxelShape shapeForPart(Kind kind, BlockPos offsetFromCore) {
+    private static Footprint siloFootprint() {
+        return Footprint.centered(1, 1, 1);
+    }
+
+    private static Footprint rustedPadFootprint() {
+        return Footprint.centered(1, 1, 1);
+    }
+
+    private static Footprint largePadFootprint() {
+        return Footprint.centered(4, 1, 4);
+    }
+
+    @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return switch (this.kind) {
+            case SILO -> siloShapeForPart(state.getValue(FACING), BlockPos.ZERO);
+            case LARGE -> largePadShapeForPart(state.getValue(FACING), BlockPos.ZERO);
+            case RUSTED -> rustedPadShapeForPart(state.getValue(FACING), BlockPos.ZERO);
+        };
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return switch (this.kind) {
+            case SILO -> siloShapeForPart(state.getValue(FACING), BlockPos.ZERO);
+            case LARGE -> largePadShapeForPart(state.getValue(FACING), BlockPos.ZERO);
+            case RUSTED -> rustedPadShapeForPart(state.getValue(FACING), BlockPos.ZERO);
+        };
+    }
+
+    public static VoxelShape siloShapeForPart(Direction facing, BlockPos offsetFromCore) {
         VoxelShape shape = Shapes.empty();
-        for (Box box : kind == Kind.LARGE ? LARGE_BOXES : SMALL_BOXES) {
-            shape = Shapes.or(shape, box.slice(offsetFromCore));
+        for (Box box : SILO_BOXES) {
+            Box oriented = switch (facing) {
+                // Exact BlockDummyable#getAABBRotationOffset result for legacy metadata 2/5/3/4.
+                case NORTH -> new Box(-box.maxZ, box.minY, box.minX, -box.minZ, box.maxY, box.maxX);
+                case EAST -> new Box(-box.maxX, box.minY, -box.maxZ, -box.minX, box.maxY, -box.minZ);
+                case SOUTH -> new Box(box.minZ, box.minY, -box.maxX, box.maxZ, box.maxY, -box.minX);
+                case WEST -> box;
+                case UP, DOWN -> throw new IllegalArgumentException("Launch silo requires a horizontal facing: " + facing);
+            };
+            shape = Shapes.or(shape, oriented.slice(offsetFromCore));
+        }
+        return shape.isEmpty() ? Shapes.empty() : shape;
+    }
+
+    public static VoxelShape rustedPadShapeForPart(Direction facing, BlockPos offsetFromCore) {
+        VoxelShape shape = Shapes.empty();
+        for (Box box : RUSTED_BOXES) {
+            Box oriented = switch (facing) {
+                // Exact BlockDummyable#getAABBRotationOffset result for legacy metadata 2/5/3/4.
+                case NORTH -> new Box(-box.maxZ, box.minY, box.minX, -box.minZ, box.maxY, box.maxX);
+                case EAST -> new Box(-box.maxX, box.minY, -box.maxZ, -box.minX, box.maxY, -box.minZ);
+                case SOUTH -> new Box(box.minZ, box.minY, -box.maxX, box.maxZ, box.maxY, -box.minX);
+                case WEST -> box;
+                case UP, DOWN -> throw new IllegalArgumentException("Rusted launch pad requires a horizontal facing: " + facing);
+            };
+            shape = Shapes.or(shape, oriented.slice(offsetFromCore));
+        }
+        return shape.isEmpty() ? Shapes.empty() : shape;
+    }
+
+    public static VoxelShape largePadShapeForPart(Direction facing, BlockPos offsetFromCore) {
+        VoxelShape shape = Shapes.empty();
+        for (Box box : LARGE_BOXES) {
+            Box oriented = switch (facing) {
+                // Exact BlockDummyable#getAABBRotationOffset result for legacy metadata 2/5/3/4.
+                case NORTH -> new Box(-box.maxZ, box.minY, box.minX, -box.minZ, box.maxY, box.maxX);
+                case EAST -> new Box(-box.maxX, box.minY, -box.maxZ, -box.minX, box.maxY, -box.minZ);
+                case SOUTH -> new Box(box.minZ, box.minY, -box.maxX, box.maxZ, box.maxY, -box.minX);
+                case WEST -> box;
+                case UP, DOWN -> throw new IllegalArgumentException("Large launch pad requires a horizontal facing: " + facing);
+            };
+            shape = Shapes.or(shape, oriented.slice(offsetFromCore));
         }
         return shape.isEmpty() ? Shapes.empty() : shape;
     }
@@ -86,7 +315,7 @@ public class LaunchPadBlock extends LargeMachineBlock implements EntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide
+        if (!movedByPiston && !state.is(newState.getBlock()) && !level.isClientSide
                 && level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher) launcher.dropContents(level, pos);
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

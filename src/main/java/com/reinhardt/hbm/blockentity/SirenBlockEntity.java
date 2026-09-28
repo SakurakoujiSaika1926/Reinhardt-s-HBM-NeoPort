@@ -113,7 +113,7 @@ public final class SirenBlockEntity extends BlockEntity implements WorldlyContai
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) { return false; }
 
     @Override
-    public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
 
     @Override
     public void clearContent() { this.track = ItemStack.EMPTY; setChanged(); }

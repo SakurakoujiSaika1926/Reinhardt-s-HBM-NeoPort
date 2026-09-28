@@ -64,7 +64,9 @@ public final class LandmineBlock extends BaseEntityBlock implements EntityBlock 
             BlockState state,
             BlockEntityType<T> blockEntityType
     ) {
-        return level.isClientSide ? null
+        return level.isClientSide
+                ? createTickerHelper(blockEntityType, HbmBlockEntities.LANDMINE.get(),
+                LandmineBlockEntity::tickClient)
                 : createTickerHelper(blockEntityType, HbmBlockEntities.LANDMINE.get(),
                 (serverLevel, pos, blockState, landmine) -> {
                     if (serverLevel instanceof ServerLevel server) {
@@ -91,6 +93,9 @@ public final class LandmineBlock extends BaseEntityBlock implements EntityBlock 
     ) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
         if (level.isClientSide) {
+            if (level.getBlockEntity(pos) instanceof LandmineBlockEntity mine) {
+                mine.markClientEnvironmentDirty();
+            }
             return;
         }
         if (level.hasNeighborSignal(pos) || !state.canSurvive(level, pos)) {

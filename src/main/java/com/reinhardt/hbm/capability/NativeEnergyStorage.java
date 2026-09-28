@@ -34,7 +34,11 @@ public final class NativeEnergyStorage implements IEnergyStorage {
     }
 
     private boolean connected(PowerEndpoint endpoint) {
-        return side == null || endpoint.canConnectPower(level, connectorPos, side.getOpposite());
+        // NeoForge supplies the face of the host block.  PowerEndpoint's
+        // machineSide has the same meaning (the legacy IEnergyConnectorMK2
+        // contract explicitly defines it as the machine's side), so it must
+        // not be inverted here.
+        return side == null || endpoint.canConnectPower(level, connectorPos, side);
     }
 
     private double rate() {

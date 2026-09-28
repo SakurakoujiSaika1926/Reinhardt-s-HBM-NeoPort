@@ -1,0 +1,29 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.capacitorbismuth",
+  "duration": 100,
+  "power": 25000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/bismuth"
+      },
+      "count": 24
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_chip_quantum"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:battery_pack_capacitor_bismuth"
+  }
+}

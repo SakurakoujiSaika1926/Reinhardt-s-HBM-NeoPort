@@ -91,7 +91,7 @@ public final class MassStorageBlockEntity extends BlockEntity implements MenuPro
     @Override public int[] getSlotsForFace(Direction side) { return IO_SLOTS; }
     @Override public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) { return slot == 0 && canPlaceItem(slot, stack); }
     @Override public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) { return !locked && slot == 2; }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    @Override public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
     @Override public void clearContent() { items.clear(); stockpile = 0; setChanged(); }
     @Override public Component getDisplayName() { return Component.translatable("container.reinhardtshbm.mass_storage"); }
     @Override @Nullable public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) { return new MassStorageMenu(id, inventory, this); }

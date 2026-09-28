@@ -39,20 +39,14 @@ import java.util.List;
  */
 public final class SpotlightBlock extends Block implements EntityBlock {
     public enum Kind {
-        INCANDESCENT(2, 0.25F, 0.20F, 0.15F),
-        FLUORESCENT(8, 0.50F, 0.50F, 0.10F),
-        HALOGEN(32, 0.35F, 0.25F, 0.20F);
+        INCANDESCENT(2),
+        FLUORESCENT(8),
+        HALOGEN(32);
 
         private final int beamLength;
-        private final float xHalf;
-        private final float yHalf;
-        private final float zHalf;
 
-        Kind(int beamLength, float xHalf, float yHalf, float zHalf) {
+        Kind(int beamLength) {
             this.beamLength = beamLength;
-            this.xHalf = xHalf;
-            this.yHalf = yHalf;
-            this.zHalf = zHalf;
         }
 
         public int beamLength() {
@@ -98,6 +92,26 @@ public final class SpotlightBlock extends Block implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case INCANDESCENT -> incandescentStateForPlacement(context);
+            case FLUORESCENT -> fluorescentStateForPlacement(context);
+            case HALOGEN -> halogenStateForPlacement(context);
+        };
+    }
+
+    private BlockState incandescentStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState state = defaultBlockState().setValue(FACING, facing);
+        return canSurvive(state, context.getLevel(), context.getClickedPos()) ? state : null;
+    }
+
+    private BlockState fluorescentStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getClickedFace();
+        BlockState state = defaultBlockState().setValue(FACING, facing);
+        return canSurvive(state, context.getLevel(), context.getClickedPos()) ? state : null;
+    }
+
+    private BlockState halogenStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getClickedFace();
         BlockState state = defaultBlockState().setValue(FACING, facing);
         return canSurvive(state, context.getLevel(), context.getClickedPos()) ? state : null;
@@ -106,8 +120,11 @@ public final class SpotlightBlock extends Block implements EntityBlock {
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         Direction facing = state.getValue(FACING);
-        BlockPos supportPos = pos.relative(facing.getOpposite());
-        return level.getBlockState(supportPos).isFaceSturdy(level, supportPos, facing);
+        return switch (kind) {
+            case INCANDESCENT -> incandescentCanSurvive(level, pos, facing);
+            case FLUORESCENT -> fluorescentCanSurvive(level, pos, facing);
+            case HALOGEN -> halogenCanSurvive(level, pos, facing);
+        };
     }
 
     @Override
@@ -145,7 +162,13 @@ public final class SpotlightBlock extends Block implements EntityBlock {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
                                    BlockPos fromPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
-        if (level.isClientSide || block instanceof SpotlightBeamBlock) {
+        if (level.isClientSide) {
+            if (level.getBlockEntity(pos) instanceof SpotlightBlockEntity spotlight) {
+                spotlight.refreshClientRenderSnapshot();
+            }
+            return;
+        }
+        if (block instanceof SpotlightBeamBlock) {
             return;
         }
         if (!canSurvive(state, level, pos)) {
@@ -160,15 +183,26 @@ public final class SpotlightBlock extends Block implements EntityBlock {
     }
 
     private void updateBeam(Level level, BlockPos pos, BlockState state) {
-        if (lit) {
-            SpotlightBeamBlockEntity.propagate(level, pos, state.getValue(FACING), beamLength());
+        if (!lit) {
+            return;
+        }
+        Direction facing = state.getValue(FACING);
+        switch (kind) {
+            case INCANDESCENT -> propagateIncandescentBeam(level, pos, facing);
+            case FLUORESCENT -> propagateFluorescentBeam(level, pos, facing);
+            case HALOGEN -> propagateHalogenBeam(level, pos, facing);
         }
     }
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide && lit) {
-            SpotlightBeamBlockEntity.unpropagate(level, pos, state.getValue(FACING));
+            Direction facing = state.getValue(FACING);
+            switch (kind) {
+                case INCANDESCENT -> unpropagateIncandescentBeam(level, pos, facing);
+                case FLUORESCENT -> unpropagateFluorescentBeam(level, pos, facing);
+                case HALOGEN -> unpropagateHalogenBeam(level, pos, facing);
+            }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
@@ -201,29 +235,12 @@ public final class SpotlightBlock extends Block implements EntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        float[] bounds = switch (kind) {
-            case FLUORESCENT -> new float[]{0.50F, 0.50F, 0.10F};
-            case HALOGEN -> new float[]{0.35F, 0.25F, 0.20F};
-            case INCANDESCENT -> new float[]{0.25F, 0.20F, 0.15F};
+        Direction facing = state.getValue(FACING);
+        return switch (kind) {
+            case INCANDESCENT -> incandescentShape(facing);
+            case FLUORESCENT -> fluorescentShape(facing);
+            case HALOGEN -> halogenShape(facing);
         };
-        Direction direction = state.getValue(FACING);
-        float x = bounds[0];
-        float y = bounds[1];
-        float z = bounds[2];
-        if (direction == Direction.EAST || direction == Direction.WEST) {
-            float swap = x;
-            x = z;
-            z = swap;
-        } else if (direction == Direction.UP || direction == Direction.DOWN) {
-            float swap = x;
-            x = z;
-            z = y;
-            y = swap;
-        }
-        double ox = 0.5D - direction.getStepX() * (0.5D - x);
-        double oy = 0.5D - direction.getStepY() * (0.5D - y);
-        double oz = 0.5D - direction.getStepZ() * (0.5D - z);
-        return Shapes.box(ox - x, oy - y, oz - z, ox + x, oy + y, oz + z);
     }
 
     @Override
@@ -238,11 +255,43 @@ public final class SpotlightBlock extends Block implements EntityBlock {
 
     @Override
     public BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case INCANDESCENT -> rotateIncandescent(state, rotation);
+            case FLUORESCENT -> rotateFluorescent(state, rotation);
+            case HALOGEN -> rotateHalogen(state, rotation);
+        };
     }
 
     @Override
     public BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return switch (this.kind) {
+            case INCANDESCENT -> mirrorIncandescent(state, mirror);
+            case FLUORESCENT -> mirrorFluorescent(state, mirror);
+            case HALOGEN -> mirrorHalogen(state, mirror);
+        };
+    }
+
+    private static BlockState rotateIncandescent(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateFluorescent(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateHalogen(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorIncandescent(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorFluorescent(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorHalogen(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
@@ -254,5 +303,168 @@ public final class SpotlightBlock extends Block implements EntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return null;
+    }
+
+    private static boolean incandescentCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+    }
+
+    private static boolean fluorescentCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+    }
+
+    private static boolean halogenCanSurvive(LevelReader level, BlockPos pos, Direction facing) {
+        BlockPos support = switch (facing) {
+            case DOWN -> pos.above();
+            case UP -> pos.below();
+            case NORTH -> pos.south();
+            case SOUTH -> pos.north();
+            case WEST -> pos.east();
+            case EAST -> pos.west();
+        };
+        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+    }
+
+    private static void propagateIncandescentBeam(Level level, BlockPos pos, Direction facing) {
+        switch (facing) {
+            case DOWN -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.DOWN, 2);
+            case UP -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.UP, 2);
+            case NORTH -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.NORTH, 2);
+            case SOUTH -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.SOUTH, 2);
+            case WEST -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.WEST, 2);
+            case EAST -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.EAST, 2);
+        }
+    }
+
+    private static void propagateFluorescentBeam(Level level, BlockPos pos, Direction facing) {
+        switch (facing) {
+            case DOWN -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.DOWN, 8);
+            case UP -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.UP, 8);
+            case NORTH -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.NORTH, 8);
+            case SOUTH -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.SOUTH, 8);
+            case WEST -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.WEST, 8);
+            case EAST -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.EAST, 8);
+        }
+    }
+
+    private static void propagateHalogenBeam(Level level, BlockPos pos, Direction facing) {
+        switch (facing) {
+            case DOWN -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.DOWN, 32);
+            case UP -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.UP, 32);
+            case NORTH -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.NORTH, 32);
+            case SOUTH -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.SOUTH, 32);
+            case WEST -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.WEST, 32);
+            case EAST -> SpotlightBeamBlockEntity.propagate(level, pos, Direction.EAST, 32);
+        }
+    }
+
+    private static void unpropagateIncandescentBeam(Level level, BlockPos pos, Direction facing) {
+        switch (facing) {
+            case DOWN -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.DOWN);
+            case UP -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.UP);
+            case NORTH -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.NORTH);
+            case SOUTH -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.SOUTH);
+            case WEST -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.WEST);
+            case EAST -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.EAST);
+        }
+    }
+
+    private static void unpropagateFluorescentBeam(Level level, BlockPos pos, Direction facing) {
+        switch (facing) {
+            case DOWN -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.DOWN);
+            case UP -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.UP);
+            case NORTH -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.NORTH);
+            case SOUTH -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.SOUTH);
+            case WEST -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.WEST);
+            case EAST -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.EAST);
+        }
+    }
+
+    private static void unpropagateHalogenBeam(Level level, BlockPos pos, Direction facing) {
+        switch (facing) {
+            case DOWN -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.DOWN);
+            case UP -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.UP);
+            case NORTH -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.NORTH);
+            case SOUTH -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.SOUTH);
+            case WEST -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.WEST);
+            case EAST -> SpotlightBeamBlockEntity.unpropagate(level, pos, Direction.EAST);
+        }
+    }
+
+    private static VoxelShape incandescentShape(Direction facing) {
+        // Spotlight#getBounds + swizzleBounds from 1.7.10, expanded explicitly.
+        float x = 0.25F;
+        float y = 0.20F;
+        float z = 0.15F;
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.5D - y, 1.0D - 2.0D * z, 0.5D - x,
+                    0.5D + y, 1.0D, 0.5D + x);
+            case UP -> Shapes.box(0.5D - y, 0.0D, 0.5D - x,
+                    0.5D + y, 2.0D * z, 0.5D + x);
+            case NORTH -> Shapes.box(0.5D - x, 0.5D - y, 1.0D - 2.0D * z,
+                    0.5D + x, 0.5D + y, 1.0D);
+            case SOUTH -> Shapes.box(0.5D - x, 0.5D - y, 0.0D,
+                    0.5D + x, 0.5D + y, 2.0D * z);
+            case WEST -> Shapes.box(1.0D - 2.0D * z, 0.5D - y, 0.5D - x,
+                    1.0D, 0.5D + y, 0.5D + x);
+            case EAST -> Shapes.box(0.0D, 0.5D - y, 0.5D - x,
+                    2.0D * z, 0.5D + y, 0.5D + x);
+        };
+    }
+
+    private static VoxelShape fluorescentShape(Direction facing) {
+        float x = 0.50F;
+        float y = 0.50F;
+        float z = 0.10F;
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.5D - y, 1.0D - 2.0D * z, 0.5D - x,
+                    0.5D + y, 1.0D, 0.5D + x);
+            case UP -> Shapes.box(0.5D - y, 0.0D, 0.5D - x,
+                    0.5D + y, 2.0D * z, 0.5D + x);
+            case NORTH -> Shapes.box(0.5D - x, 0.5D - y, 1.0D - 2.0D * z,
+                    0.5D + x, 0.5D + y, 1.0D);
+            case SOUTH -> Shapes.box(0.5D - x, 0.5D - y, 0.0D,
+                    0.5D + x, 0.5D + y, 2.0D * z);
+            case WEST -> Shapes.box(1.0D - 2.0D * z, 0.5D - y, 0.5D - x,
+                    1.0D, 0.5D + y, 0.5D + x);
+            case EAST -> Shapes.box(0.0D, 0.5D - y, 0.5D - x,
+                    2.0D * z, 0.5D + y, 0.5D + x);
+        };
+    }
+
+    private static VoxelShape halogenShape(Direction facing) {
+        float x = 0.35F;
+        float y = 0.25F;
+        float z = 0.20F;
+        return switch (facing) {
+            case DOWN -> Shapes.box(0.5D - y, 1.0D - 2.0D * z, 0.5D - x,
+                    0.5D + y, 1.0D, 0.5D + x);
+            case UP -> Shapes.box(0.5D - y, 0.0D, 0.5D - x,
+                    0.5D + y, 2.0D * z, 0.5D + x);
+            case NORTH -> Shapes.box(0.5D - x, 0.5D - y, 1.0D - 2.0D * z,
+                    0.5D + x, 0.5D + y, 1.0D);
+            case SOUTH -> Shapes.box(0.5D - x, 0.5D - y, 0.0D,
+                    0.5D + x, 0.5D + y, 2.0D * z);
+            case WEST -> Shapes.box(1.0D - 2.0D * z, 0.5D - y, 0.5D - x,
+                    1.0D, 0.5D + y, 0.5D + x);
+            case EAST -> Shapes.box(0.0D, 0.5D - y, 0.5D - x,
+                    2.0D * z, 0.5D + y, 0.5D + x);
+        };
     }
 }

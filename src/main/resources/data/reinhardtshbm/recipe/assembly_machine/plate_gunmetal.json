@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:assembly_machine","group":"ass.plategunmetal","blueprint_pools":["alt.plates"],"duration":60,"power":100,"ingredients":[{"ingredient":{"tag":"c:ingots/gunmetal"},"count":1}],"result":{"id":"reinhardtshbm:plate_gunmetal"}}

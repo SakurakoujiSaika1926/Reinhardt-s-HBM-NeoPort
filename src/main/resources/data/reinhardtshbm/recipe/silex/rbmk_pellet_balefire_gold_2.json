@@ -1,0 +1,30 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_balefire_gold_2",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_balefire_gold"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  2
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "visible",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_au198"
+                                 },
+                        "weight":  50
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:powder_balefire"
+                                 },
+                        "weight":  50
+                    }
+                ]
+}

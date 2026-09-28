@@ -298,7 +298,7 @@ public class ArcWelderBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -663,7 +663,7 @@ public class ArcWelderBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     private List<Port> connectorPositions() {
         Direction dir = this.getBlockState().hasProperty(ArcWelderBlock.FACING) ? this.getBlockState().getValue(ArcWelderBlock.FACING) : Direction.NORTH;
-        Direction rot = dir.getClockWise();
+        Direction rot = arcWelderRightSide(dir);
         return List.of(
                 new Port(this.worldPosition.relative(dir), dir),
                 new Port(this.worldPosition.relative(dir).relative(rot), dir),
@@ -828,6 +828,16 @@ public class ArcWelderBlockEntity extends BlockEntity implements PowerEndpoint, 
         return type == MachineUpgradeItem.UpgradeType.SPEED
                 || type == MachineUpgradeItem.UpgradeType.POWER
                 || type == MachineUpgradeItem.UpgradeType.OVERDRIVE;
+    }
+
+    private static Direction arcWelderRightSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Arc welder requires a horizontal facing: " + facing);
+        };
     }
 
     private static void drop(Level level, BlockPos pos, ItemStack stack) {

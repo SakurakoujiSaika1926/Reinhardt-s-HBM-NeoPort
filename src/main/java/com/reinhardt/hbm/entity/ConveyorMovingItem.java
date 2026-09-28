@@ -2,8 +2,11 @@ package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.block.ConveyorBlock;
 import com.reinhardt.hbm.blockentity.ConveyorPressBlockEntity;
+import com.reinhardt.hbm.blockentity.CraneMachineBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -52,14 +55,18 @@ public final class ConveyorMovingItem extends Entity {
             discard();
             return;
         }
-        BlockState state = level().getBlockState(blockPosition());
+        BlockPos before = blockPosition();
+        BlockState state = level().getBlockState(before);
         Vec3 target;
         if (state.getBlock() instanceof ConveyorBlock conveyor) {
-            target = conveyor.travelLocation(level(), blockPosition(), state, position(), 0.0625D);
-        } else if (level().getBlockEntity(blockPosition()) instanceof MachineDummyBlockEntity dummy
+            target = conveyor.travelLocation(level(), before, state, position(), 0.0625D);
+        } else if (level().getBlockEntity(before) instanceof MachineDummyBlockEntity dummy
                 && dummy.core() instanceof ConveyorPressBlockEntity press
-                && press.isBeltPosition(blockPosition())) {
+                && press.isBeltPosition(before)) {
             target = press.travelLocation(position(), 0.0625D);
+        } else if (level().getBlockEntity(before) instanceof CraneMachineBlockEntity crane
+                && crane.isConveyorSurface()) {
+            target = crane.travelLocation(position(), 0.0625D);
         } else {
             leaveConveyor();
             return;
@@ -67,12 +74,49 @@ public final class ConveyorMovingItem extends Entity {
         Vec3 movement = target.subtract(position());
         setDeltaMovement(movement);
         move(MoverType.SELF, movement);
+        BlockPos after = blockPosition();
+        if (!before.equals(after)) {
+            tryEnterCrane(before, after);
+        }
+    }
+
+    private void tryEnterCrane(BlockPos before, BlockPos after) {
+        Direction enteredFrom = enteredFrom(before, after);
+        if (enteredFrom != null && level().getBlockEntity(after) instanceof CraneMachineBlockEntity crane
+                && crane.acceptMovingItem(getItemStack().copy(), enteredFrom)) {
+            discard();
+            return;
+        }
+        BlockState enteredState = level().getBlockState(after);
+        if (!enteredState.isCollisionShapeFullBlock(level(), after)) {
+            BlockPos below = after.below();
+            if (level().getBlockEntity(below) instanceof CraneMachineBlockEntity crane
+                    && crane.acceptMovingItem(getItemStack().copy(), Direction.UP)) {
+                discard();
+            }
+        }
+    }
+
+    private static Direction enteredFrom(BlockPos before, BlockPos after) {
+        int dx = before.getX() - after.getX();
+        int dy = before.getY() - after.getY();
+        int dz = before.getZ() - after.getZ();
+        if (dx > 0 && dy == 0 && dz == 0) return Direction.EAST;
+        if (dx < 0 && dy == 0 && dz == 0) return Direction.WEST;
+        if (dy > 0 && dx == 0 && dz == 0) return Direction.UP;
+        if (dy < 0 && dx == 0 && dz == 0) return Direction.DOWN;
+        if (dz > 0 && dx == 0 && dy == 0) return Direction.SOUTH;
+        if (dz < 0 && dx == 0 && dy == 0) return Direction.NORTH;
+        return null;
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if (!level().isClientSide && !isRemoved() && player.getInventory().add(getItemStack().copy())) {
-            discard();
+        if (!level().isClientSide && !isRemoved()) {
+            ItemStack remaining = getItemStack().copy();
+            player.getInventory().add(remaining);
+            if (remaining.isEmpty()) discard();
+            else setItemStack(remaining);
             player.inventoryMenu.broadcastChanges();
         }
         // EntityMovingItem#interactFirst returned false on both sides.

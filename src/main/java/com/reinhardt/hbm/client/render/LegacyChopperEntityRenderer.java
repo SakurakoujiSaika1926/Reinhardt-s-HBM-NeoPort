@@ -6,20 +6,24 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyChopperEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
 
 /** Direct modern transform of RenderHunterChopper, including the original Techne geometry and rotor animation. */
 public final class LegacyChopperEntityRenderer extends EntityRenderer<LegacyChopperEntity> {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/entity/chopper.png");
     private final LegacyChopperModel model;
+    private final double visualRadius;
 
     public LegacyChopperEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
         model = new LegacyChopperModel(context.bakeLayer(LegacyChopperModel.LAYER));
+        visualRadius = rotationSafeRadius(LegacyChopperModel.authoredMaximumRootRadius() * 0.25D);
         shadowRadius = 0.0F;
     }
 
@@ -44,7 +48,22 @@ public final class LegacyChopperEntityRenderer extends EntityRenderer<LegacyChop
     }
 
     @Override
+    public boolean shouldRender(LegacyChopperEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        AABB bounds = EntityRenderBounds.radius(
+                entity.getX(), entity.getY() + 2.75D, entity.getZ(), visualRadius);
+        return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ);
+    }
+
+    @Override
     public ResourceLocation getTextureLocation(LegacyChopperEntity entity) {
         return TEXTURE;
+    }
+
+    private static double rotationSafeRadius(double radius) {
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
 }

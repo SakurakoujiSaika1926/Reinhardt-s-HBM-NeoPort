@@ -14,6 +14,7 @@ import com.reinhardt.hbm.pollution.HbmPollutionConstants;
 import com.reinhardt.hbm.pollution.HbmPollutionType;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.util.FuelItemConsumption;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
@@ -175,8 +176,10 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
             return;
         }
 
-        if (heater.kind == Kind.FIREBOX || heater.kind == Kind.OVEN) {
-            heater.sendSmoke();
+        if (heater.kind == Kind.FIREBOX) {
+            heater.sendFireboxSmoke();
+        } else if (heater.kind == Kind.OVEN) {
+            heater.sendOvenSmoke();
         }
         switch (heater.kind) {
             case ELECTRIC -> {
@@ -509,7 +512,7 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -672,8 +675,11 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
         if (this.kind == Kind.HEATEX) {
             return allowsHeatExchangerPort(queriedPos, side) ? new HeatExchangerFluidHandler(queriedPos.immutable(), side) : null;
         }
-        if ((this.kind == Kind.FIREBOX || this.kind == Kind.OVEN) && allowsSmokePort(queriedPos, side)) {
-            return new SmokeOutputFluidHandler(queriedPos.immutable(), side);
+        if (this.kind == Kind.FIREBOX && allowsFireboxSmokePort(queriedPos, side)) {
+            return new FireboxSmokeOutputFluidHandler(queriedPos.immutable(), side);
+        }
+        if (this.kind == Kind.OVEN && allowsOvenSmokePort(queriedPos, side)) {
+            return new OvenSmokeOutputFluidHandler(queriedPos.immutable(), side);
         }
         return null;
     }
@@ -724,7 +730,17 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
         return false;
     }
 
-    private boolean allowsSmokePort(BlockPos queriedPos, @Nullable Direction side) {
+    private boolean allowsFireboxSmokePort(BlockPos queriedPos, @Nullable Direction side) {
+        if (this.level == null || side == Direction.DOWN) {
+            return false;
+        }
+        BlockPos diff = queriedPos.subtract(this.worldPosition);
+        return diff.getY() == 0
+                && Math.abs(diff.getX()) <= 1
+                && Math.abs(diff.getZ()) <= 1;
+    }
+
+    private boolean allowsOvenSmokePort(BlockPos queriedPos, @Nullable Direction side) {
         if (this.level == null || side == Direction.DOWN) {
             return false;
         }
@@ -992,14 +1008,37 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
                     this.level.invalidateCapabilities(port.pos());
                 }
             }
-            if (this.kind == Kind.FIREBOX || this.kind == Kind.OVEN) {
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = -1; z <= 1; z++) {
-                        this.level.invalidateCapabilities(this.worldPosition.offset(x, 0, z));
-                    }
-                }
+            if (this.kind == Kind.FIREBOX) {
+                invalidateFireboxSmokeCapabilities();
+            }
+            if (this.kind == Kind.OVEN) {
+                invalidateOvenSmokeCapabilities();
             }
         }
+    }
+
+    private void invalidateFireboxSmokeCapabilities() {
+        this.level.invalidateCapabilities(this.worldPosition.offset(-1, 0, -1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(0, 0, -1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(1, 0, -1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(-1, 0, 0));
+        this.level.invalidateCapabilities(this.worldPosition);
+        this.level.invalidateCapabilities(this.worldPosition.offset(1, 0, 0));
+        this.level.invalidateCapabilities(this.worldPosition.offset(-1, 0, 1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(0, 0, 1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(1, 0, 1));
+    }
+
+    private void invalidateOvenSmokeCapabilities() {
+        this.level.invalidateCapabilities(this.worldPosition.offset(-1, 0, -1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(0, 0, -1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(1, 0, -1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(-1, 0, 0));
+        this.level.invalidateCapabilities(this.worldPosition);
+        this.level.invalidateCapabilities(this.worldPosition.offset(1, 0, 0));
+        this.level.invalidateCapabilities(this.worldPosition.offset(-1, 0, 1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(0, 0, 1));
+        this.level.invalidateCapabilities(this.worldPosition.offset(1, 0, 1));
     }
 
     public record Port(BlockPos pos, Direction face) {
@@ -1041,21 +1080,60 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
         }
     }
 
-    private void sendSmoke() {
+    private void sendFireboxSmoke() {
         if (this.level == null || this.level.isClientSide) {
             return;
         }
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            Direction sideways = direction.getClockWise();
-            for (int offset = -1; offset <= 1; offset++) {
-                BlockPos target = this.worldPosition
-                        .relative(direction, 2)
-                        .relative(sideways, offset);
-                sendSmokeTo(target, direction.getOpposite(), this.smokeTank);
-                sendSmokeTo(target, direction.getOpposite(), this.smokeLeadedTank);
-                sendSmokeTo(target, direction.getOpposite(), this.smokePoisonTank);
-            }
+        for (Port port : fireboxSmokeOutputPorts()) {
+            sendSmokeTo(port.pos(), port.face(), this.smokeTank);
+            sendSmokeTo(port.pos(), port.face(), this.smokeLeadedTank);
+            sendSmokeTo(port.pos(), port.face(), this.smokePoisonTank);
         }
+    }
+
+    private List<Port> fireboxSmokeOutputPorts() {
+        return List.of(
+                new Port(this.worldPosition.offset(-1, 0, -2), Direction.SOUTH),
+                new Port(this.worldPosition.offset(0, 0, -2), Direction.SOUTH),
+                new Port(this.worldPosition.offset(1, 0, -2), Direction.SOUTH),
+                new Port(this.worldPosition.offset(-1, 0, 2), Direction.NORTH),
+                new Port(this.worldPosition.offset(0, 0, 2), Direction.NORTH),
+                new Port(this.worldPosition.offset(1, 0, 2), Direction.NORTH),
+                new Port(this.worldPosition.offset(-2, 0, -1), Direction.EAST),
+                new Port(this.worldPosition.offset(-2, 0, 0), Direction.EAST),
+                new Port(this.worldPosition.offset(-2, 0, 1), Direction.EAST),
+                new Port(this.worldPosition.offset(2, 0, -1), Direction.WEST),
+                new Port(this.worldPosition.offset(2, 0, 0), Direction.WEST),
+                new Port(this.worldPosition.offset(2, 0, 1), Direction.WEST)
+        );
+    }
+
+    private void sendOvenSmoke() {
+        if (this.level == null || this.level.isClientSide) {
+            return;
+        }
+        for (Port port : ovenSmokeOutputPorts()) {
+            sendSmokeTo(port.pos(), port.face(), this.smokeTank);
+            sendSmokeTo(port.pos(), port.face(), this.smokeLeadedTank);
+            sendSmokeTo(port.pos(), port.face(), this.smokePoisonTank);
+        }
+    }
+
+    private List<Port> ovenSmokeOutputPorts() {
+        return List.of(
+                new Port(this.worldPosition.offset(-1, 0, -2), Direction.SOUTH),
+                new Port(this.worldPosition.offset(0, 0, -2), Direction.SOUTH),
+                new Port(this.worldPosition.offset(1, 0, -2), Direction.SOUTH),
+                new Port(this.worldPosition.offset(-1, 0, 2), Direction.NORTH),
+                new Port(this.worldPosition.offset(0, 0, 2), Direction.NORTH),
+                new Port(this.worldPosition.offset(1, 0, 2), Direction.NORTH),
+                new Port(this.worldPosition.offset(-2, 0, -1), Direction.EAST),
+                new Port(this.worldPosition.offset(-2, 0, 0), Direction.EAST),
+                new Port(this.worldPosition.offset(-2, 0, 1), Direction.EAST),
+                new Port(this.worldPosition.offset(2, 0, -1), Direction.WEST),
+                new Port(this.worldPosition.offset(2, 0, 0), Direction.WEST),
+                new Port(this.worldPosition.offset(2, 0, 1), Direction.WEST)
+        );
     }
 
     private void sendSmokeTo(BlockPos target, Direction side, HbmFluidTank tank) {
@@ -1092,10 +1170,9 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
                 continue;
             }
             int heat = legacyFuelHeat(stack);
-            Item consumed = stack.getItem();
-            stack.shrink(1);
+            ItemStack remainder = FuelItemConsumption.consumeOne(stack);
             if (stack.isEmpty()) {
-                setItem(slot, consumed == Items.LAVA_BUCKET ? new ItemStack(Items.BUCKET) : ItemStack.EMPTY);
+                setItem(slot, remainder);
             }
             this.maxBurnTime = this.burnTime = duration;
             this.burnHeat = heat;
@@ -1355,15 +1432,17 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
         }
     }
 
-    private final class SmokeOutputFluidHandler implements IFluidHandler {
-        private final BlockPos queriedPos;
+    private abstract class SmokeOutputFluidHandler implements IFluidHandler {
+        protected final BlockPos queriedPos;
         @Nullable
-        private final Direction side;
+        protected final Direction side;
 
         private SmokeOutputFluidHandler(BlockPos queriedPos, @Nullable Direction side) {
             this.queriedPos = queriedPos;
             this.side = side;
         }
+
+        protected abstract boolean allowsPort();
 
         @Override
         public int getTanks() {
@@ -1394,7 +1473,7 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
-            if (resource.isEmpty() || !allowsSmokePort(this.queriedPos, this.side)) {
+            if (resource.isEmpty() || !allowsPort()) {
                 return FluidStack.EMPTY;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(resource.getFluid()).orElse(HbmFluids.none());
@@ -1411,7 +1490,7 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
 
         @Override
         public FluidStack drain(int maxDrain, FluidAction action) {
-            if (maxDrain <= 0 || !allowsSmokePort(this.queriedPos, this.side)) {
+            if (maxDrain <= 0 || !allowsPort()) {
                 return FluidStack.EMPTY;
             }
             for (int i = 0; i < getTanks(); i++) {
@@ -1455,6 +1534,28 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
         }
     }
 
+    private final class FireboxSmokeOutputFluidHandler extends SmokeOutputFluidHandler {
+        private FireboxSmokeOutputFluidHandler(BlockPos queriedPos, @Nullable Direction side) {
+            super(queriedPos, side);
+        }
+
+        @Override
+        protected boolean allowsPort() {
+            return allowsFireboxSmokePort(this.queriedPos, this.side);
+        }
+    }
+
+    private final class OvenSmokeOutputFluidHandler extends SmokeOutputFluidHandler {
+        private OvenSmokeOutputFluidHandler(BlockPos queriedPos, @Nullable Direction side) {
+            super(queriedPos, side);
+        }
+
+        @Override
+        protected boolean allowsPort() {
+            return allowsOvenSmokePort(this.queriedPos, this.side);
+        }
+    }
+
     private void tickClientAnimation(BlockState state) {
         this.prevDoorAngle = this.doorAngle;
         float swingSpeed = this.doorAngle / 10.0F + 3.0F;
@@ -1464,15 +1565,38 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
             this.doorAngle = Math.max(0.0F, this.doorAngle - swingSpeed);
         }
 
-        if ((this.kind == Kind.FIREBOX || this.kind == Kind.OVEN) && this.burnTime > 0 && this.level != null && this.level.getGameTime() % 5 == 0) {
-            Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-            double x = this.worldPosition.getX() + 0.5D + facing.getStepX() * 0.75D;
-            double y = this.worldPosition.getY() + 0.25D;
-            double z = this.worldPosition.getZ() + 0.5D + facing.getStepZ() * 0.75D;
-            this.level.addParticle(ParticleTypes.FLAME, x, y, z, 0.0D, 0.0D, 0.0D);
-            if (this.level.random.nextInt(3) == 0) {
-                this.level.addParticle(ParticleTypes.SMOKE, x, y + 0.15D, z, 0.0D, 0.03D, 0.0D);
-            }
+        if (this.kind == Kind.FIREBOX) {
+            tickFireboxClientParticles(state);
+        } else if (this.kind == Kind.OVEN) {
+            tickOvenClientParticles(state);
+        }
+    }
+
+    private void tickFireboxClientParticles(BlockState state) {
+        if (this.burnTime <= 0 || this.level == null || this.level.getGameTime() % 5 != 0) {
+            return;
+        }
+        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        double x = this.worldPosition.getX() + 0.5D + facing.getStepX() * 0.75D;
+        double y = this.worldPosition.getY() + 0.25D;
+        double z = this.worldPosition.getZ() + 0.5D + facing.getStepZ() * 0.75D;
+        this.level.addParticle(ParticleTypes.FLAME, x, y, z, 0.0D, 0.0D, 0.0D);
+        if (this.level.random.nextInt(3) == 0) {
+            this.level.addParticle(ParticleTypes.SMOKE, x, y + 0.15D, z, 0.0D, 0.03D, 0.0D);
+        }
+    }
+
+    private void tickOvenClientParticles(BlockState state) {
+        if (this.burnTime <= 0 || this.level == null || this.level.getGameTime() % 5 != 0) {
+            return;
+        }
+        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        double x = this.worldPosition.getX() + 0.5D + facing.getStepX() * 0.75D;
+        double y = this.worldPosition.getY() + 0.25D;
+        double z = this.worldPosition.getZ() + 0.5D + facing.getStepZ() * 0.75D;
+        this.level.addParticle(ParticleTypes.FLAME, x, y, z, 0.0D, 0.0D, 0.0D);
+        if (this.level.random.nextInt(3) == 0) {
+            this.level.addParticle(ParticleTypes.SMOKE, x, y + 0.15D, z, 0.0D, 0.03D, 0.0D);
         }
     }
 

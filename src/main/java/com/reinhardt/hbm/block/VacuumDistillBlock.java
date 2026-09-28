@@ -26,17 +26,27 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class VacuumDistillBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = createFootprint();
 
     public VacuumDistillBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, shape, VacuumDistillBlock::mapVacuumDistillOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = this.defaultBlockState().setValue(FACING, Direction.NORTH);
-        return LargeMachineBlock.canPlaceFootprint(context, state, FOOTPRINT) ? state : null;
+        return LargeMachineBlock.canPlaceFootprint(context, state, FOOTPRINT, VacuumDistillBlock::mapVacuumDistillOffset) ? state : null;
     }
 
     @Nullable
@@ -121,6 +131,16 @@ public class VacuumDistillBlock extends LargeMachineBlock implements EntityBlock
         }
         offsets.add(BlockPos.ZERO);
         return new Footprint(offsets.stream().toList());
+    }
+
+    private static BlockPos mapVacuumDistillOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            default -> throw new IllegalArgumentException("Vacuum distillation tower facing must be horizontal: " + facing);
+        };
     }
 }
 

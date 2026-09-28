@@ -32,7 +32,7 @@ public final class RefuelerBlockEntityRenderer implements BlockEntityRenderer<Re
         BlockState state = refueler.getBlockState();
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        orient(poseStack, state.getValue(RefuelerBlock.FACING));
+        applyRefuelerPose(poseStack, refuelerFacing(state));
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FUELER), poseStack, bufferSource,
                 state, packedLight, packedOverlay);
 
@@ -55,7 +55,14 @@ public final class RefuelerBlockEntityRenderer implements BlockEntityRenderer<Re
         return new AABB(refueler.getBlockPos());
     }
 
-    private static void orient(PoseStack poseStack, Direction facing) {
+    private static Direction refuelerFacing(BlockState state) {
+        if (!state.hasProperty(RefuelerBlock.FACING)) {
+            throw new IllegalStateException("Refueler state is missing its owned facing property: " + state);
+        }
+        return state.getValue(RefuelerBlock.FACING);
+    }
+
+    private static void applyRefuelerPose(PoseStack poseStack, Direction facing) {
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         // Literal BlockRefueler / RenderRefueler metadata mapping.
         switch (facing) {
@@ -64,8 +71,7 @@ public final class RefuelerBlockEntityRenderer implements BlockEntityRenderer<Re
             case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
             case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
-            default -> {
-            }
+            case UP, DOWN -> throw new IllegalArgumentException("Refueler facing must be horizontal: " + facing);
         }
     }
 }

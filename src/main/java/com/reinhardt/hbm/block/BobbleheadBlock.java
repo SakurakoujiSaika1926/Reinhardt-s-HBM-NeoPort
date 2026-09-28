@@ -24,6 +24,8 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -67,6 +69,18 @@ public final class BobbleheadBlock extends Block implements EntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new BobbleheadBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide && type == HbmBlockEntities.BOBBLEHEAD.get()
+                ? (tickerLevel, tickerPos, tickerState, entity) -> {
+                    if (entity instanceof BobbleheadBlockEntity bobble) {
+                        BobbleheadBlockEntity.clientTick(tickerLevel, tickerPos, tickerState, bobble);
+                    }
+                }
+                : null;
     }
 
     @Override

@@ -1,0 +1,23 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.capacitortantalum",
+  "duration": 100,
+  "power": 10000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/hard_plastic"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/tantalium"
+      },
+      "count": 24
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:battery_pack_capacitor_tantalum"
+  }
+}

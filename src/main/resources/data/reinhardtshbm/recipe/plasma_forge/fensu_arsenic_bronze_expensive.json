@@ -31,13 +31,19 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:item_expensive_bronze_tubes"
+        "item": "reinhardtshbm:item_expensive_cmb_tubes"
       },
       "count": 64
     },
     {
       "ingredient": {
         "item": "reinhardtshbm:item_expensive_ferro_plating"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:plate_welded_osmiridium"
       },
       "count": 64
     },

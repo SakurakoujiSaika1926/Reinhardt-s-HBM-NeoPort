@@ -30,6 +30,16 @@ public final class IcfAssembledLaserBlockEntity extends BlockEntity implements P
         setChanged();
     }
 
+    /** Rewrites the persisted controller link after a Create contraption move. */
+    public void transformAssemblyLink(java.util.function.UnaryOperator<BlockPos> transform) {
+        this.controllerPos = transform.apply(this.controllerPos).immutable();
+        setChanged();
+    }
+
+    public BlockPos controllerPos() {
+        return this.controllerPos;
+    }
+
     public void restoreOriginal() {
         if (this.level == null || this.level.isClientSide || this.originalBlock == null) {
             return;

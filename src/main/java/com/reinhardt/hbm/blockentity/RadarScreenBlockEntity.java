@@ -30,6 +30,7 @@ public final class RadarScreenBlockEntity extends BlockEntity {
     private int refZ;
     private int range;
     private boolean linked;
+    private volatile RenderSnapshot renderSnapshot = RenderSnapshot.empty();
     private long lastRadarWriteTick = Long.MIN_VALUE;
     private long lastClientSyncTick = Long.MIN_VALUE;
 
@@ -47,6 +48,7 @@ public final class RadarScreenBlockEntity extends BlockEntity {
         if (screen.lastRadarWriteTick != level.getGameTime()) {
             screen.entries.clear();
             screen.linked = false;
+            screen.publishRenderSnapshot();
         }
         if (level.getGameTime() - screen.lastClientSyncTick >= CLIENT_SYNC_INTERVAL) {
             screen.lastClientSyncTick = level.getGameTime();
@@ -67,6 +69,7 @@ public final class RadarScreenBlockEntity extends BlockEntity {
         this.range = radarRange;
         this.linked = true;
         this.lastRadarWriteTick = this.level.getGameTime();
+        publishRenderSnapshot();
         setChanged();
         if (this.level.getGameTime() - this.lastClientSyncTick >= CLIENT_SYNC_INTERVAL) {
             this.lastClientSyncTick = this.level.getGameTime();
@@ -75,6 +78,10 @@ public final class RadarScreenBlockEntity extends BlockEntity {
     }
 
     public boolean openLinkedRadar(ServerPlayer player) {
+        return openLinkedRadar(player, this.worldPosition, this.worldPosition);
+    }
+
+    public boolean openLinkedRadar(ServerPlayer player, BlockPos accessPos, BlockPos accessCorePos) {
         if (this.level == null || !this.linked) {
             return false;
         }
@@ -84,6 +91,7 @@ public final class RadarScreenBlockEntity extends BlockEntity {
             return false;
         }
         player.openMenu(radar, buffer -> buffer.writeBlockPos(radarPos));
+        MachineDummyMenuAccess.record(player, accessPos, accessCorePos, radarPos);
         return true;
     }
 
@@ -109,6 +117,19 @@ public final class RadarScreenBlockEntity extends BlockEntity {
 
     public List<RadarTarget> entries() {
         return List.copyOf(this.entries);
+    }
+
+    /** One immutable publication consumed once by the renderer per frame. */
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
+    }
+
+    private void publishRenderSnapshot() {
+        if (this.level != null && !this.level.isClientSide) {
+            return;
+        }
+        this.renderSnapshot = new RenderSnapshot(
+                this.linked, this.refX, this.refZ, this.range, List.copyOf(this.entries));
     }
 
     private void syncToClient() {
@@ -158,6 +179,7 @@ public final class RadarScreenBlockEntity extends BlockEntity {
                     entry.getInt("Z"), entry.getInt("Entity"), entry.getBoolean("Redstone")
             ));
         }
+        publishRenderSnapshot();
     }
 
     @Override
@@ -176,5 +198,16 @@ public final class RadarScreenBlockEntity extends BlockEntity {
     public AABB legacyRenderBounds() {
         return new AABB(this.worldPosition.getX() - 1, this.worldPosition.getY(), this.worldPosition.getZ() - 1,
                 this.worldPosition.getX() + 2, this.worldPosition.getY() + 2, this.worldPosition.getZ() + 2);
+    }
+
+    public record RenderSnapshot(boolean linked, int refX, int refZ, int range,
+                                 List<RadarTarget> entries) {
+        public RenderSnapshot {
+            entries = List.copyOf(entries);
+        }
+
+        private static RenderSnapshot empty() {
+            return new RenderSnapshot(false, 0, 0, 0, List.of());
+        }
     }
 }

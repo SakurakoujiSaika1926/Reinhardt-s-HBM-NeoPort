@@ -143,7 +143,7 @@ public final class FilingCabinetBlockEntity extends BlockEntity implements MenuP
     @Override public int[] getSlotsForFace(Direction side) { return new int[0]; }
     @Override public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) { return false; }
     @Override public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) { return false; }
-    @Override public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    @Override public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
     @Override public void clearContent() { items.clear(); setChanged(); }
     @Override public Component getDisplayName() { return Component.translatable("container.reinhardtshbm.filing_cabinet"); }
     @Nullable @Override public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) { return new FilingCabinetMenu(id, inventory, this); }

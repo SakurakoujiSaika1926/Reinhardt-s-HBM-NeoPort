@@ -1,7 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.CrystallizerBlock;
 import com.reinhardt.hbm.blockentity.CrystallizerBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -18,6 +18,7 @@ public class CrystallizerBlockEntityRenderer implements LongRangeBlockEntityRend
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_crystallizer_body");
     private static final ModelResourceLocation SPINNER = MachineModelRenderer.standalone("block/machine_crystallizer_spinner");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_crystallizer_fluid");
+    private static final AABB[] LOCAL_BOUNDS = buildCrystallizerBounds();
 
     public CrystallizerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -31,10 +32,10 @@ public class CrystallizerBlockEntityRenderer implements LongRangeBlockEntityRend
     @Override
     public void render(CrystallizerBlockEntity crystallizer, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = crystallizer.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        Direction facing = crystallizerFacing(state);
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyYaw(facing));
+        applyCrystallizerTransform(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
@@ -58,15 +59,39 @@ public class CrystallizerBlockEntityRenderer implements LongRangeBlockEntityRend
 
     @Override
     public AABB getRenderBoundingBox(CrystallizerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 8.0D, 3.0D);
+        Direction facing = crystallizerFacing(blockEntity.getBlockState());
+        /* Face-used component union. The body's +/-1.5 X/Z contains the spinner
+         * at every yaw; the spinner alone supplies the exact 6.625 top. */
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 0.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            default -> 90.0F;
-        };
+    private static AABB[] buildCrystallizerBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyCrystallizerTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.5F, 0.0F, -1.5F, 1.5F, 6.625F, 1.5F);
+        }
+        return bounds;
+    }
+
+    private static void applyCrystallizerTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Crystallizer facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction crystallizerFacing(BlockState state) {
+        if (!state.hasProperty(CrystallizerBlock.FACING)) {
+            throw new IllegalStateException("Crystallizer state is missing its owned facing property: " + state);
+        }
+        return state.getValue(CrystallizerBlock.FACING);
     }
 }

@@ -1,3 +1,8 @@
 {
-  "variants": { "": { "model": "reinhardtshbm:block/brick_forgotten_lock" } }
+  "variants": {
+    "variant=default": { "model": "reinhardtshbm:block/brick_forgotten_lock" },
+    "variant=black_and_white": { "model": "reinhardtshbm:block/brick_forgotten_lock_bw" },
+    "variant=nullstone": { "model": "reinhardtshbm:block/brick_forgotten_lock_nullstone" },
+    "variant=lethal": { "model": "reinhardtshbm:block/brick_forgotten_lock" }
+  }
 }

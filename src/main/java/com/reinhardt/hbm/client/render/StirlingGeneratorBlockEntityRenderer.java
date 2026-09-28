@@ -1,11 +1,11 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.block.StirlingGeneratorBlock;
 import com.reinhardt.hbm.blockentity.StirlingGeneratorBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
@@ -15,7 +15,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class StirlingGeneratorBlockEntityRenderer implements BlockEntityRenderer<StirlingGeneratorBlockEntity> {
+public class StirlingGeneratorBlockEntityRenderer implements LongRangeBlockEntityRenderer<StirlingGeneratorBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_stirling_world");
     private static final ModelResourceLocation COG = MachineModelRenderer.standalone("block/machine_stirling_cog");
     private static final ModelResourceLocation COG_SMALL = MachineModelRenderer.standalone("block/machine_stirling_cog_small");
@@ -50,20 +50,59 @@ public class StirlingGeneratorBlockEntityRenderer implements BlockEntityRenderer
     @Override
     public void render(StirlingGeneratorBlockEntity stirling, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = stirling.getBlockState();
-        Direction facing = state.hasProperty(StirlingGeneratorBlock.FACING) ? state.getValue(StirlingGeneratorBlock.FACING) : Direction.NORTH;
         float rot = stirling.getSpin(partialTick);
-        PartSet parts = PartSet.forState(state);
+        if (state.is(HbmBlocks.MACHINE_STIRLING_CREATIVE.get())) {
+            renderCreativeStirling(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (state.is(HbmBlocks.MACHINE_STIRLING_STEEL.get())) {
+            renderSteelStirling(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay);
+        } else {
+            renderNormalStirling(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay);
+        }
+    }
 
+    private static void renderNormalStirling(StirlingGeneratorBlockEntity stirling, BlockState state, float rot,
+                                             PoseStack poseStack, MultiBufferSource bufferSource,
+                                             int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyStirlingParts(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.world), poseStack, bufferSource, state, packedLight, packedOverlay);
+        applyNormalStirlingWorldPose(poseStack, state.getValue(StirlingGeneratorBlock.FACING));
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderMovingParts(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay, COG, COG_SMALL, PISTON);
+        poseStack.popPose();
+    }
 
+    private static void renderSteelStirling(StirlingGeneratorBlockEntity stirling, BlockState state, float rot,
+                                            PoseStack poseStack, MultiBufferSource bufferSource,
+                                            int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applySteelStirlingWorldPose(poseStack, state.getValue(StirlingGeneratorBlock.FACING));
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD_STEEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderMovingParts(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay,
+                COG_STEEL, COG_SMALL_STEEL, PISTON_STEEL);
+        poseStack.popPose();
+    }
+
+    private static void renderCreativeStirling(StirlingGeneratorBlockEntity stirling, BlockState state, float rot,
+                                               PoseStack poseStack, MultiBufferSource bufferSource,
+                                               int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyCreativeStirlingWorldPose(poseStack, state.getValue(StirlingGeneratorBlock.FACING));
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD_CREATIVE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderMovingParts(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay,
+                COG_CREATIVE, COG_SMALL_CREATIVE, PISTON_CREATIVE);
+        poseStack.popPose();
+    }
+
+    private static void renderMovingParts(StirlingGeneratorBlockEntity stirling, BlockState state, float rot,
+                                          PoseStack poseStack, MultiBufferSource bufferSource,
+                                          int packedLight, int packedOverlay,
+                                          ModelResourceLocation cog, ModelResourceLocation cogSmall,
+                                          ModelResourceLocation piston) {
         if (stirling.hasCog()) {
             poseStack.pushPose();
             poseStack.translate(0.0F, 1.375F, 0.0F);
             poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rot), 0.0F, 0.0F, 1.0F)));
             poseStack.translate(0.0F, -1.375F, 0.0F);
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cog), poseStack, bufferSource, state, packedLight, packedOverlay);
+            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cog), poseStack, bufferSource, state, packedLight, packedOverlay);
             poseStack.popPose();
         }
 
@@ -71,31 +110,81 @@ public class StirlingGeneratorBlockEntityRenderer implements BlockEntityRenderer
         poseStack.translate(0.0F, 1.375F, 0.25F);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rot * 2.0F + 3.0F), 1.0F, 0.0F, 0.0F)));
         poseStack.translate(0.0F, -1.375F, -0.25F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.cogSmall), poseStack, bufferSource, state, packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cogSmall), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(Math.sin(rot * Math.PI / 90.0D) * 0.25D + 0.125D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(parts.piston), poseStack, bufferSource, state, packedLight, packedOverlay);
-        poseStack.popPose();
-
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(piston), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(StirlingGeneratorBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 3.0D, 3.0D);
+        BlockState state = blockEntity.getBlockState();
+        if (state.is(HbmBlocks.MACHINE_STIRLING_CREATIVE.get())) {
+            return creativeStirlingBounds(blockEntity);
+        }
+        if (state.is(HbmBlocks.MACHINE_STIRLING_STEEL.get())) {
+            return steelStirlingBounds(blockEntity);
+        }
+        return normalStirlingBounds(blockEntity);
     }
 
-    private record PartSet(ModelResourceLocation world, ModelResourceLocation cog, ModelResourceLocation cogSmall, ModelResourceLocation piston) {
-        private static PartSet forState(BlockState state) {
-            if (state.is(HbmBlocks.MACHINE_STIRLING_CREATIVE.get())) {
-                return new PartSet(WORLD_CREATIVE, COG_CREATIVE, COG_SMALL_CREATIVE, PISTON_CREATIVE);
-            }
-            if (state.is(HbmBlocks.MACHINE_STIRLING_STEEL.get())) {
-                return new PartSet(WORLD_STEEL, COG_STEEL, COG_SMALL_STEEL, PISTON_STEEL);
-            }
-            return new PartSet(WORLD, COG, COG_SMALL, PISTON);
+    private static AABB normalStirlingBounds(StirlingGeneratorBlockEntity blockEntity) {
+        var pos = blockEntity.getBlockPos();
+        /*
+         * Base is exactly +/-1.5 horizontally.  Across the big cog's complete
+         * Z-axis rotation, its farthest face-used vertex is
+         * 1.1940616557971366 from the Y=1.375 pivot, giving maxY below.  The
+         * small cog and full +/- piston stroke remain inside this union.
+         */
+        return new AABB(pos.getX() - 1.0D, pos.getY(), pos.getZ() - 1.0D,
+                pos.getX() + 2.0D, pos.getY() + 2.5690616557971366D, pos.getZ() + 2.0D);
+    }
+
+    private static AABB steelStirlingBounds(StirlingGeneratorBlockEntity blockEntity) {
+        var pos = blockEntity.getBlockPos();
+        return new AABB(pos.getX() - 1.0D, pos.getY(), pos.getZ() - 1.0D,
+                pos.getX() + 2.0D, pos.getY() + 2.5690616557971366D, pos.getZ() + 2.0D);
+    }
+
+    private static AABB creativeStirlingBounds(StirlingGeneratorBlockEntity blockEntity) {
+        var pos = blockEntity.getBlockPos();
+        return new AABB(pos.getX() - 1.0D, pos.getY(), pos.getZ() - 1.0D,
+                pos.getX() + 2.0D, pos.getY() + 2.5690616557971366D, pos.getZ() + 2.0D);
+    }
+
+    private static void applyNormalStirlingWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case SOUTH -> { }
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Normal Stirling generator requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applySteelStirlingWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case SOUTH -> { }
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Steel Stirling generator requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void applyCreativeStirlingWorldPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case SOUTH -> { }
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Creative Stirling generator requires a horizontal facing: " + facing);
         }
     }
 }

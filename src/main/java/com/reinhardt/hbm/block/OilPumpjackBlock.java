@@ -27,17 +27,27 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class OilPumpjackBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = createFootprint();
 
     public OilPumpjackBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, shape, OilPumpjackBlock::mapPumpjackOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT)) {
+        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT, OilPumpjackBlock::mapPumpjackOffset)) {
             return null;
         }
         return this.defaultBlockState().setValue(FACING, facing);
@@ -154,6 +164,16 @@ public class OilPumpjackBlock extends LargeMachineBlock implements EntityBlock {
             offsets.add(new BlockPos(x, 0, 1));
         }
         return new Footprint(offsets.stream().toList());
+    }
+
+    private static BlockPos mapPumpjackOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            default -> throw new IllegalArgumentException("Pumpjack facing must be horizontal: " + facing);
+        };
     }
 }
 

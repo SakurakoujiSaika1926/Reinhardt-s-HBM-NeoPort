@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:sliding_gate_door"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:sliding_seal_door"
+  }
+}

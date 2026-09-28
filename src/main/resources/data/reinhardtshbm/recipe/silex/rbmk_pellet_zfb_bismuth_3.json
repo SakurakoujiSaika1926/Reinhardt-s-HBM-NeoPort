@@ -1,0 +1,42 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_zfb_bismuth_3",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_zfb_bismuth"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  3
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "visible",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_uranium"
+                                 },
+                        "weight":  20
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_pu241"
+                                 },
+                        "weight":  20
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_bismuth"
+                                 },
+                        "weight":  110
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_zirconium"
+                                 },
+                        "weight":  150
+                    }
+                ]
+}

@@ -1,0 +1,10 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "autoswitch.pilerod",
+  "duration": 40,
+  "power": 200,
+  "ingredients": [
+    { "ingredient": { "tag": "c:billets/th232" }, "count": 3 }
+  ],
+  "result": { "id": "reinhardtshbm:pile_rod_thorium" }
+}

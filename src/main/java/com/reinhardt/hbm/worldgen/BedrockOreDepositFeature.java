@@ -12,7 +12,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -41,7 +40,7 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
             return false;
         }
         WorldGenLevel level = context.level();
-        boolean nether = isNether(level);
+        boolean nether = WorldgenDimensionClassifier.isNetherLike(level, context.origin());
         if (nether && !HbmConfig.ENABLE_NETHER_ORES.get()) {
             return false;
         }
@@ -180,10 +179,5 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
 
     private static Item item(String path) {
         return BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("reinhardtshbm", path));
-    }
-
-    private static boolean isNether(WorldGenLevel level) {
-        Level realLevel = level.getLevel();
-        return realLevel != null && realLevel.dimension() == Level.NETHER;
     }
 }

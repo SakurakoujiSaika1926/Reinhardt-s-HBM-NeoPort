@@ -6,15 +6,18 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyBoxcarEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.AABB;
 
 /** Literal EntityBoxcar branch of RenderBoxcar, including its authored offset. */
 public final class LegacyBoxcarEntityRenderer extends EntityRenderer<LegacyBoxcarEntity> {
     private static final ResourceLocation MODEL_LOCATION = ReinhardtsHBM.id("models/entity/legacy_boxcar.obj");
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/entity/legacy_boxcar.png");
     private static final LegacyEntityObjMesh MODEL = LegacyEntityObjMesh.load(MODEL_LOCATION);
+    private static final AABB LOCAL_VISUAL_BOUNDS = buildLocalVisualBounds();
 
     public LegacyBoxcarEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -35,7 +38,25 @@ public final class LegacyBoxcarEntityRenderer extends EntityRenderer<LegacyBoxca
     }
 
     @Override
+    public boolean shouldRender(LegacyBoxcarEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        return EntityRenderBounds.shouldRender(entity,
+                EntityRenderBounds.moveToEntity(LOCAL_VISUAL_BOUNDS, entity),
+                frustum, cameraX, cameraY, cameraZ);
+    }
+
+    @Override
     public ResourceLocation getTextureLocation(LegacyBoxcarEntity entity) {
         return TEXTURE;
+    }
+
+    private static AABB buildLocalVisualBounds() {
+        PoseStack poseStack = new PoseStack();
+        poseStack.translate(0.0D, 0.0D, -1.5D);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+        EntityRenderBounds.FloatBuilder bounds = new EntityRenderBounds.FloatBuilder();
+        MODEL.includeAllFacePositions(poseStack, bounds);
+        return bounds.buildLocal();
     }
 }

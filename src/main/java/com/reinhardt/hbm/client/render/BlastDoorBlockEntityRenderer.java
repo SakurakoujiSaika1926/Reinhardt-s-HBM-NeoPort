@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.block.BlastDoorBlock;
 import com.reinhardt.hbm.blockentity.BlastDoorBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,11 +12,13 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 import java.util.List;
 
-public class BlastDoorBlockEntityRenderer implements BlockEntityRenderer<BlastDoorBlockEntity> {
+public class BlastDoorBlockEntityRenderer implements LongRangeBlockEntityRenderer<BlastDoorBlockEntity> {
     private static final ModelResourceLocation BASE = model("blast_door_base_part");
     private static final ModelResourceLocation BLOCK = model("blast_door_block_part");
     private static final ModelResourceLocation SLIDER = model("blast_door_slider_part");
     private static final ModelResourceLocation TOOTH = model("blast_door_tooth_part");
+    private static final AABB AXIS_X_BOUNDS = buildBlastDoorBounds(false);
+    private static final AABB AXIS_Z_BOUNDS = buildBlastDoorBounds(true);
 
     public BlastDoorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -36,14 +37,33 @@ public class BlastDoorBlockEntityRenderer implements BlockEntityRenderer<BlastDo
         }
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, BlastDoorBlock.isAxisZ(state) ? 270.0F : 180.0F);
+        applyBlastDoorTransform(poseStack, BlastDoorBlock.isAxisZ(state));
         renderMovingParts(door.visualTimer(), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(BlastDoorBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).expandTowards(0.0D, 7.0D, 0.0D).inflate(1.5D);
+        BlockState state = blockEntity.getBlockState();
+        boolean axisZ = state.getBlock() instanceof BlastDoorBlock && BlastDoorBlock.isAxisZ(state);
+        /* Exact union for visualTimer 0..5: Base supplies Y=0, the translated
+         * Block supplies Y=7, and Tooth/Slider motion remains between them.
+         * Face-used X/Z extrema across all four component OBJs are +/-0.5
+         * and +/-0.75 respectively. */
+        return (axisZ ? AXIS_Z_BOUNDS : AXIS_X_BOUNDS).move(blockEntity.getBlockPos());
+    }
+
+    private static AABB buildBlastDoorBounds(boolean axisZ) {
+        PoseStack poseStack = new PoseStack();
+        applyBlastDoorTransform(poseStack, axisZ);
+        return RenderBounds.transformedBox(net.minecraft.core.BlockPos.ZERO, poseStack,
+                -0.5F, 0.0F, -0.75F, 0.5F, 7.0F, 0.75F);
+    }
+
+    private static void applyBlastDoorTransform(PoseStack poseStack, boolean axisZ) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        // RenderBlastDoor applies 180 degrees, plus another 90 only to metadata 2.
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(axisZ ? 270.0F : 180.0F));
     }
 
     static void renderClosedParts(PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {

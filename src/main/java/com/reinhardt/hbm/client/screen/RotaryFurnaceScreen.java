@@ -56,7 +56,10 @@ public class RotaryFurnaceScreen extends AbstractContainerScreen<RotaryFurnaceMe
                     : Component.translatable(material.translationKey());
             guiGraphics.renderComponentTooltip(this.font, List.of(
                     name,
-                    Component.literal(format(this.menu.outputAmount()) + " / " + format(com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity.MAX_OUTPUT) + " quanta")
+                    Component.translatable(
+                            "matshape.reinhardtshbm.quanta",
+                            format(this.menu.outputAmount()) + " / " + format(com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity.MAX_OUTPUT)
+                    )
             ), mouseX, mouseY);
         }
         if (isHovering(44, 54, 16, 16, mouseX, mouseY) && !this.menu.getSlot(4).hasItem()) {

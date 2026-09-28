@@ -17,12 +17,16 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import com.reinhardt.hbm.item.BatteryPackItem;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -47,6 +51,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Mth;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidUtil;
@@ -59,8 +64,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
+import java.util.function.Consumer;
 
-public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
+public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer,
+        MenuProvider, RttyValueProvider, RttyInteractive {
     public static final int BATTERY_SLOT = 0;
     public static final int FLUID_ID_SLOT = 1;
     public static final int UPGRADE_START = 2;
@@ -76,6 +84,8 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     private static final int[] INSERT_SLOTS = {BATTERY_SLOT, FLUID_ID_SLOT, UPGRADE_START, UPGRADE_START + 1, DRILLBIT_SLOT};
     private static final int[] OUTPUT_SLOTS = outputSlots();
+    private static volatile Consumer<ExcavatorBlockEntity> clientRenderSnapshotUpdater = ignored -> { };
+    private static volatile Consumer<ExcavatorBlockEntity> clientGpuCacheDisposer = ignored -> { };
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank tank = new HbmFluidTank(TANK_CAPACITY);
@@ -99,6 +109,7 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
     private float prevDrillExtension;
     private float crusherRotation;
     private float prevCrusherRotation;
+    private volatile RenderSnapshot renderSnapshot;
 
     public final ContainerData menuData = new ContainerData() {
         @Override
@@ -150,6 +161,8 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     public ExcavatorBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.EXCAVATOR.get(), pos, blockState);
+        this.renderSnapshot = new RenderSnapshot(null, captureRenderInputs(), new AABB(
+                pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ()));
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ExcavatorBlockEntity excavator) {
@@ -163,6 +176,34 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     public HbmFluidTank tank() {
         return this.tank;
+    }
+
+    @Override
+    public String[] rttyFunctionInfo() {
+        return new String[] {
+                RttyInfo.PREFIX_VALUE + "power",
+                RttyInfo.PREFIX_VALUE + "fluid",
+                RttyInfo.PREFIX_VALUE + "state",
+                RttyInfo.PREFIX_FUNCTION + "setstate" + RttyInteractive.NAME_SEPARATOR + "state"
+        };
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (name.equals(RttyInfo.PREFIX_VALUE + "power")) return Long.toString(this.power);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "fluid")) return Integer.toString(this.tank.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "state")) return this.operational ? "1" : "0";
+        return null;
+    }
+
+    @Override
+    public String runRttyFunction(String name, String[] params) {
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "setstate") && params.length == 1) {
+            this.enableDrill = params[0].equals("1");
+            setChanged();
+            sync();
+        }
+        return null;
     }
 
     @Nullable
@@ -184,6 +225,69 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     public float drillExtension(float partialTick) {
         return this.prevDrillExtension + (this.drillExtension - this.prevDrillExtension) * partialTick;
+    }
+
+    /** Installed by the client renderer without loading client classes on a dedicated server. */
+    public static void setClientRenderSnapshotUpdater(Consumer<ExcavatorBlockEntity> updater) {
+        clientRenderSnapshotUpdater = Objects.requireNonNull(updater);
+    }
+
+    public static void setClientGpuCacheDisposer(Consumer<ExcavatorBlockEntity> disposer) {
+        clientGpuCacheDisposer = Objects.requireNonNull(disposer);
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return renderSnapshot;
+    }
+
+    public RenderInputs captureRenderInputs() {
+        return new RenderInputs(getBlockState(), prevDrillRotation, drillRotation,
+                prevCrusherRotation, crusherRotation, prevDrillExtension, drillExtension,
+                enableCrusher, chuteTimer);
+    }
+
+    public void publishClientRenderSnapshot(RenderSnapshot snapshot) {
+        if (level == null || !level.isClientSide) {
+            return;
+        }
+        RenderSnapshot previous = renderSnapshot;
+        renderSnapshot = Objects.requireNonNull(snapshot);
+        if (!sameRenderSections(previous.bounds(), snapshot.bounds())) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private void refreshClientRenderSnapshot() {
+        if (level != null && level.isClientSide) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
+    }
+
+    private static boolean sameRenderSections(AABB first, AABB second) {
+        return minSection(first.minX) == minSection(second.minX)
+                && maxSection(first.minX, first.maxX) == maxSection(second.minX, second.maxX)
+                && minSection(first.minY) == minSection(second.minY)
+                && maxSection(first.minY, first.maxY) == maxSection(second.minY, second.maxY)
+                && minSection(first.minZ) == minSection(second.minZ)
+                && maxSection(first.minZ, first.maxZ) == maxSection(second.minZ, second.maxZ);
+    }
+
+    private static int minSection(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static int maxSection(double min, double max) {
+        double inclusiveMax = max > min ? Math.nextDown(max) : max;
+        return SectionPos.blockToSectionCoord(Mth.floor(inclusiveMax));
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (renderSnapshot != null && previous != state) {
+            refreshClientRenderSnapshot();
+        }
     }
 
     public boolean crusherEnabled() {
@@ -363,6 +467,9 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         return this.level != null
                 && this.level.getBlockEntity(this.worldPosition) == this
                 && player.distanceToSqr(this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 0.5D, this.worldPosition.getZ() + 0.5D) <= 64.0D;
@@ -435,6 +542,21 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
         this.lastInput = tag.getLong("LastInput");
         this.consumption = tag.contains("Consumption") ? tag.getLong("Consumption") : BASE_CONSUMPTION;
         this.tank.load(tag.getCompound("Tank"));
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level != null && level.isClientSide) {
+            clientGpuCacheDisposer.accept(this);
+        }
+        super.setRemoved();
     }
 
     @Override
@@ -513,6 +635,7 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
             this.crusherRotation -= 360.0F;
             this.prevCrusherRotation -= 360.0F;
         }
+        refreshClientRenderSnapshot();
     }
 
     private int drillY() {
@@ -776,17 +899,32 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
         }
         Port port = outputPort();
         Direction side = port.direction().getOpposite();
-        IItemHandler handler = this.level.getCapability(Capabilities.ItemHandler.BLOCK, port.pos(), side);
-        if (handler != null) {
-            ItemStack remaining = ItemHandlerHelper.insertItemStacked(handler, stack.copy(), false);
-            int moved = stack.getCount() - remaining.getCount();
-            if (moved > 0) {
-                stack.shrink(moved);
+        try {
+            IItemHandler handler = this.level.getCapability(Capabilities.ItemHandler.BLOCK, port.pos(), side);
+            if (handler != null) {
+                ItemStack remaining = ItemHandlerHelper.insertItemStacked(handler, stack.copy(), false);
+                int moved = stack.getCount() - remaining.getCount();
+                if (moved > 0) {
+                    stack.shrink(moved);
+                    this.chuteTimer = 40;
+                }
+                if (stack.isEmpty()) {
+                    return;
+                }
+            }
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(this.level, port.pos(), side,
+                    "item handler", "excavator output insertion", failure);
+            // A third-party handler may have mutated before throwing. Do not
+            // attempt a second insertion path during the same operation.
+            if (!stack.isEmpty()) {
                 this.chuteTimer = 40;
             }
-            if (stack.isEmpty()) {
+            return;
+        }
+
+        if (stack.isEmpty()) {
                 return;
-            }
         }
 
         BlockEntity blockEntity = this.level.getBlockEntity(port.pos());
@@ -885,12 +1023,14 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
             return false;
         }
         String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(result.getItem()).getPath();
-        return result.is(HbmItems.SCRAPS.get()) || path.equals("scrap") || path.equals("dust");
+        return result.getItem() instanceof com.reinhardt.hbm.item.ScrapsItem
+                || path.equals("scrap")
+                || path.equals("dust");
     }
 
     private List<Port> connectorPositions() {
         Direction dir = this.getBlockState().hasProperty(LargeMachineBlock.FACING) ? this.getBlockState().getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
+        Direction rot = excavatorLeft(dir);
         return List.of(
                 new Port(this.worldPosition.relative(dir, 4).relative(rot).above(), dir),
                 new Port(this.worldPosition.relative(dir, 4).relative(rot.getOpposite()).above(), dir),
@@ -906,13 +1046,23 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
 
     private List<Port> proxyPositions() {
         Direction dir = this.getBlockState().hasProperty(LargeMachineBlock.FACING) ? this.getBlockState().getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
+        Direction rot = excavatorLeft(dir);
         return List.of(
                 new Port(this.worldPosition.relative(dir, 3).relative(rot).above(), dir),
                 new Port(this.worldPosition.relative(dir, 3).relative(rot.getOpposite()).above(), dir),
                 new Port(this.worldPosition.relative(rot, 3).above(), rot),
                 new Port(this.worldPosition.relative(rot.getOpposite(), 3).above(), rot.getOpposite())
         );
+    }
+
+    private static Direction excavatorLeft(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Excavator requires a horizontal facing: " + facing);
+        };
     }
 
     private List<BlockPos> ringPositions(int ring, int y) {
@@ -958,6 +1108,31 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
             slots[i] = OUTPUT_START + i;
         }
         return slots;
+    }
+
+    public record RenderInputs(BlockState state,
+                               float prevDrillRotation, float drillRotation,
+                               float prevCrusherRotation, float crusherRotation,
+                               float prevDrillExtension, float drillExtension,
+                               boolean crusherEnabled, int chuteTimer) {
+        public float drillRotation(float partialTick) {
+            return prevDrillRotation + (drillRotation - prevDrillRotation) * partialTick;
+        }
+
+        public float crusherRotation(float partialTick) {
+            return prevCrusherRotation + (crusherRotation - prevCrusherRotation) * partialTick;
+        }
+
+        public float drillExtension(float partialTick) {
+            return prevDrillExtension + (drillExtension - prevDrillExtension) * partialTick;
+        }
+    }
+
+    public record RenderSnapshot(Object geometryToken, RenderInputs inputs, AABB bounds) {
+        public RenderSnapshot {
+            Objects.requireNonNull(inputs);
+            Objects.requireNonNull(bounds);
+        }
     }
 
     private record Port(BlockPos pos, Direction direction) {

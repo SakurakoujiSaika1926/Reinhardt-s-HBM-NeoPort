@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
+    "reinhardtshbm:nuclear_blast",
     "reinhardtshbm:asbestos",
     "reinhardtshbm:blacklung",
     "reinhardtshbm:lead",

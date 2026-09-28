@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {"item": "reinhardtshbm:billet_gh336"},
+    {"item": "reinhardtshbm:billet_gh336"},
+    {"item": "reinhardtshbm:billet_gh336"}
+  ],
+  "result": {"id": "reinhardtshbm:ingot_gh336", "count": 2}
+}

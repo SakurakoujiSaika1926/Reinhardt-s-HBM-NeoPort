@@ -7,6 +7,7 @@ import com.reinhardt.hbm.blockentity.WandLogicBlockEntity;
 import com.reinhardt.hbm.blockentity.WandLootBlockEntity;
 import com.reinhardt.hbm.block.RbmkComponentBlock;
 import com.reinhardt.hbm.block.ConveyorBlock;
+import com.reinhardt.hbm.block.CraneMachineBlock;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -42,6 +43,10 @@ public class ScrewdriverItem extends Item {
         if (player == null) {
             return InteractionResult.PASS;
         }
+        if (CraneMachineBlock.configureWithScrewdriver(context.getLevel(), context.getClickedPos(), player, stack,
+                context.getHand(), context.getClickedFace())) {
+            return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
+        }
         if (ConveyorBlock.configureWithScrewdriver(context.getLevel(), context.getClickedPos(), player, stack, context.getHand())) {
             return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
         }
@@ -61,6 +66,10 @@ public class ScrewdriverItem extends Item {
         Player player = context.getPlayer();
         if (player == null) {
             return InteractionResult.PASS;
+        }
+        if (CraneMachineBlock.configureWithScrewdriver(context.getLevel(), context.getClickedPos(), player,
+                context.getItemInHand(), context.getHand(), context.getClickedFace())) {
+            return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
         }
         if (ConveyorBlock.configureWithScrewdriver(context.getLevel(), context.getClickedPos(), player, context.getItemInHand(), context.getHand())) {
             return InteractionResult.sidedSuccess(context.getLevel().isClientSide);

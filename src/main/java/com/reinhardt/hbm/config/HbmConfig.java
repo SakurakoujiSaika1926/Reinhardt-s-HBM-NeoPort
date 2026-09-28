@@ -510,8 +510,11 @@ public final class HbmConfig {
                 )
                 .define("enableCreateAdditionMotorDefaults", true);
         CREATE_ADDITION_FE_AT_MAX_RPM = builder
-                .comment("CCA 电动马达/发电机在 256 RPM 时的 FE/t 换算值。HBM 高版本整合推荐默认：4096。")
-                .defineInRange("createAdditionFeAtMaxRpm", 4_096, 1, Integer.MAX_VALUE);
+                .comment(
+                        "CCA 电动马达/发电机在 256 RPM 时的 FE/t 换算值。HBM 高版本整合推荐默认：4096。",
+                        "启用兼容后，CCA 马达最大输入会至少等于此值；内部容量下限为 16384 FE，耗电较高时则至少等于此值的两倍加 1。"
+                )
+                .defineInRange("createAdditionFeAtMaxRpm", 4_096, 1, (Integer.MAX_VALUE - 1) / 2);
         CREATE_ADDITION_MAX_STRESS = builder
                 .comment("CCA 电动马达/发电机最大应力。-1 表示不覆盖 CCA 自身配置；HBM 当前推荐保持不改。")
                 .defineInRange("createAdditionMaxStress", -1, -1, Integer.MAX_VALUE);

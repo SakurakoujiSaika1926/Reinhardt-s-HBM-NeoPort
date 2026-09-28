@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.SplittableRandom;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,8 +79,20 @@ final class RadiationWorldEffects {
             if (inFlight == null || !inFlight.isDone()) {
                 return;
             }
-            EffectPlan plan = inFlight.join();
+            CompletableFuture<EffectPlan> completed = inFlight;
             inFlight = null;
+            EffectPlan plan;
+            try {
+                plan = completed.join();
+            } catch (CancellationException exception) {
+                ReinhardtsHBM.LOGGER.warn("Asynchronous radiation world-effect plan was cancelled in {}; pass discarded",
+                        level.dimension().location());
+                return;
+            } catch (CompletionException exception) {
+                ReinhardtsHBM.LOGGER.error("Asynchronous radiation world-effect plan failed in {}; pass discarded",
+                        level.dimension().location(), exception.getCause() == null ? exception : exception.getCause());
+                return;
+            }
             applyFog(level, plan);
             queuedSurfacePasses.addAll(plan.surfacePasses());
             while (queuedSurfacePasses.size() > MAX_QUEUED_SURFACE_PASSES) {

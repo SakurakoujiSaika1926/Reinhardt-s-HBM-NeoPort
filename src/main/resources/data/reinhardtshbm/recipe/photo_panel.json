@@ -9,7 +9,7 @@
   "key": {
     "G": { "tag": "c:glass_panes" },
     "I": { "tag": "c:plates/polymer" },
-    "P": { "tag": "c:dusts/quartz" },
+    "P": { "item": "reinhardtshbm:billet_silicon" },
     "C": { "item": "reinhardtshbm:circuit_pcb" }
   },
   "result": {

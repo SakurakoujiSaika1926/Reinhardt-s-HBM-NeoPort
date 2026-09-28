@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.alclad",
+  "duration": 200,
+  "power": 50000,
+  "ingredients": [
+    { "ingredient": { "tag": "c:dusts/aluminium" }, "count": 8 },
+    { "ingredient": { "tag": "c:plates/copper" }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:part_generic_alclad", "count": 1 }
+}

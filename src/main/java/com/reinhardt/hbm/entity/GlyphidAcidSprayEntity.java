@@ -26,7 +26,6 @@ public final class GlyphidAcidSprayEntity extends Entity {
 
     public GlyphidAcidSprayEntity(EntityType<? extends GlyphidAcidSprayEntity> type, Level level) {
         super(type, level);
-        noCulling = true;
         setNoGravity(true);
     }
 

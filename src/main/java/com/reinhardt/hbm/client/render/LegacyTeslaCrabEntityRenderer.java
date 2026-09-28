@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyTeslaCrabEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -13,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Tesla Crab OBJ parts and the original leg swing. */
@@ -21,6 +23,9 @@ public final class LegacyTeslaCrabEntityRenderer extends EntityRenderer<LegacyTe
     private static final ModelResourceLocation FRONT = model("teslacrab_front");
     private static final ModelResourceLocation BACK = model("teslacrab_back");
     private static final BlockState STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final LegacyEntityObjMesh BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/entity/teslacrab.obj"));
+    private static final double BODY_RADIUS = transformedBodyRadius();
 
     public LegacyTeslaCrabEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -77,7 +82,29 @@ public final class LegacyTeslaCrabEntityRenderer extends EntityRenderer<LegacyTe
     }
 
     @Override
+    public boolean shouldRender(LegacyTeslaCrabEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        AABB bodyBounds = EntityRenderBounds.radius(
+                entity.getX(), entity.getY(), entity.getZ(), BODY_RADIUS);
+        AABB bounds = LegacyCyberCrabBeamRenderer.includeBeamBounds(
+                bodyBounds, entity.targets(), entity.position(), 1.0D);
+        return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ);
+    }
+
+    @Override
     public ResourceLocation getTextureLocation(LegacyTeslaCrabEntity entity) {
         return ReinhardtsHBM.id("textures/entity/teslacrab.png");
+    }
+
+    private static double transformedBodyRadius() {
+        // The two fixed translations have magnitudes 1.5078125 and 1.5.
+        // Every remaining body/leg operation is a unit scale or rotation, so
+        // the triangle inequality contains every walk-animation phase.
+        double radius = BOUNDS_MODEL.maximumFaceRadius(0.0D, 0.0D, 0.0D)
+                + 1.5078125D + 1.5D;
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
 }

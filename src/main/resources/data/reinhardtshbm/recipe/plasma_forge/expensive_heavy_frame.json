@@ -1,0 +1,15 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.exheavyframe",
+  "duration": 120,
+  "power": 100000,
+  "ignition_temp": 1000000,
+  "input_items": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_steel_plating" }, "count": 3 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:plate_welded_copper" }, "count": 4 },
+    { "ingredient": { "tag": "c:ingots/desh" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:bolt_dura_steel" }, "count": 32 }
+  ],
+  "result": { "id": "reinhardtshbm:item_expensive_heavy_frame" }
+}

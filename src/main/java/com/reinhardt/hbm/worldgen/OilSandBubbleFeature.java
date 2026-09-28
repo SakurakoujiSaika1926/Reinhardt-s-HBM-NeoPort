@@ -45,10 +45,11 @@ public class OilSandBubbleFeature extends Feature<NoneFeatureConfiguration> {
         }
 
         int radius = HbmConfig.radius(HbmConfig.OIL_SAND_DEPOSIT_MIN_RADIUS, HbmConfig.OIL_SAND_DEPOSIT_MAX_RADIUS, random);
-        return spawnOilSand(level, random, origin, radius);
+        return spawnOilSand(level, random, origin, radius, WorldgenFeatureBounds.forFeature(level, origin));
     }
 
-    private static boolean spawnOilSand(WorldGenLevel level, RandomSource random, BlockPos origin, int radius) {
+    private static boolean spawnOilSand(WorldGenLevel level, RandomSource random, BlockPos origin, int radius,
+                                        WorldgenFeatureBounds writeBounds) {
         int r2 = radius * radius;
         int r22 = r2 / 2;
         int randomBound = Math.max(1, r22 / 3);
@@ -67,7 +68,7 @@ public class OilSandBubbleFeature extends Feature<NoneFeatureConfiguration> {
                 for (int zz = -radius; zz < radius; zz++) {
                     int z = zz + origin.getZ();
                     int dist = yySq + zz * zz;
-                    if (dist < r22 + random.nextInt(randomBound)) {
+                    if (dist < r22 + random.nextInt(randomBound) && writeBounds.contains(x, z)) {
                         pos.set(x, y, z);
                         BlockState state = level.getBlockState(pos);
                         if (state.is(Blocks.SAND) || state.is(Blocks.RED_SAND)) {

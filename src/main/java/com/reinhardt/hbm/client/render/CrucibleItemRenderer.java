@@ -68,18 +68,17 @@ public final class CrucibleItemRenderer extends BlockEntityWithoutLevelRenderer 
                 yield true;
             }
             case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
-                // ItemRenderer#renderItemInFirstPerson applied this fixed
-                // 0.4 scale before Forge dispatched the custom renderer.
-                // ForgeHooksClient#renderEquippedItem then used its literal
-                // non-EQUIPPED_BLOCK path because ItemRenderCrucible returns
-                // false for that helper in first person. Keep that call order
-                // here; these are item-specific legacy values, not a fit.
+                // The 1.7.10 first-person renderer applied a 45-degree yaw and
+                // a 0.4 scale before dispatching ItemRenderCrucible. 1.21.1's
+                // ItemInHandRenderer already supplies the equivalent hand/base
+                // translation, but not these two legacy operations.
+                //
+                // Do not add the old -0.3/1.5/Y50/Z335/-0.9375 transforms
+                // here. Those belong exclusively to ItemRenderer#renderItem's
+                // fallback sprite branch; ItemRenderCrucible used Forge's
+                // custom-renderer branch and therefore never executed them.
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
                 poseStack.scale(0.4F, 0.4F, 0.4F);
-                poseStack.translate(0.0F, -0.3F, 0.0F);
-                poseStack.scale(1.5F, 1.5F, 1.5F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(50.0F));
-                poseStack.mulPose(Axis.ZP.rotationDegrees(335.0F));
-                poseStack.translate(-0.9375F, -0.0625F, 0.0F);
 
                 // ItemRenderCrucible#EQUIPPED_FIRST_PERSON. Its animation
                 // source (HbmAnimations) has no 1.21.1 counterpart, so no

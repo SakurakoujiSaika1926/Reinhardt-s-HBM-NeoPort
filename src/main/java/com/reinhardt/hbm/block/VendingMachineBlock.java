@@ -29,19 +29,44 @@ import org.jetbrains.annotations.Nullable;
 
 /** Direct port of the two-high, token-operated 1.7.10 vending machine. */
 public final class VendingMachineBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final IntegerProperty VARIANT = IntegerProperty.create("variant", 0, 1);
-    private static final Footprint FOOTPRINT = Footprint.legacySouthBox(1, 0, 0, 0, 0, 0);
+    private static final Footprint FOOTPRINT = Footprint.box(0, 0, 0, 1, 0, 0);
 
     public VendingMachineBlock(Properties properties) {
-        super(properties, FOOTPRINT, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, VendingMachineBlock::mapVendingMachineOffset);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(VARIANT, 0));
+    }
+
+    private static BlockPos mapVendingMachineOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Vending machine facing must be horizontal: " + facing);
+        };
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        return state == null ? null : state.setValue(VARIANT, variant(context.getItemInHand()));
+        net.minecraft.core.Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState()
+                .setValue(FACING, facing)
+                .setValue(VARIANT, variant(context.getItemInHand()));
     }
 
     @Override

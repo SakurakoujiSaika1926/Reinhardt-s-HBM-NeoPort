@@ -1,7 +1,8 @@
 {
   "type": "reinhardtshbm:blast_furnace",
-  "input_a": { "tag": "reinhardtshbm:blast_furnace/cobalt_equivalent" },
-  "input_b": { "tag": "c:dusts/meteorite" },
-  "duration": 400,
+  "group": "blast.meteor",
+  "input_a": { "tag": "c:ingots/cobalt" },
+  "input_b": { "item": "reinhardtshbm:powder_meteorite" },
+  "duration": 600,
   "result": { "id": "reinhardtshbm:ingot_meteorite" }
 }

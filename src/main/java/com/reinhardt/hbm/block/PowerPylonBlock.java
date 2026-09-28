@@ -8,6 +8,7 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -47,6 +48,12 @@ public class PowerPylonBlock extends Block implements EntityBlock {
     private static final VoxelShape CONNECTOR_NORTH = box(5, 5, 5, 11, 11, 16);
     private static final VoxelShape CONNECTOR_EAST = box(0, 5, 5, 11, 11, 11);
     private static final VoxelShape CONNECTOR_WEST = box(5, 5, 5, 16, 11, 11);
+    private static final VoxelShape CONNECTOR_SUPER_UP = box(5, 0, 5, 11, 16, 11);
+    private static final VoxelShape CONNECTOR_SUPER_DOWN = box(5, 0, 5, 11, 16, 11);
+    private static final VoxelShape CONNECTOR_SUPER_NORTH = box(5, 5, 0, 11, 11, 16);
+    private static final VoxelShape CONNECTOR_SUPER_SOUTH = box(5, 5, 0, 11, 11, 16);
+    private static final VoxelShape CONNECTOR_SUPER_EAST = box(0, 5, 5, 16, 11, 11);
+    private static final VoxelShape CONNECTOR_SUPER_WEST = box(0, 5, 5, 16, 11, 11);
     private final Kind kind;
 
     public PowerPylonBlock(Properties properties, Kind kind) {
@@ -66,9 +73,18 @@ public class PowerPylonBlock extends Block implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = this.kind.connector()
-                ? context.getClickedFace()
-                : context.getHorizontalDirection().getOpposite();
+        Direction facing = switch (this.kind) {
+            case RED_CONNECTOR -> redConnectorPlacementFacing(context);
+            case CONNECTOR_RED_SUPER -> connectorRedSuperPlacementFacing(context);
+            case RED_PYLON -> redPylonPlacementFacing(context);
+            case RED_PYLON_STEEL -> redPylonSteelPlacementFacing(context);
+            case RED_PYLON_MEDIUM_WOOD -> redPylonMediumWoodPlacementFacing(context);
+            case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> redPylonMediumWoodTransformerPlacementFacing(context);
+            case RED_PYLON_MEDIUM_STEEL -> redPylonMediumSteelPlacementFacing(context);
+            case RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> redPylonMediumSteelTransformerPlacementFacing(context);
+            case RED_PYLON_LARGE -> redPylonLargePlacementFacing(context);
+            case SUBSTATION -> substationPlacementFacing(context);
+        };
         BlockState state = this.defaultBlockState().setValue(FACING, facing);
         if (!canPlaceFootprint(context, state)) {
             return null;
@@ -160,10 +176,12 @@ public class PowerPylonBlock extends Block implements EntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (this.kind.connector()) {
-            return connectorShape(state.getValue(FACING));
-        }
-        return Shapes.block();
+        VoxelShape authoredShape = switch (this.kind) {
+            case RED_CONNECTOR -> redConnectorShape(state.getValue(FACING));
+            case CONNECTOR_RED_SUPER -> connectorRedSuperShape(state.getValue(FACING));
+            default -> Shapes.block();
+        };
+        return authoredShape;
     }
 
     @Override
@@ -199,12 +217,114 @@ public class PowerPylonBlock extends Block implements EntityBlock {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case RED_CONNECTOR -> rotateRedConnector(state, rotation);
+            case CONNECTOR_RED_SUPER -> rotateConnectorRedSuper(state, rotation);
+            case RED_PYLON -> rotateRedPylon(state, rotation);
+            case RED_PYLON_STEEL -> rotateRedPylonSteel(state, rotation);
+            case RED_PYLON_MEDIUM_WOOD -> rotateRedPylonMediumWood(state, rotation);
+            case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> rotateRedPylonMediumWoodTransformer(state, rotation);
+            case RED_PYLON_MEDIUM_STEEL -> rotateRedPylonMediumSteel(state, rotation);
+            case RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> rotateRedPylonMediumSteelTransformer(state, rotation);
+            case RED_PYLON_LARGE -> rotateRedPylonLarge(state, rotation);
+            case SUBSTATION -> rotateSubstation(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+        return switch (this.kind) {
+            case RED_CONNECTOR -> mirrorRedConnector(state, mirror);
+            case CONNECTOR_RED_SUPER -> mirrorConnectorRedSuper(state, mirror);
+            case RED_PYLON -> mirrorRedPylon(state, mirror);
+            case RED_PYLON_STEEL -> mirrorRedPylonSteel(state, mirror);
+            case RED_PYLON_MEDIUM_WOOD -> mirrorRedPylonMediumWood(state, mirror);
+            case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> mirrorRedPylonMediumWoodTransformer(state, mirror);
+            case RED_PYLON_MEDIUM_STEEL -> mirrorRedPylonMediumSteel(state, mirror);
+            case RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> mirrorRedPylonMediumSteelTransformer(state, mirror);
+            case RED_PYLON_LARGE -> mirrorRedPylonLarge(state, mirror);
+            case SUBSTATION -> mirrorSubstation(state, mirror);
+        };
+    }
+
+    private static BlockState rotateRedConnector(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateConnectorRedSuper(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedPylon(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedPylonSteel(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedPylonMediumWood(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedPylonMediumWoodTransformer(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedPylonMediumSteel(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedPylonMediumSteelTransformer(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedPylonLarge(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateSubstation(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedConnector(BlockState state, Mirror mirror) {
+        return rotateRedConnector(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorConnectorRedSuper(BlockState state, Mirror mirror) {
+        return rotateConnectorRedSuper(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedPylon(BlockState state, Mirror mirror) {
+        return rotateRedPylon(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedPylonSteel(BlockState state, Mirror mirror) {
+        return rotateRedPylonSteel(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedPylonMediumWood(BlockState state, Mirror mirror) {
+        return rotateRedPylonMediumWood(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedPylonMediumWoodTransformer(BlockState state, Mirror mirror) {
+        return rotateRedPylonMediumWoodTransformer(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedPylonMediumSteel(BlockState state, Mirror mirror) {
+        return rotateRedPylonMediumSteel(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedPylonMediumSteelTransformer(BlockState state, Mirror mirror) {
+        return rotateRedPylonMediumSteelTransformer(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedPylonLarge(BlockState state, Mirror mirror) {
+        return rotateRedPylonLarge(state, mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSubstation(BlockState state, Mirror mirror) {
+        return rotateSubstation(state, mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
@@ -213,13 +333,9 @@ public class PowerPylonBlock extends Block implements EntityBlock {
     }
 
     private boolean canPlaceFootprint(BlockPlaceContext context, BlockState state) {
-        if (this.kind.footprintOffsets().isEmpty()) {
-            return true;
-        }
         Direction facing = state.getValue(FACING);
         BlockPos corePos = corePos(context.getClickedPos(), facing);
-        for (BlockPos offset : this.kind.footprintOffsets()) {
-            BlockPos testPos = corePos.offset(rotate(offset, facing));
+        for (BlockPos testPos : occupiedPositions(corePos, facing)) {
             if (testPos.equals(context.getClickedPos())) {
                 continue;
             }
@@ -231,15 +347,23 @@ public class PowerPylonBlock extends Block implements EntityBlock {
     }
 
     private BlockPos corePos(BlockPos placedPos, Direction facing) {
-        return this.kind == Kind.SUBSTATION
-                ? placedPos.relative(facing, -1)
-                : placedPos;
+        return switch (this.kind) {
+            case RED_CONNECTOR -> redConnectorCorePos(placedPos, facing);
+            case CONNECTOR_RED_SUPER -> connectorRedSuperCorePos(placedPos, facing);
+            case RED_PYLON -> redPylonCorePos(placedPos, facing);
+            case RED_PYLON_STEEL -> redPylonSteelCorePos(placedPos, facing);
+            case RED_PYLON_MEDIUM_WOOD -> redPylonMediumWoodCorePos(placedPos, facing);
+            case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> redPylonMediumWoodTransformerCorePos(placedPos, facing);
+            case RED_PYLON_MEDIUM_STEEL -> redPylonMediumSteelCorePos(placedPos, facing);
+            case RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> redPylonMediumSteelTransformerCorePos(placedPos, facing);
+            case RED_PYLON_LARGE -> redPylonLargeCorePos(placedPos, facing);
+            case SUBSTATION -> substationCorePos(placedPos, facing);
+        };
     }
 
     private void placeDummies(Level level, BlockPos corePos, BlockState state) {
         Direction facing = state.getValue(FACING);
-        for (BlockPos offset : this.kind.footprintOffsets()) {
-            BlockPos pos = corePos.offset(rotate(offset, facing));
+        for (BlockPos pos : occupiedPositions(corePos, facing)) {
             if (pos.equals(corePos)) {
                 continue;
             }
@@ -251,14 +375,8 @@ public class PowerPylonBlock extends Block implements EntityBlock {
     }
 
     private void pushEntitiesOutOfFootprint(Level level, BlockPos corePos, BlockState state, LivingEntity placer) {
-        if (this.kind.footprintOffsets().isEmpty()) {
-            return;
-        }
         Direction facing = state.getValue(FACING);
-        List<BlockPos> positions = new ArrayList<>();
-        for (BlockPos offset : this.kind.footprintOffsets()) {
-            positions.add(corePos.offset(rotate(offset, facing)));
-        }
+        List<BlockPos> positions = occupiedPositions(corePos, facing);
         LargeMachineBlock.pushEntitiesOutOfPositions(level, corePos, facing, positions, placer);
     }
 
@@ -268,8 +386,7 @@ public class PowerPylonBlock extends Block implements EntityBlock {
         }
         Direction facing = state.getValue(FACING);
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
-            for (BlockPos offset : this.kind.footprintOffsets()) {
-                BlockPos pos = corePos.offset(rotate(offset, facing));
+            for (BlockPos pos : occupiedPositions(corePos, facing)) {
                 if (pos.equals(corePos)) {
                     continue;
                 }
@@ -280,16 +397,337 @@ public class PowerPylonBlock extends Block implements EntityBlock {
         });
     }
 
-    private static BlockPos rotate(BlockPos pos, Direction facing) {
-        return switch (facing) {
-            case NORTH -> new BlockPos(-pos.getX(), pos.getY(), -pos.getZ());
-            case EAST -> new BlockPos(-pos.getZ(), pos.getY(), pos.getX());
-            case WEST -> new BlockPos(pos.getZ(), pos.getY(), -pos.getX());
-            default -> pos;
+    private List<BlockPos> occupiedPositions(BlockPos corePos, Direction facing) {
+        return switch (this.kind) {
+            case RED_CONNECTOR -> redConnectorOccupiedPositions(corePos, facing);
+            case CONNECTOR_RED_SUPER -> connectorRedSuperOccupiedPositions(corePos, facing);
+            case RED_PYLON -> redPylonOccupiedPositions(corePos, facing);
+            case RED_PYLON_STEEL -> redPylonSteelOccupiedPositions(corePos, facing);
+            case RED_PYLON_MEDIUM_WOOD -> redPylonMediumWoodOccupiedPositions(corePos, facing);
+            case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> redPylonMediumWoodTransformerOccupiedPositions(corePos, facing);
+            case RED_PYLON_MEDIUM_STEEL -> redPylonMediumSteelOccupiedPositions(corePos, facing);
+            case RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> redPylonMediumSteelTransformerOccupiedPositions(corePos, facing);
+            case RED_PYLON_LARGE -> redPylonLargeOccupiedPositions(corePos, facing);
+            case SUBSTATION -> substationOccupiedPositions(corePos, facing);
         };
     }
 
-    private static VoxelShape connectorShape(Direction facing) {
+    private static Direction redConnectorPlacementFacing(BlockPlaceContext context) {
+        return context.getClickedFace();
+    }
+
+    private static Direction connectorRedSuperPlacementFacing(BlockPlaceContext context) {
+        return context.getClickedFace();
+    }
+
+    private static Direction redPylonPlacementFacing(BlockPlaceContext context) {
+        return context.getHorizontalDirection().getOpposite();
+    }
+
+    private static Direction redPylonSteelPlacementFacing(BlockPlaceContext context) {
+        return context.getHorizontalDirection().getOpposite();
+    }
+
+    private static Direction redPylonMediumWoodPlacementFacing(BlockPlaceContext context) {
+        return context.getHorizontalDirection().getOpposite();
+    }
+
+    private static Direction redPylonMediumWoodTransformerPlacementFacing(BlockPlaceContext context) {
+        return context.getHorizontalDirection().getOpposite();
+    }
+
+    private static Direction redPylonMediumSteelPlacementFacing(BlockPlaceContext context) {
+        return context.getHorizontalDirection().getOpposite();
+    }
+
+    private static Direction redPylonMediumSteelTransformerPlacementFacing(BlockPlaceContext context) {
+        return context.getHorizontalDirection().getOpposite();
+    }
+
+    private static Direction redPylonLargePlacementFacing(BlockPlaceContext context) {
+        // PylonLarge#getMetaForCore uses yaw * 4 / 180 (not the ordinary / 360
+        // dummy-footprint direction).  Preserve its 45-degree placement sectors
+        // because EAST/WEST select the legacy 45/135-degree tower poses.
+        int legacyIndex = Mth.floor(context.getRotation() * 4.0F / 180.0F + 0.5D) & 3;
+        return switch (legacyIndex) {
+            case 0 -> Direction.NORTH;
+            case 1 -> Direction.EAST;
+            case 2 -> Direction.SOUTH;
+            case 3 -> Direction.WEST;
+            default -> throw new IllegalStateException("Unexpected legacy large-pylon direction " + legacyIndex);
+        };
+    }
+
+    private static Direction substationPlacementFacing(BlockPlaceContext context) {
+        return context.getHorizontalDirection().getOpposite();
+    }
+
+    private static BlockPos redConnectorCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos connectorRedSuperCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos redPylonCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos redPylonSteelCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos redPylonMediumWoodCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos redPylonMediumWoodTransformerCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos redPylonMediumSteelCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos redPylonMediumSteelTransformerCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos redPylonLargeCorePos(BlockPos placedPos, Direction facing) {
+        return placedPos;
+    }
+
+    private static BlockPos substationCorePos(BlockPos placedPos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> placedPos.south();
+            case SOUTH -> placedPos.north();
+            case WEST -> placedPos.east();
+            case EAST -> placedPos.west();
+            case UP -> placedPos.below();
+            case DOWN -> placedPos.above();
+        };
+    }
+
+    private static List<BlockPos> redConnectorOccupiedPositions(BlockPos corePos, Direction facing) {
+        return List.of();
+    }
+
+    private static List<BlockPos> connectorRedSuperOccupiedPositions(BlockPos corePos, Direction facing) {
+        return List.of();
+    }
+
+    private static List<BlockPos> redPylonOccupiedPositions(BlockPos corePos, Direction facing) {
+        List<BlockPos> positions = new ArrayList<>(5);
+        for (int y = 0; y <= 4; y++) {
+            positions.add(corePos.above(y));
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonSteelOccupiedPositions(BlockPos corePos, Direction facing) {
+        List<BlockPos> positions = new ArrayList<>(5);
+        for (int y = 0; y <= 4; y++) {
+            positions.add(corePos.above(y));
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonMediumWoodOccupiedPositions(BlockPos corePos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> redPylonMediumWoodVerticalPositions(corePos);
+            case SOUTH -> redPylonMediumWoodVerticalPositions(corePos);
+            case WEST -> redPylonMediumWoodVerticalPositions(corePos);
+            case EAST -> redPylonMediumWoodVerticalPositions(corePos);
+            case UP -> redPylonMediumWoodVerticalPositions(corePos);
+            case DOWN -> redPylonMediumWoodVerticalPositions(corePos);
+        };
+    }
+
+    private static List<BlockPos> redPylonMediumWoodVerticalPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(7);
+        for (int y = 0; y <= 6; y++) {
+            positions.add(corePos.above(y));
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonMediumWoodTransformerOccupiedPositions(BlockPos corePos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> redPylonMediumWoodTransformerVerticalPositions(corePos);
+            case SOUTH -> redPylonMediumWoodTransformerVerticalPositions(corePos);
+            case WEST -> redPylonMediumWoodTransformerVerticalPositions(corePos);
+            case EAST -> redPylonMediumWoodTransformerVerticalPositions(corePos);
+            case UP -> redPylonMediumWoodTransformerVerticalPositions(corePos);
+            case DOWN -> redPylonMediumWoodTransformerVerticalPositions(corePos);
+        };
+    }
+
+    private static List<BlockPos> redPylonMediumWoodTransformerVerticalPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(7);
+        for (int y = 0; y <= 6; y++) {
+            positions.add(corePos.above(y));
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonMediumSteelOccupiedPositions(BlockPos corePos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> redPylonMediumSteelVerticalPositions(corePos);
+            case SOUTH -> redPylonMediumSteelVerticalPositions(corePos);
+            case WEST -> redPylonMediumSteelVerticalPositions(corePos);
+            case EAST -> redPylonMediumSteelVerticalPositions(corePos);
+            case UP -> redPylonMediumSteelVerticalPositions(corePos);
+            case DOWN -> redPylonMediumSteelVerticalPositions(corePos);
+        };
+    }
+
+    private static List<BlockPos> redPylonMediumSteelVerticalPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(7);
+        for (int y = 0; y <= 6; y++) {
+            positions.add(corePos.above(y));
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonMediumSteelTransformerOccupiedPositions(BlockPos corePos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> redPylonMediumSteelTransformerVerticalPositions(corePos);
+            case SOUTH -> redPylonMediumSteelTransformerVerticalPositions(corePos);
+            case WEST -> redPylonMediumSteelTransformerVerticalPositions(corePos);
+            case EAST -> redPylonMediumSteelTransformerVerticalPositions(corePos);
+            case UP -> redPylonMediumSteelTransformerVerticalPositions(corePos);
+            case DOWN -> redPylonMediumSteelTransformerVerticalPositions(corePos);
+        };
+    }
+
+    private static List<BlockPos> redPylonMediumSteelTransformerVerticalPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(7);
+        for (int y = 0; y <= 6; y++) {
+            positions.add(corePos.above(y));
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonLargeOccupiedPositions(BlockPos corePos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> redPylonLargeNorthPositions(corePos);
+            case SOUTH -> redPylonLargeSouthPositions(corePos);
+            case WEST -> redPylonLargeWestPositions(corePos);
+            case EAST -> redPylonLargeEastPositions(corePos);
+            case UP -> redPylonLargeSouthPositions(corePos);
+            case DOWN -> redPylonLargeSouthPositions(corePos);
+        };
+    }
+
+    private static List<BlockPos> redPylonLargeNorthPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(126);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 13; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonLargeSouthPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(126);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 13; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonLargeWestPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(126);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 13; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> redPylonLargeEastPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(126);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 13; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> substationOccupiedPositions(BlockPos corePos, Direction facing) {
+        return switch (facing) {
+            case NORTH -> substationNorthPositions(corePos);
+            case SOUTH -> substationSouthPositions(corePos);
+            case WEST -> substationWestPositions(corePos);
+            case EAST -> substationEastPositions(corePos);
+            case UP -> substationSouthPositions(corePos);
+            case DOWN -> substationSouthPositions(corePos);
+        };
+    }
+
+    private static List<BlockPos> substationNorthPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(75);
+        for (int x = -2; x <= 2; x++) {
+            for (int y = 0; y <= 4; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> substationSouthPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(75);
+        for (int x = -2; x <= 2; x++) {
+            for (int y = 0; y <= 4; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> substationWestPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(75);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 4; y++) {
+                for (int z = -2; z <= 2; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static List<BlockPos> substationEastPositions(BlockPos corePos) {
+        List<BlockPos> positions = new ArrayList<>(75);
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 4; y++) {
+                for (int z = -2; z <= 2; z++) {
+                    positions.add(corePos.offset(x, y, z));
+                }
+            }
+        }
+        return List.copyOf(positions);
+    }
+
+    private static VoxelShape redConnectorShape(Direction facing) {
         return switch (facing) {
             case DOWN -> CONNECTOR_DOWN;
             case NORTH -> CONNECTOR_NORTH;
@@ -300,6 +738,17 @@ public class PowerPylonBlock extends Block implements EntityBlock {
         };
     }
 
+    private static VoxelShape connectorRedSuperShape(Direction facing) {
+        return switch (facing) {
+            case DOWN -> CONNECTOR_SUPER_DOWN;
+            case NORTH -> CONNECTOR_SUPER_NORTH;
+            case SOUTH -> CONNECTOR_SUPER_SOUTH;
+            case WEST -> CONNECTOR_SUPER_WEST;
+            case EAST -> CONNECTOR_SUPER_EAST;
+            case UP -> CONNECTOR_SUPER_UP;
+        };
+    }
+
     public enum ConnectionType {
         SINGLE,
         TRIPLE,
@@ -307,26 +756,25 @@ public class PowerPylonBlock extends Block implements EntityBlock {
     }
 
     public enum Kind {
-        RED_CONNECTOR(true, ConnectionType.SINGLE, 10.0D, List.of()),
-        CONNECTOR_RED_SUPER(true, ConnectionType.SINGLE, 100.0D, List.of()),
-        RED_PYLON(false, ConnectionType.SINGLE, 25.0D, List.of()),
-        RED_PYLON_MEDIUM_WOOD(false, ConnectionType.TRIPLE, 45.0D, footprint(6, 0, 0, 0, 0, 0)),
-        RED_PYLON_MEDIUM_WOOD_TRANSFORMER(false, ConnectionType.TRIPLE, 45.0D, footprint(6, 0, 0, 0, 0, 0)),
-        RED_PYLON_MEDIUM_STEEL(false, ConnectionType.TRIPLE, 45.0D, footprint(6, 0, 0, 0, 0, 0)),
-        RED_PYLON_MEDIUM_STEEL_TRANSFORMER(false, ConnectionType.TRIPLE, 45.0D, footprint(6, 0, 0, 0, 0, 0)),
-        RED_PYLON_LARGE(false, ConnectionType.QUAD, 100.0D, footprint(13, 0, 1, 1, 1, 1)),
-        SUBSTATION(false, ConnectionType.QUAD, 20.0D, substationFootprint());
+        RED_CONNECTOR(true, ConnectionType.SINGLE, 10.0D),
+        CONNECTOR_RED_SUPER(true, ConnectionType.SINGLE, 100.0D),
+        RED_PYLON(false, ConnectionType.SINGLE, 25.0D),
+        RED_PYLON_STEEL(false, ConnectionType.SINGLE, 25.0D),
+        RED_PYLON_MEDIUM_WOOD(false, ConnectionType.TRIPLE, 45.0D),
+        RED_PYLON_MEDIUM_WOOD_TRANSFORMER(false, ConnectionType.TRIPLE, 45.0D),
+        RED_PYLON_MEDIUM_STEEL(false, ConnectionType.TRIPLE, 45.0D),
+        RED_PYLON_MEDIUM_STEEL_TRANSFORMER(false, ConnectionType.TRIPLE, 45.0D),
+        RED_PYLON_LARGE(false, ConnectionType.QUAD, 100.0D),
+        SUBSTATION(false, ConnectionType.QUAD, 20.0D);
 
         private final boolean connector;
         private final ConnectionType connectionType;
         private final double maxWireLength;
-        private final List<BlockPos> footprintOffsets;
 
-        Kind(boolean connector, ConnectionType connectionType, double maxWireLength, List<BlockPos> footprintOffsets) {
+        Kind(boolean connector, ConnectionType connectionType, double maxWireLength) {
             this.connector = connector;
             this.connectionType = connectionType;
             this.maxWireLength = maxWireLength;
-            this.footprintOffsets = footprintOffsets;
         }
 
         public boolean connector() {
@@ -341,33 +789,8 @@ public class PowerPylonBlock extends Block implements EntityBlock {
             return this.maxWireLength;
         }
 
-        public List<BlockPos> footprintOffsets() {
-            return this.footprintOffsets;
-        }
-
         public boolean hasTransformer() {
             return this == RED_PYLON_MEDIUM_WOOD_TRANSFORMER || this == RED_PYLON_MEDIUM_STEEL_TRANSFORMER;
         }
-    }
-
-    private static List<BlockPos> footprint(int up, int down, int north, int south, int west, int east) {
-        List<BlockPos> offsets = new ArrayList<>();
-        for (int x = -west; x <= east; x++) {
-            for (int y = -down; y <= up; y++) {
-                for (int z = -north; z <= south; z++) {
-                    offsets.add(new BlockPos(x, y, z));
-                }
-            }
-        }
-        return List.copyOf(offsets);
-    }
-
-    private static List<BlockPos> substationFootprint() {
-        List<BlockPos> offsets = new ArrayList<>(footprint(4, 0, 1, 1, 2, 2));
-        offsets.add(new BlockPos(1, 0, 1));
-        offsets.add(new BlockPos(1, 0, -1));
-        offsets.add(new BlockPos(-1, 0, 1));
-        offsets.add(new BlockPos(-1, 0, -1));
-        return List.copyOf(offsets);
     }
 }

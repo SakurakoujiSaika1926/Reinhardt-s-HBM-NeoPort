@@ -32,7 +32,6 @@ public final class LegacyShrapnelEntity extends Entity {
 
     public LegacyShrapnelEntity(EntityType<? extends LegacyShrapnelEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyShrapnelEntity(Level level, double x, double y, double z, Vec3 motion, boolean trail) {

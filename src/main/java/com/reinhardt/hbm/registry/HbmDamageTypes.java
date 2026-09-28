@@ -17,6 +17,8 @@ public final class HbmDamageTypes {
     public static final ResourceKey<DamageType> SHRAPNEL = key("shrapnel");
     public static final ResourceKey<DamageType> SEDNA_PHYSICAL = key("sedna_physical");
     public static final ResourceKey<DamageType> TAU = key("tau");
+    /** Projectile damage used by the old MASKMAN_BOLT fired by the orbital death ray. */
+    public static final ResourceKey<DamageType> LASER = key("laser");
     public static final ResourceKey<DamageType> SEDNA_EXPLOSIVE = key("sedna_explosive");
     public static final ResourceKey<DamageType> SEDNA_FIRE = key("sedna_fire");
     public static final ResourceKey<DamageType> ELECTRICITY = key("electricity");

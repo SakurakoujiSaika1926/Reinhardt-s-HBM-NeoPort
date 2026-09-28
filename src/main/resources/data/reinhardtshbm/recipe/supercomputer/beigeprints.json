@@ -1,0 +1,20 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.beigeprints",
+  "duration": 18000,
+  "power": 50000,
+  "ingredients": [
+    { "ingredient": { "item": "minecraft:paper" }, "count": 24 },
+    { "ingredient": { "tag": "c:gems/cinnabar" }, "count": 24 }
+  ],
+  "outputs": [
+    {
+      "result": {
+        "id": "reinhardtshbm:blueprint_folder",
+        "components": { "minecraft:custom_model_data": 1 }
+      },
+      "weight": 10
+    },
+    { "result": { "id": "minecraft:paper", "count": 24 }, "weight": 90 }
+  ]
+}

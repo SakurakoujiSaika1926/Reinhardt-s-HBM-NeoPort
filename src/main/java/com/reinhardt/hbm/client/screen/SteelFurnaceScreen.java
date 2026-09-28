@@ -50,8 +50,9 @@ public class SteelFurnaceScreen extends AbstractContainerScreen<SteelFurnaceMenu
                 return;
             }
             if (isHovering(53, 26 + 18 * index, 70, 7, mouseX, mouseY)) {
-                guiGraphics.renderComponentTooltip(this.font, List.of(Component.literal(
-                        "Bonus: " + this.menu.bonus(index) + "%"
+                guiGraphics.renderComponentTooltip(this.font, List.of(Component.translatable(
+                        "tooltip.reinhardtshbm.steel_furnace.bonus",
+                        this.menu.bonus(index)
                 )), mouseX, mouseY);
                 return;
             }

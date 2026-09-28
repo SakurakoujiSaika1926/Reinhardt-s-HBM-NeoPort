@@ -15,6 +15,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -25,18 +26,57 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode {
+    private static final Set<PowerPylonBlockEntity> CLIENT_INSTANCES =
+            Collections.synchronizedSet(Collections.newSetFromMap(new java.util.WeakHashMap<>()));
     private final List<BlockPos> connections = new ArrayList<>();
     private final Map<BlockPos, ConnectionRenderInfo> connectionRenderInfos = new HashMap<>();
+    private final Set<BlockPos> loadedClientEndpoints = new HashSet<>();
+    private final Set<AutoCloseable> clientRenderResources =
+            Collections.newSetFromMap(new IdentityHashMap<>());
     private int color;
+    private int nextRenderRevision;
+    private volatile RenderSnapshot renderSnapshot;
 
     public PowerPylonBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.POWER_PYLON.get(), pos, blockState);
+        this.renderSnapshot = buildRenderSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        PowerPylonBlock.Kind previousKind = kind();
+        Direction previousFacing = facing();
+        super.setBlockState(state);
+        if (this.renderSnapshot == null
+                || previousKind == kind() && previousFacing == facing()) {
+            return;
+        }
+
+        // LevelChunk retains a compatible block-entity instance when a block
+        // state is replaced in place. Keep the immutable render snapshot and
+        // every reciprocal endpoint's cached mount metadata in lockstep with
+        // that live state; otherwise model, wires, and culling bounds disagree.
+        syncAndDirtyGraph();
+        if (this.level != null && !this.level.isClientSide) {
+            for (BlockPos connection : this.connections) {
+                if (this.level.getBlockEntity(connection) instanceof PowerPylonBlockEntity pylon
+                        && pylon.hasConnection(this.worldPosition)
+                        && pylon.rememberConnection(this.worldPosition, this)) {
+                    pylon.refreshRenderSnapshot();
+                    pylon.syncRenderInfoOnly();
+                }
+            }
+        }
     }
 
     public PowerPylonBlock.Kind kind() {
@@ -47,11 +87,19 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
     }
 
     public List<BlockPos> connections() {
-        return List.copyOf(this.connections);
+        return this.renderSnapshot.connectionPositions();
     }
 
     public int color() {
         return this.color;
+    }
+
+    public int renderRevision() {
+        return this.renderSnapshot.revision();
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
     }
 
     public boolean setColorFrom(ItemStack stack) {
@@ -97,6 +145,7 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
     public void removeConnection(BlockPos pos) {
         BlockPos immutable = pos.immutable();
         this.connectionRenderInfos.remove(immutable);
+        this.loadedClientEndpoints.remove(immutable);
         if (this.connections.remove(immutable)) {
             syncAndDirtyGraph();
         }
@@ -106,12 +155,15 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
         if (this.level == null) {
             this.connections.clear();
             this.connectionRenderInfos.clear();
+            this.loadedClientEndpoints.clear();
+            refreshRenderSnapshot();
             return;
         }
 
         List<BlockPos> oldConnections = List.copyOf(this.connections);
         this.connections.clear();
         this.connectionRenderInfos.clear();
+        this.loadedClientEndpoints.clear();
         for (BlockPos connection : oldConnections) {
             if (this.level.getBlockEntity(connection) instanceof PowerPylonBlockEntity pylon) {
                 pylon.removeConnection(this.worldPosition);
@@ -153,25 +205,26 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
 
     public ConnectionRenderInfo connectionRenderInfo(BlockPos connection) {
         BlockPos immutable = connection.immutable();
-        if (this.level != null && this.level.getBlockEntity(immutable) instanceof PowerPylonBlockEntity pylon) {
-            ConnectionRenderInfo info = pylon.selfRenderInfo();
-            this.connectionRenderInfos.put(immutable, info);
-            return info;
+        for (RenderConnection renderConnection : this.renderSnapshot.connections()) {
+            if (renderConnection.pos().equals(immutable)) {
+                return renderConnection.remote();
+            }
         }
-        return this.connectionRenderInfos.get(immutable);
+        return null;
     }
 
+    /** Math-free owner-local dispatch; no generic Kind+Direction transform is exposed. */
     private static Vec3[] mountPositions(PowerPylonBlock.Kind kind, Direction facing) {
-
         return switch (kind) {
-            case RED_CONNECTOR -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.5D)};
-            case CONNECTOR_RED_SUPER -> new Vec3[]{new Vec3(0.5D, 0.875D, 0.5D)};
-            case RED_PYLON -> new Vec3[]{new Vec3(0.5D, 5.4D, 0.5D)};
-            case RED_PYLON_MEDIUM_WOOD,
-                 RED_PYLON_MEDIUM_WOOD_TRANSFORMER,
-                 RED_PYLON_MEDIUM_STEEL,
-                 RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> mediumPylonMounts(facing);
-            case RED_PYLON_LARGE -> largePylonMounts(facing);
+            case RED_CONNECTOR -> redConnectorMounts(facing);
+            case CONNECTOR_RED_SUPER -> connectorRedSuperMounts(facing);
+            case RED_PYLON -> redPylonMounts(facing);
+            case RED_PYLON_STEEL -> redPylonSteelMounts(facing);
+            case RED_PYLON_MEDIUM_WOOD -> redPylonMediumWoodMounts(facing);
+            case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> redPylonMediumWoodTransformerMounts(facing);
+            case RED_PYLON_MEDIUM_STEEL -> redPylonMediumSteelMounts(facing);
+            case RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> redPylonMediumSteelTransformerMounts(facing);
+            case RED_PYLON_LARGE -> redPylonLargeMounts(facing);
             case SUBSTATION -> substationMounts(facing);
         };
     }
@@ -198,8 +251,11 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
                 renderInfoChanged |= rememberConnection(connection, pylon);
             }
         }
-        if (renderInfoChanged && !level.isClientSide) {
-            syncRenderInfoOnly();
+        if (renderInfoChanged) {
+            refreshRenderSnapshot();
+            if (!level.isClientSide) {
+                syncRenderInfoOnly();
+            }
         }
         return links;
     }
@@ -208,62 +264,63 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
     public void onLoad() {
         super.onLoad();
         if (this.level == null) {
+            refreshRenderSnapshot();
             return;
         }
 
+        if (this.level.isClientSide) {
+            CLIENT_INSTANCES.add(this);
+        }
         boolean changed = false;
+        Set<BlockPos> loadedEndpoints = new HashSet<>();
         for (BlockPos connection : this.connections) {
             if (this.level.getBlockEntity(connection) instanceof PowerPylonBlockEntity pylon) {
                 changed |= rememberConnection(connection, pylon);
-                if (pylon.hasConnection(this.worldPosition)
-                        && pylon.rememberConnection(this.worldPosition, this)
-                        && !this.level.isClientSide) {
-                    pylon.syncRenderInfoOnly();
+                if (pylon.hasConnection(this.worldPosition)) {
+                    boolean remoteChanged = pylon.rememberConnection(this.worldPosition, this);
+                    if (this.level.isClientSide) {
+                        loadedEndpoints.add(connection.immutable());
+                        boolean endpointChanged = pylon.markClientEndpointLoaded(this.worldPosition, true);
+                        if (remoteChanged && !endpointChanged) {
+                            pylon.refreshRenderSnapshot();
+                            pylon.markClientRenderSectionDirty();
+                        }
+                    } else if (remoteChanged) {
+                        pylon.refreshRenderSnapshot();
+                    }
+                    if (remoteChanged && !this.level.isClientSide) {
+                        pylon.syncRenderInfoOnly();
+                    }
                 }
             }
         }
+        if (this.level.isClientSide) {
+            this.loadedClientEndpoints.clear();
+            this.loadedClientEndpoints.addAll(loadedEndpoints);
+        }
+        refreshRenderSnapshot();
         if (changed && !this.level.isClientSide) {
             syncRenderInfoOnly();
         }
     }
 
     public List<BlockPos> adjacentPowerPorts() {
-        List<BlockPos> ports = new ArrayList<>();
-        PowerPylonBlock.Kind kind = kind();
-        if (kind == PowerPylonBlock.Kind.RED_PYLON) {
-            for (Direction direction : Direction.values()) {
-                ports.add(this.worldPosition.relative(direction));
-            }
-        } else if (kind.hasTransformer()) {
-            ports.add(this.worldPosition.relative(facing().getOpposite()));
-        } else if (kind == PowerPylonBlock.Kind.RED_CONNECTOR || kind == PowerPylonBlock.Kind.CONNECTOR_RED_SUPER) {
-            ports.add(this.worldPosition.relative(facing().getOpposite()));
-        } else if (kind == PowerPylonBlock.Kind.SUBSTATION) {
-            ports.addAll(substationAdjacentPorts());
-        }
-        return ports;
+        return switch (kind()) {
+            case RED_CONNECTOR -> redConnectorAdjacentPowerPorts();
+            case CONNECTOR_RED_SUPER -> connectorRedSuperAdjacentPowerPorts();
+            case RED_PYLON -> redPylonAdjacentPowerPorts();
+            case RED_PYLON_STEEL -> redPylonSteelAdjacentPowerPorts();
+            case RED_PYLON_MEDIUM_WOOD -> List.of();
+            case RED_PYLON_MEDIUM_WOOD_TRANSFORMER -> redPylonMediumWoodTransformerAdjacentPowerPorts();
+            case RED_PYLON_MEDIUM_STEEL -> List.of();
+            case RED_PYLON_MEDIUM_STEEL_TRANSFORMER -> redPylonMediumSteelTransformerAdjacentPowerPorts();
+            case RED_PYLON_LARGE -> List.of();
+            case SUBSTATION -> substationAdjacentPorts();
+        };
     }
 
     public AABB getRenderBoundingBox() {
-        AABB box = new AABB(this.worldPosition).inflate(1.0D, 2.0D, 1.0D);
-        for (Vec3 mount : mountPositions()) {
-            box = box.minmax(new AABB(this.worldPosition.getX() + mount.x, this.worldPosition.getY() + mount.y, this.worldPosition.getZ() + mount.z,
-                    this.worldPosition.getX() + mount.x, this.worldPosition.getY() + mount.y, this.worldPosition.getZ() + mount.z));
-        }
-        if (this.level != null) {
-            for (BlockPos connection : this.connections) {
-                ConnectionRenderInfo info = connectionRenderInfo(connection);
-                if (info != null) {
-                    for (Vec3 mount : info.mountPositions()) {
-                        box = box.minmax(new AABB(connection.getX() + mount.x, connection.getY() + mount.y - 2.5D, connection.getZ() + mount.z,
-                                connection.getX() + mount.x, connection.getY() + mount.y, connection.getZ() + mount.z));
-                    }
-                } else {
-                    box = box.minmax(new AABB(connection).inflate(1.0D));
-                }
-            }
-        }
-        return box;
+        return this.renderSnapshot.bounds();
     }
 
     public Direction facing() {
@@ -274,45 +331,163 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
         return Direction.SOUTH;
     }
 
-    private static Vec3[] largePylonMounts(Direction facing) {
-        double topOff = 0.75D + 0.0625D;
-        double sideOff = 3.375D;
-        Vec3 side = switch (facing) {
-            case WEST -> rotateY(sideOff, 0.0D, Math.PI * 0.25D);
-            case SOUTH -> rotateY(sideOff, 0.0D, Math.PI * 0.5D);
-            case EAST -> rotateY(sideOff, 0.0D, Math.PI * 0.75D);
-            default -> new Vec3(sideOff, 0.0D, 0.0D);
-        };
-
-        return new Vec3[]{
-                new Vec3(0.5D + side.x, 11.5D + topOff, 0.5D + side.z),
-                new Vec3(0.5D + side.x, 11.5D - topOff, 0.5D + side.z),
-                new Vec3(0.5D - side.x, 11.5D + topOff, 0.5D - side.z),
-                new Vec3(0.5D - side.x, 11.5D - topOff, 0.5D - side.z)
+    private static Vec3[] redConnectorMounts(Direction facing) {
+        return switch (facing) {
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.5D)};
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.5D)};
         };
     }
 
-    private static Vec3[] mediumPylonMounts(Direction facing) {
-        double height = 7.5D;
-        return new Vec3[]{
-                new Vec3(0.5D, height, 0.5D),
-                new Vec3(0.5D + facing.getStepX(), height, 0.5D + facing.getStepZ()),
-                new Vec3(0.5D + facing.getStepX() * 2.0D, height, 0.5D + facing.getStepZ() * 2.0D)
+    private static Vec3[] connectorRedSuperMounts(Direction facing) {
+        return switch (facing) {
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 0.125D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 0.875D, 0.5D)};
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.125D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 0.5D, 0.875D)};
+            case WEST -> new Vec3[]{new Vec3(0.125D, 0.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.875D, 0.5D, 0.5D)};
+        };
+    }
+
+    private static Vec3[] redPylonMounts(Direction facing) {
+        return switch (facing) {
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+        };
+    }
+
+    private static Vec3[] redPylonSteelMounts(Direction facing) {
+        return switch (facing) {
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 5.5D, 0.5D)};
+        };
+    }
+
+    private static Vec3[] redPylonMediumWoodMounts(Direction facing) {
+        return switch (facing) {
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, -0.5D), new Vec3(0.5D, 7.5D, -1.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(-0.5D, 7.5D, 0.5D), new Vec3(-1.5D, 7.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(1.5D, 7.5D, 0.5D), new Vec3(2.5D, 7.5D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+        };
+    }
+
+    private static Vec3[] redPylonMediumWoodTransformerMounts(Direction facing) {
+        return switch (facing) {
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, -0.5D), new Vec3(0.5D, 7.5D, -1.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(-0.5D, 7.5D, 0.5D), new Vec3(-1.5D, 7.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(1.5D, 7.5D, 0.5D), new Vec3(2.5D, 7.5D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+        };
+    }
+
+    private static Vec3[] redPylonMediumSteelMounts(Direction facing) {
+        return switch (facing) {
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, -0.5D), new Vec3(0.5D, 7.5D, -1.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(-0.5D, 7.5D, 0.5D), new Vec3(-1.5D, 7.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(1.5D, 7.5D, 0.5D), new Vec3(2.5D, 7.5D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+        };
+    }
+
+    private static Vec3[] redPylonMediumSteelTransformerMounts(Direction facing) {
+        return switch (facing) {
+            case NORTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, -0.5D), new Vec3(0.5D, 7.5D, -1.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(-0.5D, 7.5D, 0.5D), new Vec3(-1.5D, 7.5D, 0.5D)};
+            case EAST -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(1.5D, 7.5D, 0.5D), new Vec3(2.5D, 7.5D, 0.5D)};
+            case UP -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+            case DOWN -> new Vec3[]{new Vec3(0.5D, 7.5D, 0.5D), new Vec3(0.5D, 7.5D, 1.5D), new Vec3(0.5D, 7.5D, 2.5D)};
+        };
+    }
+
+    private static Vec3[] redPylonLargeMounts(Direction facing) {
+        // TileEntityPylonLarge rotates (3.375, 0, 0) by 0/45/90/135 degrees.
+        // These literals retain 1.7.10 MathHelper's float sine-table edges; they
+        // are not values inferred from the renderer's visually similar yaw.
+        return switch (facing) {
+            case NORTH -> new Vec3[]{
+                    new Vec3(3.875D, 12.3125D, 0.5D), new Vec3(3.875D, 10.6875D, 0.5D),
+                    new Vec3(-2.875D, 12.3125D, 0.5D), new Vec3(-2.875D, 10.6875D, 0.5D)};
+            case WEST -> new Vec3[]{
+                    new Vec3(2.88648534566164D, 12.3125D, -1.8864853456616402D),
+                    new Vec3(2.88648534566164D, 10.6875D, -1.8864853456616402D),
+                    new Vec3(-1.8864853456616402D, 12.3125D, 2.88648534566164D),
+                    new Vec3(-1.8864853456616402D, 10.6875D, 2.88648534566164D)};
+            case SOUTH -> new Vec3[]{
+                    new Vec3(0.5000000000000004D, 12.3125D, -2.875D),
+                    new Vec3(0.5000000000000004D, 10.6875D, -2.875D),
+                    new Vec3(0.4999999999999996D, 12.3125D, 3.875D),
+                    new Vec3(0.4999999999999996D, 10.6875D, 3.875D)};
+            case EAST -> new Vec3[]{
+                    new Vec3(-1.8864853456616402D, 12.3125D, -1.8864853456616402D),
+                    new Vec3(-1.8864853456616402D, 10.6875D, -1.8864853456616402D),
+                    new Vec3(2.88648534566164D, 12.3125D, 2.88648534566164D),
+                    new Vec3(2.88648534566164D, 10.6875D, 2.88648534566164D)};
+            case UP -> new Vec3[]{
+                    new Vec3(3.875D, 12.3125D, 0.5D), new Vec3(3.875D, 10.6875D, 0.5D),
+                    new Vec3(-2.875D, 12.3125D, 0.5D), new Vec3(-2.875D, 10.6875D, 0.5D)};
+            case DOWN -> new Vec3[]{
+                    new Vec3(3.875D, 12.3125D, 0.5D), new Vec3(3.875D, 10.6875D, 0.5D),
+                    new Vec3(-2.875D, 12.3125D, 0.5D), new Vec3(-2.875D, 10.6875D, 0.5D)};
         };
     }
 
     private static Vec3[] substationMounts(Direction facing) {
-        double topOff = 5.25D;
-        Vec3 side = (facing == Direction.EAST || facing == Direction.WEST)
-                ? new Vec3(0.0D, 0.0D, 1.0D)
-                : new Vec3(1.0D, 0.0D, 0.0D);
-
-        return new Vec3[]{
-                new Vec3(0.5D + side.x * 0.5D, topOff, 0.5D + side.z * 0.5D),
-                new Vec3(0.5D + side.x * 1.5D, topOff, 0.5D + side.z * 1.5D),
-                new Vec3(0.5D - side.x * 0.5D, topOff, 0.5D - side.z * 0.5D),
-                new Vec3(0.5D - side.x * 1.5D, topOff, 0.5D - side.z * 1.5D)
+        // WEST/EAST retain Vec3.rotateAroundY(+PI/2)'s negative-Z order and
+        // MathHelper float sine-table edge values from 1.7.10.
+        return switch (facing) {
+            case NORTH -> new Vec3[]{new Vec3(1.0D, 5.25D, 0.5D), new Vec3(2.0D, 5.25D, 0.5D), new Vec3(0.0D, 5.25D, 0.5D), new Vec3(-1.0D, 5.25D, 0.5D)};
+            case SOUTH -> new Vec3[]{new Vec3(1.0D, 5.25D, 0.5D), new Vec3(2.0D, 5.25D, 0.5D), new Vec3(0.0D, 5.25D, 0.5D), new Vec3(-1.0D, 5.25D, 0.5D)};
+            case WEST -> new Vec3[]{new Vec3(0.5000000000000001D, 5.25D, 0.0D), new Vec3(0.5000000000000002D, 5.25D, -1.0D), new Vec3(0.49999999999999994D, 5.25D, 1.0D), new Vec3(0.49999999999999983D, 5.25D, 2.0D)};
+            case EAST -> new Vec3[]{new Vec3(0.5000000000000001D, 5.25D, 0.0D), new Vec3(0.5000000000000002D, 5.25D, -1.0D), new Vec3(0.49999999999999994D, 5.25D, 1.0D), new Vec3(0.49999999999999983D, 5.25D, 2.0D)};
+            case UP -> new Vec3[]{new Vec3(1.0D, 5.25D, 0.5D), new Vec3(2.0D, 5.25D, 0.5D), new Vec3(0.0D, 5.25D, 0.5D), new Vec3(-1.0D, 5.25D, 0.5D)};
+            case DOWN -> new Vec3[]{new Vec3(1.0D, 5.25D, 0.5D), new Vec3(2.0D, 5.25D, 0.5D), new Vec3(0.0D, 5.25D, 0.5D), new Vec3(-1.0D, 5.25D, 0.5D)};
         };
+    }
+
+    private List<BlockPos> redConnectorAdjacentPowerPorts() {
+        return List.of(this.worldPosition.relative(facing().getOpposite()));
+    }
+
+    private List<BlockPos> connectorRedSuperAdjacentPowerPorts() {
+        return List.of(this.worldPosition.relative(facing().getOpposite()));
+    }
+
+    private List<BlockPos> redPylonAdjacentPowerPorts() {
+        BlockPos pos = this.worldPosition;
+        return List.of(pos.north(), pos.south(), pos.west(), pos.east());
+    }
+
+    private List<BlockPos> redPylonSteelAdjacentPowerPorts() {
+        BlockPos pos = this.worldPosition;
+        return List.of(pos.north(), pos.south(), pos.west(), pos.east());
+    }
+
+    private List<BlockPos> redPylonMediumWoodTransformerAdjacentPowerPorts() {
+        return List.of(this.worldPosition.relative(facing().getOpposite()));
+    }
+
+    private List<BlockPos> redPylonMediumSteelTransformerAdjacentPowerPorts() {
+        return List.of(this.worldPosition.relative(facing().getOpposite()));
     }
 
     private List<BlockPos> substationAdjacentPorts() {
@@ -329,13 +504,9 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
         );
     }
 
-    private static Vec3 rotateY(double x, double z, double radians) {
-        double cos = Math.cos(radians);
-        double sin = Math.sin(radians);
-        return new Vec3(x * cos + z * sin, 0.0D, z * cos - x * sin);
-    }
-
     private void syncAndDirtyGraph() {
+        refreshClientEndpointStates();
+        refreshRenderSnapshot();
         setChanged();
         if (this.level != null) {
             PowerNetworkManager.markDirty(this.level);
@@ -386,6 +557,11 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
                 }
             }
         }
+        refreshClientEndpointStates();
+        refreshRenderSnapshot();
+        if (this.level != null && this.level.isClientSide) {
+            markClientRenderSectionDirty();
+        }
     }
 
     @Override
@@ -407,7 +583,16 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
 
     private void rememberLoadedConnection(BlockPos connection) {
         if (this.level != null && this.level.getBlockEntity(connection) instanceof PowerPylonBlockEntity pylon) {
-            rememberConnection(connection, pylon);
+            boolean changed = rememberConnection(connection, pylon);
+            boolean endpointChanged = this.level.isClientSide
+                    && pylon.hasConnection(this.worldPosition)
+                    && this.loadedClientEndpoints.add(connection.immutable());
+            if (changed || endpointChanged) {
+                refreshRenderSnapshot();
+                if (this.level.isClientSide) {
+                    markClientRenderSectionDirty();
+                }
+            }
         }
     }
 
@@ -416,6 +601,204 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
         ConnectionRenderInfo updated = pylon.selfRenderInfo();
         ConnectionRenderInfo previous = this.connectionRenderInfos.put(immutable, updated);
         return !updated.equals(previous);
+    }
+
+    private void refreshClientEndpointStates() {
+        if (this.level == null || !this.level.isClientSide) {
+            this.loadedClientEndpoints.clear();
+            return;
+        }
+        Set<BlockPos> previouslyLoaded = Set.copyOf(this.loadedClientEndpoints);
+        Set<BlockPos> loaded = new HashSet<>();
+        for (BlockPos connection : this.connections) {
+            if (this.level.getBlockEntity(connection) instanceof PowerPylonBlockEntity pylon
+                    && pylon.hasConnection(this.worldPosition)) {
+                BlockPos immutable = connection.immutable();
+                loaded.add(immutable);
+                rememberConnection(connection, pylon);
+
+                // Connection update packets for the two endpoints are not ordered as one
+                // transaction.  Whichever endpoint receives the reciprocal connection
+                // second must publish the half-span state to the already-updated peer as
+                // well, otherwise one renderer retains a full cable while the other draws
+                // its half and the overlap z-fights indefinitely.
+                boolean remoteInfoChanged = pylon.rememberConnection(this.worldPosition, this);
+                boolean remoteEndpointChanged = pylon.markClientEndpointLoaded(this.worldPosition, true);
+                if (remoteInfoChanged && !remoteEndpointChanged) {
+                    pylon.refreshRenderSnapshot();
+                    pylon.markClientRenderSectionDirty();
+                }
+            }
+        }
+        for (BlockPos connection : previouslyLoaded) {
+            if (!loaded.contains(connection)
+                    && this.level.getBlockEntity(connection) instanceof PowerPylonBlockEntity pylon) {
+                pylon.markClientEndpointLoaded(this.worldPosition, false);
+            }
+        }
+        this.loadedClientEndpoints.clear();
+        this.loadedClientEndpoints.addAll(loaded);
+    }
+
+    private void refreshRenderSnapshot() {
+        this.renderSnapshot = buildRenderSnapshot();
+    }
+
+    private RenderSnapshot buildRenderSnapshot() {
+        PowerPylonBlock.Kind localKind = kind();
+        Direction localFacing = facing();
+        Vec3[] localMounts = mountPositions(localKind, localFacing);
+        List<RenderConnection> renderConnections = new ArrayList<>(this.connections.size());
+        List<BlockPos> positions = new ArrayList<>(this.connections.size());
+        List<PowerPylonWireLayout.WireQuad> wireQuads = new ArrayList<>();
+        Object modelGeometryToken = null;
+        long modelRevision = -1L;
+        AABB bounds = new AABB(this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ(),
+                this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ());
+        // The common-side bridge deliberately has no reference to a client class. Its
+        // provider is installed during client renderer registration; on a dedicated
+        // server it remains absent and this immutable render-only token stays null.
+        PowerPylonRenderGeometry.GeometryResult geometry =
+                PowerPylonRenderGeometry.capture(this, this.getBlockState(), localKind, localFacing);
+        if (geometry != null) {
+            modelGeometryToken = geometry.geometryToken();
+            modelRevision = geometry.revision();
+            bounds = geometry.bounds();
+        }
+
+        for (BlockPos connection : this.connections) {
+            BlockPos immutable = connection.immutable();
+            positions.add(immutable);
+            ConnectionRenderInfo remote = this.connectionRenderInfos.get(immutable);
+            boolean halfSpan = this.loadedClientEndpoints.contains(immutable);
+            List<Integer> mountMapping = new ArrayList<>();
+            if (remote != null) {
+                Vec3[] remoteMounts = remote.mountPositions();
+                int lineCount = Math.min(localMounts.length, remoteMounts.length);
+                int[] mapping = PowerPylonWireLayout.mountMapping(this, remote, lineCount);
+                for (int value : mapping) {
+                    mountMapping.add(value);
+                }
+                for (int line = 0; line < lineCount; line++) {
+                    // Build in the same block-local coordinate system uploaded to the VBO.
+                    // appendSaggingWire quantizes every emitted position to float once; its
+                    // returned bounds and the renderer then consume those identical vertices.
+                    Vec3 start = localMounts[line];
+                    Vec3 fullEnd = remoteMounts[mapping[line]].add(
+                            immutable.getX() - this.worldPosition.getX(),
+                            immutable.getY() - this.worldPosition.getY(),
+                            immutable.getZ() - this.worldPosition.getZ());
+                    Vec3 renderEnd = halfSpan
+                            ? start.add(fullEnd.subtract(start).scale(0.5D))
+                            : fullEnd;
+                    AABB localWireBounds = PowerPylonWireLayout.appendSaggingWire(
+                            wireQuads, start, renderEnd, !halfSpan);
+                    bounds = bounds.minmax(localWireBounds.move(this.worldPosition));
+                }
+            }
+            renderConnections.add(new RenderConnection(immutable, remote, halfSpan, mountMapping));
+        }
+
+        return new RenderSnapshot(
+                ++this.nextRenderRevision,
+                this.getBlockState(),
+                localKind,
+                localFacing,
+                this.color,
+                modelGeometryToken,
+                modelRevision,
+                renderConnections,
+                positions,
+                wireQuads,
+                bounds
+        );
+    }
+
+    private boolean markClientEndpointLoaded(BlockPos connection, boolean loaded) {
+        if (this.level == null || !this.level.isClientSide || !this.connections.contains(connection)) {
+            return false;
+        }
+        BlockPos immutable = connection.immutable();
+        boolean changed = loaded
+                ? this.loadedClientEndpoints.add(immutable)
+                : this.loadedClientEndpoints.remove(immutable);
+        if (changed) {
+            refreshRenderSnapshot();
+            markClientRenderSectionDirty();
+        }
+        return changed;
+    }
+
+    private void markClientRenderSectionDirty() {
+        if (this.level != null && this.level.isClientSide) {
+            this.level.sendBlockUpdated(
+                    this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** Client model-bake hook: replaces bounds and the captured render geometry atomically. */
+    public void refreshClientModelGeometryAfterBake() {
+        if (this.level != null && this.level.isClientSide) {
+            refreshRenderSnapshot();
+            markClientRenderSectionDirty();
+        }
+    }
+
+    public static void onClientChunkUnload(Level level, ChunkPos chunkPos) {
+        List<PowerPylonBlockEntity> pylons;
+        synchronized (CLIENT_INSTANCES) {
+            pylons = List.copyOf(CLIENT_INSTANCES);
+        }
+        for (PowerPylonBlockEntity pylon : pylons) {
+            if (pylon.level != level || pylon.isRemoved()) {
+                continue;
+            }
+            for (BlockPos connection : pylon.renderSnapshot.connectionPositions()) {
+                if (chunkPos.equals(new ChunkPos(connection))) {
+                    pylon.markClientEndpointLoaded(connection, false);
+                }
+            }
+        }
+    }
+
+    public void registerClientRenderResource(AutoCloseable resource) {
+        this.clientRenderResources.add(resource);
+    }
+
+    public void unregisterClientRenderResource(AutoCloseable resource) {
+        this.clientRenderResources.remove(resource);
+    }
+
+    private void closeClientRenderResources() {
+        List<AutoCloseable> resources = List.copyOf(this.clientRenderResources);
+        this.clientRenderResources.clear();
+        for (AutoCloseable resource : resources) {
+            closeResource(resource);
+        }
+    }
+
+    private static void closeResource(@Nullable AutoCloseable resource) {
+        if (resource != null) {
+            try {
+                resource.close();
+            } catch (Exception ignored) {
+                // Client render resources are best-effort during teardown.
+            }
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        if (this.level != null && this.level.isClientSide) {
+            CLIENT_INSTANCES.remove(this);
+            for (BlockPos connection : this.renderSnapshot.connectionPositions()) {
+                if (this.level.getBlockEntity(connection) instanceof PowerPylonBlockEntity pylon) {
+                    pylon.markClientEndpointLoaded(this.worldPosition, false);
+                }
+            }
+        }
+        closeClientRenderResources();
+        super.setRemoved();
     }
 
     private void syncRenderInfoOnly() {
@@ -432,6 +815,32 @@ public class PowerPylonBlockEntity extends BlockEntity implements PowerGraphNode
 
         public Vec3[] mountPositions() {
             return PowerPylonBlockEntity.mountPositions(this.kind, this.facing);
+        }
+    }
+
+    public record RenderConnection(BlockPos pos, @Nullable ConnectionRenderInfo remote,
+                                   boolean halfSpan, List<Integer> mountMapping) {
+        public RenderConnection {
+            pos = pos.immutable();
+            mountMapping = List.copyOf(mountMapping);
+        }
+
+        public int remoteMountIndex(int line) {
+            return this.mountMapping.get(line);
+        }
+    }
+
+    public record RenderSnapshot(int revision, BlockState blockState,
+                                 PowerPylonBlock.Kind kind, Direction facing, int color,
+                                 Object modelGeometryToken, long modelRevision,
+                                 List<RenderConnection> connections,
+                                 List<BlockPos> connectionPositions,
+                                 List<PowerPylonWireLayout.WireQuad> wireQuads,
+                                 AABB bounds) {
+        public RenderSnapshot {
+            connections = List.copyOf(connections);
+            connectionPositions = List.copyOf(connectionPositions);
+            wireQuads = List.copyOf(wireQuads);
         }
     }
 }

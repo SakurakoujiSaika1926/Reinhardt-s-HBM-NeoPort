@@ -40,8 +40,9 @@ public class OilBubbleFeature extends Feature<NoneFeatureConfiguration> {
         }
 
         int radius = HbmConfig.radius(HbmConfig.OIL_DEPOSIT_MIN_RADIUS, HbmConfig.OIL_DEPOSIT_MAX_RADIUS, random);
-        boolean placed = spawnOil(level, origin, radius);
-        OilFieldSurfaceEffects.addOilDepositSurfaceSpot(level, random, origin.getX(), origin.getZ());
+        WorldgenFeatureBounds writeBounds = WorldgenFeatureBounds.forFeature(level, origin);
+        boolean placed = spawnOil(level, origin, radius, writeBounds);
+        OilFieldSurfaceEffects.addOilDepositSurfaceSpot(level, random, origin.getX(), origin.getZ(), writeBounds);
         return placed;
     }
 
@@ -54,7 +55,7 @@ public class OilBubbleFeature extends Feature<NoneFeatureConfiguration> {
         return Math.max(1, spawnRate);
     }
 
-    private static boolean spawnOil(WorldGenLevel level, BlockPos origin, int radius) {
+    private static boolean spawnOil(WorldGenLevel level, BlockPos origin, int radius, WorldgenFeatureBounds writeBounds) {
         int r2 = radius * radius;
         int r22 = r2 / 2;
         boolean placed = false;
@@ -72,7 +73,7 @@ public class OilBubbleFeature extends Feature<NoneFeatureConfiguration> {
                 for (int zz = -radius; zz < radius; zz++) {
                     int z = zz + origin.getZ();
                     int dist = yySq + zz * zz;
-                    if (dist < r22) {
+                    if (dist < r22 && writeBounds.contains(x, z)) {
                         pos.set(x, y, z);
                         BlockState state = level.getBlockState(pos);
                         if (state.is(Blocks.STONE)) {

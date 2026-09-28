@@ -58,6 +58,7 @@ public final class LegacyFurnaceFuels {
             case "block_coke" -> SINGLE * 160;
             case "book_guide" -> SINGLE;
             case "coal_infernal" -> 4_800;
+            case "coal_eternal" -> SINGLE * 16;
             case "powder_sawdust" -> SINGLE / 2;
             default -> 0;
         };

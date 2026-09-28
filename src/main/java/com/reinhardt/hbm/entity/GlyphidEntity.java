@@ -44,6 +44,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.state.BlockState;
@@ -297,6 +298,21 @@ public class GlyphidEntity extends Monster {
             case SCOUT -> EntityDimensions.fixed(1.25F, 0.75F);
             default -> EntityDimensions.fixed(1.75F, 1.0F);
         };
+    }
+
+    @Override
+    public boolean checkSpawnObstruction(LevelReader level) {
+        /*
+         * In 1.7.10 EntityGlyphid#getCanSpawnHere rejected block collisions,
+         * entity collisions and liquids.  Mob#checkSpawnObstruction in 1.21
+         * only covers liquids and obstructing entities, so using it alone lets
+         * a hive accept a wide variant while its refreshed bounding box still
+         * intersects the hive shell.  Restore the omitted full-box collision
+         * query here so every glyphid spawn path receives the legacy safety
+         * rule, including hive swarms and natural scout escorts.
+         */
+        return level.noCollision(this, getBoundingBox())
+                && super.checkSpawnObstruction(level);
     }
 
     private void refreshAttributes() {

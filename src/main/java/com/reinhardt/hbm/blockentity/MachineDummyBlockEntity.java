@@ -177,14 +177,23 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ArcFurnaceBlockEntity furnace) {
             return furnace.isAutomationPort(this.worldPosition) ? furnace.getSlotsForFace(side) : NO_SLOTS;
         }
+        if (core instanceof RockMillBlockEntity mill) {
+            return mill.isAutomationPort(this.worldPosition) ? mill.getSlotsForFace(side) : NO_SLOTS;
+        }
         if (core instanceof AssemblyFactoryBlockEntity factory) {
-            return factory.allowsAutomationPort(this.worldPosition, side) ? factory.getSlotsForAccessor(this.worldPosition, side) : NO_SLOTS;
+            return factory.allowsAutomationPort(this.worldPosition, side)
+                    ? factory.getSlotsForAccessor(this.worldPosition, side) : NO_SLOTS;
         }
         if (core instanceof ChemicalFactoryBlockEntity factory) {
-            return factory.allowsAutomationPort(this.worldPosition, side) ? factory.getSlotsForFace(side) : NO_SLOTS;
+            return factory.allowsAutomationPort(this.worldPosition, side)
+                    ? factory.getSlotsForFace(side) : NO_SLOTS;
+        }
+        if (core instanceof MachineBlastFurnaceBlockEntity furnace) {
+            return furnace.getSlotsForAccessor(this.worldPosition, side);
         }
         if (core instanceof SolderingStationBlockEntity solderingStation) {
-            return solderingStation.allowsAutomationPort(this.worldPosition) ? solderingStation.getSlotsForFace(side) : NO_SLOTS;
+            return solderingStation.allowsAutomationPort(this.worldPosition)
+                    ? solderingStation.getSlotsForFace(side) : NO_SLOTS;
         }
         if (core instanceof ParticleAcceleratorBlockEntity accelerator) {
             return accelerator.getSlotsForAccessor(this.worldPosition, side);
@@ -193,7 +202,8 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
             return furnace.getSlotsForAccessor(this.worldPosition, side);
         }
         if (core instanceof LegacyMachineBlockEntity machine) {
-            return machine.allowsItemAutomationPort(this.worldPosition) ? machine.getSlotsForFace(side) : NO_SLOTS;
+            return machine.allowsItemAutomationPort(this.worldPosition)
+                    ? machine.getSlotsForFace(side) : NO_SLOTS;
         }
         return core == null ? NO_SLOTS : core.getSlotsForFace(side);
     }
@@ -209,6 +219,11 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
                     && containsSlot(furnace.getSlotsForFace(side), slot)
                     && furnace.canPlaceItemThroughFace(slot, stack, side);
         }
+        if (core instanceof RockMillBlockEntity mill) {
+            return mill.isAutomationPort(this.worldPosition)
+                    && containsSlot(mill.getSlotsForFace(side), slot)
+                    && mill.canPlaceItemThroughFace(slot, stack, side);
+        }
         if (core instanceof AssemblyFactoryBlockEntity factory) {
             return factory.allowsAutomationPort(this.worldPosition, side)
                     && containsSlot(factory.getSlotsForAccessor(this.worldPosition, side), slot)
@@ -217,6 +232,9 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ChemicalFactoryBlockEntity factory) {
             return factory.allowsAutomationPort(this.worldPosition, side)
                     && factory.canPlaceItemThroughFace(slot, stack, side);
+        }
+        if (core instanceof MachineBlastFurnaceBlockEntity furnace) {
+            return furnace.canPlaceItemThroughAccessor(this.worldPosition, slot, stack, side);
         }
         if (core instanceof SolderingStationBlockEntity solderingStation) {
             return solderingStation.allowsAutomationPort(this.worldPosition)
@@ -250,6 +268,11 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
                     && containsSlot(furnace.getSlotsForFace(side), slot)
                     && furnace.canTakeItemThroughFace(slot, stack, side);
         }
+        if (core instanceof RockMillBlockEntity mill) {
+            return mill.isAutomationPort(this.worldPosition)
+                    && containsSlot(mill.getSlotsForFace(side), slot)
+                    && mill.canTakeItemThroughFace(slot, stack, side);
+        }
         if (core instanceof AssemblyFactoryBlockEntity factory) {
             return factory.allowsAutomationPort(this.worldPosition, side)
                     && containsSlot(factory.getSlotsForAccessor(this.worldPosition, side), slot)
@@ -258,6 +281,9 @@ public class MachineDummyBlockEntity extends BlockEntity implements WorldlyConta
         if (core instanceof ChemicalFactoryBlockEntity factory) {
             return factory.allowsAutomationPort(this.worldPosition, side)
                     && factory.canTakeItemThroughFace(slot, stack, side);
+        }
+        if (core instanceof MachineBlastFurnaceBlockEntity furnace) {
+            return furnace.canTakeItemThroughAccessor(this.worldPosition, slot, stack, side);
         }
         if (core instanceof SolderingStationBlockEntity solderingStation) {
             return solderingStation.allowsAutomationPort(this.worldPosition)

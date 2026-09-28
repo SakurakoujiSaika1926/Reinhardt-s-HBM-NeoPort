@@ -1,1 +1,18 @@
-{"type":"reinhardtshbm:fuel_pool","group":"waste_plate","input":{"item":"reinhardtshbm:waste_plate_sa326","components":{"minecraft:custom_data":{"spentFuelPoolCooling":true}}},"result":{"id":"reinhardtshbm:waste_plate_sa326"}}
+{
+  "type": "reinhardtshbm:fuel_pool",
+  "group": "waste_plate",
+  "input": {
+    "type": "neoforge:components",
+    "items": [
+      "reinhardtshbm:waste_plate_sa326"
+    ],
+    "components": {
+      "minecraft:custom_data": {
+        "spentFuelPoolCooling": true
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:waste_plate_sa326"
+  }
+}

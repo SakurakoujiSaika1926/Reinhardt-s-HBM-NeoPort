@@ -176,18 +176,10 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
         }
 
         HbmFluidNetworks.registerPipe(level, this.worldPosition, connectableFluidTypes(), this.open);
-        BlockState state = level.getBlockState(this.worldPosition);
-        if (!(state.getBlock() instanceof FluidDuctBlock duct)) {
-            return;
-        }
-        duct.refreshConnections(level, this.worldPosition);
-        for (Direction direction : Direction.values()) {
-            BlockPos neighbor = this.worldPosition.relative(direction);
-            BlockState neighborState = level.getBlockState(neighbor);
-            if (neighborState.getBlock() instanceof FluidDuctBlock neighborDuct) {
-                neighborDuct.refreshConnections(level, neighbor);
-            }
-        }
+        // The six connection properties are already part of the saved block
+        // state.  Chunk block entities have no defined load order, especially
+        // when a large machine's dummy and core occupy different chunks, so an
+        // on-load capability probe must not overwrite that authoritative state.
     }
 
     @Override

@@ -55,6 +55,40 @@ public final class HbmThermalConversions {
         };
     }
 
+    /**
+     * Exact {@code FT_Heatable} entries whose latest-1.7.10 efficiency table
+     * contains {@code HeatingType.PWR}.  This is intentionally separate from
+     * the heat-exchanger table: heavy water, sodium, lead and thorium salt are
+     * reactor coolants but are not valid RBMK heat-exchanger inputs.
+     */
+    public static Optional<HeatingStep> firstPwrStep(HbmFluidDefinition input) {
+        if (input == null || input.isNone()) {
+            return Optional.empty();
+        }
+        return switch (input.name()) {
+            case "coolant" -> heating(input, "coolant_hot", 300, 1, 1, 1.0D);
+            case "perfluoromethyl" -> heating(input, "perfluoromethyl_hot", 300, 1, 1, 1.0D);
+            case "mug" -> heating(input, "mug_hot", 400, 1, 1, 1.0D);
+            case "heavywater" -> heating(input, "heavywater_hot", 300, 1, 1, 1.0D);
+            case "sodium" -> heating(input, "sodium_hot", 400, 1, 1, 2.5D);
+            case "lead" -> heating(input, "lead_hot", 800, 1, 1, 0.75D);
+            case "thorium_salt" -> heating(input, "thorium_salt_hot", 400, 1, 1, 1.0D);
+            default -> Optional.empty();
+        };
+    }
+
+    /** Exact latest-1.7.10 {@code FT_PWRModerator} multipliers. */
+    public static double pwrModeratorMultiplier(HbmFluidDefinition input) {
+        if (input == null || input.isNone()) return 1.0D;
+        return switch (input.name()) {
+            case "mug" -> 1.15D;
+            case "heavywater" -> 1.25D;
+            case "lead" -> 0.75D;
+            case "thorium_salt" -> 2.5D;
+            default -> 1.0D;
+        };
+    }
+
     public static Optional<HeatingStep> firstGeothermalStep(HbmFluidDefinition input) {
         if (input == null || input.isNone()) {
             return Optional.empty();

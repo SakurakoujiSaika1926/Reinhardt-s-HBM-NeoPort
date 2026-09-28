@@ -1,0 +1,18 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.rpaplate",
+  "blueprint_pools": ["discover..rpa"],
+  "duration": 3600,
+  "power": 25000,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/armor_ajr" }, "count": 24 },
+    { "ingredient": { "item": "reinhardtshbm:plate_cast_saturnite" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:part_mechanism_saturnite" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 8 },
+    { "ingredient": { "tag": "c:plates/kevlar" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:parts_legendary_tier2" }, "count": 1 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:rpa_plate" }, "weight": 100 }
+  ]
+}

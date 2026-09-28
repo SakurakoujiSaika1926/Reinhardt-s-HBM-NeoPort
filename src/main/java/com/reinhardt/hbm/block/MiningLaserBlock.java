@@ -18,6 +18,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -51,6 +53,16 @@ public class MiningLaserBlock extends LegacyDirectionalBlock implements EntityBl
             return null;
         }
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(LIT, false);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return rotate(state, mirror.getRotation(state.getValue(FACING)));
     }
 
     @Nullable
@@ -88,7 +100,7 @@ public class MiningLaserBlock extends LegacyDirectionalBlock implements EntityBl
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         if (!level.isClientSide && !state.is(oldState.getBlock())) {
-            placeDummies(level, pos);
+            placeDummies(level, pos, state);
             PowerNetworkManager.markDirty(level);
         }
     }
@@ -101,7 +113,7 @@ public class MiningLaserBlock extends LegacyDirectionalBlock implements EntityBl
                 inventory.dropContents(level, pos);
             }
             if (!level.isClientSide) {
-                removeDummies(level, pos);
+                removeDummies(level, pos, state);
             }
             PowerNetworkManager.markDirty(level);
         }
@@ -144,7 +156,7 @@ public class MiningLaserBlock extends LegacyDirectionalBlock implements EntityBl
         return true;
     }
 
-    private static void placeDummies(Level level, BlockPos corePos) {
+    private static void placeDummies(Level level, BlockPos corePos, BlockState coreState) {
         for (BlockPos pos : MiningLaserBlockEntity.multiblockPositions(corePos)) {
             if (pos.equals(corePos)) {
                 continue;
@@ -156,7 +168,7 @@ public class MiningLaserBlock extends LegacyDirectionalBlock implements EntityBl
         }
     }
 
-    private static void removeDummies(Level level, BlockPos corePos) {
+    private static void removeDummies(Level level, BlockPos corePos, BlockState coreState) {
         if (level.getBlockEntity(corePos) == null) {
             return;
         }

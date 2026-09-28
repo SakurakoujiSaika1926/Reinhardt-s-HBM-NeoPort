@@ -22,7 +22,9 @@ public final class NuclearWasteItem extends Item {
     private final boolean tiny;
 
     public NuclearWasteItem(Properties properties, Family family, boolean depleted, boolean tiny) {
-        super(properties.stacksTo(1));
+        // 1.7.10 waste stacks use the normal item stack limit. The 1 <-> 9
+        // same-class conversion recipes also require tiny waste to stack.
+        super(properties);
         this.family = family;
         this.depleted = depleted;
         this.tiny = tiny;

@@ -41,8 +41,13 @@ public final class PoleItemRenderer extends BlockEntityWithoutLevelRenderer {
             return;
         }
         ensureModels();
-        PoleBlockEntityRenderer.renderItem(satellite, context, poseStack, bufferSource,
-                packedLight, packedOverlay, poleTop, satelliteReceiver);
+        if (satellite) {
+            PoleBlockEntityRenderer.renderSatelliteReceiverItem(context, poseStack, bufferSource,
+                    packedLight, packedOverlay, satelliteReceiver);
+        } else {
+            PoleBlockEntityRenderer.renderPoleTopItem(context, poseStack, bufferSource,
+                    packedLight, packedOverlay, poleTop);
+        }
     }
 
     private void ensureModels() {

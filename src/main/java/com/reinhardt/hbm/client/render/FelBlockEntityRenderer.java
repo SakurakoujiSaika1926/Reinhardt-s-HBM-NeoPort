@@ -2,25 +2,25 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.FelBlock;
 import com.reinhardt.hbm.blockentity.FelBlockEntity;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-import java.util.Random;
-
-public class FelBlockEntityRenderer implements BlockEntityRenderer<FelBlockEntity> {
+public class FelBlockEntityRenderer implements LongRangeBlockEntityRenderer<FelBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fel");
+    private static final AABB[] LOCAL_BOUNDS = buildFelBounds();
+    private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
+    private static final long JAVA_RANDOM_ADDEND = 0xBL;
+    private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
 
     public FelBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -32,10 +32,10 @@ public class FelBlockEntityRenderer implements BlockEntityRenderer<FelBlockEntit
     @Override
     public void render(FelBlockEntity fel, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = fel.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.SOUTH;
+        Direction facing = felFacing(state);
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, MachineModelRendererYaw.fel1710Yaw(facing));
+        applyFelTransform(poseStack, facing);
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         if (fel.beamVisible()) {
@@ -50,89 +50,142 @@ public class FelBlockEntityRenderer implements BlockEntityRenderer<FelBlockEntit
 
     @Override
     public AABB getRenderBoundingBox(FelBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(24.0D, 6.0D, 24.0D);
+        Direction facing = felFacing(blockEntity.getBlockState());
+        /* Full distance 1..24 and every discrete spiral/random phase. The beam's
+         * transverse extrema remain inside the OBJ; the exact local -Z extreme
+         * comes from the far segment corner. */
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
     private static void renderBeam(PoseStack poseStack, MultiBufferSource bufferSource, int length, int color, long gameTime) {
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.lightning());
         PoseStack.Pose pose = poseStack.last();
-        Vec3 end = new Vec3(0.0D, 0.0D, -length - 1.0D);
-        renderSpiralBeam(pose, consumer, Vec3.ZERO, end, (int) (gameTime % 1000L), 2, 0.0625D, color);
-        renderRandomBeam(pose, consumer, Vec3.ZERO, end, (int) (gameTime % 500L), Math.max(2, length / 2 + 1), 0.0625D, color);
+        double beamLength = length + 1.0D;
+        renderSpiralBeam(pose, consumer, beamLength, (int) (gameTime % 1000L), 2, 0.0625D, color);
+        renderRandomBeam(pose, consumer, beamLength, (int) (gameTime % 500L), Math.max(2, length / 2 + 1), 0.0625D, color);
     }
 
-    private static void renderSpiralBeam(PoseStack.Pose pose, VertexConsumer consumer, Vec3 start, Vec3 end, int phase, int turns, double thickness, int color) {
-        Vec3 axisY = end.subtract(start).normalize();
-        Vec3 axisX = new Vec3(axisY.z, 0.0D, -axisY.x);
-        if (axisX.lengthSqr() < 1.0E-5D) {
-            axisX = new Vec3(1.0D, 0.0D, 0.0D);
-        }
-        axisX = axisX.normalize();
-        Vec3 axisZ = axisX.cross(axisY).normalize();
-        int segments = Math.max(8, (int) Math.ceil(end.length() * 2.0D));
-        Vec3 previous = null;
+    private static void renderSpiralBeam(PoseStack.Pose pose, VertexConsumer consumer, double beamLength,
+                                         int phase, int turns, double thickness, int color) {
+        int segments = Math.max(8, (int) Math.ceil(beamLength * 2.0D));
+        double previousX = 0.0D;
+        double previousY = 0.0D;
+        double previousZ = 0.0D;
         for (int index = 0; index <= segments; index++) {
             double progress = index / (double) segments;
             double angle = Math.toRadians(phase + 360.0D * turns * progress);
-            Vec3 spinner = axisX.scale(Math.cos(angle) * thickness).add(axisZ.scale(Math.sin(angle) * thickness));
-            Vec3 point = start.add(axisY.scale(end.length() * progress)).add(spinner);
-            if (previous != null) {
-                beamQuad(consumer, pose, previous, point, thickness * 0.35D, color);
+            // The FEL owns a fixed local -Z beam. These are the exact axes
+            // produced by its former Vec3 basis: axisX=-X, axisZ=-Y.
+            double pointX = -Math.cos(angle) * thickness;
+            double pointY = -Math.sin(angle) * thickness;
+            double pointZ = -beamLength * progress;
+            if (index > 0) {
+                beamQuad(consumer, pose, previousX, previousY, previousZ,
+                        pointX, pointY, pointZ, thickness * 0.35D, color);
             }
-            previous = point;
+            previousX = pointX;
+            previousY = pointY;
+            previousZ = pointZ;
         }
     }
 
-    private static void renderRandomBeam(PoseStack.Pose pose, VertexConsumer consumer, Vec3 start, Vec3 end, int seed, int segments, double thickness, int color) {
-        Random random = new Random(seed);
-        Vec3 previous = start;
+    private static void renderRandomBeam(PoseStack.Pose pose, VertexConsumer consumer, double beamLength,
+                                         int seed, int segments, double thickness, int color) {
+        long randomState = (seed ^ JAVA_RANDOM_MULTIPLIER) & JAVA_RANDOM_MASK;
+        double previousX = 0.0D;
+        double previousY = 0.0D;
+        double previousZ = 0.0D;
         for (int index = 1; index <= segments; index++) {
             double progress = index / (double) segments;
-            Vec3 point = start.add(end.scale(progress));
+            double pointX = 0.0D;
+            double pointY = 0.0D;
+            double pointZ = -beamLength * progress;
             if (index < segments) {
-                point = point.add(
-                        (random.nextDouble() - 0.5D) * thickness * 4.0D,
-                        (random.nextDouble() - 0.5D) * thickness * 4.0D,
-                        (random.nextDouble() - 0.5D) * thickness * 2.0D
-                );
+                randomState = javaRandomNextState(randomState);
+                long high = randomState >>> 22;
+                randomState = javaRandomNextState(randomState);
+                pointX = (((high << 27) + (randomState >>> 21)) * 0x1.0p-53 - 0.5D) * thickness * 4.0D;
+                randomState = javaRandomNextState(randomState);
+                high = randomState >>> 22;
+                randomState = javaRandomNextState(randomState);
+                pointY = (((high << 27) + (randomState >>> 21)) * 0x1.0p-53 - 0.5D) * thickness * 4.0D;
+                randomState = javaRandomNextState(randomState);
+                high = randomState >>> 22;
+                randomState = javaRandomNextState(randomState);
+                pointZ += (((high << 27) + (randomState >>> 21)) * 0x1.0p-53 - 0.5D) * thickness * 2.0D;
             }
-            beamQuad(consumer, pose, previous, point, thickness * 0.5D, color);
-            previous = point;
+            beamQuad(consumer, pose, previousX, previousY, previousZ,
+                    pointX, pointY, pointZ, thickness * 0.5D, color);
+            previousX = pointX;
+            previousY = pointY;
+            previousZ = pointZ;
         }
     }
 
-    private static void beamQuad(VertexConsumer consumer, PoseStack.Pose pose, Vec3 start, Vec3 end, double thickness, int color) {
-        Vec3 direction = end.subtract(start);
-        Vec3 axisX = new Vec3(direction.z, 0.0D, -direction.x);
-        if (axisX.lengthSqr() < 1.0E-5D) {
-            axisX = new Vec3(1.0D, 0.0D, 0.0D);
-        }
-        axisX = axisX.normalize().scale(thickness);
-        Vec3 axisY = new Vec3(0.0D, thickness, 0.0D);
-        beamVertex(consumer, pose, start.add(axisX).add(axisY), color);
-        beamVertex(consumer, pose, start.subtract(axisX).add(axisY), color);
-        beamVertex(consumer, pose, end.subtract(axisX).subtract(axisY), color);
-        beamVertex(consumer, pose, end.add(axisX).subtract(axisY), color);
+    private static long javaRandomNextState(long state) {
+        return (state * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
     }
 
-    private static void beamVertex(VertexConsumer consumer, PoseStack.Pose pose, Vec3 pos, int color) {
-        consumer.addVertex(pose, (float) pos.x, (float) pos.y, (float) pos.z)
+    private static void beamQuad(VertexConsumer consumer, PoseStack.Pose pose,
+                                 double startX, double startY, double startZ,
+                                 double endX, double endY, double endZ,
+                                 double thickness, int color) {
+        double directionX = endX - startX;
+        double directionZ = endZ - startZ;
+        double axisX = directionZ;
+        double axisZ = -directionX;
+        double axisLengthSqr = axisX * axisX + axisZ * axisZ;
+        if (axisLengthSqr < 1.0E-5D) {
+            axisX = thickness;
+            axisZ = 0.0D;
+        } else {
+            double scale = thickness / Math.sqrt(axisLengthSqr);
+            axisX *= scale;
+            axisZ *= scale;
+        }
+        beamVertex(consumer, pose, startX + axisX, startY + thickness, startZ + axisZ, color);
+        beamVertex(consumer, pose, startX - axisX, startY + thickness, startZ - axisZ, color);
+        beamVertex(consumer, pose, endX - axisX, endY - thickness, endZ - axisZ, color);
+        beamVertex(consumer, pose, endX + axisX, endY - thickness, endZ + axisZ, color);
+    }
+
+    private static void beamVertex(VertexConsumer consumer, PoseStack.Pose pose,
+                                   double x, double y, double z, int color) {
+        consumer.addVertex(pose, (float) x, (float) y, (float) z)
                 .setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(LightTexture.FULL_BRIGHT)
                 .setNormal(pose, 0.0F, 1.0F, 0.0F);
     }
 
-    private static final class MachineModelRendererYaw {
-        private static float fel1710Yaw(Direction facing) {
-            // HBM 1.7.10 RenderFEL:
-            // meta 2(NORTH)=0, 3(SOUTH)=180, 4(WEST)=90, 5(EAST)=270.
-            return switch (facing) {
-                case SOUTH -> 180.0F;
-                case WEST -> 90.0F;
-                case EAST -> 270.0F;
-                default -> 0.0F;
-            };
+    private static AABB[] buildFelBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyFelTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.5F, 0.0F, -23.501984F, 1.5F, 3.0F, 4.5F);
         }
+        return bounds;
+    }
+
+    private static void applyFelTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            // RenderFEL metadata 2/3/4/5: 0/180/90/270 degrees.
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case NORTH -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("FEL facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction felFacing(BlockState state) {
+        if (!state.hasProperty(FelBlock.FACING)) {
+            throw new IllegalStateException("FEL state is missing its owned facing property: " + state);
+        }
+        return state.getValue(FelBlock.FACING);
     }
 }

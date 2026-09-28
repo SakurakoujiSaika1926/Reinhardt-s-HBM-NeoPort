@@ -31,18 +31,30 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 public final class ArcFurnaceBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     private static final Footprint FOOTPRINT = createFootprint();
 
     public ArcFurnaceBlock(Properties properties) {
-        super(properties.noOcclusion(), FOOTPRINT, Shapes.block(), RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties.noOcclusion(), FOOTPRINT, Shapes.block(), ArcFurnaceBlock::mapArcFurnaceOffset);
         this.registerDefaultState(this.defaultBlockState().setValue(LIT, false));
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(LIT, false);
-        return canPlaceLegacyFootprint(context, state.getValue(FACING), FOOTPRINT) ? state : null;
+        return canPlaceFootprint(context, state.getValue(FACING), FOOTPRINT, ArcFurnaceBlock::mapArcFurnaceOffset)
+                ? state
+                : null;
     }
 
     @Override
@@ -107,9 +119,19 @@ public final class ArcFurnaceBlock extends LargeMachineBlock implements EntityBl
 
     private static Footprint createFootprint() {
         LinkedHashSet<BlockPos> offsets = new LinkedHashSet<>(
-                Footprint.legacySouthBox(4, 0, 2, 2, 2, 2).offsets()
+                Footprint.box(-2, 2, 0, 4, -2, 2).offsets()
         );
-        offsets.addAll(Footprint.legacySouthBox(4, 0, 3, -2, 1, 1).offsets());
+        offsets.addAll(Footprint.box(-1, 1, 0, 4, -3, -2).offsets());
         return new Footprint(List.copyOf(offsets));
+    }
+
+    private static BlockPos mapArcFurnaceOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Arc furnace requires a horizontal facing: " + facing);
+        };
     }
 }

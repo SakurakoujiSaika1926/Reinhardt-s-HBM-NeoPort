@@ -38,6 +38,7 @@ public final class AnnihilatorRecipes {
             tag(HARDPLASTIC, 1024, "528.hardplastic"),
             tag(RESISTANT_ALLOY, 1024, "528.tcalloy"),
             item("powder_chlorophyte", 1024, "528.chlorophyte"),
+            item("drive_flash_flightsim", 64, "528.soyuz"),
             variant("ammo_standard", "bmg50_fmj", 256, "528.bmg"),
             variant("ammo_arty", "ammo_arty", 128, "528.arty"),
             item("circuit_controller", 128, "528.controller")
@@ -89,7 +90,7 @@ public final class AnnihilatorRecipes {
     }
 
     public static Payout highestPayout(ItemStack stack, AnnihilatorSavedData data, String pool, int amount, boolean alwaysPayout) {
-        if (!HbmConfig.ENABLE_EXPENSIVE_MODE.get() || stack.isEmpty() || amount <= 0) {
+        if (!HbmConfig.ENABLE_528_MODE.get() || stack.isEmpty() || amount <= 0) {
             return null;
         }
         List<MatchedMilestone> matches = new ArrayList<>();

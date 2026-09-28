@@ -3,14 +3,13 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.blockentity.CyclotronBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public class CyclotronBlockEntityRenderer implements BlockEntityRenderer<CyclotronBlockEntity> {
+public class CyclotronBlockEntityRenderer implements LongRangeBlockEntityRenderer<CyclotronBlockEntity> {
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_cyclotron_body");
     private static final ModelResourceLocation B1 = MachineModelRenderer.standalone("block/machine_cyclotron_b1");
     private static final ModelResourceLocation B1_FILLED = MachineModelRenderer.standalone("block/machine_cyclotron_b1_filled");
@@ -51,6 +50,8 @@ public class CyclotronBlockEntityRenderer implements BlockEntityRenderer<Cyclotr
 
     @Override
     public AABB getRenderBoundingBox(CyclotronBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(4.0D, 5.0D, 4.0D);
+        // Body face bounds contain all four empty/filled plug variants.
+        return RenderBounds.localFloatVertices(blockEntity.getBlockPos(),
+                -2.0D, 0.0D, -2.0D, 3.0D, 3.75D, 3.0D);
     }
 }

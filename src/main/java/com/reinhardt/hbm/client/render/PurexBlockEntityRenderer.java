@@ -2,22 +2,26 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.PurexBlock;
 import com.reinhardt.hbm.blockentity.PurexBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-public final class PurexBlockEntityRenderer implements BlockEntityRenderer<PurexBlockEntity> {
+public final class PurexBlockEntityRenderer implements LongRangeBlockEntityRenderer<PurexBlockEntity> {
     static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_purex_base");
     static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_purex_frame");
     static final ModelResourceLocation FAN = MachineModelRenderer.standalone("block/machine_purex_fan");
     static final ModelResourceLocation PUMP = MachineModelRenderer.standalone("block/machine_purex_pump");
+    private static final AABB NORTH_BOUNDS = createPurexLocalBounds(Direction.NORTH);
+    private static final AABB SOUTH_BOUNDS = createPurexLocalBounds(Direction.SOUTH);
+    private static final AABB WEST_BOUNDS = createPurexLocalBounds(Direction.WEST);
+    private static final AABB EAST_BOUNDS = createPurexLocalBounds(Direction.EAST);
 
     public PurexBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -34,11 +38,11 @@ public final class PurexBlockEntityRenderer implements BlockEntityRenderer<Purex
                        int packedLight, int packedOverlay) {
         purex.updateClientAnimation();
         BlockState state = purex.getBlockState();
-        Direction facing = state.getValue(LargeMachineBlock.FACING);
+        Direction facing = purexFacing(state);
         double anim = purex.clientAnim(partialTick);
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyYaw(facing));
+        applyPurexPose(poseStack, facing);
         renderPart(BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
         if (purex.clientFrame()) {
             renderPart(FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
@@ -60,19 +64,19 @@ public final class PurexBlockEntityRenderer implements BlockEntityRenderer<Purex
 
     @Override
     public AABB getRenderBoundingBox(PurexBlockEntity purex) {
-        return new AABB(
-                purex.getBlockPos().getX() - 2.0D,
-                purex.getBlockPos().getY(),
-                purex.getBlockPos().getZ() - 2.0D,
-                purex.getBlockPos().getX() + 3.0D,
-                purex.getBlockPos().getY() + 5.0D,
-                purex.getBlockPos().getZ() + 3.0D
-        );
-    }
-
-    @Override
-    public int getViewDistance() {
-        return 256;
+        BlockState state = purex.getBlockState();
+        Direction facing = purexFacing(state);
+        // Base+optional frame are exactly [-2.5,0,-2.5]..[2.5,5,2.5].
+        // The fan's full Z rotation and pump's complete +/-0.5 X stroke are
+        // strictly contained, so no animation-derived expansion is needed.
+        AABB local = switch (facing) {
+            case NORTH -> NORTH_BOUNDS;
+            case SOUTH -> SOUTH_BOUNDS;
+            case WEST -> WEST_BOUNDS;
+            case EAST -> EAST_BOUNDS;
+            case UP, DOWN -> throw new IllegalArgumentException("PUREX facing must be horizontal: " + facing);
+        };
+        return local.move(purex.getBlockPos());
     }
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource,
@@ -80,12 +84,32 @@ public final class PurexBlockEntityRenderer implements BlockEntityRenderer<Purex
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 0.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            default -> 90.0F;
-        };
+    private static void applyPurexPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5D, 0.0D, 0.5D);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("PUREX facing must be horizontal: " + facing);
+        }
+    }
+
+    private static AABB createPurexLocalBounds(Direction facing) {
+        PoseStack poseStack = new PoseStack();
+        applyPurexPose(poseStack, facing);
+        return RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
+                -2.5F, 0.0F, -2.5F, 2.5F, 5.0F, 2.5F);
+    }
+
+    private static Direction purexFacing(BlockState state) {
+        if (!state.hasProperty(PurexBlock.FACING)) {
+            throw new IllegalStateException("PUREX block state is missing its facing property: " + state);
+        }
+        Direction facing = state.getValue(PurexBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("PUREX block state has a vertical facing: " + facing);
+        }
+        return facing;
     }
 }

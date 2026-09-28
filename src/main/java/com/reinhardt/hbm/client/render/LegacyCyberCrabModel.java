@@ -19,6 +19,7 @@ public final class LegacyCyberCrabModel extends EntityModel<LegacyCyberCrabEntit
             ReinhardtsHBM.id("cyber_crab"), "main");
     private final ModelPart root;
     private final ModelPart[] parts = new ModelPart[20];
+    private static double authoredMaximumRootRadius;
 
     public LegacyCyberCrabModel(ModelPart root) {
         this.root = root;
@@ -59,6 +60,25 @@ public final class LegacyCyberCrabModel extends EntityModel<LegacyCyberCrabEntit
         root.addOrReplaceChild("part" + id,
                 CubeListBuilder.create().texOffs(u, v).mirror().addBox(x, y, z, dx, dy, dz),
                 PartPose.offsetAndRotation(px, py, pz, rx, ry, rz));
+        double localRadiusSquared = 0.0D;
+        for (double vx : new double[] {x, x + dx}) {
+            for (double vy : new double[] {y, y + dy}) {
+                for (double vz : new double[] {z, z + dz}) {
+                    localRadiusSquared = Math.max(localRadiusSquared,
+                            vx * vx + vy * vy + vz * vz);
+                }
+            }
+        }
+        double pivotRadius = Math.sqrt(px * px + py * py + pz * pz);
+        authoredMaximumRootRadius = Math.max(authoredMaximumRootRadius,
+                (pivotRadius + Math.sqrt(localRadiusSquared)) / 16.0D);
+    }
+
+    static double authoredMaximumRootRadius() {
+        if (!(authoredMaximumRootRadius > 0.0D)) {
+            throw new IllegalStateException("Cyber Crab layer was not baked before culling bounds were requested");
+        }
+        return authoredMaximumRootRadius;
     }
 
     @Override

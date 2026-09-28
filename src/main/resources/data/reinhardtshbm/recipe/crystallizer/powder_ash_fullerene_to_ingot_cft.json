@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.fullerene",
+  "ingredient": {
+    "item": "reinhardtshbm:powder_ash_fullerene"
+  },
+  "input_count": 4,
+  "acid": {
+    "fluid": "xylene",
+    "amount": 1000
+  },
+  "duration": 600,
+  "result": {
+    "id": "reinhardtshbm:ingot_cft"
+  }
+}

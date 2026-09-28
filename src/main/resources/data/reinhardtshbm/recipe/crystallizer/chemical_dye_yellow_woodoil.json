@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.chemical_dye",
+  "ingredient": { "tag": "c:dusts/tungsten" },
+  "acid": { "fluid": "woodoil", "amount": 100 },
+  "duration": 20,
+  "result": { "id": "reinhardtshbm:chemical_dye_yellow", "count": 4 }
+}

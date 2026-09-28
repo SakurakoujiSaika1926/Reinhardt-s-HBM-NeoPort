@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:supercomputer",
+  "group": "com.processorbit_helium",
+  "duration": 18000,
+  "power": 10000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_orbitdata" }, "count": 1 }
+  ],
+  "input_fluids": [
+    { "fluid": "helium4", "amount": 16000 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:drive_disk_orbitdata_processed" }, "weight": 50 },
+    { "result": { "id": "reinhardtshbm:drive_disk_broken" }, "weight": 50 }
+  ]
+}

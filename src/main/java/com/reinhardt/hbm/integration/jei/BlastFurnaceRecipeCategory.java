@@ -58,6 +58,10 @@ public class BlastFurnaceRecipeCategory implements IRecipeCategory<RecipeHolder<
                 .addItemStacks(stacks(recipe.inputB(), recipe.inputBCount()));
         builder.addOutputSlot(134, 36)
                 .addItemStack(recipe.result().copy());
+        if (!recipe.byproduct().isEmpty()) {
+            builder.addOutputSlot(152, 36)
+                    .addItemStack(recipe.byproduct().copy());
+        }
     }
 
     private static List<ItemStack> stacks(net.minecraft.world.item.crafting.Ingredient ingredient, int count) {

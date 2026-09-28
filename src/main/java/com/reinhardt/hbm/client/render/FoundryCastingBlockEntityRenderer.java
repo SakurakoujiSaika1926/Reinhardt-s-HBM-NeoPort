@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 public class FoundryCastingBlockEntityRenderer implements BlockEntityRenderer<FoundryCastingBlockEntity> {
     private static final ResourceLocation LAVA = ReinhardtsHBM.id("textures/models/machines/lava.png");
@@ -36,10 +35,10 @@ public class FoundryCastingBlockEntityRenderer implements BlockEntityRenderer<Fo
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
         int b = color & 0xFF;
-        vertex(consumer, pose, new Vec3(0.125D, level, 0.125D), 0.0F, 0.0F, r, g, b, packedOverlay);
-        vertex(consumer, pose, new Vec3(0.125D, level, 0.875D), 0.0F, 1.0F, r, g, b, packedOverlay);
-        vertex(consumer, pose, new Vec3(0.875D, level, 0.875D), 1.0F, 1.0F, r, g, b, packedOverlay);
-        vertex(consumer, pose, new Vec3(0.875D, level, 0.125D), 1.0F, 0.0F, r, g, b, packedOverlay);
+        vertex(consumer, pose, 0.125F, (float) level, 0.125F, 0.0F, 0.0F, r, g, b, packedOverlay);
+        vertex(consumer, pose, 0.125F, (float) level, 0.875F, 0.0F, 1.0F, r, g, b, packedOverlay);
+        vertex(consumer, pose, 0.875F, (float) level, 0.875F, 1.0F, 1.0F, r, g, b, packedOverlay);
+        vertex(consumer, pose, 0.875F, (float) level, 0.125F, 1.0F, 0.0F, r, g, b, packedOverlay);
     }
 
     @Override
@@ -47,8 +46,9 @@ public class FoundryCastingBlockEntityRenderer implements BlockEntityRenderer<Fo
         return new AABB(blockEntity.getBlockPos());
     }
 
-    private static void vertex(VertexConsumer consumer, PoseStack.Pose pose, Vec3 pos, float u, float v, int r, int g, int b, int packedOverlay) {
-        consumer.addVertex(pose, (float) pos.x, (float) pos.y, (float) pos.z)
+    private static void vertex(VertexConsumer consumer, PoseStack.Pose pose, float x, float y, float z,
+                               float u, float v, int r, int g, int b, int packedOverlay) {
+        consumer.addVertex(pose, x, y, z)
                 .setColor(r, g, b, 220)
                 .setUv(u, v)
                 .setOverlay(packedOverlay)

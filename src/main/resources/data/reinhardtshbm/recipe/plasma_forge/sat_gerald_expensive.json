@@ -1,9 +1,6 @@
 {
   "type": "reinhardtshbm:plasma_forge",
   "group": "plsm.gerald",
-  "blueprint_pools": [
-    "discover.gerald"
-  ],
   "duration": 12000,
   "power": 50000000,
   "ignition_temp": 25000000,
@@ -12,43 +9,67 @@
       "ingredient": {
         "item": "reinhardtshbm:plate_cast_schrabidate"
       },
-      "count": 1
+      "count": 64
     },
     {
       "ingredient": {
         "item": "reinhardtshbm:wire_dense_bscco"
       },
-      "count": 1
+      "count": 64
     },
     {
       "ingredient": {
         "item": "reinhardtshbm:det_nuke"
       },
-      "count": 1
+      "count": 64
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:item_expensive_bronze_tubes"
+        "item": "reinhardtshbm:item_expensive_cmb_tubes"
       },
-      "count": 3
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:item_expensive_cmb_tubes"
+      },
+      "count": 64
     },
     {
       "ingredient": {
         "item": "reinhardtshbm:part_generic_hde"
       },
-      "count": 3
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:part_generic_hde"
+      },
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:part_generic_hde"
+      },
+      "count": 64
     },
     {
       "ingredient": {
         "item": "reinhardtshbm:circuit_controller_quantum"
       },
-      "count": 1
+      "count": 64
     },
     {
       "ingredient": {
         "item": "reinhardtshbm:item_expensive_computer"
       },
-      "count": 1
+      "count": 64
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:drive_disk_orbitdata_processed"
+      },
+      "count": 64
     },
     {
       "ingredient": {

@@ -13,7 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 /** Dedicated falling Horizons payload (1.7.10 EntityTom). */
 public final class LegacyTomEntity extends Entity {
     public LegacyTomEntity(EntityType<? extends LegacyTomEntity> type, Level level) {
-        super(type, level); noCulling = true;
+        super(type, level);
     }
     public static void spawn(ServerLevel level, int x, int z) {
         LegacyTomEntity tom = new LegacyTomEntity(com.reinhardt.hbm.registry.HbmEntityTypes.LEGACY_TOM.get(), level);

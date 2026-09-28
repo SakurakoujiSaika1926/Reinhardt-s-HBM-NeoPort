@@ -8,23 +8,36 @@ import com.reinhardt.hbm.entity.LegacyBossProjectileEntity;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
-
-import java.util.Random;
 
 /** Legacy RenderBullet styles used by the chopper, BOTPrime and UFO bosses. */
 public final class LegacyBossProjectileEntityRenderer extends EntityRenderer<LegacyBossProjectileEntity> {
+    private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
+    private static final long JAVA_RANDOM_ADDEND = 0xBL;
+    private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
     private static final ModelResourceLocation ROCKET = MachineModelRenderer.standalone("entity/legacy_rocket");
     private static final BlockState RENDER_STATE = Blocks.STONE.defaultBlockState();
     private static final ResourceLocation CHOPPER_TEXTURE = ReinhardtsHBM.id("models/emplacer");
+    private static final LegacyEntityObjMesh ROCKET_BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/projectiles/projectiles.obj"));
+    private static final double ROCKET_RADIUS = rotationSafeRadius(
+            ROCKET_BOUNDS_MODEL.maximumGroupFaceRadius("Rocket") * 0.75D);
+    private static final double DART_RADIUS = rotationSafeRadius(
+            1.5D * Math.sqrt(3.0D * 3.0D + 0.25D * 0.25D + 0.25D * 0.25D));
+    private static final double CHOPPER_BULLET_RADIUS = rotationSafeRadius(
+            1.5D * Math.sqrt(0.1875D * 0.1875D
+                    + 2.0D * 0.03125D * 0.03125D));
 
     public LegacyBossProjectileEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -55,6 +68,20 @@ public final class LegacyBossProjectileEntityRenderer extends EntityRenderer<Leg
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
+    @Override
+    public boolean shouldRender(LegacyBossProjectileEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        double radius = switch (entity.projectileType()) {
+            case UFO_ROCKET -> ROCKET_RADIUS;
+            case CHOPPER_BULLET -> CHOPPER_BULLET_RADIUS;
+            default -> DART_RADIUS;
+        };
+        AABB bounds = EntityRenderBounds.radius(
+                entity.getX(), entity.getY(), entity.getZ(), radius);
+        return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ);
+    }
+
     private static void renderRocket(float yaw, float pitch, PoseStack poseStack,
                                      MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
@@ -68,14 +95,14 @@ public final class LegacyBossProjectileEntityRenderer extends EntityRenderer<Leg
         poseStack.popPose();
     }
 
-    private static void renderDart(LegacyBossProjectileEntity entity, float yaw, float pitch, int color,
-                                   PoseStack poseStack,
-                                   MultiBufferSource bufferSource) {
+    static void renderDart(Entity entity, float yaw, float pitch, int color,
+                           PoseStack poseStack,
+                           MultiBufferSource bufferSource) {
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw - 90.0F));
         poseStack.mulPose(Axis.ZP.rotationDegrees(pitch + 180.0F));
         poseStack.scale(1.5F, 1.5F, 1.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(new Random(entity.getId()).nextInt(90) - 45.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(firstJavaRandomInt(entity.getId(), 90) - 45.0F));
         poseStack.scale(0.25F, 0.125F, 0.125F);
         poseStack.scale(-1.0F, 1.0F, 1.0F);
         poseStack.scale(2.0F, 2.0F, 2.0F);
@@ -135,7 +162,7 @@ public final class LegacyBossProjectileEntityRenderer extends EntityRenderer<Leg
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw - 90.0F));
         poseStack.mulPose(Axis.ZP.rotationDegrees(pitch + 180.0F));
         poseStack.scale(1.5F, 1.5F, 1.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(new Random(entity.getId()).nextInt(360)));
+        poseStack.mulPose(Axis.XP.rotationDegrees(firstJavaRandomInt(entity.getId(), 360)));
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(CHOPPER_TEXTURE));
         renderChopperCube(consumer, poseStack.last(), packedLight);
         poseStack.popPose();
@@ -174,6 +201,22 @@ public final class LegacyBossProjectileEntityRenderer extends EntityRenderer<Leg
                 .setNormal(pose, 0.0F, 1.0F, 0.0F);
     }
 
+    private static int firstJavaRandomInt(long seed, int bound) {
+        long state = (seed ^ JAVA_RANDOM_MULTIPLIER) & JAVA_RANDOM_MASK;
+        if ((bound & -bound) == bound) {
+            state = (state * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+            return (int) ((bound * (state >>> 17)) >> 31);
+        }
+        int bits;
+        int value;
+        do {
+            state = (state * JAVA_RANDOM_MULTIPLIER + JAVA_RANDOM_ADDEND) & JAVA_RANDOM_MASK;
+            bits = (int) (state >>> 17);
+            value = bits % bound;
+        } while (bits - value + (bound - 1) < 0);
+        return value;
+    }
+
     private static void vertex(VertexConsumer consumer, PoseStack.Pose pose, double x, double y, double z,
                                 int red, int green, int blue, int alpha) {
         consumer.addVertex(pose, (float) x, (float) y, (float) z)
@@ -186,5 +229,11 @@ public final class LegacyBossProjectileEntityRenderer extends EntityRenderer<Leg
     @Override
     public ResourceLocation getTextureLocation(LegacyBossProjectileEntity entity) {
         return net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS;
+    }
+
+    private static double rotationSafeRadius(double radius) {
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
 }

@@ -342,6 +342,9 @@ public class FrackingTowerBlockEntity extends BlockEntity implements PowerEndpoi
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         return this.level != null
                 && this.level.getBlockEntity(this.worldPosition) == this
                 && player.distanceToSqr(

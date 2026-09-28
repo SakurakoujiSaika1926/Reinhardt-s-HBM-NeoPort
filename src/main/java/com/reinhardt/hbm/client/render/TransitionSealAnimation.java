@@ -294,10 +294,14 @@ final class TransitionSealAnimation {
             int next = Math.min(first + 1, tx.length - 1);
             float inter = frame - first;
 
-            scratch.translation.set(tx[first], ty[first], tz[first])
-                    .lerp(new Vector3f(tx[next], ty[next], tz[next]), inter);
-            scratch.scale.set(sx[first], sy[first], sz[first])
-                    .lerp(new Vector3f(sx[next], sy[next], sz[next]), inter);
+            scratch.translation.set(
+                    Math.fma(tx[next] - tx[first], inter, tx[first]),
+                    Math.fma(ty[next] - ty[first], inter, ty[first]),
+                    Math.fma(tz[next] - tz[first], inter, tz[first]));
+            scratch.scale.set(
+                    Math.fma(sx[next] - sx[first], inter, sx[first]),
+                    Math.fma(sy[next] - sy[first], inter, sy[first]),
+                    Math.fma(sz[next] - sz[first], inter, sz[first]));
             scratch.rotation.set(qx[first], qy[first], qz[first], qw[first])
                     .slerp(scratch.nextRotation.set(qx[next], qy[next], qz[next], qw[next]), inter);
 

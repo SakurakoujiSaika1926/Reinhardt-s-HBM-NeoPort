@@ -16,6 +16,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -44,7 +46,80 @@ public class DfcComponentBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case EMITTER -> emitterStateForPlacement(context);
+            case RECEIVER -> receiverStateForPlacement(context);
+            case INJECTOR -> injectorStateForPlacement(context);
+            case STABILIZER -> stabilizerStateForPlacement(context);
+        };
+    }
+
+    private BlockState emitterStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+    }
+
+    private BlockState receiverStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+    }
+
+    private BlockState injectorStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+    }
+
+    private BlockState stabilizerStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.kind) {
+            case EMITTER -> rotateEmitter(state, rotation);
+            case RECEIVER -> rotateReceiver(state, rotation);
+            case INJECTOR -> rotateInjector(state, rotation);
+            case STABILIZER -> rotateStabilizer(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case EMITTER -> mirrorEmitter(state, mirror);
+            case RECEIVER -> mirrorReceiver(state, mirror);
+            case INJECTOR -> mirrorInjector(state, mirror);
+            case STABILIZER -> mirrorStabilizer(state, mirror);
+        };
+    }
+
+    private static BlockState rotateEmitter(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateReceiver(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateInjector(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateStabilizer(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState mirrorEmitter(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorReceiver(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorInjector(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorStabilizer(BlockState state, Mirror mirror) {
+        return state;
     }
 
     @Nullable

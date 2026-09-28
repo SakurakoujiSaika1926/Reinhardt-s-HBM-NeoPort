@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:billet_au198" }, { "item": "reinhardtshbm:cell_antimatter" }, { "item": "reinhardtshbm:pellet_charged" }
+  ],
+  "result": { "id": "reinhardtshbm:billet_balefire_gold" }
+}

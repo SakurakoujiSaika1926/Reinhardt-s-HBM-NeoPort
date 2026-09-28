@@ -23,7 +23,6 @@ public final class LegacyBobmazonEntity extends Entity {
 
     public LegacyBobmazonEntity(EntityType<? extends LegacyBobmazonEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyBobmazonEntity(Level level, double x, double z, ItemStack payload) {

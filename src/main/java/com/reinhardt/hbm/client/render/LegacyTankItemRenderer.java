@@ -13,9 +13,8 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Item renderer for the old BAT models.
  *
- * The model bounds and centers are taken from the 1.7.10 OBJ assets. Keeping
- * these values here prevents the generic item auto-fit pass from changing the
- * scale when another OBJ is added or its bounds contain an offset.
+ * Each tank retains its exact 1.7.10 item transform and never delegates its
+ * pose to another machine.
  */
 public final class LegacyTankItemRenderer extends BlockEntityWithoutLevelRenderer {
     public enum Kind {
@@ -38,28 +37,65 @@ public final class LegacyTankItemRenderer extends BlockEntityWithoutLevelRendere
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        ModelResourceLocation model = this.kind == Kind.BAT9000 ? BAT9000_MODEL : BIG_ASS_TANK_MODEL;
-        BlockState state = this.kind == Kind.BAT9000
-                ? HbmBlocks.MACHINE_BAT9000.get().defaultBlockState()
-                : HbmBlocks.MACHINE_BIGASSTANK.get().defaultBlockState();
+        switch (this.kind) {
+            case BAT9000 -> renderBat9000Item(context, poseStack, bufferSource, packedLight, packedOverlay);
+            case BIG_ASS_TANK -> renderBigAssTankItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        }
+    }
 
+    private static void renderBat9000Item(ItemDisplayContext context, PoseStack poseStack,
+                                          MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = HbmBlocks.MACHINE_BAT9000.get().defaultBlockState();
         poseStack.pushPose();
-        LegacyMachineItemRenderer.applyItemRenderBasePose(context, poseStack);
-        if (context == ItemDisplayContext.GUI) {
-            if (this.kind == Kind.BAT9000) {
-                poseStack.translate(0.0F, -3.0F, 0.0F);
-                poseStack.scale(2.0F, 2.0F, 2.0F);
-            } else {
-                poseStack.translate(0.0F, -1.0F, 0.0F);
-                poseStack.scale(2.5F, 2.5F, 2.5F);
-            }
-        }
-        if (this.kind == Kind.BIG_ASS_TANK) {
-            // RenderBigAssTank#getRenderer.renderCommonWithStack().
-            poseStack.scale(0.5F, 0.5F, 0.5F);
-        }
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack,
+        applyBat9000ItemPose(context, poseStack);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BAT9000_MODEL), poseStack,
                 bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    private static void applyBat9000ItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(2.0F, 2.0F, 2.0F);
+            return;
+        }
+        poseStack.translate(0.5F, 0.25F, 0.0F);
+        poseStack.scale(0.25F, 0.25F, 0.25F);
+        if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+        }
+    }
+
+    private static void renderBigAssTankItem(ItemDisplayContext context, PoseStack poseStack,
+                                             MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        BlockState state = HbmBlocks.MACHINE_BIGASSTANK.get().defaultBlockState();
+        poseStack.pushPose();
+        applyBigAssTankItemPose(context, poseStack);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BIG_ASS_TANK_MODEL), poseStack,
+                bufferSource, state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyBigAssTankItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(2.5F, 2.5F, 2.5F);
+            poseStack.scale(0.5F, 0.5F, 0.5F);
+            return;
+        }
+        poseStack.translate(0.5F, 0.25F, 0.0F);
+        poseStack.scale(0.25F, 0.25F, 0.25F);
+        if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
     }
 }

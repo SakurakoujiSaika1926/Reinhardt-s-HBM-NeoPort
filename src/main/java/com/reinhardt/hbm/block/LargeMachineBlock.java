@@ -1,8 +1,8 @@
 package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
+import com.reinhardt.hbm.blockentity.ClientRenderNeighborSnapshot;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -10,9 +10,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -24,13 +23,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 
 import java.util.List;
+import java.util.Objects;
 
 public class LargeMachineBlock extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-
     private final Footprint footprint;
     private final VoxelShape shape;
-    private final RotationBasis rotationBasis;
+    private final OffsetMapper offsetMapper;
 
     public static Properties nonOccludingMachineProperties(Properties properties) {
         return properties.noOcclusion()
@@ -38,60 +37,48 @@ public class LargeMachineBlock extends Block {
                 .isViewBlocking((state, level, pos) -> false);
     }
 
-    public LargeMachineBlock(Properties properties, Footprint footprint) {
-        this(properties, footprint, Shapes.block());
+    public LargeMachineBlock(Properties properties, Footprint footprint, OffsetMapper offsetMapper) {
+        this(properties, footprint, Shapes.block(), offsetMapper);
     }
 
-    public LargeMachineBlock(Properties properties, Footprint footprint, VoxelShape shape) {
-        this(properties, footprint, shape, RotationBasis.MODERN_NORTH);
-    }
-
-    public LargeMachineBlock(Properties properties, Footprint footprint, RotationBasis rotationBasis) {
-        this(properties, footprint, Shapes.block(), rotationBasis);
-    }
-
-    public LargeMachineBlock(Properties properties, Footprint footprint, VoxelShape shape, RotationBasis rotationBasis) {
+    public LargeMachineBlock(Properties properties, Footprint footprint, VoxelShape shape, OffsetMapper offsetMapper) {
         super(nonOccludingMachineProperties(properties));
-        this.footprint = footprint;
-        this.shape = shape;
-        this.rotationBasis = rotationBasis;
+        this.footprint = Objects.requireNonNull(footprint);
+        this.shape = Objects.requireNonNull(shape);
+        this.offsetMapper = Objects.requireNonNull(offsetMapper);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-        if (!canPlaceFootprint(context, state)) {
-            return null;
-        }
-        return state;
     }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, net.minecraft.world.entity.LivingEntity placer, net.minecraft.world.item.ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide) {
-            placeDummies(level, pos, state.getValue(FACING), this.footprint, this.rotationBasis);
-            pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), this.footprint, placer, this.rotationBasis);
+            placeDummies(level, pos, state.getValue(FACING), this.footprint, this.offsetMapper);
+            pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), this.footprint, placer, this.offsetMapper);
         }
     }
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide) {
-            removeDummies(level, pos, state.getValue(FACING), this.footprint, this.rotationBasis);
+        // Create Aeronautics/Sable copies the complete footprint first and
+        // then removes the source blocks with the vanilla moving flag.  That
+        // source cleanup is relocation, not destruction of the multiblock.
+        if (!movedByPiston && !state.is(newState.getBlock()) && !level.isClientSide) {
+            removeDummies(level, pos, state.getValue(FACING), this.footprint, this.offsetMapper);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        ClientRenderNeighborSnapshot.refreshAt(level, pos);
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighborPos) {
+        ClientRenderNeighborSnapshot.refreshAt(level, pos);
     }
 
     @Override
@@ -138,29 +125,47 @@ public class LargeMachineBlock extends Block {
         return this.footprint;
     }
 
-    public RotationBasis machineRotationBasis() {
-        return this.rotationBasis;
+    /**
+     * Applies this concrete machine's authored offset mapping. The mapper is supplied by the
+     * concrete block class; this base class deliberately contains no shared facing convention.
+     */
+    public BlockPos machineOffset(Direction facing, BlockPos authoredOffset) {
+        return mappedOffset(this.offsetMapper, facing, authoredOffset);
     }
 
-    public static boolean canPlaceFootprint(BlockPlaceContext context, BlockState state, Footprint footprint) {
-        return canPlaceFootprint(context, state.getValue(FACING), footprint);
+    /**
+     * Returns the exact world positions occupied by this machine's collision
+     * footprint. Render bounds and placement must use this same source of
+     * truth instead of maintaining a second set of guessed dimensions.
+     */
+    public List<BlockPos> machineOccupiedPositions(BlockPos corePos, Direction facing) {
+        java.util.ArrayList<BlockPos> positions = new java.util.ArrayList<>(this.footprint.offsets().size());
+        for (BlockPos offset : this.footprint.offsets()) {
+            positions.add(corePos.offset(machineOffset(facing, offset)).immutable());
+        }
+        return List.copyOf(positions);
     }
 
-    public static boolean canPlaceFootprint(BlockPlaceContext context, Direction facing, Footprint footprint) {
-        return canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), facing, footprint, context);
+    public boolean canPlaceMachineFootprintAt(Level level, BlockPos corePos, Direction facing,
+                                              BlockPlaceContext context) {
+        return canPlaceFootprintAt(level, corePos, facing, this.footprint, context, this.offsetMapper);
     }
 
-    public static boolean canPlaceFootprintAt(Level level, BlockPos corePos, Direction facing, Footprint footprint, BlockPlaceContext context) {
-        return canPlaceFootprintAt(level, corePos, facing, footprint, context, RotationBasis.MODERN_NORTH);
+    public static boolean canPlaceFootprint(BlockPlaceContext context, BlockState state, Footprint footprint,
+                                            OffsetMapper offsetMapper) {
+        return canPlaceFootprint(context, state.getValue(FACING), footprint, offsetMapper);
     }
 
-    public static boolean canPlaceLegacyFootprint(BlockPlaceContext context, Direction facing, Footprint footprint) {
-        return canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), facing, footprint, context, RotationBasis.HBM_LEGACY_SOUTH);
+    public static boolean canPlaceFootprint(BlockPlaceContext context, Direction facing, Footprint footprint,
+                                            OffsetMapper offsetMapper) {
+        return canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), facing, footprint, context,
+                offsetMapper);
     }
 
-    public static boolean canPlaceFootprintAt(Level level, BlockPos corePos, Direction facing, Footprint footprint, BlockPlaceContext context, RotationBasis rotationBasis) {
+    public static boolean canPlaceFootprintAt(Level level, BlockPos corePos, Direction facing, Footprint footprint,
+                                              BlockPlaceContext context, OffsetMapper offsetMapper) {
         for (BlockPos offset : footprint.offsets()) {
-            BlockPos pos = corePos.offset(rotate(offset, facing, rotationBasis));
+            BlockPos pos = corePos.offset(mappedOffset(offsetMapper, facing, offset));
             if (pos.equals(corePos)) {
                 continue;
             }
@@ -171,13 +176,10 @@ public class LargeMachineBlock extends Block {
         return true;
     }
 
-    public static void placeDummies(Level level, BlockPos corePos, Direction facing, Footprint footprint) {
-        placeDummies(level, corePos, facing, footprint, RotationBasis.MODERN_NORTH);
-    }
-
-    public static void placeDummies(Level level, BlockPos corePos, Direction facing, Footprint footprint, RotationBasis rotationBasis) {
+    public static void placeDummies(Level level, BlockPos corePos, Direction facing, Footprint footprint,
+                                    OffsetMapper offsetMapper) {
         for (BlockPos offset : footprint.offsets()) {
-            BlockPos pos = corePos.offset(rotate(offset, facing, rotationBasis));
+            BlockPos pos = corePos.offset(mappedOffset(offsetMapper, facing, offset));
             if (pos.equals(corePos)) {
                 continue;
             }
@@ -188,14 +190,12 @@ public class LargeMachineBlock extends Block {
         }
     }
 
-    public static void pushEntitiesOutOfFootprint(Level level, BlockPos corePos, Direction facing, Footprint footprint, LivingEntity placer) {
-        pushEntitiesOutOfFootprint(level, corePos, facing, footprint, placer, RotationBasis.MODERN_NORTH);
-    }
-
-    public static void pushEntitiesOutOfFootprint(Level level, BlockPos corePos, Direction facing, Footprint footprint, LivingEntity placer, RotationBasis rotationBasis) {
+    public static void pushEntitiesOutOfFootprint(Level level, BlockPos corePos, Direction facing,
+                                                  Footprint footprint, LivingEntity placer,
+                                                  OffsetMapper offsetMapper) {
         java.util.ArrayList<BlockPos> positions = new java.util.ArrayList<>();
         for (BlockPos offset : footprint.offsets()) {
-            positions.add(corePos.offset(rotate(offset, facing, rotationBasis)));
+            positions.add(corePos.offset(mappedOffset(offsetMapper, facing, offset)));
         }
         pushEntitiesOutOfPositions(level, corePos, facing, positions, placer);
     }
@@ -254,17 +254,14 @@ public class LargeMachineBlock extends Block {
         }
     }
 
-    public static void removeDummies(Level level, BlockPos corePos, Direction facing, Footprint footprint) {
-        removeDummies(level, corePos, facing, footprint, RotationBasis.MODERN_NORTH);
-    }
-
-    public static void removeDummies(Level level, BlockPos corePos, Direction facing, Footprint footprint, RotationBasis rotationBasis) {
+    public static void removeDummies(Level level, BlockPos corePos, Direction facing, Footprint footprint,
+                                     OffsetMapper offsetMapper) {
         if (level.getBlockEntity(corePos) == null) {
             return;
         }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : footprint.offsets()) {
-                BlockPos pos = corePos.offset(rotate(offset, facing, rotationBasis));
+                BlockPos pos = corePos.offset(mappedOffset(offsetMapper, facing, offset));
                 if (pos.equals(corePos)) {
                     continue;
                 }
@@ -297,20 +294,22 @@ public class LargeMachineBlock extends Block {
         return new Vec3(x / length, 0.0D, z / length);
     }
 
-    public static void removeDummiesOutsideFootprint(Level level, BlockPos corePos, Direction facing, Footprint staleFootprint, Footprint currentFootprint) {
-        removeDummiesOutsideFootprint(level, corePos, facing, staleFootprint, currentFootprint, RotationBasis.MODERN_NORTH);
-    }
-
-    public static void removeDummiesOutsideFootprint(Level level, BlockPos corePos, Direction facing, Footprint staleFootprint, Footprint currentFootprint, RotationBasis rotationBasis) {
+    public static void removeDummiesOutsideFootprint(Level level, BlockPos corePos, Direction facing,
+                                                     Footprint staleFootprint, Footprint currentFootprint,
+                                                     OffsetMapper offsetMapper) {
         if (level.getBlockEntity(corePos) == null) {
             return;
         }
+        java.util.HashSet<BlockPos> currentPositions = new java.util.HashSet<>();
+        for (BlockPos offset : currentFootprint.offsets()) {
+            currentPositions.add(corePos.offset(mappedOffset(offsetMapper, facing, offset)).immutable());
+        }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : staleFootprint.offsets()) {
-                if (currentFootprint.offsets().contains(offset)) {
+                BlockPos pos = corePos.offset(mappedOffset(offsetMapper, facing, offset)).immutable();
+                if (currentPositions.contains(pos)) {
                     continue;
                 }
-                BlockPos pos = corePos.offset(rotate(offset, facing, rotationBasis));
                 if (level.getBlockState(pos).is(HbmBlocks.MACHINE_DUMMY.get())
                         && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                         && dummy.getCorePos().equals(corePos)) {
@@ -320,17 +319,15 @@ public class LargeMachineBlock extends Block {
         });
     }
 
-    private boolean canPlaceFootprint(BlockPlaceContext context, BlockState state) {
-        return canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), state.getValue(FACING), this.footprint, context, this.rotationBasis);
+    private static BlockPos mappedOffset(OffsetMapper offsetMapper, Direction facing, BlockPos authoredOffset) {
+        BlockPos mapped = Objects.requireNonNull(offsetMapper, "offsetMapper")
+                .map(facing, authoredOffset);
+        return Objects.requireNonNull(mapped, "offsetMapper result").immutable();
     }
 
-    private static BlockPos rotate(BlockPos pos, Direction facing, RotationBasis rotationBasis) {
-        return LegacyMachineGeometry.rotate(pos, facing, rotationBasis);
-    }
-
-    public enum RotationBasis {
-        MODERN_NORTH,
-        HBM_LEGACY_SOUTH
+    @FunctionalInterface
+    public interface OffsetMapper {
+        BlockPos map(Direction facing, BlockPos authoredOffset);
     }
 
     public record Footprint(List<BlockPos> offsets) {
@@ -368,12 +365,5 @@ public class LargeMachineBlock extends Block {
             return new Footprint(List.copyOf(offsets));
         }
 
-        /**
-         * Mirrors 1.7.10 BlockDummyable#getDimensions():
-         * {up, down, north, south, west, east} with SOUTH as the unrotated basis.
-         */
-        public static Footprint legacySouthBox(int up, int down, int north, int south, int west, int east) {
-            return box(-west, east, -down, up, -north, south);
-        }
     }
 }

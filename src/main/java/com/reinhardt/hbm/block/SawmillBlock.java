@@ -23,6 +23,25 @@ import java.util.List;
 
 /** Exact 1.7.10 MachineSawmill collision boxes and missing-blade item state. */
 public final class SawmillBlock extends LegacyMachineBlock {
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     private static final String BLADE_MISSING_TAG = "sawmill_blade_missing";
     private static final Bounds[] LEGACY_BOUNDS = {
             // MachineSawmill#bounding, converted from center-relative x/z to block coordinates.
@@ -32,7 +51,18 @@ public final class SawmillBlock extends LegacyMachineBlock {
     };
 
     public SawmillBlock(BlockBehaviour.Properties properties, Footprint footprint) {
-        super(properties, footprint, Shapes.empty());
+        super(properties, footprint, Shapes.empty(), SawmillBlock::mapSawmillOffset);
+    }
+
+    private static BlockPos mapSawmillOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX(); int y = offset.getY(); int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("Sawmill requires a horizontal facing: " + facing);
+        };
     }
 
     @Override
@@ -97,10 +127,13 @@ public final class SawmillBlock extends LegacyMachineBlock {
     private record Bounds(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         private Bounds rotate(Direction facing) {
             return switch (facing) {
-                case EAST -> new Bounds(minZ, minY, 1.0D - maxX, maxZ, maxY, 1.0D - minX);
-                case NORTH -> new Bounds(1.0D - maxX, minY, 1.0D - maxZ, 1.0D - minX, maxY, 1.0D - minZ);
-                case WEST -> new Bounds(1.0D - maxZ, minY, minX, 1.0D - minZ, maxY, maxX);
-                default -> this;
+                // Exact BlockDummyable#getAABBRotationOffset result for legacy metadata 2/5/3/4.
+                case NORTH -> new Bounds(1.0D - maxZ, minY, minX, 1.0D - minZ, maxY, maxX);
+                case EAST -> new Bounds(1.0D - maxX, minY, 1.0D - maxZ,
+                        1.0D - minX, maxY, 1.0D - minZ);
+                case SOUTH -> new Bounds(minZ, minY, 1.0D - maxX, maxZ, maxY, 1.0D - minX);
+                case WEST -> this;
+                case UP, DOWN -> throw new IllegalArgumentException("Sawmill requires a horizontal facing: " + facing);
             };
         }
     }

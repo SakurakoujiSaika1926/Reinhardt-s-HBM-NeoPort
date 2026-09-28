@@ -37,9 +37,6 @@ public class HbmFluidTank implements IFluidHandler {
         if (this.amount > this.capacity) {
             this.amount = this.capacity;
         }
-        if (this.amount == 0) {
-            clear();
-        }
     }
 
     public void setAmount(int amount) {
@@ -107,9 +104,6 @@ public class HbmFluidTank implements IFluidHandler {
         HbmFluidStack stack = new HbmFluidStack(type, drained, pressure);
         if (!simulate && drained > 0) {
             amount -= drained;
-            if (amount <= 0) {
-                clear();
-            }
         }
         return stack;
     }
@@ -183,8 +177,5 @@ public class HbmFluidTank implements IFluidHandler {
         this.type = HbmFluids.byName(tag.getString("type")).orElse(HbmFluids.none());
         this.amount = Math.max(0, Math.min(capacity, tag.getInt("amount")));
         this.pressure = Math.max(0, tag.getInt("pressure"));
-        if (amount == 0) {
-            clear();
-        }
     }
 }

@@ -1,8 +1,10 @@
 package com.reinhardt.hbm.menu;
 
 import com.reinhardt.hbm.blockentity.LegacyTurretBlockEntity;
+import com.reinhardt.hbm.blockentity.LegacyTurretType;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.item.BatteryPackItem;
+import com.reinhardt.hbm.item.MachineUpgradeItem;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmMenus;
@@ -171,6 +173,22 @@ public class LegacyTurretMenu extends AbstractContainerMenu {
 
     public long maxPower() {
         return this.container instanceof LegacyTurretBlockEntity turret ? turret.type().maxPower() : 0L;
+    }
+
+    public int maxwellRange() {
+        LegacyTurretBlockEntity turret = turret();
+        if (turret == null || turret.type() != LegacyTurretType.MAXWELL) {
+            return 0;
+        }
+
+        int effectLevel = 0;
+        for (int slot = LegacyTurretBlockEntity.AMMO_START; slot < LegacyTurretBlockEntity.AMMO_END; slot++) {
+            ItemStack stack = this.container.getItem(slot);
+            if (MachineUpgradeItem.upgradeType(stack) == MachineUpgradeItem.UpgradeType.EFFECT) {
+                effectLevel += MachineUpgradeItem.upgradeTier(stack);
+            }
+        }
+        return (int) Math.round(turret.type().detectorRange(effectLevel, mode()));
     }
 
     public boolean hasModeButton() {

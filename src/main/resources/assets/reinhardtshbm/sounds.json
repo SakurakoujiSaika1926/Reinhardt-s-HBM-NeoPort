@@ -184,6 +184,17 @@
       }
     ]
   },
+  "block.platemetal_place": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/platemetal_bar1",
+      "reinhardtshbm:block/platemetal_bar2",
+      "reinhardtshbm:block/platemetal_bar3",
+      "reinhardtshbm:block/platemetal_bar4",
+      "reinhardtshbm:block/platemetal_bar5",
+      "reinhardtshbm:block/platemetal_bar6"
+    ]
+  },
   "block.turbofan_operate": {
     "subtitle": "subtitles.block.turbofan_operate",
     "sounds": [
@@ -488,6 +499,15 @@
       }
     ]
   },
+  "block.pile_bolt_open": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/pile_bolt_open",
+        "stream": false
+      }
+    ]
+  },
   "player.cough": {
     "subtitle": "subtitles.entity.cough",
     "category": "player",
@@ -505,6 +525,12 @@
       "reinhardtshbm:footsteps/iron2",
       "reinhardtshbm:footsteps/iron3",
       "reinhardtshbm:footsteps/iron4"
+    ]
+  },
+  "step.platemetal": {
+    "category": "block",
+    "sounds": [
+      "reinhardtshbm:block/platemetal_step"
     ]
   },
   "player.gulp": {
@@ -979,6 +1005,15 @@
     "sounds": [
       {
         "name": "reinhardtshbm:weapon/rocketflame",
+        "stream": false
+      }
+    ]
+  },
+  "weapon.robin_explosion": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:weapon/robin_explosion",
         "stream": false
       }
     ]

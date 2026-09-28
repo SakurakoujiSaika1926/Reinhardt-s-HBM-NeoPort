@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "c:dusts/iron" },
+    { "tag": "c:dusts/iron" },
+    { "tag": "c:dusts/iron" },
+    { "tag": "c:dusts/iron" },
+    { "tag": "c:dusts/coal" },
+    { "tag": "c:dusts/coal" },
+    { "tag": "c:dusts/coal" },
+    { "tag": "c:dusts/coal" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:scraps_steel",
+    "components": {
+      "minecraft:custom_data": { "amount": 288, "liquid": false },
+      "minecraft:custom_model_data": 0
+    }
+  }
+}

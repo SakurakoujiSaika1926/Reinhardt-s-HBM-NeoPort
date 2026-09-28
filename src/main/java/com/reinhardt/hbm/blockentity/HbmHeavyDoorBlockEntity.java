@@ -185,20 +185,20 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
                     if ((float) j / legacyDenominator > time) {
                         break;
                     }
-                    setRangeColumn(level, facing, range, j, true);
+                    setRangeColumn(level, decl, facing, range, j, true);
                 }
             } else {
                 for (int j = length - 1; j >= 0; j--) {
                     if ((float) j / legacyDenominator < time) {
                         break;
                     }
-                    setRangeColumn(level, facing, range, j, false);
+                    setRangeColumn(level, decl, facing, range, j, false);
                 }
             }
         }
     }
 
-    private void setRangeColumn(Level level, Direction facing, int[] range, int j, boolean extra) {
+    private void setRangeColumn(Level level, HbmDoorDecl decl, Direction facing, int[] range, int j, boolean extra) {
         int sign = Integer.signum(range[3]);
         for (int k = 0; k < range[4]; k++) {
             BlockPos local = switch (range[5]) {
@@ -208,7 +208,26 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
                 default -> BlockPos.ZERO;
             };
             BlockPos rangeStart = new BlockPos(range[0], range[1], range[2]);
-            BlockPos finalPos = this.worldPosition.offset(HbmHeavyDoorBlock.rotateDoorOpening(rangeStart.offset(local), facing));
+            BlockPos unrotated = rangeStart.offset(local);
+            BlockPos rotated = switch (decl) {
+                case FIRE_DOOR -> HbmHeavyDoorBlock.fireDoorOpeningOffset(unrotated, facing);
+                case TRANSITION_SEAL -> HbmHeavyDoorBlock.transitionSealOpeningOffset(unrotated, facing);
+                case SLIDING_BLAST_DOOR -> HbmHeavyDoorBlock.slidingBlastDoorOpeningOffset(unrotated, facing);
+                case SLIDING_BLAST_DOOR_2 -> HbmHeavyDoorBlock.slidingBlastDoor2OpeningOffset(unrotated, facing);
+                case SLIDING_GATE_DOOR -> HbmHeavyDoorBlock.slidingGateDoorOpeningOffset(unrotated, facing);
+                case QE_SLIDING_DOOR -> HbmHeavyDoorBlock.qeSlidingDoorOpeningOffset(unrotated, facing);
+                case QE_CONTAINMENT -> HbmHeavyDoorBlock.qeContainmentOpeningOffset(unrotated, facing);
+                case SLIDING_SEAL_DOOR -> HbmHeavyDoorBlock.slidingSealDoorOpeningOffset(unrotated, facing);
+                case SECURE_ACCESS_DOOR -> HbmHeavyDoorBlock.secureAccessDoorOpeningOffset(unrotated, facing);
+                case ROUND_AIRLOCK_DOOR -> HbmHeavyDoorBlock.roundAirlockDoorOpeningOffset(unrotated, facing);
+                case LARGE_VEHICLE_DOOR -> HbmHeavyDoorBlock.largeVehicleDoorOpeningOffset(unrotated, facing);
+                case VAULT_DOOR -> HbmHeavyDoorBlock.vaultDoorOpeningOffset(unrotated, facing);
+                case WATER_DOOR -> HbmHeavyDoorBlock.waterDoorOpeningOffset(unrotated, facing);
+                case CARGO_DOOR -> HbmHeavyDoorBlock.cargoDoorOpeningOffset(unrotated, facing);
+                case SILO_HATCH -> HbmHeavyDoorBlock.siloHatchOpeningOffset(unrotated, facing);
+                case SILO_HATCH_LARGE -> HbmHeavyDoorBlock.siloHatchLargeOpeningOffset(unrotated, facing);
+            };
+            BlockPos finalPos = this.worldPosition.offset(rotated);
             if (finalPos.equals(this.worldPosition)) {
                 continue;
             }
@@ -238,7 +257,8 @@ public class HbmHeavyDoorBlockEntity extends BlockEntity {
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
             if (!this.level.isClientSide && this.getBlockState().getBlock() instanceof HbmHeavyDoorBlock doorBlock) {
                 Direction facing = this.getBlockState().getValue(HbmHeavyDoorBlock.FACING);
-                for (BlockPos partPos : HbmHeavyDoorBlock.worldOffsets(doorBlock.decl(), facing, this.worldPosition).keySet()) {
+                for (BlockPos partPos : HbmHeavyDoorBlock.worldOffsets(
+                        doorBlock.decl(), facing, this.worldPosition).keySet()) {
                     BlockState state = this.level.getBlockState(partPos);
                     this.level.sendBlockUpdated(partPos, state, state, Block.UPDATE_CLIENTS);
                 }

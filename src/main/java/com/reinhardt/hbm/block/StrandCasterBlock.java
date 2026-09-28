@@ -33,18 +33,31 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class StrandCasterBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = footprint();
     private static final VoxelShape SHAPE = Shapes.block();
 
     public StrandCasterBlock(Properties properties) {
-        super(properties, FOOTPRINT, SHAPE, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, SHAPE, StrandCasterBlock::mapStrandCasterOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        return state == null ? null : state.setValue(FACING, context.getHorizontalDirection().getOpposite());
+        net.minecraft.core.Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
     }
 
     @Nullable
@@ -113,8 +126,8 @@ public class StrandCasterBlock extends LargeMachineBlock implements EntityBlock 
 
     private static Footprint footprint() {
         Set<BlockPos> offsets = new LinkedHashSet<>();
-        offsets.addAll(Footprint.legacySouthBox(0, 0, 6, 0, 1, 0).offsets());
-        offsets.addAll(Footprint.legacySouthBox(2, 0, 1, 0, 1, 0).offsets());
+        offsets.addAll(Footprint.box(-1, 0, 0, 0, -6, 0).offsets());
+        offsets.addAll(Footprint.box(-1, 0, 0, 2, -1, 0).offsets());
         for (BlockPos offset : StrandCasterBlockEntity.UNROTATED_BOTTOM_FLUID_PORTS) {
             offsets.add(offset);
         }
@@ -125,7 +138,22 @@ public class StrandCasterBlock extends LargeMachineBlock implements EntityBlock 
     }
 
     public static Direction localSideDirection(BlockPos unrotatedOffset, Direction facing, boolean positiveRot) {
-        Direction local = positiveRot ? Direction.WEST : Direction.EAST;
-        return com.reinhardt.hbm.util.LegacyMachineGeometry.rotateDirection(local, facing, RotationBasis.HBM_LEGACY_SOUTH);
+        return switch (facing) {
+            case SOUTH -> positiveRot ? Direction.WEST : Direction.EAST;
+            case EAST -> positiveRot ? Direction.SOUTH : Direction.NORTH;
+            case NORTH -> positiveRot ? Direction.EAST : Direction.WEST;
+            case WEST -> positiveRot ? Direction.NORTH : Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Strand caster facing must be horizontal: " + facing);
+        };
+    }
+
+    public static BlockPos mapStrandCasterOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Strand caster facing must be horizontal: " + facing);
+        };
     }
 }

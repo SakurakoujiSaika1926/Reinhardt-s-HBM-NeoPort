@@ -1,7 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#ae2:all_nether_quartz",
+    {
+      "id": "#ae2:all_nether_quartz",
+      "required": false
+    },
     "#ae2:all_certus_quartz",
     "#ae2:all_fluix"
   ]

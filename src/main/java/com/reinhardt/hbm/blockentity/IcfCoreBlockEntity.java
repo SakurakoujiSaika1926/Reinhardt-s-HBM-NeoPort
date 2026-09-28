@@ -13,7 +13,8 @@ import com.reinhardt.hbm.menu.IcfCoreMenu;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,6 +23,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -47,7 +49,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Exact inventory and heat loop port of TileEntityICF. */
-public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider, MachineInventory {
+public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider, MachineInventory,
+        RttyValueProvider {
     public static final int FRESH_START = 0;
     public static final int FRESH_END = 5;
     public static final int ACTIVE_SLOT = 5;
@@ -136,15 +139,41 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     public static List<Port> portsFor(BlockPos corePos, Direction facing) {
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
         return List.of(
                 new Port(corePos.above(5), Direction.UP),
                 new Port(corePos, Direction.DOWN),
-                new Port(corePos.relative(facing, 3).relative(rot, 6).above(3), facing),
-                new Port(corePos.relative(facing, 3).relative(rot, -6).above(3), facing),
-                new Port(corePos.relative(facing, -3).relative(rot, 6).above(3), facing.getOpposite()),
-                new Port(corePos.relative(facing, -3).relative(rot, -6).above(3), facing.getOpposite())
+                mappedIcfPort(corePos, facing, new BlockPos(-6, 3, 3), Direction.SOUTH),
+                mappedIcfPort(corePos, facing, new BlockPos(6, 3, 3), Direction.SOUTH),
+                mappedIcfPort(corePos, facing, new BlockPos(-6, 3, -3), Direction.NORTH),
+                mappedIcfPort(corePos, facing, new BlockPos(6, 3, -3), Direction.NORTH)
         );
+    }
+
+    private static Port mappedIcfPort(BlockPos corePos, Direction facing, BlockPos authoredOffset,
+                                      Direction authoredFace) {
+        return new Port(corePos.offset(mapIcfPortOffset(facing, authoredOffset)).immutable(),
+                mapIcfPortFace(facing, authoredFace));
+    }
+
+    private static BlockPos mapIcfPortOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX(); int y = offset.getY(); int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("ICF core requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static Direction mapIcfPortFace(Direction facing, Direction face) {
+        return switch (facing) {
+            case SOUTH -> face;
+            case EAST -> face == Direction.SOUTH ? Direction.EAST : face == Direction.NORTH ? Direction.WEST : face;
+            case NORTH -> face == Direction.SOUTH ? Direction.NORTH : face == Direction.NORTH ? Direction.SOUTH : face;
+            case WEST -> face == Direction.SOUTH ? Direction.WEST : face == Direction.NORTH ? Direction.EAST : face;
+            case UP, DOWN -> throw new IllegalArgumentException("ICF core requires a horizontal facing: " + facing);
+        };
     }
 
     public List<Port> ports(LevelAccessor level) {
@@ -204,6 +233,27 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
         return output;
     }
 
+    @Override
+    public String[] rttyFunctionInfo() {
+        return new String[] {
+                RttyInfo.PREFIX_VALUE + "laser",
+                RttyInfo.PREFIX_VALUE + "heat",
+                RttyInfo.PREFIX_VALUE + "coldfluid",
+                RttyInfo.PREFIX_VALUE + "hotfluid",
+                RttyInfo.PREFIX_VALUE + "stellarflux"
+        };
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (name.equals(RttyInfo.PREFIX_VALUE + "laser")) return Long.toString(this.laser);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "heat")) return Long.toString(this.heat);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "coldfluid")) return Integer.toString(this.sodium.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "hotfluid")) return Integer.toString(this.hotSodium.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "stellarflux")) return Integer.toString(this.stellarFlux.amount());
+        return null;
+    }
+
     public void receiveLaser(long power, long available) {
         this.laser = Math.max(0L, this.laser + Math.max(0L, power));
         this.maxLaser = Math.max(this.maxLaser, Math.max(0L, available));
@@ -228,6 +278,11 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
                 changed = true;
             }
             stellarFlux.fill(stellarFlux.type(), (int) Math.ceil(this.heat * 10.0D / MAX_HEAT), false);
+            if (level instanceof ServerLevel serverLevel && level.getGameTime() % 20L == 15L) {
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                        serverLevel, this.worldPosition,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_PARTICLE, 200);
+            }
         }
         if (this.heatup == 0L) {
             this.heat = Math.min(MAX_HEAT, this.heat + (long) (this.laser * 0.25D));
@@ -391,7 +446,7 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

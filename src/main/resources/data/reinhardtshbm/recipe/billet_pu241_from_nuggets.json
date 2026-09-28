@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["###", "###"],
+  "key": { "#": { "tag": "c:nuggets/pu241" } },
+  "result": { "id": "reinhardtshbm:billet_pu241" }
+}

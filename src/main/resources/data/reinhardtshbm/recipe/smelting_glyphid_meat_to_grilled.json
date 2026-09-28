@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "ingredient": { "item": "reinhardtshbm:glyphid_meat" },
+  "result": { "id": "reinhardtshbm:glyphid_meat_grilled" },
+  "experience": 1.0,
+  "cookingtime": 200
+}

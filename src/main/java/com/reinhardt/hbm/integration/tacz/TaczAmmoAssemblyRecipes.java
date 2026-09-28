@@ -141,7 +141,7 @@ public final class TaczAmmoAssemblyRecipes {
         try {
             Method method = target.getClass().getMethod(methodName);
             return Optional.ofNullable(method.invoke(target));
-        } catch (ReflectiveOperationException | RuntimeException exception) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
             ReinhardtsHBM.LOGGER.debug("Could not read TaCZ gun smith table recipe method {}", methodName, exception);
             return Optional.empty();
         }
@@ -153,7 +153,7 @@ public final class TaczAmmoAssemblyRecipes {
             method.invoke(target, registries);
         } catch (NoSuchMethodException ignored) {
             // Other recipe implementations do not need TaCZ's post-load result initialization.
-        } catch (ReflectiveOperationException | RuntimeException exception) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
             ReinhardtsHBM.LOGGER.debug("Could not initialize TaCZ gun smith table recipe result", exception);
         }
     }

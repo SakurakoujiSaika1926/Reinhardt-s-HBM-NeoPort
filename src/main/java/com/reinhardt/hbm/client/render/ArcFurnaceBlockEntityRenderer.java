@@ -1,12 +1,12 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.ArcFurnaceBlock;
 import com.reinhardt.hbm.blockentity.ArcFurnaceBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -16,6 +16,17 @@ import java.util.List;
 
 /** Renders the 1.7.10 arc furnace as one OBJ with the original object visibility and animations. */
 public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<ArcFurnaceBlockEntity> {
+    /*
+     * Face-used OBJ union before orientLegacyWavefrontOriginYaw:
+     * Furnace x=-3.5..2.75/y=0..5/z=-2.5..2.5; the lid reaches y=6.5
+     * and its legal 2*lid translation reaches y=8.5.  The working-only
+     * sinusoidal Z translation expands the lid extrema to +/-2.505.  Each
+     * cable is at most hypot(.25,.125) from its X-rotation pivot, so its
+     * +/-30 degree sweep remains strictly inside the lid envelope.
+     */
+    private static final float ANIMATED_MIN_Z = -2.5F - 0.005F;
+    private static final float ANIMATED_MAX_Z = 2.5F + 0.005F;
+    private static final AABB[] LOCAL_BOUNDS = buildLocalBounds();
     private static final ModelResourceLocation FURNACE = part("machine_arc_furnace");
     private static final ModelResourceLocation CONTENTS_HOT = part("machine_arc_furnace_contents_hot");
     private static final ModelResourceLocation CONTENTS_COLD = part("machine_arc_furnace_contents_cold");
@@ -62,14 +73,11 @@ public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntity
             int packedOverlay
     ) {
         BlockState state = furnace.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING)
-                ? state.getValue(LargeMachineBlock.FACING)
-                : Direction.SOUTH;
+        Direction facing = arcFurnaceFacing(state);
         long worldTime = furnace.getLevel() == null ? 0L : furnace.getLevel().getGameTime();
 
         poseStack.pushPose();
-        // This is the same origin and yaw table used by RenderArcFurnace in 1.7.10.
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyYaw(facing));
+        applyArcFurnaceTransform(poseStack, facing);
 
         render(FURNACE, furnace, poseStack, bufferSource, state, packedLight, packedOverlay);
 
@@ -106,15 +114,24 @@ public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntity
 
     @Override
     public AABB getRenderBoundingBox(ArcFurnaceBlockEntity furnace) {
-        // Exact 1.7.10 RenderArcFurnace bounds: x/z -3..+4 and y 0..+6.
-        return new AABB(
-                furnace.getBlockPos().getX() - 3.0D,
-                furnace.getBlockPos().getY(),
-                furnace.getBlockPos().getZ() - 3.0D,
-                furnace.getBlockPos().getX() + 4.0D,
-                furnace.getBlockPos().getY() + 6.0D,
-                furnace.getBlockPos().getZ() + 4.0D
-        );
+        BlockState state = furnace.getBlockState();
+        Direction facing = arcFurnaceFacing(state);
+        return LOCAL_BOUNDS[facing.ordinal()].move(furnace.getBlockPos());
+    }
+
+    private static AABB[] buildLocalBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {
+                Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST
+        }) {
+            PoseStack poseStack = new PoseStack();
+            applyArcFurnaceTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    BlockPos.ZERO, poseStack,
+                    -3.5F, 0.0F, ANIMATED_MIN_Z,
+                    2.75F, 8.5F, ANIMATED_MAX_Z);
+        }
+        return bounds;
     }
 
     private static void renderRingAndElectrode(
@@ -190,12 +207,21 @@ public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntity
         return MachineModelRenderer.standalone("block/" + path);
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 0.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            default -> 90.0F;
-        };
+    private static void applyArcFurnaceTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Arc furnace facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction arcFurnaceFacing(BlockState state) {
+        if (!state.hasProperty(ArcFurnaceBlock.FACING)) {
+            throw new IllegalStateException("Arc furnace state is missing its owned facing property: " + state);
+        }
+        return state.getValue(ArcFurnaceBlock.FACING);
     }
 }

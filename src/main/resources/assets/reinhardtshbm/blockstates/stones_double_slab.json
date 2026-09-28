@@ -1,6 +1,12 @@
 {
   "variants": {
     "variant=0": { "model": "reinhardtshbm:block/stones_slab_tile_double" },
-    "variant=1": { "model": "reinhardtshbm:block/stones_slab_bricks_double" }
+    "variant=1": { "model": "reinhardtshbm:block/stones_slab_bricks_double" },
+    "variant=2": { "model": "reinhardtshbm:block/stones_slab_bricks_double" },
+    "variant=3": { "model": "reinhardtshbm:block/stones_slab_bricks_double" },
+    "variant=4": { "model": "reinhardtshbm:block/stones_slab_bricks_double" },
+    "variant=5": { "model": "reinhardtshbm:block/stones_slab_bricks_double" },
+    "variant=6": { "model": "reinhardtshbm:block/stones_slab_bricks_double" },
+    "variant=7": { "model": "reinhardtshbm:block/stones_slab_bricks_double" }
   }
 }

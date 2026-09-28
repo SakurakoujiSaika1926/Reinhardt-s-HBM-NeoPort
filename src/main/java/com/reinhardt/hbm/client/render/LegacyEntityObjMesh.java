@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 final class LegacyEntityObjMesh {
+    private static final Vec3 DEFAULT_NORMAL = new Vec3(0.0D, 1.0D, 0.0D);
     private final List<Vec3> positions;
     private final List<Uv> uvs;
     private final List<Vec3> normals;
@@ -42,12 +44,64 @@ final class LegacyEntityObjMesh {
 
     void renderAll(PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay, int argb) {
         for (List<ObjFace> faces : groups.values()) {
-            renderFaces(faces, poseStack, consumer, packedLight, packedOverlay, argb);
+            renderFacesAsQuads(faces, poseStack, consumer, packedLight, packedOverlay, argb);
         }
     }
 
     void renderGroup(String name, PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay, int argb) {
-        renderFaces(groups.getOrDefault(name, List.of()), poseStack, consumer, packedLight, packedOverlay, argb);
+        renderFacesAsQuads(groups.getOrDefault(name, List.of()), poseStack, consumer, packedLight, packedOverlay, argb);
+    }
+
+    /** Emits OBJ faces into a render type whose primitive mode is triangles. */
+    void renderAllTriangles(PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay, int argb) {
+        for (List<ObjFace> faces : groups.values()) {
+            renderFacesAsTriangles(faces, poseStack, consumer, packedLight, packedOverlay, argb);
+        }
+    }
+
+    /**
+     * Includes the exact face-referenced positions emitted by {@link #renderAll}.
+     * Bounds users intentionally follow faces rather than every OBJ {@code v}
+     * declaration: unused authoring vertices are not rendered geometry.
+     */
+    void includeAllFacePositions(PoseStack poseStack, EntityRenderBounds.FloatBuilder bounds) {
+        for (List<ObjFace> faces : groups.values()) {
+            includeFacePositions(faces, poseStack, bounds);
+        }
+    }
+
+    /** Includes the exact face-referenced positions emitted by {@link #renderGroup}. */
+    void includeGroupFacePositions(String name, PoseStack poseStack, EntityRenderBounds.FloatBuilder bounds) {
+        includeFacePositions(groups.getOrDefault(name, List.of()), poseStack, bounds);
+    }
+
+    /** Largest authored face vertex radius about an explicit pivot. */
+    double maximumFaceRadius(double pivotX, double pivotY, double pivotZ) {
+        double maximumSquared = 0.0D;
+        for (List<ObjFace> faces : groups.values()) {
+            for (ObjFace face : faces) {
+                for (ObjVertex vertex : face.vertices()) {
+                    Vec3 position = positionAt(vertex.position());
+                    double dx = position.x - pivotX;
+                    double dy = position.y - pivotY;
+                    double dz = position.z - pivotZ;
+                    maximumSquared = Math.max(maximumSquared, dx * dx + dy * dy + dz * dz);
+                }
+            }
+        }
+        return Math.sqrt(maximumSquared);
+    }
+
+    /** Largest authored face vertex radius in one OBJ group. */
+    double maximumGroupFaceRadius(String name) {
+        double maximumSquared = 0.0D;
+        for (ObjFace face : groups.getOrDefault(name, List.of())) {
+            for (ObjVertex vertex : face.vertices()) {
+                Vec3 position = positionAt(vertex.position());
+                maximumSquared = Math.max(maximumSquared, position.lengthSqr());
+            }
+        }
+        return Math.sqrt(maximumSquared);
     }
 
     private static LegacyEntityObjMesh parse(InputStream stream, ResourceLocation location) throws IOException {
@@ -92,7 +146,37 @@ final class LegacyEntityObjMesh {
         return new LegacyEntityObjMesh(List.copyOf(positions), List.copyOf(uvs), List.copyOf(normals), Map.copyOf(frozen));
     }
 
-    private void renderFaces(List<ObjFace> faces, PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay, int argb) {
+    private void renderFacesAsQuads(List<ObjFace> faces, PoseStack poseStack, VertexConsumer consumer,
+                                    int packedLight, int packedOverlay, int argb) {
+        int alpha = (argb >>> 24) & 0xFF;
+        int red = (argb >>> 16) & 0xFF;
+        int green = (argb >>> 8) & 0xFF;
+        int blue = argb & 0xFF;
+        PoseStack.Pose pose = poseStack.last();
+        for (ObjFace face : faces) {
+            if (face.vertices().size() < 3) {
+                continue;
+            }
+            if (face.vertices().size() == 4) {
+                for (ObjVertex vertex : face.vertices()) {
+                    emitVertex(vertex, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+                }
+                continue;
+            }
+            for (int i = 1; i < face.vertices().size() - 1; i++) {
+                ObjVertex first = face.vertices().get(0);
+                ObjVertex second = face.vertices().get(i);
+                ObjVertex third = face.vertices().get(i + 1);
+                emitVertex(first, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+                emitVertex(second, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+                emitVertex(third, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+                emitVertex(third, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+            }
+        }
+    }
+
+    private void renderFacesAsTriangles(List<ObjFace> faces, PoseStack poseStack, VertexConsumer consumer,
+                                        int packedLight, int packedOverlay, int argb) {
         int alpha = (argb >>> 24) & 0xFF;
         int red = (argb >>> 16) & 0xFF;
         int green = (argb >>> 8) & 0xFF;
@@ -110,7 +194,25 @@ final class LegacyEntityObjMesh {
         }
     }
 
-    private void emitVertex(ObjVertex vertex, PoseStack.Pose pose, VertexConsumer consumer, int packedLight, int packedOverlay, int red, int green, int blue, int alpha) {
+    private void includeFacePositions(List<ObjFace> faces, PoseStack poseStack,
+                                      EntityRenderBounds.FloatBuilder bounds) {
+        Vector3f transformed = new Vector3f();
+        for (ObjFace face : faces) {
+            if (face.vertices().size() < 3) {
+                continue;
+            }
+            for (ObjVertex vertex : face.vertices()) {
+                Vec3 position = positionAt(vertex.position());
+                poseStack.last().pose().transformPosition(
+                        (float) position.x, (float) position.y, (float) position.z, transformed);
+                bounds.include(transformed);
+            }
+        }
+    }
+
+    private void emitVertex(ObjVertex vertex, PoseStack.Pose pose, VertexConsumer consumer,
+                            int packedLight, int packedOverlay,
+                            int red, int green, int blue, int alpha) {
         Vec3 position = positionAt(vertex.position());
         Uv uv = uvAt(vertex.uv());
         Vec3 normal = normalAt(vertex.normal());
@@ -131,7 +233,7 @@ final class LegacyEntityObjMesh {
     }
 
     private Vec3 normalAt(int index) {
-        return index >= 0 && index < normals.size() ? normals.get(index) : new Vec3(0.0D, 1.0D, 0.0D);
+        return index >= 0 && index < normals.size() ? normals.get(index) : DEFAULT_NORMAL;
     }
 
     private static ObjFace parseFace(String[] tokens, int positionCount, int uvCount, int normalCount) {

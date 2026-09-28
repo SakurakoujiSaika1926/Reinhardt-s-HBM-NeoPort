@@ -9,7 +9,6 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.recipe.ExposureChamberRecipe;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -268,7 +267,7 @@ public class ExposureChamberBlockEntity extends BlockEntity implements PowerEndp
     }
 
     public static List<BlockPos> powerConnectors(BlockPos corePos, Direction dir) {
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir).getOpposite();
+        Direction rot = exposureChamberServiceSide(dir);
         return List.of(
                 corePos.relative(rot, 7).relative(dir, 2),
                 corePos.relative(rot, 7).relative(dir.getOpposite(), 2),
@@ -281,12 +280,22 @@ public class ExposureChamberBlockEntity extends BlockEntity implements PowerEndp
     @Override
     public boolean canConnectPower(LevelAccessor level, BlockPos connectorPos, Direction machineSide) {
         Direction dir = getBlockState().getValue(LargeMachineBlock.FACING);
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir).getOpposite();
+        Direction rot = exposureChamberServiceSide(dir);
         return (connectorPos.equals(worldPosition.relative(rot, 7).relative(dir, 2)) && machineSide == dir)
                 || (connectorPos.equals(worldPosition.relative(rot, 7).relative(dir.getOpposite(), 2)) && machineSide == dir.getOpposite())
                 || (connectorPos.equals(worldPosition.relative(rot, 8).relative(dir, 2)) && machineSide == dir)
                 || (connectorPos.equals(worldPosition.relative(rot, 8).relative(dir.getOpposite(), 2)) && machineSide == dir.getOpposite())
                 || (connectorPos.equals(worldPosition.relative(rot, 9)) && machineSide == rot);
+    }
+
+    private static Direction exposureChamberServiceSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.WEST;
+            case SOUTH -> Direction.EAST;
+            case WEST -> Direction.SOUTH;
+            case EAST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Exposure chamber requires a horizontal facing: " + facing);
+        };
     }
 
     @Override
@@ -377,7 +386,7 @@ public class ExposureChamberBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

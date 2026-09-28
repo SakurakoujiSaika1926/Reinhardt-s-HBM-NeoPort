@@ -12,12 +12,16 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
@@ -84,6 +88,7 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
     private boolean enabled = true;
     private boolean beam;
     private BlockPos target = BlockPos.ZERO;
+    private volatile RenderSnapshot renderSnapshot;
     private double breakProgress;
     private int currentConsumption = BASE_CONSUMPTION;
     private int range = 1;
@@ -123,6 +128,7 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
                 default -> {
                 }
             }
+            MiningLaserBlockEntity.this.publishRenderSnapshot();
         }
 
         @Override
@@ -134,6 +140,7 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
     public MiningLaserBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.MINING_LASER.get(), pos, blockState);
         this.target = pos.below(2);
+        publishRenderSnapshot();
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, MiningLaserBlockEntity laser) {
@@ -289,7 +296,7 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -342,6 +349,20 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
         this.target = new BlockPos(tag.getInt("TargetX"), tag.getInt("TargetY"), tag.getInt("TargetZ"));
         this.breakProgress = tag.getDouble("BreakProgress");
         this.completedBlocks = tag.getInt("CompletedBlocks");
+        publishRenderSnapshot();
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        saveAdditional(tag, registries);
+        return tag;
+    }
+
+    @Nullable
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     private void tickServer(Level level, BlockState state) {
@@ -355,6 +376,7 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
         if (!shouldRun || this.power < this.currentConsumption) {
             this.beam = false;
             setLit(level, state, false);
+            syncRenderSnapshot(level);
             return;
         }
 
@@ -367,6 +389,7 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
         if (!this.beam) {
             setLit(level, state, false);
             setChanged();
+            syncRenderSnapshot(level);
             return;
         }
 
@@ -384,6 +407,7 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
 
         setLit(level, state, true);
         setChanged();
+        syncRenderSnapshot(level);
     }
 
     private void scanForTarget(Level level) {
@@ -580,24 +604,30 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
         }
         for (BlockPos port : fluidCablePorts()) {
             Direction side = directionFromCenter(port).getOpposite();
-            net.neoforged.neoforge.items.IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, port, side);
-            if (handler == null) {
-                continue;
-            }
-            for (int slot = OUTPUT_START; slot < OUTPUT_END; slot++) {
-                ItemStack stack = this.items.get(slot);
-                if (stack.isEmpty()) {
+            try {
+                net.neoforged.neoforge.items.IItemHandler handler = level.getCapability(
+                        Capabilities.ItemHandler.BLOCK, port, side);
+                if (handler == null) {
                     continue;
                 }
-                ItemStack remaining = ItemHandlerHelper.insertItemStacked(handler, stack.copy(), false);
-                int moved = stack.getCount() - remaining.getCount();
-                if (moved > 0) {
-                    stack.shrink(moved);
+                for (int slot = OUTPUT_START; slot < OUTPUT_END; slot++) {
+                    ItemStack stack = this.items.get(slot);
                     if (stack.isEmpty()) {
-                        this.items.set(slot, ItemStack.EMPTY);
+                        continue;
                     }
-                    setChanged();
+                    ItemStack remaining = ItemHandlerHelper.insertItemStacked(handler, stack.copy(), false);
+                    int moved = stack.getCount() - remaining.getCount();
+                    if (moved > 0) {
+                        stack.shrink(moved);
+                        if (stack.isEmpty()) {
+                            this.items.set(slot, ItemStack.EMPTY);
+                        }
+                        setChanged();
+                    }
                 }
+            } catch (RuntimeException | LinkageError failure) {
+                ExternalCapabilitySafety.report(level, port, side,
+                        "item handler", "mining-laser output insertion", failure);
             }
         }
     }
@@ -706,11 +736,35 @@ public class MiningLaserBlockEntity extends BlockEntity implements PowerEndpoint
     }
 
     public Vec3 renderTargetRaw(float partialTick) {
-        return new Vec3(this.target.getX(), this.target.getY(), this.target.getZ());
+        BlockPos renderTarget = this.renderSnapshot.target();
+        return new Vec3(renderTarget.getX(), renderTarget.getY(), renderTarget.getZ());
     }
 
     public boolean beamActive() {
-        return this.beam;
+        return this.renderSnapshot.beamActive();
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
+    }
+
+    private void publishRenderSnapshot() {
+        this.renderSnapshot = new RenderSnapshot(this.beam, this.target.immutable());
+    }
+
+    private void syncRenderSnapshot(Level level) {
+        RenderSnapshot previous = this.renderSnapshot;
+        RenderSnapshot next = new RenderSnapshot(this.beam, this.target.immutable());
+        if (next.equals(previous)) {
+            return;
+        }
+        this.renderSnapshot = next;
+        if (!level.isClientSide && (previous.beamActive() || next.beamActive())) {
+            level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    public record RenderSnapshot(boolean beamActive, BlockPos target) {
     }
 
     @Override

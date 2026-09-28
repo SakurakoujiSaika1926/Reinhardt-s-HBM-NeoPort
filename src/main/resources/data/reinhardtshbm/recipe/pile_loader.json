@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" A ", "CBS"],
+  "key": {
+    "A": { "tag": "c:plates/aluminium" },
+    "C": { "tag": "c:plates/cast_steel" },
+    "B": { "tag": "c:ingots/boron" },
+    "S": { "item": "reinhardtshbm:shell_steel" }
+  },
+  "result": { "id": "reinhardtshbm:pile_loader" }
+}

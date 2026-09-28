@@ -1,0 +1,115 @@
+# Items produced outside data-pack recipe outputs. The second column documents
+# the concrete acquisition path so the recipe-input audit remains reviewable.
+reinhardtshbm:arc_electrode_burnt_desh	ArcFurnaceBlockEntity replaces a depleted desh electrode
+reinhardtshbm:arc_electrode_burnt_graphite	ArcFurnaceBlockEntity replaces a depleted graphite electrode
+reinhardtshbm:arc_electrode_burnt_lanthanium	ArcFurnaceBlockEntity replaces a depleted lanthanium electrode
+reinhardtshbm:arc_electrode_burnt_saturnite	ArcFurnaceBlockEntity replaces a depleted saturnite electrode
+reinhardtshbm:armor_polish	HbmStructureLoot exploration loot
+reinhardtshbm:bathwater	HbmStructureLoot exploration loot
+reinhardtshbm:bedrock_ore_base	ExcavatorBlockEntity harvests a generated bedrock ore deposit
+reinhardtshbm:bedrock_ore_new	OreSlopperBlockEntity separates excavated bedrock ore base material
+reinhardtshbm:billet_yharonite	StorageCrateBlockEntity tungsten-crate pulse conversion
+reinhardtshbm:cap_fritz	LegacyEnergyDrinkItem container return and world loot
+reinhardtshbm:cap_korl	LegacyEnergyDrinkItem container return and world loot
+reinhardtshbm:cap_nuka	LegacyEnergyDrinkItem container return and AmmoCrateBlock loot
+reinhardtshbm:cap_quantum	LegacyEnergyDrinkItem container return and HbmStructureLoot
+reinhardtshbm:cap_rad	LegacyEnergyDrinkItem container return and world loot
+reinhardtshbm:cap_sparkle	LegacyEnergyDrinkItem container return and HbmStructureLoot
+reinhardtshbm:canned_conserve	HbmStructureLoot exploration loot
+reinhardtshbm:cell_anti_schrabidium	HbmFluidContainerItem fills an empty cell with aschrab
+reinhardtshbm:cell_antimatter	HbmFluidContainerItem fills an empty cell with amat
+reinhardtshbm:cell_sas3	HbmFluidContainerItem fills an empty cell with sas3
+reinhardtshbm:cell_uf6	HbmFluidContainerItem fills an empty cell with uf6
+reinhardtshbm:cheese	BangEffect cow drop
+reinhardtshbm:chlorine_pinwheel	HbmStructureLoot exploration loot
+reinhardtshbm:chunk_ore_malachite	ResourceStoneBlock malachite resource-stone drop
+reinhardtshbm:coin_creeper	LegacyCreeperEntity boss reward
+reinhardtshbm:coin_maskman	LegacyMaskManEntity boss reward
+reinhardtshbm:coin_ufo	LegacyUfoEntity boss reward
+reinhardtshbm:coin_worm	LegacyWormHeadEntity boss reward
+reinhardtshbm:crystal_starmetal	SatelliteDockBlockEntity satellite loot
+reinhardtshbm:debris_concrete	ZirnoxDebrisEntity pickup
+reinhardtshbm:debris_element	ZirnoxDebrisEntity pickup
+reinhardtshbm:debris_exchanger	ZirnoxDebrisEntity pickup
+reinhardtshbm:debris_fuel	RbmkDebrisEntity pickup
+reinhardtshbm:debris_shrapnel	ZirnoxDebrisEntity pickup
+reinhardtshbm:demon_core_closed	LegacyDemonCoreItem closes after the open core lands
+reinhardtshbm:drive_disk_flightdata	SatelliteSavedData science satellite exchanges an empty disk through TapeDriveBlockEntity after its science cooldown
+reinhardtshbm:drive_disk_orbitdata	SatelliteSavedData science sensor exchanges an empty disk through TapeDriveBlockEntity after completing its sensor cycle
+reinhardtshbm:egg_glyphid	HbmStructureLoot exploration loot
+reinhardtshbm:ff_fluid_duct	EXCEPTION	Legacy migration-only duct accepted solely by its conversion recipe
+reinhardtshbm:fluid_barrel_full	HbmFluidContainerItem fills an empty fluid barrel
+reinhardtshbm:fluid_duct	FluidDuctRetypeRecipe output
+reinhardtshbm:fluid_tank_full	HbmFluidContainerItem fills an empty fluid tank
+reinhardtshbm:fluid_tank_lead_full	HbmFluidContainerItem fills an empty lead-lined tank
+reinhardtshbm:gas_full	HbmFluidContainerItem fills an empty gas tank
+reinhardtshbm:gem_volcanic	OreBasaltBlock volcanic variant drop
+reinhardtshbm:glyphid_gland_empty	HbmFluidContainerItem drained glyphid gland container
+reinhardtshbm:heart_piece	HbmStructureLoot exploration loot
+reinhardtshbm:holotape_image	EXCEPTION	Upstream hidden holotape variants have no initial 1.7.10 survival source; recipes only restore/convert an existing tape
+reinhardtshbm:icf_pellet_depleted	IcfCoreBlockEntity spent pellet output
+reinhardtshbm:ingot_cft	LegacyCraftBookRecipes lemegeton transformation
+reinhardtshbm:ingot_electronium	LegacyCraftBookRecipes magic transformation
+reinhardtshbm:ingot_am241	LegacyCraftBookRecipes lemegeton transforms plutonium-241
+reinhardtshbm:ingot_am242	LegacyCraftBookRecipes lemegeton transforms americium-241
+reinhardtshbm:ingot_u238m2	LegacyCraftBookRecipes unstable-ingot transformation
+reinhardtshbm:iv_blood	HbmStructureLoot and blood collection interaction
+reinhardtshbm:launch_code_piece	HbmStructureLoot exploration loot
+reinhardtshbm:lodestone	RadiationEvents iron-smelting reward
+reinhardtshbm:morning_glory	HbmStructureLoot exploration loot
+reinhardtshbm:missile_doomsday_rusted	LauncherBlockEntity rusted launch-pad recovery path
+reinhardtshbm:nitra_small	LegacyMachineBlockEntity thresher mob-processing drop
+reinhardtshbm:nuclear_waste_long_depleted	StorageDrumBlockEntity and LegacyMachineBlockEntity decay long-lived waste while preserving its waste class
+reinhardtshbm:nuclear_waste_long_depleted_tiny	StorageDrumBlockEntity and LegacyMachineBlockEntity decay long-lived tiny waste while preserving its waste class
+reinhardtshbm:nuclear_waste_short_depleted	StorageDrumBlockEntity and LegacyMachineBlockEntity decay short-lived waste while preserving its waste class
+reinhardtshbm:nuclear_waste_short_depleted_tiny	StorageDrumBlockEntity and LegacyMachineBlockEntity decay short-lived tiny waste while preserving its waste class
+reinhardtshbm:ore_meteor	MeteoriteGenerator world generation
+reinhardtshbm:pellet_rtg_depleted	HbmStructureLoot depleted-RTG loot
+reinhardtshbm:plant_foxglove	LegacySurfaceWorldgenFeature foxglove generation and MustardWillowFlowerBlock drop
+reinhardtshbm:plant_tobacco	LegacySurfaceWorldgenFeature tobacco generation and MustardWillowFlowerBlock drop
+reinhardtshbm:plant_nightshade	LegacySurfaceWorldgenFeature nightshade generation and MustardWillowFlowerBlock drop
+reinhardtshbm:plant_hemp	LegacySurfaceWorldgenFeature hemp generation and MustardWillowFlowerBlock/MustardWillowTallBlock drops
+reinhardtshbm:plant_mustard_willow	OilFieldSurfaceEffects mustard-willow generation and MustardWillowFlowerBlock/MustardWillowTallBlock drops
+reinhardtshbm:plant_item_mustardwillow	MustardWillowTallBlock mature-plant drop
+reinhardtshbm:pile_rod_pu239	PileMk2CoreBlockEntity transmutes a depleted natural-uranium channel rod
+reinhardtshbm:pile_rod_rgp	PileMk2CoreBlockEntity transmutes a depleted plutonium-239 channel rod
+reinhardtshbm:pile_rod_thorium_fuel	PileMk2CoreBlockEntity transmutes a depleted thorium channel rod
+reinhardtshbm:pile_rod_waste	PileMk2CoreBlockEntity transmutes depleted reactor-grade plutonium or thorium-fuel channel rods
+reinhardtshbm:powder_ash_coal	BrickFurnaceBlockEntity coal-fuel ash output
+reinhardtshbm:powder_molysite	OreBasaltBlock molysite variant drop
+reinhardtshbm:rag_damp	RagItem submerged-item conversion
+reinhardtshbm:rag_piss	RagItem use result and LegacyMobEquipment
+reinhardtshbm:rod_zirnox_depleted	ZirnoxReactorBlockEntity spent fuel output
+reinhardtshbm:spotlight_fluoro_off	EXCEPTION	Internal unlit block state hidden from JEI/creative; breaking or cloning returns spotlight_fluoro
+reinhardtshbm:spotlight_halogen_off	EXCEPTION	Internal unlit block state hidden from JEI/creative; breaking or cloning returns spotlight_halogen
+reinhardtshbm:spotlight_incandescent_off	EXCEPTION	Internal unlit block state hidden from JEI/creative; breaking or cloning returns spotlight_incandescent
+reinhardtshbm:rbmk_pellet_balefire	RbmkFuelDisassemblyRecipe dismantles a cool used balefire rod
+reinhardtshbm:rbmk_pellet_balefire_gold	RbmkFuelDisassemblyRecipe dismantles a cool used balefire-gold rod
+reinhardtshbm:rbmk_pellet_drx	RbmkFuelDisassemblyRecipe dismantles a cool used DRX rod
+reinhardtshbm:rbmk_pellet_flashlead	RbmkFuelDisassemblyRecipe dismantles a cool used flashlead rod
+reinhardtshbm:rbmk_pellet_heaus	RbmkFuelDisassemblyRecipe dismantles a cool used HEAUS rod
+reinhardtshbm:rbmk_pellet_hen	RbmkFuelDisassemblyRecipe dismantles a cool used HEN rod
+reinhardtshbm:rbmk_pellet_hep239	RbmkFuelDisassemblyRecipe dismantles a cool used HEP-239 rod
+reinhardtshbm:rbmk_pellet_hep241	RbmkFuelDisassemblyRecipe dismantles a cool used HEP-241 rod
+reinhardtshbm:rbmk_pellet_hes	RbmkFuelDisassemblyRecipe dismantles a cool used HES rod
+reinhardtshbm:rbmk_pellet_heu233	RbmkFuelDisassemblyRecipe dismantles a cool used HEU-233 rod
+reinhardtshbm:rbmk_pellet_heu235	RbmkFuelDisassemblyRecipe dismantles a cool used HEU-235 rod
+reinhardtshbm:rbmk_pellet_leaus	RbmkFuelDisassemblyRecipe dismantles a cool used LEAUS rod
+reinhardtshbm:rbmk_pellet_lep	RbmkFuelDisassemblyRecipe dismantles a cool used LEP rod
+reinhardtshbm:rbmk_pellet_les	RbmkFuelDisassemblyRecipe dismantles a cool used LES rod
+reinhardtshbm:rbmk_pellet_men	RbmkFuelDisassemblyRecipe dismantles a cool used MEN rod
+reinhardtshbm:rbmk_pellet_mep	RbmkFuelDisassemblyRecipe dismantles a cool used MEP rod
+reinhardtshbm:rbmk_pellet_mes	RbmkFuelDisassemblyRecipe dismantles a cool used MES rod
+reinhardtshbm:rbmk_pellet_meu	RbmkFuelDisassemblyRecipe dismantles a cool used MEU rod
+reinhardtshbm:rbmk_pellet_mox	RbmkFuelDisassemblyRecipe dismantles a cool used MOX rod
+reinhardtshbm:rbmk_pellet_po210be	RbmkFuelDisassemblyRecipe dismantles a cool used Po-210/Be rod
+reinhardtshbm:rbmk_pellet_pu238be	RbmkFuelDisassemblyRecipe dismantles a cool used Pu-238/Be rod
+reinhardtshbm:rbmk_pellet_ra226be	RbmkFuelDisassemblyRecipe dismantles a cool used Ra-226/Be rod
+reinhardtshbm:rbmk_pellet_thmeu	RbmkFuelDisassemblyRecipe dismantles a cool used ThMEU rod
+reinhardtshbm:rbmk_pellet_ueu	RbmkFuelDisassemblyRecipe dismantles a cool used UEU rod
+reinhardtshbm:rbmk_pellet_uzh	RbmkFuelDisassemblyRecipe dismantles a cool used UZH rod
+reinhardtshbm:rbmk_pellet_zfb_am_mix	RbmkFuelDisassemblyRecipe dismantles a cool used ZFB americium-mix rod
+reinhardtshbm:rbmk_pellet_zfb_bismuth	RbmkFuelDisassemblyRecipe dismantles a cool used ZFB bismuth rod
+reinhardtshbm:rbmk_pellet_zfb_pu241	RbmkFuelDisassemblyRecipe dismantles a cool used ZFB Pu-241 rod
+reinhardtshbm:watz_pellet_depleted	WatzBlockEntity spent pellet output
+reinhardtshbm:undefined	EXCEPTION	Upstream creative/secret material; 1.7.10 provides no survival acquisition path

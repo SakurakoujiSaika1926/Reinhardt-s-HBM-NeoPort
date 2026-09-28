@@ -1,19 +1,25 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.SoyuzEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class SoyuzEntityRenderer extends EntityRenderer<SoyuzEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("entity/soyuz");
+    private static final LegacyEntityObjMesh BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/entity/soyuz.obj"));
     private static final BlockState RENDER_STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final AABB LOCAL_VISUAL_BOUNDS = buildLocalVisualBounds();
 
     public SoyuzEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -33,7 +39,23 @@ public class SoyuzEntityRenderer extends EntityRenderer<SoyuzEntity> {
     }
 
     @Override
+    public boolean shouldRender(SoyuzEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        return EntityRenderBounds.shouldRender(entity,
+                EntityRenderBounds.moveToEntity(LOCAL_VISUAL_BOUNDS, entity),
+                frustum, cameraX, cameraY, cameraZ);
+    }
+
+    @Override
     public ResourceLocation getTextureLocation(SoyuzEntity entity) {
         return net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS;
+    }
+
+    private static AABB buildLocalVisualBounds() {
+        PoseStack poseStack = new PoseStack();
+        poseStack.translate(0.0D, -0.5D, 0.0D);
+        EntityRenderBounds.FloatBuilder bounds = new EntityRenderBounds.FloatBuilder();
+        BOUNDS_MODEL.includeAllFacePositions(poseStack, bounds);
+        return bounds.buildLocal();
     }
 }

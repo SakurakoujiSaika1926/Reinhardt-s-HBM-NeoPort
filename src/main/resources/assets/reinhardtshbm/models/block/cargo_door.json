@@ -1,0 +1,25 @@
+{
+  "parent": "reinhardtshbm:block/doors/cargo_door_base",
+  "display": {
+    "gui": {
+      "rotation": [30, 225, 0],
+      "translation": [-2.2, -2.48, 0],
+      "scale": [0.203684, 0.203684, 0.203684]
+    },
+    "ground": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 4.08, 0],
+      "scale": [0.225, 0.225, 0.225]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 3.364, 0],
+      "scale": [0.18, 0.18, 0.18]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [2, 0.432, 0],
+      "scale": [0.09, 0.09, 0.09]
+    }
+  }
+}

@@ -49,7 +49,6 @@ public class LegacyHimarsRocketEntity extends Entity implements LegacyRadarDetec
 
     public LegacyHimarsRocketEntity(EntityType<? extends LegacyHimarsRocketEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public LegacyHimarsRocketEntity(Level level, Vec3 position, Vec3 direction, int rocketType, Vec3 target) {

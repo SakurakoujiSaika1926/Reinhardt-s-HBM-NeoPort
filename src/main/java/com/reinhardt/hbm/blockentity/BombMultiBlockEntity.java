@@ -122,7 +122,7 @@ public final class BombMultiBlockEntity extends BlockEntity implements MachineIn
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

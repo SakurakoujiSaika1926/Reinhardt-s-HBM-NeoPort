@@ -21,7 +21,8 @@ public final class PowerPylonBlockItem extends BlockItem {
 
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        // PylonRedWire had no IItemRenderer in 1.7.10; its inventory form is the registered block icon.
+        // The existing wooden small pylon intentionally keeps the port's registered flat item model.
+        // The steel small pylon follows RenderPylon's dedicated OBJ item renderer from 1.7.10.
         if (this.kind == PowerPylonBlock.Kind.RED_PYLON) {
             return;
         }

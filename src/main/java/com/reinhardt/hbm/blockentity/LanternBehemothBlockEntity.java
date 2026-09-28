@@ -31,16 +31,28 @@ import org.jetbrains.annotations.Nullable;
 public final class LanternBehemothBlockEntity extends BlockEntity {
     private static final TagKey<net.minecraft.world.item.Item> STEEL_PLATES = TagKey.create(
             Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "plates/steel"));
+    private static final AABB NORMAL_LOCAL_BOUNDS = new AABB(
+            0.1308D, -0.25D, 0.125D,
+            0.875D, 5.5D, 0.875D);
+    private static final AABB BROKEN_LOCAL_BOUNDS = new AABB(
+            -0.7101258039474487D, -0.27778297662734985D, 0.35212594270706177D,
+            0.6665130257606506D, 5.41259241104126D, 1.297677755355835D);
 
     private boolean broken;
     private int communicationTimer = -1;
+    private volatile RenderSnapshot renderSnapshot;
 
     public LanternBehemothBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.LANTERN_BEHEMOTH.get(), pos, state);
+        this.renderSnapshot = buildRenderSnapshot(state, false);
     }
 
     public boolean isBroken() {
         return broken;
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, LanternBehemothBlockEntity lantern) {
@@ -114,10 +126,9 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
 
         consume(player, STEEL_PLATES, 2);
         consumeBasicCircuit(player);
-        lantern.broken = false;
+        lantern.setBroken(false);
         lantern.communicationTimer = 400;
         lantern.setChanged();
-        level.sendBlockUpdated(pos, lantern.getBlockState(), lantern.getBlockState(), Block.UPDATE_CLIENTS);
         blowtorch.consumeTorchFuel(held);
         return true;
     }
@@ -151,8 +162,15 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
     }
 
     public void setBroken(boolean broken) {
+        if (this.broken == broken) {
+            return;
+        }
         this.broken = broken;
+        publishRenderSnapshot();
         setChanged();
+        if (this.level != null && !this.level.isClientSide) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     @Override
@@ -167,6 +185,7 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
         super.loadAdditional(tag, registries);
         broken = tag.getBoolean("isBroken");
         communicationTimer = tag.getInt("comTimer");
+        publishRenderSnapshot();
     }
 
     @Override
@@ -182,9 +201,39 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    public AABB renderBounds() {
-        BlockPos pos = getBlockPos();
-        return new AABB(pos.getX(), pos.getY(), pos.getZ(),
-                pos.getX() + 1.0D, pos.getY() + 6.0D, pos.getZ() + 1.0D);
+    private void publishRenderSnapshot() {
+        RenderSnapshot previous = this.renderSnapshot;
+        RenderSnapshot next = buildRenderSnapshot(this.getBlockState(), this.broken);
+        this.renderSnapshot = next;
+        if (this.level != null && this.level.isClientSide && previous != null
+                && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+            this.level.sendBlockUpdated(
+                    this.worldPosition, this.getBlockState(), this.getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private RenderSnapshot buildRenderSnapshot(BlockState state, boolean isBroken) {
+        AABB local = isBroken ? BROKEN_LOCAL_BOUNDS : NORMAL_LOCAL_BOUNDS;
+        return new RenderSnapshot(state, isBroken, local.move(this.worldPosition));
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return sectionMin(first.minX) == sectionMin(second.minX)
+                && sectionMin(first.minY) == sectionMin(second.minY)
+                && sectionMin(first.minZ) == sectionMin(second.minZ)
+                && sectionMax(first.maxX) == sectionMax(second.maxX)
+                && sectionMax(first.maxY) == sectionMax(second.maxY)
+                && sectionMax(first.maxZ) == sectionMax(second.maxZ);
+    }
+
+    private static int sectionMin(double value) {
+        return net.minecraft.util.Mth.floor(value) >> 4;
+    }
+
+    private static int sectionMax(double value) {
+        return net.minecraft.util.Mth.floor(Math.nextDown(value)) >> 4;
+    }
+
+    public record RenderSnapshot(BlockState blockState, boolean broken, AABB bounds) {
     }
 }

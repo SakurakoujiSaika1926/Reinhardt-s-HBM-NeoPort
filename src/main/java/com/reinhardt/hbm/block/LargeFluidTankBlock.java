@@ -5,7 +5,6 @@ import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -170,7 +169,7 @@ public class LargeFluidTankBlock extends Block implements EntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                                Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!(stack.getItem() instanceof FluidIdentifierItem)) {
+        if (!(stack.getItem() instanceof FluidIdentifierItem) || !player.isShiftKeyDown()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof LargeFluidTankBlockEntity tank) {
@@ -255,15 +254,41 @@ public class LargeFluidTankBlock extends Block implements EntityBlock {
     }
 
     public static Set<BlockPos> occupiedPositions(BlockPos corePos, Direction facing) {
-        Set<BlockPos> positions = LegacyMachineGeometry.newOrderedPosSet();
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, 5, 0, 4, 4, 4, 4);
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, 4, 0, 5, -4, 2, 2);
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, 4, 0, -4, 5, 2, 2);
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, 4, 0, 2, 2, 5, -4);
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, 4, 0, 2, 2, -4, 5);
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, 3, 0, 6, -5, 0, 0);
-        LegacyMachineGeometry.addLegacyBox(positions, corePos, facing, 3, 0, -5, 6, 0, 0);
+        Set<BlockPos> authoredOffsets = new java.util.LinkedHashSet<>();
+        addLargeTankSouthBox(authoredOffsets, 5, 0, 4, 4, 4, 4);
+        addLargeTankSouthBox(authoredOffsets, 4, 0, 5, -4, 2, 2);
+        addLargeTankSouthBox(authoredOffsets, 4, 0, -4, 5, 2, 2);
+        addLargeTankSouthBox(authoredOffsets, 4, 0, 2, 2, 5, -4);
+        addLargeTankSouthBox(authoredOffsets, 4, 0, 2, 2, -4, 5);
+        addLargeTankSouthBox(authoredOffsets, 3, 0, 6, -5, 0, 0);
+        addLargeTankSouthBox(authoredOffsets, 3, 0, -5, 6, 0, 0);
+        Set<BlockPos> positions = new java.util.LinkedHashSet<>();
+        for (BlockPos offset : authoredOffsets) {
+            positions.add(corePos.offset(mapLargeTankOffset(facing, offset)).immutable());
+        }
         return positions;
+    }
+
+    private static void addLargeTankSouthBox(Set<BlockPos> positions, int up, int down,
+                                             int north, int south, int west, int east) {
+        for (int x = -west; x <= east; x++) {
+            for (int y = -down; y <= up; y++) {
+                for (int z = -north; z <= south; z++) {
+                    positions.add(new BlockPos(x, y, z));
+                }
+            }
+        }
+    }
+
+    private static BlockPos mapLargeTankOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX(); int y = offset.getY(); int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("Large fluid tank requires a horizontal facing: " + facing);
+        };
     }
 
     private static void placeDummies(Level level, BlockPos corePos, Direction facing) {

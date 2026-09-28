@@ -1,0 +1,11 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.titaniumconstruction",
+  "duration": 600,
+  "power": 1000,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/titanium" }, "count": 4 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 8 }
+  ],
+  "result": { "id": "reinhardtshbm:part_generic_alclad", "count": 1 }
+}

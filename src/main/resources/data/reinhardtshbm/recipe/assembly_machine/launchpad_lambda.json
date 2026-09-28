@@ -1,0 +1,20 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": { "type": "reinhardtshbm:enable_528_mode" }
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.launchpadlambda",
+  "duration": 1200,
+  "power": 5000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:concrete_rebar" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:plate_welded_steel" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:motor_bismuth" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_controller_advanced" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_flightdata_processed" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:launchpad_lambda", "count": 1 }
+}

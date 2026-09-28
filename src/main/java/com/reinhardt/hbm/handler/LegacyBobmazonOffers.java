@@ -40,7 +40,12 @@ public final class LegacyBobmazonOffers {
             offer("reinhardtshbm:nitra", 4, Requirement.CHEMICS, 16, 0),
             offer("reinhardtshbm:geiger_counter", 1, Requirement.NONE, 16, 0),
             offer("reinhardtshbm:matchstick", 16, Requirement.STEEL, 2, 0),
-            offer("reinhardtshbm:blueprint_folder", 1, Requirement.ASSEMBLY, 64, 0)
+            offer("reinhardtshbm:blueprint_folder", 1, Requirement.ASSEMBLY, 64, 0),
+            offer("reinhardtshbm:plant_foxglove", 1, Requirement.STEEL, 16, 5),
+            offer("reinhardtshbm:plant_tobacco", 1, Requirement.STEEL, 16, 9),
+            offer("reinhardtshbm:plant_nightshade", 1, Requirement.STEEL, 16, 3),
+            offer("reinhardtshbm:plant_hemp", 1, Requirement.STEEL, 4, 10),
+            offer("reinhardtshbm:plant_mustard_willow", 1, Requirement.NUCLEAR, 64, 8)
     );
     private static final List<Offer> HIDDEN = List.of();
 

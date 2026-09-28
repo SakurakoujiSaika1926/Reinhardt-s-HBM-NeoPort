@@ -8,6 +8,7 @@ import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.integration.sable.HbmSablePowerCompat;
 import com.reinhardt.hbm.power.PowerEndpoint;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.util.ExternalCapabilitySafety;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -37,7 +38,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -178,7 +181,7 @@ public final class HbmFluidNetworks {
             if (!realLevel.isLoaded(target) || !mobileFluidEndpointAllowed(realLevel, target)) {
                 return false;
             }
-            return realLevel.getCapability(Capabilities.FluidHandler.BLOCK, target, targetSide) != null;
+            return fluidHandler(realLevel, target, targetSide, "pipe connection probe") != null;
         }
         return false;
     }
@@ -218,10 +221,12 @@ public final class HbmFluidNetworks {
         int providers = 0;
         FluidStack probe = HbmFluids.toNeoStack(type, MAX_BALANCE_PER_ENDPOINT);
         for (Endpoint endpoint : endpoints(level, type, pipes, null).endpoints()) {
-            if (endpoint.handler().fill(probe, IFluidHandler.FluidAction.SIMULATE) > 0) {
+            if (fillEndpoint(level, endpoint.pos(), endpoint.side(), endpoint.handler(), probe,
+                    IFluidHandler.FluidAction.SIMULATE, "debug subscriber probe") > 0) {
                 subscribers++;
             }
-            FluidStack supplied = endpoint.handler().drain(probe, IFluidHandler.FluidAction.SIMULATE);
+            FluidStack supplied = drainEndpoint(level, endpoint.pos(), endpoint.side(), endpoint.handler(), probe,
+                    IFluidHandler.FluidAction.SIMULATE, "debug provider probe");
             if (!supplied.isEmpty() && HbmFluids.fromNeoFluid(supplied.getFluid()).filter(definition -> definition == type).isPresent()) {
                 providers++;
             }
@@ -252,25 +257,30 @@ public final class HbmFluidNetworks {
         if (!mobileFluidEndpointAllowed(level, target)) {
             return FluidStack.EMPTY;
         }
-        IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, target, side);
+        IFluidHandler handler = fluidHandler(level, target, side, "direct drain discovery");
         if (handler == null) {
             return FluidStack.EMPTY;
         }
-        return drainCompatible(handler, type, amount, execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
+        return drainCompatible(level, target, side, handler, type, amount,
+                execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
     }
 
-    private static FluidStack drainCompatible(IFluidHandler handler, HbmFluidDefinition type, int amount, IFluidHandler.FluidAction action) {
+    private static FluidStack drainCompatible(Level level, BlockPos pos, @Nullable Direction side,
+                                              IFluidHandler handler, HbmFluidDefinition type, int amount,
+                                              IFluidHandler.FluidAction action) {
         if (handler == null || type == null || type.isNone() || amount <= 0) {
             return FluidStack.EMPTY;
         }
 
-        FluidStack exact = handler.drain(HbmFluids.toNeoStack(type, amount), action);
+        FluidStack exact = drainEndpoint(level, pos, side, handler, HbmFluids.toNeoStack(type, amount), action,
+                "typed drain");
         if (!exact.isEmpty() && HbmFluids.fromNeoFluid(exact.getFluid()).filter(definition -> definition == type).isPresent()) {
             return HbmFluids.toNeoStack(type, Math.min(amount, exact.getAmount()));
         }
 
-        for (int tank = 0; tank < handler.getTanks(); tank++) {
-            FluidStack stored = handler.getFluidInTank(tank);
+        int tanks = endpointTankCount(level, pos, side, handler);
+        for (int tank = 0; tank < tanks; tank++) {
+            FluidStack stored = endpointFluidInTank(level, pos, side, handler, tank);
             if (stored.isEmpty()) {
                 continue;
             }
@@ -279,7 +289,7 @@ public final class HbmFluidNetworks {
             }
             FluidStack request = stored.copy();
             request.setAmount(Math.min(amount, stored.getAmount()));
-            FluidStack drained = handler.drain(request, action);
+            FluidStack drained = drainEndpoint(level, pos, side, handler, request, action, "compatible drain");
             if (!drained.isEmpty()
                     && HbmFluids.fromNeoFluid(drained.getFluid()).filter(definition -> definition == type).isPresent()) {
                 return HbmFluids.toNeoStack(type, Math.min(amount, drained.getAmount()));
@@ -310,8 +320,10 @@ public final class HbmFluidNetworks {
         if (!mobileFluidEndpointAllowed(level, target)) {
             return 0;
         }
-        IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, target, side);
-        return handler == null ? 0 : handler.fill(stack, execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
+        IFluidHandler handler = fluidHandler(level, target, side, "direct fill discovery");
+        return handler == null ? 0 : fillEndpoint(level, target, side, handler, stack,
+                execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE,
+                "direct fill");
     }
 
     public static FluidStack drainFromPipeNetwork(Level level, BlockPos start, HbmFluidDefinition type, int amount, @Nullable BlockPos excluded, boolean execute) {
@@ -337,7 +349,7 @@ public final class HbmFluidNetworks {
         for (int i = 0; i < selection.endpoints().size() && remaining > 0; i++) {
             int endpointIndex = (startIndex + i) % selection.endpoints().size();
             Endpoint endpoint = selection.endpoints().get(endpointIndex);
-            FluidStack drained = drainCompatible(endpoint.handler(), type, remaining,
+            FluidStack drained = drainCompatible(level, endpoint.pos(), endpoint.side(), endpoint.handler(), type, remaining,
                     execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
             if (drained.isEmpty()) {
                 continue;
@@ -378,7 +390,9 @@ public final class HbmFluidNetworks {
             Endpoint endpoint = selection.endpoints().get(endpointIndex);
             FluidStack slice = offered.copy();
             slice.setAmount(remaining);
-            int accepted = endpoint.handler().fill(slice, execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
+            int accepted = fillEndpoint(level, endpoint.pos(), endpoint.side(), endpoint.handler(), slice,
+                    execute ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE,
+                    "pipe-network fill");
             if (accepted <= 0) {
                 continue;
             }
@@ -411,9 +425,10 @@ public final class HbmFluidNetworks {
                         || !canPipeConnect(level, pipePos, direction, type)) {
                     continue;
                 }
-                IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, target, direction.getOpposite());
+                Direction endpointSide = direction.getOpposite();
+                IFluidHandler handler = fluidHandler(level, target, endpointSide, "pipe endpoint discovery");
                 if (handler != null) {
-                    endpoints.add(new Endpoint(target, direction.getOpposite(), handler));
+                    endpoints.add(new Endpoint(target, endpointSide, handler));
                 }
             }
         }
@@ -447,8 +462,10 @@ public final class HbmFluidNetworks {
             List<BalanceEndpointSnapshot> endpoints = new ArrayList<>();
             FluidStack probe = HbmFluids.toNeoStack(type, MAX_BALANCE_PER_ENDPOINT);
             for (Endpoint endpoint : endpoints(level, type, component.pipes(), null).endpoints()) {
-                int demand = Math.max(0, endpoint.handler().fill(probe, IFluidHandler.FluidAction.SIMULATE));
-                FluidStack availableStack = drainCompatible(endpoint.handler(), type, MAX_BALANCE_PER_ENDPOINT,
+                int demand = fillEndpoint(level, endpoint.pos(), endpoint.side(), endpoint.handler(), probe,
+                        IFluidHandler.FluidAction.SIMULATE, "balance demand probe");
+                FluidStack availableStack = drainCompatible(level, endpoint.pos(), endpoint.side(), endpoint.handler(),
+                        type, MAX_BALANCE_PER_ENDPOINT,
                         IFluidHandler.FluidAction.SIMULATE);
                 int available = HbmFluids.fromNeoFluid(availableStack.getFluid())
                         .filter(definition -> definition == type)
@@ -636,11 +653,13 @@ public final class HbmFluidNetworks {
             if (!fluidEndpointMatchesNetwork(level, entry.getKey().pos(), networkKey)) {
                 continue;
             }
-            IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, entry.getKey().pos(), entry.getKey().side());
+            IFluidHandler handler = fluidHandler(level, entry.getKey().pos(), entry.getKey().side(),
+                    "balance provider refresh");
             if (handler == null) {
                 continue;
             }
-            FluidStack stack = drainCompatible(handler, type, entry.getValue(), IFluidHandler.FluidAction.EXECUTE);
+            FluidStack stack = drainCompatible(level, entry.getKey().pos(), entry.getKey().side(), handler,
+                    type, entry.getValue(), IFluidHandler.FluidAction.EXECUTE);
             if (!stack.isEmpty() && HbmFluids.fromNeoFluid(stack.getFluid()).filter(definition -> definition == type).isPresent()) {
                 drained += stack.getAmount();
             }
@@ -654,10 +673,94 @@ public final class HbmFluidNetworks {
             if (!fluidEndpointMatchesNetwork(level, entry.getKey().pos(), networkKey)) {
                 continue;
             }
-            IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, entry.getKey().pos(), entry.getKey().side());
+            IFluidHandler handler = fluidHandler(level, entry.getKey().pos(), entry.getKey().side(),
+                    "balance receiver refresh");
             if (handler != null) {
-                handler.fill(HbmFluids.toNeoStack(type, entry.getValue()), IFluidHandler.FluidAction.EXECUTE);
+                fillEndpoint(level, entry.getKey().pos(), entry.getKey().side(), handler,
+                        HbmFluids.toNeoStack(type, entry.getValue()), IFluidHandler.FluidAction.EXECUTE,
+                        "balance receiver fill");
             }
+        }
+    }
+
+    @Nullable
+    private static IFluidHandler fluidHandler(Level level, BlockPos pos, @Nullable Direction side, String operation) {
+        try {
+            return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, side);
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, pos, side, "fluid handler", operation, failure);
+            return null;
+        }
+    }
+
+    private static int fillEndpoint(Level level, BlockPos pos, @Nullable Direction side, IFluidHandler handler,
+                                    FluidStack stack, IFluidHandler.FluidAction action, String operation) {
+        try {
+            int accepted = handler.fill(stack, action);
+            if (accepted < 0 || accepted > stack.getAmount()) {
+                ExternalCapabilitySafety.report(level, pos, side, "fluid handler", operation,
+                        new IllegalStateException("fill returned " + accepted + " for an offer of " + stack.getAmount()));
+                return Math.max(0, Math.min(stack.getAmount(), accepted));
+            }
+            return accepted;
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, pos, side, "fluid handler", operation, failure);
+            return 0;
+        }
+    }
+
+    private static FluidStack drainEndpoint(Level level, BlockPos pos, @Nullable Direction side, IFluidHandler handler,
+                                            FluidStack request, IFluidHandler.FluidAction action, String operation) {
+        try {
+            FluidStack drained = handler.drain(request, action);
+            if (drained == null) {
+                ExternalCapabilitySafety.report(level, pos, side, "fluid handler", operation,
+                        new IllegalStateException("drain returned null"));
+                return FluidStack.EMPTY;
+            }
+            if (drained.getAmount() > request.getAmount()) {
+                ExternalCapabilitySafety.report(level, pos, side, "fluid handler", operation,
+                        new IllegalStateException("drain returned " + drained.getAmount()
+                                + " for a request of " + request.getAmount()));
+                FluidStack clamped = drained.copy();
+                clamped.setAmount(request.getAmount());
+                return clamped;
+            }
+            return drained;
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, pos, side, "fluid handler", operation, failure);
+            return FluidStack.EMPTY;
+        }
+    }
+
+    private static int endpointTankCount(Level level, BlockPos pos, @Nullable Direction side, IFluidHandler handler) {
+        try {
+            int tanks = handler.getTanks();
+            if (tanks < 0) {
+                ExternalCapabilitySafety.report(level, pos, side, "fluid handler", "tank count probe",
+                        new IllegalStateException("getTanks returned " + tanks));
+                return 0;
+            }
+            return tanks;
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, pos, side, "fluid handler", "tank count probe", failure);
+            return 0;
+        }
+    }
+
+    private static FluidStack endpointFluidInTank(Level level, BlockPos pos, @Nullable Direction side,
+                                                  IFluidHandler handler, int tank) {
+        try {
+            FluidStack stored = handler.getFluidInTank(tank);
+            if (stored == null) {
+                ExternalCapabilitySafety.report(level, pos, side, "fluid handler", "tank content probe",
+                        new IllegalStateException("getFluidInTank returned null for tank " + tank));
+                return FluidStack.EMPTY;
+            }
+            return stored;
+        } catch (RuntimeException | LinkageError failure) {
+            ExternalCapabilitySafety.report(level, pos, side, "fluid handler", "tank content probe", failure);
+            return FluidStack.EMPTY;
         }
     }
 
@@ -834,7 +937,10 @@ public final class HbmFluidNetworks {
         private CompletableFuture<SolveResult> inFlight;
         private CompletableFuture<BalanceResult> balanceInFlight;
         private long graphVersion;
+        private long inFlightGraphVersion = Long.MIN_VALUE;
+        private long failedTopologyVersion = Long.MIN_VALUE;
         private long lastBalanceTick = Long.MIN_VALUE;
+        private long nextBalanceAttemptTick = Long.MIN_VALUE;
         private long lastPruneTick = Long.MIN_VALUE;
         private long transferTick = Long.MIN_VALUE;
         private boolean dirty = true;
@@ -931,8 +1037,17 @@ public final class HbmFluidNetworks {
                     this.transferTick = level.getGameTime();
                 }
                 if (this.balanceInFlight != null && this.balanceInFlight.isDone()) {
-                    completed = this.balanceInFlight.join();
+                    CompletableFuture<BalanceResult> completedFuture = this.balanceInFlight;
                     this.balanceInFlight = null;
+                    try {
+                        completed = completedFuture.join();
+                        this.nextBalanceAttemptTick = Long.MIN_VALUE;
+                    } catch (CancellationException exception) {
+                        discardFailedBalance(gameTime, "was cancelled", exception);
+                    } catch (CompletionException exception) {
+                        discardFailedBalance(gameTime, "failed",
+                                exception.getCause() == null ? exception : exception.getCause());
+                    }
                 }
                 if (!this.componentsByPipe.isEmpty()) {
                     components = Set.copyOf(this.componentsByPipe.values());
@@ -947,7 +1062,9 @@ public final class HbmFluidNetworks {
                 return;
             }
             synchronized (this) {
-                if (this.balanceInFlight != null || this.lastBalanceTick == gameTime) {
+                if (this.balanceInFlight != null
+                        || gameTime < this.nextBalanceAttemptTick
+                        || this.lastBalanceTick == gameTime) {
                     return;
                 }
                 this.lastBalanceTick = gameTime;
@@ -994,18 +1111,50 @@ public final class HbmFluidNetworks {
 
         private void tick() {
             if (this.inFlight != null && this.inFlight.isDone()) {
-                SolveResult result = this.inFlight.join();
+                CompletableFuture<SolveResult> completed = this.inFlight;
                 this.inFlight = null;
-                if (result.graphVersion() == this.graphVersion) {
-                    this.componentsByPipe = result.componentsByPipe();
+                try {
+                    SolveResult result = completed.join();
+                    this.failedTopologyVersion = Long.MIN_VALUE;
+                    if (result.graphVersion() == this.graphVersion) {
+                        this.componentsByPipe = result.componentsByPipe();
+                    }
+                } catch (CancellationException exception) {
+                    discardFailedTopologySolve(this.inFlightGraphVersion, "was cancelled", exception);
+                } catch (CompletionException exception) {
+                    discardFailedTopologySolve(this.inFlightGraphVersion, "failed",
+                            exception.getCause() == null ? exception : exception.getCause());
+                } finally {
+                    this.inFlightGraphVersion = Long.MIN_VALUE;
                 }
             }
 
-            if (this.dirty && this.inFlight == null) {
+            if (this.dirty && this.inFlight == null && this.graphVersion != this.failedTopologyVersion) {
                 SolveSnapshot snapshot = new SolveSnapshot(this.graphVersion, Map.copyOf(this.pipes));
                 this.dirty = false;
+                this.inFlightGraphVersion = snapshot.graphVersion();
                 this.inFlight = CompletableFuture.supplyAsync(() -> solve(snapshot), SOLVER);
             }
+        }
+
+        private void discardFailedTopologySolve(long failedVersion, String reason, Throwable cause) {
+            // Fail closed: callers see no connected component until a real
+            // topology mutation supplies a fresh snapshot. This prevents both
+            // stale fluid routing and a deterministic exception retry loop.
+            this.componentsByPipe = Map.of();
+            this.failedTopologyVersion = failedVersion;
+            this.dirty = this.graphVersion != failedVersion;
+            ReinhardtsHBM.LOGGER.error("Asynchronous fluid-network topology solve {} for {}; routes discarded",
+                    reason, this.key, cause);
+        }
+
+        private void discardFailedBalance(long gameTime, String reason, Throwable cause) {
+            // A failed balance pass has not mutated world handlers. Discard it
+            // and retry after one second instead of propagating the worker
+            // exception through LevelTickEvent.
+            this.nextBalanceAttemptTick = gameTime + 20L;
+            ReinhardtsHBM.LOGGER.error("Asynchronous fluid-network balance solve {} for {}; pass discarded",
+                    reason, this.key, cause);
         }
     }
 

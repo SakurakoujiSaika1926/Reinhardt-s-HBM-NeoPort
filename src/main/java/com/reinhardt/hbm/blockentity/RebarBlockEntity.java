@@ -9,6 +9,7 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /** Stores the selected concrete and the original 1,000 mB curing progress. */
 public final class RebarBlockEntity extends BlockEntity {
@@ -38,14 +40,28 @@ public final class RebarBlockEntity extends BlockEntity {
     private final HbmFluidTank concrete = new HbmFluidTank(HbmFluids.byName("concrete").orElse(HbmFluids.none()), CONCRETE_REQUIRED);
     private BlockState targetState = HbmBlocks.CONCRETE_REBAR.get().defaultBlockState();
     private int targetMeta;
+    private static volatile Consumer<RebarBlockEntity> clientRenderSnapshotUpdater = rebar -> { };
+    private static volatile long clientRenderSnapshotRevision;
+    private volatile RenderSnapshot renderSnapshot;
+    private boolean renderSnapshotDirty = true;
 
     public RebarBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.REBAR.get(), pos, state);
+        this.renderSnapshot = new RenderSnapshot(this.targetState, null, new net.minecraft.world.phys.AABB(pos), -1L);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, RebarBlockEntity rebar) {
-        if (level.isClientSide || rebar.concrete.amount() < CONCRETE_REQUIRED) return;
+        if (level.isClientSide) {
+            rebar.refreshClientRenderSnapshot();
+            return;
+        }
+        if (rebar.concrete.amount() < CONCRETE_REQUIRED) return;
         level.setBlock(pos, rebar.targetState, Block.UPDATE_ALL);
+    }
+
+    public static void setClientRenderSnapshotUpdater(Consumer<RebarBlockEntity> updater) {
+        clientRenderSnapshotUpdater = updater == null ? rebar -> { } : updater;
+        clientRenderSnapshotRevision++;
     }
 
     public void setup(ItemStack selected) {
@@ -58,6 +74,8 @@ public final class RebarBlockEntity extends BlockEntity {
             } else if (this.targetState.hasProperty(VinylTileBlock.META)) {
                 this.targetState = this.targetState.setValue(VinylTileBlock.META, Math.min(1, Math.max(0, this.targetMeta)));
             }
+            this.renderSnapshotDirty = true;
+            refreshClientRenderSnapshot();
             sync();
         }
     }
@@ -68,6 +86,34 @@ public final class RebarBlockEntity extends BlockEntity {
 
     public BlockState targetState() {
         return targetState;
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
+    }
+
+    public long clientRenderSnapshotRevision() {
+        return clientRenderSnapshotRevision;
+    }
+
+    public void publishRenderSnapshot(RenderSnapshot next) {
+        RenderSnapshot previous = this.renderSnapshot;
+        this.renderSnapshot = next;
+        this.renderSnapshotDirty = false;
+        if (this.level != null && this.level.isClientSide
+                && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+            BlockState state = getBlockState();
+            this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private void refreshClientRenderSnapshot() {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        if (this.renderSnapshotDirty || this.renderSnapshot.revision() != clientRenderSnapshotRevision) {
+            clientRenderSnapshotUpdater.accept(this);
+        }
     }
 
     public IFluidHandler fluidHandler() {
@@ -95,6 +141,15 @@ public final class RebarBlockEntity extends BlockEntity {
         } else if (targetState.hasProperty(VinylTileBlock.META)) {
             targetState = targetState.setValue(VinylTileBlock.META, Math.min(1, Math.max(0, targetMeta)));
         }
+        this.renderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        this.renderSnapshotDirty = true;
+        refreshClientRenderSnapshot();
     }
 
     @Override
@@ -206,5 +261,26 @@ public final class RebarBlockEntity extends BlockEntity {
         }
         @Override public FluidStack drain(FluidStack resource, FluidAction action) { return FluidStack.EMPTY; }
         @Override public FluidStack drain(int maxDrain, FluidAction action) { return FluidStack.EMPTY; }
+    }
+
+    private static boolean sameSectionCoverage(net.minecraft.world.phys.AABB first,
+                                               net.minecraft.world.phys.AABB second) {
+        return SectionPos.blockToSectionCoord(first.minX) == SectionPos.blockToSectionCoord(second.minX)
+                && SectionPos.blockToSectionCoord(first.minY) == SectionPos.blockToSectionCoord(second.minY)
+                && SectionPos.blockToSectionCoord(first.minZ) == SectionPos.blockToSectionCoord(second.minZ)
+                && SectionPos.blockToSectionCoord(inclusiveMaximum(first.minX, first.maxX))
+                == SectionPos.blockToSectionCoord(inclusiveMaximum(second.minX, second.maxX))
+                && SectionPos.blockToSectionCoord(inclusiveMaximum(first.minY, first.maxY))
+                == SectionPos.blockToSectionCoord(inclusiveMaximum(second.minY, second.maxY))
+                && SectionPos.blockToSectionCoord(inclusiveMaximum(first.minZ, first.maxZ))
+                == SectionPos.blockToSectionCoord(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RenderSnapshot(BlockState targetState, Object modelToken,
+                                 net.minecraft.world.phys.AABB bounds, long revision) {
     }
 }

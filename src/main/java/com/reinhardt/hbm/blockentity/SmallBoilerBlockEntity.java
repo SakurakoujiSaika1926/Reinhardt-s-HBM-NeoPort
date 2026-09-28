@@ -13,6 +13,7 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.util.FluidCopiable;
+import com.reinhardt.hbm.util.FuelItemConsumption;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -345,7 +346,7 @@ public class SmallBoilerBlockEntity extends BlockEntity implements MachineInvent
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -547,10 +548,9 @@ public class SmallBoilerBlockEntity extends BlockEntity implements MachineInvent
         if (duration <= 0) {
             return;
         }
-        Item consumedItem = fuel.getItem();
-        fuel.shrink(1);
+        ItemStack remainder = FuelItemConsumption.consumeOne(fuel);
         if (fuel.isEmpty()) {
-            this.items[FUEL_OR_BATTERY_SLOT] = consumedItem == Items.LAVA_BUCKET ? new ItemStack(Items.BUCKET) : ItemStack.EMPTY;
+            this.items[FUEL_OR_BATTERY_SLOT] = remainder;
         }
         this.burnTime = duration;
         this.burnTimeTotal = duration;

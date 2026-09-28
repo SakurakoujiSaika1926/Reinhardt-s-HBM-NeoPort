@@ -19,6 +19,7 @@ public final class LegacyM65BlazeModel extends EntityModel<LegacyRadBeastEntity>
             ReinhardtsHBM.id("m65_blaze"), "main");
 
     private final ModelPart mask;
+    private static double authoredMaximumRootRadius;
 
     public LegacyM65BlazeModel(ModelPart root) {
         this.mask = root.getChild("mask");
@@ -49,6 +50,26 @@ public final class LegacyM65BlazeModel extends EntityModel<LegacyRadBeastEntity>
         parent.addOrReplaceChild(name,
                 CubeListBuilder.create().texOffs(u, v).mirror().addBox(x, y, z, dx, dy, dz),
                 PartPose.offsetAndRotation(pivotX, pivotY, pivotZ, xRot, 0.0F, 0.0F));
+        double sin = Math.sin(xRot);
+        double cos = Math.cos(xRot);
+        for (float cornerX : new float[] {x, x + dx}) {
+            for (float cornerY : new float[] {y, y + dy}) {
+                for (float cornerZ : new float[] {z, z + dz}) {
+                    double rotatedY = cornerY * cos - cornerZ * sin;
+                    double rotatedZ = cornerY * sin + cornerZ * cos;
+                    double worldX = (pivotX + cornerX) / 16.0D;
+                    double worldY = (pivotY + rotatedY) / 16.0D;
+                    double worldZ = (pivotZ + rotatedZ) / 16.0D;
+                    authoredMaximumRootRadius = Math.max(authoredMaximumRootRadius,
+                            Math.sqrt(worldX * worldX + worldY * worldY + worldZ * worldZ));
+                }
+            }
+        }
+    }
+
+    /** Exact maximum authored mask-corner radius after every child pivot/rotation. */
+    static double authoredMaximumRootRadius() {
+        return authoredMaximumRootRadius;
     }
 
     @Override

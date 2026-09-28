@@ -1,0 +1,47 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.0gassembler",
+  "duration": 600,
+  "power": 25000,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:shell_weaponsteel"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "c:plates/bismoid_bronze_cast"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:billet_pu_mix"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:motor_bismuth"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:circuit_quantum"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:part_generic_lde"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:satellite_science_assembler"
+  }
+}

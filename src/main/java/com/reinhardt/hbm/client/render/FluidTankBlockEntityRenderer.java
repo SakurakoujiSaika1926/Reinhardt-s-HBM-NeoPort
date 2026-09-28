@@ -3,14 +3,13 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.FluidTankBlock;
 import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTrait;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -29,15 +28,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FluidTankBlockEntityRenderer implements BlockEntityRenderer<FluidTankBlockEntity> {
+public class FluidTankBlockEntityRenderer implements LongRangeBlockEntityRenderer<FluidTankBlockEntity> {
     private static final ResourceLocation OBJ_LOCATION = ReinhardtsHBM.id("models/obj/machines/fluidtank.obj");
     private static final ResourceLocation FRAME_TEXTURE = ReinhardtsHBM.id("textures/models/machines/tank.png");
     private static final ResourceLocation NONE_TEXTURE = tankTexture("none");
     private static final ResourceLocation DANGER_TEXTURE = tankTexture("danger");
+    private static final TextureChoice NONE_TEXTURE_CHOICE = new TextureChoice(NONE_TEXTURE, 0xFFFFFFFF);
+    private static final TextureChoice DANGER_TEXTURE_CHOICE = new TextureChoice(DANGER_TEXTURE, 0xFFFFFFFF);
     private static final ObjMesh MESH = ObjMesh.load(OBJ_LOCATION);
     private static final List<ObjFace> FRAME_FACES = MESH.faces("Frame");
     private static final List<ObjFace> TANK_FACES = MESH.faces("Tank");
     private static final Map<ResourceLocation, Boolean> TEXTURE_EXISTS = new ConcurrentHashMap<>();
+    private static final Map<HbmFluidDefinition, TextureChoice> FLUID_TEXTURES = new ConcurrentHashMap<>();
+    private static final AABB[] LOCAL_BOUNDS = buildFluidTankBounds();
 
     public FluidTankBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -45,17 +48,19 @@ public class FluidTankBlockEntityRenderer implements BlockEntityRenderer<FluidTa
     @Override
     public void render(FluidTankBlockEntity tank, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = tank.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        Direction facing = fluidTankFacing(state);
 
         poseStack.pushPose();
-        MachineModelRenderer.orientLegacyWavefrontOriginYaw(poseStack, legacyYaw(facing));
+        applyFluidTankTransform(poseStack, facing);
         renderModel(tank.tank().type(), poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(FluidTankBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 4.0D, 2.0D);
+        Direction facing = fluidTankFacing(blockEntity.getBlockState());
+        // Face-used Frame+Tank union from the same custom-loaded OBJ used by renderModel.
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
     static void renderModel(HbmFluidDefinition fluid, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
@@ -104,10 +109,14 @@ public class FluidTankBlockEntityRenderer implements BlockEntityRenderer<FluidTa
 
     static TextureChoice tankTexture(HbmFluidDefinition fluid) {
         if (fluid == null || fluid.isNone()) {
-            return new TextureChoice(NONE_TEXTURE, 0xFFFFFFFF);
+            return NONE_TEXTURE_CHOICE;
         }
+        return FLUID_TEXTURES.computeIfAbsent(fluid, FluidTankBlockEntityRenderer::resolveTankTexture);
+    }
+
+    private static TextureChoice resolveTankTexture(HbmFluidDefinition fluid) {
         if (fluid.hasTrait(HbmFluidTrait.ANTIMATTER) || isHighlyCorrosive(fluid)) {
-            return new TextureChoice(DANGER_TEXTURE, 0xFFFFFFFF);
+            return DANGER_TEXTURE_CHOICE;
         }
         ResourceLocation texture = tankTexture(fluid.name());
         if (resourceExists(texture)) {
@@ -143,13 +152,35 @@ public class FluidTankBlockEntityRenderer implements BlockEntityRenderer<FluidTa
         return false;
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 90.0F;
-            case SOUTH -> 0.0F;
-            case WEST -> 270.0F;
-            default -> 180.0F;
-        };
+    private static AABB[] buildFluidTankBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyFluidTankTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -2.75F, 0.0F, -1.5F, 2.75F, 3.28125F, 1.5F);
+        }
+        return bounds;
+    }
+
+    private static void applyFluidTankTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            // RenderFluidTank metadata 2/3/4/5: 180/0/270/90 degrees.
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Fluid tank facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction fluidTankFacing(BlockState state) {
+        if (!state.hasProperty(FluidTankBlock.FACING)) {
+            throw new IllegalStateException("Fluid tank state is missing its owned facing property: " + state);
+        }
+        return state.getValue(FluidTankBlock.FACING);
     }
 
     record TextureChoice(ResourceLocation texture, int color) {
@@ -157,6 +188,7 @@ public class FluidTankBlockEntityRenderer implements BlockEntityRenderer<FluidTa
 
     private static final class ObjMesh {
         private static final ObjMesh EMPTY = new ObjMesh(List.of(), List.of(), List.of(), Map.of());
+        private static final Vec3 DEFAULT_NORMAL = new Vec3(0.0D, 1.0D, 0.0D);
 
         private final List<Vec3> positions;
         private final List<Uv> uvs;
@@ -260,7 +292,7 @@ public class FluidTankBlockEntityRenderer implements BlockEntityRenderer<FluidTa
         }
 
         private Vec3 normal(int index) {
-            return index >= 0 && index < this.normals.size() ? this.normals.get(index) : new Vec3(0.0D, 1.0D, 0.0D);
+            return index >= 0 && index < this.normals.size() ? this.normals.get(index) : DEFAULT_NORMAL;
         }
     }
 

@@ -1,7 +1,9 @@
 {
   "type": "reinhardtshbm:blast_furnace",
+  "group": "blast.steelWithFlux",
   "input_a": { "tag": "c:ores/iron" },
-  "input_b": { "tag": "c:dusts/flux" },
-  "duration": 400,
-  "result": { "id": "reinhardtshbm:ingot_steel", "count": 3 }
+  "input_b": { "item": "reinhardtshbm:powder_flux" },
+  "duration": 1200,
+  "result": { "id": "reinhardtshbm:ingot_steel", "count": 3 },
+  "byproduct": { "id": "reinhardtshbm:ingot_raw_slag", "count": 2 }
 }

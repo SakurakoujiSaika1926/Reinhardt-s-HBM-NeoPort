@@ -1,0 +1,1 @@
+{"type":"reinhardtshbm:assembly_machine","group":"ass.firecloth","duration":50,"power":100,"ingredients":[{"ingredient":{"tag":"c:ingots/asbestos"},"count":1},{"ingredient":{"item":"minecraft:string"},"count":8}],"result":{"id":"reinhardtshbm:asbestos_cloth","count":4}}

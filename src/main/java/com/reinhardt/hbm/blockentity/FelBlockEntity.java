@@ -10,7 +10,6 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import com.reinhardt.hbm.util.Wavelength;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -273,7 +272,7 @@ public class FelBlockEntity extends BlockEntity implements PowerEndpoint, Machin
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -506,7 +505,20 @@ public class FelBlockEntity extends BlockEntity implements PowerEndpoint, Machin
     }
 
     private BlockPos powerProxyPos() {
-        return this.worldPosition.offset(LegacyMachineGeometry.rotateLegacySouth(POWER_PROXY_OFFSET, facing())).immutable();
+        return this.worldPosition.offset(mapFelPowerOffset(facing(), POWER_PROXY_OFFSET)).immutable();
+    }
+
+    private static BlockPos mapFelPowerOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case SOUTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(z, y, -x);
+            case NORTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(-z, y, x);
+            case UP, DOWN -> throw new IllegalArgumentException("FEL requires a horizontal facing: " + facing);
+        };
     }
 
     private BlockPos powerCablePos() {

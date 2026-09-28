@@ -1,1 +1,12 @@
-{"variants":{"variant=0":{"model":"reinhardtshbm:block/cm_engine_standard"},"variant=1":{"model":"reinhardtshbm:block/cm_engine_desh"},"variant=2":{"model":"reinhardtshbm:block/cm_engine_bismuth"}}}
+{
+  "variants": {
+    "variant=0": { "model": "reinhardtshbm:block/cm_engine_standard" },
+    "variant=1": { "model": "reinhardtshbm:block/cm_engine_desh" },
+    "variant=2": { "model": "reinhardtshbm:block/cm_engine_bismuth" },
+    "variant=3": { "model": "reinhardtshbm:block/cm_engine_bismuth" },
+    "variant=4": { "model": "reinhardtshbm:block/cm_engine_bismuth" },
+    "variant=5": { "model": "reinhardtshbm:block/cm_engine_bismuth" },
+    "variant=6": { "model": "reinhardtshbm:block/cm_engine_bismuth" },
+    "variant=7": { "model": "reinhardtshbm:block/cm_engine_bismuth" }
+  }
+}

@@ -2,22 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " S ",
-    "PGP",
-    "IMI"
+    "S",
+    "G",
+    "M"
   ],
   "key": {
     "S": {
       "item": "reinhardtshbm:shell_steel"
     },
-    "P": {
-      "item": "reinhardtshbm:pipe_steel"
-    },
     "G": {
       "tag": "c:ingots/graphite"
-    },
-    "I": {
-      "tag": "c:ingots/steel"
     },
     "M": {
       "item": "reinhardtshbm:motor"

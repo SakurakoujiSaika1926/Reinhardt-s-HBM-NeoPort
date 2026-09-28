@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.worldgen;
 
 import com.reinhardt.hbm.block.DeadPlantBlock;
-import com.reinhardt.hbm.block.MustardWillowFlowerBlock;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,7 +20,8 @@ public final class OilFieldSurfaceEffects {
     private OilFieldSurfaceEffects() {
     }
 
-    public static void addOilDepositSurfaceSpot(WorldGenLevel level, RandomSource random, int centerX, int centerZ) {
+    public static void addOilDepositSurfaceSpot(WorldGenLevel level, RandomSource random, int centerX, int centerZ,
+                                                WorldgenFeatureBounds writeBounds) {
         int spotCount = 150;
         int spotWidth = 7;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -31,6 +31,9 @@ public final class OilFieldSurfaceEffects {
             int offZ = (int) (random.nextGaussian() * spotWidth);
             int absX = centerX + offX;
             int absZ = centerZ + offZ;
+            if (!writeBounds.contains(absX, absZ)) {
+                continue;
+            }
             int startY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, absX, absZ);
 
             for (int y = startY; y >= level.getMinBuildHeight(); y--) {
@@ -64,15 +67,20 @@ public final class OilFieldSurfaceEffects {
             }
         }
 
-        addOilSeep(level, centerX, centerZ);
+        addOilSeep(level, centerX, centerZ, writeBounds);
     }
 
-    public static void generateBedrockOilSpot(WorldGenLevel level, RandomSource random, int centerX, int centerZ, int width, int count, boolean addRichPlants) {
+    public static void generateBedrockOilSpot(WorldGenLevel level, RandomSource random, int centerX, int centerZ,
+                                              int width, int count, boolean addRichPlants,
+                                              WorldgenFeatureBounds writeBounds) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         for (int i = 0; i < count; i++) {
             int x = centerX + (int) (random.nextGaussian() * width);
             int z = centerZ + (int) (random.nextGaussian() * width);
+            if (!writeBounds.contains(x, z)) {
+                continue;
+            }
             int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
 
             for (int y = surfaceY; y > surfaceY - 4 && y > level.getMinBuildHeight(); y--) {
@@ -163,12 +171,16 @@ public final class OilFieldSurfaceEffects {
         }
     }
 
-    private static void addOilSeep(WorldGenLevel level, int centerX, int centerZ) {
+    private static void addOilSeep(WorldGenLevel level, int centerX, int centerZ,
+                                   WorldgenFeatureBounds writeBounds) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 1; i < 6; i++) {
             Direction facing = Direction.from3DDataValue(i);
             int x = centerX + facing.getStepX();
             int z = centerZ + facing.getStepZ();
+            if (!writeBounds.contains(x, z)) {
+                continue;
+            }
             int solids = 0;
             int startY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
 
@@ -271,7 +283,7 @@ public final class OilFieldSurfaceEffects {
         if (!level.getBlockState(pos).isAir()) {
             return;
         }
-        BlockState willow = HbmBlocks.PLANT_FLOWER.get().defaultBlockState().setValue(MustardWillowFlowerBlock.META, MustardWillowFlowerBlock.CD0);
+        BlockState willow = HbmBlocks.PLANT_MUSTARD_WILLOW.get().defaultBlockState();
         if (willow.canSurvive(level, pos)) {
             level.setBlock(pos, willow, SET_FLAGS);
         }
@@ -281,7 +293,7 @@ public final class OilFieldSurfaceEffects {
         if (!level.getBlockState(pos).isAir()) {
             return;
         }
-        BlockState willow = HbmBlocks.PLANT_FLOWER.get().defaultBlockState().setValue(MustardWillowFlowerBlock.META, MustardWillowFlowerBlock.CD0);
+        BlockState willow = HbmBlocks.PLANT_MUSTARD_WILLOW.get().defaultBlockState();
         if (willow.canSurvive(level, pos)) {
             level.setBlock(pos, willow, SET_FLAGS);
         }
@@ -346,7 +358,6 @@ public final class OilFieldSurfaceEffects {
 
     private static boolean isOilImmunePlant(BlockState state) {
         return state.is(HbmBlocks.PLANT_DEAD.get())
-                || state.is(HbmBlocks.PLANT_FLOWER.get())
-                || state.is(HbmBlocks.PLANT_TALL.get());
+                || state.is(HbmBlocks.PLANT_MUSTARD_WILLOW.get());
     }
 }

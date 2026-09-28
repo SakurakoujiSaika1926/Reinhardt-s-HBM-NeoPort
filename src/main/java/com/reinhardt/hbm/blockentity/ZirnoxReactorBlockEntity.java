@@ -18,6 +18,9 @@ import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
 import com.reinhardt.hbm.worldgen.ZirnoxWasteManager;
 import net.minecraft.core.BlockPos;
@@ -53,8 +56,10 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Locale;
 
-public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer, MenuProvider {
+public class ZirnoxReactorBlockEntity extends BlockEntity
+        implements MachineInventory, WorldlyContainer, MenuProvider, RttyValueProvider, RttyInteractive {
     public static final int ROD_SLOT_COUNT = 24;
     public static final int CO2_INPUT_SLOT = 24;
     public static final int WATER_INPUT_SLOT = 25;
@@ -87,6 +92,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
     private int output;
     private boolean active;
     private boolean redstonePowered;
+    private int rttySlot;
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -188,6 +194,81 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
     public void ventCarbonDioxide() {
         this.carbonDioxide.drain(carbonDioxide(), 1_000, false);
         sync();
+    }
+
+    @Override
+    public String[] rttyFunctionInfo() {
+        return new String[] {
+                RttyInfo.PREFIX_VALUE + "heat",
+                RttyInfo.PREFIX_VALUE + "pressure",
+                RttyInfo.PREFIX_VALUE + "water",
+                RttyInfo.PREFIX_VALUE + "steam",
+                RttyInfo.PREFIX_VALUE + "co2",
+                RttyInfo.PREFIX_VALUE + "state",
+                RttyInfo.PREFIX_VALUE + "slottype",
+                RttyInfo.PREFIX_VALUE + "slotdep",
+                RttyInfo.PREFIX_VALUE + "slotmaxdep",
+                RttyInfo.PREFIX_FUNCTION + "setslot" + RttyInteractive.NAME_SEPARATOR + "id (0 to 23)",
+                RttyInfo.PREFIX_FUNCTION + "setstate" + RttyInteractive.NAME_SEPARATOR + "active (0 or 1)",
+                RttyInfo.PREFIX_FUNCTION + "ventco2"
+        };
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (name.equals(RttyInfo.PREFIX_VALUE + "heat")) {
+            return Integer.toString((int) Math.round(this.heat * 1.0E-5D * 780.0D + 20.0D));
+        }
+        if (name.equals(RttyInfo.PREFIX_VALUE + "pressure")) {
+            return Integer.toString((int) Math.round(this.pressure * 1.0E-5D * 30.0D));
+        }
+        if (name.equals(RttyInfo.PREFIX_VALUE + "water")) return Integer.toString(this.water.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "steam")) return Integer.toString(this.steam.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "co2")) return Integer.toString(this.carbonDioxide.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "state")) return this.active ? "1" : "0";
+
+        ItemStack monitored = this.items.get(this.rttySlot);
+        if (!(monitored.getItem() instanceof ZirnoxRodItem rod)) {
+            return name.equals(RttyInfo.PREFIX_VALUE + "slottype") ? "" : null;
+        }
+        ZirnoxRodItem.Fuel fuel = rod.fuel(monitored);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "slottype")) {
+            return fuel.id().toUpperCase(Locale.ROOT);
+        }
+        if (name.equals(RttyInfo.PREFIX_VALUE + "slotdep")) {
+            return Integer.toString(ZirnoxRodItem.life(monitored));
+        }
+        if (name.equals(RttyInfo.PREFIX_VALUE + "slotmaxdep")) {
+            return Integer.toString(fuel.maxLife());
+        }
+        return null;
+    }
+
+    @Override
+    public String runRttyFunction(String name, String[] params) {
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "setslot") && params.length > 0) {
+            if (this.redstonePowered) return null;
+            try {
+                int slot = Integer.parseInt(params[0]);
+                if (slot >= 0 && slot < ROD_SLOT_COUNT) this.rttySlot = slot;
+            } catch (NumberFormatException ignored) {
+            }
+            return null;
+        }
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "setstate") && params.length > 0) {
+            if (this.redstonePowered) return null;
+            try {
+                this.active = Integer.parseInt(params[0]) == 1;
+                setChanged();
+                sync();
+            } catch (NumberFormatException ignored) {
+            }
+            return null;
+        }
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "ventco2")) {
+            ventCarbonDioxide();
+        }
+        return null;
     }
 
     public void setRedstonePowered(boolean powered) {
@@ -307,7 +388,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -407,6 +488,11 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
                 + (int) (this.heat * (this.carbonDioxide.amount() / (float) Math.max(1, this.carbonDioxide.capacity())));
 
         if (this.heat > 0 && this.heat < MAX_HEAT) {
+            if (level instanceof ServerLevel serverLevel && level.getGameTime() % 100L == 0L) {
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                        serverLevel, this.worldPosition,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_NUCLEAR, 200);
+            }
             if (this.water.amount() > 0 && this.carbonDioxide.amount() > 0 && this.steam.amount() < this.steam.capacity()) {
                 generateSteam();
                 this.heat -= (int) (this.heat * this.pressure / 1_000_000.0F);
@@ -488,7 +574,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
         int cycle = (int) (((this.heat - 10_256F) / MAX_HEAT)
                 * Math.min(this.carbonDioxide.amount() / 14_000F, 1.0F)
                 * 25F
-                * 5F);
+                * 7.5F);
         if (cycle <= 0) {
             return;
         }
@@ -537,10 +623,12 @@ public class ZirnoxReactorBlockEntity extends BlockEntity implements MachineInve
 
         BlockState oldState = getBlockState();
         Direction facing = oldState.hasProperty(LargeMachineBlock.FACING) ? oldState.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
-        LargeMachineBlock.removeDummies(level, this.worldPosition, facing, ZirnoxReactorBlock.FOOTPRINT);
+        LargeMachineBlock.removeDummies(level, this.worldPosition, facing, ZirnoxReactorBlock.FOOTPRINT,
+                ZirnoxReactorBlock::mapZirnoxOffset);
         BlockState destroyed = HbmBlocks.ZIRNOX_DESTROYED.get().defaultBlockState().setValue(LargeMachineBlock.FACING, facing);
         level.setBlock(this.worldPosition, destroyed, 3);
-        LargeMachineBlock.placeDummies(level, this.worldPosition, facing, ZirnoxDestroyedBlock.FOOTPRINT);
+        LargeMachineBlock.placeDummies(level, this.worldPosition, facing, ZirnoxDestroyedBlock.FOOTPRINT,
+                ZirnoxDestroyedBlock::mapDestroyedZirnoxOffset);
         level.playSound(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 2.0D,
                 this.worldPosition.getZ() + 0.5D, HbmSoundEvents.RBMK_EXPLOSION.get(),
                 SoundSource.BLOCKS, 10.0F, 1.0F);

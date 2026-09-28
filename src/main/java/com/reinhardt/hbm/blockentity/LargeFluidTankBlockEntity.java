@@ -8,15 +8,18 @@ import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 
 import java.util.List;
 
@@ -27,10 +30,12 @@ public class LargeFluidTankBlockEntity extends FluidTankBlockEntity {
     private boolean tilted;
     private int floorBlocksChecked;
     private int floorBlocksValid;
+    private volatile RenderSnapshot renderSnapshot;
 
     public LargeFluidTankBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.LARGE_FLUID_TANK.get(), pos, state, CAPACITY,
                 "container.reinhardtshbm.big_ass_tank");
+        this.renderSnapshot = buildRenderSnapshot();
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, LargeFluidTankBlockEntity tank) {
@@ -47,8 +52,15 @@ public class LargeFluidTankBlockEntity extends FluidTankBlockEntity {
         return this.tilted;
     }
 
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
+    }
+
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         if (this.level == null || this.level.getBlockEntity(this.worldPosition) != this) {
             return false;
         }
@@ -134,7 +146,15 @@ public class LargeFluidTankBlockEntity extends FluidTankBlockEntity {
     private void syncTilt() {
         setChanged();
         if (this.level != null) {
-            this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            RenderSnapshot previous = this.renderSnapshot;
+            RenderSnapshot next = buildRenderSnapshot();
+            this.renderSnapshot = next;
+            if (!this.level.isClientSide || previous != null
+                    && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+                this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            }
+        } else {
+            this.renderSnapshot = buildRenderSnapshot();
         }
     }
 
@@ -148,5 +168,67 @@ public class LargeFluidTankBlockEntity extends FluidTankBlockEntity {
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         this.tilted = tag.getBoolean("Tilted");
+        RenderSnapshot previous = this.renderSnapshot;
+        RenderSnapshot next = buildRenderSnapshot();
+        this.renderSnapshot = next;
+        if (this.level != null && this.level.isClientSide && previous != null
+                && !sameSectionCoverage(previous.bounds(), next.bounds())) {
+            this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private RenderSnapshot buildRenderSnapshot() {
+        BlockState state = getBlockState();
+        Direction facing = state.hasProperty(LargeFluidTankBlock.FACING)
+                ? state.getValue(LargeFluidTankBlock.FACING) : Direction.SOUTH;
+        BlockPos pos = this.worldPosition;
+        AABB bounds;
+        if (!this.tilted) {
+            bounds = new AABB(pos.getX() - 6.0D, pos.getY() - 0.125D, pos.getZ() - 6.0D,
+                    pos.getX() + 7.0D, pos.getY() + 6.5D, pos.getZ() + 7.0D);
+        } else {
+            bounds = switch (facing) {
+                case WEST -> relativeBounds(pos,
+                        -6.093455621661639D, -2.131985263329315D, -5.228119688339022D,
+                        6.919807529826361D, 5.487744106676333D, 6.228119688339022D);
+                case SOUTH -> relativeBounds(pos,
+                        -6.009337567592793D, -1.951430666587992D, -6.0188434089701754D,
+                        5.8958316137105395D, 5.487744091541897D, 7.018843321814432D);
+                case EAST -> relativeBounds(pos,
+                        -6.093455707493291D, -2.131985278463751D, -5.228119688339022D,
+                        6.919807443994709D, 5.487744091541897D, 6.228119688339022D);
+                default -> relativeBounds(pos,
+                        -6.009337567592793D, -1.9514306968568635D, -6.018843321814432D,
+                        5.895831442047237D, 5.487744091541897D, 7.0188434089701754D);
+            };
+        }
+        return new RenderSnapshot(state, facing, this.tilted, bounds);
+    }
+
+    private static AABB relativeBounds(BlockPos pos,
+                                       double minX, double minY, double minZ,
+                                       double maxX, double maxY, double maxZ) {
+        return new AABB(pos.getX() + minX, pos.getY() + minY, pos.getZ() + minZ,
+                pos.getX() + maxX, pos.getY() + maxY, pos.getZ() + maxZ);
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(first.minY) == section(second.minY)
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RenderSnapshot(BlockState blockState, Direction facing, boolean tilted, AABB bounds) {
     }
 }

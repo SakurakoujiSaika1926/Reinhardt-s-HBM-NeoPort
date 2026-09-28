@@ -1,0 +1,26 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.aggregate",
+  "duration": 320,
+  "power": 500,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "minecraft:cobblestone"
+      },
+      "count": 16
+    }
+  ],
+  "input_fluids": [],
+  "output_items": [
+    {
+      "id": "minecraft:gravel",
+      "count": 8
+    },
+    {
+      "id": "minecraft:sand",
+      "count": 8
+    }
+  ],
+  "output_fluids": []
+}

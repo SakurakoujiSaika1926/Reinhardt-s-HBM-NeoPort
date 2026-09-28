@@ -4,9 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.block.CoolingTowerBlock;
 import com.reinhardt.hbm.blockentity.CoolingTowerBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -26,33 +26,60 @@ public class CoolingTowerBlockEntityRenderer implements LongRangeBlockEntityRend
     @Override
     public void render(CoolingTowerBlockEntity tower, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = tower.getBlockState();
-        ModelResourceLocation model = tower.kind() == CoolingTowerBlock.Kind.LARGE ? LARGE_WORLD : SMALL_WORLD;
-
-        poseStack.pushPose();
-        poseStack.translate(0.5D, 0.0D, 0.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
-        poseStack.popPose();
+        if (tower.kind() == CoolingTowerBlock.Kind.LARGE) {
+            renderLargeTower(state, poseStack, bufferSource, packedLight, packedOverlay);
+        } else {
+            renderSmallTower(state, poseStack, bufferSource, packedLight, packedOverlay);
+        }
     }
 
     @Override
     public AABB getRenderBoundingBox(CoolingTowerBlockEntity blockEntity) {
         if (blockEntity.kind() == CoolingTowerBlock.Kind.LARGE) {
-            return new AABB(
-                    blockEntity.getBlockPos().getX() - 4.0D,
-                    blockEntity.getBlockPos().getY(),
-                    blockEntity.getBlockPos().getZ() - 4.0D,
-                    blockEntity.getBlockPos().getX() + 5.0D,
-                    blockEntity.getBlockPos().getY() + 13.0D,
-                    blockEntity.getBlockPos().getZ() + 5.0D
-            );
+            return largeTowerRenderBounds(blockEntity.getBlockPos());
         }
-        return new AABB(
-                blockEntity.getBlockPos().getX() - 2.0D,
-                blockEntity.getBlockPos().getY(),
-                blockEntity.getBlockPos().getZ() - 2.0D,
-                blockEntity.getBlockPos().getX() + 3.0D,
-                blockEntity.getBlockPos().getY() + 20.0D,
-                blockEntity.getBlockPos().getZ() + 3.0D
-        );
+        return smallTowerRenderBounds(blockEntity.getBlockPos());
+    }
+
+    private static void renderSmallTower(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
+                                         int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applySmallTowerWorldPose(poseStack);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SMALL_WORLD), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void renderLargeTower(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
+                                         int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyLargeTowerWorldPose(poseStack);
+        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LARGE_WORLD), poseStack, bufferSource,
+                state, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applySmallTowerWorldPose(PoseStack poseStack) {
+        poseStack.translate(0.5D, 0.0D, 0.5D);
+    }
+
+    private static void applyLargeTowerWorldPose(PoseStack poseStack) {
+        poseStack.translate(0.5D, 0.0D, 0.5D);
+    }
+
+    private static AABB smallTowerRenderBounds(BlockPos pos) {
+        PoseStack poseStack = new PoseStack();
+        applySmallTowerWorldPose(poseStack);
+        // Exact face-used model extrema before the small tower's dedicated translation.
+        return RenderBounds.transformedBox(pos, poseStack,
+                -2.5F, 0.0F, -2.5F, 2.5F, 19.5F, 2.5F);
+    }
+
+    private static AABB largeTowerRenderBounds(BlockPos pos) {
+        PoseStack poseStack = new PoseStack();
+        applyLargeTowerWorldPose(poseStack);
+        // Exact face-used model extrema before the large tower's dedicated translation.
+        return RenderBounds.transformedBox(pos, poseStack,
+                -4.5F, 0.0F, -4.5F, 4.5F, 13.0F, 4.5F);
     }
 }

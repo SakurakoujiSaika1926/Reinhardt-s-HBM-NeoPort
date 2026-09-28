@@ -23,7 +23,6 @@ public class SoyuzCapsuleEntity extends Entity {
 
     public SoyuzCapsuleEntity(EntityType<? extends SoyuzCapsuleEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
         setNoGravity(true);
         for (int i = 0; i < this.payload.length; i++) {
             this.payload[i] = ItemStack.EMPTY;

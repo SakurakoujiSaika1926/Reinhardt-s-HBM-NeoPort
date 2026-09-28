@@ -52,6 +52,17 @@ public final class StoneKeyholeBlock extends Block {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case STONE -> stoneStateForPlacement(context);
+            case RED_BRICK -> redBrickStateForPlacement(context);
+        };
+    }
+
+    private BlockState stoneStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+    }
+
+    private BlockState redBrickStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
     }
 
@@ -282,11 +293,33 @@ public final class StoneKeyholeBlock extends Block {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case STONE -> rotateStone(state, rotation);
+            case RED_BRICK -> rotateRedBrick(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case STONE -> mirrorStone(state, mirror);
+            case RED_BRICK -> mirrorRedBrick(state, mirror);
+        };
+    }
+
+    private static BlockState rotateStone(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRedBrick(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorStone(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRedBrick(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

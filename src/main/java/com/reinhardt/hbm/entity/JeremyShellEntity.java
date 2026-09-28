@@ -38,7 +38,6 @@ public class JeremyShellEntity extends Entity {
 
     public JeremyShellEntity(EntityType<? extends JeremyShellEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public JeremyShellEntity(Level level, double x, double y, double z, Vec3 direction, TurretAmmoItem.AmmoType ammoType) {

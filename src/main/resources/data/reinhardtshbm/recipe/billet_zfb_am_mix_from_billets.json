@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:billet_zirconium" }, { "item": "reinhardtshbm:billet_zirconium" }, { "item": "reinhardtshbm:billet_zirconium" },
+    { "item": "reinhardtshbm:billet_pu241" }, { "item": "reinhardtshbm:billet_pu241" }, { "item": "reinhardtshbm:billet_am_mix" }
+  ],
+  "result": { "id": "reinhardtshbm:billet_zfb_am_mix", "count": 6 }
+}

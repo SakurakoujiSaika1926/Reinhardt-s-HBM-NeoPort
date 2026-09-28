@@ -1,0 +1,18 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": { "type": "reinhardtshbm:enable_528_mode" }
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.pileblock",
+  "duration": 20,
+  "power": 250,
+  "ingredients": [
+    { "ingredient": { "tag": "minecraft:planks" }, "count": 1 },
+    { "ingredient": { "tag": "c:ingots/graphite" }, "count": 4 },
+    { "ingredient": { "tag": "c:bolts/steel" }, "count": 2 }
+  ],
+  "result": { "id": "reinhardtshbm:pile_brick" }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:nuclear_waste_short_tiny"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "waste_class": 5
+        }
+      }
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:nuclear_waste_short",
+    "components": {
+      "minecraft:custom_data": {
+        "waste_class": 5
+      }
+    }
+  }
+}

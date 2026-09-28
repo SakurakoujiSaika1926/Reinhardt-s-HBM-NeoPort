@@ -32,21 +32,44 @@ import net.minecraft.world.phys.shapes.Shapes;
 import javax.annotation.Nullable;
 
 public class MachineBlastFurnaceBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final int FOOTPRINT_HEIGHT = 7;
     public static final Footprint FOOTPRINT = Footprint.centered(1, FOOTPRINT_HEIGHT, 1);
 
     public MachineBlastFurnaceBlock(Properties properties) {
-        super(properties, FOOTPRINT, Shapes.block(), RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, Shapes.block(), MachineBlastFurnaceBlock::mapBlastFurnaceOffset);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(LIT, false));
     }
 
+    private static BlockPos mapBlastFurnaceOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            default -> throw new IllegalArgumentException("Blast furnace facing must be horizontal: " + facing);
+        };
+    }
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        return state == null ? null : state.setValue(LIT, false);
+        net.minecraft.core.Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing).setValue(LIT, false);
     }
 
     @Override

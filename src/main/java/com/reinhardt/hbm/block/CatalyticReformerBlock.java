@@ -4,7 +4,6 @@ import com.reinhardt.hbm.blockentity.CatalyticReformerBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineInventory;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,17 +25,28 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class CatalyticReformerBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = createFootprint();
 
     public CatalyticReformerBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, shape, CatalyticReformerBlock::mapCatalyticReformerOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        return LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT)
+        return LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT,
+                CatalyticReformerBlock::mapCatalyticReformerOffset)
                 ? this.defaultBlockState().setValue(FACING, facing)
                 : null;
     }
@@ -113,22 +123,31 @@ public class CatalyticReformerBlock extends LargeMachineBlock implements EntityB
 
     private static Footprint createFootprint() {
         Set<BlockPos> offsets = new LinkedHashSet<>();
-        addLegacyFill(offsets, BlockPos.ZERO, new int[]{2, 0, 1, 1, 2, 2}, Direction.NORTH);
-        addLegacyFill(offsets, new BlockPos(0, 0, 1), new int[]{3, -3, 1, 0, -1, 2}, Direction.NORTH);
-        addLegacyFill(offsets, new BlockPos(0, 0, 1), new int[]{6, -3, 1, 1, 2, 0}, Direction.NORTH);
+        addAuthoredFill(offsets, BlockPos.ZERO, new int[]{2, 0, 1, 1, 2, 2});
+        addAuthoredFill(offsets, new BlockPos(0, 0, 1), new int[]{3, -3, 0, 1, 2, -1});
+        addAuthoredFill(offsets, new BlockPos(0, 0, 1), new int[]{6, -3, 1, 1, 0, 2});
         offsets.add(BlockPos.ZERO);
         return new Footprint(offsets.stream().toList());
     }
 
-    private static void addLegacyFill(Set<BlockPos> offsets, BlockPos anchor, int[] dim, Direction direction) {
-        int[] rot = LegacyMachineGeometry.rotateLegacyDimensions(dim, direction);
-        for (int x = anchor.getX() - rot[4]; x <= anchor.getX() + rot[5]; x++) {
-            for (int y = anchor.getY() - rot[1]; y <= anchor.getY() + rot[0]; y++) {
-                for (int z = anchor.getZ() - rot[2]; z <= anchor.getZ() + rot[3]; z++) {
+    private static void addAuthoredFill(Set<BlockPos> offsets, BlockPos anchor, int[] dimensions) {
+        for (int x = anchor.getX() - dimensions[4]; x <= anchor.getX() + dimensions[5]; x++) {
+            for (int y = anchor.getY() - dimensions[1]; y <= anchor.getY() + dimensions[0]; y++) {
+                for (int z = anchor.getZ() - dimensions[2]; z <= anchor.getZ() + dimensions[3]; z++) {
                     offsets.add(new BlockPos(x, y, z));
                 }
             }
         }
+    }
+
+    private static BlockPos mapCatalyticReformerOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case NORTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case SOUTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Catalytic reformer requires a horizontal facing: " + facing);
+        };
     }
 }
 

@@ -29,7 +29,7 @@
     },
     {
       "ingredient": {
-        "item": "reinhardtshbm:item_expensive_circuit"
+        "item": "reinhardtshbm:circuit_capacitor_board"
       },
       "count": 8
     }

@@ -11,7 +11,6 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -101,13 +100,23 @@ public class SteamEngineBlockEntity extends BlockEntity implements PowerEndpoint
     }
 
     public static List<Port> portsFor(BlockPos corePos, Direction facing) {
-        Direction right = LegacyMachineGeometry.forgeRotateUp(facing);
+        Direction right = steamEngineRightSide(facing);
         BlockPos base = corePos.relative(right, 2).above();
         return List.of(
                 Port.fromConnector(base, right),
                 Port.fromConnector(base.relative(facing), right),
                 Port.fromConnector(base.relative(facing.getOpposite()), right)
         );
+    }
+
+    private static Direction steamEngineRightSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Steam engine facing must be horizontal: " + facing);
+        };
     }
 
     @Override

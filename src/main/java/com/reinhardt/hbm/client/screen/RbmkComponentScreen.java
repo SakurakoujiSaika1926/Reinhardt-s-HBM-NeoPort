@@ -647,7 +647,10 @@ public class RbmkComponentScreen extends AbstractContainerScreen<RbmkComponentMe
             return tooltip;
         }
         RbmkComponentBlock.Kind kind = RbmkComponentBlock.Kind.values()[kindOrdinal];
-        tooltip.add(Component.translatable("rbmk.console.column", kind.getSerializedName()));
+        tooltip.add(Component.translatable(
+                "rbmk.console.column",
+                Component.translatable("block.reinhardtshbm.rbmk_" + kind.getSerializedName())
+        ));
         tooltip.add(Component.translatable("rbmk.heat", console.consoleHeat(index)));
         if (kind.acceptsFuel()) {
             tooltip.add(Component.translatable("tooltip.reinhardtshbm.rbmk_fuel.flux", console.consoleFlux(index)));

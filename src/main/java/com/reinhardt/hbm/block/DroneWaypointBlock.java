@@ -52,6 +52,18 @@ public final class DroneWaypointBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case TRANSPORT -> transportStateForPlacement(context);
+            case REQUEST -> requestStateForPlacement(context);
+        };
+    }
+
+    private BlockState transportStateForPlacement(BlockPlaceContext context) {
+        BlockState placed = defaultBlockState().setValue(FACING, context.getClickedFace());
+        return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
+    }
+
+    private BlockState requestStateForPlacement(BlockPlaceContext context) {
         BlockState placed = defaultBlockState().setValue(FACING, context.getClickedFace());
         return placed.canSurvive(context.getLevel(), context.getClickedPos()) ? placed : null;
     }
@@ -126,11 +138,33 @@ public final class DroneWaypointBlock extends Block implements EntityBlock {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case TRANSPORT -> rotateTransport(state, rotation);
+            case REQUEST -> rotateRequest(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case TRANSPORT -> mirrorTransport(state, mirror);
+            case REQUEST -> mirrorRequest(state, mirror);
+        };
+    }
+
+    private static BlockState rotateTransport(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateRequest(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorTransport(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorRequest(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

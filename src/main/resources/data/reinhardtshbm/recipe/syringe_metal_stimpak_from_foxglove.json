@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:syringe_metal_empty" },
+    { "item": "minecraft:carrot" },
+    { "item": "reinhardtshbm:plant_foxglove" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:syringe_metal_stimpak"
+  }
+}

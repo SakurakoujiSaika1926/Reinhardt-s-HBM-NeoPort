@@ -27,12 +27,74 @@ public class CompressorBlock extends LargeMachineBlock implements EntityBlock {
     private final CompressorBlockEntity.Kind kind;
 
     public CompressorBlock(Properties properties, VoxelShape shape, CompressorBlockEntity.Kind kind) {
-        super(properties, footprint(kind), shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, footprint(kind), shape, offsetMapper(kind));
         this.kind = kind;
     }
 
     public CompressorBlockEntity.Kind kind() {
         return this.kind;
+    }
+
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        return switch (this.kind) {
+            case NORMAL -> normalCompressorStateForPlacement(context);
+            case COMPACT -> compactCompressorStateForPlacement(context);
+        };
+    }
+
+    private BlockState normalCompressorStateForPlacement(
+            net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    private BlockState compactCompressorStateForPlacement(
+            net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return switch (this.kind) {
+            case NORMAL -> rotateNormalCompressor(state, rotation);
+            case COMPACT -> rotateCompactCompressor(state, rotation);
+        };
+    }
+
+    private static BlockState rotateNormalCompressor(
+            BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateCompactCompressor(
+            BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return switch (this.kind) {
+            case NORMAL -> mirrorNormalCompressor(state, mirror);
+            case COMPACT -> mirrorCompactCompressor(state, mirror);
+        };
+    }
+
+    private static BlockState mirrorNormalCompressor(
+            BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorCompactCompressor(
+            BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
     }
 
     @Nullable
@@ -79,16 +141,44 @@ public class CompressorBlock extends LargeMachineBlock implements EntityBlock {
     }
 
     private static Footprint footprint(CompressorBlockEntity.Kind kind) {
-        return kind == CompressorBlockEntity.Kind.COMPACT ? compactFootprint() : normalFootprint();
+        return switch (kind) {
+            case NORMAL -> normalFootprint();
+            case COMPACT -> compactFootprint();
+        };
+    }
+
+    private static OffsetMapper offsetMapper(CompressorBlockEntity.Kind kind) {
+        return switch (kind) {
+            case NORMAL -> CompressorBlock::mapNormalCompressorOffset;
+            case COMPACT -> CompressorBlock::mapCompactCompressorOffset;
+        };
     }
 
     private static Footprint normalFootprint() {
         LinkedHashSet<BlockPos> offsets = new LinkedHashSet<>();
-        addLegacyBox(offsets, 2, 0, 1, 2, 1, 1, BlockPos.ZERO);
+        for (int y = 0; y <= 2; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 2; z++) {
+                    offsets.add(new BlockPos(x, y, z));
+                }
+            }
+        }
 
         BlockPos shiftedCore = new BlockPos(0, 0, 2);
-        addLegacyBox(offsets, 3, -3, 1, 1, 1, 1, shiftedCore);
-        addLegacyBox(offsets, 8, -4, 0, 0, 1, 1, shiftedCore);
+        for (int y = 3; y <= 3; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    offsets.add(shiftedCore.offset(x, y, z));
+                }
+            }
+        }
+        for (int y = 4; y <= 8; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = 0; z <= 0; z++) {
+                    offsets.add(shiftedCore.offset(x, y, z));
+                }
+            }
+        }
 
         offsets.add(new BlockPos(0, 0, 1));
         offsets.add(new BlockPos(1, 0, 2));
@@ -98,7 +188,13 @@ public class CompressorBlock extends LargeMachineBlock implements EntityBlock {
 
     private static Footprint compactFootprint() {
         LinkedHashSet<BlockPos> offsets = new LinkedHashSet<>();
-        addLegacyBox(offsets, 2, 0, 1, 1, 3, 3, BlockPos.ZERO);
+        for (int y = 0; y <= 2; y++) {
+            for (int x = -3; x <= 3; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    offsets.add(new BlockPos(x, y, z));
+                }
+            }
+        }
 
         offsets.add(new BlockPos(3, 1, 0));
         offsets.add(new BlockPos(-3, 1, 0));
@@ -109,13 +205,23 @@ public class CompressorBlock extends LargeMachineBlock implements EntityBlock {
         return new Footprint(List.copyOf(offsets));
     }
 
-    private static void addLegacyBox(LinkedHashSet<BlockPos> offsets, int up, int down, int north, int south, int west, int east, BlockPos origin) {
-        for (int y = -down; y <= up; y++) {
-            for (int x = -west; x <= east; x++) {
-                for (int z = -north; z <= south; z++) {
-                    offsets.add(origin.offset(x, y, z));
-                }
-            }
-        }
+    private static BlockPos mapNormalCompressorOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Compressor facing must be horizontal: " + facing);
+        };
+    }
+
+    private static BlockPos mapCompactCompressorOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Compact compressor facing must be horizontal: " + facing);
+        };
     }
 }

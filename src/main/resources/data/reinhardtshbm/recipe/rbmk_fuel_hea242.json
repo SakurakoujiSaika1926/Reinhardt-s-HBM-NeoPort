@@ -31,12 +31,6 @@
     }
   ],
   "result": {
-    "id": "reinhardtshbm:rbmk_fuel",
-    "components": {
-      "minecraft:custom_data": {
-        "variant": "hea242"
-      },
-      "minecraft:custom_model_data": 13
-    }
+    "id": "reinhardtshbm:rbmk_fuel_hea242"
   }
 }

@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.excircuit",
+  "duration": 80,
+  "power": 100000,
+  "ignition_temp": 1000000,
+  "input_items": [
+    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 12 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_capacitor" }, "count": 8 },
+    { "ingredient": { "tag": "c:ingots/rubber" }, "count": 4 }
+  ],
+  "input_fluids": [
+    { "fluid": "sulfuric_acid", "amount": 1000 }
+  ],
+  "result": { "id": "reinhardtshbm:item_expensive_circuit" }
+}

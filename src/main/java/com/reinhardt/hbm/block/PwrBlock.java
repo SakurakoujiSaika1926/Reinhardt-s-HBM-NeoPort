@@ -59,6 +59,14 @@ public class PwrBlock extends Block implements EntityBlock {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         String key = "desc.reinhardtshbm." + descriptionPath();
         tooltip.add(Component.translatable(key).withStyle(ChatFormatting.GRAY));
+        if (kind == Kind.CONTROLLER) {
+            tooltip.add(Component.translatable("desc.reinhardtshbm.pwr_controller.guide.title").withStyle(ChatFormatting.GOLD));
+            tooltip.add(Component.translatable("desc.reinhardtshbm.pwr_controller.guide.shell").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("desc.reinhardtshbm.pwr_controller.guide.core").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("desc.reinhardtshbm.pwr_controller.guide.required").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("desc.reinhardtshbm.pwr_controller.guide.facing").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("desc.reinhardtshbm.pwr_controller.guide.assemble").withStyle(ChatFormatting.DARK_GRAY));
+        }
         super.appendHoverText(stack, context, tooltip, flag);
     }
 
@@ -80,8 +88,63 @@ public class PwrBlock extends Block implements EntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = defaultBlockState();
-        return kind == Kind.CONTROLLER ? state.setValue(FACING, context.getHorizontalDirection().getOpposite()) : state;
+        return switch (this.kind) {
+            case BLOCK -> blockStateForPlacement(context);
+            case CASING -> casingStateForPlacement(context);
+            case CHANNEL -> channelStateForPlacement(context);
+            case CONTROL -> controlStateForPlacement(context);
+            case CONTROLLER -> controllerStateForPlacement(context);
+            case FUEL -> fuelStateForPlacement(context);
+            case HEATEX -> heatExchangerStateForPlacement(context);
+            case HEATSINK -> heatSinkStateForPlacement(context);
+            case NEUTRON_SOURCE -> neutronSourceStateForPlacement(context);
+            case PORT -> portStateForPlacement(context);
+            case REFLECTOR -> reflectorStateForPlacement(context);
+        };
+    }
+
+    private BlockState blockStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState casingStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState channelStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState controlStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState controllerStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState fuelStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState heatExchangerStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState heatSinkStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState neutronSourceStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState portStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
+    }
+
+    private BlockState reflectorStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState();
     }
 
     @Override
@@ -91,12 +154,124 @@ public class PwrBlock extends Block implements EntityBlock {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return kind == Kind.CONTROLLER ? state.setValue(FACING, rotation.rotate(state.getValue(FACING))) : state;
+        return switch (this.kind) {
+            case BLOCK -> rotateBlock(state, rotation);
+            case CASING -> rotateCasing(state, rotation);
+            case CHANNEL -> rotateChannel(state, rotation);
+            case CONTROL -> rotateControl(state, rotation);
+            case CONTROLLER -> rotateController(state, rotation);
+            case FUEL -> rotateFuel(state, rotation);
+            case HEATEX -> rotateHeatExchanger(state, rotation);
+            case HEATSINK -> rotateHeatSink(state, rotation);
+            case NEUTRON_SOURCE -> rotateNeutronSource(state, rotation);
+            case PORT -> rotatePort(state, rotation);
+            case REFLECTOR -> rotateReflector(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
-        return kind == Kind.CONTROLLER ? state.rotate(mirror.getRotation(state.getValue(FACING))) : state;
+        return switch (this.kind) {
+            case BLOCK -> mirrorBlock(state, mirror);
+            case CASING -> mirrorCasing(state, mirror);
+            case CHANNEL -> mirrorChannel(state, mirror);
+            case CONTROL -> mirrorControl(state, mirror);
+            case CONTROLLER -> mirrorController(state, mirror);
+            case FUEL -> mirrorFuel(state, mirror);
+            case HEATEX -> mirrorHeatExchanger(state, mirror);
+            case HEATSINK -> mirrorHeatSink(state, mirror);
+            case NEUTRON_SOURCE -> mirrorNeutronSource(state, mirror);
+            case PORT -> mirrorPort(state, mirror);
+            case REFLECTOR -> mirrorReflector(state, mirror);
+        };
+    }
+
+    private static BlockState rotateBlock(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateCasing(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateChannel(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateControl(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateController(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateFuel(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateHeatExchanger(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateHeatSink(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateNeutronSource(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotatePort(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState rotateReflector(BlockState state, Rotation rotation) {
+        return state;
+    }
+
+    private static BlockState mirrorBlock(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorCasing(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorChannel(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorControl(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorController(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorFuel(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorHeatExchanger(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorHeatSink(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorNeutronSource(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorPort(BlockState state, Mirror mirror) {
+        return state;
+    }
+
+    private static BlockState mirrorReflector(BlockState state, Mirror mirror) {
+        return state;
     }
 
     @Nullable
@@ -130,7 +305,24 @@ public class PwrBlock extends Block implements EntityBlock {
         }
         if (level.getBlockEntity(pos) instanceof PwrControllerBlockEntity controller) {
             if (!controller.assembled()) {
-                controller.assemble();
+                PwrControllerBlockEntity.AssemblyResult result = controller.assemble();
+                Component message = switch (result.status()) {
+                    case SUCCESS -> Component.translatable("chat.reinhardtshbm.pwr.assembly.success");
+                    case NON_REACTOR_BLOCK -> Component.translatable(
+                            "chat.reinhardtshbm.pwr.assembly.non_reactor_block",
+                            result.problemPos().getX(), result.problemPos().getY(), result.problemPos().getZ()
+                    );
+                    case MAX_SIZE_EXCEEDED -> Component.translatable("chat.reinhardtshbm.pwr.assembly.max_size", 4096);
+                    case FUEL_RODS_REQUIRED -> Component.translatable("chat.reinhardtshbm.pwr.assembly.fuel_rods_required");
+                    case NEUTRON_SOURCES_REQUIRED -> Component.translatable("chat.reinhardtshbm.pwr.assembly.neutron_sources_required");
+                    case UNAVAILABLE -> Component.translatable("chat.reinhardtshbm.pwr.assembly.unavailable");
+                };
+                player.displayClientMessage(
+                        message.copy().withStyle(result.status() == PwrControllerBlockEntity.AssemblyStatus.SUCCESS
+                                ? ChatFormatting.GREEN
+                                : ChatFormatting.RED),
+                        true
+                );
                 return InteractionResult.CONSUME;
             }
             if (player instanceof ServerPlayer serverPlayer) {
@@ -162,7 +354,13 @@ public class PwrBlock extends Block implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         boolean removed = !state.is(newState.getBlock());
-        if (removed && !level.isClientSide) {
+        /*
+         * Create and Create Aeronautics capture a contraption with the
+         * vanilla moving flag.  That is a relocation, not a player breaking
+         * one reactor cell.  Disassembling here would restore every raw PWR
+         * block in the old world while the contraption keeps a second copy.
+         */
+        if (removed && !movedByPiston && !level.isClientSide) {
             if (level.getBlockEntity(pos) instanceof PwrControllerBlockEntity controller) {
                 controller.disassemble();
             } else if (level.getBlockEntity(pos) instanceof PwrBlockEntity part) {

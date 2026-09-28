@@ -32,8 +32,15 @@ public final class LandmineExplosions {
                 LegacyProjectileUtil.spawnShrapnelShower(level, center, new Vec3(0.0D, 1.0D, 0.0D), 45, 0.2D);
                 LegacyProjectileUtil.spawnShrapnel(level, center, 5);
             }
-            case NUCLEAR -> LegacyMukeExplosion.detonateLandmine(
-                    level, center, HbmConfig.MINE_NUKE_DAMAGE.get().floatValue());
+            case NUCLEAR -> {
+                LegacyMukeExplosion.detonateLandmine(
+                        level, center, HbmConfig.MINE_NUKE_DAMAGE.get().floatValue());
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRadiation(
+                        level,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_LOW_DURATION,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.LOW,
+                        center.x, center.z);
+            }
             case NAVAL -> detonateNaval(level, pos);
         }
     }

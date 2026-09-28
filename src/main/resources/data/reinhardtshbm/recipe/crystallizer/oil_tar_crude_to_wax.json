@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.oil_tar_wax",
+  "ingredient": { "item": "reinhardtshbm:oil_tar" },
+  "acid": { "fluid": "chlorine", "amount": 250 },
+  "duration": 20,
+  "result": { "id": "reinhardtshbm:oil_tar_wax" }
+}

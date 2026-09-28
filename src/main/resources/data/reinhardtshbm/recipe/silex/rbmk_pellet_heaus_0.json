@@ -1,0 +1,42 @@
+{
+    "type":  "reinhardtshbm:silex",
+    "group":  "silex.rbmk_pellet_heaus_0",
+    "ingredient":  {
+                       "type":  "neoforge:components",
+                       "items":  [
+                                     "reinhardtshbm:rbmk_pellet_heaus"
+                                 ],
+                       "components":  {
+                                          "minecraft:custom_model_data":  0
+                                      }
+                   },
+    "fluid_produced":  600,
+    "fluid_consumed":  100,
+    "wavelength":  "visible",
+    "outputs":  [
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_australium_greater"
+                                 },
+                        "weight":  90
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_au198"
+                                 },
+                        "weight":  5
+                    },
+                    {
+                        "item":  {
+                                     "id":  "minecraft:gold_nugget"
+                                 },
+                        "weight":  3
+                    },
+                    {
+                        "item":  {
+                                     "id":  "reinhardtshbm:nugget_pb209"
+                                 },
+                        "weight":  2
+                    }
+                ]
+}

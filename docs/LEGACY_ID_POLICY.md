@@ -15,6 +15,9 @@ This port keeps old ids by loading generated text lists from:
 
 The ids in `items.txt` are registered through `LegacyHbmContent` as placeholder items. When real behavior is ported, remove that id from the placeholder path by adding it to `CORE_ITEMS`, then register a real class in `HbmItems`. Block ids follow the equivalent `CORE_BLOCKS` path. Base `gun_` items remain in the 1.7.10 catalog for auditability but are deliberately retired from the 1.21.1 registry.
 
+Every newly ported item must also pass the recipe-chain, behavior, loot, and
+flattening review in [ITEM_PORTING_GATES.md](ITEM_PORTING_GATES.md).
+
 Use the same registry path unless there is a strong compatibility reason not to. For example, old `ingot_uranium` remains `reinhardtshbm:ingot_uranium`.
 
 The namespace changes from legacy `hbm` to `reinhardtshbm` for this project. Cross-mod compatibility aliases can be added later through tags, recipes, or optional remapping logic.

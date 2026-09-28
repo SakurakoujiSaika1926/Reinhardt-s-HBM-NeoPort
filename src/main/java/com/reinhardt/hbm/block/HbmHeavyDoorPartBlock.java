@@ -75,9 +75,44 @@ public class HbmHeavyDoorPartBlock extends Block implements EntityBlock {
         // rotated the world-relative dummy position by the door direction
         // plus a counter-clockwise quarter turn before asking the declaration
         // for its open/closed AABB.
-        BlockPos local = HbmHeavyDoorBlock.legacyCollisionLocalOffset(worldRelative, facing);
+        BlockPos local = switch (doorBlock.decl()) {
+            case FIRE_DOOR -> HbmHeavyDoorBlock.fireDoorCollisionLocalOffset(worldRelative, facing);
+            case TRANSITION_SEAL -> HbmHeavyDoorBlock.transitionSealCollisionLocalOffset(worldRelative, facing);
+            case SLIDING_BLAST_DOOR -> HbmHeavyDoorBlock.slidingBlastDoorCollisionLocalOffset(worldRelative, facing);
+            case SLIDING_BLAST_DOOR_2 -> HbmHeavyDoorBlock.slidingBlastDoor2CollisionLocalOffset(worldRelative, facing);
+            case SLIDING_GATE_DOOR -> HbmHeavyDoorBlock.slidingGateDoorCollisionLocalOffset(worldRelative, facing);
+            case QE_SLIDING_DOOR -> HbmHeavyDoorBlock.qeSlidingDoorCollisionLocalOffset(worldRelative, facing);
+            case QE_CONTAINMENT -> HbmHeavyDoorBlock.qeContainmentCollisionLocalOffset(worldRelative, facing);
+            case SLIDING_SEAL_DOOR -> HbmHeavyDoorBlock.slidingSealDoorCollisionLocalOffset(worldRelative, facing);
+            case SECURE_ACCESS_DOOR -> HbmHeavyDoorBlock.secureAccessDoorCollisionLocalOffset(worldRelative, facing);
+            case ROUND_AIRLOCK_DOOR -> HbmHeavyDoorBlock.roundAirlockDoorCollisionLocalOffset(worldRelative, facing);
+            case LARGE_VEHICLE_DOOR -> HbmHeavyDoorBlock.largeVehicleDoorCollisionLocalOffset(worldRelative, facing);
+            case VAULT_DOOR -> HbmHeavyDoorBlock.vaultDoorCollisionLocalOffset(worldRelative, facing);
+            case WATER_DOOR -> HbmHeavyDoorBlock.waterDoorCollisionLocalOffset(worldRelative, facing);
+            case CARGO_DOOR -> HbmHeavyDoorBlock.cargoDoorCollisionLocalOffset(worldRelative, facing);
+            case SILO_HATCH -> HbmHeavyDoorBlock.siloHatchCollisionLocalOffset(worldRelative, facing);
+            case SILO_HATCH_LARGE -> HbmHeavyDoorBlock.siloHatchLargeCollisionLocalOffset(worldRelative, facing);
+        };
         VoxelShape localShape = doorBlock.decl().localShape(local.getX(), local.getY(), local.getZ(), open, collision);
-        return HbmHeavyDoorBlock.orientLegacyShape(localShape, facing);
+        VoxelShape authoredShape = switch (doorBlock.decl()) {
+            case FIRE_DOOR -> HbmHeavyDoorBlock.orientFireDoorShape(localShape, facing);
+            case TRANSITION_SEAL -> HbmHeavyDoorBlock.orientTransitionSealShape(localShape, facing);
+            case SLIDING_BLAST_DOOR -> HbmHeavyDoorBlock.orientSlidingBlastDoorShape(localShape, facing);
+            case SLIDING_BLAST_DOOR_2 -> HbmHeavyDoorBlock.orientSlidingBlastDoor2Shape(localShape, facing);
+            case SLIDING_GATE_DOOR -> HbmHeavyDoorBlock.orientSlidingGateDoorShape(localShape, facing);
+            case QE_SLIDING_DOOR -> HbmHeavyDoorBlock.orientQeSlidingDoorShape(localShape, facing);
+            case QE_CONTAINMENT -> HbmHeavyDoorBlock.orientQeContainmentShape(localShape, facing);
+            case SLIDING_SEAL_DOOR -> HbmHeavyDoorBlock.orientSlidingSealDoorShape(localShape, facing);
+            case SECURE_ACCESS_DOOR -> HbmHeavyDoorBlock.orientSecureAccessDoorShape(localShape, facing);
+            case ROUND_AIRLOCK_DOOR -> HbmHeavyDoorBlock.orientRoundAirlockDoorShape(localShape, facing);
+            case LARGE_VEHICLE_DOOR -> HbmHeavyDoorBlock.orientLargeVehicleDoorShape(localShape, facing);
+            case VAULT_DOOR -> HbmHeavyDoorBlock.orientVaultDoorShape(localShape, facing);
+            case WATER_DOOR -> HbmHeavyDoorBlock.orientWaterDoorShape(localShape, facing);
+            case CARGO_DOOR -> HbmHeavyDoorBlock.orientCargoDoorShape(localShape, facing);
+            case SILO_HATCH -> HbmHeavyDoorBlock.orientSiloHatchShape(localShape, facing);
+            case SILO_HATCH_LARGE -> HbmHeavyDoorBlock.orientSiloHatchLargeShape(localShape, facing);
+        };
+        return authoredShape;
     }
 
     @Override

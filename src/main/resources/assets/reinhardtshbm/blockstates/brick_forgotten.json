@@ -1,3 +1,11 @@
 {
-  "variants": { "": { "model": "reinhardtshbm:block/brick_forgotten" } }
+  "variants": {
+    "variant=default": { "model": "reinhardtshbm:block/brick_forgotten" },
+    "variant=black_and_white": { "model": "reinhardtshbm:block/brick_forgotten_bw" },
+    "variant=nullstone": { "model": "reinhardtshbm:block/brick_forgotten_nullstone" },
+    "variant=hole": { "model": "reinhardtshbm:block/brick_forgotten_hole" },
+    "variant=hole_empty": { "model": "reinhardtshbm:block/brick_forgotten_hole_empty" },
+    "variant=nullroom_wood": { "model": "reinhardtshbm:block/brick_forgotten_nullroom_wood" },
+    "variant=nullroom_stone": { "model": "reinhardtshbm:block/brick_forgotten_nullroom_stone" }
+  }
 }

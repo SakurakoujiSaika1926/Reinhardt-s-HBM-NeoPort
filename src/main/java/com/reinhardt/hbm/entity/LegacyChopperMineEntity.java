@@ -30,7 +30,6 @@ public final class LegacyChopperMineEntity extends Entity {
 
     public LegacyChopperMineEntity(EntityType<? extends LegacyChopperMineEntity> type, Level level) {
         super(type, level);
-        noCulling = true;
     }
 
     public void setOwner(Entity entity) {

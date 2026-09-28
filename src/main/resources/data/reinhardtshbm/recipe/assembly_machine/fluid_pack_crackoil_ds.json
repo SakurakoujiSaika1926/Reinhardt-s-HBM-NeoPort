@@ -1,0 +1,28 @@
+{
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.packagehbmfluid.crackoil_ds",
+  "duration": 40,
+  "power": 100,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:fluid_pack_empty"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "crackoil_ds",
+      "amount": 32000
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:fluid_pack_full",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "crackoil_ds"
+      }
+    }
+  }
+}

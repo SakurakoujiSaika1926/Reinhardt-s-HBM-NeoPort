@@ -24,7 +24,6 @@ import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -202,7 +201,7 @@ public final class ArcFurnaceBlockEntity extends BlockEntity implements PowerEnd
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
         Direction dir = facing();
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
+        Direction rot = arcFurnaceLeftSide(dir);
         return List.of(
                 port(dir, rot, 3, 1), port(dir, rot, 3, -1),
                 port(rot, dir, 3, 1), port(rot, dir, 3, -1),
@@ -212,7 +211,7 @@ public final class ArcFurnaceBlockEntity extends BlockEntity implements PowerEnd
 
     public boolean isAutomationPort(BlockPos queriedPos) {
         Direction dir = facing();
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(dir);
+        Direction rot = arcFurnaceLeftSide(dir);
         return queriedPos.equals(port(dir, rot, 2, 1))
                 || queriedPos.equals(port(dir, rot, 2, -1))
                 || queriedPos.equals(port(rot, dir, 2, 1))
@@ -326,7 +325,7 @@ public final class ArcFurnaceBlockEntity extends BlockEntity implements PowerEnd
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -749,6 +748,16 @@ public final class ArcFurnaceBlockEntity extends BlockEntity implements PowerEnd
 
     private Direction facing() {
         return getBlockState().hasProperty(LargeMachineBlock.FACING) ? getBlockState().getValue(LargeMachineBlock.FACING) : Direction.SOUTH;
+    }
+
+    private static Direction arcFurnaceLeftSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Arc furnace requires a horizontal facing: " + facing);
+        };
     }
 
     private BlockPos port(Direction along, Direction side, int distance, int sideOffset) {

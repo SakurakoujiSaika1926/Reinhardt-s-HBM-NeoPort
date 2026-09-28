@@ -56,7 +56,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TurretChekhovBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
+public class TurretChekhovBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer,
+        MenuProvider, ClientRenderNeighborSnapshot {
     public static final int CHIP_SLOT = 0;
     public static final int AMMO_START = 1;
     public static final int AMMO_END = 10;
@@ -95,6 +96,7 @@ public class TurretChekhovBlockEntity extends BlockEntity implements PowerEndpoi
     private float spin;
     private float prevSpin;
     private float spinAccel;
+    private volatile ConnectorRenderSnapshot connectorRenderSnapshot = ConnectorRenderSnapshot.EMPTY;
     @Nullable
     private Entity target;
     private final ContainerData menuData = new ContainerData() {
@@ -145,6 +147,44 @@ public class TurretChekhovBlockEntity extends BlockEntity implements PowerEndpoi
 
     public TurretChekhovBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.TURRET_CHEKHOV.get(), pos, blockState);
+    }
+
+    public ConnectorRenderSnapshot connectorRenderSnapshot() {
+        return this.connectorRenderSnapshot;
+    }
+
+    @Override
+    public void refreshClientRenderNeighborSnapshot() {
+        if (this.level == null || !this.level.isClientSide) {
+            return;
+        }
+        Direction facing = getBlockState().hasProperty(TurretChekhovBlock.FACING)
+                ? getBlockState().getValue(TurretChekhovBlock.FACING) : Direction.NORTH;
+        List<ConnectorSpec> specs = connectorSpecs(this.worldPosition, facing);
+        int connectedMask = 0;
+        for (int index = 0; index < specs.size(); index++) {
+            ConnectorSpec spec = specs.get(index);
+            if (PowerNetworkManager.canCableConnectTo(
+                    this.level, spec.pos(), spec.machineSide().getOpposite())) {
+                connectedMask |= 1 << index;
+            }
+        }
+        this.connectorRenderSnapshot = new ConnectorRenderSnapshot(connectedMask);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        refreshClientRenderNeighborSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (previous != state) {
+            refreshClientRenderNeighborSnapshot();
+        }
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, TurretChekhovBlockEntity turret) {
@@ -625,6 +665,9 @@ public class TurretChekhovBlockEntity extends BlockEntity implements PowerEndpoi
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         return this.level != null
                 && this.level.getBlockEntity(this.worldPosition) == this
                 && player.distanceToSqr(
@@ -811,5 +854,13 @@ public class TurretChekhovBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     public record ConnectorSpec(BlockPos pos, Direction machineSide, float renderOffsetX, float renderOffsetZ) {
+    }
+
+    public record ConnectorRenderSnapshot(int connectedMask) {
+        private static final ConnectorRenderSnapshot EMPTY = new ConnectorRenderSnapshot(0);
+
+        public boolean connected(int index) {
+            return (connectedMask & 1 << index) != 0;
+        }
     }
 }

@@ -21,6 +21,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -35,17 +37,44 @@ import javax.annotation.Nullable;
 
 public class LegacyFurnaceBlock extends LargeMachineBlock implements EntityBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    private static final Footprint IRON_FOOTPRINT = Footprint.legacySouthBox(1, 0, 1, 0, 1, 0);
-    private static final Footprint STEEL_FOOTPRINT = Footprint.legacySouthBox(1, 0, 1, 1, 1, 1);
+    private static final Footprint IRON_FOOTPRINT = Footprint.box(-1, 0, 0, 1, -1, 0);
+    private static final Footprint STEEL_FOOTPRINT = Footprint.box(-1, 1, 0, 1, -1, 1);
 
     private final Kind kind;
 
     public LegacyFurnaceBlock(Properties properties, Kind kind, VoxelShape shape) {
-        super(properties, kind == Kind.IRON ? IRON_FOOTPRINT : STEEL_FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, kind == Kind.IRON ? IRON_FOOTPRINT : STEEL_FOOTPRINT, shape, offsetMapper(kind));
         this.kind = kind;
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.SOUTH)
                 .setValue(LIT, false));
+    }
+
+    private static OffsetMapper offsetMapper(Kind kind) {
+        return switch (kind) {
+            case IRON -> LegacyFurnaceBlock::mapIronFurnaceOffset;
+            case STEEL -> LegacyFurnaceBlock::mapSteelFurnaceOffset;
+        };
+    }
+
+    private static BlockPos mapIronFurnaceOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Iron furnace requires a horizontal facing: " + facing);
+        };
+    }
+
+    private static BlockPos mapSteelFurnaceOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            case UP, DOWN -> throw new IllegalArgumentException("Steel furnace requires a horizontal facing: " + facing);
+        };
     }
 
     public Kind kind() {
@@ -54,14 +83,62 @@ public class LegacyFurnaceBlock extends LargeMachineBlock implements EntityBlock
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case IRON -> ironFurnaceStateForPlacement(context);
+            case STEEL -> steelFurnaceStateForPlacement(context);
+        };
+    }
+
+    private BlockState ironFurnaceStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        Footprint footprint = this.kind == Kind.IRON ? IRON_FOOTPRINT : STEEL_FOOTPRINT;
-        if (!LargeMachineBlock.canPlaceLegacyFootprint(context, facing, footprint)) {
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
             return null;
         }
         return this.defaultBlockState()
                 .setValue(FACING, facing)
                 .setValue(LIT, false);
+    }
+
+    private BlockState steelFurnaceStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState()
+                .setValue(FACING, facing)
+                .setValue(LIT, false);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return switch (this.kind) {
+            case IRON -> rotateIronFurnace(state, rotation);
+            case STEEL -> rotateSteelFurnace(state, rotation);
+        };
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case IRON -> mirrorIronFurnace(state, mirror);
+            case STEEL -> mirrorSteelFurnace(state, mirror);
+        };
+    }
+
+    private static BlockState rotateIronFurnace(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateSteelFurnace(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorIronFurnace(BlockState state, Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSteelFurnace(BlockState state, Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
     }
 
     @Override

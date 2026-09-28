@@ -6,9 +6,11 @@ import com.reinhardt.hbm.entity.LegacyEmpEntity;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.AABB;
 
 /** Literal RenderEMPBlast port. The old ring is unlit, translucent and uncullled. */
 public final class LegacyEmpEntityRenderer extends EntityRenderer<LegacyEmpEntity> {
@@ -32,6 +34,22 @@ public final class LegacyEmpEntityRenderer extends EntityRenderer<LegacyEmpEntit
         }
         poseStack.popPose();
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+    }
+
+    @Override
+    public boolean shouldRender(LegacyEmpEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        if (entity.persistent()) {
+            return false;
+        }
+        double radius = Math.abs((double) entity.scale());
+        // legacy_emp_ring.obj has face-used X/Z limits [-1, 1] and Y limits
+        // [0, 0.1]; render() scales only X/Z by entity.scale().
+        AABB bounds = new AABB(
+                entity.getX() - radius, entity.getY(), entity.getZ() - radius,
+                entity.getX() + radius, entity.getY() + 0.1D, entity.getZ() + radius);
+        return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ);
     }
 
     @Override

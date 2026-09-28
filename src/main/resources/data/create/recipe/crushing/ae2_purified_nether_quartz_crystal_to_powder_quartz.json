@@ -6,13 +6,13 @@
     },
     {
       "type": "neoforge:mod_loaded",
-      "modid": "appeng"
+      "modid": "ae2"
     }
   ],
   "type": "create:crushing",
   "ingredients": [
     {
-      "item": "ae2:purified_nether_quartz_crystal"
+      "tag": "ae2:all_nether_quartz"
     }
   ],
   "processing_time": 100,

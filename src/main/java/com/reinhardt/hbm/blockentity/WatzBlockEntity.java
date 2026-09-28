@@ -244,14 +244,18 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
     }
 
     private boolean updateLock() {
-        return this.level != null && this.level.getBlockEntity(this.worldPosition.above(3)) instanceof WatzBlockEntity;
+        return this.level != null
+                && this.level.getBlockEntity(worldOffset(0, 3, 0)) instanceof WatzBlockEntity;
     }
 
     private List<WatzBlockEntity> collectSegments(Level level) {
         ArrayList<WatzBlockEntity> segments = new ArrayList<>();
         segments.add(this);
-        for (int y = this.worldPosition.getY() - 3; y >= level.getMinBuildHeight(); y -= 3) {
-            BlockEntity blockEntity = level.getBlockEntity(new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ()));
+        Direction down = Direction.DOWN;
+        for (BlockPos cursor = this.worldPosition.relative(down, 3);
+             level.isInWorldBounds(cursor);
+             cursor = cursor.relative(down, 3)) {
+            BlockEntity blockEntity = level.getBlockEntity(cursor);
             if (blockEntity instanceof WatzBlockEntity segment) {
                 segments.add(segment);
             } else {
@@ -262,11 +266,11 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
     }
 
     private boolean hasPumpAndRedstone(Level level) {
-        BlockPos pumpPos = this.worldPosition.above(3);
+        BlockPos pumpPos = worldOffset(0, 3, 0);
         return level.getBlockState(pumpPos).is(HbmBlocks.WATZ_PUMP.get())
-                && (level.hasNeighborSignal(this.worldPosition.above(5))
+                && (level.hasNeighborSignal(worldOffset(0, 5, 0))
                 || level.hasNeighborSignal(pumpPos)
-                || level.hasNeighborSignal(pumpPos.above()));
+                || level.hasNeighborSignal(worldOffset(0, 4, 0)));
     }
 
     private void setupCoolant() {
@@ -368,7 +372,7 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
             return;
         }
         for (BlockPos offset : BOTTOM_OUTPUT_PORTS) {
-            BlockPos port = this.worldPosition.offset(offset);
+            BlockPos port = worldOffset(offset.getX(), offset.getY(), offset.getZ());
             pushTank(this.hotCoolant, port);
             pushTank(this.mud, port);
         }
@@ -378,9 +382,11 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
         if (tank.amount() <= 0 || tank.type().isNone() || this.level == null) {
             return;
         }
-        BlockPos target = port.below();
+        Direction outputDirection = Direction.DOWN;
+        BlockPos target = port.relative(outputDirection);
         FluidStack offered = HbmFluids.toNeoStack(tank.type(), tank.amount());
-        int filled = HbmFluidNetworks.fillInto(this.level, target, Direction.UP, offered, port, true);
+        int filled = HbmFluidNetworks.fillInto(
+                this.level, target, outputDirection.getOpposite(), offered, port, true);
         if (filled > 0) {
             tank.drain(tank.type(), filled, false);
         }
@@ -390,22 +396,23 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
         for (int x = -3; x <= 3; x++) {
             for (int y = 3; y < 6; y++) {
                 for (int z = -3; z <= 3; z++) {
-                    level.setBlock(this.worldPosition.offset(x, y, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+                    level.setBlock(worldOffset(x, y, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 }
             }
         }
         disassemble(level);
         if (level instanceof ServerLevel serverLevel) {
-            ChunkRadiationData.get(serverLevel).incrementRadiation(this.worldPosition.above(), 1_000.0D);
+            ChunkRadiationData.get(serverLevel).incrementRadiation(worldOffset(0, 1, 0), 1_000.0D);
             HbmAdvancements.awardNearby(serverLevel, new AABB(
                     this.worldPosition.getX() - 50.0D, this.worldPosition.getY() - 50.0D, this.worldPosition.getZ() - 50.0D,
                     this.worldPosition.getX() + 51.0D, this.worldPosition.getY() + 51.0D, this.worldPosition.getZ() + 51.0D
             ), "watz_boom");
+            BlockPos effectPos = worldOffset(0, 2, 0);
             serverLevel.sendParticles(
                     HbmParticleTypes.RBMK_MUSH.get(),
-                    this.worldPosition.getX() + 0.5D,
-                    this.worldPosition.getY() + 2.0D,
-                    this.worldPosition.getZ() + 0.5D,
+                    effectPos.getX() + 0.5D,
+                    effectPos.getY() + 0.5D,
+                    effectPos.getZ() + 0.5D,
                     1,
                     0.0D,
                     0.0D,
@@ -413,14 +420,14 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
                     5.0D
             );
         }
-        level.playSound(null, this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 2.0D, this.worldPosition.getZ() + 0.5D,
+        BlockPos soundPos = worldOffset(0, 2, 0);
+        level.playSound(null, soundPos.getX() + 0.5D, soundPos.getY() + 0.5D, soundPos.getZ() + 0.5D,
                 HbmSoundEvents.RBMK_EXPLOSION.get(), SoundSource.BLOCKS, 50.0F, 1.0F);
     }
 
     private void disassemble(Level level) {
-        level.setBlock(this.worldPosition, HbmBlocks.MUD_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
-        level.setBlock(this.worldPosition.above(), HbmBlocks.MUD_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
-        level.setBlock(this.worldPosition.above(2), HbmBlocks.MUD_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
+        level.setBlock(worldOffset(0, 1, 0), HbmBlocks.MUD_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
+        level.setBlock(worldOffset(0, 2, 0), HbmBlocks.MUD_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
         for (int[] offset : ELEMENT_OFFSETS) {
             setBrokenColumn(level, 0, HbmBlocks.WATZ_ELEMENT.get().defaultBlockState(), offset[0], offset[1]);
         }
@@ -430,15 +437,22 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
         for (int[] offset : CASING_OFFSETS) {
             setBrokenColumn(level, 1, boltedWatzEndState(), offset[0], offset[1]);
         }
+        // Replace the core last: worldOffset() must retain the core's exact
+        // contraption orientation while the whole debris footprint is built.
+        level.setBlock(this.worldPosition, HbmBlocks.MUD_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
     }
 
     private void setBrokenColumn(Level level, int minHeight, BlockState block, int x, int z) {
         int height = minHeight + level.random.nextInt(3 - minHeight);
         for (int y = 0; y < 3; y++) {
-            level.setBlock(this.worldPosition.offset(x, y, z),
+            level.setBlock(worldOffset(x, y, z),
                     y <= height ? block : HbmBlocks.MUD_BLOCK.get().defaultBlockState(),
                     Block.UPDATE_ALL);
         }
+    }
+
+    private BlockPos worldOffset(int x, int y, int z) {
+        return this.worldPosition.offset(x, y, z);
     }
 
     public static void fillDummies(Level level, BlockPos core) {
@@ -557,6 +571,9 @@ public class WatzBlockEntity extends BlockEntity implements MachineInventory, Wo
 
     @Override
     public boolean stillValid(Player player) {
+        if (MachineDummyMenuAccess.validDummyAccess(this, player)) {
+            return true;
+        }
         return this.level != null
                 && this.level.getBlockEntity(this.worldPosition) == this
                 && player.distanceToSqr(this.worldPosition.getX() + 0.5D, this.worldPosition.getY() + 0.5D, this.worldPosition.getZ() + 0.5D) <= 64.0D;

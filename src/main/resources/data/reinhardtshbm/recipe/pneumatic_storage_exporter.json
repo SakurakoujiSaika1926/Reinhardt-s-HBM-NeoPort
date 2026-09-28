@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["TBT", "SCS", "TPT"],
+  "key": {
+    "T": { "item": "reinhardtshbm:pneumatic_tube" },
+    "P": { "item": "reinhardtshbm:part_generic_piston_pneumatic" },
+    "S": { "tag": "c:plates/steel" },
+    "C": { "item": "reinhardtshbm:crate_steel" },
+    "B": { "item": "reinhardtshbm:circuit_basic" }
+  },
+  "result": { "id": "reinhardtshbm:pneumatic_storage_exporter" }
+}

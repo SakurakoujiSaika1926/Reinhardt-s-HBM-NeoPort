@@ -37,11 +37,13 @@ public final class PowerGaugeBlockEntity extends BlockEntity {
             return;
         }
         gauge.deltaTick = PowerNetworkManager.transferredPowerAt(level, pos);
-        gauge.secondAccumulator += gauge.deltaTick;
+        // Keep the old TileEntityCableGauge window boundary: publish/reset
+        // the completed second first, then count this tick in the next one.
         if (level.getGameTime() % 20L == 0L) {
             gauge.deltaLastSecond = gauge.secondAccumulator;
             gauge.secondAccumulator = 0L;
         }
+        gauge.secondAccumulator += gauge.deltaTick;
         if (level.getGameTime() % 5L == 0L) {
             gauge.sync();
         }

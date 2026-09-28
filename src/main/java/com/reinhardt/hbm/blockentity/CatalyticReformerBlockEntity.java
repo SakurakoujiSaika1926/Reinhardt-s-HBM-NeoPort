@@ -175,16 +175,64 @@ public class CatalyticReformerBlockEntity extends BlockEntity implements PowerEn
     }
 
     public static List<Port> portsFor(BlockPos pos, Direction facing) {
-        Direction dir = horizontal(facing);
-        Direction rot = dir.getClockWise();
-        List<Port> ports = new ArrayList<>(6);
-        addPort(ports, pos, dir, 2, rot, 1, dir);
-        addPort(ports, pos, dir, 2, rot, -1, dir);
-        addPort(ports, pos, dir, -2, rot, 1, dir.getOpposite());
-        addPort(ports, pos, dir, -2, rot, -1, dir.getOpposite());
-        addPort(ports, pos, dir, 0, rot, 3, rot);
-        addPort(ports, pos, dir, 0, rot, -3, rot.getOpposite());
-        return List.copyOf(ports);
+        return switch (facing) {
+            case NORTH -> northCatalyticReformerPorts(pos);
+            case EAST -> eastCatalyticReformerPorts(pos);
+            case SOUTH -> southCatalyticReformerPorts(pos);
+            case WEST -> westCatalyticReformerPorts(pos);
+            case UP, DOWN -> throw new IllegalArgumentException(
+                    "Catalytic reformer requires a horizontal facing: " + facing);
+        };
+    }
+
+    /*
+     * These are the six exact legacy getConPos() connector coordinates expanded
+     * independently for each legal facing. Keep the tables machine-owned: a
+     * shared/right-side rotation previously made an otherwise local port edit
+     * capable of rotating every side by 90 degrees without touching the model.
+     */
+    private static List<Port> northCatalyticReformerPorts(BlockPos pos) {
+        return List.of(
+                Port.fromConnector(pos.offset(1, 0, -2), Direction.NORTH),
+                Port.fromConnector(pos.offset(-1, 0, -2), Direction.NORTH),
+                Port.fromConnector(pos.offset(1, 0, 2), Direction.SOUTH),
+                Port.fromConnector(pos.offset(-1, 0, 2), Direction.SOUTH),
+                Port.fromConnector(pos.offset(3, 0, 0), Direction.EAST),
+                Port.fromConnector(pos.offset(-3, 0, 0), Direction.WEST)
+        );
+    }
+
+    private static List<Port> eastCatalyticReformerPorts(BlockPos pos) {
+        return List.of(
+                Port.fromConnector(pos.offset(2, 0, 1), Direction.EAST),
+                Port.fromConnector(pos.offset(2, 0, -1), Direction.EAST),
+                Port.fromConnector(pos.offset(-2, 0, 1), Direction.WEST),
+                Port.fromConnector(pos.offset(-2, 0, -1), Direction.WEST),
+                Port.fromConnector(pos.offset(0, 0, 3), Direction.SOUTH),
+                Port.fromConnector(pos.offset(0, 0, -3), Direction.NORTH)
+        );
+    }
+
+    private static List<Port> southCatalyticReformerPorts(BlockPos pos) {
+        return List.of(
+                Port.fromConnector(pos.offset(-1, 0, 2), Direction.SOUTH),
+                Port.fromConnector(pos.offset(1, 0, 2), Direction.SOUTH),
+                Port.fromConnector(pos.offset(-1, 0, -2), Direction.NORTH),
+                Port.fromConnector(pos.offset(1, 0, -2), Direction.NORTH),
+                Port.fromConnector(pos.offset(-3, 0, 0), Direction.WEST),
+                Port.fromConnector(pos.offset(3, 0, 0), Direction.EAST)
+        );
+    }
+
+    private static List<Port> westCatalyticReformerPorts(BlockPos pos) {
+        return List.of(
+                Port.fromConnector(pos.offset(-2, 0, -1), Direction.WEST),
+                Port.fromConnector(pos.offset(-2, 0, 1), Direction.WEST),
+                Port.fromConnector(pos.offset(2, 0, -1), Direction.EAST),
+                Port.fromConnector(pos.offset(2, 0, 1), Direction.EAST),
+                Port.fromConnector(pos.offset(0, 0, -3), Direction.NORTH),
+                Port.fromConnector(pos.offset(0, 0, 3), Direction.SOUTH)
+        );
     }
 
     @Override
@@ -330,7 +378,7 @@ public class CatalyticReformerBlockEntity extends BlockEntity implements PowerEn
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -677,19 +725,6 @@ public class CatalyticReformerBlockEntity extends BlockEntity implements PowerEn
 
     private static int outputContainerResultSlot(int outputIndex) {
         return OUTPUT1_CONTAINER_RESULT_SLOT + outputIndex * 2;
-    }
-
-    private static void addPort(List<Port> ports, BlockPos core, Direction first, int firstDistance, Direction second, int secondDistance, Direction face) {
-        BlockPos connector = core.offset(
-                first.getStepX() * firstDistance + second.getStepX() * secondDistance,
-                0,
-                first.getStepZ() * firstDistance + second.getStepZ() * secondDistance
-        );
-        ports.add(Port.fromConnector(connector, face));
-    }
-
-    private static Direction horizontal(Direction direction) {
-        return direction.getAxis().isHorizontal() ? direction : Direction.NORTH;
     }
 
     private static boolean isValidSlot(int slot) {

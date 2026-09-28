@@ -16,7 +16,6 @@ import com.reinhardt.hbm.blockentity.LegacyTurretType;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmWorldgenStructures;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -423,8 +422,14 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             int westDecoMeta = p.getDecoMeta(5);
             p.fillDirect(level, chunkBox, 2, 1, 1, 2, 1, 4, "reinhardtshbm:steel_wall", westDecoMeta);
             p.fillDirect(level, chunkBox, 2, 3, 1, 2, 3, 4, "reinhardtshbm:steel_wall", westDecoMeta);
-            for (int i = 0; i < 4; i++) {
-                p.setDirect(level, chunkBox, 1, 2, 1 + i, "reinhardtshbm:plant_flower", i);
+            String[] greenhousePlants = {
+                    "reinhardtshbm:plant_foxglove",
+                    "reinhardtshbm:plant_tobacco",
+                    "reinhardtshbm:plant_nightshade",
+                    "reinhardtshbm:plant_hemp"
+            };
+            for (int i = 0; i < greenhousePlants.length; i++) {
+                p.setDirect(level, chunkBox, 1, 2, 1 + i, greenhousePlants[i], 0);
             }
             p.placeDoor(level, chunkBox, random, "reinhardtshbm:door_office", 2, true, false, 3, 1, 6);
 
@@ -2855,7 +2860,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             // RadioTelexBlock declares the original {0, 0, 0, 0, 1, 0}
             // HBM-legacy footprint, so no inferred box or offset is used.
             for (BlockPos offset : telex.machineFootprint().offsets()) {
-                BlockPos partPos = corePos.offset(LegacyMachineGeometry.rotate(offset, facing, telex.machineRotationBasis()));
+                BlockPos partPos = corePos.offset(telex.machineOffset(facing, offset));
                 if (!partPos.equals(corePos)) {
                     placeLegacyMachineDummy(level, chunkBox, partPos, corePos);
                 }
@@ -2889,7 +2894,7 @@ public final class HbmLegacyProceduralPiece extends StructurePiece {
             // makeExtra calls only marked old dummy metadata; the modern pad
             // represents every non-core cell by its precise linked dummy.
             for (BlockPos offset : launchPad.machineFootprint().offsets()) {
-                BlockPos partPos = corePos.offset(LegacyMachineGeometry.rotate(offset, facing, launchPad.machineRotationBasis()));
+                BlockPos partPos = corePos.offset(launchPad.machineOffset(facing, offset));
                 if (!partPos.equals(corePos)) {
                     placeLegacyMachineDummy(level, chunkBox, partPos, corePos);
                 }

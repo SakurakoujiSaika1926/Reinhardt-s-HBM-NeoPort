@@ -6,6 +6,7 @@ import com.reinhardt.hbm.client.screen.ArcFurnaceScreen;
 import com.reinhardt.hbm.client.screen.AmmoPressScreen;
 import com.reinhardt.hbm.client.screen.ArmorTableScreen;
 import com.reinhardt.hbm.client.screen.CompressorScreen;
+import com.reinhardt.hbm.client.screen.CustomMachineScreen;
 import com.reinhardt.hbm.client.screen.CyclotronScreen;
 import com.reinhardt.hbm.client.screen.ExposureChamberScreen;
 import com.reinhardt.hbm.client.screen.FusionMachineScreen;
@@ -15,7 +16,9 @@ import com.reinhardt.hbm.client.screen.MixerScreen;
 import com.reinhardt.hbm.client.screen.ParticleAcceleratorScreen;
 import com.reinhardt.hbm.client.screen.PrecisionAssemblerScreen;
 import com.reinhardt.hbm.client.screen.PyroOvenScreen;
+import com.reinhardt.hbm.client.screen.RockMillScreen;
 import com.reinhardt.hbm.client.screen.SteelFurnaceScreen;
+import com.reinhardt.hbm.client.screen.SupercomputerScreen;
 import com.reinhardt.hbm.recipe.ArcWelderRecipe;
 import com.reinhardt.hbm.recipe.ArcFurnaceRecipe;
 import com.reinhardt.hbm.recipe.AmmoPressRecipe;
@@ -28,6 +31,7 @@ import com.reinhardt.hbm.recipe.ChemicalPlantRecipe;
 import com.reinhardt.hbm.recipe.CokerRecipe;
 import com.reinhardt.hbm.recipe.CombinationOvenRecipe;
 import com.reinhardt.hbm.recipe.CompressorRecipe;
+import com.reinhardt.hbm.recipe.CustomMachineRecipe;
 import com.reinhardt.hbm.recipe.CrackingRecipe;
 import com.reinhardt.hbm.recipe.CrystallizerRecipe;
 import com.reinhardt.hbm.recipe.CrucibleRecipe;
@@ -54,6 +58,9 @@ import com.reinhardt.hbm.recipe.ReformingRecipe;
 import com.reinhardt.hbm.recipe.HydrotreatingRecipe;
 import com.reinhardt.hbm.recipe.RbmkOutgasserRecipe;
 import com.reinhardt.hbm.recipe.RotaryFurnaceRecipe;
+import com.reinhardt.hbm.recipe.RockMillRecipe;
+import com.reinhardt.hbm.recipe.SupercomputerRecipe;
+import com.reinhardt.hbm.recipe.SpaceAssemblerRecipe;
 import com.reinhardt.hbm.recipe.ShredderRecipe;
 import com.reinhardt.hbm.recipe.SilexRecipe;
 import com.reinhardt.hbm.recipe.SolidificationRecipe;
@@ -68,7 +75,10 @@ import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
+import com.reinhardt.hbm.item.NuclearWasteItem;
+import com.reinhardt.hbm.item.RbmkPelletItem;
 import com.reinhardt.hbm.item.ScrapsItem;
+import com.reinhardt.hbm.item.WasteFuelItem;
 import com.reinhardt.hbm.item.WatzPelletItem;
 import com.reinhardt.hbm.integration.tacz.TaczAmmoAssemblyRecipes;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -131,6 +141,8 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("arc_welder"));
     public static final RecipeType<RecipeHolder<CompressorRecipe>> COMPRESSOR =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("compressor"));
+    public static final RecipeType<RecipeHolder<CustomMachineRecipe>> CUSTOM_MACHINE =
+            RecipeType.createRecipeHolderType(ReinhardtsHBM.id("custom_machine"));
     public static final RecipeType<RecipeHolder<MixerRecipe>> MIXER =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("mixer"));
     public static final RecipeType<RecipeHolder<CrystallizerRecipe>> CRYSTALLIZER =
@@ -169,6 +181,8 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("gas_centrifuge"));
     public static final RecipeType<RecipeHolder<BreederReactorRecipe>> BREEDER_REACTOR =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("breeder_reactor"));
+    public static final RecipeType<PwrJeiRecipe> PWR =
+            RecipeType.create(ReinhardtsHBM.MOD_ID, "pwr", PwrJeiRecipe.class);
     public static final RecipeType<RecipeHolder<FuelPoolRecipe>> FUEL_POOL =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("fuel_pool"));
     public static final RecipeType<StorageDrumJeiRecipe> STORAGE_DRUM =
@@ -179,6 +193,12 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.create(ReinhardtsHBM.MOD_ID, "legacy_fluid_container", LegacyFluidContainerJeiRecipe.class);
     public static final RecipeType<OreSlopperJeiRecipe> ORE_SLOPPER =
             RecipeType.create(ReinhardtsHBM.MOD_ID, "ore_slopper", OreSlopperJeiRecipe.class);
+    public static final RecipeType<RecipeHolder<RockMillRecipe>> ROCK_MILL =
+            RecipeType.createRecipeHolderType(ReinhardtsHBM.id("rock_mill"));
+    public static final RecipeType<RecipeHolder<SupercomputerRecipe>> SUPERCOMPUTER =
+            RecipeType.createRecipeHolderType(ReinhardtsHBM.id("supercomputer"));
+    public static final RecipeType<RecipeHolder<SpaceAssemblerRecipe>> SPACE_ASSEMBLER =
+            RecipeType.createRecipeHolderType(ReinhardtsHBM.id("space_assembler"));
     public static final RecipeType<RecipeHolder<PurexRecipe>> PUREX =
             RecipeType.createRecipeHolderType(ReinhardtsHBM.id("purex"));
     public static final RecipeType<RecipeHolder<FusionRecipe>> FUSION =
@@ -248,7 +268,13 @@ public class HbmJeiPlugin implements IModPlugin {
         runtime.getIngredientManager().removeIngredientsAtRuntime(
                 VanillaTypes.ITEM_STACK,
                 List.of(
-                        new ItemStack(HbmBlocks.MACHINE_LARGE_TURBINE.get())
+                        new ItemStack(HbmItems.COAL_ETERNAL.get()),
+                        new ItemStack(HbmBlocks.BRICK_FORGOTTEN.get()),
+                        new ItemStack(HbmBlocks.BRICK_FORGOTTEN_LOCK.get()),
+                        new ItemStack(HbmBlocks.MACHINE_LARGE_TURBINE.get()),
+                        new ItemStack(HbmBlocks.SPOTLIGHT_INCANDESCENT_OFF.get()),
+                        new ItemStack(HbmBlocks.SPOTLIGHT_FLUORO_OFF.get()),
+                        new ItemStack(HbmBlocks.SPOTLIGHT_HALOGEN_OFF.get())
                 )
         );
     }
@@ -266,6 +292,9 @@ public class HbmJeiPlugin implements IModPlugin {
     private static boolean needsComponentSubtype(Item item) {
         return item instanceof ScrapsItem
                 || item instanceof LegacyVariantItem
+                || item instanceof NuclearWasteItem
+                || item instanceof RbmkPelletItem
+                || item instanceof WasteFuelItem
                 || item instanceof WatzPelletItem
                 || item instanceof HbmFluidDuctItem
                 || item instanceof FluidIdentifierItem
@@ -283,6 +312,22 @@ public class HbmJeiPlugin implements IModPlugin {
         }
         if (stack.getItem() instanceof LegacyVariantItem legacyVariant) {
             return "variant:" + legacyVariant.variant(stack).id();
+        }
+        if (stack.getItem() instanceof RbmkPelletItem pellet) {
+            return "rbmk_pellet_state:" + pellet.state(stack);
+        }
+        if (stack.getItem() instanceof NuclearWasteItem waste) {
+            return "nuclear_waste:"
+                    + waste.family()
+                    + ":"
+                    + waste.depleted()
+                    + ":"
+                    + waste.tiny()
+                    + ":"
+                    + NuclearWasteItem.classOf(stack).metadata();
+        }
+        if (stack.getItem() instanceof WasteFuelItem) {
+            return WasteFuelItem.isHot(stack) ? "spent_fuel:hot" : "spent_fuel:cooled";
         }
         if (stack.getItem() instanceof WatzPelletItem) {
             return "watz_type:" + WatzPelletItem.type(stack).id
@@ -327,6 +372,7 @@ public class HbmJeiPlugin implements IModPlugin {
                 new SolderingStationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new ArcWelderRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new CompressorRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new CustomMachineRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new MixerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new AmmoPressRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new CrystallizerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
@@ -346,11 +392,15 @@ public class HbmJeiPlugin implements IModPlugin {
                 new CentrifugeRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new GasCentrifugeRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new BreederReactorRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new PwrRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new FuelPoolRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new StorageDrumRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new BoilingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new LegacyFluidContainerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new OreSlopperRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new RockMillRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new SupercomputerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new SpaceAssemblerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new PurexRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new FusionRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new PlasmaForgeRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
@@ -393,6 +443,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipes(ORE_SLOPPER, java.util.List.of(OreSlopperJeiRecipe.create()));
         registration.addRecipes(WATZ, WatzJeiRecipe.createAll());
         registration.addRecipes(WATZ_CONSTRUCTION, java.util.List.of(WatzConstructionJeiRecipe.create()));
+        registration.addRecipes(PWR, PwrJeiRecipe.createAll());
 
         Minecraft minecraft = Minecraft.getInstance();
         registration.addRecipes(ARMOR_TABLE, ArmorTableJeiRecipe.createAll(
@@ -401,6 +452,16 @@ public class HbmJeiPlugin implements IModPlugin {
         if (minecraft.level == null) {
             return;
         }
+
+        List<RecipeHolder<RockMillRecipe>> rockMillRecipes = minecraft.level.getRecipeManager()
+                .getAllRecipesFor(HbmRecipeTypes.ROCK_MILL.get());
+        registration.addRecipes(ROCK_MILL, rockMillRecipes);
+        List<RecipeHolder<SupercomputerRecipe>> supercomputerRecipes = minecraft.level.getRecipeManager()
+                .getAllRecipesFor(HbmRecipeTypes.SUPERCOMPUTER.get());
+        registration.addRecipes(SUPERCOMPUTER, supercomputerRecipes);
+        List<RecipeHolder<SpaceAssemblerRecipe>> spaceAssemblerRecipes = minecraft.level.getRecipeManager()
+                .getAllRecipesFor(HbmRecipeTypes.SPACE_ASSEMBLER.get());
+        registration.addRecipes(SPACE_ASSEMBLER, spaceAssemblerRecipes);
 
         List<RecipeHolder<ShredderRecipe>> recipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.SHREDDER.get());
         registration.addRecipes(SHREDDER, recipes);
@@ -419,6 +480,8 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipes(ARC_WELDER, arcWelderRecipes);
         List<RecipeHolder<CompressorRecipe>> compressorRecipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.COMPRESSOR.get());
         registration.addRecipes(COMPRESSOR, compressorRecipes);
+        List<RecipeHolder<CustomMachineRecipe>> customMachineRecipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.CUSTOM_MACHINE.get());
+        registration.addRecipes(CUSTOM_MACHINE, customMachineRecipes);
         List<RecipeHolder<MixerRecipe>> mixerRecipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.MIXER.get());
         registration.addRecipes(MIXER, mixerRecipes);
         List<RecipeHolder<CrystallizerRecipe>> crystallizerRecipes = minecraft.level.getRecipeManager().getAllRecipesFor(HbmRecipeTypes.CRYSTALLIZER.get());
@@ -520,6 +583,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeClickArea(ArcWelderScreen.class, 72, 28, 33, 14, ARC_WELDER);
         registration.addRecipeClickArea(ArcFurnaceScreen.class, 7, 17, 18, 18, ARC_FURNACE_SOLID, ARC_FURNACE_LIQUID);
         registration.addRecipeClickArea(CompressorScreen.class, 42, 26, 55, 17, COMPRESSOR);
+        registration.addRecipeClickArea(CustomMachineScreen.class, 66, 35, 42, 24, CUSTOM_MACHINE);
         registration.addRecipeClickArea(MixerScreen.class, 62, 36, 53, 44, MIXER);
         registration.addRecipeClickArea(AmmoPressScreen.class, 116, 18, 54, 72, AMMO_PRESS);
         registration.addRecipeClickArea(PyroOvenScreen.class, 57, 47, 27, 12, PYRO_OVEN);
@@ -536,6 +600,8 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeClickArea(SteelFurnaceScreen.class, 54, 36, 68, 5, RecipeTypes.SMELTING);
         registration.addRecipeClickArea(SteelFurnaceScreen.class, 54, 54, 68, 5, RecipeTypes.SMELTING);
         registration.addRecipeClickArea(ArmorTableScreen.class, 26, 24, 150, 96, ARMOR_TABLE);
+        registration.addRecipeClickArea(RockMillScreen.class, 62, 90, 70, 16, ROCK_MILL);
+        registration.addRecipeClickArea(SupercomputerScreen.class, 62, 81, 70, 16, SUPERCOMPUTER);
     }
 
     @Override
@@ -552,6 +618,7 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_ARC_WELDER.get(), ARC_WELDER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_COMPRESSOR.get(), COMPRESSOR);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_COMPRESSOR_COMPACT.get(), COMPRESSOR);
+        registration.addRecipeCatalyst(HbmBlocks.CUSTOM_MACHINE.get(), CUSTOM_MACHINE);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_RADIOLYSIS.get(), RADIOLYSIS);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_MIXER.get(), MIXER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_AMMO_PRESS.get(), AMMO_PRESS);
@@ -573,12 +640,16 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_CENTRIFUGE.get(), CENTRIFUGE);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_GASCENT.get(), GAS_CENTRIFUGE);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_REACTOR_BREEDING.get(), BREEDER_REACTOR);
+        registration.addRecipeCatalyst(HbmBlocks.PWR_CONTROLLER.get(), PWR);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_WASTE_DRUM.get(), FUEL_POOL);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_STORAGE_DRUM.get(), STORAGE_DRUM);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_BOILER.get(), BOILING);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_INDUSTRIAL_BOILER.get(), BOILING);
         registration.addRecipeCatalyst(HbmItems.TANK_STEEL.get(), LEGACY_FLUID_CONTAINER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_ORE_SLOPPER.get(), ORE_SLOPPER);
+        registration.addRecipeCatalyst(HbmBlocks.MACHINE_ROCKMILL.get(), ROCK_MILL);
+        registration.addRecipeCatalyst(HbmBlocks.MACHINE_SUPERCOMPUTER.get(), SUPERCOMPUTER);
+        registration.addRecipeCatalyst(HbmItems.SATELLITE_SCIENCE_ASSEMBLER.get(), SPACE_ASSEMBLER);
         registration.addRecipeCatalyst(HbmBlocks.MACHINE_PUREX.get(), PUREX);
         registration.addRecipeCatalyst(HbmBlocks.FUSION_TORUS.get(), FUSION);
         registration.addRecipeCatalyst(HbmBlocks.FUSION_PLASMA_FORGE.get(), PLASMA_FORGE);

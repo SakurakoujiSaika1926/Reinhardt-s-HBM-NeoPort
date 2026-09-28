@@ -21,20 +21,40 @@ import org.jetbrains.annotations.Nullable;
 
 /** 1.7.10 MachineRadarScreen: a SOUTH-basis 2 x 2 dummyable radar monitor. */
 public final class RadarScreenBlock extends LargeMachineBlock implements EntityBlock {
-    public static final Footprint FOOTPRINT = Footprint.legacySouthBox(1, 0, 0, 0, 1, 0);
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
+    public static final Footprint FOOTPRINT = Footprint.box(-1, 0, 0, 1, 0, 0);
 
     public RadarScreenBlock(Properties properties) {
-        super(properties, FOOTPRINT, Shapes.block(), RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, Shapes.block(), RadarScreenBlock::mapRadarScreenOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        if (!LargeMachineBlock.canPlaceLegacyFootprint(context, facing, FOOTPRINT)) {
+        if (!LargeMachineBlock.canPlaceFootprint(context, facing, FOOTPRINT, RadarScreenBlock::mapRadarScreenOffset)) {
             return null;
         }
         return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    private static BlockPos mapRadarScreenOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Radar screen facing must be horizontal: " + facing);
+        };
     }
 
     @Override

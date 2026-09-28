@@ -1,0 +1,16 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/machines/tape_drive.obj",
+  "mtl_override": "reinhardtshbm:models/obj/machines/tape_drive.mtl",
+  "automatic_culling": false,
+  "shade_quads": false,
+  "flip_v": true,
+  "visibility": {
+    "Frame": false,
+    "Drive": false,
+    "Light": true
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/machines/tape_drive"
+  }
+}

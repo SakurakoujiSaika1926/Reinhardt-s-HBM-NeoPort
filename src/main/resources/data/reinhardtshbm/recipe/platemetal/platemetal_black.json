@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "PPP",
+    "PDP",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "reinhardtshbm:platemetal"
+    },
+    "D": {
+      "tag": "c:dyes/black"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:platemetal_black",
+    "count": 8
+  }
+}

@@ -1,13 +1,11 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.IndustrialTurbineBlock;
 import com.reinhardt.hbm.blockentity.IndustrialTurbineBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -19,6 +17,7 @@ public class IndustrialTurbineBlockEntityRenderer implements LongRangeBlockEntit
     static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_industrial_turbine_world");
     static final ModelResourceLocation GAUGE = MachineModelRenderer.standalone("block/machine_industrial_turbine_gauge");
     static final ModelResourceLocation FLYWHEEL = MachineModelRenderer.standalone("block/machine_industrial_turbine_flywheel");
+    private static final AABB[] LOCAL_BOUNDS = buildIndustrialTurbineBounds();
 
     public IndustrialTurbineBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -39,11 +38,10 @@ public class IndustrialTurbineBlockEntityRenderer implements LongRangeBlockEntit
             int packedOverlay
     ) {
         BlockState state = turbine.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        Direction facing = industrialTurbineFacing(state);
 
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        poseStack.mulPose(yawQuaternion(industrialYaw(facing)));
+        applyIndustrialTurbineTransform(poseStack, facing);
         renderParts(
                 turbine.rotor(partialTick),
                 turbine.gaugeAngle(),
@@ -58,15 +56,9 @@ public class IndustrialTurbineBlockEntityRenderer implements LongRangeBlockEntit
 
     @Override
     public AABB getRenderBoundingBox(IndustrialTurbineBlockEntity blockEntity) {
-        BlockPos pos = blockEntity.getBlockPos();
-        return new AABB(
-                pos.getX() - 3.0D,
-                pos.getY(),
-                pos.getZ() - 3.0D,
-                pos.getX() + 4.0D,
-                pos.getY() + 3.0D,
-                pos.getZ() + 4.0D
-        );
+        BlockState state = blockEntity.getBlockState();
+        Direction facing = industrialTurbineFacing(state);
+        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
     static void renderParts(
@@ -95,16 +87,33 @@ public class IndustrialTurbineBlockEntityRenderer implements LongRangeBlockEntit
         poseStack.popPose();
     }
 
-    private static Quaternionf yawQuaternion(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
+    private static AABB[] buildIndustrialTurbineBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyIndustrialTurbineTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -1.5F, 0.0F, -3.5F, 1.5F, 3.0F, 3.5F);
+        }
+        return bounds;
     }
 
-    private static float industrialYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 90.0F;
-            case SOUTH -> 0.0F;
-            case WEST -> 270.0F;
-            default -> 180.0F;
-        };
+    private static void applyIndustrialTurbineTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case EAST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> { }
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Industrial turbine facing must be horizontal: " + facing);
+        }
+    }
+
+    private static Direction industrialTurbineFacing(BlockState state) {
+        if (!state.hasProperty(IndustrialTurbineBlock.FACING)) {
+            throw new IllegalStateException("Industrial turbine state is missing its owned facing property: " + state);
+        }
+        return state.getValue(IndustrialTurbineBlock.FACING);
     }
 }

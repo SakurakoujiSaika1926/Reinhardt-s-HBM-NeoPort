@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "reinhardtshbm:block/gun_table_top",
+    "bottom": "reinhardtshbm:block/gun_table_bottom",
+    "side": "reinhardtshbm:block/gun_table_side",
+    "particle": "reinhardtshbm:block/gun_table_side"
+  }
+}

@@ -1,6 +1,7 @@
 {
   "loader": "neoforge:obj",
   "model": "reinhardtshbm:models/obj/loot/projectiles.obj",
+  "mtl_override": "reinhardtshbm:models/obj/loot/projectiles.mtl",
   "automatic_culling": false,
   "shade_quads": true,
   "flip_v": true,
@@ -17,6 +18,7 @@
     "MiniNuke": true
   },
   "textures": {
+    "default": "reinhardtshbm:models/projectiles/mini_nuke",
     "particle": "reinhardtshbm:models/projectiles/mini_nuke"
   }
 }

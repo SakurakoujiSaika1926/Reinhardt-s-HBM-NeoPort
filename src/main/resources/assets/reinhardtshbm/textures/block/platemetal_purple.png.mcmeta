@@ -1,0 +1,58 @@
+{
+  "ctm": {
+    "ctm_version": 1,
+    "type": "CTM",
+    "textures": [
+      "reinhardtshbm:block/platemetal_purple_ctm"
+    ],
+    "extra": {
+      "connect_to": [
+        {
+          "block": "reinhardtshbm:platemetal"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_black"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_white"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_red"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_green"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_light_gray"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_blue"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_purple"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_cyan"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_pink"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_lime"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_yellow"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_light_blue"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_magenta"
+        },
+        {
+          "block": "reinhardtshbm:platemetal_orange"
+        }
+      ]
+    }
+  }
+}

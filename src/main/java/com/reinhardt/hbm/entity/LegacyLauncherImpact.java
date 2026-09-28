@@ -8,11 +8,14 @@ import com.reinhardt.hbm.item.LegacyMissileItem;
 import com.reinhardt.hbm.item.MissilePartItem;
 import com.reinhardt.hbm.block.TaintBlock;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.worldgen.NuclearFalloutTerrainEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -103,6 +106,13 @@ public final class LegacyLauncherImpact {
     private static void shuttleImpact(ServerLevel level, Entity source, Vec3 pos) {
         standard(source, pos.add(0.5D, 0.5D, 0.5D), 20, 64, false);
         level.sendParticles(com.reinhardt.hbm.registry.HbmParticleTypes.RBMK_MUSH.get(), pos.x + 0.5D, pos.y + 0.5D, pos.z + 0.5D, 0, 10.0D, 0.0D, 0.0D, 1.0D);
+        // EntityMissileShuttle uses its own impact sample because its
+        // ExplosionNT explicitly carries NOSOUND. Preserve the exact legacy
+        // volume and two-random pitch expression instead of substituting the
+        // generic missile blast.
+        level.playSound(null, pos.x, pos.y, pos.z,
+                HbmSoundEvents.WEAPON_ROBIN_EXPLOSION.get(), SoundSource.PLAYERS,
+                4.0F, (1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.2F) * 0.7F);
     }
     private static void buster(Entity source, Vec3 pos, float strength, int depth) {
         Vec3 v = source.getDeltaMovement().normalize();
@@ -235,6 +245,7 @@ public final class LegacyLauncherImpact {
         // TURBINE payload. LegacyShrapnelEntity is the modern registered
         // projectile carrying the same collision/damage semantics.
         LegacyProjectileUtil.legacyLargeMissileWarheadExplosion(source, pos, 10.0F, false);
+        playLegacyExplosionLargeSound(level, pos);
         Vec3 base = new Vec3(0.5D, 0.0D, 0.0D);
         for (int i = 0; i < count; i++) {
             double angle = Math.PI * 2.0D * i / count;
@@ -268,8 +279,17 @@ public final class LegacyLauncherImpact {
         LegacyProjectileUtil.legacyLargeMissileWarheadExplosion(missile, missile.position(), 5F, false);
         LegacyProjectileUtil.spawnShrapnelShower(missile.level(), missile.position(), missile.getDeltaMovement(), 15, .075D);
         if (missile.level() instanceof ServerLevel level) {
+            playLegacyExplosionLargeSound(level, missile.position());
             spawnLegacyDebris(level, missile);
         }
+    }
+
+    /** Sound half of 1.7.10 ExplosionLarge.explode for paths whose terrain
+     * processing is handled by legacyLargeMissileWarheadExplosion. */
+    private static void playLegacyExplosionLargeSound(ServerLevel level, Vec3 pos) {
+        level.playSound(null, pos.x, pos.y, pos.z,
+                SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS,
+                4.0F, (1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.2F) * 0.7F);
     }
 
     private static void spawnLegacyDebris(ServerLevel level, LegacyLauncherMissileEntity missile) {

@@ -1,5 +1,6 @@
 {
   "type": "reinhardtshbm:blast_furnace",
+  "group": "blast.firebrick",
   "input_a": { "tag": "c:dusts/aluminium" },
   "input_b": { "item": "minecraft:clay_ball" },
   "input_b_count": 7,

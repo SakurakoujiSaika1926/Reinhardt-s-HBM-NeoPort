@@ -10,6 +10,7 @@ import com.reinhardt.hbm.block.ArcWelderBlock;
 import com.reinhardt.hbm.block.ArcFurnaceBlock;
 import com.reinhardt.hbm.block.AutocalBlock;
 import com.reinhardt.hbm.block.StorageDrumBlock;
+import com.reinhardt.hbm.block.SupercomputerBlock;
 import com.reinhardt.hbm.block.AncientScrapBlock;
 import com.reinhardt.hbm.block.ArmorTableBlock;
 import com.reinhardt.hbm.block.AsbestosGasBlock;
@@ -36,6 +37,7 @@ import com.reinhardt.hbm.block.BroadcasterBlock;
 import com.reinhardt.hbm.block.GeigerBlock;
 import com.reinhardt.hbm.block.CatalyticCrackerBlock;
 import com.reinhardt.hbm.block.CatalyticReformerBlock;
+import com.reinhardt.hbm.block.CustomMachineAnchorBlock;
 import com.reinhardt.hbm.block.CapBlock;
 import com.reinhardt.hbm.block.HydrotreaterBlock;
 import com.reinhardt.hbm.block.ChlorineGasBlock;
@@ -90,10 +92,12 @@ import com.reinhardt.hbm.block.DepthRockBlock;
 import com.reinhardt.hbm.block.DetonatableBlock;
 import com.reinhardt.hbm.block.DropOreBlock;
 import com.reinhardt.hbm.block.BiomeStoneBlock;
+import com.reinhardt.hbm.block.ForgottenBrickBlock;
 import com.reinhardt.hbm.block.ForgottenLockBlock;
 import com.reinhardt.hbm.block.LegacyPillarBlock;
 import com.reinhardt.hbm.block.LegacyNukeBlock;
 import com.reinhardt.hbm.block.LegacyNukeDefinition;
+import com.reinhardt.hbm.block.LegacyReactorCompatibilityBlock;
 import com.reinhardt.hbm.block.ResourceStoneBlock;
 import com.reinhardt.hbm.block.WoodStructureBlock;
 import com.reinhardt.hbm.block.DenseRadonGasBlock;
@@ -201,7 +205,6 @@ import com.reinhardt.hbm.block.LaunchPadBlock;
 import com.reinhardt.hbm.block.LaunchTableBlock;
 import com.reinhardt.hbm.block.LeviathanTurbineBlock;
 import com.reinhardt.hbm.block.LegacyFurnaceBlock;
-import com.reinhardt.hbm.block.LegacyDirectionalBlock;
 import com.reinhardt.hbm.block.LegacyVariantBlock;
 import com.reinhardt.hbm.block.LegacyVariantSlabBlock;
 import com.reinhardt.hbm.block.LegacyVariantStrengths;
@@ -224,23 +227,28 @@ import com.reinhardt.hbm.block.MachineKeyForgeBlock;
 import com.reinhardt.hbm.block.SatelliteLinkerBlock;
 import com.reinhardt.hbm.block.SatelliteDockBlock;
 import com.reinhardt.hbm.block.SatelliteDockDummyBlock;
+import com.reinhardt.hbm.block.SatelliteGroundStationBlock;
+import com.reinhardt.hbm.block.TapeDriveBlock;
 import com.reinhardt.hbm.block.MicrowaveBlock;
 import com.reinhardt.hbm.block.MiningLaserBlock;
 import com.reinhardt.hbm.block.MixerBlock;
 import com.reinhardt.hbm.block.MetalFenceBlock;
 import com.reinhardt.hbm.block.MeteorOreBlock;
 import com.reinhardt.hbm.block.MeteorMoltenBlock;
+import com.reinhardt.hbm.block.MeteoriteTreasureBlock;
 import com.reinhardt.hbm.block.MeltdownGasBlock;
 import com.reinhardt.hbm.block.MonoxideGasBlock;
 import com.reinhardt.hbm.block.MustardGasBlock;
-import com.reinhardt.hbm.block.MustardWillowFlowerBlock;
-import com.reinhardt.hbm.block.MustardWillowTallBlock;
+import com.reinhardt.hbm.block.HbmPlantBlock;
+import com.reinhardt.hbm.block.HempPlantBlock;
+import com.reinhardt.hbm.block.MustardWillowPlantBlock;
 import com.reinhardt.hbm.block.NetherCoalOreBlock;
 import com.reinhardt.hbm.block.NukeBoyBlock;
 import com.reinhardt.hbm.block.BombMultiBlock;
 import com.reinhardt.hbm.block.CrashedBombBlock;
 import com.reinhardt.hbm.block.SoyuzCapsuleBlock;
-import com.reinhardt.hbm.block.SoyuzLauncherBlock;
+import com.reinhardt.hbm.block.LambdaLaunchpadBlock;
+import com.reinhardt.hbm.block.SoyuzLaunchpadBlock;
 import com.reinhardt.hbm.block.OilSpillBlock;
 import com.reinhardt.hbm.block.OilDepositBlock;
 import com.reinhardt.hbm.block.OilDerrickBlock;
@@ -248,6 +256,7 @@ import com.reinhardt.hbm.block.OilPipeBlock;
 import com.reinhardt.hbm.block.OilPumpjackBlock;
 import com.reinhardt.hbm.block.OilSandBlock;
 import com.reinhardt.hbm.block.OreSlopperBlock;
+import com.reinhardt.hbm.block.RockMillBlock;
 import com.reinhardt.hbm.block.OreBasaltBlock;
 import com.reinhardt.hbm.block.OutgassingRadiatingBlock;
 import com.reinhardt.hbm.block.ParticleAcceleratorBlock;
@@ -260,9 +269,13 @@ import com.reinhardt.hbm.block.PoleTopBlock;
 import com.reinhardt.hbm.block.PoleSatelliteReceiverBlock;
 import com.reinhardt.hbm.block.PoweredSteamCondenserBlock;
 import com.reinhardt.hbm.block.PileGraphiteBlock;
+import com.reinhardt.hbm.block.PileMk2Block;
+import com.reinhardt.hbm.block.PileMk2BrickBlock;
+import com.reinhardt.hbm.block.PileMk2DeviceBlock;
 import com.reinhardt.hbm.block.RebarBlock;
 import com.reinhardt.hbm.block.PinkDoubleSlabBlock;
 import com.reinhardt.hbm.block.PressMachineBlock;
+import com.reinhardt.hbm.block.PressPreheaterBlock;
 import com.reinhardt.hbm.block.PurexBlock;
 import com.reinhardt.hbm.block.PwrBlock;
 import com.reinhardt.hbm.block.RadonGasBlock;
@@ -324,7 +337,6 @@ import com.reinhardt.hbm.block.SafeBlock;
 import com.reinhardt.hbm.block.StrandCasterBlock;
 import com.reinhardt.hbm.block.StirlingGeneratorBlock;
 import com.reinhardt.hbm.block.TrinititeBlock;
-import com.reinhardt.hbm.block.SoyuzStructCoreBlock;
 import com.reinhardt.hbm.block.ToxicBlock;
 import com.reinhardt.hbm.block.TurretChekhovBlock;
 import com.reinhardt.hbm.block.TurretJeremyBlock;
@@ -360,6 +372,7 @@ import com.reinhardt.hbm.block.WandTandemBlock;
 import com.reinhardt.hbm.block.SandMixBlock;
 import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
 import com.reinhardt.hbm.blockentity.CompressorBlockEntity;
+import com.reinhardt.hbm.blockentity.PressBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyTurretType;
 import com.reinhardt.hbm.blockentity.StorageCrateBlockEntity;
 import com.reinhardt.hbm.block.MassStorageBlock;
@@ -414,7 +427,8 @@ import com.reinhardt.hbm.item.RadarScreenBlockItem;
 import com.reinhardt.hbm.item.RefuelerBlockItem;
 import com.reinhardt.hbm.item.StorageDrumBlockItem;
 import com.reinhardt.hbm.item.SellafieldBlockItem;
-import com.reinhardt.hbm.item.SoyuzLauncherBlockItem;
+import com.reinhardt.hbm.item.LambdaLaunchpadBlockItem;
+import com.reinhardt.hbm.item.SoyuzLaunchpadBlockItem;
 import com.reinhardt.hbm.item.SteamEngineBlockItem;
 import com.reinhardt.hbm.item.StirlingGeneratorBlockItem;
 import com.reinhardt.hbm.item.StorageCrateBlockItem;
@@ -640,15 +654,36 @@ public final class HbmBlocks {
                     .sound(SoundType.GRASS)
                     .noCollission()
                     .noOcclusion()));
-    public static final DeferredBlock<Block> PLANT_FLOWER = registerBlock("plant_flower",
-            () -> new MustardWillowFlowerBlock(BlockBehaviour.Properties.of()
+    public static final DeferredBlock<Block> PLANT_FOXGLOVE = registerBlockWithoutItem("plant_foxglove",
+            () -> new HbmPlantBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.PLANT)
                     .strength(0.0F, 0.0F)
                     .sound(SoundType.GRASS)
                     .noCollission()
                     .noOcclusion()));
-    public static final DeferredBlock<Block> PLANT_TALL = registerBlock("plant_tall",
-            () -> new MustardWillowTallBlock(BlockBehaviour.Properties.of()
+    public static final DeferredBlock<Block> PLANT_TOBACCO = registerBlockWithoutItem("plant_tobacco",
+            () -> new HbmPlantBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PLANT)
+                    .strength(0.0F, 0.0F)
+                    .sound(SoundType.GRASS)
+                    .noCollission()
+                    .noOcclusion()));
+    public static final DeferredBlock<Block> PLANT_NIGHTSHADE = registerBlockWithoutItem("plant_nightshade",
+            () -> new HbmPlantBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PLANT)
+                    .strength(0.0F, 0.0F)
+                    .sound(SoundType.GRASS)
+                    .noCollission()
+                    .noOcclusion()));
+    public static final DeferredBlock<Block> PLANT_HEMP = registerBlockWithoutItem("plant_hemp",
+            () -> new HempPlantBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PLANT)
+                    .strength(0.0F, 0.0F)
+                    .sound(SoundType.GRASS)
+                    .noCollission()
+                    .noOcclusion()));
+    public static final DeferredBlock<Block> PLANT_MUSTARD_WILLOW = registerBlockWithoutItem("plant_mustard_willow",
+            () -> new MustardWillowPlantBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.PLANT)
                     .strength(0.0F, 0.0F)
                     .sound(SoundType.GRASS)
@@ -724,7 +759,8 @@ public final class HbmBlocks {
                     .strength(15.0F, 360.0F)
                     .lightLevel(state -> 12)
                     .randomTicks()));
-    public static final DeferredBlock<Block> BLOCK_METEOR_TREASURE = meteorBlock("block_meteor_treasure");
+    public static final DeferredBlock<Block> BLOCK_METEOR_TREASURE = registerBlock("block_meteor_treasure",
+            () -> new MeteoriteTreasureBlock(rock().strength(15.0F, 360.0F).noLootTable()));
     public static final DeferredBlock<Block> METEOR_BRICK = meteorBlock("meteor_brick");
     public static final DeferredBlock<Block> METEOR_BRICK_MOSSY = meteorBlock("meteor_brick_mossy");
     public static final DeferredBlock<Block> METEOR_BRICK_CRACKED = meteorBlock("meteor_brick_cracked");
@@ -1102,6 +1138,19 @@ public final class HbmBlocks {
             () -> new PileGraphiteBlock(metal().strength(5.0F, 10.0F), PileGraphiteBlock.Kind.TRITIUM));
     public static final DeferredBlock<Block> BLOCK_GRAPHITE_DETECTOR = registerBlockWithoutItem("block_graphite_detector",
             () -> new PileGraphiteBlock(metal().strength(5.0F, 10.0F), PileGraphiteBlock.Kind.DETECTOR));
+    public static final DeferredBlock<Block> PILE_BRICK = registerBlock("pile_brick",
+            () -> new PileMk2BrickBlock(metal().strength(5.0F, 10.0F)));
+    public static final DeferredBlock<Block> PILE_BLOCK = registerBlock("pile_block",
+            () -> new PileMk2Block(metal().strength(15.0F, 10.0F)));
+    public static final DeferredBlock<Block> PILE_LOADER = registerObjBlock("pile_loader",
+            () -> new PileMk2DeviceBlock(metal().strength(5.0F, 10.0F).noOcclusion(),
+                    PileMk2DeviceBlock.Kind.LOADER));
+    public static final DeferredBlock<Block> PILE_VENT = registerObjBlock("pile_vent",
+            () -> new PileMk2DeviceBlock(metal().strength(5.0F, 10.0F).noOcclusion(),
+                    PileMk2DeviceBlock.Kind.VENT));
+    public static final DeferredBlock<Block> PILE_CONTROL = registerObjBlock("pile_control",
+            () -> new PileMk2DeviceBlock(metal().strength(5.0F, 10.0F).noOcclusion(),
+                    PileMk2DeviceBlock.Kind.CONTROL));
     public static final DeferredBlock<Block> BLOCK_BORON = materialBlock("block_boron");
     public static final DeferredBlock<Block> BLOCK_SCHRARANIUM = materialBlock("block_schraranium");
     public static final DeferredBlock<Block> BLOCK_LANTHANIUM = materialBlock("block_lanthanium");
@@ -1241,6 +1290,7 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> RED_CONNECTOR = powerPylon("red_connector", PowerPylonBlock.Kind.RED_CONNECTOR);
     public static final DeferredBlock<Block> CONNECTOR_RED_SUPER = powerPylon("red_connector_super", PowerPylonBlock.Kind.CONNECTOR_RED_SUPER);
     public static final DeferredBlock<Block> RED_PYLON = powerPylon("red_pylon", PowerPylonBlock.Kind.RED_PYLON);
+    public static final DeferredBlock<Block> RED_PYLON_STEEL = powerPylon("red_pylon_steel", PowerPylonBlock.Kind.RED_PYLON_STEEL);
     public static final DeferredBlock<Block> RED_PYLON_MEDIUM_WOOD = powerPylonWood("red_pylon_medium_wood", PowerPylonBlock.Kind.RED_PYLON_MEDIUM_WOOD);
     public static final DeferredBlock<Block> RED_PYLON_MEDIUM_WOOD_TRANSFORMER = powerPylonWood("red_pylon_medium_wood_transformer", PowerPylonBlock.Kind.RED_PYLON_MEDIUM_WOOD_TRANSFORMER);
     public static final DeferredBlock<Block> RED_PYLON_MEDIUM_STEEL = powerPylon("red_pylon_medium_steel", PowerPylonBlock.Kind.RED_PYLON_MEDIUM_STEEL);
@@ -1341,42 +1391,42 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> CUSTOM_MACHINE = registerBlock("custom_machine", () -> new CustomMachineBlock(
             metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> CUSTOM_MACHINE_ANCHOR = registerBlock("custom_machine_anchor",
-            () -> new LegacyDirectionalBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
+            () -> new CustomMachineAnchorBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> MACHINE_INDUSTRIAL_GENERATOR = registerBlock("machine_industrial_generator",
             () -> new IndustrialGeneratorBlock(metal().strength(5.0F, 10.0F)));
     /** Compatibility id used by old 1.7.10 breeding-reactor item stacks. */
     public static final DeferredBlock<Block> MACHINE_REACTOR = registerBlock("machine_reactor",
-            () -> new LegacyDirectionalBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
+            () -> new LegacyReactorCompatibilityBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> MACHINE_DETECTOR = registerBlock("machine_detector",
             () -> new PowerDetectorBlock(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> MACHINE_TRANSFORMER = registerBlock("machine_transformer",
             () -> new Block(metal().strength(5.0F, 10.0F)));
     // 1.7.10 machine_ devices which were still being exposed through the legacy placeholder registry.
     // Their dimensions are kept in the old {up, down, north, south, west, east} order.
-    public static final DeferredBlock<Block> MACHINE_ANNIHILATOR = legacyMachine("machine_annihilator", new int[]{2, 0, 4, 4, 1, 1}, 4);
-    public static final DeferredBlock<Block> MACHINE_AUTOCRAFTER = legacyMachine("machine_autocrafter", new int[]{0, 0, 0, 0, 0, 0}, 0);
-    public static final DeferredBlock<Block> MACHINE_AUTOSAW = legacyMachine("machine_autosaw", new int[]{0, 0, 0, 0, 0, 0}, 0);
-    public static final DeferredBlock<Block> MACHINE_THRESHER = legacyMachine("machine_thresher", new int[]{0, 0, 0, 0, 0, 0}, 0);
-    public static final DeferredBlock<Block> MACHINE_LPW2 = legacyMachine("machine_lpw2", new int[]{6, 0, 3, 3, 9, 10}, 3);
+    public static final DeferredBlock<Block> MACHINE_ANNIHILATOR = legacyMachine("machine_annihilator", annihilatorFootprint(), 4, LegacyMachineBlock.Kind.ANNIHILATOR);
+    public static final DeferredBlock<Block> MACHINE_AUTOCRAFTER = legacyMachine("machine_autocrafter", autocrafterFootprint(), 0, LegacyMachineBlock.Kind.AUTOCRAFTER);
+    public static final DeferredBlock<Block> MACHINE_AUTOSAW = legacyMachine("machine_autosaw", autosawFootprint(), 0, LegacyMachineBlock.Kind.AUTOSAW);
+    public static final DeferredBlock<Block> MACHINE_THRESHER = legacyMachine("machine_thresher", thresherFootprint(), 0, LegacyMachineBlock.Kind.THRESHER);
+    public static final DeferredBlock<Block> MACHINE_LPW2 = legacyMachine("machine_lpw2", lpw2Footprint(), 3, LegacyMachineBlock.Kind.LPW2);
     public static final DeferredBlock<Block> MACHINE_CONVEYOR_PRESS = conveyorPress("machine_conveyor_press");
-    public static final DeferredBlock<Block> MACHINE_FORCEFIELD = legacyMachine("machine_forcefield", new int[]{0, 0, 0, 0, 0, 0}, 0);
-    public static final DeferredBlock<Block> MACHINE_MISSILE_ASSEMBLY = legacyMachine("machine_missile_assembly", new int[]{0, 0, 0, 0, 0, 0}, 0);
-    public static final DeferredBlock<Block> MACHINE_ORBUS = legacyMachine("machine_orbus", new int[]{4, 0, 2, 1, 2, 1}, 1);
-    public static final DeferredBlock<Block> MACHINE_PRECASS = legacyMachine("machine_precass", new int[]{2, 0, 1, 1, 1, 1}, 1);
-    public static final DeferredBlock<Block> MACHINE_PYROOVEN = legacyMachine("machine_pyrooven", new int[]{2, 0, 3, 3, 2, 2}, 3);
+    public static final DeferredBlock<Block> MACHINE_FORCEFIELD = legacyMachine("machine_forcefield", forcefieldFootprint(), 0, LegacyMachineBlock.Kind.FORCEFIELD);
+    public static final DeferredBlock<Block> MACHINE_MISSILE_ASSEMBLY = legacyMachine("machine_missile_assembly", missileAssemblyFootprint(), 0, LegacyMachineBlock.Kind.MISSILE_ASSEMBLY);
+    public static final DeferredBlock<Block> MACHINE_ORBUS = legacyMachine("machine_orbus", orbusFootprint(), 1, LegacyMachineBlock.Kind.ORBUS);
+    public static final DeferredBlock<Block> MACHINE_PRECASS = legacyMachine("machine_precass", precisionAssemblerFootprint(), 1, LegacyMachineBlock.Kind.PRECASS);
+    public static final DeferredBlock<Block> MACHINE_PYROOVEN = legacyMachine("machine_pyrooven", pyroOvenFootprint(), 3, LegacyMachineBlock.Kind.PYROOVEN);
     public static final DeferredBlock<Block> RADAR_SCREEN = radarScreen("radar_screen");
-    public static final DeferredBlock<Block> MACHINE_RADAR = legacyMachine("machine_radar", new int[]{0, 0, 0, 0, 0, 0}, 0);
-    public static final DeferredBlock<Block> MACHINE_RADAR_LARGE = legacyMachine("machine_radar_large", new int[]{4, 0, 1, 1, 1, 1}, 1);
-    public static final DeferredBlock<Block> MACHINE_RADGEN = legacyMachine("machine_radgen", new int[]{2, 0, 3, 2, 1, 1}, 2);
-    public static final DeferredBlock<Block> MACHINE_RADIOLYSIS = legacyMachine("machine_radiolysis", new int[]{2, 0, 1, 1, 1, 1}, 0);
-    public static final DeferredBlock<Block> MACHINE_RTG_GREY = legacyMachine("machine_rtg_grey", new int[]{0, 0, 0, 0, 0, 0}, 0);
+    public static final DeferredBlock<Block> MACHINE_RADAR = legacyMachine("machine_radar", radarFootprint(), 0, LegacyMachineBlock.Kind.RADAR);
+    public static final DeferredBlock<Block> MACHINE_RADAR_LARGE = legacyMachine("machine_radar_large", largeRadarFootprint(), 1, LegacyMachineBlock.Kind.RADAR_LARGE);
+    public static final DeferredBlock<Block> MACHINE_RADGEN = legacyMachine("machine_radgen", radiationGeneratorFootprint(), 2, LegacyMachineBlock.Kind.RADGEN);
+    public static final DeferredBlock<Block> MACHINE_RADIOLYSIS = legacyMachine("machine_radiolysis", radiolysisFootprint(), 0, LegacyMachineBlock.Kind.RADIOLYSIS);
+    public static final DeferredBlock<Block> MACHINE_RTG_GREY = legacyMachine("machine_rtg_grey", greyRtgFootprint(), 0, LegacyMachineBlock.Kind.RTG_GREY);
     public static final DeferredBlock<Block> MACHINE_SATLINKER = registerBlock("machine_satlinker",
             () -> new SatelliteLinkerBlock(metal().strength(5.0F, 10.0F)));
-    public static final DeferredBlock<Block> MACHINE_SAWMILL = sawmillMachine("machine_sawmill", new int[]{1, 0, 1, 1, 1, 1}, 1);
-    public static final DeferredBlock<Block> MACHINE_TELEPORTER = legacyMachine("machine_teleporter", new int[]{0, 0, 0, 0, 0, 0}, 0);
+    public static final DeferredBlock<Block> MACHINE_SAWMILL = sawmillMachine("machine_sawmill", sawmillFootprint(), 1);
+    public static final DeferredBlock<Block> MACHINE_TELEPORTER = legacyMachine("machine_teleporter", teleporterFootprint(), 0, LegacyMachineBlock.Kind.TELEPORTER);
     public static final DeferredBlock<Block> TELEANCHOR = registerBlock("teleanchor",
             () -> new Block(metal().strength(5.0F, 10.0F)));
-    public static final DeferredBlock<Block> MACHINE_TURBOFAN = legacyMachine("machine_turbofan", new int[]{2, 0, 1, 1, 3, 3}, 1);
+    public static final DeferredBlock<Block> MACHINE_TURBOFAN = legacyMachine("machine_turbofan", turbofanFootprint(), 1, LegacyMachineBlock.Kind.TURBOFAN);
     public static final DeferredBlock<Block> FAN = registerObjBlock("fan",
             () -> new FanBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> FLOODLIGHT = registerObjBlock("floodlight",
@@ -1488,8 +1538,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> MACHINE_SIREN = registerBlock("machine_siren",
             () -> new SirenBlock(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> MACHINE_AMMO_PRESS = ammoPress("machine_ammo_press");
-    public static final DeferredBlock<Block> MACHINE_PRESS = pressMachine("machine_press");
-    public static final DeferredBlock<Block> MACHINE_EPRESS = pressMachine("machine_epress");
+    public static final DeferredBlock<Block> MACHINE_PRESS = pressMachine("machine_press", PressBlockEntity.Kind.FIRE);
+    public static final DeferredBlock<Block> MACHINE_EPRESS = pressMachine("machine_epress", PressBlockEntity.Kind.ELECTRIC);
     public static final DeferredBlock<Block> MACHINE_CENTRIFUGE = centrifuge("machine_centrifuge", CentrifugeBlock.Kind.NORMAL);
     public static final DeferredBlock<Block> MACHINE_GASCENT = centrifuge("machine_gascent", CentrifugeBlock.Kind.GAS);
     public static final DeferredBlock<Block> MACHINE_CRYSTALLIZER = crystallizer("machine_crystallizer");
@@ -1508,9 +1558,13 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> MACHINE_EXCAVATOR = excavator("machine_excavator");
     public static final DeferredBlock<Block> MACHINE_MINING_LASER = miningLaser("machine_mining_laser");
     public static final DeferredBlock<Block> MACHINE_ORE_SLOPPER = oreSlopper("machine_ore_slopper");
-    public static final DeferredBlock<Block> MACHINE_STIRLING = stirlingGenerator("machine_stirling");
-    public static final DeferredBlock<Block> MACHINE_STIRLING_STEEL = stirlingGenerator("machine_stirling_steel");
-    public static final DeferredBlock<Block> MACHINE_STIRLING_CREATIVE = stirlingGenerator("machine_stirling_creative");
+    public static final DeferredBlock<Block> MACHINE_ROCKMILL = rockMill("machine_rockmill");
+    public static final DeferredBlock<Block> MACHINE_SATLINK = satelliteGroundStation("machine_satlink");
+    public static final DeferredBlock<Block> MACHINE_TAPE_DRIVE = tapeDrive("machine_tape_drive");
+    public static final DeferredBlock<Block> MACHINE_SUPERCOMPUTER = supercomputer("machine_supercomputer");
+    public static final DeferredBlock<Block> MACHINE_STIRLING = stirlingGenerator("machine_stirling", StirlingGeneratorBlock.Kind.NORMAL);
+    public static final DeferredBlock<Block> MACHINE_STIRLING_STEEL = stirlingGenerator("machine_stirling_steel", StirlingGeneratorBlock.Kind.STEEL);
+    public static final DeferredBlock<Block> MACHINE_STIRLING_CREATIVE = stirlingGenerator("machine_stirling_creative", StirlingGeneratorBlock.Kind.CREATIVE);
     public static final DeferredBlock<Block> MACHINE_DIESEL = dieselGenerator("machine_diesel");
     public static final DeferredBlock<Block> MACHINE_COMBUSTION_ENGINE = combustionEngine("machine_combustion_engine");
     public static final DeferredBlock<Block> MACHINE_FLARE = gasFlare("machine_flare");
@@ -1670,13 +1724,13 @@ public final class HbmBlocks {
             () -> new SatelliteDockDummyBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> STRUCT_LAUNCHER_CORE = launcherStructCore("struct_launcher_core", false);
     public static final DeferredBlock<Block> STRUCT_LAUNCHER_CORE_LARGE = launcherStructCore("struct_launcher_core_large", true);
-    public static final DeferredBlock<Block> STRUCT_SOYUZ_CORE = structSoyuzCore("struct_soyuz_core");
     public static final DeferredBlock<Block> COMPACT_LAUNCHER = compactLauncher("compact_launcher");
     public static final DeferredBlock<Block> LAUNCH_TABLE = launchTable("launch_table");
     public static final DeferredBlock<Block> LAUNCH_PAD = launchPad("launch_pad", LaunchPadBlock.Kind.SILO);
     public static final DeferredBlock<Block> LAUNCH_PAD_LARGE = launchPad("launch_pad_large", LaunchPadBlock.Kind.LARGE);
     public static final DeferredBlock<Block> LAUNCH_PAD_RUSTED = launchPad("launch_pad_rusted", LaunchPadBlock.Kind.RUSTED);
-    public static final DeferredBlock<Block> SOYUZ_LAUNCHER = soyuzLauncher("soyuz_launcher");
+    public static final DeferredBlock<Block> LAUNCHPAD_LAMBDA = lambdaLaunchpad("launchpad_lambda");
+    public static final DeferredBlock<Block> LAUNCHPAD_SOYUZ = soyuzLaunchpad("launchpad_soyuz");
     public static final DeferredBlock<Block> SOYUZ_CAPSULE = soyuzCapsule("soyuz_capsule");
     public static final DeferredBlock<Block> DUMMY_PLATE_COMPACT_LAUNCHER = launcherDummy(
             "dummy_plate_compact_launcher",
@@ -1712,7 +1766,15 @@ public final class HbmBlocks {
             () -> new Block(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> WATZ_PUMP = watzPump("watz_pump");
     public static final DeferredBlock<Block> MACHINE_ZIRNOX = zirnoxReactor("machine_zirnox");
-    public static final DeferredBlock<Block> PWR_BLOCK = pwrBlock("pwr_block", PwrBlock.Kind.BLOCK);
+    /**
+     * Internal assembled-PWR proxy.  In 1.7.10 BlockPWR had no creative tab
+     * and dropped no item; only the controller was allowed to create it.
+     */
+    public static final DeferredBlock<Block> PWR_BLOCK = registerBlockWithoutItem("pwr_block",
+            () -> new PwrBlock(metal()
+                    .strength(5.0F, 10.0F)
+                    .noOcclusion()
+                    .noLootTable(), PwrBlock.Kind.BLOCK));
     public static final DeferredBlock<Block> PWR_CASING = pwrBlock("pwr_casing", PwrBlock.Kind.CASING);
     public static final DeferredBlock<Block> PWR_CHANNEL = pwrBlock("pwr_channel", PwrBlock.Kind.CHANNEL);
     public static final DeferredBlock<Block> PWR_CONTROL = pwrBlock("pwr_control", PwrBlock.Kind.CONTROL);
@@ -1793,6 +1855,7 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> LARGE_VEHICLE_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.LARGE_VEHICLE_DOOR);
     public static final DeferredBlock<Block> VAULT_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.VAULT_DOOR);
     public static final DeferredBlock<Block> WATER_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.WATER_DOOR);
+    public static final DeferredBlock<Block> CARGO_DOOR = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.CARGO_DOOR);
     public static final DeferredBlock<Block> SILO_HATCH = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.SILO_HATCH);
     public static final DeferredBlock<Block> SILO_HATCH_LARGE = heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl.SILO_HATCH_LARGE);
 
@@ -1820,7 +1883,8 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> DFC_RECEIVER = dfcComponent("dfc_receiver", DfcComponentBlock.Kind.RECEIVER);
     public static final DeferredBlock<Block> DFC_INJECTOR = dfcComponent("dfc_injector", DfcComponentBlock.Kind.INJECTOR);
     public static final DeferredBlock<Block> DFC_STABILIZER = dfcComponent("dfc_stabilizer", DfcComponentBlock.Kind.STABILIZER);
-    public static final DeferredBlock<Block> PRESS_PREHEATER = machineBlock("press_preheater");
+    public static final DeferredBlock<Block> PRESS_PREHEATER = registerBlock("press_preheater",
+            () -> new PressPreheaterBlock(metal().strength(5.0F, 10.0F).noOcclusion()));
     public static final DeferredBlock<Block> RBMK_ABSORBER = rbmkComponent("rbmk_absorber", RbmkComponentBlock.Kind.ABSORBER);
     public static final DeferredBlock<Block> RBMK_AUTOLOADER = rbmkComponent("rbmk_autoloader", RbmkComponentBlock.Kind.AUTOLOADER);
     public static final DeferredBlock<Block> RBMK_BLANK = rbmkComponent("rbmk_blank", RbmkComponentBlock.Kind.BLANK);
@@ -1916,6 +1980,7 @@ public final class HbmBlocks {
             RED_CONNECTOR,
             CONNECTOR_RED_SUPER,
             RED_PYLON,
+            RED_PYLON_STEEL,
             RED_PYLON_LARGE,
             SUBSTATION,
             MACHINE_BATTERY_REDD,
@@ -2140,6 +2205,14 @@ public final class HbmBlocks {
             , MACHINE_THRESHER
             , MACHINE_LPW2
             , MACHINE_CONVEYOR_PRESS
+            , CRANE_BOXER
+            , CRANE_EXTRACTOR
+            , CRANE_GRABBER
+            , CRANE_INSERTER
+            , CRANE_PARTITIONER
+            , CRANE_ROUTER
+            , CRANE_SPLITTER
+            , CRANE_UNBOXER
             , MACHINE_ORBUS
             , MACHINE_PRECASS
             , MACHINE_PYROOVEN
@@ -2170,6 +2243,7 @@ public final class HbmBlocks {
             MACHINE_MINING_LASER,
             MACHINE_CRYSTALLIZER,
             MACHINE_ORE_SLOPPER,
+            MACHINE_ROCKMILL,
             MACHINE_SILEX,
             MACHINE_FEL
     );
@@ -2210,6 +2284,11 @@ public final class HbmBlocks {
     );
 
     public static final List<DeferredBlock<Block>> REACTOR_BLOCKS = List.of(
+            PILE_BRICK,
+            PILE_BLOCK,
+            PILE_LOADER,
+            PILE_VENT,
+            PILE_CONTROL,
             MACHINE_REACTOR_SMALL,
             MACHINE_CONTROLLER,
             MACHINE_REACTOR_BREEDING,
@@ -2220,7 +2299,6 @@ public final class HbmBlocks {
             WATZ_ELEMENT,
             WATZ_PUMP,
             MACHINE_ZIRNOX,
-            PWR_BLOCK,
             PWR_CASING,
             PWR_CHANNEL,
             PWR_CONTROL,
@@ -2313,13 +2391,13 @@ public final class HbmBlocks {
             STRUCT_SCAFFOLD,
             STRUCT_LAUNCHER_CORE,
             STRUCT_LAUNCHER_CORE_LARGE,
-            STRUCT_SOYUZ_CORE,
             COMPACT_LAUNCHER,
             LAUNCH_TABLE,
             LAUNCH_PAD,
             LAUNCH_PAD_LARGE,
             LAUNCH_PAD_RUSTED,
-            SOYUZ_LAUNCHER,
+            LAUNCHPAD_LAMBDA,
+            LAUNCHPAD_SOYUZ,
             SOYUZ_CAPSULE,
             SAT_DOCK,
             CRATE_SUPPLY,
@@ -2328,7 +2406,10 @@ public final class HbmBlocks {
             RADAR_SCREEN,
             MACHINE_RADAR,
             MACHINE_RADAR_LARGE,
-            MACHINE_SATLINKER
+            MACHINE_SATLINKER,
+            MACHINE_SATLINK,
+            MACHINE_TAPE_DRIVE,
+            MACHINE_SUPERCOMPUTER
     );
 
     public static final List<DeferredBlock<Block>> ANVIL_BLOCKS = List.of(
@@ -2366,6 +2447,7 @@ public final class HbmBlocks {
             LARGE_VEHICLE_DOOR,
             VAULT_DOOR,
             WATER_DOOR,
+            CARGO_DOOR,
             SILO_HATCH,
             SILO_HATCH_LARGE,
             SEAL_CONTROLLER,
@@ -2387,6 +2469,7 @@ public final class HbmBlocks {
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.LARGE_VEHICLE_DOOR, LARGE_VEHICLE_DOOR),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.VAULT_DOOR, VAULT_DOOR),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.WATER_DOOR, WATER_DOOR),
+            Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.CARGO_DOOR, CARGO_DOOR),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.SILO_HATCH, SILO_HATCH),
             Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.SILO_HATCH_LARGE, SILO_HATCH_LARGE)
     );
@@ -2515,9 +2598,7 @@ public final class HbmBlocks {
             STONE_DEPTH,
             STONE_DEPTH_NETHER,
             OIL_SPILL,
-            PLANT_DEAD,
-            PLANT_FLOWER,
-            PLANT_TALL
+            PLANT_DEAD
     );
 
     public static final DeferredBlock<Block> ASPHALT = registerBlock("asphalt",
@@ -2541,7 +2622,7 @@ public final class HbmBlocks {
     public static final DeferredBlock<Block> BRICK_RED = registerBlock("brick_red",
             () -> new RedBrickBlock(rock().strength(0.0F, 10_000.0F)));
     public static final DeferredBlock<Block> BRICK_FORGOTTEN = registerBlock("brick_forgotten",
-            () -> new LegacyPillarBlock(rock().strength(-1.0F, 666_666.0F)));
+            () -> new ForgottenBrickBlock(rock().strength(-1.0F, 666_666.0F)));
     public static final DeferredBlock<Block> BRICK_FORGOTTEN_LOCK = registerBlock("brick_forgotten_lock",
             () -> new ForgottenLockBlock(rock().strength(-1.0F, 666_666.0F)));
     public static final DeferredBlock<Block> WOOD_BARRIER = registerBlock("wood_barrier",
@@ -2587,6 +2668,21 @@ public final class HbmBlocks {
             () -> new Block(metal().strength(5.0F, 10.0F)));
     public static final DeferredBlock<Block> DECO_BERYLLIUM = registerBlock("deco_beryllium",
             () -> new Block(metal().strength(5.0F, 10.0F)));
+    public static final DeferredBlock<Block> PLATEMETAL = platemetal("platemetal");
+    public static final DeferredBlock<Block> PLATEMETAL_BLACK = platemetal("platemetal_black");
+    public static final DeferredBlock<Block> PLATEMETAL_WHITE = platemetal("platemetal_white");
+    public static final DeferredBlock<Block> PLATEMETAL_RED = platemetal("platemetal_red");
+    public static final DeferredBlock<Block> PLATEMETAL_GREEN = platemetal("platemetal_green");
+    public static final DeferredBlock<Block> PLATEMETAL_LIGHT_GRAY = platemetal("platemetal_light_gray");
+    public static final DeferredBlock<Block> PLATEMETAL_BLUE = platemetal("platemetal_blue");
+    public static final DeferredBlock<Block> PLATEMETAL_PURPLE = platemetal("platemetal_purple");
+    public static final DeferredBlock<Block> PLATEMETAL_CYAN = platemetal("platemetal_cyan");
+    public static final DeferredBlock<Block> PLATEMETAL_PINK = platemetal("platemetal_pink");
+    public static final DeferredBlock<Block> PLATEMETAL_LIME = platemetal("platemetal_lime");
+    public static final DeferredBlock<Block> PLATEMETAL_YELLOW = platemetal("platemetal_yellow");
+    public static final DeferredBlock<Block> PLATEMETAL_LIGHT_BLUE = platemetal("platemetal_light_blue");
+    public static final DeferredBlock<Block> PLATEMETAL_MAGENTA = platemetal("platemetal_magenta");
+    public static final DeferredBlock<Block> PLATEMETAL_ORANGE = platemetal("platemetal_orange");
     public static final DeferredBlock<Block> DECO_ASBESTOS = registerBlock("deco_asbestos",
             () -> new AsbestosOutgassingBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_GRAY)
@@ -2918,6 +3014,10 @@ public final class HbmBlocks {
             () -> new PneumaticStorageBlock(metal().strength(0.1F, 10.0F).sound(SoundType.METAL), PneumaticStorageBlock.Kind.CLUTTER));
     public static final DeferredBlock<Block> PNEUMATIC_STORAGE_MONO = registerBlock("pneumatic_storage_mono",
             () -> new PneumaticStorageBlock(metal().strength(0.1F, 10.0F).sound(SoundType.METAL), PneumaticStorageBlock.Kind.MONO));
+    public static final DeferredBlock<Block> PNEUMATIC_STORAGE_IMPORTER = registerBlock("pneumatic_storage_importer",
+            () -> new PneumaticStorageBlock(metal().strength(5.0F, 10.0F).sound(SoundType.METAL), PneumaticStorageBlock.Kind.IMPORTER));
+    public static final DeferredBlock<Block> PNEUMATIC_STORAGE_EXPORTER = registerBlock("pneumatic_storage_exporter",
+            () -> new PneumaticStorageBlock(metal().strength(5.0F, 10.0F).sound(SoundType.METAL), PneumaticStorageBlock.Kind.EXPORTER));
     public static final DeferredBlock<Block> RAIL_HIGHSPEED = railBlock("rail_highspeed",
             metal()
                     .strength(5.0F, 10.0F)
@@ -2971,11 +3071,8 @@ public final class HbmBlocks {
             FLOODLIGHT,
             LAMP_DEMON,
             SPOTLIGHT_INCANDESCENT,
-            SPOTLIGHT_INCANDESCENT_OFF,
             SPOTLIGHT_FLUORO,
-            SPOTLIGHT_FLUORO_OFF,
             SPOTLIGHT_HALOGEN,
-            SPOTLIGHT_HALOGEN_OFF,
             REINFORCED_LAMP_OFF,
             REINFORCED_LAMP_ON,
             LAMP_TRITIUM_GREEN_OFF,
@@ -3035,6 +3132,21 @@ public final class HbmBlocks {
             DECO_RUSTY_STEEL,
             DECO_LEAD,
             DECO_BERYLLIUM,
+            PLATEMETAL,
+            PLATEMETAL_BLACK,
+            PLATEMETAL_WHITE,
+            PLATEMETAL_RED,
+            PLATEMETAL_GREEN,
+            PLATEMETAL_LIGHT_GRAY,
+            PLATEMETAL_BLUE,
+            PLATEMETAL_PURPLE,
+            PLATEMETAL_CYAN,
+            PLATEMETAL_PINK,
+            PLATEMETAL_LIME,
+            PLATEMETAL_YELLOW,
+            PLATEMETAL_LIGHT_BLUE,
+            PLATEMETAL_MAGENTA,
+            PLATEMETAL_ORANGE,
             DECO_ASBESTOS,
             DECO_RBMK,
             DECO_RBMK_SMOOTH,
@@ -3090,8 +3202,6 @@ public final class HbmBlocks {
             STONE_BIOME,
             WOOD_BARRIER,
             WOOD_STRUCTURE,
-            BRICK_FORGOTTEN,
-            BRICK_FORGOTTEN_LOCK,
             GNEISS_BRICK,
             GNEISS_TILE,
             GNEISS_CHISELED,
@@ -3183,6 +3293,8 @@ public final class HbmBlocks {
             PNEUMATIC_STORAGE_ACCESS,
             PNEUMATIC_STORAGE_CLUTTER,
             PNEUMATIC_STORAGE_MONO,
+            PNEUMATIC_STORAGE_IMPORTER,
+            PNEUMATIC_STORAGE_EXPORTER,
             LADDER_STURDY,
             LADDER_GOLD,
             LADDER_COPPER,
@@ -3720,13 +3832,13 @@ public final class HbmBlocks {
     private static DeferredBlock<Block> woodBurner(String name) {
         return registerBlock(name, () -> new WoodBurnerBlock(metal()
                 .strength(5.0F, 10.0F)
-                .noOcclusion(), LargeMachineBlock.Footprint.box(0, 1, 0, 1, 0, 1), Shapes.block()));
+                .noOcclusion(), Shapes.block()));
     }
 
-    private static DeferredBlock<Block> stirlingGenerator(String name) {
+    private static DeferredBlock<Block> stirlingGenerator(String name, StirlingGeneratorBlock.Kind kind) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new StirlingGeneratorBlock(metal()
                 .strength(5.0F, 10.0F)
-                .noOcclusion()));
+                .noOcclusion(), kind));
         HbmItems.ITEMS.register(name, () -> new StirlingGeneratorBlockItem(block.get(), new Item.Properties()));
         return block;
     }
@@ -4170,14 +4282,6 @@ public final class HbmBlocks {
         return block;
     }
 
-    private static DeferredBlock<Block> structSoyuzCore(String name) {
-        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new SoyuzStructCoreBlock(metal()
-                .strength(5.0F, 10.0F)
-                .noOcclusion()));
-        HbmItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
-        return block;
-    }
-
     private static DeferredBlock<Block> compactLauncher(String name) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new CompactLauncherBlock(metal()
                 .strength(5.0F, 10.0F)
@@ -4207,11 +4311,21 @@ public final class HbmBlocks {
         return block;
     }
 
-    private static DeferredBlock<Block> soyuzLauncher(String name) {
-        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new SoyuzLauncherBlock(metal()
+    private static DeferredBlock<Block> lambdaLaunchpad(String name) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new LambdaLaunchpadBlock(metal()
                 .strength(5.0F, 10.0F)
                 .noOcclusion()));
-        HbmItems.ITEMS.register(name, () -> new SoyuzLauncherBlockItem(block.get(), new Item.Properties()));
+        HbmItems.ITEMS.register(name,
+                () -> new LambdaLaunchpadBlockItem(block.get(), new Item.Properties()));
+        return block;
+    }
+
+    private static DeferredBlock<Block> soyuzLaunchpad(String name) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new SoyuzLaunchpadBlock(metal()
+                .strength(5.0F, 10.0F)
+                .noOcclusion()));
+        HbmItems.ITEMS.register(name,
+                () -> new SoyuzLaunchpadBlockItem(block.get(), new Item.Properties()));
         return block;
     }
 
@@ -4325,8 +4439,9 @@ public final class HbmBlocks {
     }
 
     private static DeferredBlock<Block> heavyDoor(com.reinhardt.hbm.door.HbmDoorDecl decl) {
+        float resistance = decl == com.reinhardt.hbm.door.HbmDoorDecl.CARGO_DOOR ? 50.0F : 10.0F;
         DeferredBlock<Block> block = registerBlockWithoutItem(decl.id(), () -> new HbmHeavyDoorBlock(metal()
-                .strength(5.0F, 10.0F)
+                .strength(5.0F, resistance)
                 .noOcclusion()
                 .isViewBlocking((state, level, pos) -> false), decl));
         HbmItems.ITEMS.register(decl.id(), () -> new HbmHeavyDoorBlockItem(block.get(), new Item.Properties()));
@@ -4406,10 +4521,10 @@ public final class HbmBlocks {
                 .noOcclusion(), MACHINE_CORE_SHAPE));
     }
 
-    private static DeferredBlock<Block> pressMachine(String name) {
+    private static DeferredBlock<Block> pressMachine(String name, PressBlockEntity.Kind kind) {
         return registerBlock(name, () -> new PressMachineBlock(metal()
                 .strength(5.0F, 10.0F)
-                .noOcclusion(), LargeMachineBlock.Footprint.centered(0, 3, 0), MACHINE_CORE_SHAPE));
+                .noOcclusion(), LargeMachineBlock.Footprint.centered(0, 3, 0), MACHINE_CORE_SHAPE, kind));
     }
 
     private static DeferredBlock<Block> ammoPress(String name) {
@@ -4417,7 +4532,7 @@ public final class HbmBlocks {
         // plain BlockItem here silently falls back to the flat block icon.
         return registerObjBlock(name, () -> new AmmoPressBlock(metal()
                 .strength(5.0F, 10.0F)
-                .noOcclusion(), LargeMachineBlock.Footprint.legacySouthBox(1, 0, 0, 0, 1, 1), MACHINE_CORE_SHAPE));
+                .noOcclusion(), LargeMachineBlock.Footprint.box(-1, 1, 0, 1, 0, 0), MACHINE_CORE_SHAPE));
     }
 
     private static DeferredBlock<Block> microwave(String name) {
@@ -4522,6 +4637,33 @@ public final class HbmBlocks {
                 .noOcclusion(), MACHINE_CORE_SHAPE));
     }
 
+    private static DeferredBlock<Block> rockMill(String name) {
+        return registerObjBlock(name, () -> new RockMillBlock(metal()
+                .strength(5.0F, 100.0F)
+                .noOcclusion()));
+    }
+
+    private static DeferredBlock<Block> satelliteGroundStation(String name) {
+        return registerObjBlock(name, () -> new SatelliteGroundStationBlock(metal()
+                .strength(5.0F, 10.0F)
+                .noOcclusion()));
+    }
+
+    private static DeferredBlock<Block> tapeDrive(String name) {
+        return registerObjBlock(name, () -> new TapeDriveBlock(metal()
+                .strength(5.0F, 10.0F)
+                .noOcclusion()));
+    }
+
+    private static DeferredBlock<Block> supercomputer(String name) {
+        DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new SupercomputerBlock(metal()
+                .strength(5.0F, 30.0F)
+                .noOcclusion()));
+        HbmItems.ITEMS.register(name, () -> new ObjMachineLegacyOffsetBlockItem(
+                block.get(), new Item.Properties(), 8, true));
+        return block;
+    }
+
     private static DeferredBlock<Block> oreBasalt(String name) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new OreBasaltBlock(rock()
                 .strength(5.0F, 10.0F)
@@ -4590,18 +4732,14 @@ public final class HbmBlocks {
                 .noOcclusion(), kind));
     }
 
-    private static DeferredBlock<Block> machineBlock(String name) {
-        return registerBlock(name, () -> new LargeMachineBlock(metal()
-                .strength(5.0F, 10.0F)
-                .noOcclusion(), LargeMachineBlock.Footprint.centered(1, 1, 1)));
-    }
-
-    private static DeferredBlock<Block> legacyMachine(String name, int[] dimensions, int offset) {
+    private static DeferredBlock<Block> legacyMachine(String name, LargeMachineBlock.Footprint footprint, int offset,
+                                                       LegacyMachineBlock.Kind kind) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new LegacyMachineBlock(
                 metal().strength(name.equals("machine_autocrafter") ? 10.0F : 5.0F,
                         name.equals("machine_autocrafter") ? 20.0F : 10.0F).noOcclusion(),
-                legacyMachineFootprint(name, dimensions),
-                Shapes.block()
+                footprint,
+                Shapes.block(),
+                kind
         ));
         // BlockDummyable placed its core at clicked - facing * getOffset().
         HbmItems.ITEMS.register(name, () -> switch (name) {
@@ -4611,7 +4749,8 @@ public final class HbmBlocks {
                     new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset);
             case "machine_turbofan" ->
                     new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset, false);
-            case "machine_rtg_grey" -> new ObjMachineLegacyOffsetBlockItem(block.get(), new Item.Properties(), offset, true);
+            case "machine_rtg_grey" ->
+                    new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset);
             case "machine_radar", "machine_radar_large", "machine_radgen" ->
                     new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset);
             default -> new LegacyOffsetBlockItem(block.get(), new Item.Properties(), offset, true);
@@ -4619,9 +4758,9 @@ public final class HbmBlocks {
         return block;
     }
 
-    private static DeferredBlock<Block> sawmillMachine(String name, int[] dimensions, int offset) {
+    private static DeferredBlock<Block> sawmillMachine(String name, LargeMachineBlock.Footprint footprint, int offset) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new com.reinhardt.hbm.block.SawmillBlock(
-                metal().strength(5.0F, 10.0F).noOcclusion(), legacyMachineFootprint(name, dimensions)
+                metal().strength(5.0F, 10.0F).noOcclusion(), footprint
         ));
         HbmItems.ITEMS.register(name, () -> new LegacyMachineRendererBlockItem(block.get(), new Item.Properties(), offset));
         return block;
@@ -4650,41 +4789,130 @@ public final class HbmBlocks {
         return block;
     }
 
-    /**
-     * Direct translation of the 1.7.10 BlockDummyable fillSpace/makeExtra
-     * calls. Coordinates are in the old SOUTH-forward local basis.
-     */
-    private static LargeMachineBlock.Footprint legacyMachineFootprint(String name, int[] dimensions) {
-        Set<BlockPos> positions = new LinkedHashSet<>(LargeMachineBlock.Footprint.legacySouthBox(
-                dimensions[0], dimensions[1], dimensions[2], dimensions[3], dimensions[4], dimensions[5]
+    /** MachineAnnihilator#getDimensions plus its second MultiblockHandlerXR volume. */
+    private static LargeMachineBlock.Footprint annihilatorFootprint() {
+        Set<BlockPos> positions = new LinkedHashSet<>(LargeMachineBlock.Footprint.box(
+                -1, 1, 0, 2, -4, 4
         ).offsets());
-
-        switch (name) {
-            case "machine_annihilator" -> {
-                // MachineAnnihilator: secondary tower is centered three blocks behind the core.
-                addLegacyFootprintBox(positions, -1, 1, 2, 8, -4, -2);
-                positions.add(new BlockPos(1, 0, 3));
-                positions.add(new BlockPos(-1, 0, 3));
-                positions.add(new BlockPos(0, 0, 4));
-            }
-            case "machine_pyrooven" -> {
-                // MachinePyroOven: five lateral service blocks and one upper service block.
-                for (int z = -2; z <= 2; z++) {
-                    positions.add(new BlockPos(-2, 0, z));
-                }
-                positions.add(new BlockPos(1, 2, 0));
-            }
-            case "machine_precass" -> {
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = -1; z <= 1; z++) {
-                        positions.add(new BlockPos(x, 0, z));
-                    }
-                }
-            }
-            default -> {
-            }
-        }
+        // The second old volume is centered three blocks behind the core. Its unusual
+        // {up=8, down=-2} range therefore occupies y=2..8 and z=-4..-2.
+        addLegacyFootprintBox(positions, -1, 1, 2, 8, -4, -2);
+        // MachineAnnihilator#fillSpace makeExtra service cells, SOUTH-forward local basis.
+        positions.add(new BlockPos(1, 0, 3));
+        positions.add(new BlockPos(-1, 0, 3));
+        positions.add(new BlockPos(0, 0, 4));
         return new LargeMachineBlock.Footprint(List.copyOf(positions));
+    }
+
+    /** MachineAutocrafter was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint autocrafterFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineAutosaw was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint autosawFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineThresher was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint thresherFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineLPW2#getDimensions: {up=6, down=0, north=3, south=3, west=9, east=10}. */
+    private static LargeMachineBlock.Footprint lpw2Footprint() {
+        return LargeMachineBlock.Footprint.box(-9, 10, 0, 6, -3, 3);
+    }
+
+    /** MachineForceField was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint forcefieldFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineMissileAssembly was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint missileAssemblyFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineOrbus#getDimensions and its seven effective old makeExtra proxy cells. */
+    private static LargeMachineBlock.Footprint orbusFootprint() {
+        return LargeMachineBlock.Footprint.box(-2, 1, 0, 4, -2, 1).with(
+                new BlockPos(0, 0, -1), new BlockPos(1, 0, 0), new BlockPos(1, 0, -1),
+                new BlockPos(0, 4, 0), new BlockPos(0, 4, -1),
+                new BlockPos(1, 4, 0), new BlockPos(1, 4, -1)
+        );
+    }
+
+    /** MachineAssemblyMachine footprint used by MachinePrecAss, including its 3x3 service floor. */
+    private static LargeMachineBlock.Footprint precisionAssemblerFootprint() {
+        return LargeMachineBlock.Footprint.box(-1, 1, 0, 2, -1, 1).with(
+                new BlockPos(-1, 0, -1), new BlockPos(-1, 0, 0), new BlockPos(-1, 0, 1),
+                new BlockPos(0, 0, -1), new BlockPos(0, 0, 1),
+                new BlockPos(1, 0, -1), new BlockPos(1, 0, 0), new BlockPos(1, 0, 1)
+        );
+    }
+
+    /** MachinePyroOven#getDimensions and the six cells marked extra by fillSpace. */
+    private static LargeMachineBlock.Footprint pyroOvenFootprint() {
+        return LargeMachineBlock.Footprint.box(-2, 2, 0, 2, -3, 3).with(
+                new BlockPos(-2, 0, -2), new BlockPos(-2, 0, -1),
+                new BlockPos(-2, 0, 0), new BlockPos(-2, 0, 1),
+                new BlockPos(-2, 0, 2), new BlockPos(1, 2, 0)
+        );
+    }
+
+    /** MachineRadar was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint radarFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineRadarLarge#getDimensions and its four service cells around the core. */
+    private static LargeMachineBlock.Footprint largeRadarFootprint() {
+        return LargeMachineBlock.Footprint.box(-1, 1, 0, 4, -1, 1).with(
+                new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0),
+                new BlockPos(0, 0, 1), new BlockPos(0, 0, -1)
+        );
+    }
+
+    /** MachineRadGen#getDimensions and its three old makeExtra proxy cells. */
+    private static LargeMachineBlock.Footprint radiationGeneratorFootprint() {
+        return LargeMachineBlock.Footprint.box(-1, 1, 0, 2, -3, 2).with(
+                new BlockPos(0, 0, -3), new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0)
+        );
+    }
+
+    /** MachineRadiolysis#getDimensions and its four horizontal service cells. */
+    private static LargeMachineBlock.Footprint radiolysisFootprint() {
+        return LargeMachineBlock.Footprint.box(-1, 1, 0, 2, -1, 1).with(
+                new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0),
+                new BlockPos(0, 0, 1), new BlockPos(0, 0, -1)
+        );
+    }
+
+    /** Grey MachineRTG was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint greyRtgFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineTeleporter was a single BlockContainer in 1.7.10. */
+    private static LargeMachineBlock.Footprint teleporterFootprint() {
+        return LargeMachineBlock.Footprint.box(0, 0, 0, 0, 0, 0);
+    }
+
+    /** MachineTurbofan#getDimensions and its four old makeExtra proxy cells. */
+    private static LargeMachineBlock.Footprint turbofanFootprint() {
+        return LargeMachineBlock.Footprint.box(-3, 3, 0, 2, -1, 1).with(
+                new BlockPos(0, 0, 1), new BlockPos(-1, 0, 1),
+                new BlockPos(0, 0, -1), new BlockPos(-1, 0, -1)
+        );
+    }
+
+    /** MachineSawmill#getDimensions and its four inventory-proxy cells. */
+    private static LargeMachineBlock.Footprint sawmillFootprint() {
+        return LargeMachineBlock.Footprint.box(-1, 1, 0, 1, -1, 1).with(
+                new BlockPos(1, 0, 0), new BlockPos(-1, 0, 0),
+                new BlockPos(0, 0, 1), new BlockPos(0, 0, -1)
+        );
     }
 
     private static void addLegacyFootprintBox(
@@ -4843,7 +5071,7 @@ public final class HbmBlocks {
 
     private static DeferredBlock<Block> crane(String name, CraneMachineBlock.Kind kind) {
         DeferredBlock<Block> block = registerBlockWithoutItem(name, () -> new CraneMachineBlock(
-                metal().strength(3.0F, 10.0F), kind));
+                metal().strength(5.0F, 10.0F), kind));
         HbmItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
         return block;
     }
@@ -4866,6 +5094,12 @@ public final class HbmBlocks {
         DeferredBlock<T> deferredBlock = registerBlockWithoutItem(name, block);
         HbmItems.ITEMS.register(name, () -> new BlockItem(deferredBlock.get(), new Item.Properties()));
         return deferredBlock;
+    }
+
+    private static DeferredBlock<Block> platemetal(String name) {
+        return registerBlock(name, () -> new Block(metal()
+                .strength(5.0F, 10.0F)
+                .sound(HbmSoundTypes.PLATEMETAL)));
     }
 
     private static <T extends Block> DeferredBlock<T> registerObjBlock(String name, Supplier<T> block) {

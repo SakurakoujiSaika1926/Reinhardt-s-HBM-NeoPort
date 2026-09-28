@@ -314,7 +314,7 @@ public final class MicrowaveBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

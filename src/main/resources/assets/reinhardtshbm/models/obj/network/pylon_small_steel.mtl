@@ -1,0 +1,9 @@
+newmtl m_2d342b16-8f2e-5231-80ae-92eafddb5779
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/network/pylon_steel
+
+newmtl m_bf2d8415-1140-6651-2d4b-44fa28d981c3
+Ka 0.0 0.0 0.0
+Kd 1.0 1.0 1.0
+map_Kd reinhardtshbm:models/network/pylon_steel

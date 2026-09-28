@@ -43,14 +43,17 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndpoint, MachineInventory, WorldlyContainer, MenuProvider {
     public static final int MODULE_COUNT = 4;
@@ -74,6 +77,8 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     private static final int DATA_TANK_START = DATA_MODULE_START + MODULE_COUNT * DATA_PER_MODULE;
     private static final int TANK_COUNT = 10;
     private static final int[] AUTOMATION_SLOTS = createAutomationSlots();
+    private static volatile Consumer<AssemblyFactoryBlockEntity> clientRecipeIconSnapshotUpdater = ignored -> { };
+    private static volatile long clientRecipeIconSnapshotRevision;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final NonNullList<ItemStack> observedWorkItems = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
@@ -102,6 +107,8 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     private long lastClientAnimationTick = Long.MIN_VALUE;
     @Nullable
     private ResourceLocation[] selectedRecipeIds = new ResourceLocation[MODULE_COUNT];
+    private volatile RecipeIconsRenderSnapshot recipeIconsRenderSnapshot;
+    private boolean clientRecipeIconsSnapshotDirty = true;
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -192,14 +199,53 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             this.workTime[module] = 100;
             this.currentDemand[module] = 100;
         }
+        this.recipeIconsRenderSnapshot = RecipeIconsRenderSnapshot.empty(pos, blockState);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, AssemblyFactoryBlockEntity factory) {
         if (level.isClientSide) {
+            factory.refreshClientRecipeIconsSnapshot();
             return;
         }
         PowerNetworkManager.tickFromEndpoint(level, factory);
         factory.tickServer(level);
+    }
+
+    /** Installed by the client renderer without linking client-only classes on a server. */
+    public static void setClientRecipeIconsSnapshotUpdater(Consumer<AssemblyFactoryBlockEntity> updater) {
+        clientRecipeIconSnapshotUpdater = Objects.requireNonNull(updater);
+        clientRecipeIconSnapshotRevision++;
+    }
+
+    public static long clientRecipeIconsSnapshotRevision() {
+        return clientRecipeIconSnapshotRevision;
+    }
+
+    public RecipeIconsRenderSnapshot recipeIconsRenderSnapshot() {
+        return recipeIconsRenderSnapshot;
+    }
+
+    public void refreshClientRecipeIconsSnapshot() {
+        RecipeIconsRenderSnapshot snapshot = recipeIconsRenderSnapshot;
+        if (snapshot.revision() != clientRecipeIconSnapshotRevision
+                || snapshot.recipeGeneration() != MachineRecipeCache.generation()) {
+            clientRecipeIconsSnapshotDirty = true;
+        }
+        if (clientRecipeIconsSnapshotDirty && level != null && level.isClientSide) {
+            clientRecipeIconSnapshotUpdater.accept(this);
+        }
+    }
+
+    public void publishClientRecipeIconsSnapshot(RecipeIconsRenderSnapshot snapshot) {
+        if (level == null || !level.isClientSide) {
+            return;
+        }
+        RecipeIconsRenderSnapshot previous = recipeIconsRenderSnapshot;
+        recipeIconsRenderSnapshot = Objects.requireNonNull(snapshot);
+        clientRecipeIconsSnapshotDirty = false;
+        if (!sameSectionCoverage(previous.bounds(), snapshot.bounds())) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     @Override
@@ -419,7 +465,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -501,6 +547,25 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         this.lastInput = tag.getLong("LastInput");
         this.energyCapacity = Math.max(BASE_ENERGY_CAPACITY, tag.getLong("EnergyCapacity"));
         invalidateRecipeCatalog();
+        clientRecipeIconsSnapshotDirty = true;
+        refreshClientRecipeIconsSnapshot();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        clientRecipeIconsSnapshotDirty = true;
+        refreshClientRecipeIconsSnapshot();
+    }
+
+    @Override
+    public void setBlockState(BlockState state) {
+        BlockState previous = getBlockState();
+        super.setBlockState(state);
+        if (recipeIconsRenderSnapshot != null && previous != state) {
+            clientRecipeIconsSnapshotDirty = true;
+            refreshClientRecipeIconsSnapshot();
+        }
     }
 
     @Override
@@ -566,6 +631,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         this.selectedRecipeIds[module] = recipeId;
         this.progress[module] = 0;
         invalidateModuleWork(module);
+        clientRecipeIconsSnapshotDirty = true;
         setChangedAndSync(true);
     }
 
@@ -666,7 +732,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             nextCapacity += recipe.power() * 100L;
 
             if (!recipeState.inputsMatch
-                    || !canOutput(module, recipe.result())
+                    || !canOutput(module, recipe)
                     || !canFitFluidOutput(module, recipe)
                     || this.energyStored < this.currentDemand[module]
                     || !canCool()) {
@@ -793,12 +859,14 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         if (value <= 0 || this.level == null) {
             this.selectedRecipeIds[module] = null;
             invalidateModuleWork(module);
+            clientRecipeIconsSnapshotDirty = true;
             return;
         }
         List<RecipeHolder<AssemblyMachineRecipe>> recipes = availableRecipes(this.level, module);
         int index = value - 1;
         this.selectedRecipeIds[module] = index >= 0 && index < recipes.size() ? recipes.get(index).id() : null;
         invalidateModuleWork(module);
+        clientRecipeIconsSnapshotDirty = true;
     }
 
     private Optional<String> installedBlueprintPool(int module) {
@@ -846,6 +914,10 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
                 || (ItemStack.isSameItemSameComponents(output, result) && output.getCount() + result.getCount() <= output.getMaxStackSize());
     }
 
+    private boolean canOutput(int module, AssemblyMachineRecipe recipe) {
+        return recipe.canFitItemOutput(this.items.get(outputSlot(module)));
+    }
+
     private boolean canFitFluidOutput(int module, AssemblyMachineRecipe recipe) {
         if (recipe.outputFluids().size() > 1) {
             return false;
@@ -862,7 +934,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private void finishRecipe(int module, AssemblyMachineRecipe recipe) {
         consumeInputs(module, recipe);
-        ItemStack result = recipe.result().copy();
+        ItemStack result = recipe.rollResult(this.level.random);
         ItemStack output = this.items.get(outputSlot(module));
         if (output.isEmpty()) {
             this.items.set(outputSlot(module), result);
@@ -1017,7 +1089,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         ports.add(new Port(pos.offset(2, 0, -3), Direction.NORTH));
 
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = assemblyFactoryRightSide(facing);
         for (int i = -2; i <= 2; i++) {
             ports.add(new Port(pos.offset(offset(facing, i, rot, 2)).above(3), Direction.UP));
             ports.add(new Port(pos.offset(offset(facing, i, rot, -2)).above(3), Direction.UP));
@@ -1028,7 +1100,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> ioConnectorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = assemblyFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 1, rot, 3)), rot),
                 new Port(this.worldPosition.offset(offset(facing, -1, rot, 3)), rot),
@@ -1039,7 +1111,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> ioAccessorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = assemblyFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 1, rot, 2)), rot),
                 new Port(this.worldPosition.offset(offset(facing, -1, rot, 2)), rot),
@@ -1050,7 +1122,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> coolantConnectorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = assemblyFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 3, rot, 1)), facing),
                 new Port(this.worldPosition.offset(offset(facing, 3, rot, -1)), facing),
@@ -1061,7 +1133,7 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
 
     private List<Port> coolantAccessorPorts() {
         Direction facing = facing();
-        Direction rot = facing.getClockWise();
+        Direction rot = assemblyFactoryRightSide(facing);
         return List.of(
                 new Port(this.worldPosition.offset(offset(facing, 2, rot, 1)), facing),
                 new Port(this.worldPosition.offset(offset(facing, 2, rot, -1)), facing),
@@ -1073,6 +1145,16 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
     private Direction facing() {
         BlockState state = this.getBlockState();
         return state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+    }
+
+    private static Direction assemblyFactoryRightSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case EAST -> Direction.SOUTH;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Assembly factory requires a horizontal facing: " + facing);
+        };
     }
 
     private HbmFluidTank tankByFlatIndex(int tank) {
@@ -1356,6 +1438,51 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             return;
         }
         level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, stack.copy()));
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(first.minY) == section(second.minY)
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return net.minecraft.core.SectionPos.blockToSectionCoord(net.minecraft.util.Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RecipeIcon(ItemStack sourceItem, ItemStack renderedItem, Object modelToken) {
+        public RecipeIcon {
+            sourceItem = sourceItem.copy();
+            renderedItem = renderedItem.copy();
+        }
+    }
+
+    public record RecipeIconsRenderSnapshot(BlockState state, List<RecipeIcon> icons, AABB bounds,
+                                            long recipeGeneration, long revision) {
+        public RecipeIconsRenderSnapshot {
+            Objects.requireNonNull(state);
+            icons = List.copyOf(icons);
+            Objects.requireNonNull(bounds);
+        }
+
+        private static RecipeIconsRenderSnapshot empty(BlockPos pos, BlockState state) {
+            List<RecipeIcon> icons = new ArrayList<>(MODULE_COUNT);
+            for (int module = 0; module < MODULE_COUNT; module++) {
+                icons.add(new RecipeIcon(ItemStack.EMPTY, ItemStack.EMPTY, null));
+            }
+            double x = pos.getX();
+            double y = pos.getY();
+            double z = pos.getZ();
+            return new RecipeIconsRenderSnapshot(state, icons,
+                    new AABB(x, y, z, x, y, z), Long.MIN_VALUE, -1L);
+        }
     }
 
     private final class AssemblyFactoryFluidHandler implements IFluidHandler {

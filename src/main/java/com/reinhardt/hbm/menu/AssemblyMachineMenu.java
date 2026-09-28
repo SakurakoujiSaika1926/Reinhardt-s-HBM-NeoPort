@@ -176,19 +176,19 @@ public class AssemblyMachineMenu extends AbstractContainerMenu {
     }
 
     public HbmFluidDefinition tankFluid(int tank) {
-        return HbmFluids.byOldId(this.data.get(9 + tank * 3)).orElse(HbmFluids.none());
+        return HbmFluids.byOldId(this.data.get(9 + tank * 4)).orElse(HbmFluids.none());
     }
 
     public int tankAmount(int tank) {
-        return this.data.get(9 + tank * 3 + 1);
+        return this.data.get(9 + tank * 4 + 2);
     }
 
     public int tankPressure(int tank) {
-        return this.data.get(9 + tank * 3 + 2);
+        return this.data.get(9 + tank * 4 + 3);
     }
 
-    public int tankCapacity() {
-        return AssemblyMachineBlockEntity.TANK_CAPACITY;
+    public int tankCapacity(int tank) {
+        return Math.max(1, this.data.get(9 + tank * 4 + 1));
     }
 
     public Optional<RecipeHolder<AssemblyMachineRecipe>> selectedRecipe() {
@@ -235,7 +235,7 @@ public class AssemblyMachineMenu extends AbstractContainerMenu {
     }
 
     public int tankScaled(int tank, int pixels) {
-        return Math.min(pixels, this.tankAmount(tank) * pixels / this.tankCapacity());
+        return Math.min(pixels, this.tankAmount(tank) * pixels / this.tankCapacity(tank));
     }
 
     public boolean isWorking() {

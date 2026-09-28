@@ -1,0 +1,16 @@
+{
+  "loader": "neoforge:obj",
+  "model": "reinhardtshbm:models/obj/network/pylon.obj",
+  "mtl_override": "reinhardtshbm:models/obj/network/pylon_small_steel.mtl",
+  "automatic_culling": false,
+  "shade_quads": true,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "visibility": {
+    "Pylon": false,
+    "Pylon_steel": true
+  },
+  "textures": {
+    "particle": "reinhardtshbm:models/network/pylon_steel"
+  }
+}

@@ -8,7 +8,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -16,15 +15,47 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 public class ScrapsItem extends Item {
-    private static final String MATERIAL_ID = "material_id";
-    private static final String MATERIAL = "material";
     private static final String AMOUNT = "amount";
     private static final String LIQUID = "liquid";
+    /**
+     * The 1.7.10 autogen renderer fell back to the shared scraps sprite for
+     * these materials. All other obtainable scrap materials have a baked,
+     * material-specific solid sprite in the modern resource pack.
+     */
+    private static final Set<String> BASE_SOLID_TEXTURE_MATERIALS = Set.of(
+            "actinium",
+            "am_mix",
+            "am241",
+            "am242",
+            "au198",
+            "co60",
+            "ghiorsium",
+            "meteoric_iron",
+            "neptunium",
+            "obsidian",
+            "pb209",
+            "pig_iron",
+            "pu_mix",
+            "pu238",
+            "pu239",
+            "pu240",
+            "pu241",
+            "schraranium",
+            "solinium",
+            "u233",
+            "u235",
+            "wrought_iron"
+    );
 
-    public ScrapsItem(Properties properties) {
+    private final FoundryMaterial material;
+
+    public ScrapsItem(Properties properties, FoundryMaterial material) {
         super(properties);
+        this.material = Objects.requireNonNull(material, "material");
     }
 
     @Override
@@ -64,18 +95,10 @@ public class ScrapsItem extends Item {
         }
     }
 
-    public void addCreativeVariants(CreativeModeTab.Output output) {
-        for (FoundryMaterial material : FoundryMaterial.ordered()) {
-            if (material.behavior() == FoundryMaterial.SmeltingBehavior.SMELTABLE
-                    || material.behavior() == FoundryMaterial.SmeltingBehavior.ADDITIVE) {
-                output.accept(create(new FoundryMaterialStack(material, FoundryShape.INGOT.q(1)), false));
-            }
-        }
-    }
-
     public static ItemStack create(FoundryMaterialStack contents, boolean liquid) {
-        ItemStack stack = new ItemStack(com.reinhardt.hbm.registry.HbmItems.SCRAPS.get());
-        CompoundTag tag = contents.save();
+        ItemStack stack = new ItemStack(com.reinhardt.hbm.registry.HbmItems.scrapsItem(contents.material()).get());
+        CompoundTag tag = new CompoundTag();
+        tag.putInt(AMOUNT, contents.amount());
         tag.putBoolean(LIQUID, liquid);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         int modelData = liquid
@@ -86,19 +109,38 @@ public class ScrapsItem extends Item {
     }
 
     public static FoundryMaterialStack contents(ItemStack stack) {
-        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        FoundryMaterial material = FoundryMaterial.byId(tag.getInt(MATERIAL_ID))
-                .or(() -> FoundryMaterial.byName(tag.getString(MATERIAL)))
-                .orElse(null);
-        if (material == null) {
+        if (!(stack.getItem() instanceof ScrapsItem scraps)) {
             return null;
         }
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         int amount = tag.contains(AMOUNT) ? tag.getInt(AMOUNT) : FoundryShape.INGOT.q(1);
-        return new FoundryMaterialStack(material, amount);
+        return new FoundryMaterialStack(scraps.material, amount);
     }
 
     public static boolean isLiquid(ItemStack stack) {
         return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getBoolean(LIQUID);
+    }
+
+    public FoundryMaterial material() {
+        return this.material;
+    }
+
+    public boolean usesDedicatedSolidTexture() {
+        return !BASE_SOLID_TEXTURE_MATERIALS.contains(this.material.name());
+    }
+
+    public static boolean usesBaseSolidTexture(FoundryMaterial material) {
+        return BASE_SOLID_TEXTURE_MATERIALS.contains(material.name());
+    }
+
+    public static int tint(ItemStack stack, int tintIndex) {
+        if (!(stack.getItem() instanceof ScrapsItem scraps)) {
+            return 0xFFFFFFFF;
+        }
+        if (!isLiquid(stack) && scraps.usesDedicatedSolidTexture()) {
+            return 0xFFFFFFFF;
+        }
+        return 0xFF000000 | scraps.material.moltenColor();
     }
 
     public static String formatAmount(int amount) {

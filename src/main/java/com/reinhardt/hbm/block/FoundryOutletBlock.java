@@ -61,6 +61,17 @@ public class FoundryOutletBlock extends HorizontalDirectionalBlock implements En
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return switch (this.kind) {
+            case OUTLET -> outletStateForPlacement(context);
+            case SLAGTAP -> slagTapStateForPlacement(context);
+        };
+    }
+
+    private BlockState outletStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    private BlockState slagTapStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
@@ -119,11 +130,33 @@ public class FoundryOutletBlock extends HorizontalDirectionalBlock implements En
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+        return switch (this.kind) {
+            case OUTLET -> rotateOutlet(state, rotation);
+            case SLAGTAP -> rotateSlagTap(state, rotation);
+        };
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
+        return switch (this.kind) {
+            case OUTLET -> mirrorOutlet(state, mirror);
+            case SLAGTAP -> mirrorSlagTap(state, mirror);
+        };
+    }
+
+    private static BlockState rotateOutlet(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState rotateSlagTap(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorOutlet(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private static BlockState mirrorSlagTap(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

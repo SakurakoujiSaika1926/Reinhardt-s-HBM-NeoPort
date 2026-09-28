@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.client.screen;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.client.search.JechSearchCompat;
+import com.reinhardt.hbm.client.screen.widget.SearchEditBox;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.network.SetFluidIdentifierPayload;
@@ -8,7 +10,6 @@ import com.reinhardt.hbm.registry.HbmFluids;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -21,7 +22,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class FluidIdentifierScreen extends Screen {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/machine/gui_fluid.png");
@@ -31,7 +31,7 @@ public class FluidIdentifierScreen extends Screen {
 
     private final ItemStack stack;
     private final List<HbmFluidDefinition> fluids = new ArrayList<>();
-    private EditBox search;
+    private SearchEditBox search;
     private int leftPos;
     private int topPos;
     private int startIndex;
@@ -54,7 +54,7 @@ public class FluidIdentifierScreen extends Screen {
     protected void init() {
         this.leftPos = (this.width - WIDTH) / 2;
         this.topPos = (this.height - HEIGHT) / 2;
-        this.search = new EditBox(this.font, this.leftPos + 46, this.topPos + 11, 86, 12, Component.translatable("gui.reinhardtshbm.fluid_identifier.search"));
+        this.search = new SearchEditBox(this.font, this.leftPos + 46, this.topPos + 11, 86, 12, Component.translatable("gui.reinhardtshbm.fluid_identifier.search"));
         this.search.setTextColor(0xFFFFFF);
         this.search.setTextColorUneditable(0xFFFFFF);
         this.search.setBordered(false);
@@ -210,14 +210,15 @@ public class FluidIdentifierScreen extends Screen {
 
     private void regenerateFluids(String query) {
         this.fluids.clear();
-        String normalized = query.toLowerCase(Locale.ROOT);
+        String normalized = JechSearchCompat.normalizeQuery(query);
         for (HbmFluidDefinition fluid : HbmFluids.niceOrder()) {
             if (!fluid.allowsFluidIdentifier()) {
                 continue;
             }
             if (normalized.isBlank()
-                    || fluid.name().contains(normalized)
-                    || Component.translatable(fluid.translationKey()).getString().toLowerCase(Locale.ROOT).contains(normalized)) {
+                    || JechSearchCompat.contains(fluid.name(), normalized)
+                    || JechSearchCompat.contains(fluid.translationKey(), normalized)
+                    || JechSearchCompat.contains(Component.translatable(fluid.translationKey()).getString(), normalized)) {
                 this.fluids.add(fluid);
             }
         }

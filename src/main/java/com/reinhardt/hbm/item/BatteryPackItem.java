@@ -216,13 +216,7 @@ public class BatteryPackItem extends LegacyVariantItem implements HbmChargeableI
     }
 
     public static boolean isCapacitor(ItemStack stack) {
-        if (stack.getItem() instanceof InfiniteBatteryItem) {
-            return false;
-        }
-        if (!(stack.getItem() instanceof BatteryPackItem item)) {
-            return false;
-        }
-        return item.variant(stack).id().startsWith("capacitor_");
+        return stack.getItem() instanceof PortableCapacitorItem;
     }
 
     public static String variantId(ItemStack stack) {
@@ -231,6 +225,9 @@ public class BatteryPackItem extends LegacyVariantItem implements HbmChargeableI
         }
         if (stack.getItem() instanceof SelfChargingBatteryItem) {
             return "battery_sc";
+        }
+        if (stack.getItem() instanceof PortableCapacitorItem capacitor) {
+            return capacitor.socketVariant();
         }
         if (!(stack.getItem() instanceof BatteryPackItem item)) {
             return "";
@@ -309,21 +306,11 @@ public class BatteryPackItem extends LegacyVariantItem implements HbmChargeableI
         addBattery(specs, "battery_sodium", 50_000L);
         addBattery(specs, "battery_schrabidium", 250_000L);
         specs.put("battery_quantum", new BatterySpec(1_000_000L * 20L * 60L * 60L, 10_000_000L, 1_000_000L));
-        addCapacitor(specs, "capacitor_copper", 1_000L);
-        addCapacitor(specs, "capacitor_gold", 10_000L);
-        addCapacitor(specs, "capacitor_niobium", 100_000L);
-        addCapacitor(specs, "capacitor_tantalum", 500_000L);
-        addCapacitor(specs, "capacitor_bismuth", 2_500_000L);
-        addCapacitor(specs, "capacitor_spark", 10_000_000L);
         return Map.copyOf(specs);
     }
 
     private static void addBattery(Map<String, BatterySpec> specs, String id, long dischargeRate) {
         specs.put(id, new BatterySpec(dischargeRate * 20L * 60L * 15L, dischargeRate * 10L, dischargeRate));
-    }
-
-    private static void addCapacitor(Map<String, BatterySpec> specs, String id, long dischargeRate) {
-        specs.put(id, new BatterySpec(dischargeRate * 20L * 30L, dischargeRate, dischargeRate));
     }
 
     private record BatterySpec(long capacity, long chargeRate, long dischargeRate) {

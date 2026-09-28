@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.crystal",
+  "ingredient": { "item": "reinhardtshbm:ore_tikite" },
+  "acid": { "fluid": "sulfuric_acid", "amount": 250 },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:crystal_trixite" }
+}

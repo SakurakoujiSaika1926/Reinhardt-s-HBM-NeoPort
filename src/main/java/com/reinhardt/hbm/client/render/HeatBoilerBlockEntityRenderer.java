@@ -1,22 +1,23 @@
 package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.mojang.math.Axis;
+import com.reinhardt.hbm.block.HeatBoilerBlock;
 import com.reinhardt.hbm.blockentity.HeatBoilerBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import org.joml.AxisAngle4f;
-import org.joml.Quaternionf;
 
-public class HeatBoilerBlockEntityRenderer implements BlockEntityRenderer<HeatBoilerBlockEntity> {
+public class HeatBoilerBlockEntityRenderer implements LongRangeBlockEntityRenderer<HeatBoilerBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/heat_boiler_world");
     private static final ModelResourceLocation BURST = MachineModelRenderer.standalone("block/heat_boiler_burst_world");
+    private static final float MAX_WOBBLE = 1.0F + (float) 0.015D;
+    private static final AABB[] FULL_LIFECYCLE_BOUNDS = buildFullLifecycleBounds();
 
     public HeatBoilerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -29,7 +30,6 @@ public class HeatBoilerBlockEntityRenderer implements BlockEntityRenderer<HeatBo
     @Override
     public void render(HeatBoilerBlockEntity boiler, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = boiler.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
 
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
@@ -40,7 +40,7 @@ public class HeatBoilerBlockEntityRenderer implements BlockEntityRenderer<HeatBo
                 poseStack.scale(wobble, 1.0F, wobble);
             }
         }
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(legacyYaw(facing)), 0.0F, 1.0F, 0.0F)));
+        applyHeatBoilerOrientation(poseStack, heatBoilerFacing(state));
         MachineModelRenderer.renderUnculled(
                 MachineModelRenderer.model(boiler.exploded() ? BURST : WORLD),
                 poseStack,
@@ -54,15 +54,42 @@ public class HeatBoilerBlockEntityRenderer implements BlockEntityRenderer<HeatBo
 
     @Override
     public AABB getRenderBoundingBox(HeatBoilerBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(3.0D, 4.0D, 3.0D);
+        Direction facing = heatBoilerFacing(blockEntity.getBlockState());
+        return FULL_LIFECYCLE_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
-    private static float legacyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 90.0F;
-            case SOUTH -> 0.0F;
-            case WEST -> 270.0F;
-            default -> 180.0F;
-        };
+    private static AABB[] buildFullLifecycleBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            poseStack.translate(0.5D, 0.0D, 0.5D);
+            /* sin <= 1 and both casts/additions are monotone, so this is the
+             * exact largest float scale the render expression can produce. */
+            poseStack.scale(MAX_WOBBLE, 1.0F, MAX_WOBBLE);
+            applyHeatBoilerOrientation(poseStack, facing);
+            /* Face-used boiler.obj vertices attain every +/-1.5 footprint
+             * corner and y=4. Transforming its corners through this actual
+             * float PoseStack also contains the smaller unscaled burst OBJ. */
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
+                    -1.5F, 0.0F, -1.5F, 1.5F, 4.0F, 1.5F);
+        }
+        return bounds;
+    }
+
+    private static Direction heatBoilerFacing(BlockState state) {
+        if (!state.hasProperty(HeatBoilerBlock.FACING)) {
+            throw new IllegalStateException("Heat boiler state is missing its dedicated facing property");
+        }
+        return state.getValue(HeatBoilerBlock.FACING);
+    }
+
+    private static void applyHeatBoilerOrientation(PoseStack poseStack, Direction facing) {
+        switch (facing) {
+            case EAST -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> { }
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case UP, DOWN -> throw new IllegalArgumentException("Heat boiler facing must be horizontal: " + facing);
+        }
     }
 }

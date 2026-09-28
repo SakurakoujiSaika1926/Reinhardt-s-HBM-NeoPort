@@ -37,7 +37,6 @@ public class LegacyLingeringFireEntity extends Entity {
     public LegacyLingeringFireEntity(EntityType<? extends LegacyLingeringFireEntity> type, Level level) {
         super(type, level);
         setNoGravity(true);
-        this.noCulling = true;
     }
 
     public LegacyLingeringFireEntity(Level level, Vec3 position, FireType type, float width, float height, int duration) {

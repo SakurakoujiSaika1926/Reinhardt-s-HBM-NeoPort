@@ -1,0 +1,26 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.biooilsolidfuel",
+  "duration": 40,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "item": "reinhardtshbm:biomass_compressed"
+      },
+      "count": 2
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "heatingoil",
+      "amount": 100
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:solid_fuel"
+    }
+  ],
+  "output_fluids": []
+}

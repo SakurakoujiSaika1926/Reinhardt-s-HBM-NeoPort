@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:precision_assembler",
+  "group": "precass.rpalegs",
+  "blueprint_pools": ["discover..rpa"],
+  "duration": 3600,
+  "power": 25000,
+  "ingredients": [
+    { "ingredient": { "tag": "c:plates/armor_ajr" }, "count": 24 },
+    { "ingredient": { "item": "reinhardtshbm:plate_cast_saturnite" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:motor_desh" }, "count": 8 },
+    { "ingredient": { "tag": "c:plates/kevlar" }, "count": 16 }
+  ],
+  "outputs": [
+    { "result": { "id": "reinhardtshbm:rpa_legs" }, "weight": 100 }
+  ]
+}

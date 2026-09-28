@@ -17,7 +17,6 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.util.FluidCopiable;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -192,7 +191,7 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
-        return portsFor(this.worldPosition, getBlockState(), this.kind).stream().map(Port::connectorPos).toList();
+        return currentPorts().stream().map(Port::connectorPos).toList();
     }
 
     @Override
@@ -200,7 +199,7 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
         if (machineSide == null) {
             return true;
         }
-        for (Port port : portsFor(this.worldPosition, getBlockState(), this.kind)) {
+        for (Port port : currentPorts()) {
             if (port.connectorPos().equals(connectorPos) && port.face() == machineSide) {
                 return true;
             }
@@ -255,12 +254,13 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
         return fluidHandler(this.worldPosition, side);
     }
 
-    public static List<Port> portsFor(BlockPos pos, BlockState state, Kind kind) {
+    private List<Port> currentPorts() {
+        BlockState state = getBlockState();
         Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.SOUTH;
-        List<LocalPort> local = kind == Kind.COMPACT ? compactLocalPorts() : normalLocalPorts();
-        return local.stream()
-                .map(port -> port.rotate(pos, facing))
-                .toList();
+        return switch (this.kind) {
+            case NORMAL -> normalCompressorPorts(this.worldPosition, facing);
+            case COMPACT -> compactCompressorPorts(this.worldPosition, facing);
+        };
     }
 
     @Override
@@ -387,7 +387,7 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -600,7 +600,7 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
         if (this.outputTank.amount() <= 0 || this.outputTank.type().isNone()) {
             return;
         }
-        for (Port port : portsFor(this.worldPosition, getBlockState(), this.kind)) {
+        for (Port port : currentPorts()) {
             if (this.outputTank.amount() <= 0) {
                 break;
             }
@@ -690,7 +690,7 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     private boolean allowsFluidPort(BlockPos queriedPos, @Nullable Direction side) {
-        for (Port port : portsFor(this.worldPosition, getBlockState(), this.kind)) {
+        for (Port port : currentPorts()) {
             if (port.proxyPos().equals(queriedPos) && (side == null || side == port.face())) {
                 return true;
             }
@@ -712,7 +712,7 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
         setChanged();
         if (this.level != null) {
             this.level.invalidateCapabilities(this.worldPosition);
-            for (Port port : portsFor(this.worldPosition, getBlockState(), this.kind)) {
+            for (Port port : currentPorts()) {
                 this.level.invalidateCapabilities(port.proxyPos());
                 this.level.invalidateCapabilities(port.connectorPos());
             }
@@ -748,23 +748,68 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
         }
     }
 
-    private static List<LocalPort> normalLocalPorts() {
-        return List.of(
-                new LocalPort(new BlockPos(2, 0, 0), Direction.EAST),
-                new LocalPort(new BlockPos(-2, 0, 0), Direction.WEST),
-                new LocalPort(new BlockPos(0, 0, -2), Direction.NORTH)
-        );
+    public static List<Port> normalCompressorPorts(BlockPos pos, Direction facing) {
+        return switch (facing) {
+            case SOUTH -> List.of(
+                    Port.fromConnector(pos.offset(2, 0, 0), Direction.EAST),
+                    Port.fromConnector(pos.offset(-2, 0, 0), Direction.WEST),
+                    Port.fromConnector(pos.offset(0, 0, -2), Direction.NORTH)
+            );
+            case EAST -> List.of(
+                    Port.fromConnector(pos.offset(0, 0, -2), Direction.NORTH),
+                    Port.fromConnector(pos.offset(0, 0, 2), Direction.SOUTH),
+                    Port.fromConnector(pos.offset(-2, 0, 0), Direction.WEST)
+            );
+            case NORTH -> List.of(
+                    Port.fromConnector(pos.offset(-2, 0, 0), Direction.WEST),
+                    Port.fromConnector(pos.offset(2, 0, 0), Direction.EAST),
+                    Port.fromConnector(pos.offset(0, 0, 2), Direction.SOUTH)
+            );
+            case WEST -> List.of(
+                    Port.fromConnector(pos.offset(0, 0, 2), Direction.SOUTH),
+                    Port.fromConnector(pos.offset(0, 0, -2), Direction.NORTH),
+                    Port.fromConnector(pos.offset(2, 0, 0), Direction.EAST)
+            );
+            default -> throw new IllegalArgumentException("Normal compressor requires a horizontal facing: " + facing);
+        };
     }
 
-    private static List<LocalPort> compactLocalPorts() {
-        return List.of(
-                new LocalPort(new BlockPos(4, 1, 0), Direction.EAST),
-                new LocalPort(new BlockPos(-4, 1, 0), Direction.WEST),
-                new LocalPort(new BlockPos(-1, 1, 2), Direction.SOUTH),
-                new LocalPort(new BlockPos(1, 1, 2), Direction.SOUTH),
-                new LocalPort(new BlockPos(-1, 1, -2), Direction.NORTH),
-                new LocalPort(new BlockPos(1, 1, -2), Direction.NORTH)
-        );
+    public static List<Port> compactCompressorPorts(BlockPos pos, Direction facing) {
+        return switch (facing) {
+            case SOUTH -> List.of(
+                    Port.fromConnector(pos.offset(4, 1, 0), Direction.EAST),
+                    Port.fromConnector(pos.offset(-4, 1, 0), Direction.WEST),
+                    Port.fromConnector(pos.offset(-1, 1, 2), Direction.SOUTH),
+                    Port.fromConnector(pos.offset(1, 1, 2), Direction.SOUTH),
+                    Port.fromConnector(pos.offset(-1, 1, -2), Direction.NORTH),
+                    Port.fromConnector(pos.offset(1, 1, -2), Direction.NORTH)
+            );
+            case EAST -> List.of(
+                    Port.fromConnector(pos.offset(0, 1, -4), Direction.NORTH),
+                    Port.fromConnector(pos.offset(0, 1, 4), Direction.SOUTH),
+                    Port.fromConnector(pos.offset(2, 1, 1), Direction.EAST),
+                    Port.fromConnector(pos.offset(2, 1, -1), Direction.EAST),
+                    Port.fromConnector(pos.offset(-2, 1, 1), Direction.WEST),
+                    Port.fromConnector(pos.offset(-2, 1, -1), Direction.WEST)
+            );
+            case NORTH -> List.of(
+                    Port.fromConnector(pos.offset(-4, 1, 0), Direction.WEST),
+                    Port.fromConnector(pos.offset(4, 1, 0), Direction.EAST),
+                    Port.fromConnector(pos.offset(1, 1, -2), Direction.NORTH),
+                    Port.fromConnector(pos.offset(-1, 1, -2), Direction.NORTH),
+                    Port.fromConnector(pos.offset(1, 1, 2), Direction.SOUTH),
+                    Port.fromConnector(pos.offset(-1, 1, 2), Direction.SOUTH)
+            );
+            case WEST -> List.of(
+                    Port.fromConnector(pos.offset(0, 1, 4), Direction.SOUTH),
+                    Port.fromConnector(pos.offset(0, 1, -4), Direction.NORTH),
+                    Port.fromConnector(pos.offset(-2, 1, -1), Direction.WEST),
+                    Port.fromConnector(pos.offset(-2, 1, 1), Direction.WEST),
+                    Port.fromConnector(pos.offset(2, 1, -1), Direction.EAST),
+                    Port.fromConnector(pos.offset(2, 1, 1), Direction.EAST)
+            );
+            default -> throw new IllegalArgumentException("Compact compressor requires a horizontal facing: " + facing);
+        };
     }
 
     public record Port(BlockPos proxyPos, BlockPos connectorPos, Direction face) {
@@ -774,14 +819,6 @@ public class CompressorBlockEntity extends BlockEntity implements PowerEndpoint,
                     connectorPos.immutable(),
                     face
             );
-        }
-    }
-
-    private record LocalPort(BlockPos offset, Direction face) {
-        private Port rotate(BlockPos corePos, Direction facing) {
-            BlockPos rotatedOffset = LegacyMachineGeometry.rotate(this.offset, facing, LargeMachineBlock.RotationBasis.HBM_LEGACY_SOUTH);
-            Direction rotatedFace = LegacyMachineGeometry.rotateDirection(this.face, facing, LargeMachineBlock.RotationBasis.HBM_LEGACY_SOUTH);
-            return Port.fromConnector(corePos.offset(rotatedOffset), rotatedFace);
         }
     }
 

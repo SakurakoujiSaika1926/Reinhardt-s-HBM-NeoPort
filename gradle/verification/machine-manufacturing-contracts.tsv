@@ -1,0 +1,119 @@
+# block/item id	kind	produced alias or -	source-backed reason for having no direct manufacturing output
+reinhardtshbm:barrel_corroded	DAMAGE_STATE	-	Corrosion replacement state created from an existing barrel; no standalone 1.7.10 recipe
+reinhardtshbm:block_graphite_detector	INTERNAL	-	Chicago-pile graphite channel state produced inside the assembled pile simulation
+reinhardtshbm:block_graphite_fuel	INTERNAL	-	Chicago-pile graphite fuel-channel state produced inside the assembled pile simulation
+reinhardtshbm:block_graphite_lithium	INTERNAL	-	Chicago-pile graphite lithium-channel state produced inside the assembled pile simulation
+reinhardtshbm:block_graphite_plutonium	INTERNAL	-	Chicago-pile graphite plutonium-channel state produced inside the assembled pile simulation
+reinhardtshbm:block_graphite_source	INTERNAL	-	Chicago-pile graphite neutron-source state produced inside the assembled pile simulation
+reinhardtshbm:bobblehead	WORLD_SOURCE	-	Collectible/decorative loot family; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:broadcaster_pc	WORLD_SOURCE	-	Generated broadcaster decoration and loot; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:capacitor_bus	INTERNAL	-	No-item capacitor multiblock bus registered with registerBlockWithoutItem
+reinhardtshbm:capacitor_copper	WORLD_SOURCE	-	Placed copper capacitor is recovered from generated structures; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:chlorine_gas	INTERNAL	-	Transient world gas block created by machine/environment behavior
+reinhardtshbm:compact_launcher	ASSEMBLED	-	Formed result of the eight-block compact launcher construction around struct_launcher_core
+reinhardtshbm:crashed_bomb	WORLD_SOURCE	-	Unbreakable generated crashed-balefire encounter block
+reinhardtshbm:crate	WORLD_SOURCE	-	Generated legacy loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_ammo	WORLD_SOURCE	-	Generated ammunition loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_can	WORLD_SOURCE	-	Generated canned-supply loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_jungle	WORLD_SOURCE	-	Generated jungle loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_lead	WORLD_SOURCE	-	Generated lead loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_metal	WORLD_SOURCE	-	Generated metal loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_red	WORLD_SOURCE	-	Generated red loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_supply	WORLD_SOURCE	-	Placed by the parachute supply-crate entity; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:crate_weapon	WORLD_SOURCE	-	Generated weapon loot-container block; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:deco_computer	WORLD_SOURCE	-	Generated decorative computer/salvage source; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:deco_crt	WORLD_SOURCE	-	Generated decorative CRT/salvage source; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:deco_loot	INTERNAL	-	Structure-template loot display populated by world generation
+reinhardtshbm:dummy_block_blast	INTERNAL	-	No-item blast-door multiblock occupancy block
+reinhardtshbm:dummy_plate_cargo	INTERNAL	-	No-item satellite-dock multiblock plate
+reinhardtshbm:dummy_plate_compact_launcher	INTERNAL	-	No-item compact-launcher multiblock occupancy block
+reinhardtshbm:dummy_plate_launch_table	INTERNAL	-	No-item launch-table multiblock occupancy block
+reinhardtshbm:dummy_port_compact_launcher	INTERNAL	-	No-item compact-launcher interaction port
+reinhardtshbm:dummy_port_launch_table	INTERNAL	-	No-item launch-table interaction port
+reinhardtshbm:dungeon_spawner	WORLD_SOURCE	-	Structure-generation spawner/controller block
+reinhardtshbm:floodlight_beam	INTERNAL	-	No-item transient floodlight beam segment
+reinhardtshbm:floodlight_dummy	INTERNAL	-	No-item floodlight multiblock occupancy block
+reinhardtshbm:fluid_duct_mk2	INTERNAL	-	Retained migration/structure duct removed from latest 1.7.10 registry; canonical craftable duct families have recipes
+reinhardtshbm:fusion_hatch	WORLD_SOURCE	-	Generated spaceship salvage component; latest 1.7.10 only defines its recycling recipe
+reinhardtshbm:fusion_heater	WORLD_SOURCE	-	Generated spaceship salvage component; latest 1.7.10 only defines its recycling recipe
+reinhardtshbm:fusion_klystron_creative	CREATIVE	-	Explicit infinite creative fusion klystron variant
+reinhardtshbm:gas_asbestos	INTERNAL	-	Transient world gas block created by machine/environment behavior
+reinhardtshbm:gas_coal	INTERNAL	-	Transient world gas block created by machine/environment behavior
+reinhardtshbm:gas_explosive	INTERNAL	-	Transient world gas block created by machine/environment behavior
+reinhardtshbm:gas_flammable	INTERNAL	-	Transient world gas block created by machine/environment behavior
+reinhardtshbm:gas_meltdown	INTERNAL	-	Transient world gas block created by reactor meltdown behavior
+reinhardtshbm:gas_monoxide	INTERNAL	-	Transient world gas block created by machine/environment behavior
+reinhardtshbm:gas_radon	INTERNAL	-	Transient world gas block created by machine/environment behavior
+reinhardtshbm:gas_radon_dense	INTERNAL	-	Transient dense-radon world gas state
+reinhardtshbm:gas_radon_tomb	INTERNAL	-	Transient tomb-radon world gas state
+reinhardtshbm:geysir_chlorine	WORLD_SOURCE	-	World-generated chlorine geyser controller
+reinhardtshbm:geysir_nether	WORLD_SOURCE	-	World-generated Nether geyser controller
+reinhardtshbm:glyphid_spawner	WORLD_SOURCE	-	World/structure-generated glyphid encounter spawner
+reinhardtshbm:hadron_coil_alloy	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 has no forward manufacturing recipe
+reinhardtshbm:hadron_coil_chlorophyte	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:hadron_coil_gold	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:hadron_coil_magtung	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:hadron_coil_mese	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:hadron_coil_neodymium	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:hadron_coil_schrabidate	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:hadron_coil_schrabidium	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:hadron_coil_starmetal	WORLD_SOURCE	-	Generated accelerator/dungeon salvage block; latest 1.7.10 only defines reverse material recovery
+reinhardtshbm:heavy_door_part	INTERNAL	-	No-item synchronized upper/multiblock door segment
+reinhardtshbm:icf	ASSEMBLED	-	Formed 1.7.10 ICF multiblock result built around struct_icf_core
+reinhardtshbm:icf_block	INTERNAL	-	Assembled ICF laser state created from player-built ICF components
+reinhardtshbm:lantern_behemoth	INTERNAL	-	No-item behemoth-lantern structure component
+reinhardtshbm:launch_pad_rusted	WORLD_SOURCE	-	Generated ruined-silo launch pad and rusted missile recovery source
+reinhardtshbm:launch_table	ASSEMBLED	-	Formed 1.7.10 large launch-table result built around struct_launcher_core_large
+reinhardtshbm:logic_block	INTERNAL	-	Structure-template logic controller, not a player manufacturing output
+reinhardtshbm:logic_block_invis	INTERNAL	-	No-item invisible structure-template logic controller
+reinhardtshbm:lox_barrel	WORLD_SOURCE	-	Pre-filled oxygen explosive barrel generated in structures; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:machine_bat9000	UPSTREAM_INCOMPLETE	-	Deprecated latest-1.7.10 BigAssTank9000 block has no forward recipe or supported production role
+reinhardtshbm:machine_boiler_electric_off	INTERNAL	-	Inactive block state of the craftable electric boiler
+reinhardtshbm:machine_boiler_off	INTERNAL	-	Inactive block state of the craftable small boiler
+reinhardtshbm:machine_dummy	INTERNAL	-	Shared no-item multiblock occupancy/interaction block
+reinhardtshbm:machine_electric_furnace_on	INTERNAL	-	Active block state of the craftable electric furnace
+reinhardtshbm:machine_furnace_brick_on	INTERNAL	-	Active block state of the craftable brick furnace
+reinhardtshbm:machine_large_turbine	UPSTREAM_INCOMPLETE	-	Deprecated latest-1.7.10 large-turbine implementation has no survival recipe
+reinhardtshbm:machine_lpw2	UPSTREAM_INCOMPLETE	-	Latest-1.7.10 LPW2 tile entity is an empty model-only implementation with no recipe
+reinhardtshbm:machine_puf6_tank	WORLD_SOURCE	-	Legacy/generated plutonium-hexafluoride tank; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:machine_stirling_creative	CREATIVE	-	Explicit infinite creative Stirling generator variant
+reinhardtshbm:machine_uf6_tank	WORLD_SOURCE	-	Legacy/generated uranium-hexafluoride tank; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:meteor_spawner	WORLD_SOURCE	-	World-generation meteor controller block
+reinhardtshbm:ore_bedrock	INTERNAL	-	No-item runtime bedrock-deposit marker
+reinhardtshbm:ore_bedrock_block	WORLD_SOURCE	-	World-generated bedrock ore deposit
+reinhardtshbm:ore_bedrock_oil	WORLD_SOURCE	-	World-generated infinite bedrock oil deposit
+reinhardtshbm:ore_deepslate_oil	WORLD_SOURCE	-	World-generated finite deepslate oil-rock deposit
+reinhardtshbm:ore_deepslate_oil_empty	DAMAGE_STATE	-	Depleted state left by harvesting a deepslate oil-rock deposit
+reinhardtshbm:ore_oil	WORLD_SOURCE	-	World-generated finite stone oil-rock deposit
+reinhardtshbm:ore_oil_empty	DAMAGE_STATE	-	Depleted state left by harvesting a stone oil-rock deposit
+reinhardtshbm:ore_volcano	WORLD_SOURCE	-	World-generated volcano ore/controller block
+reinhardtshbm:part_emitter	WORLD_SOURCE	-	Structure-template particle emitter, not a player machine output
+reinhardtshbm:pedestal	WORLD_SOURCE	-	Generated decorative display pedestal; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:pile_block	ASSEMBLED	-	Formed Chicago-pile core produced by validating the player-built pile structure
+reinhardtshbm:pink_barrel	WORLD_SOURCE	-	Pre-filled kerosene explosive barrel generated in structures; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:pwr_block	ASSEMBLED	-	Formed PWR aggregate block created from the player-built PWR structure
+reinhardtshbm:red_barrel	WORLD_SOURCE	-	Pre-filled diesel explosive barrel obtained from structures/legacy loot
+reinhardtshbm:seal_hatch	INTERNAL	-	Hidden hatch plane generated and removed by seal_controller
+reinhardtshbm:skeleton_holder	WORLD_SOURCE	-	Generated decorative skeleton display; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:slag	INTERNAL	-	Foundry byproduct/world block created by casting behavior
+reinhardtshbm:snowglobe	WORLD_SOURCE	-	Collectible/decorative loot family; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:soyuz_capsule	WORLD_SOURCE	-	Landing capsule placed by the returning Soyuz capsule entity
+reinhardtshbm:spotlight_beam	INTERNAL	-	No-item transient spotlight beam segment
+reinhardtshbm:spotlight_fluoro_off	INTERNAL	-	Inactive state counterpart of the craftable fluorescent floodlight
+reinhardtshbm:spotlight_halogen_off	INTERNAL	-	Inactive state counterpart of the craftable halogen floodlight
+reinhardtshbm:spotlight_incandescent_off	INTERNAL	-	Inactive state counterpart of the craftable incandescent floodlight
+reinhardtshbm:taint_barrel	WORLD_SOURCE	-	Special hazardous explosive barrel; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:turret_howard_damaged	DAMAGE_STATE	-	Damaged Howard turret state created from combat damage
+reinhardtshbm:turret_sentry_damaged	DAMAGE_STATE	-	Damaged sentry turret state created from combat damage
+reinhardtshbm:vending_machine	WORLD_SOURCE	-	Generated vending loot machine; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:vent_cloud	INTERNAL	-	Transient vent-output cloud block
+reinhardtshbm:vent_pink_cloud	INTERNAL	-	Transient pink vent-output cloud block
+reinhardtshbm:volcano_core	WORLD_SOURCE	-	Placed by the impacting volcanic missile and intentionally unbreakable
+reinhardtshbm:volcano_rad_core	DAMAGE_STATE	-	Fallout-converted radioactive state of volcano_core
+reinhardtshbm:wand_jigsaw	INTERNAL	-	Structure-template jigsaw control block
+reinhardtshbm:wand_logic	INTERNAL	-	Structure-template logic marker block
+reinhardtshbm:wand_loot	INTERNAL	-	Structure-template loot marker block
+reinhardtshbm:wand_structure	INTERNAL	-	Structure-template placement marker block
+reinhardtshbm:wand_tandem	INTERNAL	-	Structure-template paired marker block
+reinhardtshbm:watz	ASSEMBLED	-	Formed WATZ core created by the 1.7.10 construction layout around struct_watz_core
+reinhardtshbm:zirnox_destroyed	DAMAGE_STATE	-	Destroyed Zirnox reactor state created by reactor failure

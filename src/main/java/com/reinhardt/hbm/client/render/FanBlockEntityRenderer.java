@@ -52,6 +52,8 @@ public final class FanBlockEntityRenderer implements BlockEntityRenderer<FanBloc
 
     @Override
     public AABB getRenderBoundingBox(FanBlockEntity fan) {
-        return new AABB(fan.getBlockPos()).inflate(1.0D);
+        // The frame itself occupies exactly [0,1]^3 for every facing. The
+        // swept blade radius is below 0.5, so every spin phase remains inside.
+        return new AABB(fan.getBlockPos());
     }
 }

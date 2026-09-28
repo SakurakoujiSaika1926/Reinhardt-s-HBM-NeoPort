@@ -2,7 +2,6 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.network.TurretCasingEffectPayload;
 import com.reinhardt.hbm.network.TurretMuzzleFlashPayload;
@@ -33,11 +32,11 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import org.joml.Quaternionf;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID, value = Dist.CLIENT)
 public final class TurretVisualClientEffects {
@@ -123,23 +122,25 @@ public final class TurretVisualClientEffects {
             if (casing.level != level) {
                 continue;
             }
-            Vec3 position = casing.previousPosition.lerp(casing.position, partialTick);
+            double positionX = Mth.lerp(partialTick, casing.previousPositionX, casing.positionX);
+            double positionY = Mth.lerp(partialTick, casing.previousPositionY, casing.positionY);
+            double positionZ = Mth.lerp(partialTick, casing.previousPositionZ, casing.positionZ);
             float pitch = Mth.lerp(partialTick, casing.previousPitch, casing.pitch);
             float yaw = Mth.lerp(partialTick, casing.previousYaw, casing.yaw);
             poseStack.pushPose();
             poseStack.translate(
-                    position.x - camera.x,
-                    position.y - camera.y - casing.height * 0.25D + casing.config.scaleY * 0.01D,
-                    position.z - camera.z
+                    positionX - camera.x,
+                    positionY - camera.y - casing.height * 0.25D + casing.config.scaleY * 0.01D,
+                    positionZ - camera.z
             );
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - yaw));
-            poseStack.mulPose(Axis.XP.rotationDegrees(-pitch));
+            poseStack.mulPose(casing.renderYawRotation.rotationY((float) Math.toRadians(180.0F - yaw)));
+            poseStack.mulPose(casing.renderPitchRotation.rotationX((float) Math.toRadians(-pitch)));
             poseStack.scale(
                     MODEL_SCALE * casing.config.scaleX,
                     MODEL_SCALE * casing.config.scaleY,
                     MODEL_SCALE * casing.config.scaleZ
             );
-            int light = LevelRenderer.getLightColor(level, BlockPos.containing(position));
+            int light = LevelRenderer.getLightColor(level, BlockPos.containing(positionX, positionY, positionZ));
             MachineModelRenderer.renderUnculledTinted(
                     MachineModelRenderer.model(casing.config.model),
                     poseStack,
@@ -156,16 +157,20 @@ public final class TurretVisualClientEffects {
             if (casing.level != level || casing.smokeNodes.size() < 2) {
                 continue;
             }
-            Vec3 position = casing.previousPosition.lerp(casing.position, partialTick);
-            casing.updateSmokeRenderDelta(position);
+            double positionX = Mth.lerp(partialTick, casing.previousPositionX, casing.positionX);
+            double positionY = Mth.lerp(partialTick, casing.previousPositionY, casing.positionY);
+            double positionZ = Mth.lerp(partialTick, casing.previousPositionZ, casing.positionZ);
+            casing.updateSmokeRenderDelta(positionX, positionY, positionZ);
             double width = casing.config.scaleX * 0.5D * MODEL_SCALE;
-            Vec3 side = new Vec3(width, 0.0D, 0.0D).yRot((float) Math.toRadians(-event.getCamera().getYRot()));
+            float sideAngle = (float) Math.toRadians(-event.getCamera().getYRot());
+            double sideX = width * (double) Mth.cos(sideAngle);
+            double sideZ = -width * (double) Mth.sin(sideAngle);
             float timeAlpha = Math.max(0.0F, 1.0F - (float) casing.age / (float) casing.maxSmokeGen);
             poseStack.pushPose();
             poseStack.translate(
-                    position.x - camera.x,
-                    position.y - camera.y - casing.height * 0.25D,
-                    position.z - camera.z
+                    positionX - camera.x,
+                    positionY - camera.y - casing.height * 0.25D,
+                    positionZ - camera.z
             );
             PoseStack.Pose pose = poseStack.last();
             for (int index = 0; index < casing.smokeNodes.size() - 1; index++) {
@@ -173,24 +178,27 @@ public final class TurretVisualClientEffects {
                 SmokeNode past = casing.smokeNodes.get(index + 1);
                 int nodeAlpha = Mth.clamp((int) (node.alpha * timeAlpha * 255.0D), 0, 255);
                 int pastAlpha = Mth.clamp((int) (past.alpha * timeAlpha * 255.0D), 0, 255);
-                smokeQuad(smokeConsumer, pose, node.position, past.position, side, nodeAlpha, pastAlpha);
-                smokeQuad(smokeConsumer, pose, node.position, past.position, side.scale(-1.0D), nodeAlpha, pastAlpha);
+                smokeQuad(smokeConsumer, pose, node, past, sideX, sideZ, nodeAlpha, pastAlpha);
+                smokeQuad(smokeConsumer, pose, node, past, -sideX, -sideZ, nodeAlpha, pastAlpha);
             }
             poseStack.popPose();
         }
         buffers.endBatch();
     }
 
-    private static void smokeQuad(VertexConsumer consumer, PoseStack.Pose pose, Vec3 node, Vec3 past,
-                                  Vec3 side, int nodeAlpha, int pastAlpha) {
-        smokeVertex(consumer, pose, node, nodeAlpha);
-        smokeVertex(consumer, pose, node.add(side), 0);
-        smokeVertex(consumer, pose, past.add(side), 0);
-        smokeVertex(consumer, pose, past, pastAlpha);
+    private static void smokeQuad(VertexConsumer consumer, PoseStack.Pose pose,
+                                  SmokeNode node, SmokeNode past,
+                                  double sideX, double sideZ,
+                                  int nodeAlpha, int pastAlpha) {
+        smokeVertex(consumer, pose, node.x, node.y, node.z, nodeAlpha);
+        smokeVertex(consumer, pose, node.x + sideX, node.y, node.z + sideZ, 0);
+        smokeVertex(consumer, pose, past.x + sideX, past.y, past.z + sideZ, 0);
+        smokeVertex(consumer, pose, past.x, past.y, past.z, pastAlpha);
     }
 
-    private static void smokeVertex(VertexConsumer consumer, PoseStack.Pose pose, Vec3 position, int alpha) {
-        consumer.addVertex(pose, (float) position.x, (float) position.y, (float) position.z)
+    private static void smokeVertex(VertexConsumer consumer, PoseStack.Pose pose,
+                                    double x, double y, double z, int alpha) {
+        consumer.addVertex(pose, (float) x, (float) y, (float) z)
                 .setColor(255, 255, 255, alpha)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(LightTexture.FULL_BRIGHT)
@@ -202,9 +210,20 @@ public final class TurretVisualClientEffects {
         private final CasingConfig config;
         private final double width;
         private final double height;
-        private Vec3 position;
-        private Vec3 previousPosition;
-        private Vec3 motion;
+        private final Quaternionf renderYawRotation = new Quaternionf();
+        private final Quaternionf renderPitchRotation = new Quaternionf();
+        private double positionX;
+        private double positionY;
+        private double positionZ;
+        private double previousPositionX;
+        private double previousPositionY;
+        private double previousPositionZ;
+        private double motionX;
+        private double motionY;
+        private double motionZ;
+        private double acceptedMotionX;
+        private double acceptedMotionY;
+        private double acceptedMotionZ;
         private float pitch;
         private float previousPitch;
         private float yaw;
@@ -216,15 +235,25 @@ public final class TurretVisualClientEffects {
         private final double smokeLift;
         private final int smokeNodeLife;
         private final List<SmokeNode> smokeNodes = new ArrayList<>();
-        private Vec3 previousSmokeRenderPosition;
+        private final List<VoxelShape> collisionShapes = new ArrayList<>();
+        private boolean hasPreviousSmokeRenderPosition;
+        private double previousSmokeRenderX;
+        private double previousSmokeRenderY;
+        private double previousSmokeRenderZ;
         private int age;
 
         private SpentCasingEffect(ClientLevel level, TurretCasingEffectPayload payload, CasingConfig config) {
             this.level = level;
             this.config = config;
-            this.position = new Vec3(payload.x(), payload.y(), payload.z());
-            this.previousPosition = this.position;
-            this.motion = new Vec3(payload.motionX(), payload.motionY(), payload.motionZ());
+            this.positionX = payload.x();
+            this.positionY = payload.y();
+            this.positionZ = payload.z();
+            this.previousPositionX = this.positionX;
+            this.previousPositionY = this.positionY;
+            this.previousPositionZ = this.positionZ;
+            this.motionX = payload.motionX();
+            this.motionY = payload.motionY();
+            this.motionZ = payload.motionZ();
             this.pitch = payload.rotationPitch();
             this.previousPitch = this.pitch;
             this.yaw = payload.rotationYaw();
@@ -243,18 +272,24 @@ public final class TurretVisualClientEffects {
             if (this.age++ >= this.config.maxAge) {
                 return false;
             }
-            this.previousPosition = this.position;
-            this.motion = this.motion.add(0.0D, -0.04D, 0.0D);
-            Vec3 requested = this.motion;
-            Vec3 accepted = collide(requested);
-            this.position = this.position.add(accepted);
+            this.previousPositionX = this.positionX;
+            this.previousPositionY = this.positionY;
+            this.previousPositionZ = this.positionZ;
+            this.motionY -= 0.04D;
+            double requestedX = this.motionX;
+            double requestedY = this.motionY;
+            double requestedZ = this.motionZ;
+            collide(requestedX, requestedY, requestedZ);
+            this.positionX += this.acceptedMotionX;
+            this.positionY += this.acceptedMotionY;
+            this.positionZ += this.acceptedMotionZ;
 
-            boolean collidedX = Math.abs(requested.x - accepted.x) > 1.0E-7D;
-            boolean collidedY = Math.abs(requested.y - accepted.y) > 1.0E-7D;
-            boolean collidedZ = Math.abs(requested.z - accepted.z) > 1.0E-7D;
-            double motionX = collidedX ? requested.x * -0.25D : requested.x;
-            double motionY = collidedY ? requested.y * -0.5D : requested.y;
-            double motionZ = collidedZ ? requested.z * -0.25D : requested.z;
+            boolean collidedX = Math.abs(requestedX - this.acceptedMotionX) > 1.0E-7D;
+            boolean collidedY = Math.abs(requestedY - this.acceptedMotionY) > 1.0E-7D;
+            boolean collidedZ = Math.abs(requestedZ - this.acceptedMotionZ) > 1.0E-7D;
+            double nextMotionX = collidedX ? requestedX * -0.25D : requestedX;
+            double nextMotionY = collidedY ? requestedY * -0.5D : requestedY;
+            double nextMotionZ = collidedZ ? requestedZ * -0.25D : requestedZ;
 
             if (collidedX) {
                 this.momentumYaw = Math.abs(this.momentumYaw) > 1.0E-7F
@@ -262,11 +297,11 @@ public final class TurretVisualClientEffects {
                         : (float) this.level.random.nextGaussian() * 10.0F * this.config.bounceYaw;
             }
             if (collidedY) {
-                boolean rotationFromSpeed = Math.abs(motionY) > 0.04D;
+                boolean rotationFromSpeed = Math.abs(nextMotionY) > 0.04D;
                 if (rotationFromSpeed || Math.abs(this.momentumPitch) > 1.0E-7F) {
                     this.momentumPitch *= -0.75F;
                     if (rotationFromSpeed) {
-                        float multiplier = Mth.clamp((float) (requested.y / 0.2D), -1.0F, 1.0F);
+                        float multiplier = Mth.clamp((float) (requestedY / 0.2D), -1.0F, 1.0F);
                         this.momentumPitch += (float) this.level.random.nextGaussian() * 10.0F * this.config.bouncePitch * multiplier;
                         this.momentumYaw += (float) this.level.random.nextGaussian() * 10.0F * this.config.bounceYaw * multiplier;
                     }
@@ -278,16 +313,19 @@ public final class TurretVisualClientEffects {
                         : (float) this.level.random.nextGaussian() * 10.0F * this.config.bounceYaw;
             }
 
-            this.motion = new Vec3(motionX * 0.98D, motionY * 0.98D, motionZ * 0.98D);
-            boolean onGround = collidedY && requested.y < 0.0D;
+            this.motionX = nextMotionX * 0.98D;
+            this.motionY = nextMotionY * 0.98D;
+            this.motionZ = nextMotionZ * 0.98D;
+            boolean onGround = collidedY && requestedY < 0.0D;
             if (onGround) {
-                this.motion = new Vec3(this.motion.x * 0.7D, this.motion.y, this.motion.z * 0.7D);
+                this.motionX *= 0.7D;
+                this.motionZ *= 0.7D;
                 this.pitch = Math.round(this.pitch / 180.0F) * 180.0F;
                 this.momentumYaw *= 0.7F;
             }
-            if (collidedY && Math.abs(requested.y) >= 0.2D) {
+            if (collidedY && Math.abs(requestedY) >= 0.2D) {
                 this.level.playLocalSound(
-                        this.position.x, this.position.y, this.position.z,
+                        this.positionX, this.positionY, this.positionZ,
                         this.config.sound(), SoundSource.PLAYERS,
                         this.config.soundSize == SoundSize.LARGE ? 1.0F : 0.5F,
                         1.0F + this.level.random.nextFloat() * 0.2F,
@@ -301,16 +339,16 @@ public final class TurretVisualClientEffects {
             if (this.smoking && this.age <= this.maxSmokeGen) {
                 double fade = this.smokeNodeLife > 0 ? 1.0D / (double) this.smokeNodeLife : 1.0D;
                 for (SmokeNode node : this.smokeNodes) {
-                    node.position = node.position.add(
-                            this.level.random.nextGaussian() * 0.001D,
-                            this.smokeLift * MODEL_SCALE,
-                            this.level.random.nextGaussian() * 0.001D
-                    );
+                    node.x += this.level.random.nextGaussian() * 0.001D;
+                    node.y += this.smokeLift * MODEL_SCALE;
+                    node.z += this.level.random.nextGaussian() * 0.001D;
                     node.alpha = Math.max(0.0D, node.alpha - fade);
                 }
-                boolean inFluid = !this.level.getFluidState(BlockPos.containing(this.position)).isEmpty();
+                boolean inFluid = !this.level.getFluidState(
+                        BlockPos.containing(this.positionX, this.positionY, this.positionZ)).isEmpty();
                 if (this.age < this.maxSmokeGen || inFluid) {
-                    this.smokeNodes.add(new SmokeNode(Vec3.ZERO, this.smokeNodes.isEmpty() ? 0.0D : 1.0D));
+                    this.smokeNodes.add(new SmokeNode(0.0D, 0.0D, 0.0D,
+                            this.smokeNodes.isEmpty() ? 0.0D : 1.0D));
                 }
             }
 
@@ -327,44 +365,59 @@ public final class TurretVisualClientEffects {
             return true;
         }
 
-        private void updateSmokeRenderDelta(Vec3 renderPosition) {
-            if (this.previousSmokeRenderPosition == null) {
-                this.previousSmokeRenderPosition = renderPosition;
+        private void updateSmokeRenderDelta(double renderX, double renderY, double renderZ) {
+            if (!this.hasPreviousSmokeRenderPosition) {
+                this.previousSmokeRenderX = renderX;
+                this.previousSmokeRenderY = renderY;
+                this.previousSmokeRenderZ = renderZ;
+                this.hasPreviousSmokeRenderPosition = true;
                 return;
             }
-            Vec3 delta = this.previousSmokeRenderPosition.subtract(renderPosition);
+            double deltaX = this.previousSmokeRenderX - renderX;
+            double deltaY = this.previousSmokeRenderY - renderY;
+            double deltaZ = this.previousSmokeRenderZ - renderZ;
             for (SmokeNode node : this.smokeNodes) {
-                node.position = node.position.add(delta);
+                node.x += deltaX;
+                node.y += deltaY;
+                node.z += deltaZ;
             }
-            this.previousSmokeRenderPosition = renderPosition;
+            this.previousSmokeRenderX = renderX;
+            this.previousSmokeRenderY = renderY;
+            this.previousSmokeRenderZ = renderZ;
         }
 
-        private Vec3 collide(Vec3 requested) {
+        private void collide(double requestedX, double requestedY, double requestedZ) {
             AABB box = new AABB(
-                    this.position.x - this.width * 0.5D,
-                    this.position.y - this.height * 0.5D,
-                    this.position.z - this.width * 0.5D,
-                    this.position.x + this.width * 0.5D,
-                    this.position.y + this.height * 0.5D,
-                    this.position.z + this.width * 0.5D
+                    this.positionX - this.width * 0.5D,
+                    this.positionY - this.height * 0.5D,
+                    this.positionZ - this.width * 0.5D,
+                    this.positionX + this.width * 0.5D,
+                    this.positionY + this.height * 0.5D,
+                    this.positionZ + this.width * 0.5D
             );
-            AABB swept = box.expandTowards(requested);
-            List<VoxelShape> collisions = StreamSupport.stream(this.level.getBlockCollisions(null, swept).spliterator(), false).toList();
-            double y = Shapes.collide(Direction.Axis.Y, box, collisions, requested.y);
-            box = box.move(0.0D, y, 0.0D);
-            double x = Shapes.collide(Direction.Axis.X, box, collisions, requested.x);
-            box = box.move(x, 0.0D, 0.0D);
-            double z = Shapes.collide(Direction.Axis.Z, box, collisions, requested.z);
-            return new Vec3(x, y, z);
+            AABB swept = box.expandTowards(requestedX, requestedY, requestedZ);
+            this.collisionShapes.clear();
+            for (VoxelShape collision : this.level.getBlockCollisions(null, swept)) {
+                this.collisionShapes.add(collision);
+            }
+            this.acceptedMotionY = Shapes.collide(Direction.Axis.Y, box, this.collisionShapes, requestedY);
+            box = box.move(0.0D, this.acceptedMotionY, 0.0D);
+            this.acceptedMotionX = Shapes.collide(Direction.Axis.X, box, this.collisionShapes, requestedX);
+            box = box.move(this.acceptedMotionX, 0.0D, 0.0D);
+            this.acceptedMotionZ = Shapes.collide(Direction.Axis.Z, box, this.collisionShapes, requestedZ);
         }
     }
 
     private static final class SmokeNode {
-        private Vec3 position;
+        private double x;
+        private double y;
+        private double z;
         private double alpha;
 
-        private SmokeNode(Vec3 position, double alpha) {
-            this.position = position;
+        private SmokeNode(double x, double y, double z, double alpha) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
             this.alpha = alpha;
         }
     }

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "reinhardtshbm:plant_hemp" }
+  ],
+  "result": {
+    "id": "minecraft:string",
+    "count": 3
+  }
+}

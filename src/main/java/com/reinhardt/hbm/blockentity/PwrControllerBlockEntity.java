@@ -5,16 +5,21 @@ import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.HbmThermalConversions;
+import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.PwrFuelItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.menu.PwrMenu;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -42,14 +47,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class PwrControllerBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer, MenuProvider {
+public class PwrControllerBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer, MenuProvider,
+        RttyValueProvider, RttyInteractive {
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
-    public static final int SLOT_UPGRADE = 2;
+    public static final int SLOT_IDENTIFIER = 2;
     public static final int SLOT_COUNT = 3;
     public static final int DATA_COUNT = 16;
     private static final long CORE_HEAT_CAPACITY_BASE = 10_000_000L;
     private static final long HULL_HEAT_CAPACITY_BASE = 10_000_000L;
+    private static final int MAX_ASSEMBLY_SIZE = 4096;
 
     private final net.minecraft.core.NonNullList<ItemStack> items = net.minecraft.core.NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank coolant = new HbmFluidTank(HbmFluids.byName("coolant").orElse(HbmFluids.none()), 128_000);
@@ -141,7 +148,7 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         }
         loadFuel();
         moveControlRods();
-        runFission();
+        runFission(level);
         updateCoolant();
         coreHeat = (long) (coreHeat * 0.999D);
         hullHeat = (long) (hullHeat * 0.999D);
@@ -151,17 +158,20 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         sync();
     }
 
-    public void assemble() {
+    public AssemblyResult assemble() {
         if (level == null || level.isClientSide) {
-            return;
+            return new AssemblyResult(AssemblyStatus.UNAVAILABLE, worldPosition);
         }
         disassemble();
         Direction facing = getBlockState().hasProperty(PwrBlock.FACING) ? getBlockState().getValue(PwrBlock.FACING) : Direction.NORTH;
-        BlockPos start = worldPosition.relative(facing);
-        Set<BlockPos> found = floodFill(start);
-        if (found.isEmpty()) {
-            return;
+        // FACING is the visible controller face.  The reactor vessel is behind
+        // it, exactly as in MachinePWRController from 1.7.10.
+        BlockPos start = worldPosition.relative(facing.getOpposite());
+        FloodFillResult scan = floodFill(start);
+        if (scan.status() != AssemblyStatus.SUCCESS) {
+            return new AssemblyResult(scan.status(), scan.problemPos());
         }
+        Set<BlockPos> found = scan.parts();
 
         Map<BlockPos, Block> partMap = new HashMap<>();
         Map<BlockPos, Block> rodMap = new HashMap<>();
@@ -180,8 +190,11 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
                 sourceBlocks++;
             }
         }
-        if (rodMap.isEmpty() || sourceBlocks == 0) {
-            return;
+        if (rodMap.isEmpty()) {
+            return new AssemblyResult(AssemblyStatus.FUEL_RODS_REQUIRED, start);
+        }
+        if (sourceBlocks == 0) {
+            return new AssemblyResult(AssemblyStatus.NEUTRON_SOURCES_REQUIRED, start);
         }
 
         for (BlockPos pos : found) {
@@ -198,7 +211,8 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         }
         setup(partMap, rodMap);
         assembled = true;
-        setChanged();
+        sync();
+        return new AssemblyResult(AssemblyStatus.SUCCESS, worldPosition);
     }
 
     public void disassemble() {
@@ -223,32 +237,53 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         setChanged();
     }
 
-    private Set<BlockPos> floodFill(BlockPos start) {
-        Set<BlockPos> visited = new HashSet<>();
+    private FloodFillResult floodFill(BlockPos start) {
+        Set<BlockPos> found = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-        if (!isValidPwrCore(level.getBlockState(start).getBlock()) && !isValidPwrCasing(level.getBlockState(start).getBlock())) {
-            return visited;
-        }
         queue.add(start);
-        while (!queue.isEmpty() && visited.size() < 4096) {
+        while (!queue.isEmpty()) {
             BlockPos pos = queue.removeFirst();
-            if (!visited.add(pos)) {
+            // The old assembler seeded the controller itself into the visited
+            // map.  It is therefore the only non-core block that may touch the
+            // reactor interior without being treated as a vessel leak.
+            if (pos.equals(worldPosition) || found.contains(pos)) {
                 continue;
+            }
+            if (found.size() >= MAX_ASSEMBLY_SIZE - 1) {
+                return new FloodFillResult(AssemblyStatus.MAX_SIZE_EXCEEDED, pos, Set.of());
             }
             Block block = level.getBlockState(pos).getBlock();
             if (isValidPwrCasing(block)) {
+                found.add(pos.immutable());
                 continue;
             }
+            if (!isValidPwrCore(block)) {
+                return new FloodFillResult(AssemblyStatus.NON_REACTOR_BLOCK, pos, Set.of());
+            }
+            found.add(pos.immutable());
             for (Direction direction : Direction.values()) {
                 BlockPos next = pos.relative(direction);
-                Block nextBlock = level.getBlockState(next).getBlock();
-                if (!visited.contains(next) && (isValidPwrCore(nextBlock) || isValidPwrCasing(nextBlock))) {
+                if (!found.contains(next)) {
                     queue.add(next);
                 }
             }
         }
-        visited.remove(worldPosition);
-        return visited;
+        return new FloodFillResult(AssemblyStatus.SUCCESS, start, found);
+    }
+
+    public enum AssemblyStatus {
+        SUCCESS,
+        UNAVAILABLE,
+        NON_REACTOR_BLOCK,
+        MAX_SIZE_EXCEEDED,
+        FUEL_RODS_REQUIRED,
+        NEUTRON_SOURCES_REQUIRED
+    }
+
+    public record AssemblyResult(AssemblyStatus status, BlockPos problemPos) {
+    }
+
+    private record FloodFillResult(AssemblyStatus status, BlockPos problemPos, Set<BlockPos> parts) {
     }
 
     private static boolean isValidPwrCore(Block block) {
@@ -349,15 +384,25 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         if (rodTarget < rodLevel) rodLevel--;
     }
 
-    private void runFission() {
+    private void runFission(Level level) {
         int newFlux = sourceCount * 20;
+        double moderatorMultiplier = coolant.amount() > 0
+                ? HbmThermalConversions.pwrModeratorMultiplier(coolant.type()) : 1.0D;
         if (typeLoaded >= 0 && amountLoaded > 0 && typeLoaded < PwrFuelItem.FUELS.size() && rodCount > 0) {
+            if (level instanceof ServerLevel serverLevel && level.getGameTime() % 100L == 0L) {
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                        serverLevel, this.worldPosition,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_NUCLEAR, 200);
+            }
             PwrFuelItem.Fuel fuel = PwrFuelItem.FUELS.get(typeLoaded);
             double usedRods = getTotalProcessMultiplier();
             double fluxPerRod = flux / rodCount;
             double outputPerRod = fuel.function().output(fluxPerRod);
             double totalOutput = outputPerRod * amountLoaded * usedRods;
             double totalHeatOutput = totalOutput * fuel.heatEmission();
+            if (coolant.amount() > 0) {
+                totalHeatOutput *= moderatorMultiplier;
+            }
             coreHeat += (long) totalHeatOutput;
             newFlux += (int) totalOutput;
             processTime = fuel.yield();
@@ -373,7 +418,7 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
                 amountLoaded--;
             }
         }
-        flux = newFlux;
+        flux = coolant.amount() > 0 ? newFlux * moderatorMultiplier : newFlux;
     }
 
     private void updateCoolant() {
@@ -381,10 +426,11 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
         long average = (coreHeat + hullHeat) / 2L;
         coreHeat -= (long) ((coreHeat - average) * approach);
         hullHeat -= (long) ((hullHeat - average) * approach);
-        HbmThermalConversions.firstHeatExchangerStep(coolant.type()).ifPresent(step -> {
+        HbmThermalConversions.firstPwrStep(coolant.type()).ifPresent(step -> {
             double coolingEff = (double) channelCount / (double) Math.max(1, getRodCountForCoolant()) * 0.1D;
             if (coolingEff > 1.0D) coolingEff = 1.0D;
-            int heatToUse = (int) Math.min(Math.min(hullHeat, hullHeat * coolingEff), 2_000_000_000L);
+            int heatToUse = (int) Math.min(Math.min(hullHeat,
+                    hullHeat * coolingEff * step.boilerEfficiency()), 2_000_000_000L);
             int coolCycles = coolant.amount() / step.amountReq();
             int hotCycles = (hotCoolant.capacity() - hotCoolant.amount()) / step.amountProduced();
             int heatCycles = heatToUse / step.heatReq();
@@ -398,10 +444,18 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
     }
 
     private void setupTanks() {
-        if (coolant.amount() <= 0 && coolant.type().isNone()) {
+        ItemStack identifier = items.get(SLOT_IDENTIFIER);
+        boolean hasIdentifier = identifier.getItem() instanceof FluidIdentifierItem;
+        if (hasIdentifier && amountLoaded <= 0) {
+            // FluidTank#setType(2, slots) did this every server tick in
+            // 1.7.10. HbmFluidTank deliberately clears an incompatible fill
+            // when the selected type changes, preserving that behavior.
+            coolant.setType(FluidIdentifierItem.primary(identifier));
+        }
+        if (!hasIdentifier && coolant.amount() <= 0 && coolant.type().isNone()) {
             coolant.setType(HbmFluids.byName("coolant").orElse(HbmFluids.none()));
         }
-        HbmThermalConversions.firstHeatExchangerStep(coolant.type()).ifPresentOrElse(
+        HbmThermalConversions.firstPwrStep(coolant.type()).ifPresentOrElse(
                 step -> hotCoolant.setType(step.output()),
                 () -> {
                     if (coolant.amount() <= 0) coolant.setType(HbmFluids.none());
@@ -461,6 +515,66 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
     public HbmFluidTank hotCoolantTank() { return hotCoolant; }
     public boolean isPort(BlockPos pos) { return ports.contains(pos); }
 
+    @Override
+    public String[] rttyFunctionInfo() {
+        return new String[] {
+                RttyInfo.PREFIX_VALUE + "rods",
+                RttyInfo.PREFIX_VALUE + "coreheat",
+                RttyInfo.PREFIX_VALUE + "hullheat",
+                RttyInfo.PREFIX_VALUE + "coldbuf",
+                RttyInfo.PREFIX_VALUE + "hotbuf",
+                RttyInfo.PREFIX_VALUE + "flux",
+                RttyInfo.PREFIX_VALUE + "depletion",
+                RttyInfo.PREFIX_FUNCTION + "setrods" + RttyInteractive.NAME_SEPARATOR + "percent",
+                RttyInfo.PREFIX_FUNCTION + "jettison"
+        };
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (name.equals(RttyInfo.PREFIX_VALUE + "rods")) return Integer.toString((int) (100.0D - this.rodLevel));
+        if (name.equals(RttyInfo.PREFIX_VALUE + "coreheat")) return Long.toString(this.coreHeat);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "hullheat")) return Long.toString(this.hullHeat);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "coldbuf")) return Integer.toString(this.coolant.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "hotbuf")) return Integer.toString(this.hotCoolant.amount());
+        if (name.equals(RttyInfo.PREFIX_VALUE + "flux")) return Integer.toString((int) this.flux);
+        if (name.equals(RttyInfo.PREFIX_VALUE + "depletion")) {
+            return Integer.toString((int) (this.progress * 100.0D / Math.max(this.processTime, 1.0D)));
+        }
+        return null;
+    }
+
+    @Override
+    public String runRttyFunction(String name, String[] params) {
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "setrods") && params.length > 0) {
+            int percent = RttyInteractive.parseInt(params[0], 0, 100);
+            this.rodTarget = 100.0D - percent;
+            sync();
+        }
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "jettison")) {
+            this.typeLoaded = -1;
+            this.amountLoaded = 0;
+            this.progress = 0.0D;
+            sync();
+        }
+        return null;
+    }
+
+    /**
+     * PWR stores its assembled footprint as absolute positions. Create moves
+     * the block entities as a snapshot, so all three lists must follow the
+     * same authoritative StructureTransform as their blocks.
+     */
+    public void transformAssemblyLinks(java.util.function.UnaryOperator<BlockPos> transform) {
+        if (!assembled) {
+            return;
+        }
+        assembledParts.replaceAll(pos -> transform.apply(pos).immutable());
+        ports.replaceAll(pos -> transform.apply(pos).immutable());
+        rods.replaceAll(pos -> transform.apply(pos).immutable());
+        setChanged();
+    }
+
     private void sync() {
         setChanged();
         if (level != null) {
@@ -485,11 +599,14 @@ public class PwrControllerBlockEntity extends BlockEntity implements MachineInve
     @Override
     public void setItem(int slot, ItemStack stack) { items.set(slot, stack); sync(); }
     @Override
-    public boolean stillValid(Player player) { return Container.stillValidBlockEntity(this, player); }
+    public boolean stillValid(Player player) { return MachineDummyMenuAccess.stillValid(this, player); }
     @Override
     public void clearContent() { items.clear(); sync(); }
     @Override
-    public boolean canPlaceItem(int slot, ItemStack stack) { return slot == SLOT_INPUT && stack.getItem() instanceof PwrFuelItem; }
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return slot == SLOT_INPUT && stack.getItem() instanceof PwrFuelItem
+                || slot == SLOT_IDENTIFIER && stack.getItem() instanceof FluidIdentifierItem;
+    }
     @Override
     public int[] getSlotsForFace(Direction side) { return new int[]{SLOT_INPUT, SLOT_OUTPUT}; }
     @Override

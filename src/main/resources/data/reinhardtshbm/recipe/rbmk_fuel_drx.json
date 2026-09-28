@@ -1,1 +1,13 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"item":"reinhardtshbm:rbmk_fuel_balefire"},{"item":"reinhardtshbm:particle_digamma"}],"result":{"id":"reinhardtshbm:rbmk_fuel_drx"}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "reinhardtshbm:rbmk_fuel_balefire"
+    },
+    { "item": "reinhardtshbm:particle_digamma" }
+  ],
+  "result": {
+    "id": "reinhardtshbm:rbmk_fuel_drx"
+  }
+}

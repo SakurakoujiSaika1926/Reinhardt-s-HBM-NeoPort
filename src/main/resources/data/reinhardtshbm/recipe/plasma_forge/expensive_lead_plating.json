@@ -1,0 +1,17 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.exleadplating",
+  "duration": 80,
+  "power": 100000,
+  "ignition_temp": 1000000,
+  "input_items": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_steel_plating" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:plate_cast_lead" }, "count": 8 },
+    { "ingredient": { "tag": "c:ingots/boron" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:bolt_tungsten" }, "count": 32 }
+  ],
+  "input_fluids": [
+    { "fluid": "lubricant", "amount": 1000 }
+  ],
+  "result": { "id": "reinhardtshbm:item_expensive_lead_plating" }
+}

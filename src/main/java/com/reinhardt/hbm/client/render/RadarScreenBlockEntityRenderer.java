@@ -2,28 +2,31 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.RadarScreenBlock;
 import com.reinhardt.hbm.blockentity.RadarScreenBlockEntity;
 import com.reinhardt.hbm.blockentity.RadarTarget;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import org.joml.AxisAngle4f;
-import org.joml.Quaternionf;
 
 /** Direct visual port of RenderRadarScreen, with its own fixed legacy rotation table. */
-public final class RadarScreenBlockEntityRenderer implements BlockEntityRenderer<RadarScreenBlockEntity> {
+public final class RadarScreenBlockEntityRenderer implements LongRangeBlockEntityRenderer<RadarScreenBlockEntity> {
     static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/radar_screen_world");
     private static final ResourceLocation RADAR_GUI = ReinhardtsHBM.id("textures/gui/gui_radar_nt.png");
+    private static final AABB NORTH_BOUNDS = createRadarLocalBounds(Direction.NORTH);
+    private static final AABB SOUTH_BOUNDS = createRadarLocalBounds(Direction.SOUTH);
+    private static final AABB WEST_BOUNDS = createRadarLocalBounds(Direction.WEST);
+    private static final AABB EAST_BOUNDS = createRadarLocalBounds(Direction.EAST);
 
     public RadarScreenBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -36,11 +39,10 @@ public final class RadarScreenBlockEntityRenderer implements BlockEntityRenderer
     public void render(RadarScreenBlockEntity screen, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = screen.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.SOUTH;
+        Direction facing = radarScreenFacing(state);
 
         poseStack.pushPose();
-        poseStack.translate(0.5D, 0.0D, 0.5D);
-        poseStack.mulPose(yaw(legacyScreenYaw(facing)));
+        applyRadarPose(poseStack, facing);
         renderAssembly(state, poseStack, bufferSource, packedLight, packedOverlay);
         renderDisplay(screen, partialTick, poseStack, bufferSource, packedOverlay);
         poseStack.popPose();
@@ -54,12 +56,24 @@ public final class RadarScreenBlockEntityRenderer implements BlockEntityRenderer
 
     @Override
     public AABB getRenderBoundingBox(RadarScreenBlockEntity screen) {
-        return screen.legacyRenderBounds();
+        BlockState state = screen.getBlockState();
+        Direction facing = radarScreenFacing(state);
+        // Model face bounds are X -0.5..0.5, Y 0..2, Z -0.5..1.5.
+        // Noise, scan and in-range blip quads all lie inside this envelope.
+        AABB local = switch (facing) {
+            case NORTH -> NORTH_BOUNDS;
+            case SOUTH -> SOUTH_BOUNDS;
+            case WEST -> WEST_BOUNDS;
+            case EAST -> EAST_BOUNDS;
+            case UP, DOWN -> throw new IllegalArgumentException("Radar screen facing must be horizontal: " + facing);
+        };
+        return local.move(screen.getBlockPos());
     }
 
     private static void renderDisplay(RadarScreenBlockEntity screen, float partialTick, PoseStack poseStack,
                                       MultiBufferSource bufferSource, int packedOverlay) {
-        if (!screen.linked()) {
+        RadarScreenBlockEntity.RenderSnapshot snapshot = screen.renderSnapshot();
+        if (!snapshot.linked()) {
             int noiseRow = 118 + Math.floorMod((int) (screen.getBlockPos().asLong() ^ System.nanoTime() / 20_000_000L), 81);
             VertexConsumer noise = bufferSource.getBuffer(RenderType.entityCutoutNoCull(RADAR_GUI));
             emitQuad(noise, poseStack.last(), 0.38D, 1.875D, 1.375D, 0.125D, -0.375D,
@@ -74,13 +88,13 @@ public final class RadarScreenBlockEntityRenderer implements BlockEntityRenderer
         emitQuad(scan, poseStack.last(), 0.38D, 2.0D - sweep, 1.375D, 1.875D - sweep, -0.375D,
                 0.0F, 0.0F, 1.0F, 1.0F, 0, 255, 0, 50, packedOverlay);
 
-        if (screen.entries().isEmpty() || screen.range() <= 0) {
+        if (snapshot.entries().isEmpty() || snapshot.range() <= 0) {
             return;
         }
         VertexConsumer blips = bufferSource.getBuffer(RenderType.entityCutoutNoCull(RADAR_GUI));
-        for (RadarTarget entry : screen.entries()) {
-            double x = (entry.x() - screen.refX()) / ((double) screen.range() + 1.0D) * 0.875D;
-            double z = (entry.z() - screen.refZ()) / ((double) screen.range() + 1.0D) * 0.875D;
+        for (RadarTarget entry : snapshot.entries()) {
+            double x = (entry.x() - snapshot.refX()) / ((double) snapshot.range() + 1.0D) * 0.875D;
+            double z = (entry.z() - snapshot.refZ()) / ((double) snapshot.range() + 1.0D) * 0.875D;
             int type = Math.max(0, Math.min(31, entry.blipLevel()));
             double size = 0.0625D;
             emitQuad(blips, poseStack.last(), 0.38D, 1.0D - z + size, 0.5D - x + size,
@@ -91,19 +105,34 @@ public final class RadarScreenBlockEntityRenderer implements BlockEntityRenderer
         }
     }
 
-    /** The old model's fixed base was NORTH=90, SOUTH=270, WEST=180, EAST=0. */
-    private static float legacyScreenYaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> 90.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            case EAST -> 0.0F;
-            default -> 270.0F;
-        };
+    /** Exact 1.7.10 radar-screen transform, deliberately private to this machine. */
+    private static void applyRadarPose(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5D, 0.0D, 0.5D);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Radar screen facing must be horizontal: " + facing);
+        }
     }
 
-    private static Quaternionf yaw(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
+    private static AABB createRadarLocalBounds(Direction facing) {
+        PoseStack poseStack = new PoseStack();
+        applyRadarPose(poseStack, facing);
+        return RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
+                -0.5F, 0.0F, -0.5F, 0.5F, 2.0F, 1.5F);
+    }
+
+    private static Direction radarScreenFacing(BlockState state) {
+        if (!state.hasProperty(RadarScreenBlock.FACING)) {
+            throw new IllegalStateException("Radar screen block state is missing its facing property: " + state);
+        }
+        Direction facing = state.getValue(RadarScreenBlock.FACING);
+        if (facing.getAxis().isVertical()) {
+            throw new IllegalStateException("Radar screen block state has a vertical facing: " + facing);
+        }
+        return facing;
     }
 
     private static void emitQuad(VertexConsumer consumer, PoseStack.Pose pose, double x, double topY, double topZ,

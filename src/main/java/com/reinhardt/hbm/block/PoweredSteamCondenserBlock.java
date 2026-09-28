@@ -5,7 +5,6 @@ import com.reinhardt.hbm.blockentity.PoweredSteamCondenserBlockEntity;
 import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -28,10 +27,20 @@ import java.util.List;
 import java.util.Set;
 
 public class PoweredSteamCondenserBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     private static final Footprint FOOTPRINT = createFootprint();
 
     public PoweredSteamCondenserBlock(Properties properties, VoxelShape shape) {
-        super(properties, FOOTPRINT, shape, RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, shape, PoweredSteamCondenserBlock::mapCondenserOffset);
     }
 
     @Nullable
@@ -96,7 +105,7 @@ public class PoweredSteamCondenserBlock extends LargeMachineBlock implements Ent
     }
 
     public static List<BlockPos> connectorPositions(BlockPos corePos, Direction facing) {
-        Direction rot = LegacyMachineGeometry.forgeRotateUp(facing);
+        Direction rot = condenserUpSide(facing);
         return List.of(
                 corePos.relative(rot, 4).above(),
                 corePos.relative(rot.getOpposite(), 4).above(),
@@ -170,7 +179,29 @@ public class PoweredSteamCondenserBlock extends LargeMachineBlock implements Ent
     }
 
     private static List<BlockPos> footprintPositions(BlockPos corePos, Direction facing) {
-        return LegacyMachineGeometry.positionsForLegacyFootprint(corePos, facing, FOOTPRINT);
+        return FOOTPRINT.offsets().stream()
+                .map(offset -> corePos.offset(mapCondenserOffset(facing, offset)))
+                .toList();
+    }
+
+    private static BlockPos mapCondenserOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Powered condenser facing must be horizontal: " + facing);
+        };
+    }
+
+    private static Direction condenserUpSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            default -> throw new IllegalArgumentException("Powered condenser facing must be horizontal: " + facing);
+        };
     }
 
     private static void refreshPorts(Level level, BlockPos corePos, BlockState state) {

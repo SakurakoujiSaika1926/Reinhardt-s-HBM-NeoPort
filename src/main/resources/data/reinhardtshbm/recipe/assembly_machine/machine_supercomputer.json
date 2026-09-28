@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": { "type": "reinhardtshbm:enable_528_mode" }
+    }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.sal9000",
+  "duration": 400,
+  "power": 1000,
+  "ingredients": [
+    { "ingredient": { "tag": "c:ingots/resistant_alloy" }, "count": 16 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 64 },
+    { "ingredient": { "tag": "c:wires_dense/gold" }, "count": 32 },
+    { "ingredient": { "tag": "c:pipes/copper" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 32 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_bismoid" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_supercomputer" }
+}

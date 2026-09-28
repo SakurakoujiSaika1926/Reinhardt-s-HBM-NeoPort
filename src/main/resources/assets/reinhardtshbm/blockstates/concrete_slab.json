@@ -17,6 +17,12 @@
     "type=double,variant=4": { "model": "reinhardtshbm:block/ducrete_slab_double" },
     "type=bottom,variant=5": { "model": "reinhardtshbm:block/asphalt_slab" },
     "type=top,variant=5": { "model": "reinhardtshbm:block/asphalt_slab_top" },
-    "type=double,variant=5": { "model": "reinhardtshbm:block/asphalt_slab_double" }
+    "type=double,variant=5": { "model": "reinhardtshbm:block/asphalt_slab_double" },
+    "type=bottom,variant=6": { "model": "reinhardtshbm:block/asphalt_slab" },
+    "type=top,variant=6": { "model": "reinhardtshbm:block/asphalt_slab_top" },
+    "type=double,variant=6": { "model": "reinhardtshbm:block/asphalt_slab_double" },
+    "type=bottom,variant=7": { "model": "reinhardtshbm:block/asphalt_slab" },
+    "type=top,variant=7": { "model": "reinhardtshbm:block/asphalt_slab_top" },
+    "type=double,variant=7": { "model": "reinhardtshbm:block/asphalt_slab_double" }
   }
 }

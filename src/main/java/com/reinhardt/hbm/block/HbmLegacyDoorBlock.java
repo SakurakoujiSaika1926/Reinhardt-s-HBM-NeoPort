@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
@@ -26,96 +27,62 @@ public class HbmLegacyDoorBlock extends DoorBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
-            toggleOldDoor(state, level, pos, player);
-        }
+        toggleDoor(state, level, pos, player);
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
-            toggleOldDoor(state, level, pos, player);
-        }
+        toggleDoor(state, level, pos, player);
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    private static void toggleOldDoor(BlockState state, Level level, BlockPos pos, Player player) {
-        DoorPair pair = findPair(state, level, pos);
-        if (pair == null) {
-            return;
-        }
-        boolean open = pair.lowerState().getValue(OPEN);
-        setPair(level, pair, !open, pair.lowerState().getValue(POWERED));
-        level.playSound(player, pos, (!open ? HbmSoundEvents.OPEN_DOOR : HbmSoundEvents.CLOSE_DOOR).get(), SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F);
+    private static void toggleDoor(BlockState state, Level level, BlockPos pos, Player player) {
+        BlockState toggled = state.cycle(OPEN);
+        // Match vanilla DoorBlock: update the clicked half immediately on both
+        // logical sides and let DoorBlock.updateShape propagate the complete
+        // state to the other half. This keeps both halves in one local update
+        // chain instead of waiting for two independent server packets.
+        level.setBlock(pos, toggled, 10);
+        playDoorSound(player, level, pos, toggled.getValue(OPEN));
+        level.gameEvent(player, toggled.getValue(OPEN) ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
     }
 
     @Override
     public void setOpen(@Nullable Entity entity, Level level, BlockState state, BlockPos pos, boolean open) {
-        DoorPair pair = findPair(state, level, pos);
-        if (pair == null || pair.lowerState().getValue(OPEN) == open) {
-            return;
+        if (state.is(this) && state.getValue(OPEN) != open) {
+            level.setBlock(pos, state.setValue(OPEN, open), 10);
+            playDoorSound(entity, level, pos, open);
+            level.gameEvent(entity, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
         }
-        setPair(level, pair, open, pair.lowerState().getValue(POWERED));
-        level.playSound(entity, pair.lowerPos(), (open ? HbmSoundEvents.OPEN_DOOR : HbmSoundEvents.CLOSE_DOOR).get(), SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F);
     }
 
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, net.minecraft.world.level.block.Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        if (level.isClientSide) {
-            return;
+        boolean powered = level.hasNeighborSignal(pos)
+                || level.hasNeighborSignal(pos.relative(
+                state.getValue(HALF) == DoubleBlockHalf.LOWER ? Direction.UP : Direction.DOWN
+        ));
+        if (!this.defaultBlockState().is(neighborBlock) && powered != state.getValue(POWERED)) {
+            if (powered != state.getValue(OPEN)) {
+                playDoorSound(null, level, pos, powered);
+                level.gameEvent(null, powered ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
+            }
+            // DoorBlock.updateShape synchronizes the opposite half as part of
+            // this update, exactly like the vanilla 1.21.1 redstone path.
+            level.setBlock(pos, state.setValue(POWERED, powered).setValue(OPEN, powered), 2);
         }
+    }
 
-        DoubleBlockHalf half = state.getValue(HALF);
-        if (half == DoubleBlockHalf.UPPER) {
-            // Match BlockModDoor: an upper half without its lower half is an
-            // orphan and must disappear without producing a second item.
-            if (level.getBlockState(pos.below()).getBlock() != this) {
-                level.removeBlock(pos, false);
-            }
-            // Legacy BlockModDoor forwards non-door neighbor updates from the
-            // upper half to the lower half.  Without this, redstone attached to
-            // the upper half (or updating beside it) never drives the door.
-            if (neighborBlock != this) {
-                BlockPos lowerPos = pos.below();
-                BlockState lowerState = level.getBlockState(lowerPos);
-                if (lowerState.getBlock() == this && lowerState.getValue(HALF) == DoubleBlockHalf.LOWER) {
-                    neighborChanged(lowerState, level, lowerPos, neighborBlock, neighborPos, movedByPiston);
-                }
-            }
-            return;
-        }
-
-        // The legacy lower half was also removed when either its support or
-        // upper half disappeared. The lower half alone is the drop source.
-        if (level.getBlockState(pos.above()).getBlock() != this
-                || !state.canSurvive(level, pos)) {
-            if (level.getBlockState(pos.above()).getBlock() == this) {
-                level.removeBlock(pos.above(), false);
-            }
-            level.destroyBlock(pos, true);
-            return;
-        }
-
-        if (neighborBlock == this) {
-            return;
-        }
-        DoorPair pair = findPair(state, level, pos);
-        if (pair == null) {
-            return;
-        }
-        boolean powered = level.hasNeighborSignal(pair.lowerPos()) || level.hasNeighborSignal(pair.upperPos());
-        boolean wasPowered = pair.lowerState().getValue(POWERED);
-        boolean open = pair.lowerState().getValue(OPEN);
-        boolean neighborCanSignal = level.getBlockState(neighborPos).isSignalSource()
-                || neighborBlock.defaultBlockState().isSignalSource();
-        if ((powered || wasPowered || neighborCanSignal)
-                && (powered != open || powered != wasPowered)) {
-            setPair(level, pair, powered, powered);
-            if (powered != open) {
-                level.playSound(null, pair.lowerPos(), (powered ? HbmSoundEvents.OPEN_DOOR : HbmSoundEvents.CLOSE_DOOR).get(), SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F);
-            }
-        }
+    private static void playDoorSound(@Nullable Entity source, Level level, BlockPos pos, boolean open) {
+        level.playSound(
+                source,
+                pos,
+                (open ? HbmSoundEvents.OPEN_DOOR : HbmSoundEvents.CLOSE_DOOR).get(),
+                SoundSource.BLOCKS,
+                1.0F,
+                level.random.nextFloat() * 0.1F + 0.9F
+        );
     }
 
     @Override
@@ -130,39 +97,5 @@ public class HbmLegacyDoorBlock extends DoorBlock {
             case 2 -> Direction.WEST;
             default -> Direction.NORTH;
         };
-    }
-
-    private static void setPair(Level level, DoorPair pair, boolean open, boolean powered) {
-        BlockState lower = pair.lowerState()
-                .setValue(HALF, DoubleBlockHalf.LOWER)
-                .setValue(OPEN, open)
-                .setValue(POWERED, powered);
-        BlockState upper = pair.upperState()
-                .setValue(HALF, DoubleBlockHalf.UPPER)
-                .setValue(FACING, lower.getValue(FACING))
-                .setValue(HINGE, lower.getValue(HINGE))
-                .setValue(OPEN, open)
-                .setValue(POWERED, powered);
-        level.setBlock(pair.lowerPos(), lower, 2);
-        level.setBlock(pair.upperPos(), upper, 2);
-    }
-
-    @Nullable
-    private static DoorPair findPair(BlockState state, Level level, BlockPos pos) {
-        BlockPos lowerPos = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
-        BlockPos upperPos = lowerPos.above();
-        BlockState lower = level.getBlockState(lowerPos);
-        BlockState upper = level.getBlockState(upperPos);
-        if (lower.getBlock() != state.getBlock()
-                || upper.getBlock() != state.getBlock()
-                || lower.getValue(HALF) != DoubleBlockHalf.LOWER
-                || upper.getValue(HALF) != DoubleBlockHalf.UPPER) {
-            return null;
-        }
-        lower = lower.setValue(HINGE, upper.getValue(HINGE));
-        return new DoorPair(lowerPos, upperPos, lower, upper);
-    }
-
-    private record DoorPair(BlockPos lowerPos, BlockPos upperPos, BlockState lowerState, BlockState upperState) {
     }
 }

@@ -6,6 +6,7 @@ import com.reinhardt.hbm.power.PowerNetworkManager;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -29,6 +30,25 @@ import org.jetbrains.annotations.Nullable;
  * volume is therefore the old BlockDummyable 1 x 1 x 3 footprint.
  */
 public final class ConveyorPressBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+        Direction facing = context.getHorizontalDirection().getOpposite();
+        if (!this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), facing, context)) {
+            return null;
+        }
+        return this.defaultBlockState().setValue(FACING, facing);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = Footprint.fromOffsets(
             BlockPos.ZERO,
             new BlockPos(0, 1, 0),
@@ -36,7 +56,17 @@ public final class ConveyorPressBlock extends LargeMachineBlock implements Entit
     );
 
     public ConveyorPressBlock(Properties properties) {
-        super(properties, FOOTPRINT, Shapes.block(), RotationBasis.HBM_LEGACY_SOUTH);
+        super(properties, FOOTPRINT, Shapes.block(), ConveyorPressBlock::mapConveyorPressOffset);
+    }
+
+    private static BlockPos mapConveyorPressOffset(Direction facing, BlockPos offset) {
+        return switch (facing) {
+            case SOUTH -> new BlockPos(offset.getX(), offset.getY(), offset.getZ());
+            case EAST -> new BlockPos(offset.getZ(), offset.getY(), -offset.getX());
+            case NORTH -> new BlockPos(-offset.getX(), offset.getY(), -offset.getZ());
+            case WEST -> new BlockPos(-offset.getZ(), offset.getY(), offset.getX());
+            default -> throw new IllegalArgumentException("Conveyor press facing must be horizontal: " + facing);
+        };
     }
 
     @Override

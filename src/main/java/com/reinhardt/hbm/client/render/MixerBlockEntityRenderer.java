@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.reinhardt.hbm.blockentity.MixerBlockEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,7 +12,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
-public class MixerBlockEntityRenderer implements BlockEntityRenderer<MixerBlockEntity> {
+public class MixerBlockEntityRenderer implements LongRangeBlockEntityRenderer<MixerBlockEntity> {
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_mixer_world");
     private static final ModelResourceLocation BLADE = MachineModelRenderer.standalone("block/machine_mixer_blade");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_mixer_fluid");
@@ -58,12 +57,12 @@ public class MixerBlockEntityRenderer implements BlockEntityRenderer<MixerBlockE
     @Override
     public AABB getRenderBoundingBox(MixerBlockEntity blockEntity) {
         return new AABB(
-                blockEntity.getBlockPos().getX(),
+                blockEntity.getBlockPos().getX() - 0.008016D,
                 blockEntity.getBlockPos().getY(),
-                blockEntity.getBlockPos().getZ(),
-                blockEntity.getBlockPos().getX() + 1.0D,
+                blockEntity.getBlockPos().getZ() - 0.008016D,
+                blockEntity.getBlockPos().getX() + 1.008016D,
                 blockEntity.getBlockPos().getY() + 3.0D,
-                blockEntity.getBlockPos().getZ() + 1.0D
+                blockEntity.getBlockPos().getZ() + 1.008016D
         );
     }
 }

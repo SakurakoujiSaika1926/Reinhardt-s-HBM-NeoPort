@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:sedna_physical"
+    "reinhardtshbm:sedna_physical",
+    "reinhardtshbm:laser"
   ]
 }

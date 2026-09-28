@@ -236,6 +236,11 @@ public class DfcCoreBlockEntity extends DfcInventoryBlockEntity implements MenuP
         this.color = calculateColor();
         if (this.heat > 0) {
             irradiateEntities(level);
+            if (level instanceof ServerLevel serverLevel && level.getGameTime() % 100L == 0L) {
+                com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRay(
+                        serverLevel, this.worldPosition,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_PARTICLE, 200);
+            }
         }
 
         this.heat = 0;

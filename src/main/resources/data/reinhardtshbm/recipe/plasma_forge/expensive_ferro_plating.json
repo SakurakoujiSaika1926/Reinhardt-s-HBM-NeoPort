@@ -1,0 +1,16 @@
+{
+  "type": "reinhardtshbm:plasma_forge",
+  "group": "plsm.exferroplating",
+  "duration": 240,
+  "power": 100000,
+  "ignition_temp": 1000000,
+  "input_items": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_lead_plating" }, "count": 3 },
+    { "ingredient": { "item": "reinhardtshbm:plate_cast_ferrouranium" }, "count": 4 },
+    { "ingredient": { "tag": "c:ingots/resistant_alloy" }, "count": 4 }
+  ],
+  "input_fluids": [
+    { "fluid": "unsaturateds", "amount": 1000 }
+  ],
+  "result": { "id": "reinhardtshbm:item_expensive_ferro_plating" }
+}

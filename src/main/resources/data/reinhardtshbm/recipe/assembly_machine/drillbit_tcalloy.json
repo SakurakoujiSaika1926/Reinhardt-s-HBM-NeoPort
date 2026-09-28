@@ -24,12 +24,6 @@
                         }
                     ],
     "result":  {
-                   "id":  "reinhardtshbm:drillbit",
-                   "components":  {
-                                      "minecraft:custom_model_data":  6,
-                                      "minecraft:custom_data":  {
-                                                                    "type":  "tcalloy"
-                                                                }
-                                  }
+                   "id":  "reinhardtshbm:drillbit_tcalloy"
                }
 }

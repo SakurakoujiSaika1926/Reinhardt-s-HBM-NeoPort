@@ -1,0 +1,19 @@
+{
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.lubeelectrodes",
+  "duration": 600,
+  "power": 100,
+  "input_items": [],
+  "input_fluids": [
+    {
+      "fluid": "lubricant",
+      "amount": 8000
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:arc_electrode_graphite"
+    }
+  ],
+  "output_fluids": []
+}

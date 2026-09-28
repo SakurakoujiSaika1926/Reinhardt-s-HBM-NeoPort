@@ -5,6 +5,7 @@ import com.reinhardt.hbm.block.WandStructureBlock;
 import com.reinhardt.hbm.worldgen.structure.HbmStructureIO;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -15,6 +16,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -26,9 +29,11 @@ public class WandStructureBlockEntity extends BlockEntity {
     public int sizeY = 1;
     public int sizeZ = 1;
     private final Set<HbmStructureIO.LegacyBlockKey> blacklist = new HashSet<>();
+    private volatile RenderSnapshot renderSnapshot;
 
     public WandStructureBlockEntity(BlockPos pos, BlockState state) {
         super(HbmBlockEntities.WAND_STRUCTURE.get(), pos, state);
+        this.renderSnapshot = buildRenderSnapshot();
     }
 
     public Set<HbmStructureIO.LegacyBlockKey> blacklist() {
@@ -145,9 +150,56 @@ public class WandStructureBlockEntity extends BlockEntity {
 
     public void sync() {
         setChanged();
+        RenderSnapshot previous = this.renderSnapshot;
+        RenderSnapshot next = buildRenderSnapshot();
+        this.renderSnapshot = next;
         Level level = this.level;
-        if (level != null) {
+        if (level != null && (!level.isClientSide || previous == null
+                || !sameSectionCoverage(previous.bounds(), next.bounds()))) {
             level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
+    }
+
+    public RenderSnapshot renderSnapshot() {
+        return this.renderSnapshot;
+    }
+
+    private RenderSnapshot buildRenderSnapshot() {
+        BlockState state = getBlockState();
+        boolean load = state.hasProperty(WandStructureBlock.LOAD) && state.getValue(WandStructureBlock.LOAD);
+        int renderSizeX = Math.max(1, this.sizeX);
+        int renderSizeY = Math.max(1, this.sizeY);
+        int renderSizeZ = Math.max(1, this.sizeZ);
+        AABB bounds = load
+                ? new AABB(this.worldPosition)
+                : new AABB(
+                this.worldPosition.getX(),
+                this.worldPosition.getY() + 1.0D,
+                this.worldPosition.getZ(),
+                this.worldPosition.getX() + renderSizeX,
+                this.worldPosition.getY() + renderSizeY + 1.0D,
+                this.worldPosition.getZ() + renderSizeZ
+        );
+        return new RenderSnapshot(load, renderSizeX, renderSizeY, renderSizeZ, bounds);
+    }
+
+    private static boolean sameSectionCoverage(AABB first, AABB second) {
+        return section(first.minX) == section(second.minX)
+                && section(inclusiveMaximum(first.minX, first.maxX)) == section(inclusiveMaximum(second.minX, second.maxX))
+                && section(first.minY) == section(second.minY)
+                && section(inclusiveMaximum(first.minY, first.maxY)) == section(inclusiveMaximum(second.minY, second.maxY))
+                && section(first.minZ) == section(second.minZ)
+                && section(inclusiveMaximum(first.minZ, first.maxZ)) == section(inclusiveMaximum(second.minZ, second.maxZ));
+    }
+
+    private static int section(double coordinate) {
+        return SectionPos.blockToSectionCoord(Mth.floor(coordinate));
+    }
+
+    private static double inclusiveMaximum(double min, double max) {
+        return max > min ? Math.nextDown(max) : max;
+    }
+
+    public record RenderSnapshot(boolean load, int sizeX, int sizeY, int sizeZ, AABB bounds) {
     }
 }

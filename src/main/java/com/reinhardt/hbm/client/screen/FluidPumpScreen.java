@@ -7,6 +7,8 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
+import java.util.Locale;
+
 public class FluidPumpScreen extends AbstractContainerScreen<FluidPumpMenu> {
     public FluidPumpScreen(FluidPumpMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -19,7 +21,9 @@ public class FluidPumpScreen extends AbstractContainerScreen<FluidPumpMenu> {
         super.init();
         this.titleLabelX = 8;
         addButton(0, 90, 50, 68, 20, Component.literal(this.menu.pressure() + " PU"));
-        addButton(1, 90, 74, 68, 20, Component.literal(this.menu.priority().name()));
+        addButton(1, 90, 74, 68, 20, Component.translatable(
+                "gui.reinhardtshbm.fluid.priority." + this.menu.priority().name().toLowerCase(Locale.ROOT)
+        ));
         addButton(2, 18, 98, 28, 20, Component.literal("-"));
         addButton(3, 48, 98, 28, 20, Component.literal("+"));
         addButton(4, 92, 98, 28, 20, Component.literal("--"));

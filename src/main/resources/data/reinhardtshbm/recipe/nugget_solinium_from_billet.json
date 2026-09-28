@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:crafting_shapeless", "category": "misc",
+  "ingredients": [{ "item": "reinhardtshbm:billet_solinium" }],
+  "result": { "id": "reinhardtshbm:nugget_solinium", "count": 6 }
+}

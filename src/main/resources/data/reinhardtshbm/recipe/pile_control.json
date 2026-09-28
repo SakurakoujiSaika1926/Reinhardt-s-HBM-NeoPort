@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" B ", "SBS", "SBS"],
+  "key": {
+    "B": { "tag": "c:ingots/boron" },
+    "S": { "tag": "c:plates/steel" }
+  },
+  "result": { "id": "reinhardtshbm:pile_control" }
+}

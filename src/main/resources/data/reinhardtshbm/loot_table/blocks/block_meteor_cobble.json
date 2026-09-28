@@ -3,7 +3,7 @@
                   {
                       "entries":  [
                                       {
-                                          "name":  "reinhardtshbm:block_meteor_cobble",
+                                          "name":  "reinhardtshbm:fragment_meteorite",
                                           "type":  "minecraft:item"
                                       }
                                   ],

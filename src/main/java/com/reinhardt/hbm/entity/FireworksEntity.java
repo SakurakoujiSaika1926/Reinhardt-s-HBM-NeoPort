@@ -31,7 +31,6 @@ public final class FireworksEntity extends Entity {
     public FireworksEntity(EntityType<? extends FireworksEntity> type, Level level) {
         super(type, level);
         setNoGravity(true);
-        noCulling = true;
     }
 
     public FireworksEntity(

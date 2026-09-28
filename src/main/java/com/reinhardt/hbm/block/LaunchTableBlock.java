@@ -17,19 +17,29 @@ import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.Nullable;
 
 public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
+    @Override
+    protected BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
+    }
+
     public static final Footprint FOOTPRINT = Footprint.centered(4, 1, 4);
 
     public LaunchTableBlock(Properties properties) {
         // LaunchTable inherits BlockContainer's full core collision in 1.7.10;
         // only its surrounding dummy segments use the segmented shapes.
-        super(properties, FOOTPRINT, Shapes.block(), RotationBasis.MODERN_NORTH);
+        super(properties, FOOTPRINT, Shapes.block(), LaunchTableBlock::mapLaunchTableOffset);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-        return canPlaceFootprintAt(context.getLevel(), context.getClickedPos(), state.getValue(FACING), FOOTPRINT, context)
+        return this.canPlaceMachineFootprintAt(context.getLevel(), context.getClickedPos(), state.getValue(FACING), context)
                 ? state
                 : null;
     }
@@ -39,12 +49,42 @@ public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
         if (!level.isClientSide) {
             placeDummies(level, pos, state.getValue(FACING));
             clearScaffoldColumn(level, pos, state.getValue(FACING));
-            pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), FOOTPRINT, placer);
+            pushEntitiesOutOfFootprint(level, pos, state.getValue(FACING), FOOTPRINT, placer,
+                    LaunchTableBlock::mapLaunchTableOffset);
         }
     }
 
     public static void placeDummies(Level level, BlockPos corePos, Direction facing) {
-        boolean portsOnXAxis = facing == Direction.EAST || facing == Direction.WEST;
+        switch (facing) {
+            case NORTH -> placeNorthDummies(level, corePos);
+            case EAST -> placeEastDummies(level, corePos);
+            case SOUTH -> placeSouthDummies(level, corePos);
+            case WEST -> placeWestDummies(level, corePos);
+            case UP, DOWN -> throw new IllegalArgumentException("Launch table requires a horizontal facing: " + facing);
+        }
+    }
+
+    private static void placeNorthDummies(Level level, BlockPos corePos) {
+        placeLaunchTableGrid(level, corePos, HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get(),
+                HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get());
+    }
+
+    private static void placeEastDummies(Level level, BlockPos corePos) {
+        placeLaunchTableGrid(level, corePos, HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get(),
+                HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get());
+    }
+
+    private static void placeSouthDummies(Level level, BlockPos corePos) {
+        placeLaunchTableGrid(level, corePos, HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get(),
+                HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get());
+    }
+
+    private static void placeWestDummies(Level level, BlockPos corePos) {
+        placeLaunchTableGrid(level, corePos, HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get(),
+                HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get());
+    }
+
+    private static void placeLaunchTableGrid(Level level, BlockPos corePos, Block xAxisBlock, Block zAxisBlock) {
         for (int x = -4; x <= 4; x++) {
             for (int z = -4; z <= 4; z++) {
                 if (x == 0 && z == 0) {
@@ -54,9 +94,9 @@ public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
                 if (x != 0 && z != 0) {
                     block = HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get();
                 } else if (x == 0) {
-                    block = portsOnXAxis ? HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get() : HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get();
+                    block = zAxisBlock;
                 } else {
-                    block = portsOnXAxis ? HbmBlocks.DUMMY_PORT_LAUNCH_TABLE.get() : HbmBlocks.DUMMY_PLATE_LAUNCH_TABLE.get();
+                    block = xAxisBlock;
                 }
                 CompactLauncherBlock.placeDummy(level, corePos.offset(x, 0, z), corePos, block);
             }
@@ -78,7 +118,7 @@ public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide) {
+        if (!movedByPiston && !state.is(newState.getBlock()) && !level.isClientSide) {
             if (level.getBlockEntity(pos) instanceof LauncherBlockEntity launcher) launcher.dropContents(level, pos);
             removeDummies(level, pos);
         }
@@ -91,12 +131,25 @@ public class LaunchTableBlock extends LargeMachineBlock implements EntityBlock {
         }
         MachineDummyBlock.runWithoutCoreDestroy(() -> {
             for (BlockPos offset : FOOTPRINT.offsets()) {
-                BlockPos pos = corePos.offset(offset);
+                BlockPos pos = corePos.offset(mapLaunchTableOffset(Direction.NORTH, offset));
                 if (!pos.equals(corePos) && level.getBlockState(pos).getBlock() instanceof LauncherDummyBlock) {
                     level.removeBlock(pos, false);
                 }
             }
         });
+    }
+
+    private static BlockPos mapLaunchTableOffset(Direction facing, BlockPos offset) {
+        int x = offset.getX();
+        int y = offset.getY();
+        int z = offset.getZ();
+        return switch (facing) {
+            case NORTH -> new BlockPos(x, y, z);
+            case EAST -> new BlockPos(-z, y, x);
+            case SOUTH -> new BlockPos(-x, y, -z);
+            case WEST -> new BlockPos(z, y, -x);
+            case UP, DOWN -> throw new IllegalArgumentException("Launch table requires a horizontal facing: " + facing);
+        };
     }
 
     @Nullable

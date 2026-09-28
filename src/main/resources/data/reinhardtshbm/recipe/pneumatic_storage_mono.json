@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["TCT", "SMS", "TCT"],
+  "key": {
+    "T": { "item": "reinhardtshbm:pneumatic_tube" },
+    "C": { "item": "reinhardtshbm:circuit_basic" },
+    "S": { "tag": "c:plates/steel" },
+    "M": { "item": "reinhardtshbm:mass_storage_iron" }
+  },
+  "result": { "id": "reinhardtshbm:pneumatic_storage_mono" }
+}

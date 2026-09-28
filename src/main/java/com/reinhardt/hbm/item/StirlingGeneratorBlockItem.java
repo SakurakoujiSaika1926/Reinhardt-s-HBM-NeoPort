@@ -84,7 +84,18 @@ public class StirlingGeneratorBlockItem extends BlockItem {
         if (!level.getBlockState(placePos).canBeReplaced(placeContext)) {
             return InteractionResult.FAIL;
         }
-        if (!LargeMachineBlock.canPlaceFootprintAt(level, placePos, facing, footprint, placeContext)) {
+        if (!(getBlock() instanceof StirlingGeneratorBlock stirlingBlock)) {
+            return InteractionResult.FAIL;
+        }
+        boolean canPlace = switch (stirlingBlock.kind()) {
+            case NORMAL -> LargeMachineBlock.canPlaceFootprintAt(level, placePos, facing, footprint, placeContext,
+                    StirlingGeneratorBlock::mapNormalStirlingFootprintOffset);
+            case STEEL -> LargeMachineBlock.canPlaceFootprintAt(level, placePos, facing, footprint, placeContext,
+                    StirlingGeneratorBlock::mapSteelStirlingFootprintOffset);
+            case CREATIVE -> LargeMachineBlock.canPlaceFootprintAt(level, placePos, facing, footprint, placeContext,
+                    StirlingGeneratorBlock::mapCreativeStirlingFootprintOffset);
+        };
+        if (!canPlace) {
             return InteractionResult.FAIL;
         }
 

@@ -1,0 +1,16 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_528_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.launchpadlambda",
+  "duration": 1200,
+  "power": 5000,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:concrete_rebar" }, "count": 64 },
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_bronze_tubes" }, "count": 8 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_controller_advanced" }, "count": 3 },
+    { "ingredient": { "item": "reinhardtshbm:drive_disk_flightdata_processed" }, "count": 16 }
+  ],
+  "result": { "id": "reinhardtshbm:launchpad_lambda", "count": 1 }
+}

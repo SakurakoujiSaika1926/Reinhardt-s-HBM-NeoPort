@@ -20,7 +20,8 @@
   ],
   "output_items": [
     {
-      "id": "reinhardtshbm:ingot_rubber"
+      "id": "reinhardtshbm:ingot_rubber",
+      "count": 2
     }
   ],
   "output_fluids": []

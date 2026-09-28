@@ -17,6 +17,13 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Plastic Bag uses the original transparent OBJ and disables face culling. */
 public final class LegacyPlasticBagEntityRenderer extends EntityRenderer<LegacyPlasticBagEntity> {
+    /**
+     * After the legacy -90 degree Z rotation, the OBJ's X extent
+     * [-3/16, 3/16] becomes its vertical extent. Modern entity coordinates
+     * are anchored at the bottom of the hitbox, so lift the model by exactly
+     * 3/16 to place its lowest vertex on the entity's floor.
+     */
+    private static final float MODEL_FLOOR_OFFSET = 3.0F / 16.0F;
     private static final ModelResourceLocation MODEL = ModelResourceLocation.standalone(
             ReinhardtsHBM.id("entity/plasticbag"));
     private static final BlockState STATE = Blocks.IRON_BLOCK.defaultBlockState();
@@ -37,6 +44,7 @@ public final class LegacyPlasticBagEntityRenderer extends EntityRenderer<LegacyP
         // RenderPlasticBag interpolated both angles from the previous tick;
         // using the current angle directly produces visible snapping while
         // the bag drifts in water.
+        poseStack.translate(0.0D, MODEL_FLOOR_OFFSET, 0.0D);
         float interpolatedYaw = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot());
         float interpolatedPitch = Mth.rotLerp(partialTick, entity.xRotO, entity.getXRot());
         poseStack.mulPose(Axis.YP.rotationDegrees(interpolatedYaw + 90.0F));

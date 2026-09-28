@@ -16,7 +16,6 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
-import com.reinhardt.hbm.util.LegacyMachineGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -355,7 +354,7 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override
@@ -503,7 +502,7 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
 
     private List<Port> ports(LevelAccessor level) {
         Direction facing = facing(level);
-        Direction rotation = LegacyMachineGeometry.forgeRotateUp(facing);
+        Direction rotation = combustionEngineLeftSide(facing);
         return List.of(
                 port(this.worldPosition.relative(facing).relative(rotation), facing),
                 port(this.worldPosition.relative(facing).relative(rotation.getOpposite()), facing),
@@ -525,6 +524,16 @@ public class CombustionEngineBlockEntity extends BlockEntity implements PowerEnd
     private Direction facing(LevelAccessor level) {
         BlockState state = level.getBlockState(this.worldPosition);
         return state.hasProperty(CombustionEngineBlock.FACING) ? state.getValue(CombustionEngineBlock.FACING) : Direction.NORTH;
+    }
+
+    private static Direction combustionEngineLeftSide(Direction facing) {
+        return switch (facing) {
+            case NORTH -> Direction.EAST;
+            case SOUTH -> Direction.WEST;
+            case WEST -> Direction.NORTH;
+            case EAST -> Direction.SOUTH;
+            case UP, DOWN -> throw new IllegalArgumentException("Combustion engine requires a horizontal facing: " + facing);
+        };
     }
 
     private boolean sendSmoke(Level level) {

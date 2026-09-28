@@ -1,6 +1,12 @@
 {
   "variants": {
     "variant=0": { "model": "reinhardtshbm:block/icf_block" },
-    "variant=1": { "model": "reinhardtshbm:block/icf_block_port" }
+    "variant=1": { "model": "reinhardtshbm:block/icf_block_port" },
+    "variant=2": { "model": "reinhardtshbm:block/icf_block_port" },
+    "variant=3": { "model": "reinhardtshbm:block/icf_block_port" },
+    "variant=4": { "model": "reinhardtshbm:block/icf_block_port" },
+    "variant=5": { "model": "reinhardtshbm:block/icf_block_port" },
+    "variant=6": { "model": "reinhardtshbm:block/icf_block_port" },
+    "variant=7": { "model": "reinhardtshbm:block/icf_block_port" }
   }
 }

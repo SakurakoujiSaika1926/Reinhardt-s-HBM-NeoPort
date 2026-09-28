@@ -165,7 +165,7 @@ public final class HbmSablePowerCompat {
                 Method getUniqueId = subLevelClass.getMethod("getUniqueId");
                 Field plotPos = plotClass.getField("plotPos");
                 return new Adapter(getContainer, inBounds, getPlot, getSubLevel, getUniqueId, plotPos);
-            } catch (ReflectiveOperationException | LinkageError ignored) {
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
                 return null;
             }
         }
@@ -202,7 +202,7 @@ public final class HbmSablePowerCompat {
                     return "sable-plot:" + fallback.x + "," + fallback.z;
                 }
                 return "sable-plot:" + System.identityHashCode(plot);
-            } catch (ReflectiveOperationException | RuntimeException exception) {
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
                 if (warnedRuntimeFailure.compareAndSet(false, true)) {
                     ReinhardtsHBM.LOGGER.warn("Failed to query Sable sublevel power-space; HBM will fall back to dimension-local power networking", exception);
                 }

@@ -35,6 +35,8 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> PYRO_OVEN_OPERATE = sound("block.pyro_operate");
     public static final DeferredHolder<SoundEvent, SoundEvent> CENTRIFUGE_OPERATE = sound("block.centrifugeoperate");
     public static final DeferredHolder<SoundEvent, SoundEvent> PIPE_PLACED = sound("block.pipeplaced");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLATEMETAL_PLACE = sound("block.platemetal_place");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLATEMETAL_STEP = sound("step.platemetal");
     public static final DeferredHolder<SoundEvent, SoundEvent> STEAM_ENGINE_OPERATE = sound("block.steam_engine_operate");
     public static final DeferredHolder<SoundEvent, SoundEvent> ENGINE_LOOP = sound("block.engine");
     public static final DeferredHolder<SoundEvent, SoundEvent> TURBOFAN_OPERATE = sound("block.turbofan_operate");
@@ -109,6 +111,7 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_RICOCHET = sound("weapon.ricochet");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_GRENADE_BOUNCE = sound("weapon.grenade_bounce");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_ROCKET_FLAME = sound("weapon.rocketflame");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_ROBIN_EXPLOSION = sound("weapon.robin_explosion");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_MUKE_EXPLOSION = sound("weapon.mukeexplosion");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_EXPLOSION_LARGE_NEAR = sound("weapon.explosionlargenear");
     public static final DeferredHolder<SoundEvent, SoundEvent> WEAPON_EXPLOSION_LARGE_FAR = sound("weapon.explosionlargefar");
@@ -127,6 +130,7 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> PIN_UNLOCK = sound("item.pinunlock");
     public static final DeferredHolder<SoundEvent, SoundEvent> PIN_BREAK = sound("item.pinbreak");
     public static final DeferredHolder<SoundEvent, SoundEvent> UPGRADE_PLUG = sound("item.upgradeplug");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PILE_BOLT_OPEN = sound("block.pile_bolt_open");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUIT_BATTERY = sound("item.battery");
     public static final DeferredHolder<SoundEvent, SoundEvent> PLAYER_COUGH = sound("player.cough");
     public static final DeferredHolder<SoundEvent, SoundEvent> PLAYER_GULP = sound("player.gulp");

@@ -359,7 +359,7 @@ public class ChemicalPlantBlockEntity extends BlockEntity implements PowerEndpoi
 
     @Override
     public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
+        return MachineDummyMenuAccess.stillValid(this, player);
     }
 
     @Override

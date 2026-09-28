@@ -2,16 +2,14 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.block.SawmillBlock;
+import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import org.joml.AxisAngle4f;
-import org.joml.Quaternionf;
 
 /** Renders the complete legacy OBJ assembly for machine items. */
 public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRenderer {
@@ -22,98 +20,479 @@ public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRend
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        String legacyId = legacyObjId(stack);
-        if (legacyId != null) {
-            poseStack.pushPose();
-            applyItemRenderBasePose(context, poseStack);
-            LegacyMachineBlockEntityRenderer.renderItemLegacy(legacyId,
-                    HbmBlocks.MACHINE_ANNIHILATOR.get().defaultBlockState(), poseStack, bufferSource,
-                    packedLight, packedOverlay, context == ItemDisplayContext.GUI);
-            poseStack.popPose();
-            return;
-        }
-        poseStack.pushPose();
-        applyItemRenderBasePose(context, poseStack);
-        if (stack.is(HbmBlocks.MACHINE_PYROOVEN.get().asItem())) {
-            if (context == ItemDisplayContext.GUI) {
-                poseStack.translate(0.0F, -1.0F, 0.0F);
-                poseStack.scale(3.5F, 3.5F, 3.5F);
-            }
-            poseStack.scale(0.5F, 0.5F, 0.5F);
-            poseStack.mulPose(yaw(90.0F));
-            LegacyMachineBlockEntityRenderer.renderItemPyro(HbmBlocks.MACHINE_PYROOVEN.get().defaultBlockState(), poseStack,
-                    bufferSource, packedLight, packedOverlay);
+        if (stack.is(HbmBlocks.MACHINE_ANNIHILATOR.get().asItem())) {
+            renderAnnihilatorItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_FORCEFIELD.get().asItem())) {
+            renderForcefieldItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_MISSILE_ASSEMBLY.get().asItem())) {
+            renderMissileAssemblyItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_ORBUS.get().asItem())) {
+            renderOrbusItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_PRECASS.get().asItem())) {
+            renderPrecisionAssemblerItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_RADAR.get().asItem())) {
+            renderRadarItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_RADAR_LARGE.get().asItem())) {
+            renderLargeRadarItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_RADGEN.get().asItem())) {
+            renderRadiationGeneratorItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_RADIOLYSIS.get().asItem())) {
+            renderRadiolysisItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_REACTOR_BREEDING.get().asItem())) {
+            renderBreedingReactorItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_TURBOFAN.get().asItem())) {
+            renderTurbofanItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_THRESHER.get().asItem())) {
+            renderThresherItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_LPW2.get().asItem())) {
+            renderLpw2Item(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_TURBINEGAS.get().asItem())) {
+            renderGasTurbineItem(context, poseStack, bufferSource, packedLight, packedOverlay);
+        } else if (stack.is(HbmBlocks.MACHINE_PYROOVEN.get().asItem())) {
+            renderPyroOvenItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         } else if (stack.is(HbmBlocks.MACHINE_AUTOSAW.get().asItem())) {
-            // RenderAutosaw#getRenderer: translate(0,-3.5,-3), scale 5,
-            // then -90 degrees around Y. The model is anchored at the saw
-            // base, so keep the original negative-Z inventory offset.
-            if (context == ItemDisplayContext.GUI) {
-                poseStack.translate(0.0F, -3.5F, -3.0F);
-                poseStack.scale(5.0F, 5.0F, 5.0F);
-            }
-            poseStack.scale(0.5F, 0.5F, 0.5F);
-            poseStack.mulPose(yaw(-90.0F));
-            LegacyMachineBlockEntityRenderer.renderItemAutosaw(HbmBlocks.MACHINE_AUTOSAW.get().defaultBlockState(), poseStack,
-                    bufferSource, packedLight, packedOverlay);
+            renderAutosawItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         } else if (stack.is(HbmBlocks.MACHINE_SAWMILL.get().asItem())) {
-            // RenderSawmill: translate(0,-1.5), scale(3.25), rotateY(90).
-            if (context == ItemDisplayContext.GUI) {
-                poseStack.translate(0.0F, -1.5F, 0.0F);
-                poseStack.scale(3.25F, 3.25F, 3.25F);
-            }
-            // RenderSawmill#getRenderer applies +90 degrees around Y.
-            poseStack.mulPose(yaw(90.0F));
-            LegacyMachineBlockEntityRenderer.renderItemSawmill(HbmBlocks.MACHINE_SAWMILL.get().defaultBlockState(), SawmillBlock.hasBlade(stack), poseStack,
-                    bufferSource, packedLight, packedOverlay);
+            renderSawmillItem(stack, context, poseStack, bufferSource, packedLight, packedOverlay);
         } else if (stack.is(HbmBlocks.MACHINE_RTG_GREY.get().asItem())) {
-            // RenderRTGBlock#renderInventoryBlock offsets its Gen group by
-            // -0.5 on Y. It has no RTG-specific scale transform.
-            poseStack.translate(0.0F, -0.5F, 0.0F);
-            LegacyMachineBlockEntityRenderer.renderItemRtg(HbmBlocks.MACHINE_RTG_GREY.get().defaultBlockState(), poseStack,
-                    bufferSource, packedLight, packedOverlay);
+            renderGreyRtgItem(context, poseStack, bufferSource, packedLight, packedOverlay);
         }
+    }
+
+    private static BlockState legacyItemState() {
+        return HbmBlocks.MACHINE_ANNIHILATOR.get().defaultBlockState();
+    }
+
+    private static void renderAnnihilatorItem(ItemDisplayContext context, PoseStack poseStack,
+                                               MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyAnnihilatorItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemAnnihilator(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static Quaternionf yaw(float degrees) {
-        return new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F));
-    }
-
-    /**
-     * Exact modern equivalent of the common 1.7.10 ItemRenderBase pose.  The
-     * individual machine branches below retain their own legacy transforms.
-     */
-    static void applyItemRenderBasePose(ItemDisplayContext context, PoseStack poseStack) {
+    private static void applyAnnihilatorItemPose(ItemDisplayContext context, PoseStack poseStack) {
         if (context == ItemDisplayContext.GUI) {
             poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
             poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
             poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
             poseStack.translate(0.0F, 11.3F, -11.3F);
-            return;
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(2.75F, 2.75F, 2.75F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+    }
 
-        poseStack.translate(0.5F, 0.25F, 0.0F);
-        poseStack.scale(0.25F, 0.25F, 0.25F);
-        if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
-            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+    private static void renderForcefieldItem(ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyForcefieldItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemForcefield(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyForcefieldItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -4.0F, 0.0F);
+            poseStack.scale(6.0F, 6.0F, 6.0F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         }
     }
 
-    private static String legacyObjId(ItemStack stack) {
-        if (stack.is(HbmBlocks.MACHINE_ANNIHILATOR.get().asItem())) return "machine_annihilator";
-        if (stack.is(HbmBlocks.MACHINE_FORCEFIELD.get().asItem())) return "machine_forcefield";
-        if (stack.is(HbmBlocks.MACHINE_MISSILE_ASSEMBLY.get().asItem())) return "machine_missile_assembly";
-        if (stack.is(HbmBlocks.MACHINE_ORBUS.get().asItem())) return "machine_orbus";
-        if (stack.is(HbmBlocks.MACHINE_PRECASS.get().asItem())) return "machine_precass";
-        if (stack.is(HbmBlocks.MACHINE_RADAR.get().asItem())) return "machine_radar";
-        if (stack.is(HbmBlocks.MACHINE_RADAR_LARGE.get().asItem())) return "machine_radar_large";
-        if (stack.is(HbmBlocks.MACHINE_RADGEN.get().asItem())) return "machine_radgen";
-        if (stack.is(HbmBlocks.MACHINE_RADIOLYSIS.get().asItem())) return "machine_radiolysis";
-        if (stack.is(HbmBlocks.MACHINE_REACTOR_BREEDING.get().asItem())) return "machine_reactor_breeding";
-        if (stack.is(HbmBlocks.MACHINE_TURBOFAN.get().asItem())) return "machine_turbofan";
-        if (stack.is(HbmBlocks.MACHINE_THRESHER.get().asItem())) return "machine_thresher";
-        if (stack.is(HbmBlocks.MACHINE_LPW2.get().asItem())) return "machine_lpw2";
-        if (stack.is(HbmBlocks.MACHINE_TURBINEGAS.get().asItem())) return "machine_turbinegas";
-        return null;
+    private static void renderMissileAssemblyItem(ItemDisplayContext context, PoseStack poseStack,
+                                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyMissileAssemblyItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemMissileAssembly(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyMissileAssemblyItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(10.0F, 10.0F, 10.0F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+    }
+
+    private static void renderOrbusItem(ItemDisplayContext context, PoseStack poseStack,
+                                         MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyOrbusItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemOrbus(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyOrbusItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -3.0F, 0.0F);
+            poseStack.scale(2.0F, 2.0F, 2.0F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+    }
+
+    private static void renderPrecisionAssemblerItem(ItemDisplayContext context, PoseStack poseStack,
+                                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyPrecisionAssemblerItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemPrecisionAssembler(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyPrecisionAssemblerItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -2.75F, 0.0F);
+            poseStack.scale(4.5F, 4.5F, 4.5F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.scale(0.75F, 0.75F, 0.75F);
+    }
+
+    private static void renderRadarItem(ItemDisplayContext context, PoseStack poseStack,
+                                         MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyRadarItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemRadar(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyRadarItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -4.0F, 0.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+    }
+
+    private static void renderLargeRadarItem(ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyLargeRadarItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemLargeRadar(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyLargeRadarItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -5.0F, 0.0F);
+            poseStack.scale(3.0F, 3.0F, 3.0F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+    }
+
+    private static void renderRadiationGeneratorItem(ItemDisplayContext context, PoseStack poseStack,
+                                                      MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyRadiationGeneratorItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemRadiationGenerator(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyRadiationGeneratorItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(4.5F, 4.5F, 4.5F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.translate(0.5F, 0.0F, 0.0F);
+    }
+
+    private static void renderRadiolysisItem(ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyRadiolysisItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemRadiolysis(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyRadiolysisItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -2.5F, 0.0F);
+            poseStack.scale(3.0F, 3.0F, 3.0F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+    }
+
+    private static void renderBreedingReactorItem(ItemDisplayContext context, PoseStack poseStack,
+                                                   MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyBreedingReactorItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemBreedingReactor(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyBreedingReactorItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -4.5F, 0.0F);
+            poseStack.scale(4.5F, 4.5F, 4.5F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+    }
+
+    private static void renderTurbofanItem(ItemDisplayContext context, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyTurbofanItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemTurbofan(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyTurbofanItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            poseStack.scale(2.25F, 2.25F, 2.25F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+    }
+
+    private static void renderThresherItem(ItemDisplayContext context, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyThresherItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemThresher(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyThresherItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, 4.0F, -8.0F);
+            poseStack.scale(4.5F, 4.5F, 4.5F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+    }
+
+    private static void renderLpw2Item(ItemDisplayContext context, PoseStack poseStack,
+                                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyLpw2ItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemLpw2(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyLpw2ItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.scale(1.15F, 1.15F, 1.15F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            poseStack.scale(0.30F, 0.30F, 0.30F);
+        }
+    }
+
+    private static void renderGasTurbineItem(ItemDisplayContext context, PoseStack poseStack,
+                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyGasTurbineItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemGasTurbine(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyGasTurbineItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -1.0F, 1.5F);
+            poseStack.scale(2.5F, 2.5F, 2.5F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.75F, 0.75F, 0.75F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+    }
+
+    private static void renderPyroOvenItem(ItemDisplayContext context, PoseStack poseStack,
+                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyPyroOvenItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemPyro(HbmBlocks.MACHINE_PYROOVEN.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyPyroOvenItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -1.0F, 0.0F);
+            poseStack.scale(3.5F, 3.5F, 3.5F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+    }
+
+    private static void renderAutosawItem(ItemDisplayContext context, PoseStack poseStack,
+                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyAutosawItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemAutosaw(HbmBlocks.MACHINE_AUTOSAW.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyAutosawItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -3.5F, -3.0F);
+            poseStack.scale(5.0F, 5.0F, 5.0F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.scale(0.5F, 0.5F, 0.5F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+    }
+
+    private static void renderSawmillItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
+                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applySawmillItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemSawmill(HbmBlocks.MACHINE_SAWMILL.get().defaultBlockState(),
+                SawmillBlock.hasBlade(stack), poseStack, bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applySawmillItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+            poseStack.translate(0.0F, -1.5F, 0.0F);
+            poseStack.scale(3.25F, 3.25F, 3.25F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+    }
+
+    private static void renderGreyRtgItem(ItemDisplayContext context, PoseStack poseStack,
+                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        poseStack.pushPose();
+        applyGreyRtgItemPose(context, poseStack);
+        LegacyMachineBlockEntityRenderer.renderItemRtg(HbmBlocks.MACHINE_RTG_GREY.get().defaultBlockState(), poseStack,
+                bufferSource, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    private static void applyGreyRtgItemPose(ItemDisplayContext context, PoseStack poseStack) {
+        if (context == ItemDisplayContext.GUI) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
+            poseStack.translate(0.0F, 11.3F, -11.3F);
+        } else {
+            poseStack.translate(0.5F, 0.25F, 0.0F);
+            poseStack.scale(0.25F, 0.25F, 0.25F);
+            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        }
+        poseStack.translate(0.0F, -0.5F, 0.0F);
     }
 }

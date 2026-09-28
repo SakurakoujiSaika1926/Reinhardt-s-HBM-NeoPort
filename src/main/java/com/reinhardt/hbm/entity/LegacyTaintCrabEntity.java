@@ -20,7 +20,6 @@ import net.minecraft.world.level.Level;
 public final class LegacyTaintCrabEntity extends LegacyCyberCrabEntity {
     public LegacyTaintCrabEntity(EntityType<? extends LegacyTaintCrabEntity> type, Level level) {
         super(type, level, Kind.TAINT);
-        noCulling = true;
     }
 
     public static AttributeSupplier.Builder createAttributes() {

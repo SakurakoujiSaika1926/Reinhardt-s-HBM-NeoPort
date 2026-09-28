@@ -2,8 +2,9 @@ package com.reinhardt.hbm.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.block.LargeMachineBlock;
+import com.reinhardt.hbm.block.AssemblyFactoryBlock;
 import com.reinhardt.hbm.blockentity.AssemblyFactoryBlockEntity;
 import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
 import net.minecraft.client.Minecraft;
@@ -23,8 +24,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import org.joml.AxisAngle4f;
-import org.joml.Quaternionf;
+
+import java.util.List;
 
 public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityRenderer<AssemblyFactoryBlockEntity> {
     private static final ResourceLocation SPARKS = ReinhardtsHBM.id("textures/models/machines/assembly_factory_sparks.png");
@@ -52,8 +53,16 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
     private static final ModelResourceLocation STRIKER_4 = MachineModelRenderer.standalone("block/machine_assembly_factory_striker4");
     private static final ModelResourceLocation BLADE_2 = MachineModelRenderer.standalone("block/machine_assembly_factory_blade2");
     private static final ModelResourceLocation BLADE_4 = MachineModelRenderer.standalone("block/machine_assembly_factory_blade4");
+    private static final AABB[] LOCAL_BOUNDS = buildAssemblyFactoryBounds();
 
     public AssemblyFactoryBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        AssemblyFactoryBlockEntity.setClientRecipeIconsSnapshotUpdater(
+                AssemblyFactoryBlockEntityRenderer::updateRecipeIconsSnapshot);
+    }
+
+    static void invalidateRecipeIconSnapshotsAfterBake() {
+        AssemblyFactoryBlockEntity.setClientRecipeIconsSnapshotUpdater(
+                AssemblyFactoryBlockEntityRenderer::updateRecipeIconsSnapshot);
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
@@ -86,12 +95,12 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
     @Override
     public void render(AssemblyFactoryBlockEntity factory, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         factory.updateClientAnimation();
-        BlockState state = factory.getBlockState();
-        Direction facing = state.hasProperty(LargeMachineBlock.FACING) ? state.getValue(LargeMachineBlock.FACING) : Direction.NORTH;
+        AssemblyFactoryBlockEntity.RecipeIconsRenderSnapshot recipeIcons = factory.recipeIconsRenderSnapshot();
+        BlockState state = recipeIcons.state();
+        Direction facing = assemblyFactoryFacing(state);
 
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        rotateY(poseStack, legacyAssemblyYaw(facing));
+        applyAssemblyFactoryTransform(poseStack, facing);
 
         renderPart(BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
         if (factory.clientFrame()) {
@@ -109,7 +118,7 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
         renderSawTwo(slide1, arm2, poseStack, bufferSource, state, packedLight, packedOverlay);
         renderStrikerThree(slide2, arm3, poseStack, bufferSource, state, packedLight, packedOverlay);
         renderSawFour(slide2, arm4, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderRecipeIcons(factory, poseStack, bufferSource, packedLight, packedOverlay);
+        renderRecipeIcons(factory, recipeIcons, poseStack, bufferSource, packedLight, packedOverlay);
         renderSparks(factory, partialTick, slide1, slide2, arm2, arm4, poseStack, bufferSource, packedOverlay);
 
         poseStack.popPose();
@@ -117,7 +126,15 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
 
     @Override
     public AABB getRenderBoundingBox(AssemblyFactoryBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(5.0D, 5.0D, 5.0D);
+        AssemblyFactoryBlockEntity.RecipeIconsRenderSnapshot snapshot = blockEntity.recipeIconsRenderSnapshot();
+        Direction facing = assemblyFactoryFacing(snapshot.state());
+        /* Face-used base/frame vertices fix X/Z at +/-2.5 and the floor at 0.
+         * Exhausting every legal Arm target-to-target 15-degree step (including
+         * partial-tick interpolation), both travel extrema, and the full saw
+         * spin finds the exact top at striker1 vertex (.9375,2.875,-.0625):
+         * 3.248497897074759 at state (10,25,-15). */
+        AABB machineBounds = LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
+        return machineBounds.minmax(snapshot.bounds());
     }
 
     private static void renderStrikerOne(double slide, double[] arm, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
@@ -168,18 +185,18 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
             int packedOverlay
     ) {
         poseStack.translate(0.0D, 1.625D, zPivot);
-        rotateX(poseStack, (float) (sign * arm[0]));
+        poseStack.mulPose(Axis.XP.rotationDegrees((float) (sign * arm[0])));
         poseStack.translate(0.0D, -1.625D, -zPivot);
         renderPart(lower, poseStack, bufferSource, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0D, 2.375D, zPivot);
-        rotateX(poseStack, (float) (sign * arm[1]));
+        poseStack.mulPose(Axis.XP.rotationDegrees((float) (sign * arm[1])));
         poseStack.translate(0.0D, -2.375D, -zPivot);
         renderPart(upper, poseStack, bufferSource, state, packedLight, packedOverlay);
 
         float headPivot = zPivot > 0.0F ? 0.4375F : -0.4375F;
         poseStack.translate(0.0D, 2.375D, headPivot);
-        rotateX(poseStack, (float) (sign * arm[2]));
+        poseStack.mulPose(Axis.XP.rotationDegrees((float) (sign * arm[2])));
         poseStack.translate(0.0D, -2.375D, -headPivot);
         renderPart(head, poseStack, bufferSource, state, packedLight, packedOverlay);
 
@@ -188,13 +205,16 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
 
         if (blade != null) {
             poseStack.translate(0.0D, 1.625D, zPivot > 0.0F ? 0.3125D : -0.3125D);
-            rotateX(poseStack, (float) (-sign * arm[4]));
+            poseStack.mulPose(Axis.XP.rotationDegrees((float) (-sign * arm[4])));
             poseStack.translate(0.0D, -1.625D, zPivot > 0.0F ? -0.3125D : 0.3125D);
             renderPart(blade, poseStack, bufferSource, state, packedLight, packedOverlay);
         }
     }
 
-    private static void renderRecipeIcons(AssemblyFactoryBlockEntity factory, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    private static void renderRecipeIcons(AssemblyFactoryBlockEntity factory,
+                                          AssemblyFactoryBlockEntity.RecipeIconsRenderSnapshot snapshot,
+                                          PoseStack poseStack, MultiBufferSource bufferSource,
+                                          int packedLight, int packedOverlay) {
         Minecraft minecraft = Minecraft.getInstance();
         Level level = factory.getLevel();
         if (minecraft.player == null || level == null) {
@@ -210,25 +230,85 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
         }
 
         for (int module = 0; module < AssemblyFactoryBlockEntity.MODULE_COUNT; module++) {
-            RecipeHolder<AssemblyMachineRecipe> holder = factory.selectedRecipe(module, level).orElse(null);
-            if (holder == null) {
+            AssemblyFactoryBlockEntity.RecipeIcon icon = snapshot.icons().get(module);
+            ItemStack stack = icon.renderedItem();
+            if (stack.isEmpty() || !(icon.modelToken() instanceof net.minecraft.client.resources.model.BakedModel model)) {
                 continue;
             }
-            ItemStack stack = holder.value().result().copy();
-            if (stack.isEmpty()) {
-                continue;
-            }
-            stack.setCount(1);
 
             poseStack.pushPose();
             poseStack.translate(1.5D - module, 1.0625D, 0.0D);
-            rotateY(poseStack, 90.0F);
-            rotateX(poseStack, -90.0F);
-            rotateZ(poseStack, -90.0F);
+            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
             poseStack.scale(0.85F, 0.85F, 0.85F);
-            minecraft.getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, bufferSource, null, 0);
+            minecraft.getItemRenderer().render(stack, ItemDisplayContext.FIXED, false,
+                    poseStack, bufferSource, packedLight, packedOverlay, model);
             poseStack.popPose();
         }
+    }
+
+    /** Main-thread model capture; SectionCompiler consumes only the immutable snapshot. */
+    private static void updateRecipeIconsSnapshot(AssemblyFactoryBlockEntity factory) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (!minecraft.isSameThread()) {
+            minecraft.execute(factory::refreshClientRecipeIconsSnapshot);
+            return;
+        }
+        Level level = factory.getLevel();
+        if (level == null) {
+            return;
+        }
+
+        List<ItemStack> sources = new java.util.ArrayList<>(AssemblyFactoryBlockEntity.MODULE_COUNT);
+        for (int module = 0; module < AssemblyFactoryBlockEntity.MODULE_COUNT; module++) {
+            RecipeHolder<AssemblyMachineRecipe> holder = factory.selectedRecipe(module, level).orElse(null);
+            sources.add(holder == null ? ItemStack.EMPTY : holder.value().result().copyWithCount(1));
+        }
+        BlockState state = factory.getBlockState();
+        long generation = com.reinhardt.hbm.recipe.MachineRecipeCache.generation();
+        long revision = AssemblyFactoryBlockEntity.clientRecipeIconsSnapshotRevision();
+        AssemblyFactoryBlockEntity.RecipeIconsRenderSnapshot previous = factory.recipeIconsRenderSnapshot();
+        boolean sameGeometry = previous.revision() == revision
+                && previous.recipeGeneration() == generation
+                && previous.state() == state;
+        for (int module = 0; sameGeometry && module < sources.size(); module++) {
+            sameGeometry = ItemStack.isSameItemSameComponents(
+                    previous.icons().get(module).sourceItem(), sources.get(module));
+        }
+        if (sameGeometry) {
+            factory.publishClientRecipeIconsSnapshot(previous);
+            return;
+        }
+
+        Direction facing = assemblyFactoryFacing(state);
+        List<AssemblyFactoryBlockEntity.RecipeIcon> icons = new java.util.ArrayList<>(
+                AssemblyFactoryBlockEntity.MODULE_COUNT);
+        AABB iconBounds = null;
+        for (int module = 0; module < AssemblyFactoryBlockEntity.MODULE_COUNT; module++) {
+            PoseStack itemPose = new PoseStack();
+            applyAssemblyFactoryTransform(itemPose, facing);
+            itemPose.translate(1.5F - module, 1.0625F, 0.0F);
+            itemPose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            itemPose.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            itemPose.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+            itemPose.scale(0.85F, 0.85F, 0.85F);
+            BakedItemGeometrySnapshot.Result geometry = BakedItemGeometrySnapshot.build(
+                    sources.get(module), itemPose, factory.getBlockPos(), level);
+            icons.add(new AssemblyFactoryBlockEntity.RecipeIcon(
+                    geometry.sourceItem(), geometry.renderedItem(), geometry.modelToken()));
+            if (!geometry.renderedItem().isEmpty()) {
+                iconBounds = iconBounds == null ? geometry.bounds() : iconBounds.minmax(geometry.bounds());
+            }
+        }
+        if (iconBounds == null) {
+            double x = factory.getBlockPos().getX();
+            double y = factory.getBlockPos().getY();
+            double z = factory.getBlockPos().getZ();
+            iconBounds = new AABB(x, y, z, x, y, z);
+        }
+        factory.publishClientRecipeIconsSnapshot(new AssemblyFactoryBlockEntity.RecipeIconsRenderSnapshot(
+                state, icons, iconBounds, generation, revision));
     }
 
     private static void renderSparks(
@@ -303,24 +383,33 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
         MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static float legacyAssemblyYaw(Direction facing) {
-        return switch (facing) {
-            case EAST -> 0.0F;
-            case SOUTH -> 270.0F;
-            case WEST -> 180.0F;
-            default -> 90.0F;
-        };
+    private static AABB[] buildAssemblyFactoryBounds() {
+        AABB[] bounds = new AABB[Direction.values().length];
+        for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            PoseStack poseStack = new PoseStack();
+            applyAssemblyFactoryTransform(poseStack, facing);
+            bounds[facing.ordinal()] = RenderBounds.transformedBox(
+                    net.minecraft.core.BlockPos.ZERO, poseStack,
+                    -2.5F, 0.0F, -2.5F, 2.5F, 3.248498F, 2.5F);
+        }
+        return bounds;
     }
 
-    private static void rotateX(PoseStack poseStack, float degrees) {
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 1.0F, 0.0F, 0.0F)));
+    private static void applyAssemblyFactoryTransform(PoseStack poseStack, Direction facing) {
+        poseStack.translate(0.5F, 0.0F, 0.5F);
+        switch (facing) {
+            case NORTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
+            case SOUTH -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(270.0F));
+            case WEST -> poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+            case EAST -> { }
+            case UP, DOWN -> throw new IllegalArgumentException("Assembly factory facing must be horizontal: " + facing);
+        }
     }
 
-    private static void rotateY(PoseStack poseStack, float degrees) {
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 1.0F, 0.0F)));
-    }
-
-    private static void rotateZ(PoseStack poseStack, float degrees) {
-        poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(degrees), 0.0F, 0.0F, 1.0F)));
+    private static Direction assemblyFactoryFacing(BlockState state) {
+        if (!state.hasProperty(AssemblyFactoryBlock.FACING)) {
+            throw new IllegalStateException("Assembly factory state is missing its owned facing property: " + state);
+        }
+        return state.getValue(AssemblyFactoryBlock.FACING);
     }
 }

@@ -1,0 +1,8 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.chemical_dye",
+  "ingredient": { "tag": "c:dusts/copper" },
+  "acid": { "fluid": "lightoil", "amount": 100 },
+  "duration": 20,
+  "result": { "id": "reinhardtshbm:chemical_dye_green", "count": 4 }
+}

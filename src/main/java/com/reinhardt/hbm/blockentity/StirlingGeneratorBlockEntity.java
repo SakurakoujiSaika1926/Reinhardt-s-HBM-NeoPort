@@ -62,12 +62,44 @@ public class StirlingGeneratorBlockEntity extends BlockEntity implements PowerEn
 
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
+        return switch (stirlingKind()) {
+            case NORMAL -> normalPowerConnectorPositions();
+            case STEEL -> steelPowerConnectorPositions();
+            case CREATIVE -> creativePowerConnectorPositions();
+        };
+    }
+
+    private List<BlockPos> normalPowerConnectorPositions() {
         return List.of(
                 this.worldPosition.east(2).immutable(),
                 this.worldPosition.west(2).immutable(),
                 this.worldPosition.south(2).immutable(),
                 this.worldPosition.north(2).immutable()
         );
+    }
+
+    private List<BlockPos> steelPowerConnectorPositions() {
+        return List.of(
+                this.worldPosition.east(2).immutable(),
+                this.worldPosition.west(2).immutable(),
+                this.worldPosition.south(2).immutable(),
+                this.worldPosition.north(2).immutable()
+        );
+    }
+
+    private List<BlockPos> creativePowerConnectorPositions() {
+        return List.of(
+                this.worldPosition.east(2).immutable(),
+                this.worldPosition.west(2).immutable(),
+                this.worldPosition.south(2).immutable(),
+                this.worldPosition.north(2).immutable()
+        );
+    }
+
+    private StirlingGeneratorBlock.Kind stirlingKind() {
+        return this.getBlockState().getBlock() instanceof StirlingGeneratorBlock block
+                ? block.kind()
+                : StirlingGeneratorBlock.Kind.NORMAL;
     }
 
     @Override

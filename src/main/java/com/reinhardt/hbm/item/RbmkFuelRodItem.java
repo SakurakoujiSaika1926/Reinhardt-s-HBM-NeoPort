@@ -1,9 +1,11 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.registry.HbmItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
@@ -11,7 +13,7 @@ import net.minecraft.world.item.component.CustomData;
 import java.util.List;
 import java.util.Locale;
 
-public class RbmkFuelRodItem extends LegacyVariantItem {
+public class RbmkFuelRodItem extends Item {
     private static final String DEPLETION_TAG = "depletion";
     private static final String XENON_TAG = "xenon";
     private static final String CORE_HEAT_TAG = "coreHeat";
@@ -54,37 +56,37 @@ public class RbmkFuelRodItem extends LegacyVariantItem {
             "drx"
     );
 
-    public RbmkFuelRodItem(Properties properties) {
-        super(properties.stacksTo(1), "rbmk_fuel", variants(FUEL_IDS.toArray(String[]::new)));
-        this.fixedFuelId = null;
-    }
-
-    /**
-     * Direct 1.7.10 registration form.  The old game registered every fuel
-     * rod as a separate item, so its fuel type must not depend on mutable
-     * variant data attached to the stack.
-     */
     public RbmkFuelRodItem(Properties properties, String fixedFuelId) {
-        super(properties.stacksTo(1), "rbmk_fuel", variants(fixedFuelId));
+        super(properties.stacksTo(1));
         this.fixedFuelId = fixedFuelId;
     }
 
     @Override
     public Component getName(ItemStack stack) {
-        if (this.fixedFuelId != null) {
-            return Component.translatable("item.reinhardtshbm.rbmk_fuel_" + this.fixedFuelId);
-        }
-        return super.getName(stack);
+        return Component.translatable("item.reinhardtshbm.rbmk_fuel_" + this.fixedFuelId);
     }
 
     public Fuel fuel(ItemStack stack) {
-        String id = this.fixedFuelId == null ? variant(stack).id() : this.fixedFuelId;
         for (Fuel fuel : FUELS) {
-            if (fuel.id().equals(id)) {
+            if (fuel.id().equals(this.fixedFuelId)) {
                 return fuel;
             }
         }
         return FUELS.getFirst();
+    }
+
+    public String fuelId(ItemStack stack) {
+        return fuel(stack).id();
+    }
+
+    @Override
+    public boolean hasCraftingRemainingItem(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public ItemStack getCraftingRemainingItem(ItemStack stack) {
+        return new ItemStack(HbmItems.RBMK_FUEL_EMPTY.get());
     }
 
     public double meltingPoint(ItemStack stack) {

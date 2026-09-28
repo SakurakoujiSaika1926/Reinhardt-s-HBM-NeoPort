@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyTaintCrabEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -13,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Taint Crab OBJ parts and the original leg swing. */
@@ -21,6 +23,9 @@ public final class LegacyTaintCrabEntityRenderer extends EntityRenderer<LegacyTa
     private static final ModelResourceLocation LEGS1 = model("taintcrab_legs1");
     private static final ModelResourceLocation LEGS2 = model("taintcrab_legs2");
     private static final BlockState STATE = Blocks.IRON_BLOCK.defaultBlockState();
+    private static final LegacyEntityObjMesh BOUNDS_MODEL = LegacyEntityObjMesh.load(
+            ReinhardtsHBM.id("models/obj/entity/taintcrab.obj"));
+    private static final double BODY_RADIUS = transformedBodyRadius();
 
     public LegacyTaintCrabEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -77,7 +82,26 @@ public final class LegacyTaintCrabEntityRenderer extends EntityRenderer<LegacyTa
     }
 
     @Override
+    public boolean shouldRender(LegacyTaintCrabEntity entity, Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        AABB bodyBounds = EntityRenderBounds.radius(
+                entity.getX(), entity.getY(), entity.getZ(), BODY_RADIUS);
+        AABB bounds = LegacyCyberCrabBeamRenderer.includeBeamBounds(
+                bodyBounds, entity.targets(), entity.position(), 1.25D);
+        return EntityRenderBounds.shouldRender(entity, bounds, frustum,
+                cameraX, cameraY, cameraZ);
+    }
+
+    @Override
     public ResourceLocation getTextureLocation(LegacyTaintCrabEntity entity) {
         return ReinhardtsHBM.id("textures/entity/taintcrab.png");
+    }
+
+    private static double transformedBodyRadius() {
+        double radius = BOUNDS_MODEL.maximumFaceRadius(0.0D, 0.0D, 0.0D)
+                + 1.5078125D + 1.5D;
+        double unitRoundoff = 0x1.0p-24;
+        double gamma64 = 64.0D * unitRoundoff / (1.0D - 64.0D * unitRoundoff);
+        return Math.nextUp(radius * (1.0D + gamma64));
     }
 }

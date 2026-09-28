@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "kind=dummy": { "model": "reinhardtshbm:block/pile_block" },
+    "kind=core": { "model": "reinhardtshbm:block/pile_block_core" },
+    "kind=channel": { "model": "reinhardtshbm:block/pile_block" },
+    "kind=fuel_in": { "model": "reinhardtshbm:block/pile_block_input" },
+    "kind=fuel_out": { "model": "reinhardtshbm:block/pile_block_output" },
+    "kind=air_in": { "model": "reinhardtshbm:block/pile_block_input" },
+    "kind=air_out": { "model": "reinhardtshbm:block/pile_block_output" },
+    "kind=control": { "model": "reinhardtshbm:block/pile_block_control" },
+    "kind=edge": { "model": "reinhardtshbm:block/pile_block" }
+  }
+}

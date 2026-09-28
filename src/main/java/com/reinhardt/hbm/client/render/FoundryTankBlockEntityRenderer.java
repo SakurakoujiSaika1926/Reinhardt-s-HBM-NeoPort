@@ -3,20 +3,15 @@ package com.reinhardt.hbm.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.block.FoundryOutletBlock;
 import com.reinhardt.hbm.blockentity.FoundryTankBlockEntity;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
-import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 import java.awt.Color;
@@ -37,35 +32,31 @@ public class FoundryTankBlockEntityRenderer implements BlockEntityRenderer<Found
     @Override
     public void render(FoundryTankBlockEntity tank, float partialTick, PoseStack poseStack,
                        MultiBufferSource buffers, int packedLight, int packedOverlay) {
-        Level level = tank.getLevel();
-        if (level == null) {
-            return;
-        }
-        BlockPos pos = tank.getBlockPos();
-        boolean east = isTank(level, pos.east());
-        boolean west = isTank(level, pos.west());
-        boolean south = isTank(level, pos.south());
-        boolean north = isTank(level, pos.north());
-        boolean up = isTank(level, pos.above());
-        boolean down = isTank(level, pos.below());
+        FoundryTankBlockEntity.RenderNeighborSnapshot neighbors = tank.renderNeighborSnapshot();
+        boolean east = neighbors.tank(Direction.EAST);
+        boolean west = neighbors.tank(Direction.WEST);
+        boolean south = neighbors.tank(Direction.SOUTH);
+        boolean north = neighbors.tank(Direction.NORTH);
+        boolean up = neighbors.tank(Direction.UP);
+        boolean down = neighbors.tank(Direction.DOWN);
 
         if (!down) {
             plate(buffers, poseStack, packedLight, packedOverlay);
         }
         if (!east) {
-            wall(buffers, poseStack, Direction.EAST, outlet(level, pos, Direction.EAST),
+            wall(buffers, poseStack, Direction.EAST, neighbors.outlet(Direction.EAST),
                     up, down, north, south, packedLight, packedOverlay);
         }
         if (!west) {
-            wall(buffers, poseStack, Direction.WEST, outlet(level, pos, Direction.WEST),
+            wall(buffers, poseStack, Direction.WEST, neighbors.outlet(Direction.WEST),
                     up, down, north, south, packedLight, packedOverlay);
         }
         if (!south) {
-            wall(buffers, poseStack, Direction.SOUTH, outlet(level, pos, Direction.SOUTH),
+            wall(buffers, poseStack, Direction.SOUTH, neighbors.outlet(Direction.SOUTH),
                     up, down, east, west, packedLight, packedOverlay);
         }
         if (!north) {
-            wall(buffers, poseStack, Direction.NORTH, outlet(level, pos, Direction.NORTH),
+            wall(buffers, poseStack, Direction.NORTH, neighbors.outlet(Direction.NORTH),
                     up, down, east, west, packedLight, packedOverlay);
         }
 
@@ -74,7 +65,9 @@ public class FoundryTankBlockEntityRenderer implements BlockEntityRenderer<Found
 
     @Override
     public AABB getRenderBoundingBox(FoundryTankBlockEntity tank) {
-        return new AABB(tank.getBlockPos()).inflate(1.0D);
+        // Every hand-emitted wall, plate, edge and legal fluid surface uses
+        // coordinates in the owning block's closed unit cube.
+        return new AABB(tank.getBlockPos());
     }
 
     private static void plate(MultiBufferSource buffers, PoseStack poseStack, int light, int overlay) {
@@ -147,8 +140,8 @@ public class FoundryTankBlockEntityRenderer implements BlockEntityRenderer<Found
                 if (connectedB) quad(edgeConsumer, pose, Direction.WEST, 0.0D, 0.0D, 0.0D, 0.0D, 1.0D, 0.125D,
                         255, 255, 255, 255, light, overlay);
             }
-            default -> {
-            }
+            case UP, DOWN -> throw new IllegalArgumentException(
+                    "Foundry tank wall side must be horizontal: " + side);
         }
     }
 
@@ -180,17 +173,6 @@ public class FoundryTankBlockEntityRenderer implements BlockEntityRenderer<Found
                 red, green, blue, 220, LightTexture.FULL_BRIGHT, overlay);
         if (north) quad(consumer, pose, Direction.NORTH, 0.0D, base, 0.0D, 1.0D, height, 0.0D,
                 red, green, blue, 220, LightTexture.FULL_BRIGHT, overlay);
-    }
-
-    private static boolean isTank(Level level, BlockPos pos) {
-        return level.getBlockState(pos).is(HbmBlocks.FOUNDRY_TANK.get());
-    }
-
-    private static boolean outlet(Level level, BlockPos pos, Direction direction) {
-        BlockState state = level.getBlockState(pos.relative(direction));
-        return state.is(HbmBlocks.FOUNDRY_OUTLET.get())
-                && state.hasProperty(FoundryOutletBlock.FACING)
-                && state.getValue(FoundryOutletBlock.FACING) == direction;
     }
 
     private static ResourceLocation texture(String name) {

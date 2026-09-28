@@ -20,12 +20,29 @@ build
 
 # local development artifacts
 .codex_tmp
+.codex_tmp*
+.tmp*
+.cache
+__pycache__
 .eclipse
 .vscode
 run-gametest
 run-server
+run-recipe-audit*
 local-deps
 *.log
+
+# root-level extracted jars, decompiler output, and resource mirrors
+/META-INF/
+/assets/
+/com/
+/data/
+/legacy/
+/net/
+/org/
+/pack.mcmeta
+/parchment.json
+/tools/tmp_*
 
 # runtime
 run

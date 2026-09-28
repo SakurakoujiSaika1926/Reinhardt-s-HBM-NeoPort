@@ -26,6 +26,7 @@ public record BlastFurnaceRecipe(
         int inputBCount,
         int duration,
         ItemStack result,
+        ItemStack byproduct,
         boolean hidden
 ) implements Recipe<BlastFurnaceRecipe.Input> {
     @Override
@@ -35,10 +36,12 @@ public record BlastFurnaceRecipe(
 
     public Optional<Match> match(ItemStack upper, ItemStack lower) {
         if (matchesOrdered(upper, this.inputA, this.inputACount, lower, this.inputB, this.inputBCount)) {
-            return Optional.of(new Match(this.inputACount, this.inputBCount, this.duration, this.result.copy()));
+            return Optional.of(new Match(this.inputACount, this.inputBCount, this.duration,
+                    this.result.copy(), this.byproduct.copy()));
         }
         if (matchesOrdered(upper, this.inputB, this.inputBCount, lower, this.inputA, this.inputACount)) {
-            return Optional.of(new Match(this.inputBCount, this.inputACount, this.duration, this.result.copy()));
+            return Optional.of(new Match(this.inputBCount, this.inputACount, this.duration,
+                    this.result.copy(), this.byproduct.copy()));
         }
         return Optional.empty();
     }
@@ -90,7 +93,7 @@ public record BlastFurnaceRecipe(
                 && lowerIngredient.test(lower);
     }
 
-    public record Match(int upperCount, int lowerCount, int duration, ItemStack result) {
+    public record Match(int upperCount, int lowerCount, int duration, ItemStack result, ItemStack byproduct) {
     }
 
     public record Input(ItemStack upper, ItemStack lower) implements RecipeInput {
@@ -118,6 +121,7 @@ public record BlastFurnaceRecipe(
                 Codec.intRange(1, 64).optionalFieldOf("input_b_count", 1).forGetter(BlastFurnaceRecipe::inputBCount),
                 Codec.intRange(1, Integer.MAX_VALUE).fieldOf("duration").forGetter(BlastFurnaceRecipe::duration),
                 ItemStack.STRICT_CODEC.fieldOf("result").forGetter(BlastFurnaceRecipe::result),
+                ItemStack.STRICT_CODEC.optionalFieldOf("byproduct", ItemStack.EMPTY).forGetter(BlastFurnaceRecipe::byproduct),
                 Codec.BOOL.optionalFieldOf("hidden", false).forGetter(BlastFurnaceRecipe::hidden)
         ).apply(instance, BlastFurnaceRecipe::new));
 
@@ -131,8 +135,10 @@ public record BlastFurnaceRecipe(
                 int inputBCount = buffer.readVarInt();
                 int duration = buffer.readVarInt();
                 ItemStack result = ItemStack.STREAM_CODEC.decode(buffer);
+                ItemStack byproduct = ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer);
                 boolean hidden = buffer.readBoolean();
-                return new BlastFurnaceRecipe(group, inputA, inputACount, inputB, inputBCount, duration, result, hidden);
+                return new BlastFurnaceRecipe(group, inputA, inputACount, inputB, inputBCount,
+                        duration, result, byproduct, hidden);
             }
 
             @Override
@@ -144,6 +150,7 @@ public record BlastFurnaceRecipe(
                 buffer.writeVarInt(recipe.inputBCount());
                 buffer.writeVarInt(recipe.duration());
                 ItemStack.STREAM_CODEC.encode(buffer, recipe.result());
+                ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, recipe.byproduct());
                 buffer.writeBoolean(recipe.hidden());
             }
         };

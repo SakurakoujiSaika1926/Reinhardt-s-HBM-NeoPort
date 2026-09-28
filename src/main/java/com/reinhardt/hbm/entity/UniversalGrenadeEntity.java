@@ -57,7 +57,6 @@ public final class UniversalGrenadeEntity extends Entity {
 
     public UniversalGrenadeEntity(EntityType<? extends UniversalGrenadeEntity> type, Level level) {
         super(type, level);
-        this.noCulling = true;
     }
 
     public UniversalGrenadeEntity(Level level, Player owner, ItemStack stack) {
@@ -246,11 +245,15 @@ public final class UniversalGrenadeEntity extends Entity {
             case NUCLEAR -> {
                 explosion(center, 10.0F, 100.0F, false);
                 addRadiation(1.0D);
+                reportSatelliteRadiation(center, com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.LOW,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_LOW_DURATION);
             }
             case NUCLEAR_DEMO -> {
                 explosion(center, 10.0F, 50.0F, true);
                 addRadiation(1.5D);
                 igniteCube(center, 2);
+                reportSatelliteRadiation(center, com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.LOW,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_LOW_DURATION);
             }
             case SCHRAB -> {
                 // EntityCloudFleija and the MK3 fleija core are not legacy
@@ -258,6 +261,8 @@ public final class UniversalGrenadeEntity extends Entity {
                 // explosion pipeline with the old 20-block blast radius.
                 explosion(center, 20.0F, 100.0F, true);
                 addRadiation(4.0D);
+                reportSatelliteRadiation(center, com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity.HIGH,
+                        com.reinhardt.hbm.satellite.SatelliteEventTracker.DETECTOR_HIGH_DURATION);
             }
         }
         if (extra() == UniversalGrenadeItem.Extra.FRAG_SLEEVE) {
@@ -266,6 +271,15 @@ public final class UniversalGrenadeEntity extends Entity {
             spawnTriplex();
         }
         discard();
+    }
+
+    private void reportSatelliteRadiation(Vec3 center,
+                                          com.reinhardt.hbm.satellite.SatelliteEventTracker.BurstIntensity intensity,
+                                          int lifetime) {
+        if (level() instanceof ServerLevel serverLevel) {
+            com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRadiation(
+                    serverLevel, lifetime, intensity, center.x, center.z);
+        }
     }
 
     private void explosion(Vec3 center, float radius, float damage, boolean breakBlocks) {

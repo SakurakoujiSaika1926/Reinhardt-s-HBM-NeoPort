@@ -5,6 +5,6 @@
   "automatic_culling": false,
   "shade_quads": true,
   "flip_v": true,
-  "visibility": { "Screen": true },
+  "visibility": { "Screen": true, "Monitor": false },
   "textures": { "particle": "reinhardtshbm:block/crt_clean" }
 }

@@ -1,0 +1,7 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.circuit_star_piece",
+  "ingredient": { "item": "reinhardtshbm:scrap_plastic_cpu_ext" },
+  "duration": 600,
+  "result": { "id": "reinhardtshbm:circuit_star_piece_cpu_ext" }
+}
