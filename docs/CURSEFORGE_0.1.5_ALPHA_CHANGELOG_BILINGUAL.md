@@ -1,4 +1,4 @@
-# Reinhardt's HBM NeoforgePort 0.1.4-Alpha
+# Reinhardt's HBM NeoforgePort 0.1.5-Alpha
 
 Minecraft 1.21.1 · NeoForge 21.1.250+
 
@@ -9,6 +9,17 @@ This changelog covers only work completed after the published `0.1.3` baseline (
 ---
 
 ## 中文更新说明
+
+### 性能重点：面向大型工业基地的架构优化
+
+性能是 Reinhardt's HBM NeoforgePort 的核心优势之一。本移植并非只把旧版内容原样搬到高版本，而是针对大型工业基地中“多数机器长期待机、少数生产线按订单运行”的真实负载重构执行路径。与仍依赖大范围逐 Tick 轮询、逐帧重复提交完整模型的直接移植方式相比，本项目把无状态变化时的工作尽可能从主线程和渲染线程移除；实际提升会随硬件、整合包和基地布局变化，但优化目标明确覆盖平均帧率、1% Low、TPS 与长时间运行稳定性。
+
+- 已改造的生产设备采用事件/脏状态驱动：库存、流体、电力或配方状态变化时才重新判定，待机机器不再持续执行完整配方与供能扫描。
+- 100 个经过逐项核验、几何不随帧变化的机器渲染器使用独立静态 VBO；多类复杂设备还缓存几何、物品和连接快照，避免每帧重复解析 OBJ、查询配方或提交全部静态顶点。
+- 大型设备使用按实际模型和动画范围计算的有限包围盒，并接入原版区段可见性图进行保守遮挡剔除；只有整个模型覆盖区都不可见时才跳过绘制，不以重新引入模型消失为性能代价。
+- 清理多条渲染热路径中的逐帧临时数组、矩阵、向量与排序副本，并对联盟号等重型模型拆分静态/动态图层，重点降低大型基地中的 GC 抖动和 1% Low 波动。
+- 流体网络、电力连接、红石采样、辐射与火焰同步改为缓存或仅脏状态更新；核爆破坏与流体清理由受预算限制的分批任务执行，避免一次性占满服务器主线程。
+- 上述策略由静态 VBO 覆盖、精确包围盒、破坏粒子、网络、机器运行、配方模式和最终 JAR 完整性等自动校验保护，防止后续优化再次换来模型消失、配方失效或服务器卡死。
 
 ### 玩法模式、蓝图与内置手册
 
@@ -108,6 +119,17 @@ This changelog covers only work completed after the published `0.1.3` baseline (
 ---
 
 ## English Changelog
+
+### Performance Focus: Architecture Built for Large Industrial Bases
+
+Performance is one of the core advantages of Reinhardt's HBM NeoforgePort. This port does more than reproduce legacy content on a newer version: its execution paths are rebuilt around the real load pattern of large industrial bases, where most machines remain idle while a smaller set of production lines runs on demand. Compared with direct ports that retain broad per-tick polling and resubmit complete models every frame, this project removes as much unchanged work as possible from both the main and render threads. Exact gains still depend on hardware, modpack composition, and base layout, but the architecture explicitly targets average FPS, 1% lows, TPS, and long-session stability.
+
+- Converted production paths use event- and dirty-state-driven reevaluation. Inventory, fluid, power, or recipe changes wake the relevant logic, while idle machines avoid repeated full recipe and supply scans.
+- One hundred individually audited renderers with frame-invariant geometry now use dedicated static VBOs. Complex machines additionally cache geometry, item, and connection snapshots instead of reparsing OBJ data, querying recipe state, or resubmitting all static vertices every frame.
+- Large machines use finite bounds derived from their real models and animation ranges, together with conservative vanilla visible-section occlusion. Rendering is skipped only when every section touched by the complete model is invisible, so performance is not purchased by reintroducing disappearing machinery.
+- Per-frame temporary arrays, matrices, vectors, and sorting copies were removed from multiple render hot paths. Heavy models such as the Soyuz launcher separate static and dynamic layers to reduce garbage-collection stutter and improve 1% lows in dense bases.
+- Fluid networks, power connections, redstone sampling, radiation, and fire synchronization now rely on caching or dirty-only updates. Nuclear destruction and fluid cleanup run as budgeted incremental tasks rather than monopolizing the server thread in one pass.
+- Automated gates cover static-VBO adoption, exact render bounds, destruction particles, networks, machine runtimes, recipe modes, and final-JAR integrity, preventing later optimizations from silently trading performance for missing models, broken recipes, or server stalls.
 
 ### Gameplay Modes, Blueprints & Built-in Manual
 
