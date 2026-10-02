@@ -22,7 +22,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRenderer<HbmHeavyDoorBlockEntity> {
-    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation FIRE_FRAME = model("fire_door_frame");
     private static final ModelResourceLocation FIRE_DOOR = model("fire_door_door");
     // Transition Seal keeps one complete OBJ asset; TE rendering selects its roots through visibility variants.
@@ -957,7 +956,14 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
     }
 
     private static void render(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
+        MachineModelRenderer.renderUnculled(
+                MachineModelRenderer.model(model),
+                poseStack,
+                bufferSource,
+                state,
+                packedLight,
+                packedOverlay
+        );
     }
 
     private static void registerSkinned(ModelEvent.RegisterAdditional event, List<String> baseModels, int skinCount) {

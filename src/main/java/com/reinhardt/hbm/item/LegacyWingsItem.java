@@ -1,13 +1,8 @@
 package com.reinhardt.hbm.item;
 
 import com.reinhardt.hbm.util.ArmorModHandler;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-
-import java.util.List;
 
 /** The limp and powered wing armor modifiers from WingsMurk. */
 public final class LegacyWingsItem extends ArmorModItem {
@@ -35,12 +30,5 @@ public final class LegacyWingsItem extends ArmorModItem {
             player.setDeltaMovement(velocity.x, Math.min(0.8D, velocity.y + 0.2D), velocity.z);
         }
         player.fallDistance = 0.0F;
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.wings." + (powered ? "powered" : "limp"))
-                .withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, context, tooltip, flag);
     }
 }

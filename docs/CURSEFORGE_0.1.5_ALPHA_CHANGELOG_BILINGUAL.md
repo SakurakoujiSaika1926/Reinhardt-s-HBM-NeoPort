@@ -15,7 +15,7 @@ This changelog covers only work completed after the published `0.1.3` baseline (
 性能是 Reinhardt's HBM NeoforgePort 的核心优势之一。本移植并非只把旧版内容原样搬到高版本，而是针对大型工业基地中“多数机器长期待机、少数生产线按订单运行”的真实负载重构执行路径。与仍依赖大范围逐 Tick 轮询、逐帧重复提交完整模型的直接移植方式相比，本项目把无状态变化时的工作尽可能从主线程和渲染线程移除；实际提升会随硬件、整合包和基地布局变化，但优化目标明确覆盖平均帧率、1% Low、TPS 与长时间运行稳定性。
 
 - 已改造的生产设备采用事件/脏状态驱动：库存、流体、电力或配方状态变化时才重新判定，待机机器不再持续执行完整配方与供能扫描。
-- 100 个经过逐项核验、几何不随帧变化的机器渲染器使用独立静态 VBO；多类复杂设备还缓存几何、物品和连接快照，避免每帧重复解析 OBJ、查询配方或提交全部静态顶点。
+- 98 个经过逐项核验、几何不随帧变化的机器渲染器使用独立静态 VBO；多组件动画门明确保留普通缓冲路径，避免各自独立变换的门体组件互相污染。多类复杂设备还缓存几何、物品和连接快照，避免每帧重复解析 OBJ、查询配方或提交全部静态顶点。
 - 大型设备使用按实际模型和动画范围计算的有限包围盒，并接入原版区段可见性图进行保守遮挡剔除；只有整个模型覆盖区都不可见时才跳过绘制，不以重新引入模型消失为性能代价。
 - 清理多条渲染热路径中的逐帧临时数组、矩阵、向量与排序副本，并对联盟号等重型模型拆分静态/动态图层，重点降低大型基地中的 GC 抖动和 1% Low 波动。
 - 流体网络、电力连接、红石采样、辐射与火焰同步改为缓存或仅脏状态更新；核爆破坏与流体清理由受预算限制的分批任务执行，避免一次性占满服务器主线程。
@@ -90,7 +90,8 @@ This changelog covers only work completed after the published `0.1.3` baseline (
 - 修复大小雷达破坏粒子紫黑。雷达现在使用只提供正确粒子贴图、不会重复绘制机器模型的专用空模型。
 - 同步修复 C4、Semtex、ICF 部件、火山覆盖层、木结构、聚光灯光束等同类粒子模型缺口。
 - 增加强制破坏粒子校验：递归检查所有方块状态、模型父链、贴图别名、PNG 可读性和图集收录；任何缺失或无法解析的粒子都会直接使 `build`、`check` 和部署任务失败。
-- 将 100 个逐项审计且静态几何不随帧变化的机器渲染器改为独立静态 VBO 缓存；资源重载、重新烘焙和退出世界时会正确重建或释放缓存。
+- 将 98 个逐项审计且静态几何不随帧变化的机器渲染器改为独立静态 VBO 缓存；资源重载、重新烘焙和退出世界时会正确重建或释放缓存。多组件动画门被明确排除并恢复普通缓冲路径，以保留各部件的正确变换。
+- 修复全部 16 类重型门以及独立防爆门可能出现的贴图扭曲、模型碎裂和顶点纠缠；普通双层门、钢活板门、聚变舱门与密封舱门的方块状态和资源引用也已纳入同一轮完整性校验。
 - 所有方块实体渲染器重新通过有限包围盒审计。大型设备继续使用各自模型、动画和结构范围推导出的专用包围盒，不采用通用旋转、固定 256 格距离、无限包围盒或估算尺寸。
 - 大型设备接入原版区段可见性图：只有设备完整包围盒覆盖的所有区段均不可见时才会跳过渲染；镜头在包围盒内或快照不可用时保守渲染，避免再次出现距离核心数个区块后模型消失。
 - 新增客户端选项 `enableLargeMachineOcclusionCulling`，默认启用；遇到第三方渲染兼容问题时可单独关闭墙体遮挡剔除，而不影响精确包围盒与 VBO 缓存。
@@ -104,8 +105,9 @@ This changelog covers only work completed after the published `0.1.3` baseline (
 - 将旧版昂贵模式从 528 模式中彻底拆分为独立配置。普通、528、昂贵、528+昂贵四种组合分别加载自己的机器配方，装配机客户端选择与服务器执行使用同一过滤规则，不再混入互斥的普通/昂贵材料表。
 - 当前配方基线包含 5,269 个文件；普通、528、昂贵、528+昂贵四种配置分别完成运行时装载审计，当前活动 HBM 配方数依次为 5,003、5,012、4,981 和 4,990，模式矩阵未发现串配方或互斥分支同时启用。
 - 按最新版旧版的可见性规则集中隐藏无创造标签的内部物品、技术状态、关闭态灯具、结构占位和兼容中间件；JEI 使用独立的更窄规则，不会因物品不在创造栏就连带隐藏正常配方或合法原料。
+- 补齐钍-232、RBMK 诊断冷却回路、十类核弹界面和粒子加速器束流管等动态文本的中英双语；语言校验会直接从枚举、诊断字段和动态键族推导必需键，并移除旧版不存在的翅膀推测性提示。
 - 优化流体网络端点发现与轮转、电池插座连接点及红石采样、放射/火焰状态脏同步和 Sable 电力空间缓存，减少无状态变化时的临时对象、查询与同步。
-- 机器审计覆盖 503 个方块和 47 个工作配方族；最新版旧版机器配方导出继续通过 3,145 项语义断言。
+- 机器审计覆盖 503 个方块和 47 个工作配方族；最新版旧版机器配方导出继续通过 3,200 项语义断言。
 - 新增蓝图模式、现代矿石地质、镉/朱砂处理、售货机、工业搅拌机罐位、LBSM/Cataclysm、雷达动画、旧版箱子战利品、列车移除、分区油田、破坏粒子、四模式配方矩阵、回转炉炮铜、高炉运行、ICF/星流浆与静态 VBO 的发布门禁。
 - 继续保留注册表、双语语言、OBJ、伤害类型、方块实体/实体包围盒、核爆、热力、电力、端口、制造配方、工作配方和最终 JAR 完整性检查。
 
@@ -125,7 +127,7 @@ This changelog covers only work completed after the published `0.1.3` baseline (
 Performance is one of the core advantages of Reinhardt's HBM NeoforgePort. This port does more than reproduce legacy content on a newer version: its execution paths are rebuilt around the real load pattern of large industrial bases, where most machines remain idle while a smaller set of production lines runs on demand. Compared with direct ports that retain broad per-tick polling and resubmit complete models every frame, this project removes as much unchanged work as possible from both the main and render threads. Exact gains still depend on hardware, modpack composition, and base layout, but the architecture explicitly targets average FPS, 1% lows, TPS, and long-session stability.
 
 - Converted production paths use event- and dirty-state-driven reevaluation. Inventory, fluid, power, or recipe changes wake the relevant logic, while idle machines avoid repeated full recipe and supply scans.
-- One hundred individually audited renderers with frame-invariant geometry now use dedicated static VBOs. Complex machines additionally cache geometry, item, and connection snapshots instead of reparsing OBJ data, querying recipe state, or resubmitting all static vertices every frame.
+- Ninety-eight individually audited renderers with frame-invariant geometry now use dedicated static VBOs. Animated multi-part doors deliberately retain the normal buffered path so their independently transformed parts cannot corrupt one another. Complex machines additionally cache geometry, item, and connection snapshots instead of reparsing OBJ data, querying recipe state, or resubmitting all static vertices every frame.
 - Large machines use finite bounds derived from their real models and animation ranges, together with conservative vanilla visible-section occlusion. Rendering is skipped only when every section touched by the complete model is invisible, so performance is not purchased by reintroducing disappearing machinery.
 - Per-frame temporary arrays, matrices, vectors, and sorting copies were removed from multiple render hot paths. Heavy models such as the Soyuz launcher separate static and dynamic layers to reduce garbage-collection stutter and improve 1% lows in dense bases.
 - Fluid networks, power connections, redstone sampling, radiation, and fire synchronization now rely on caching or dirty-only updates. Nuclear destruction and fluid cleanup run as budgeted incremental tasks rather than monopolizing the server thread in one pass.
@@ -200,7 +202,8 @@ Performance is one of the core advantages of Reinhardt's HBM NeoforgePort. This 
 - Fixed purple-black destruction particles for both radar sizes. Each radar now uses an empty particle-only model with the correct texture and cannot redraw the machine during block breaking.
 - Fixed the same particle-chain gaps for C4, Semtex, ICF components, volcano overlays, wooden structures, spotlight beams, and related models.
 - Added a fail-closed destruction-particle validator covering every blockstate, recursive parent chain, texture alias, readable PNG, and block-atlas entry. Any unresolved particle now fails `build`, `check`, and deployment tasks.
-- Moved 100 individually audited renderers with frame-invariant geometry to dedicated static VBO caches. Their complete model vertices are no longer resubmitted every frame, and caches are rebuilt or released after resource reloads, model baking, and logout.
+- Moved 98 individually audited renderers with frame-invariant geometry to dedicated static VBO caches. Their complete model vertices are no longer resubmitted every frame, and caches are rebuilt or released after resource reloads, model baking, and logout. Multi-part animated doors are explicitly excluded and use the normal buffered path to preserve correct component transforms.
+- Fixed texture distortion, fragmented geometry, and tangled vertices across all 16 heavy-door types and the standalone blast door. Blockstate and resource references for vanilla-style double doors, the steel trapdoor, the fusion hatch, and the seal hatch are now covered by the same integrity audit.
 - Re-audited finite bounds for every block-entity renderer. Large machines retain per-machine bounds derived from their actual models, animation ranges, and structures—never generic rotation, a fixed 256-block distance, infinite boxes, or estimated dimensions.
 - Reconnected large machines to Minecraft's visible-section graph. Rendering is skipped only when every section touched by the complete bounds is invisible; cameras inside the bounds and unavailable snapshots always fall back to rendering, preventing several-chunks-from-core disappearance.
 - Added the `enableLargeMachineOcclusionCulling` client option, enabled by default. Wall occlusion can be disabled independently for third-party renderer compatibility without disabling exact bounds or VBO caching.
@@ -214,8 +217,9 @@ Performance is one of the core advantages of Reinhardt's HBM NeoforgePort. This 
 - Fully separated legacy Expensive Mode from 528 Mode. Normal, 528, Expensive, and 528+Expensive configurations load independent machine-recipe sets, with the same filtering used by client selection and server execution so mutually exclusive normal/expensive costs cannot mix.
 - The current baseline contains 5,269 recipe files. Normal, 528, Expensive, and 528+Expensive runtime audits load 5,003, 5,012, 4,981, and 4,990 active HBM recipes respectively, with no leaked recipes or simultaneously active exclusive branches.
 - Applied current legacy visibility rules centrally to no-tab internal items, technical states, disabled-light variants, structure placeholders, and compatibility intermediates. JEI uses a separate narrower policy so legitimate recipes and ingredients remain discoverable.
+- Completed bilingual dynamic text for Thorium-232, RBMK diagnostic coolant circuits, ten nuclear-device menus, and the particle-accelerator beamline. Language validation now derives required keys from enums, diagnostic fields, and dynamic key families, and the speculative wings tooltip absent from legacy behavior was removed.
 - Reduced allocation and redundant work in fluid-network endpoint rotation, battery-socket connector/redstone sampling, dirty-only radiation/fire synchronization, and Sable power-space caches.
-- Machine coverage audits include 503 blocks and 47 working-recipe families, while current legacy machine exports continue to pass 3,145 semantic assertions.
+- Machine coverage audits include 503 blocks and 47 working-recipe families, while current legacy machine exports continue to pass 3,200 semantic assertions.
 - Added release gates for blueprint modes, modern ore geology, cadmium/cinnabar processing, vending machines, mixer tank routing, LBSM/Cataclysm, both radar animations, legacy chest loot, intentional train removal, chunk-sliced oil fields, destruction particles, the four-mode recipe matrix, rotary-furnace gunmetal, blast-furnace runtime, ICF/Stellar Flux, and static VBO coverage.
 - Existing registry, bilingual language, OBJ, damage-type, block-entity/entity bounds, nuclear, thermal, power, port, manufacturing recipe, working recipe, and final-JAR integrity checks remain enabled.
 

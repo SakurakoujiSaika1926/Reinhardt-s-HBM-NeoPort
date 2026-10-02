@@ -1602,6 +1602,173 @@ tasks.register('validateLangFiles') {
             ['casing', 'port', 'cell', 'emitter', 'capacitor', 'turbo'].each { variant ->
                 requiredPortedKeys << "block.reinhardtshbm.icf_laser_component.${variant}"
             }
+            // Menu titles assembled from enum ids are invisible to the literal-call scan.
+            // Read the ids from their source enums so newly added variants cannot expose raw keys.
+            def enumConstantSection = { String sourcePath, String declaration ->
+                def sourceFile = file(sourcePath)
+                if (!sourceFile.isFile()) {
+                    problems << "Missing dynamic translation source ${sourcePath}"
+                    return ''
+                }
+                def source = sourceFile.getText('UTF-8')
+                int declarationIndex = source.indexOf(declaration)
+                int bodyStart = declarationIndex >= 0 ? source.indexOf('{', declarationIndex) : -1
+                int enumEnd = -1
+                if (bodyStart >= 0) {
+                    int depth = 0
+                    for (int index = bodyStart; index < source.length(); index++) {
+                        char character = source.charAt(index)
+                        if (character == ('{' as char)) {
+                            depth++
+                        } else if (character == ('}' as char)) {
+                            depth--
+                            if (depth == 0) {
+                                enumEnd = index
+                                break
+                            }
+                        }
+                    }
+                }
+                int bodyEnd = bodyStart >= 0 ? source.indexOf(';', bodyStart) : -1
+                if (bodyEnd < 0 || (enumEnd >= 0 && bodyEnd > enumEnd)) bodyEnd = enumEnd
+                if (declarationIndex < 0 || bodyStart < 0 || enumEnd < 0 || bodyEnd < 0) {
+                    problems << "Cannot parse dynamic translation enum ${declaration} in ${sourcePath}"
+                    return ''
+                }
+                source.substring(bodyStart + 1, bodyEnd)
+            }
+            def addFirstStringEnumKeys = { String sourcePath, String declaration, String keyPrefix ->
+                def section = enumConstantSection(sourcePath, declaration)
+                def ids = []
+                (section =~ /(?m)^\s*[A-Z][A-Z0-9_]*\s*\(\s*"([^"]+)"/).each { match -> ids << match[1] }
+                if (ids.isEmpty()) {
+                    problems << "No dynamic translation ids found in ${sourcePath} (${declaration})"
+                }
+                ids.each { id -> requiredPortedKeys << "${keyPrefix}${id}" }
+            }
+            addFirstStringEnumKeys(
+                    'src/main/java/com/reinhardt/hbm/block/LegacyNukeDefinition.java',
+                    'enum LegacyNukeDefinition', 'container.reinhardtshbm.')
+            addFirstStringEnumKeys(
+                    'src/main/java/com/reinhardt/hbm/blockentity/HeaterBlockEntity.java',
+                    'enum Kind', 'container.reinhardtshbm.heater.')
+            addFirstStringEnumKeys(
+                    'src/main/java/com/reinhardt/hbm/block/ParticleAcceleratorBlock.java',
+                    'enum Kind', 'container.reinhardtshbm.')
+            addFirstStringEnumKeys(
+                    'src/main/java/com/reinhardt/hbm/blockentity/LegacyTurretType.java',
+                    'enum LegacyTurretType', 'container.reinhardtshbm.')
+            addFirstStringEnumKeys(
+                    'src/main/java/com/reinhardt/hbm/blockentity/StorageCrateBlockEntity.java',
+                    'enum Kind', 'container.reinhardtshbm.')
+            addFirstStringEnumKeys(
+                    'src/main/java/com/reinhardt/hbm/item/LegacyBedrockOreStageItem.java',
+                    'enum Type', 'hbmmat.')
+
+            def oilDerrickKinds = enumConstantSection(
+                    'src/main/java/com/reinhardt/hbm/blockentity/OilDerrickBlockEntity.java', 'enum Kind')
+            def oilDerrickIds = []
+            (oilDerrickKinds =~ /(?m)^\s*[A-Z][A-Z0-9_]*\s*\([^\r\n]*"([^"]+)"\)\s*[,;]?/).each { match ->
+                oilDerrickIds << match[1]
+            }
+            if (oilDerrickIds.isEmpty()) {
+                problems << 'No dynamic translation ids found for OilDerrickBlockEntity.Kind'
+            }
+            oilDerrickIds.each { id -> requiredPortedKeys << "container.reinhardtshbm.${id}" }
+
+            def pneumaticKinds = enumConstantSection(
+                    'src/main/java/com/reinhardt/hbm/block/PneumaticStorageBlock.java', 'enum Kind')
+            def pneumaticIds = []
+            (pneumaticKinds =~ /\b([A-Z][A-Z0-9_]*)\b/).each { match ->
+                pneumaticIds << match[1].toLowerCase(Locale.ROOT)
+            }
+            if (pneumaticIds.isEmpty()) {
+                problems << 'No dynamic translation ids found for PneumaticStorageBlock.Kind'
+            }
+            pneumaticIds.each { id -> requiredPortedKeys << "container.reinhardtshbm.pneumatic_storage_${id}" }
+
+            // Full container keys stored in helpers/enums must also be validated even when the
+            // Component.translatable call receives a variable rather than a string literal.
+            def embeddedContainerKeyPattern = ~/"(container\.reinhardtshbm\.[A-Za-z0-9_.-]*[A-Za-z0-9-])"/
+            fileTree('src/main/java') {
+                include '**/*.java'
+            }.each { sourceFile ->
+                (sourceFile.getText('UTF-8') =~ embeddedContainerKeyPattern).each { match ->
+                    requiredPortedKeys << match[1]
+                }
+            }
+
+            ['down', 'up', 'north', 'south', 'west', 'east'].each { direction ->
+                requiredPortedKeys << "container.reinhardtshbm.crane.direction.${direction}"
+            }
+            ['north', 'east', 'south', 'west'].each { direction ->
+                requiredPortedKeys << "gui.reinhardtshbm.direction.${direction}"
+            }
+            ['lowest', 'low', 'normal', 'high', 'highest'].each { priority ->
+                requiredPortedKeys << "gui.reinhardtshbm.fluid.priority.${priority}"
+            }
+
+            // Any new string-concatenated container/gui family must be reviewed and added above.
+            def expectedDynamicContainerSources = [
+                    'src/main/java/com/reinhardt/hbm/blockentity/HeaterBlockEntity.java',
+                    'src/main/java/com/reinhardt/hbm/blockentity/LegacyNukeBlockEntity.java',
+                    'src/main/java/com/reinhardt/hbm/blockentity/LegacyTurretBlockEntity.java',
+                    'src/main/java/com/reinhardt/hbm/blockentity/OilDerrickBlockEntity.java',
+                    'src/main/java/com/reinhardt/hbm/blockentity/ParticleAcceleratorBlockEntity.java',
+                    'src/main/java/com/reinhardt/hbm/blockentity/PneumaticStorageBlockEntity.java',
+                    'src/main/java/com/reinhardt/hbm/blockentity/StorageCrateBlockEntity.java',
+                    'src/main/java/com/reinhardt/hbm/client/screen/CraneMachineScreen.java'
+            ] as Set
+            def expectedDynamicGuiSources = [
+                    'src/main/java/com/reinhardt/hbm/client/screen/FluidPumpScreen.java',
+                    'src/main/java/com/reinhardt/hbm/client/screen/ParticleAcceleratorScreen.java'
+            ] as Set
+            def dynamicContainerSources = [] as Set
+            def dynamicGuiSources = [] as Set
+            def dynamicContainerPattern = ~/"container\.reinhardtshbm\.[^"]*"\s*\+/
+            def dynamicGuiPattern = ~/"gui\.reinhardtshbm\.[^"]*"\s*\+/
+            fileTree('src/main/java') {
+                include '**/*.java'
+            }.each { sourceFile ->
+                def source = sourceFile.getText('UTF-8')
+                def relativePath = project.relativePath(sourceFile).replace('\\', '/')
+                if ((source =~ dynamicContainerPattern).find()) dynamicContainerSources << relativePath
+                if ((source =~ dynamicGuiPattern).find()) dynamicGuiSources << relativePath
+            }
+            (dynamicContainerSources - expectedDynamicContainerSources).sort().each { sourcePath ->
+                problems << "Unreviewed dynamic container translation family in ${sourcePath}"
+            }
+            (expectedDynamicContainerSources - dynamicContainerSources).sort().each { sourcePath ->
+                problems << "Stale dynamic container translation contract for ${sourcePath}"
+            }
+            (dynamicGuiSources - expectedDynamicGuiSources).sort().each { sourcePath ->
+                problems << "Unreviewed dynamic GUI translation family in ${sourcePath}"
+            }
+            (expectedDynamicGuiSources - dynamicGuiSources).sort().each { sourcePath ->
+                problems << "Stale dynamic GUI translation contract for ${sourcePath}"
+            }
+
+            // The DODD overlay translates map keys produced by diagnosticData(), so derive both
+            // direct fields and generated tank fields from the block entity source.
+            def rbmkDiagnosticSourcePath = 'src/main/java/com/reinhardt/hbm/blockentity/RbmkComponentBlockEntity.java'
+            def rbmkDiagnosticSource = file(rbmkDiagnosticSourcePath).getText('UTF-8')
+            def rbmkDiagnosticKeys = [] as Set
+            (rbmkDiagnosticSource =~ /data\.put\("([^"]+)"/).each { match ->
+                rbmkDiagnosticKeys << match[1]
+            }
+            def rbmkTankFamilies = [] as Set
+            (rbmkDiagnosticSource =~ /putTankDiagnostic\(data,\s*"([^"]+)"/).each { match ->
+                rbmkTankFamilies << match[1]
+            }
+            if (rbmkDiagnosticKeys.isEmpty() || rbmkTankFamilies.isEmpty()) {
+                problems << "Cannot derive DODD translation keys from ${rbmkDiagnosticSourcePath}"
+            }
+            rbmkDiagnosticKeys.each { key -> requiredPortedKeys << "tile.rbmk.dodd.${key}" }
+            rbmkTankFamilies.each { family ->
+                ['amt', 'max', 'type', 'p'].each { suffix ->
+                    requiredPortedKeys << "tile.rbmk.dodd.${family}_${suffix}"
+                }
+            }
             [
                     'black', 'red', 'green', 'brown', 'blue', 'purple', 'cyan', 'silver',
                     'gray', 'pink', 'lime', 'yellow', 'lightblue', 'magenta', 'orange', 'white'
@@ -4112,7 +4279,6 @@ tasks.register('validateRendererCullingBounds') {
                 'AssemblyMachineBlockEntityRenderer',
                 'BatterySocketBlockEntityRenderer',
                 'BigAssTankBlockEntityRenderer',
-                'BlastDoorBlockEntityRenderer',
                 'BreederReactorBlockEntityRenderer',
                 'CatalyticCrackerBlockEntityRenderer',
                 'CatalyticReformerBlockEntityRenderer',
@@ -4145,7 +4311,6 @@ tasks.register('validateRendererCullingBounds') {
                 'GasTurbineBlockEntityRenderer',
                 'GeothermalHeatExchangerBlockEntityRenderer',
                 'GroundwaterPumpBlockEntityRenderer',
-                'HbmHeavyDoorBlockEntityRenderer',
                 'HeatBoilerBlockEntityRenderer',
                 'HeaterBlockEntityRenderer',
                 'HexafluorideTankBlockEntityRenderer',
@@ -4204,8 +4369,8 @@ tasks.register('validateRendererCullingBounds') {
                 'ZirnoxDestroyedBlockEntityRenderer',
                 'ZirnoxReactorBlockEntityRenderer'
         ]
-        if (auditedImmutableVboRenderers.size() != 100 || auditedImmutableVboRenderers.toSet().size() != 100) {
-            problems << 'The audited immutable-model VBO renderer manifest must contain exactly 100 unique renderers.'
+        if (auditedImmutableVboRenderers.size() != 98 || auditedImmutableVboRenderers.toSet().size() != 98) {
+            problems << 'The audited immutable-model VBO renderer manifest must contain exactly 98 unique renderers.'
         }
         auditedImmutableVboRenderers.each { rendererName ->
             def renderer = readSource("src/main/java/com/reinhardt/hbm/client/render/${rendererName}.java")
@@ -6356,6 +6521,260 @@ tasks.register('validateRendererCullingBounds') {
             throw new GradleException('Renderer culling/bounds validation failed:\n - ' + problems.join('\n - '))
         }
         logger.lifecycle("Renderer culling/bounds validation passed: ${registrationCallCount} registrations / ${registered.size()} renderer classes covered (${unitRendererWhitelist.size()} audited unit renderers).")
+    }
+}
+
+tasks.register('validateDoorRenderingIntegrity') {
+    group = 'verification'
+    description = 'Audits every active HBM door path, its component models, OBJ groups, textures, and safe animated rendering contract.'
+
+    inputs.files(
+            file('src/main/java/com/reinhardt/hbm/door/HbmDoorDecl.java'),
+            file('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java'),
+            file('src/main/java/com/reinhardt/hbm/registry/HbmBlockEntities.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/HbmHeavyDoorBlockEntityRenderer.java'),
+            file('src/main/java/com/reinhardt/hbm/client/render/BlastDoorBlockEntityRenderer.java')
+    )
+    inputs.files(fileTree('src/main/resources/assets/reinhardtshbm') {
+        include 'blockstates/*.json'
+        include 'models/block/doors/*.json'
+        include 'models/block/*door*.json'
+        include 'models/block/*hatch*.json'
+        include 'models/item/*door*.json'
+        include 'models/item/*hatch*.json'
+        include 'models/obj/doors/**'
+        include 'textures/block/doors/**'
+    })
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def problems = []
+        def assetRoot = file('src/main/resources/assets/reinhardtshbm')
+        def readSource = { String path ->
+            def sourceFile = file(path)
+            sourceFile.isFile() ? sourceFile.getText('UTF-8') : null
+        }
+        def parseJson = { File source ->
+            try {
+                new groovy.json.JsonSlurper().parse(source)
+            } catch (Exception exception) {
+                problems << "${project.relativePath(source)} is not valid JSON: ${exception.message}"
+                null
+            }
+        }
+        def splitResource = { String reference ->
+            int separator = reference.indexOf(':')
+            separator >= 0
+                    ? [reference.substring(0, separator), reference.substring(separator + 1)]
+                    : ['minecraft', reference]
+        }
+        def localModelFile = { String reference ->
+            def parts = splitResource(reference)
+            parts[0] == project.mod_id
+                    ? new File(assetRoot, "models/${parts[1]}.json")
+                    : null
+        }
+        def localAssetFile = { String reference ->
+            def parts = splitResource(reference)
+            parts[0] == project.mod_id ? new File(assetRoot, parts[1] as String) : null
+        }
+
+        String heavyRendererPath = 'src/main/java/com/reinhardt/hbm/client/render/HbmHeavyDoorBlockEntityRenderer.java'
+        String blastRendererPath = 'src/main/java/com/reinhardt/hbm/client/render/BlastDoorBlockEntityRenderer.java'
+        def heavyRenderer = readSource(heavyRendererPath)
+        def blastRenderer = readSource(blastRendererPath)
+        [
+                (heavyRendererPath): heavyRenderer,
+                (blastRendererPath): blastRenderer
+        ].each { rendererPath, source ->
+            if (!source?.contains('MachineModelRenderer.renderUnculled(')
+                    || !source?.contains('MachineModelRenderer.model(model)')) {
+                problems << "${rendererPath} must retain the normal buffered model path for independently transformed animated parts."
+            }
+            ['StaticMachineVboCache', 'STATIC_MESHES.render('].each { forbidden ->
+                if (source?.contains(forbidden)) {
+                    problems << "${rendererPath} must not use the static direct-VBO path (${forbidden}); it corrupts multi-part door transforms."
+                }
+            }
+        }
+
+        def declaration = readSource('src/main/java/com/reinhardt/hbm/door/HbmDoorDecl.java')
+        def blocks = readSource('src/main/java/com/reinhardt/hbm/registry/HbmBlocks.java')
+        def blockEntities = readSource('src/main/java/com/reinhardt/hbm/registry/HbmBlockEntities.java')
+        def clientRenderers = readSource('src/main/java/com/reinhardt/hbm/client/render/HbmClientRenderers.java')
+        def doorDecls = new LinkedHashMap<String, String>()
+        def declMatcher = java.util.regex.Pattern.compile(
+                '(?m)^\\s*([A-Z][A-Z0-9_]*)\\("([a-z0-9_]+)"').matcher(declaration ?: '')
+        while (declMatcher.find()) {
+            doorDecls[declMatcher.group(1)] = declMatcher.group(2)
+        }
+        if (doorDecls.size() != 16) {
+            problems << "HbmDoorDecl must expose exactly the 16 active heavy-door types; found ${doorDecls.size()}: ${doorDecls.keySet()}."
+        }
+        if (!clientRenderers?.contains('event.registerBlockEntityRenderer(HbmBlockEntities.HEAVY_DOOR.get(), HbmHeavyDoorBlockEntityRenderer::new);')) {
+            problems << 'The heavy-door block entity renderer is not registered.'
+        }
+        if (!clientRenderers?.contains('event.registerBlockEntityRenderer(HbmBlockEntities.BLAST_DOOR.get(), BlastDoorBlockEntityRenderer::new);')) {
+            problems << 'The standalone blast-door block entity renderer is not registered.'
+        }
+
+        def activeBlockstates = new LinkedHashSet<String>()
+        doorDecls.each { constant, id ->
+            activeBlockstates.add(id)
+            if (!heavyRenderer?.contains("case ${constant} ->")) {
+                problems << "${heavyRendererPath} has no dedicated render branch for ${constant}."
+            }
+            if (!blocks?.contains("HbmDoorDecl.${constant})")) {
+                problems << "HbmBlocks does not register heavy door ${constant}."
+            }
+            if (!blocks?.contains("Map.entry(com.reinhardt.hbm.door.HbmDoorDecl.${constant},")) {
+                problems << "HbmBlocks.HEAVY_DOOR_BLOCKS does not map ${constant}."
+            }
+            if (!blockEntities?.contains("HbmBlocks.${constant}.get()")) {
+                problems << "The HEAVY_DOOR block entity type does not include ${constant}."
+            }
+            [
+                    "src/main/resources/assets/reinhardtshbm/models/item/${id}.json",
+                    "src/main/resources/data/reinhardtshbm/loot_table/blocks/${id}.json"
+            ].each { path ->
+                if (!file(path).isFile()) problems << "Active heavy door ${id} is missing ${path}."
+            }
+        }
+        activeBlockstates.addAll([
+                'blast_door', 'dummy_block_blast', 'heavy_door_part',
+                'door_metal', 'door_office', 'door_bunker', 'door_red',
+                'trapdoor_steel', 'fusion_hatch', 'seal_hatch'
+        ])
+
+        def collectModelReferences
+        collectModelReferences = { Object value, Set<String> references ->
+            if (value instanceof Map) {
+                value.each { key, nested ->
+                    if (key == 'model' && nested instanceof String) {
+                        references.add(nested as String)
+                    } else {
+                        collectModelReferences(nested, references)
+                    }
+                }
+            } else if (value instanceof List) {
+                value.each { nested -> collectModelReferences(nested, references) }
+            }
+        }
+
+        def modelFiles = new LinkedHashSet<File>()
+        activeBlockstates.each { id ->
+            File blockstateFile = file("src/main/resources/assets/reinhardtshbm/blockstates/${id}.json")
+            if (!blockstateFile.isFile()) {
+                problems << "Active door/hatch ${id} has no blockstate file."
+                return
+            }
+            def blockstate = parseJson(blockstateFile)
+            def references = new LinkedHashSet<String>()
+            if (blockstate != null) collectModelReferences(blockstate, references)
+            if (references.isEmpty()) {
+                problems << "${project.relativePath(blockstateFile)} contains no model reference."
+            }
+            references.each { reference ->
+                File modelFile = localModelFile(reference)
+                if (modelFile != null) {
+                    if (!modelFile.isFile()) {
+                        problems << "${project.relativePath(blockstateFile)} references missing model ${reference}."
+                    } else {
+                        modelFiles.add(modelFile)
+                    }
+                }
+            }
+        }
+        fileTree('src/main/resources/assets/reinhardtshbm/models/block/doors') {
+            include '*.json'
+        }.files.each { modelFiles.add(it) }
+
+        def parsedModels = new LinkedHashMap<File, Object>()
+        def parseModel = { File modelFile ->
+            if (!parsedModels.containsKey(modelFile)) parsedModels[modelFile] = parseJson(modelFile)
+            parsedModels[modelFile]
+        }
+        def pendingModels = new ArrayDeque<File>(modelFiles)
+        while (!pendingModels.isEmpty()) {
+            File modelFile = pendingModels.removeFirst()
+            def model = parseModel(modelFile)
+            if (!(model instanceof Map)) continue
+
+            if (model.parent instanceof String) {
+                File parentFile = localModelFile(model.parent as String)
+                if (parentFile != null) {
+                    if (!parentFile.isFile()) {
+                        problems << "${project.relativePath(modelFile)} references missing parent ${model.parent}."
+                    } else if (modelFiles.add(parentFile)) {
+                        pendingModels.addLast(parentFile)
+                    }
+                }
+            }
+            if (model.loader == 'neoforge:obj') {
+                ['model', 'mtl_override'].each { key ->
+                    if (!(model[key] instanceof String)) {
+                        problems << "${project.relativePath(modelFile)} is missing OBJ field '${key}'."
+                    } else {
+                        File target = localAssetFile(model[key] as String)
+                        if (target == null || !target.isFile()) {
+                            problems << "${project.relativePath(modelFile)} references missing ${key} ${model[key]}."
+                        }
+                    }
+                }
+            }
+            if (model.textures instanceof Map) {
+                model.textures.each { textureKey, textureReference ->
+                    if (!(textureReference instanceof String) || textureReference.startsWith('#')) return
+                    def parts = splitResource(textureReference as String)
+                    if (parts[0] == project.mod_id) {
+                        File textureFile = new File(assetRoot, "textures/${parts[1]}.png")
+                        if (!textureFile.isFile()) {
+                            problems << "${project.relativePath(modelFile)} references missing texture ${textureReference}."
+                        }
+                    }
+                }
+            }
+        }
+
+        def resolveObj
+        resolveObj = { File modelFile, Set<File> visited ->
+            if (!visited.add(modelFile)) return null
+            def model = parseModel(modelFile)
+            if (!(model instanceof Map)) return null
+            if (model.loader == 'neoforge:obj' && model.model instanceof String) {
+                return localAssetFile(model.model as String)
+            }
+            if (model.parent instanceof String) {
+                File parent = localModelFile(model.parent as String)
+                if (parent != null && parent.isFile()) return resolveObj(parent, visited)
+            }
+            null
+        }
+        modelFiles.each { modelFile ->
+            def model = parseModel(modelFile)
+            if (!(model instanceof Map) || !(model.visibility instanceof Map)) return
+            File objFile = resolveObj(modelFile, new LinkedHashSet<File>())
+            if (objFile == null || !objFile.isFile()) {
+                problems << "${project.relativePath(modelFile)} declares OBJ visibility without a resolvable OBJ parent."
+                return
+            }
+            def groups = new LinkedHashSet<String>()
+            objFile.eachLine('UTF-8') { line ->
+                def groupMatcher = (line =~ /^(?:o|g)\s+(.+?)\s*$/)
+                if (groupMatcher.matches()) groups.add(groupMatcher.group(1))
+            }
+            model.visibility.keySet().each { group ->
+                if (!groups.contains(group as String)) {
+                    problems << "${project.relativePath(modelFile)} visibility group '${group}' does not exist in ${project.relativePath(objFile)}."
+                }
+            }
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException('Door rendering integrity validation failed:\n - ' + problems.unique().join('\n - '))
+        }
+        logger.lifecycle("Door rendering integrity validation passed: ${doorDecls.size()} heavy doors plus blast, vanilla-style, trapdoor, fusion-hatch, and seal-hatch paths; ${modelFiles.size()} model resources resolved.")
     }
 }
 
@@ -11855,6 +12274,7 @@ tasks.named('build') {
     dependsOn tasks.named('validateGlyphidSpawnSafety')
     dependsOn tasks.named('validateGasTickPerformance')
     dependsOn tasks.named('validateRendererCullingBounds')
+    dependsOn tasks.named('validateDoorRenderingIntegrity')
     dependsOn tasks.named('validateEntityRendererCullingBounds')
     dependsOn tasks.named('validateThermalParity')
     dependsOn tasks.named('validatePowerParity')
@@ -11870,6 +12290,7 @@ tasks.named('build') {
 
 tasks.named('check') {
     dependsOn tasks.named('validateLangFiles')
+    dependsOn tasks.named('validateDoorRenderingIntegrity')
     dependsOn tasks.named('validateMachineRecipeModeMatrix')
     dependsOn tasks.named('validateModernOreGeology')
     dependsOn tasks.named('validateChunkSlicedOilWorldgen')
