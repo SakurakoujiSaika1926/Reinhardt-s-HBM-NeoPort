@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class CoolingTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CoolingTowerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation SMALL_WORLD = MachineModelRenderer.standalone("block/machine_tower_small_world");
     private static final ModelResourceLocation LARGE_WORLD = MachineModelRenderer.standalone("block/machine_tower_large_world");
 
@@ -45,8 +46,7 @@ public class CoolingTowerBlockEntityRenderer implements LongRangeBlockEntityRend
                                          int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applySmallTowerWorldPose(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SMALL_WORLD), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SMALL_WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -54,8 +54,7 @@ public class CoolingTowerBlockEntityRenderer implements LongRangeBlockEntityRend
                                          int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyLargeTowerWorldPose(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LARGE_WORLD), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LARGE_WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

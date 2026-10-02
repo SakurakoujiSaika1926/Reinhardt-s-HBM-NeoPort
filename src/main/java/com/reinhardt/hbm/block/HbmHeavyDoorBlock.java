@@ -2,6 +2,7 @@ package com.reinhardt.hbm.block;
 
 import com.reinhardt.hbm.blockentity.HbmHeavyDoorBlockEntity;
 import com.reinhardt.hbm.blockentity.HbmHeavyDoorPartBlockEntity;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.door.HbmDoorDecl;
 import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -1556,7 +1557,8 @@ public class HbmHeavyDoorBlock extends Block implements EntityBlock {
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof HbmHeavyDoorBlockEntity door) {
+        if (!level.isClientSide && allowsManualToggle()
+                && level.getBlockEntity(pos) instanceof HbmHeavyDoorBlockEntity door) {
             door.toggle();
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -1573,10 +1575,15 @@ public class HbmHeavyDoorBlock extends Block implements EntityBlock {
         if (player.isShiftKeyDown()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof HbmHeavyDoorBlockEntity door) {
+        if (!level.isClientSide && allowsManualToggle()
+                && level.getBlockEntity(pos) instanceof HbmHeavyDoorBlockEntity door) {
             door.toggle();
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private boolean allowsManualToggle() {
+        return !HbmConfig.ULTRA_LARP_MODE.get() || this.decl == HbmDoorDecl.WATER_DOOR;
     }
 
     @Nullable

@@ -138,6 +138,8 @@ public class PurexBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
     public static void tick(Level level, BlockPos pos, BlockState state, PurexBlockEntity purex) {
         if (level.isClientSide) {
+            purex.updateClientAnimation();
+            com.reinhardt.hbm.client.sound.PurexClientSounds.tick(purex);
             return;
         }
         PowerNetworkManager.tickFromEndpoint(level, purex);
@@ -386,6 +388,10 @@ public class PurexBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
     public boolean clientFrame() {
         return this.clientFrame;
+    }
+
+    public boolean isClientWorking() {
+        return this.didProcess;
     }
 
     public double clientAnim(float partialTick) {

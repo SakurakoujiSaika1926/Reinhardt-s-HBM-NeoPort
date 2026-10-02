@@ -702,11 +702,20 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
         return group >= 0 && group < this.clientAnimations.length ? this.clientAnimations[group].slider(partialTick) : 0.0D;
     }
 
-    public double[] clientArmPositions(int group, boolean saw, float partialTick) {
-        if (group < 0 || group >= this.clientAnimations.length) {
-            return new double[] {0.0D, 0.0D, 0.0D, 0.0D, 0.0D};
+    public void writeClientArmPositions(int group, boolean saw, float partialTick, double[] destination) {
+        if (destination.length < 5) {
+            throw new IllegalArgumentException("Assembly factory arm destination must contain five values");
         }
-        return (saw ? this.clientAnimations[group].saw : this.clientAnimations[group].striker).positions(partialTick);
+        if (group < 0 || group >= this.clientAnimations.length) {
+            destination[0] = 0.0D;
+            destination[1] = 0.0D;
+            destination[2] = 0.0D;
+            destination[3] = 0.0D;
+            destination[4] = 0.0D;
+            return;
+        }
+        (saw ? this.clientAnimations[group].saw : this.clientAnimations[group].striker)
+                .writePositions(partialTick, destination);
     }
 
     private void tickServer(Level level) {
@@ -1846,14 +1855,12 @@ public class AssemblyFactoryBlockEntity extends BlockEntity implements PowerEndp
             return !didMove;
         }
 
-        private double[] positions(float partialTick) {
-            return new double[] {
-                    lerp(this.previous[0], this.angles[0], partialTick),
-                    lerp(this.previous[1], this.angles[1], partialTick),
-                    lerp(this.previous[2], this.angles[2], partialTick),
-                    lerp(this.previous[3], this.angles[3], partialTick),
-                    lerp(this.previousSawAngle, this.sawAngle, partialTick)
-            };
+        private void writePositions(float partialTick, double[] destination) {
+            destination[0] = lerp(this.previous[0], this.angles[0], partialTick);
+            destination[1] = lerp(this.previous[1], this.angles[1], partialTick);
+            destination[2] = lerp(this.previous[2], this.angles[2], partialTick);
+            destination[3] = lerp(this.previous[3], this.angles[3], partialTick);
+            destination[4] = lerp(this.previousSawAngle, this.sawAngle, partialTick);
         }
 
         private static double lerp(double previous, double current, float partialTick) {

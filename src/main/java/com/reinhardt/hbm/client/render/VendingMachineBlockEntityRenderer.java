@@ -15,6 +15,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Literal RenderVendingMachine orientation mapping with separate legacy OBJ groups. */
 public final class VendingMachineBlockEntityRenderer implements LongRangeBlockEntityRenderer<VendingMachineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation SODA = MachineModelRenderer.standalone("block/vending_machine_soda");
     private static final ModelResourceLocation SNACKS = MachineModelRenderer.standalone("block/vending_machine_snacks");
     private static final AABB NORTH_RENDER_BOUNDS = createVendingMachineLocalBounds(Direction.NORTH);
@@ -36,8 +37,8 @@ public final class VendingMachineBlockEntityRenderer implements LongRangeBlockEn
         BlockState state = vending.getBlockState();
         poseStack.pushPose();
         applyVendingMachinePose(poseStack, vendingMachineFacing(state));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(vending.snacks() ? SNACKS : SODA), poseStack,
-                bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(vending.snacks() ? SNACKS : SODA,
+                poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

@@ -15,7 +15,8 @@
     {
       "fluid": "petroleum",
       "amount": 200,
-      "pressure": 1
+      "pressure": 1,
+      "pressure_528_only": true
     },
     {
       "fluid": "nitric_acid",

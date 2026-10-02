@@ -56,7 +56,7 @@ public class SolidifierBlockEntity extends BlockEntity implements PowerEndpoint,
     public static final int TANK_CAPACITY = 24_000;
     public static final long MAX_POWER = 100_000L;
     public static final int BASE_USAGE = 500;
-    public static final int BASE_PROCESS_TIME = 100;
+    public static final int BASE_PROCESS_TIME = 60;
 
     private static final int[] AUTOMATION_SLOTS = {OUTPUT_SLOT};
     private static final int[] OUTPUT_SLOTS = {OUTPUT_SLOT};

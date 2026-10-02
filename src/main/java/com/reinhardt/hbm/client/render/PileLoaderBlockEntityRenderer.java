@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Exact current-upstream renderer for the Chicago Pile MK2 fuel loader. */
 public final class PileLoaderBlockEntityRenderer implements LongRangeBlockEntityRenderer<PileLoaderBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/pile_loader_body");
     private static final ModelResourceLocation LEVER = MachineModelRenderer.standalone("block/pile_loader_lever");
     private static final ModelResourceLocation SLIDER = MachineModelRenderer.standalone("block/pile_loader_slider");
@@ -89,7 +90,6 @@ public final class PileLoaderBlockEntityRenderer implements LongRangeBlockEntity
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource buffers, BlockState state,
                                    int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(model), poseStack, buffers, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 }

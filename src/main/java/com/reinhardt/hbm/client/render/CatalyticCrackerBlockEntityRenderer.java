@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class CatalyticCrackerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CatalyticCrackerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_catalytic_cracker");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildCatalyticCrackerBounds();
 
     public CatalyticCrackerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -30,7 +31,7 @@ public class CatalyticCrackerBlockEntityRenderer implements LongRangeBlockEntity
 
         poseStack.pushPose();
         applyCatalyticCrackerTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

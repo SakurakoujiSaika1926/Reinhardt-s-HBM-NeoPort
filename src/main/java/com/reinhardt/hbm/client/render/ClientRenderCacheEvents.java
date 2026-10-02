@@ -34,6 +34,7 @@ public final class ClientRenderCacheEvents {
 
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        StaticMachineVboCache.invalidateAll();
         MachineModelRenderer.invalidateModelCache();
         PowerPylonClientGeometry.clearGeometryGenerationAfterLogout();
         DfcComponentClientHooks.clearGeometryGenerationAfterLogout();

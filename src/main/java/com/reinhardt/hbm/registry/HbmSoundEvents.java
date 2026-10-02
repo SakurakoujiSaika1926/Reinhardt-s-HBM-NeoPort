@@ -126,11 +126,14 @@ public final class HbmSoundEvents {
     public static final DeferredHolder<SoundEvent, SoundEvent> GEIGER_5 = sound("item.geiger5");
     public static final DeferredHolder<SoundEvent, SoundEvent> GEIGER_6 = sound("item.geiger6");
     public static final DeferredHolder<SoundEvent, SoundEvent> STEP_IRON = sound("step.iron");
+    public static final DeferredHolder<SoundEvent, SoundEvent> STEP_IRON_LAND = sound("step.iron_land");
+    public static final DeferredHolder<SoundEvent, SoundEvent> STEP_POWERED = sound("step.powered");
     public static final DeferredHolder<SoundEvent, SoundEvent> ITEM_UNPACK = sound("item.unpack");
     public static final DeferredHolder<SoundEvent, SoundEvent> PIN_UNLOCK = sound("item.pinunlock");
     public static final DeferredHolder<SoundEvent, SoundEvent> PIN_BREAK = sound("item.pinbreak");
     public static final DeferredHolder<SoundEvent, SoundEvent> UPGRADE_PLUG = sound("item.upgradeplug");
     public static final DeferredHolder<SoundEvent, SoundEvent> PILE_BOLT_OPEN = sound("block.pile_bolt_open");
+    public static final DeferredHolder<SoundEvent, SoundEvent> VENDING_MACHINE_DISPENSE = sound("block.vending_machine_dispense");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUIT_BATTERY = sound("item.battery");
     public static final DeferredHolder<SoundEvent, SoundEvent> PLAYER_COUGH = sound("player.cough");
     public static final DeferredHolder<SoundEvent, SoundEvent> PLAYER_GULP = sound("player.gulp");

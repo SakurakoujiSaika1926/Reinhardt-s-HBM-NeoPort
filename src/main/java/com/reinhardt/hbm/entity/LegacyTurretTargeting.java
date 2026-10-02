@@ -113,6 +113,9 @@ public final class LegacyTurretTargeting {
         if (entity instanceof AbstractMinecart) {
             return true;
         }
+        if (entity instanceof LegacyArtilleryShellEntity || entity instanceof LegacyHimarsRocketEntity) {
+            return true;
+        }
         if (entity instanceof LegacyTurretMachineTarget target) {
             return target.turretTargetKind() != LegacyTurretMachineTarget.TargetKind.MISSILE
                     || entity.getDeltaMovement().y < 0.0D;

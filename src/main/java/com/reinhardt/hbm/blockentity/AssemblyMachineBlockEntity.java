@@ -1027,8 +1027,11 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
         return lerp(this.clientPrevRing, this.clientRing, partialTick);
     }
 
-    public double[] clientArmPositions(int index, float partialTick) {
-        return this.clientArms[index].positions(partialTick);
+    public void writeClientArmPositions(int index, float partialTick, double[] destination) {
+        if (destination.length < 4) {
+            throw new IllegalArgumentException("Assembly machine arm destination must contain four values");
+        }
+        this.clientArms[index].writePositions(partialTick, destination);
     }
 
     private void stepClientAnimation() {
@@ -1306,13 +1309,11 @@ public class AssemblyMachineBlockEntity extends BlockEntity implements PowerEndp
             return !didMove;
         }
 
-        private double[] positions(float partialTick) {
-            return new double[] {
-                    lerp(this.prevAngles[0], this.angles[0], partialTick),
-                    lerp(this.prevAngles[1], this.angles[1], partialTick),
-                    lerp(this.prevAngles[2], this.angles[2], partialTick),
-                    lerp(this.prevAngles[3], this.angles[3], partialTick)
-            };
+        private void writePositions(float partialTick, double[] destination) {
+            destination[0] = lerp(this.prevAngles[0], this.angles[0], partialTick);
+            destination[1] = lerp(this.prevAngles[1], this.angles[1], partialTick);
+            destination[2] = lerp(this.prevAngles[2], this.angles[2], partialTick);
+            destination[3] = lerp(this.prevAngles[3], this.angles[3], partialTick);
         }
 
         private enum ArmActionState {

@@ -15,6 +15,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -46,6 +47,7 @@ public class LegacyHimarsRocketEntity extends Entity implements LegacyRadarDetec
     private double velocityY;
     private double velocityZ;
     private int turnProgress;
+    private int health = 100;
 
     public LegacyHimarsRocketEntity(EntityType<? extends LegacyHimarsRocketEntity> type, Level level) {
         super(type, level);
@@ -66,6 +68,20 @@ public class LegacyHimarsRocketEntity extends Entity implements LegacyRadarDetec
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(ROCKET_TYPE, 0);
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (isInvulnerableTo(source)) {
+            return false;
+        }
+        if (this.health > 0 && !level().isClientSide) {
+            this.health -= (int) amount;
+            if (this.health <= 0) {
+                discard();
+            }
+        }
+        return true;
     }
 
     public LegacyProjectileUtil.HimarsType rocketType() {

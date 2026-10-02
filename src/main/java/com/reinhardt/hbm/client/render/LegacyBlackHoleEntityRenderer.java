@@ -73,8 +73,12 @@ public final class LegacyBlackHoleEntityRenderer extends EntityRenderer<LegacyBl
         poseStack.mulPose(Axis.YP.rotationDegrees(entity.getId() % 360));
         poseStack.mulPose(Axis.YP.rotationDegrees(-(entity.tickCount + partialTick) * 5.0F));
         float inner = size * 3.0F;
+        int red = entity.isRaging() ? 0xE8 : 0xFF;
+        int green = entity.isRaging() ? 0x39 : 0xB9;
+        int blue = entity.isRaging() ? 0x0D : 0x00;
+        float alpha = entity.isRaging() ? 0.08F : 0.22F;
         for (int ring = 0; ring < 2; ring++) {
-            emitHorizontalDisc(poseStack.last(), consumer, inner * (ring + 1), 0.22F / (ring + 1), 0x38, 0x98, 0xB3);
+            emitHorizontalDisc(poseStack.last(), consumer, inner * (ring + 1), alpha / (ring + 1), red, green, blue);
         }
         poseStack.popPose();
     }

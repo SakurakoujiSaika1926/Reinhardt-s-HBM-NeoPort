@@ -87,6 +87,7 @@ public final class TurbofanClientSounds {
             }
             double distance = Math.sqrt(minecraft.player.distanceToSqr(this.x, this.y, this.z));
             this.volume = distance >= AUDIBLE_DISTANCE ? 0.0F : (float) (2.0D * (1.0D - distance / AUDIBLE_DISTANCE));
+            this.volume = com.reinhardt.hbm.util.MachineMuffler.attenuate(blockEntity, this.volume);
             this.pitch = turbofan.turbofanMomentum() / 200.0F + 0.5F + turbofan.turbofanAfterburner() * 0.16F;
         }
 

@@ -15,6 +15,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class ParticleAcceleratorBlockEntityRenderer implements LongRangeBlockEntityRenderer<ParticleAcceleratorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation SOURCE = MachineModelRenderer.standalone("block/pa_source");
     private static final ModelResourceLocation BEAMLINE_BODY = MachineModelRenderer.standalone("block/pa_beamline_body");
     private static final ModelResourceLocation BEAMLINE_GLASS = MachineModelRenderer.standalone("block/pa_beamline_glass");
@@ -66,33 +67,33 @@ public class ParticleAcceleratorBlockEntityRenderer implements LongRangeBlockEnt
         switch (accelerator.kind()) {
             case SOURCE -> {
                 applySourcePose(poseStack, sourceFacing(state));
-                MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SOURCE), poseStack, bufferSource, state, packedLight, packedOverlay);
+                STATIC_MESHES.render(SOURCE, poseStack, state, packedLight, packedOverlay);
             }
             case BEAMLINE -> {
                 applyBeamlinePose(poseStack, beamlineFacing(state));
                 if (accelerator.hasBeamlineWindow()) {
-                    MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BEAMLINE_WINDOW), poseStack, bufferSource, state, packedLight, packedOverlay);
+                    STATIC_MESHES.render(BEAMLINE_WINDOW, poseStack, state, packedLight, packedOverlay);
                     int alpha = Math.min(255, Math.max(48, Math.round(accelerator.beamlineLight(partialTick) * 120.0F)));
                     MachineModelRenderer.renderUnculledTintedTranslucent(MachineModelRenderer.model(BEAMLINE_GLASS), poseStack, bufferSource, state, LightTexture.FULL_BRIGHT, packedOverlay, (alpha << 24) | 0xE6E6FF);
                 } else {
-                    MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BEAMLINE_BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+                    STATIC_MESHES.render(BEAMLINE_BODY, poseStack, state, packedLight, packedOverlay);
                 }
             }
             case RFC -> {
                 applyRfcPose(poseStack, rfcFacing(state));
-                MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RFC), poseStack, bufferSource, state, packedLight, packedOverlay);
+                STATIC_MESHES.render(RFC, poseStack, state, packedLight, packedOverlay);
             }
             case QUADRUPOLE -> {
                 applyQuadrupolePose(poseStack, quadrupoleFacing(state));
-                MachineModelRenderer.renderUnculled(MachineModelRenderer.model(QUADRUPOLE), poseStack, bufferSource, state, packedLight, packedOverlay);
+                STATIC_MESHES.render(QUADRUPOLE, poseStack, state, packedLight, packedOverlay);
             }
             case DIPOLE -> {
                 applyDipolePose(poseStack);
-                MachineModelRenderer.renderUnculled(MachineModelRenderer.model(DIPOLE), poseStack, bufferSource, state, packedLight, packedOverlay);
+                STATIC_MESHES.render(DIPOLE, poseStack, state, packedLight, packedOverlay);
             }
             case DETECTOR -> {
                 applyDetectorPose(poseStack, detectorFacing(state));
-                MachineModelRenderer.renderUnculled(MachineModelRenderer.model(DETECTOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+                STATIC_MESHES.render(DETECTOR, poseStack, state, packedLight, packedOverlay);
             }
         }
         poseStack.popPose();

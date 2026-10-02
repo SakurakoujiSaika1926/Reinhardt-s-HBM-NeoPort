@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class RotaryFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<RotaryFurnaceBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation FURNACE_MODEL = MachineModelRenderer.standalone("block/machine_rotary_furnace_furnace");
     private static final ModelResourceLocation PISTON_MODEL = MachineModelRenderer.standalone("block/machine_rotary_furnace_piston");
     private static final AABB NORTH_BOUNDS = createRotaryFurnaceLocalBounds(Direction.NORTH);
@@ -34,10 +35,10 @@ public class RotaryFurnaceBlockEntityRenderer implements LongRangeBlockEntityRen
         BlockState state = furnace.getBlockState();
         poseStack.pushPose();
         applyRotaryFurnacePose(poseStack, rotaryFurnaceFacing(state));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FURNACE_MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FURNACE_MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0D, furnace.pistonOffset(partialTick), 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PISTON_MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PISTON_MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }

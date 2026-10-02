@@ -3,6 +3,7 @@ package com.reinhardt.hbm.blockentity;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.block.MustardGasBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidRelease;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.HbmFluidTrait;
@@ -62,7 +63,7 @@ public class DrainBlockEntity extends BlockEntity implements FluidCopiable {
             return;
         }
         if (!MUSTARD_GAS_FLUID.equals(fluid.name())) {
-            HbmPollution.polluteFluid(level, pos, fluid, HbmPollution.ReleaseType.SPILL, spilled.amount());
+            HbmFluidRelease.onRelease(level, pos, fluid, HbmPollution.ReleaseType.SPILL, spilled.amount());
         }
         drain.tryReleaseMustardGas(level, state, fluid);
         drain.tryPlaceOilSpill(level, state, spilled.amount(), fluid);

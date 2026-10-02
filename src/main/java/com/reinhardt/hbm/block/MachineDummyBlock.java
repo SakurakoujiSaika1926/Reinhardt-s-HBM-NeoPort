@@ -191,8 +191,11 @@ public class MachineDummyBlock extends Block implements EntityBlock {
         }
         if (level.getBlockEntity(pos) instanceof MachineDummyBlockEntity tankPart
                 && level.getBlockEntity(tankPart.getCorePos()) instanceof FluidTankBlockEntity tank) {
-            if (player.isShiftKeyDown() || tank.isDamaged()) {
+            if (player.isShiftKeyDown()) {
                 return InteractionResult.PASS;
+            }
+            if (tank.isDamaged()) {
+                return FluidTankBlock.damagedInteraction(level, player);
             }
             if (level.isClientSide) {
                 return InteractionResult.SUCCESS;
@@ -322,6 +325,14 @@ public class MachineDummyBlock extends Block implements EntityBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
+        if (VendingMachineBlock.isCoinToken(stack)
+                && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy) {
+            BlockPos corePos = dummy.getCorePos();
+            BlockState coreState = level.getBlockState(corePos);
+            if (coreState.getBlock() instanceof VendingMachineBlock) {
+                return VendingMachineBlock.useOnPart(stack, level, pos, corePos, player);
+            }
+        }
         if (stack.getItem() instanceof com.reinhardt.hbm.item.SatelliteChipItem
                 && level.getBlockEntity(pos) instanceof MachineDummyBlockEntity dummy
                 && level.getBlockEntity(dummy.getCorePos()) instanceof com.reinhardt.hbm.blockentity.SatelliteGroundStationBlockEntity) {

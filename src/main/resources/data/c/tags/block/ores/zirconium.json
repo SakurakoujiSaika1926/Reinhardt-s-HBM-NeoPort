@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:ore_depth_zirconium"
+    "reinhardtshbm:ore_zirconium",
+    "reinhardtshbm:ore_deepslate_zirconium"
   ]
 }

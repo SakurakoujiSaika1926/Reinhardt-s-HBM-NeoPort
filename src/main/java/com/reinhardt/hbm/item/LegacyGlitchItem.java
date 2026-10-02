@@ -1,13 +1,14 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.entity.LegacyVortexEntity;
 import com.reinhardt.hbm.explosion.NukeExplosionManager;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
-import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.entity.MeteorEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -38,14 +39,17 @@ public final class LegacyGlitchItem extends Item {
                 case 2 -> player.hurt(level.damageSources().source(HbmDamageTypes.RADIATION), 1000.0F);
                 case 4 -> LegacyVortexEntity.spawn(level, player.position(), 1.5F, 0.0025F, false);
                 case 5, 6, 7 -> player.addItem(new ItemStack(HbmBlocks.BLOCK_METEOR_TREASURE.get(), roll == 5 ? 1 : roll == 6 ? 3 : 10));
-                case 9 -> player.displayClientMessage(Component.translatable("message.reinhardtshbm.glitch.advanced_kit"), true);
-                case 10 -> player.displayClientMessage(Component.translatable("message.reinhardtshbm.glitch.starter_kit"), true);
+                case 9 -> player.addItem(new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("nuke_advanced_kit"))));
+                case 10 -> player.addItem(new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("nuke_starter_kit"))));
                 case 14 -> {
                     player.getInventory().dropAll();
                     level.explode(player, player.getX(), player.getY(), player.getZ(), 0.0F, Level.ExplosionInteraction.NONE);
                 }
                 case 15 -> player.addItem(new ItemStack(net.minecraft.world.item.Items.DIRT, 36 * 64));
-                case 21 -> player.displayClientMessage(Component.translatable("message.reinhardtshbm.glitch.missile"), true);
+                case 21 -> {
+                    player.addItem(new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("missile_nuclear"))));
+                    player.displayClientMessage(Component.translatable("message.reinhardtshbm.glitch.missile"), true);
+                }
                 case 24 -> player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 60 * 20, 9));
                 case 25 -> player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 60 * 20, 9));
                 case 26 -> player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60 * 20, 9));

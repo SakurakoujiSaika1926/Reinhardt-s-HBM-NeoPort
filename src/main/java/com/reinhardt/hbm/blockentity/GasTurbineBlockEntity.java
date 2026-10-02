@@ -4,6 +4,7 @@ import com.reinhardt.hbm.block.GasTurbineBlock;
 import com.reinhardt.hbm.client.sound.GasTurbineClientSounds;
 import com.reinhardt.hbm.fluid.CombustibleFuelGrade;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidRelease;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.BatteryPackItem;
@@ -752,7 +753,7 @@ public class GasTurbineBlockEntity extends BlockEntity implements PowerEndpoint,
                 this.fuelTank.setAmount(0);
                 this.state = 0;
             }
-            HbmPollution.polluteFluid(level, this.worldPosition, burnedFuel, HbmPollution.ReleaseType.BURN, fuelConsumed * 5.0D);
+            HbmFluidRelease.onRelease(level, this.worldPosition, burnedFuel, HbmPollution.ReleaseType.BURN, fuelConsumed * 5.0D);
             if (!burnedFuel.name().equals("oxyhydrogen") && level.getGameTime() % 20L == 0L) {
                 HbmPollution.increment(level, this.worldPosition, HbmPollutionType.SOOT, HbmPollutionConstants.SOOT_PER_SECOND * 3.0D);
             }

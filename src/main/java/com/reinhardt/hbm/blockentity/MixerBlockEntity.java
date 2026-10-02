@@ -60,6 +60,35 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     private static final int PUSH_PER_PORT = 8_000;
     private static final int[] AUTOMATION_SLOTS = {SOLID_INPUT_SLOT};
 
+    private enum InputLayout {
+        DIRECT(0, 1),
+        SWAPPED(1, 0),
+        SINGLE_TANK_1(0, -1),
+        SINGLE_TANK_2(1, -1),
+        NONE(-1, -1),
+        INVALID(-1, -1);
+
+        private final int input1Tank;
+        private final int input2Tank;
+
+        InputLayout(int input1Tank, int input2Tank) {
+            this.input1Tank = input1Tank;
+            this.input2Tank = input2Tank;
+        }
+
+        private int input1Tank() {
+            return this.input1Tank;
+        }
+
+        private int input2Tank() {
+            return this.input2Tank;
+        }
+
+        private boolean isValid() {
+            return this != INVALID;
+        }
+    }
+
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank inputTank1 = new HbmFluidTank(INPUT_TANK_CAPACITY);
     private final HbmFluidTank inputTank2 = new HbmFluidTank(INPUT_TANK_CAPACITY);
@@ -74,6 +103,10 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     private boolean working;
     private float rotation;
     private float prevRotation;
+    @Nullable
+    private MixerRecipe cachedInputLayoutRecipe;
+    private InputLayout cachedInputLayout = InputLayout.INVALID;
+    private boolean inputLayoutDirty = true;
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -255,11 +288,15 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     public void cycleRecipe() {
         List<RecipeHolder<MixerRecipe>> recipes = outputRecipes();
         if (recipes.isEmpty()) {
+            if (this.recipeIndex != 0) {
+                markInputLayoutDirty();
+            }
             this.recipeIndex = 0;
             return;
         }
         this.recipeIndex = (this.recipeIndex + 1) % recipes.size();
         this.progress = 0;
+        markInputLayoutDirty();
         setChangedAndSync(true);
     }
 
@@ -442,6 +479,9 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         if (this.outputTank.amount() == 0 && !this.configuredOutput.isNone()) {
             this.outputTank.setType(this.configuredOutput);
         }
+        this.cachedInputLayoutRecipe = null;
+        this.cachedInputLayout = InputLayout.INVALID;
+        this.inputLayoutDirty = true;
         updateUpgrades();
     }
 
@@ -560,13 +600,16 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     }
 
     private boolean canProcess(MixerRecipe recipe) {
-        recipe.input1().ifPresentOrElse(input -> this.inputTank1.setType(input.fluid()), this.inputTank1::clear);
-        recipe.input2().ifPresentOrElse(input -> this.inputTank2.setType(input.fluid()), this.inputTank2::clear);
-
-        if (recipe.input1().isPresent() && !hasFluid(this.inputTank1, recipe.input1().get())) {
+        InputLayout layout = inputLayout(recipe);
+        if (!layout.isValid()) {
             return false;
         }
-        if (recipe.input2().isPresent() && !hasFluid(this.inputTank2, recipe.input2().get())) {
+        if (recipe.input1().isPresent()
+                && !hasFluid(inputTank(layout.input1Tank()), recipe.input1().get())) {
+            return false;
+        }
+        if (recipe.input2().isPresent()
+                && !hasFluid(inputTank(layout.input2Tank()), recipe.input2().get())) {
             return false;
         }
         if (recipe.output().fluid().isNone()) {
@@ -586,14 +629,19 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
     }
 
     private boolean hasFluid(HbmFluidTank tank, MixerRecipe.FluidStackDef required) {
-        return tank.type() == required.fluid()
+        return tank != null
+                && tank.type() == required.fluid()
                 && tank.pressure() == required.pressure()
                 && tank.amount() >= required.amount();
     }
 
     private void finishRecipe(MixerRecipe recipe) {
-        recipe.input1().ifPresent(input -> this.inputTank1.drain(input.fluid(), input.amount(), false));
-        recipe.input2().ifPresent(input -> this.inputTank2.drain(input.fluid(), input.amount(), false));
+        InputLayout layout = inputLayout(recipe);
+        if (!layout.isValid()) {
+            return;
+        }
+        recipe.input1().ifPresent(input -> drainRecipeInput(layout.input1Tank(), input));
+        recipe.input2().ifPresent(input -> drainRecipeInput(layout.input2Tank(), input));
         recipe.solidInput().ifPresent(input -> {
             ItemStack solid = this.items.get(SOLID_INPUT_SLOT);
             solid.shrink(input.count());
@@ -603,6 +651,125 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         });
         this.outputTank.fill(recipe.output().fluid(), recipe.output().amount(), recipe.output().pressure(), false);
         this.configuredOutput = recipe.output().fluid();
+    }
+
+    private void drainRecipeInput(int tankIndex, MixerRecipe.FluidStackDef input) {
+        HbmFluidTank tank = inputTank(tankIndex);
+        if (tank != null) {
+            tank.drain(input.fluid(), input.amount(), false);
+        }
+    }
+
+    @Nullable
+    private HbmFluidTank inputTank(int tankIndex) {
+        return switch (tankIndex) {
+            case 0 -> this.inputTank1;
+            case 1 -> this.inputTank2;
+            default -> null;
+        };
+    }
+
+    private InputLayout inputLayout(MixerRecipe recipe) {
+        if (this.inputLayoutDirty || this.cachedInputLayoutRecipe != recipe) {
+            this.cachedInputLayoutRecipe = recipe;
+            this.cachedInputLayout = resolveInputLayout(recipe, -1, null);
+            this.inputLayoutDirty = false;
+        }
+        return this.cachedInputLayout;
+    }
+
+    private void cacheInputLayout(MixerRecipe recipe, InputLayout layout) {
+        this.cachedInputLayoutRecipe = recipe;
+        this.cachedInputLayout = layout;
+        this.inputLayoutDirty = false;
+    }
+
+    private void markInputLayoutDirty() {
+        this.inputLayoutDirty = true;
+    }
+
+    private InputLayout resolveInputLayout(
+            MixerRecipe recipe,
+            int pendingTankIndex,
+            @Nullable HbmFluidDefinition pendingFluid
+    ) {
+        MixerRecipe.FluidStackDef input1 = recipe.input1().orElse(null);
+        MixerRecipe.FluidStackDef input2 = recipe.input2().orElse(null);
+        if (input1 == null && input2 == null) {
+            return InputLayout.NONE;
+        }
+        if (input1 == null) {
+            return InputLayout.INVALID;
+        }
+        if (input2 == null) {
+            boolean tank1Possible = canTankServeInput(0, input1, pendingTankIndex, pendingFluid);
+            boolean tank2Possible = canTankServeInput(1, input1, pendingTankIndex, pendingFluid);
+            if (!tank1Possible && !tank2Possible) {
+                return InputLayout.INVALID;
+            }
+            if (tank1Possible && tank2Possible) {
+                int tank1Preference = inputAssignmentPreference(0, input1, pendingTankIndex, pendingFluid);
+                int tank2Preference = inputAssignmentPreference(1, input1, pendingTankIndex, pendingFluid);
+                return tank2Preference > tank1Preference ? InputLayout.SINGLE_TANK_2 : InputLayout.SINGLE_TANK_1;
+            }
+            return tank1Possible ? InputLayout.SINGLE_TANK_1 : InputLayout.SINGLE_TANK_2;
+        }
+
+        boolean directPossible = canTankServeInput(0, input1, pendingTankIndex, pendingFluid)
+                && canTankServeInput(1, input2, pendingTankIndex, pendingFluid);
+        boolean swappedPossible = canTankServeInput(0, input2, pendingTankIndex, pendingFluid)
+                && canTankServeInput(1, input1, pendingTankIndex, pendingFluid);
+        if (!directPossible && !swappedPossible) {
+            return InputLayout.INVALID;
+        }
+        if (directPossible && swappedPossible) {
+            int directPreference = inputAssignmentPreference(0, input1, pendingTankIndex, pendingFluid)
+                    + inputAssignmentPreference(1, input2, pendingTankIndex, pendingFluid);
+            int swappedPreference = inputAssignmentPreference(0, input2, pendingTankIndex, pendingFluid)
+                    + inputAssignmentPreference(1, input1, pendingTankIndex, pendingFluid);
+            return swappedPreference > directPreference ? InputLayout.SWAPPED : InputLayout.DIRECT;
+        }
+        return directPossible ? InputLayout.DIRECT : InputLayout.SWAPPED;
+    }
+
+    private boolean canTankServeInput(
+            int tankIndex,
+            MixerRecipe.FluidStackDef input,
+            int pendingTankIndex,
+            @Nullable HbmFluidDefinition pendingFluid
+    ) {
+        HbmFluidTank tank = inputTank(tankIndex);
+        if (tank == null) {
+            return false;
+        }
+        if (tankIndex == pendingTankIndex) {
+            if (pendingFluid != input.fluid()) {
+                return false;
+            }
+            return tank.amount() == 0
+                    || (tank.type() == input.fluid() && tank.pressure() == input.pressure());
+        }
+        return tank.amount() == 0
+                || (tank.type() == input.fluid() && tank.pressure() == input.pressure());
+    }
+
+    private int inputAssignmentPreference(
+            int tankIndex,
+            MixerRecipe.FluidStackDef input,
+            int pendingTankIndex,
+            @Nullable HbmFluidDefinition pendingFluid
+    ) {
+        if (tankIndex == pendingTankIndex) {
+            return pendingFluid == input.fluid() ? 4 : 0;
+        }
+        HbmFluidTank tank = inputTank(tankIndex);
+        if (tank == null || tank.type() != input.fluid()) {
+            return 0;
+        }
+        if (tank.amount() > 0 && tank.pressure() != input.pressure()) {
+            return 0;
+        }
+        return tank.amount() > 0 ? 2 : 1;
     }
 
     private int effectiveProcessTime(MixerRecipe recipe) {
@@ -654,11 +821,16 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
         if (this.outputTank.amount() > 0 && this.outputTank.type() != fluid) {
             return;
         }
+        boolean outputChanged = this.configuredOutput != fluid;
         this.configuredOutput = fluid;
         if (this.outputTank.amount() == 0) {
             this.outputTank.setType(fluid);
         }
-        this.recipeIndex = Math.floorMod(this.recipeIndex, Math.max(1, outputRecipes().size()));
+        int normalizedRecipeIndex = Math.floorMod(this.recipeIndex, Math.max(1, outputRecipes().size()));
+        if (outputChanged || this.recipeIndex != normalizedRecipeIndex) {
+            markInputLayoutDirty();
+        }
+        this.recipeIndex = normalizedRecipeIndex;
         setChangedAndSync(true);
     }
 
@@ -778,17 +950,21 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
 
         @Override
         public boolean isFluidValid(int tankIndex, FluidStack stack) {
-            if (tankIndex > 1 || stack.isEmpty() || !allowsFluidPort(this.queriedPos, this.side)) {
+            if (tankIndex < 0 || tankIndex > 1 || stack.isEmpty() || !allowsFluidPort(this.queriedPos, this.side)) {
                 return false;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(stack.getFluid()).orElse(HbmFluids.none());
             if (fluid.isNone()) {
                 return false;
             }
-            return outputRecipes().stream().anyMatch(holder ->
-                    holder.value().input1().map(input -> input.fluid() == fluid).orElse(false)
-                            || holder.value().input2().map(input -> input.fluid() == fluid).orElse(false)
-            );
+            RecipeHolder<MixerRecipe> selected = selectedRecipe();
+            if (selected == null) {
+                return false;
+            }
+            MixerRecipe recipe = selected.value();
+            InputLayout layout = resolveInputLayout(recipe, tankIndex, fluid);
+            MixerRecipe.FluidStackDef expected = inputForTank(recipe, layout, tankIndex);
+            return layout.isValid() && expected != null && expected.fluid() == fluid;
         }
 
         @Override
@@ -800,11 +976,47 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             if (fluid.isNone()) {
                 return 0;
             }
-            int filled = fillInputTank(inputTank1, fluid, resource.getAmount(), action.simulate());
-            if (filled <= 0) {
-                filled = fillInputTank(inputTank2, fluid, resource.getAmount(), action.simulate());
+            RecipeHolder<MixerRecipe> selected = selectedRecipe();
+            if (selected == null) {
+                return 0;
+            }
+            MixerRecipe recipe = selected.value();
+            MixerRecipe.FluidStackDef input1 = recipe.input1().orElse(null);
+            MixerRecipe.FluidStackDef input2 = recipe.input2().orElse(null);
+            int filled;
+            InputLayout filledLayout;
+            if (input1 != null && input2 != null
+                    && input1.fluid() == fluid && input2.fluid() == fluid) {
+                filledLayout = inputLayout(recipe);
+                filled = fillSameFluidInputs(
+                        input1,
+                        input2,
+                        filledLayout,
+                        resource.getAmount(),
+                        action.simulate()
+                );
+            } else {
+                InputLayout tank1Layout = resolveInputLayout(recipe, 0, fluid);
+                InputLayout tank2Layout = resolveInputLayout(recipe, 1, fluid);
+                MixerRecipe.FluidStackDef tank1Input = inputForTank(recipe, tank1Layout, 0);
+                MixerRecipe.FluidStackDef tank2Input = inputForTank(recipe, tank2Layout, 1);
+                boolean tank1Valid = tank1Layout.isValid()
+                        && tank1Input != null && tank1Input.fluid() == fluid;
+                boolean tank2Valid = tank2Layout.isValid()
+                        && tank2Input != null && tank2Input.fluid() == fluid;
+                if (!tank1Valid && !tank2Valid) {
+                    return 0;
+                }
+
+                boolean preferTank1 = tank1Valid && isTankTypedFor(inputTank1, tank1Input);
+                boolean preferTank2 = tank2Valid && isTankTypedFor(inputTank2, tank2Input);
+                int targetTankIndex = tank1Valid && (!preferTank2 || preferTank1) ? 0 : 1;
+                filledLayout = targetTankIndex == 0 ? tank1Layout : tank2Layout;
+                MixerRecipe.FluidStackDef expected = targetTankIndex == 0 ? tank1Input : tank2Input;
+                filled = fillInputTank(inputTank(targetTankIndex), expected, resource.getAmount(), action.simulate());
             }
             if (filled > 0 && action.execute()) {
+                cacheInputLayout(recipe, filledLayout);
                 setChangedAndSync(true);
             }
             return filled;
@@ -839,11 +1051,82 @@ public class MixerBlockEntity extends BlockEntity implements PowerEndpoint, Mach
             return drained.isEmpty() ? FluidStack.EMPTY : HbmFluids.toNeoStack(fluid, drained.amount());
         }
 
-        private int fillInputTank(HbmFluidTank tank, HbmFluidDefinition fluid, int amount, boolean simulate) {
-            if (!tank.type().isNone() && tank.type() != fluid) {
+        @Nullable
+        private MixerRecipe.FluidStackDef inputForTank(MixerRecipe recipe, InputLayout layout, int tankIndex) {
+            if (layout.input1Tank() == tankIndex) {
+                return recipe.input1().orElse(null);
+            }
+            if (layout.input2Tank() == tankIndex) {
+                return recipe.input2().orElse(null);
+            }
+            return null;
+        }
+
+        private int fillSameFluidInputs(
+                MixerRecipe.FluidStackDef input1,
+                MixerRecipe.FluidStackDef input2,
+                InputLayout layout,
+                int amount,
+                boolean simulate
+        ) {
+            if (!layout.isValid()) {
                 return 0;
             }
-            return tank.fill(fluid, amount, 0, simulate);
+            HbmFluidTank input1Tank = inputTank(layout.input1Tank());
+            HbmFluidTank input2Tank = inputTank(layout.input2Tank());
+            int input1Capacity = availableInputCapacity(input1Tank, input1);
+            int input2Capacity = availableInputCapacity(input2Tank, input2);
+            int firstRound = amount / 2;
+            int input1Amount = Math.min(firstRound, input1Capacity);
+            int input2Amount = Math.min(firstRound, input2Capacity);
+            int remaining = amount - input1Amount - input2Amount;
+            int extraInput1 = Math.min(remaining, input1Capacity - input1Amount);
+            input1Amount += extraInput1;
+            remaining -= extraInput1;
+            input2Amount += Math.min(remaining, input2Capacity - input2Amount);
+
+            if (!simulate) {
+                fillInputTank(input1Tank, input1, input1Amount, false);
+                fillInputTank(input2Tank, input2, input2Amount, false);
+            }
+            return input1Amount + input2Amount;
+        }
+
+        private boolean isTankTypedFor(HbmFluidTank tank, MixerRecipe.FluidStackDef expected) {
+            return tank.type() == expected.fluid()
+                    && (tank.amount() == 0 || tank.pressure() == expected.pressure());
+        }
+
+        private int availableInputCapacity(
+                @Nullable HbmFluidTank tank,
+                @Nullable MixerRecipe.FluidStackDef expected
+        ) {
+            if (tank == null || expected == null
+                    || (tank.amount() > 0
+                    && (tank.type() != expected.fluid() || tank.pressure() != expected.pressure()))) {
+                return 0;
+            }
+            return Math.max(0, tank.capacity() - tank.amount());
+        }
+
+        private int fillInputTank(
+                @Nullable HbmFluidTank tank,
+                @Nullable MixerRecipe.FluidStackDef expected,
+                int amount,
+                boolean simulate
+        ) {
+            if (tank == null || expected == null || amount <= 0) {
+                return 0;
+            }
+            if (tank.amount() == 0) {
+                int accepted = Math.min(amount, tank.capacity());
+                if (!simulate && accepted > 0) {
+                    tank.conform(expected.fluid(), expected.pressure());
+                    return tank.fill(expected.fluid(), accepted, expected.pressure(), false);
+                }
+                return accepted;
+            }
+            return tank.fill(expected.fluid(), amount, expected.pressure(), simulate);
         }
     }
 }

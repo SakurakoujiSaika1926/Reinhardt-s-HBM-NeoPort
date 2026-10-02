@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class BreederReactorBlockEntityRenderer implements LongRangeBlockEntityRenderer<BreederReactorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
     private static final long JAVA_RANDOM_ADDEND = 0xBL;
     private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
@@ -33,7 +34,7 @@ public class BreederReactorBlockEntityRenderer implements LongRangeBlockEntityRe
         Direction facing = breederReactorFacing(state);
         poseStack.pushPose();
         applyBreederTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         if (breeder.progress() > 0.0F) {
             renderWorkingSparks(breeder, poseStack, bufferSource);
         }

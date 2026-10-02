@@ -1,9 +1,10 @@
 {
   "loader": "neoforge:obj",
-  "model": "reinhardtshbm:models/obj/machines/radar_large_dish.obj",
+  "model": "reinhardtshbm:models/obj/machines/radar_large.obj",
   "mtl_override": "reinhardtshbm:models/obj/machines/radar_large.mtl",
   "automatic_culling": false,
   "shade_quads": true,
   "flip_v": true,
+  "visibility": { "Radar": false, "Dish": true },
   "textures": { "particle": "reinhardtshbm:models/machines/radar_large" }
 }

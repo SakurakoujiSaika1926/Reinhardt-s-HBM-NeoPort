@@ -53,7 +53,12 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
     private static final ModelResourceLocation STRIKER_4 = MachineModelRenderer.standalone("block/machine_assembly_factory_striker4");
     private static final ModelResourceLocation BLADE_2 = MachineModelRenderer.standalone("block/machine_assembly_factory_blade2");
     private static final ModelResourceLocation BLADE_4 = MachineModelRenderer.standalone("block/machine_assembly_factory_blade4");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildAssemblyFactoryBounds();
+    private final double[] arm1 = new double[5];
+    private final double[] arm2 = new double[5];
+    private final double[] arm3 = new double[5];
+    private final double[] arm4 = new double[5];
 
     public AssemblyFactoryBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         AssemblyFactoryBlockEntity.setClientRecipeIconsSnapshotUpdater(
@@ -102,24 +107,24 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
         poseStack.pushPose();
         applyAssemblyFactoryTransform(poseStack, facing);
 
-        renderPart(BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
         if (factory.clientFrame()) {
-            renderPart(FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(FRAME, poseStack, state, packedLight, packedOverlay);
         }
 
         double slide1 = factory.clientSlider(0, partialTick);
         double slide2 = factory.clientSlider(1, partialTick);
-        double[] arm1 = factory.clientArmPositions(0, false, partialTick);
-        double[] arm2 = factory.clientArmPositions(0, true, partialTick);
-        double[] arm3 = factory.clientArmPositions(1, false, partialTick);
-        double[] arm4 = factory.clientArmPositions(1, true, partialTick);
+        factory.writeClientArmPositions(0, false, partialTick, this.arm1);
+        factory.writeClientArmPositions(0, true, partialTick, this.arm2);
+        factory.writeClientArmPositions(1, false, partialTick, this.arm3);
+        factory.writeClientArmPositions(1, true, partialTick, this.arm4);
 
-        renderStrikerOne(slide1, arm1, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderSawTwo(slide1, arm2, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderStrikerThree(slide2, arm3, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderSawFour(slide2, arm4, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderStrikerOne(slide1, this.arm1, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderSawTwo(slide1, this.arm2, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderStrikerThree(slide2, this.arm3, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderSawFour(slide2, this.arm4, poseStack, bufferSource, state, packedLight, packedOverlay);
         renderRecipeIcons(factory, recipeIcons, poseStack, bufferSource, packedLight, packedOverlay);
-        renderSparks(factory, partialTick, slide1, slide2, arm2, arm4, poseStack, bufferSource, packedOverlay);
+        renderSparks(factory, partialTick, slide1, slide2, this.arm2, this.arm4, poseStack, bufferSource, packedOverlay);
 
         poseStack.popPose();
     }
@@ -380,7 +385,7 @@ public class AssemblyFactoryBlockEntityRenderer implements LongRangeBlockEntityR
     }
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static AABB[] buildAssemblyFactoryBounds() {

@@ -56,12 +56,6 @@
     }
   ],
   "output_mode": "independent",
-  "expensive_output_weights": [
-    50,
-    50,
-    50,
-    50
-  ],
   "output_fluids": [
     {
       "fluid": "solvent",

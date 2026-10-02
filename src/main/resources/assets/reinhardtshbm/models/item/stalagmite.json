@@ -1,6 +1,11 @@
 {
   "parent": "reinhardtshbm:block/stalagmite_sulfur",
   "overrides": [
-    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/stalagmite_asbestos" }
+    { "predicate": { "minecraft:custom_model_data": 1 }, "model": "reinhardtshbm:block/stalagmite_asbestos" },
+    { "predicate": { "minecraft:custom_model_data": 2 }, "model": "reinhardtshbm:block/stalagmite_ice" },
+    { "predicate": { "minecraft:custom_model_data": 3 }, "model": "reinhardtshbm:block/stalagmite_snow" },
+    { "predicate": { "minecraft:custom_model_data": 4 }, "model": "reinhardtshbm:block/stalagmite_glyphid1" },
+    { "predicate": { "minecraft:custom_model_data": 5 }, "model": "reinhardtshbm:block/stalagmite_glyphid2" },
+    { "predicate": { "minecraft:custom_model_data": 6 }, "model": "reinhardtshbm:block/stalagmite_glyphid3" }
   ]
 }

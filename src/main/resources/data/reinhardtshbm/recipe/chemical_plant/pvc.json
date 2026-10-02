@@ -15,12 +15,14 @@
     {
       "fluid": "unsaturateds",
       "amount": 250,
-      "pressure": 2
+      "pressure": 2,
+      "pressure_528_only": true
     },
     {
       "fluid": "chlorine",
       "amount": 250,
-      "pressure": 2
+      "pressure": 2,
+      "pressure_528_only": true
     }
   ],
   "output_items": [

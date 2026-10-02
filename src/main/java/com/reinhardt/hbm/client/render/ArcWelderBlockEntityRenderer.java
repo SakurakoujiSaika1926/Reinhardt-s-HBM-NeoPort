@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class ArcWelderBlockEntityRenderer implements LongRangeBlockEntityRenderer<ArcWelderBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_arc_welder_world");
     private static final AABB[] LOCAL_BOUNDS = buildArcWelderBounds();
 
@@ -29,7 +30,7 @@ public class ArcWelderBlockEntityRenderer implements LongRangeBlockEntityRendere
 
         poseStack.pushPose();
         applyArcWelderTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

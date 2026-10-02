@@ -776,6 +776,7 @@ public class FusionMachineBlock extends LargeMachineBlock implements EntityBlock
 
     public static List<LocalPort> torusLocalPorts() {
         return List.of(
+                new LocalPort(new BlockPos(0, 0, 0), Direction.DOWN),
                 new LocalPort(new BlockPos(0, 4, 0), Direction.UP),
                 new LocalPort(new BlockPos(6, 0, 0), Direction.DOWN),
                 new LocalPort(new BlockPos(6, 4, 0), Direction.UP),

@@ -1,5 +1,5 @@
 {
-  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }],
+  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }, { "type": "neoforge:not", "value": { "type": "reinhardtshbm:less_bullshit_mode", "feature": "simple_crafting" } }],
   "type": "reinhardtshbm:soldering_station", "group": "soldering.upgrade", "duration": 400, "consumption": 25000,
   "fluid": { "fluid": "solvent", "amount": 500 },
   "toppings": [

@@ -264,14 +264,6 @@
     },
     {
       "type": "single",
-      "resource": "reinhardtshbm:entity/cart"
-    },
-    {
-      "type": "single",
-      "resource": "reinhardtshbm:entity/cart_destroyer"
-    },
-    {
-      "type": "single",
       "resource": "reinhardtshbm:item/polaroid_memento"
     },
     {

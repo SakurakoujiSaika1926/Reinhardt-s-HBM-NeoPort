@@ -587,6 +587,9 @@ public class WoodBurnerBlockEntity extends BlockEntity implements PowerEndpoint,
     }
 
     private static AshType ashType(ItemStack stack) {
+        if (stack.is(Items.CHARCOAL)) {
+            return AshType.WOOD;
+        }
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         String path = id == null ? "" : id.getPath().toLowerCase(java.util.Locale.ROOT);
         if (path.contains("coke") || path.contains("coal") || path.contains("lignite")) {

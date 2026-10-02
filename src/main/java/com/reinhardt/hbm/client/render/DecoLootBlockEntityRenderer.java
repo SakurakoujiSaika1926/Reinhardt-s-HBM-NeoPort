@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Direct port of the 1.7.10 RenderLoot special-item branches. */
 public final class DecoLootBlockEntityRenderer implements LongRangeBlockEntityRenderer<DecoLootBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final BlockState MODEL_STATE = Blocks.IRON_BLOCK.defaultBlockState();
     private static final float LEGACY_ITEM_THICKNESS = 0.0625F;
     private static final Set<String> RENDER_WARNINGS = ConcurrentHashMap.newKeySet();
@@ -605,8 +606,8 @@ public final class DecoLootBlockEntityRenderer implements LongRangeBlockEntityRe
                                        int packedLight, int packedOverlay) {
         poseStack.scale(0.5F, 0.5F, 0.5F);
         poseStack.translate(1.0F, 0.5F, 1.0F);
-        MachineModelRenderer.renderUnculled(generation.model(MINI_NUKE), poseStack,
-                bufferSource, MODEL_STATE, packedLight, packedOverlay);
+        STATIC_MESHES.render(generation.model(MINI_NUKE), poseStack,
+                MODEL_STATE, packedLight, packedOverlay);
     }
 
     private static void armorPose(PoseStack poseStack) {
@@ -709,14 +710,14 @@ public final class DecoLootBlockEntityRenderer implements LongRangeBlockEntityRe
 
     private static void render(BakedModelGeneration generation, ModelResourceLocation location, PoseStack poseStack,
                                MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(generation.model(location), poseStack,
-                bufferSource, MODEL_STATE, packedLight, packedOverlay);
+        STATIC_MESHES.render(generation.model(location), poseStack,
+                MODEL_STATE, packedLight, packedOverlay);
     }
 
     private static void renderFullBright(BakedModelGeneration generation, ModelResourceLocation location, PoseStack poseStack,
                                          MultiBufferSource bufferSource, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(generation.model(location), poseStack,
-                bufferSource, MODEL_STATE, LightTexture.FULL_BRIGHT, packedOverlay);
+        STATIC_MESHES.render(generation.model(location), poseStack,
+                MODEL_STATE, LightTexture.FULL_BRIGHT, packedOverlay);
     }
 
     private static BakedModelGeneration geometryGeneration() {

@@ -1,1 +1,29 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["I","B","I"],"key":{"I":{"tag":"c:ingots/starmetal"},"B":{"item":"reinhardtshbm:cobalt_decorated_shovel"}},"result":{"id":"reinhardtshbm:starmetal_shovel"}}
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:less_bullshit_mode",
+        "feature": "simple_tools"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I",
+    "B",
+    "I"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/starmetal"
+    },
+    "B": {
+      "item": "reinhardtshbm:cobalt_decorated_shovel"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:starmetal_shovel"
+  }
+}

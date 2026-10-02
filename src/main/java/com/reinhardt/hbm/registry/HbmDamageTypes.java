@@ -26,6 +26,7 @@ public final class HbmDamageTypes {
     public static final ResourceKey<DamageType> DEATH = key("death");
     public static final ResourceKey<DamageType> NUCLEAR_BLAST = key("nuclear_blast");
     public static final ResourceKey<DamageType> ACID = key("acid");
+    public static final ResourceKey<DamageType> BOIL = key("boil");
     public static final ResourceKey<DamageType> MUD_POISONING = key("mud_poisoning");
     public static final ResourceKey<DamageType> CLOUD = key("cloud");
     public static final ResourceKey<DamageType> TAINT = key("taint");
@@ -33,6 +34,7 @@ public final class HbmDamageTypes {
     public static final ResourceKey<DamageType> BLACK_HOLE = key("blackhole");
     public static final ResourceKey<DamageType> BROADCAST = key("broadcast");
     public static final ResourceKey<DamageType> BOXCAR = key("boxcar");
+    public static final ResourceKey<DamageType> MKU = key("mku");
 
     private HbmDamageTypes() {
     }

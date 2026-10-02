@@ -10,6 +10,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class CyclotronBlockEntityRenderer implements LongRangeBlockEntityRenderer<CyclotronBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_cyclotron_body");
     private static final ModelResourceLocation B1 = MachineModelRenderer.standalone("block/machine_cyclotron_b1");
     private static final ModelResourceLocation B1_FILLED = MachineModelRenderer.standalone("block/machine_cyclotron_b1_filled");
@@ -40,11 +41,11 @@ public class CyclotronBlockEntityRenderer implements LongRangeBlockEntityRendere
         BlockState state = cyclotron.getBlockState();
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cyclotron.getPlug(0) ? B1_FILLED : B1), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cyclotron.getPlug(1) ? B2_FILLED : B2), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cyclotron.getPlug(2) ? B3_FILLED : B3), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cyclotron.getPlug(3) ? B4_FILLED : B4), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(cyclotron.getPlug(0) ? B1_FILLED : B1, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(cyclotron.getPlug(1) ? B2_FILLED : B2, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(cyclotron.getPlug(2) ? B3_FILLED : B3, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(cyclotron.getPlug(3) ? B4_FILLED : B4, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

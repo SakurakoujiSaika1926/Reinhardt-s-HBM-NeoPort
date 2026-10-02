@@ -13,7 +13,9 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class RefineryBlockEntityRenderer implements LongRangeBlockEntityRenderer<RefineryBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_refinery");
-    private static final AABB RENDER_BOUNDS = createRefineryLocalBounds();
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
+    private static final AABB LEVEL_BOUNDS = createRefineryLocalBounds(false);
+    private static final AABB TILTED_BOUNDS = createRefineryLocalBounds(true);
 
     public RefineryBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -26,27 +28,32 @@ public class RefineryBlockEntityRenderer implements LongRangeBlockEntityRenderer
     public void render(RefineryBlockEntity refinery, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = refinery.getBlockState();
         poseStack.pushPose();
-        applyRefineryPose(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        applyRefineryPose(poseStack, refinery.tilted());
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     @Override
     public AABB getRenderBoundingBox(RefineryBlockEntity blockEntity) {
         // Exact face-used refinery.obj envelope under the fixed 180-degree render pose.
-        return RENDER_BOUNDS.move(blockEntity.getBlockPos());
+        return (blockEntity.tilted() ? TILTED_BOUNDS : LEVEL_BOUNDS).move(blockEntity.getBlockPos());
     }
 
-    private static void applyRefineryPose(PoseStack poseStack) {
+    private static void applyRefineryPose(PoseStack poseStack, boolean tilted) {
         // Exact fixed transform from the old refinery renderer; it is not a
         // reusable facing convention.
         poseStack.translate(0.5D, 0.0D, 0.5D);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        if (tilted) {
+            poseStack.translate(0.0D, -0.25D, 0.0D);
+            poseStack.mulPose(Axis.ZP.rotationDegrees(10.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(5.0F));
+        }
     }
 
-    private static AABB createRefineryLocalBounds() {
+    private static AABB createRefineryLocalBounds(boolean tilted) {
         PoseStack poseStack = new PoseStack();
-        applyRefineryPose(poseStack);
+        applyRefineryPose(poseStack, tilted);
         return RenderBounds.transformedBox(BlockPos.ZERO, poseStack,
                 -1.5F, 0.0F, -1.5F, 1.5F, 9.5F, 1.5F);
     }

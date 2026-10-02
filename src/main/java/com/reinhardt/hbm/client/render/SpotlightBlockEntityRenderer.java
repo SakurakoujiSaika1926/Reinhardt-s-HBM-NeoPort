@@ -32,6 +32,7 @@ public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityR
             FLUORO_SINGLE_ON, FLUORO_CAP_ON, FLUORO_MID_ON,
             FLUORO_SINGLE_OFF, FLUORO_CAP_OFF, FLUORO_MID_OFF
     );
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
 
     public SpotlightBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         SpotlightBlockEntity.setClientRenderSnapshotUpdater(
@@ -71,8 +72,7 @@ public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityR
                                            int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyIncandescentPose(poseStack, facing);
-        BakedBlockGeometrySnapshot.renderCutoutNoCull(
-                snapshot.modelToken(), poseStack, bufferSource, packedLight, packedOverlay);
+        renderSnapshotModel(snapshot, poseStack, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -81,8 +81,7 @@ public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityR
                                           int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyFluorescentPose(poseStack, facing, snapshot.connectionDirection());
-        BakedBlockGeometrySnapshot.renderCutoutNoCull(
-                snapshot.modelToken(), poseStack, bufferSource, packedLight, packedOverlay);
+        renderSnapshotModel(snapshot, poseStack, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -91,9 +90,16 @@ public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityR
                                       int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyHalogenPose(poseStack, facing);
-        BakedBlockGeometrySnapshot.renderCutoutNoCull(
-                snapshot.modelToken(), poseStack, bufferSource, packedLight, packedOverlay);
+        renderSnapshotModel(snapshot, poseStack, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    private static void renderSnapshotModel(SpotlightBlockEntity.RenderSnapshot snapshot,
+                                            PoseStack poseStack, int packedLight, int packedOverlay) {
+        if (snapshot.modelToken() instanceof ModelResourceLocation model) {
+            STATIC_MESHES.renderCutoutNoCull(
+                    model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
+        }
     }
 
     @Override
@@ -157,7 +163,7 @@ public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityR
         BakedBlockGeometrySnapshot.Result geometry = BakedBlockGeometrySnapshot.build(
                 MachineModelRenderer.model(model), state, List.of(geometryPose), spotlight.getBlockPos());
         spotlight.publishRenderSnapshot(new SpotlightBlockEntity.RenderSnapshot(
-                state, null, 0, geometry.modelToken(), geometry.bounds(), revision));
+                state, null, 0, model, geometry.bounds(), revision));
     }
 
     private static void updateFluorescentSnapshot(SpotlightBlockEntity spotlight, SpotlightBlock block,
@@ -171,7 +177,7 @@ public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityR
                 MachineModelRenderer.model(model), state, List.of(geometryPose), spotlight.getBlockPos());
         spotlight.publishRenderSnapshot(new SpotlightBlockEntity.RenderSnapshot(
                 state, connectionDirection, connectionCount,
-                geometry.modelToken(), geometry.bounds(), revision));
+                model, geometry.bounds(), revision));
     }
 
     private static void updateHalogenSnapshot(SpotlightBlockEntity spotlight, SpotlightBlock block,
@@ -182,7 +188,7 @@ public final class SpotlightBlockEntityRenderer implements LongRangeBlockEntityR
         BakedBlockGeometrySnapshot.Result geometry = BakedBlockGeometrySnapshot.build(
                 MachineModelRenderer.model(model), state, List.of(geometryPose), spotlight.getBlockPos());
         spotlight.publishRenderSnapshot(new SpotlightBlockEntity.RenderSnapshot(
-                state, null, 0, geometry.modelToken(), geometry.bounds(), revision));
+                state, null, 0, model, geometry.bounds(), revision));
     }
 
     private static ModelResourceLocation fluorescentModel(int connections, boolean lit) {

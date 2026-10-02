@@ -3,6 +3,7 @@ package com.reinhardt.hbm.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.item.BlueprintItem;
@@ -165,11 +166,14 @@ public record ChemicalPlantRecipe(
         };
     }
 
-    public record ChemicalFluidStack(HbmFluidDefinition type, int amount, int pressure) {
+    public record ChemicalFluidStack(HbmFluidDefinition type, int amount, int configuredPressure,
+                                     boolean pressure528Only, String type528Name) {
         private static final Codec<ChemicalFluidStack> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codec.STRING.fieldOf("fluid").forGetter(stack -> stack.type().name()),
+                Codec.STRING.fieldOf("fluid").forGetter(stack -> stack.type.name()),
                 Codec.intRange(1, 1_000_000).fieldOf("amount").forGetter(ChemicalFluidStack::amount),
-                Codec.intRange(0, 1_000_000).optionalFieldOf("pressure", 0).forGetter(ChemicalFluidStack::pressure)
+                Codec.intRange(0, 1_000_000).optionalFieldOf("pressure", 0).forGetter(ChemicalFluidStack::configuredPressure),
+                Codec.BOOL.optionalFieldOf("pressure_528_only", false).forGetter(ChemicalFluidStack::pressure528Only),
+                Codec.STRING.optionalFieldOf("fluid_528", "").forGetter(ChemicalFluidStack::type528Name)
         ).apply(instance, ChemicalFluidStack::fromName));
 
         private static final StreamCodec<RegistryFriendlyByteBuf, ChemicalFluidStack> STREAM_CODEC = new StreamCodec<>() {
@@ -178,7 +182,9 @@ public record ChemicalPlantRecipe(
                 HbmFluidDefinition fluid = HbmFluids.byName(buffer.readUtf()).orElse(HbmFluids.none());
                 int amount = buffer.readVarInt();
                 int pressure = buffer.readVarInt();
-                return new ChemicalFluidStack(fluid, amount, pressure);
+                // Recipe packets carry the server-resolved pressure so JEI and
+                // selector screens cannot disagree with the server's 528 mode.
+                return new ChemicalFluidStack(fluid, amount, pressure, false, "");
             }
 
             @Override
@@ -189,9 +195,37 @@ public record ChemicalPlantRecipe(
             }
         };
 
-        private static ChemicalFluidStack fromName(String name, int amount, int pressure) {
+        private static ChemicalFluidStack fromName(String name, int amount, int pressure,
+                                                   boolean pressure528Only, String type528Name) {
             HbmFluidDefinition fluid = HbmFluids.byName(name).orElse(HbmFluids.none());
-            return new ChemicalFluidStack(fluid, amount, pressure);
+            return new ChemicalFluidStack(fluid, amount, pressure, pressure528Only, type528Name);
+        }
+
+        /** Some old recipes replaced an input fluid entirely when 528 mode was active. */
+        @Override
+        public HbmFluidDefinition type() {
+            if (!this.type528Name.isEmpty() && is528ModeEnabledSafely()) {
+                return HbmFluids.byName(this.type528Name).orElse(this.type);
+            }
+            return this.type;
+        }
+
+        /**
+         * HBM 1.7.10 only applies selected pressure requirements in 528 mode.
+         * Resolve that condition at every machine/UI call site through the
+         * existing pressure accessor, while retaining the configured value for
+         * codec serialization and recipe synchronization.
+         */
+        public int pressure() {
+            return this.pressure528Only && !is528ModeEnabledSafely() ? 0 : this.configuredPressure;
+        }
+
+        private static boolean is528ModeEnabledSafely() {
+            try {
+                return HbmConfig.pressurizedRecipes();
+            } catch (IllegalStateException ignored) {
+                return false;
+            }
         }
 
         public boolean isEmpty() {

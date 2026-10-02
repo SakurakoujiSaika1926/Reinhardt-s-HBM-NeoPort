@@ -10,6 +10,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public final class LandmineBlockEntityRenderer implements LongRangeBlockEntityRenderer<LandmineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation AP_GRASS = model("block/mine_ap_grass_world");
     private static final ModelResourceLocation AP_DESERT = model("block/mine_ap_desert_world");
     private static final ModelResourceLocation AP_SNOW = model("block/mine_ap_snow_world");
@@ -140,7 +141,6 @@ public final class LandmineBlockEntityRenderer implements LongRangeBlockEntityRe
 
     private static void render(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource,
                                BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 }

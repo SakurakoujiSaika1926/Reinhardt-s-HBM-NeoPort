@@ -1,6 +1,9 @@
 {
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.coallube",
+  "blueprint_pools": [
+    "alt..lube"
+  ],
   "duration": 40,
   "power": 100,
   "input_items": [],

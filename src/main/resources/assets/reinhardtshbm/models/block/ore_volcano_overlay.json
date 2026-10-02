@@ -1,7 +1,8 @@
 {
   "render_type": "minecraft:cutout",
   "textures": {
-    "overlay": "reinhardtshbm:block/molten_overlay"
+    "overlay": "reinhardtshbm:block/molten_overlay",
+    "particle": "#overlay"
   },
   "elements": [
     {

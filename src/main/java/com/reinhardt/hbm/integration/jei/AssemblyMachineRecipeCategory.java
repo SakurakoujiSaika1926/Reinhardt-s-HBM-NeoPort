@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.integration.jei;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -94,6 +95,11 @@ public class AssemblyMachineRecipeCategory implements IRecipeCategory<RecipeHold
                     .toList();
             builder.addInputSlot(x, y).addItemStacks(stacks);
             slot++;
+        }
+
+        List<String> blueprintPools = BlueprintItem.activeRecipePools(recipe.blueprintPools());
+        if (!blueprintPools.isEmpty()) {
+            builder.addInputSlot(35, 126).addItemStacks(blueprintPools.stream().map(BlueprintItem::stackFor).toList());
         }
 
         if (!recipe.inputFluids().isEmpty()) {

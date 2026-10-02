@@ -18,6 +18,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class CrucibleBlockEntityRenderer implements LongRangeBlockEntityRenderer<CrucibleBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_crucible_world");
     private static final ResourceLocation LAVA = ReinhardtsHBM.id("textures/models/machines/lava.png");
 
@@ -34,7 +35,7 @@ public class CrucibleBlockEntityRenderer implements LongRangeBlockEntityRenderer
 
         poseStack.pushPose();
         applyCruciblePose(poseStack, crucibleFacing(state));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         renderMoltenSurface(crucible, poseStack, bufferSource, packedOverlay);
         poseStack.popPose();
     }

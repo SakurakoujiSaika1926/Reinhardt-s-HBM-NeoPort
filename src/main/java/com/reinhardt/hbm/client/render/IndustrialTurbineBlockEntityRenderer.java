@@ -14,6 +14,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class IndustrialTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<IndustrialTurbineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_industrial_turbine_world");
     static final ModelResourceLocation GAUGE = MachineModelRenderer.standalone("block/machine_industrial_turbine_gauge");
     static final ModelResourceLocation FLYWHEEL = MachineModelRenderer.standalone("block/machine_industrial_turbine_flywheel");
@@ -70,20 +71,20 @@ public class IndustrialTurbineBlockEntityRenderer implements LongRangeBlockEntit
             int packedLight,
             int packedOverlay
     ) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(gauge), 0.0F, 0.0F, 1.0F)));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GAUGE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(GAUGE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rotor), 0.0F, 0.0F, -1.0F)));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FLYWHEEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FLYWHEEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

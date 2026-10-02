@@ -10,7 +10,7 @@
     {
       "type": "neoforge:not",
       "value": {
-        "type": "reinhardtshbm:enable_528_mode"
+        "type": "reinhardtshbm:enable_expensive_mode"
       }
     }
   ],

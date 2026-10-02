@@ -8,12 +8,14 @@
     {
       "fluid": "aromatics",
       "amount": 500,
-      "pressure": 1
+      "pressure": 1,
+      "pressure_528_only": true
     },
     {
       "fluid": "petroleum",
       "amount": 500,
-      "pressure": 1
+      "pressure": 1,
+      "pressure_528_only": true
     }
   ],
   "output_items": [

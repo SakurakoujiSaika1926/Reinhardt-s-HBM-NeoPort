@@ -59,6 +59,7 @@ public final class HbmNetwork {
         registrar.playToServer(SatellitePanelClickPayload.TYPE, SatellitePanelClickPayload.STREAM_CODEC, SatellitePanelClickPayload::handle);
         registrar.playToClient(PlayerInformPayload.TYPE, PlayerInformPayload.STREAM_CODEC, PlayerInformPayload::handle);
         registrar.playToClient(PollutionSyncPayload.TYPE, PollutionSyncPayload.STREAM_CODEC, PollutionSyncPayload::handle);
+        registrar.playToClient(TomImpactSyncPayload.TYPE, TomImpactSyncPayload.STREAM_CODEC, TomImpactSyncPayload::handle);
         registrar.playToClient(BatteryReddSyncPayload.TYPE, BatteryReddSyncPayload.STREAM_CODEC, BatteryReddSyncPayload::handle);
         registrar.playToClient(LegacyExplosionEffectPayload.TYPE, LegacyExplosionEffectPayload.STREAM_CODEC, LegacyExplosionEffectPayload::handle);
         registrar.playToClient(LegacySmallExplosionEffectPayload.TYPE, LegacySmallExplosionEffectPayload.STREAM_CODEC, LegacySmallExplosionEffectPayload::handle);

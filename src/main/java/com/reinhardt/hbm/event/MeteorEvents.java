@@ -5,10 +5,10 @@ import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.entity.MeteorEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -38,8 +38,14 @@ public final class MeteorEvents {
         int strikeChance = Math.max(1, meteorShower > 0 ? HbmConfig.METEOR_SHOWER_CHANCE.get() : HbmConfig.METEOR_STRIKE_CHANCE.get());
         if (random.nextInt(strikeChance) == 0 && !level.players().isEmpty()) {
             ServerPlayer player = level.players().get(random.nextInt(level.players().size()));
-            boolean repel = hasCharm(player, HbmItems.PROTECTION_CHARM.get());
-            boolean strike = !hasCharm(player, HbmItems.METEOR_CHARM.get());
+            boolean repel = hasInstalledCharm(player, HbmItems.PROTECTION_CHARM.get());
+            boolean strike = !hasInstalledCharm(player, HbmItems.METEOR_CHARM.get());
+            if (!repel || strike) {
+                MeteorPedestalBroadcasts.Influence influence =
+                        MeteorPedestalBroadcasts.influence(level, player.blockPosition());
+                repel |= influence.repel();
+                strike &= !influence.suppress();
+            }
             if (strike) {
                 spawnMeteorAtPlayer(player, repel);
             }
@@ -78,21 +84,12 @@ public final class MeteorEvents {
         level.addFreshEntity(meteor);
     }
 
-    private static boolean hasCharm(ServerPlayer player, net.minecraft.world.item.Item charm) {
-        Inventory inventory = player.getInventory();
-        for (ItemStack stack : inventory.armor) {
-            if (stack.getItem() == charm) {
-                return true;
-            }
-        }
-        for (ItemStack stack : inventory.items) {
-            if (stack.getItem() == charm) {
-                return true;
-            }
-        }
-        for (ItemStack stack : inventory.offhand) {
-            if (stack.getItem() == charm) {
-                return true;
+    private static boolean hasInstalledCharm(ServerPlayer player, net.minecraft.world.item.Item charm) {
+        for (ItemStack armor : player.getArmorSlots()) {
+            for (ItemStack mod : ArmorModHandler.pryMods(armor, player.registryAccess())) {
+                if (mod.getItem() == charm) {
+                    return true;
+                }
             }
         }
         return false;

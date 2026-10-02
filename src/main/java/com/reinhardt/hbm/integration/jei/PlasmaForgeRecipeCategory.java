@@ -1,7 +1,6 @@
 package com.reinhardt.hbm.integration.jei;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
-import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.recipe.PlasmaForgeRecipe;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -85,7 +84,7 @@ public class PlasmaForgeRecipeCategory implements IRecipeCategory<RecipeHolder<P
         }
 
         int machineOffset = machineOffset(inputCount);
-        List<String> blueprintPools = activeBlueprintPools(recipe.blueprintPools());
+        List<String> blueprintPools = BlueprintItem.activeRecipePools(recipe.blueprintPools());
         if (!blueprintPools.isEmpty()) {
             builder.addSlot(RecipeIngredientRole.CATALYST, 75 + machineOffset, 10)
                     .addItemStacks(blueprintPools.stream().map(BlueprintItem::stackFor).toList());
@@ -109,7 +108,7 @@ public class PlasmaForgeRecipeCategory implements IRecipeCategory<RecipeHolder<P
 
         int machineOffset = machineOffset(inputCount);
         drawSlotFrame(graphics, 102 + machineOffset, 24);
-        if (activeBlueprintPools(recipe.blueprintPools()).isEmpty()) {
+        if (BlueprintItem.activeRecipePools(recipe.blueprintPools()).isEmpty()) {
             graphics.blit(TEXTURE, 74 + machineOffset, 14, 59, 87, 18, 36, 256, 256);
         } else {
             graphics.blit(TEXTURE, 74 + machineOffset, 7, 77, 87, 18, 50, 256, 256);
@@ -134,15 +133,6 @@ public class PlasmaForgeRecipeCategory implements IRecipeCategory<RecipeHolder<P
         slot.setFluidRenderer(stack.amount(), false, 16, 16)
                 .addFluidStack(fluid, stack.amount());
         HbmJeiFluidTooltips.addTo(slot);
-    }
-
-    private static List<String> activeBlueprintPools(List<String> pools) {
-        if (!HbmConfig.ENABLE_528_MODE.get()
-                && !pools.isEmpty()
-                && pools.stream().allMatch(pool -> pool.startsWith(BlueprintItem.POOL_PREFIX_528))) {
-            return List.of();
-        }
-        return pools;
     }
 
     private static int inputOffset(int inputCount) {

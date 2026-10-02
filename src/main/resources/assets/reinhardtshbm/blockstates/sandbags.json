@@ -1,7 +1,13 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/sandbags"
-                          }
-                 }
+{
+  "multipart": [
+    { "apply": { "model": "reinhardtshbm:block/sandbags" } },
+    { "when": { "north": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_north" } },
+    { "when": { "east": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_east" } },
+    { "when": { "south": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_south" } },
+    { "when": { "west": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_west" } },
+    { "when": { "north": "true", "east": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_north_east" } },
+    { "when": { "north": "true", "west": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_north_west" } },
+    { "when": { "south": "true", "east": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_south_east" } },
+    { "when": { "south": "true", "west": "true" }, "apply": { "model": "reinhardtshbm:block/sandbags_south_west" } }
+  ]
 }

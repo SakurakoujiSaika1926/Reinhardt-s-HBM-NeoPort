@@ -93,6 +93,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
     private boolean active;
     private boolean redstonePowered;
     private int rttySlot;
+    private final MachineFoundationState foundation = new MachineFoundationState();
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -177,6 +178,10 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
 
     public boolean active() {
         return this.active;
+    }
+
+    public boolean tilted() {
+        return this.foundation.tilted();
     }
 
     public boolean redstonePowered() {
@@ -432,6 +437,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
         tag.put("Steam", this.steam.save());
         tag.put("CarbonDioxide", this.carbonDioxide.save());
         tag.put("Water", this.water.save());
+        this.foundation.save(tag);
     }
 
     @Override
@@ -449,6 +455,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
         this.steam.load(tag.getCompound("Steam"));
         this.carbonDioxide.load(tag.getCompound("CarbonDioxide"));
         this.water.load(tag.getCompound("Water"));
+        this.foundation.load(tag);
         setupTanks();
     }
 
@@ -466,6 +473,9 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
     }
 
     private void tickServer(Level level) {
+        boolean foundationChanged = this.foundation.tick(level, this.worldPosition, 9,
+                index -> this.worldPosition.offset(-2 + index / 3 * 2, -1, -2 + index % 3 * 2),
+                true, HbmConfig.machineGravity());
         setupTanks();
         if (this.redstonePowered) {
             this.active = true;
@@ -511,7 +521,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
         }
 
         setChanged();
-        if (level.getGameTime() % 10L == 0L) {
+        if (foundationChanged || level.getGameTime() % 10L == 0L) {
             sync();
         }
     }
@@ -589,7 +599,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
     }
 
     private void sendSteam(Level level) {
-        if (this.steam.amount() <= 0) {
+        if (this.foundation.tilted() || this.steam.amount() <= 0) {
             return;
         }
         for (Port port : ports()) {
@@ -899,7 +909,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            if (resource.isEmpty()) {
+            if (foundation.tilted() || resource.isEmpty()) {
                 return 0;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(resource.getFluid()).orElse(HbmFluids.none());
@@ -916,7 +926,7 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
-            if (resource.isEmpty()) {
+            if (foundation.tilted() || resource.isEmpty()) {
                 return FluidStack.EMPTY;
             }
             HbmFluidDefinition fluid = HbmFluids.fromNeoFluid(resource.getFluid()).orElse(HbmFluids.none());
@@ -928,6 +938,9 @@ public class ZirnoxReactorBlockEntity extends BlockEntity
 
         @Override
         public FluidStack drain(int maxDrain, FluidAction action) {
+            if (foundation.tilted()) {
+                return FluidStack.EMPTY;
+            }
             FluidStack drained = steam.drain(maxDrain, action);
             if (!drained.isEmpty() && action.execute()) {
                 sync();

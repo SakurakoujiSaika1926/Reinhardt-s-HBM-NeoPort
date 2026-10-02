@@ -17,6 +17,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class FelBlockEntityRenderer implements LongRangeBlockEntityRenderer<FelBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fel");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildFelBounds();
     private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
     private static final long JAVA_RANDOM_ADDEND = 0xBL;
@@ -36,7 +37,7 @@ public class FelBlockEntityRenderer implements LongRangeBlockEntityRenderer<FelB
 
         poseStack.pushPose();
         applyFelTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
 
         if (fel.beamVisible()) {
             int color = fel.mode().renderedBeamColor() == 0

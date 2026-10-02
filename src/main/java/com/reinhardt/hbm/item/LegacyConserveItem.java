@@ -112,7 +112,7 @@ public final class LegacyConserveItem extends Item {
         String key = "item.reinhardtshbm.canned_" + variant(stack).id() + ".desc";
         String text = Component.translatable(key).getString();
         if (!text.equals(key)) {
-            for (String line : text.split("\\\\$")) {
+            for (String line : text.split("\\$")) {
                 tooltip.add(Component.literal(line).withStyle(ChatFormatting.GRAY));
             }
         }

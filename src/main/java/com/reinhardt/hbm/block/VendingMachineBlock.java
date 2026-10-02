@@ -3,12 +3,14 @@ package com.reinhardt.hbm.block;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.blockentity.VendingMachineBlockEntity;
+import com.reinhardt.hbm.item.LegacyVariantBlockItem;
+import com.reinhardt.hbm.item.VendingMachineBlockItem;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -18,14 +20,18 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /** Direct port of the two-high, token-operated 1.7.10 vending machine. */
 public final class VendingMachineBlock extends LargeMachineBlock implements EntityBlock {
@@ -83,19 +89,25 @@ public final class VendingMachineBlock extends LargeMachineBlock implements Enti
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!stack.is(coinToken())) {
+        BlockPos corePos = corePos(level, pos);
+        if (corePos == null) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        BlockPos corePos = corePos(level, pos);
-        if (corePos == null || !(level.getBlockEntity(corePos) instanceof VendingMachineBlockEntity vending)) {
+        return useOnPart(stack, level, pos, corePos, player);
+    }
+
+    static ItemInteractionResult useOnPart(ItemStack stack, Level level, BlockPos interactionPos,
+                                           BlockPos corePos, Player player) {
+        if (!isCoinToken(stack)
+                || !(level.getBlockEntity(corePos) instanceof VendingMachineBlockEntity vending)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (level.isClientSide) {
             return ItemInteractionResult.SUCCESS;
         }
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
-        }
+        // BlockVendingMachine consumed a token for every successful use,
+        // including creative players.
+        stack.shrink(1);
         ItemStack reward = vending.dispense(level.random);
         if (!reward.isEmpty()) {
             Direction direction = level.getBlockState(corePos).getValue(FACING);
@@ -105,8 +117,30 @@ public final class VendingMachineBlock extends LargeMachineBlock implements Enti
                     corePos.getZ() + 0.5D + direction.getStepZ() * 0.75D,
                     reward));
         }
-        level.playSound(null, corePos, SoundEvents.DISPENSER_DISPENSE, SoundSource.BLOCKS, 1.0F, 0.75F);
+        level.playSound(null, interactionPos, HbmSoundEvents.VENDING_MACHINE_DISPENSE.get(),
+                SoundSource.BLOCKS, 1.0F, 0.75F);
         return ItemInteractionResult.CONSUME;
+    }
+
+    static boolean isCoinToken(ItemStack stack) {
+        return stack.is(coinToken());
+    }
+
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+        return variantStack(state);
+    }
+
+    @Override
+    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        return List.of(variantStack(state));
+    }
+
+    private ItemStack variantStack(BlockState state) {
+        if (!(this.asItem() instanceof VendingMachineBlockItem vending)) {
+            throw new IllegalStateException("Vending-machine block item is not variant-aware: " + this.asItem());
+        }
+        return LegacyVariantBlockItem.stackFor(vending, state.getValue(VARIANT));
     }
 
     @Override

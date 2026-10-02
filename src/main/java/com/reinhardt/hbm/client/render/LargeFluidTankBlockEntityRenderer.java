@@ -19,6 +19,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class LargeFluidTankBlockEntityRenderer implements LongRangeBlockEntityRenderer<LargeFluidTankBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_bigasstank");
     private static final ResourceLocation DANGER_DIAMOND =
             ReinhardtsHBM.id("textures/models/misc/danger_diamond.png");
@@ -45,8 +46,7 @@ public class LargeFluidTankBlockEntityRenderer implements LongRangeBlockEntityRe
             poseStack.mulPose(Axis.YP.rotationDegrees(5.0F));
         }
         applyLargeFluidTankOrientation(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         renderFluidWindows(tank, partialTick, poseStack, bufferSource, packedOverlay);
         renderHazardDiamonds(tank.tank().type(), poseStack, bufferSource, packedOverlay);
         poseStack.popPose();

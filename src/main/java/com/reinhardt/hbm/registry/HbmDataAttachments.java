@@ -6,6 +6,8 @@ import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.item.HbmPlayerShield;
 import com.reinhardt.hbm.player.HbmPlayerArmorState;
 import com.reinhardt.hbm.player.HbmLegacyMobSpawnState;
+import com.mojang.serialization.Codec;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -48,6 +50,30 @@ public final class HbmDataAttachments {
                     .serialize(HbmPlayerArmorState.CODEC)
                     .sync(HbmPlayerArmorState.STREAM_CODEC)
                     .copyOnDeath()
+                    .build()
+    );
+    public static final Supplier<AttachmentType<Integer>> PLAYER_REPUTATION = ATTACHMENTS.register(
+            "player_reputation",
+            () -> AttachmentType.builder(() -> 0)
+                    .serialize(Codec.INT)
+                    .sync(ByteBufCodecs.VAR_INT)
+                    .copyOnDeath()
+                    .build()
+    );
+    public static final Supplier<AttachmentType<Boolean>> MUFFLED_MACHINE = ATTACHMENTS.register(
+            "muffled_machine",
+            () -> AttachmentType.builder(() -> false)
+                    .serialize(Codec.BOOL)
+                    .sync(ByteBufCodecs.BOOL)
+                    .build()
+    );
+    public static final Supplier<AttachmentType<Integer>> MKU_CONTAGION = ATTACHMENTS.register(
+            "mku_contagion",
+            () -> AttachmentType.builder(() -> 0)
+                    .serialize(Codec.INT)
+                    // Contagion is authoritative server state.  The old client
+                    // never consumed the counter directly, so do not emit an
+                    // attachment update every tick while it counts down.
                     .build()
     );
     public static final Supplier<AttachmentType<HbmLegacyMobSpawnState>> LEGACY_MOB_SPAWN_STATE = ATTACHMENTS.register(

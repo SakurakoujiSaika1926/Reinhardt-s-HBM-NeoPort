@@ -135,6 +135,7 @@ public final class HbmAnvilRecipes {
         addHotSmithing(3, item("cobalt_decorated_hoe", 1), ingredient("cobalt_hoe", 1), ingredient("ingot_meteorite", 1));
         addSmithing(1, item("ingot_gunmetal", 1), ingotIngredient("copper", 1, mc("copper_ingot")), ingotIngredient("aluminium", 1));
         registerMoldSmithingRecipes();
+        SMITHING.add(new AnvilPoisoningRecipe());
     }
 
     private static void registerChainsteelSmithingRecipes() {
@@ -421,7 +422,14 @@ public final class HbmAnvilRecipes {
                 2
         );
         addConstruction(
-                List.of(ingotIngredient("steel", 8), plateIngredient("copper", 4), ingredient("motor", 2), ingredient("circuit_vacuum_tube", 4)),
+                List.of(
+                        ingotIngredient("steel", 8),
+                        plateIngredient("copper", 4),
+                        ingredient("motor", 2),
+                        HbmConfig.ENABLE_EXPENSIVE_MODE.get()
+                                ? ingredient("circuit_analog", 2)
+                                : ingredient("circuit_vacuum_tube", 4)
+                ),
                 blockItem("machine_assembly_machine", 1),
                 2
         );
@@ -1376,11 +1384,6 @@ public final class HbmAnvilRecipes {
             );
         }
 
-        addLegacyRecyclingRecipe(
-                ingredientOptional("machine_turbine", 1),
-                3,
-                List.of(output("turbine_titanium", 1), output("coil_copper", 2), output("ingot_steel", 4))
-        );
         addLegacyRecyclingRecipe(
                 ingredientOptional("egg_glyphid", 1),
                 1,

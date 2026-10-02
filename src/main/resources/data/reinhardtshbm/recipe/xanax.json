@@ -1,1 +1,19 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"tag":"c:dusts/coal"},{"tag":"c:dusts/niter"},{"tag":"ae2:all_quartz_dust"}],"result":{"id":"reinhardtshbm:xanax"}}
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:less_bullshit_mode",
+        "feature": "simple_medicine"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "c:dusts/coal" },
+    { "tag": "c:dusts/niter" },
+    { "tag": "c:dusts/bromine" }
+  ],
+  "result": { "id": "reinhardtshbm:xanax" }
+}

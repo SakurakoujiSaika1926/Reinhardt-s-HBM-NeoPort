@@ -20,7 +20,7 @@
   "input_fluids": [
     {
       "fluid": "stellar_flux",
-      "amount": 10
+        "amount": 5
     }
   ],
   "output_item": {

@@ -93,6 +93,7 @@ public final class ThresherClientSounds {
             }
             double distance = Math.sqrt(minecraft.player.distanceToSqr(this.x, this.y, this.z));
             this.volume = (float) (1.0D - distance / AUDIBLE_DISTANCE);
+            this.volume = com.reinhardt.hbm.util.MachineMuffler.attenuate(blockEntity, this.volume);
         }
 
         @Override

@@ -1,4 +1,13 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:less_bullshit_mode",
+        "feature": "simple_chemistry"
+      }
+    }
+  ],
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.cordite",
   "duration": 40,

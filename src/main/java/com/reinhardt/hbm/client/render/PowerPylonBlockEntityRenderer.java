@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRenderer<PowerPylonBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     static final ModelResourceLocation RED_CONNECTOR = MachineModelRenderer.standalone("block/red_connector_world");
     static final ModelResourceLocation CONNECTOR_RED_SUPER = MachineModelRenderer.standalone("block/connector_red_super_world");
     static final ModelResourceLocation RED_PYLON_STEEL = MachineModelRenderer.standalone("block/red_pylon_small_steel_world");
@@ -135,7 +136,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientRedConnector(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.redConnectorModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -144,7 +145,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientConnectorRedSuper(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.connectorRedSuperModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -153,7 +154,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientRedPylonSteel(poseStack);
         BakedModel model = PowerPylonClientGeometry.redPylonSteelModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -162,7 +163,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientRedPylonMediumWood(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.redPylonMediumWoodModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -171,7 +172,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientRedPylonMediumWoodTransformer(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.redPylonMediumWoodTransformerModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -180,7 +181,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientRedPylonMediumSteel(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.redPylonMediumSteelModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -189,7 +190,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientRedPylonMediumSteelTransformer(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.redPylonMediumSteelTransformerModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -198,7 +199,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientRedPylonLarge(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.redPylonLargeModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -207,7 +208,7 @@ public class PowerPylonBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.pushPose();
         orientSubstation(poseStack, snapshot.facing());
         BakedModel model = PowerPylonClientGeometry.substationModel(snapshot.modelGeometryToken());
-        MachineModelRenderer.renderUnculled(model, poseStack, bufferSource, snapshot.blockState(), packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, snapshot.blockState(), packedLight, packedOverlay);
         poseStack.popPose();
     }
 

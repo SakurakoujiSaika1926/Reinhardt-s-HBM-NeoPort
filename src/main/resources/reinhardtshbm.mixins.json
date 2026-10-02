@@ -5,7 +5,13 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "sable.SubLevelAssemblyHelperMixin",
-    "sable.SableCommonEventsMixin"
+    "sable.SableCommonEventsMixin",
+    "tom.PlacedFeatureMixin",
+    "tom.StructureStartMixin",
+    "tom.StructureTemplateMixin"
+  ],
+  "client": [
+    "client.LevelRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

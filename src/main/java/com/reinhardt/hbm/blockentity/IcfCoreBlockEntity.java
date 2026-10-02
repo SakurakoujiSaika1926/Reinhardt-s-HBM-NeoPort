@@ -13,6 +13,7 @@ import com.reinhardt.hbm.menu.IcfCoreMenu;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.rtty.RttyInfo;
 import com.reinhardt.hbm.rtty.RttyValueProvider;
 import net.minecraft.core.BlockPos;
@@ -24,6 +25,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -272,7 +274,7 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
         ItemStack active = this.items.get(ACTIVE_SLOT);
         if (active.is(HbmItems.ICF_PELLET.get()) && IcfPelletItem.getFusingDifficulty(active) <= this.laser) {
             this.heatup = IcfPelletItem.react(active, this.laser);
-            this.heat = Math.min(MAX_HEAT, this.heat + this.heatup);
+            this.heat = addHeatSaturated(this.heat, this.heatup);
             if (IcfPelletItem.getDepletion(active) >= IcfPelletItem.getMaxDepletion(active)) {
                 this.items.set(ACTIVE_SLOT, new ItemStack(HbmItems.ICF_PELLET_DEPLETED.get()));
                 changed = true;
@@ -283,16 +285,17 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
                         serverLevel, this.worldPosition,
                         com.reinhardt.hbm.satellite.SatelliteEventTracker.RayEvent.INFO_PARTICLE, 200);
             }
+            sendHadronParticle(level);
         }
         if (this.heatup == 0L) {
-            this.heat = Math.min(MAX_HEAT, this.heat + (long) (this.laser * 0.25D));
+            this.heat = addHeatSaturated(this.heat, (long) (this.laser * 0.25D));
         }
 
         this.consumption = 0;
         this.output = 0;
         convertSodium();
         sendOutputs(level);
-        this.heat = (long) (this.heat * 0.999D);
+        this.heat = Math.min(MAX_HEAT, (long) (this.heat * 0.999D));
         this.laser = 0L;
         this.maxLaser = 0L;
         if (changed || level.getGameTime() % 5L == 0L) {
@@ -350,7 +353,9 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
             }
             int sourceCycles = sodium.amount() / step.amountReq();
             int targetCycles = (hotSodium.capacity() - hotSodium.amount()) / step.amountProduced();
-            long heatCycles = Math.min((long) (heat / 4.0D / step.heatReq()), heat / step.heatReq());
+            long heatCycles = (long) Math.min(
+                    heat / 4.0D / step.heatReq() * step.boilerEfficiency(),
+                    heat / (double) step.heatReq());
             int cycles = (int) Math.min(Math.min(sourceCycles, targetCycles), heatCycles);
             if (cycles <= 0) {
                 return;
@@ -361,6 +366,32 @@ public final class IcfCoreBlockEntity extends BlockEntity implements WorldlyCont
             consumption = step.amountReq() * cycles;
             output = step.amountProduced() * cycles;
         });
+    }
+
+    private void sendHadronParticle(Level level) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        double centerX = this.worldPosition.getX() + 0.5D;
+        double centerY = this.worldPosition.getY() + 0.5D;
+        double centerZ = this.worldPosition.getZ() + 0.5D;
+        for (ServerPlayer player : serverLevel.players()) {
+            if (player.distanceToSqr(centerX, centerY, centerZ) <= 25.0D * 25.0D) {
+                serverLevel.sendParticles(player, HbmParticleTypes.TAU_HADRON.get(), true,
+                        centerX, this.worldPosition.getY() + 3.5D, centerZ,
+                        1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+        }
+    }
+
+    private static long addHeatSaturated(long current, long added) {
+        if (added <= 0L) {
+            return Math.max(0L, current);
+        }
+        if (current >= Long.MAX_VALUE - added) {
+            return Long.MAX_VALUE;
+        }
+        return current + added;
     }
 
     private void sendOutputs(Level level) {

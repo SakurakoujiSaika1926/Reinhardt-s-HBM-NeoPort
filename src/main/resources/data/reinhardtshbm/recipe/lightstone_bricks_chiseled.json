@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [{"item": "reinhardtshbm:lightstone_bricks"}],
+  "result": {"id": "reinhardtshbm:lightstone_bricks_chiseled"}
+}

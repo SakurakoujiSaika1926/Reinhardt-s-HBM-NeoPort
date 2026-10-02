@@ -20,6 +20,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class StrandCasterBlockEntityRenderer implements LongRangeBlockEntityRenderer<StrandCasterBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_strand_caster");
     private static final ModelResourceLocation PLATE = MachineModelRenderer.standalone("block/machine_strand_caster_plate");
     private static final ResourceLocation LAVA = ReinhardtsHBM.id("textures/models/machines/lava_gray.png");
@@ -43,7 +44,7 @@ public class StrandCasterBlockEntityRenderer implements LongRangeBlockEntityRend
         poseStack.pushPose();
         applyStrandCasterPose(poseStack, strandCasterFacing(state));
 
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
         renderDynamicMolten(caster, poseStack, bufferSource, state, packedOverlay);
         poseStack.popPose();
     }

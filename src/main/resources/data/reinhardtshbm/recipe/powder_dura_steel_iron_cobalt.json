@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [

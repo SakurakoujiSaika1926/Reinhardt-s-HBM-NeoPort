@@ -32,6 +32,7 @@ public class WandLogicBlockEntity extends BlockEntity implements SettingsCopiabl
             "BOMB_TRAP",
             "BOMB_CRANE",
             "DEAD_GUY_CRANE",
+            "DEAD_GUY_BASE_TOWER",
             "SKELETON_GUN_TIER_1",
             "SKELETON_GUN_TIER_2",
             "SKELETON_GUN_TIER_3",

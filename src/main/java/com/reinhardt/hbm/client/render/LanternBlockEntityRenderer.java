@@ -16,6 +16,7 @@ public final class LanternBlockEntityRenderer implements LongRangeBlockEntityRen
     static final ModelResourceLocation BODY = model("block/trinkets/lantern");
     static final ModelResourceLocation LIGHT = model("block/trinkets/lantern_light");
     private static final net.minecraft.resources.ResourceLocation BODY_TEXTURE = texture("lantern.png");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
 
     public LanternBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -38,10 +39,9 @@ public final class LanternBlockEntityRenderer implements LongRangeBlockEntityRen
     static void renderAssembly(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                int packedLight, int packedOverlay,
                                net.minecraft.resources.ResourceLocation texture, int lightColor) {
-        BakedModel body = MachineModelRenderer.model(BODY);
         BakedModel light = MachineModelRenderer.model(LIGHT);
-        MachineModelRenderer.renderUnculledUv(body, poseStack, bufferSource, state,
-                packedLight, packedOverlay, texture, 0.0F, 0.0F);
+        STATIC_MESHES.renderStandaloneTexture(BODY, texture, poseStack, state,
+                packedLight, packedOverlay);
         MachineModelRenderer.renderUnculledTintedLightning(light, poseStack, bufferSource, state,
                 packedOverlay, lightColor);
     }

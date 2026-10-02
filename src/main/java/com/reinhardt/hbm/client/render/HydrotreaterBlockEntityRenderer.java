@@ -12,6 +12,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public final class HydrotreaterBlockEntityRenderer implements LongRangeBlockEntityRenderer<HydrotreaterBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_hydrotreater");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
 
     public HydrotreaterBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -27,8 +28,7 @@ public final class HydrotreaterBlockEntityRenderer implements LongRangeBlockEnti
         poseStack.pushPose();
         // The legacy TESR anchors this OBJ at the center of its core block.
         poseStack.translate(0.5F, 0.0F, 0.5F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

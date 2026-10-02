@@ -21,6 +21,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class AssemblyMachineBlockEntityRenderer implements LongRangeBlockEntityRenderer<AssemblyMachineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_assembly_machine_base");
     private static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_assembly_machine_frame");
     private static final ModelResourceLocation RING = MachineModelRenderer.standalone("block/machine_assembly_machine_ring");
@@ -33,6 +34,8 @@ public class AssemblyMachineBlockEntityRenderer implements LongRangeBlockEntityR
     private static final ModelResourceLocation HEAD_2 = MachineModelRenderer.standalone("block/machine_assembly_machine_head2");
     private static final ModelResourceLocation SPIKE_1 = MachineModelRenderer.standalone("block/machine_assembly_machine_spike1");
     private static final ModelResourceLocation SPIKE_2 = MachineModelRenderer.standalone("block/machine_assembly_machine_spike2");
+    private final double[] arm1 = new double[4];
+    private final double[] arm2 = new double[4];
 
     public AssemblyMachineBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         AssemblyMachineBlockEntity.setClientRecipeIconSnapshotUpdater(
@@ -68,7 +71,7 @@ public class AssemblyMachineBlockEntityRenderer implements LongRangeBlockEntityR
         renderAssemblyMachine(assemblyMachine, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
-    private static void renderAssemblyMachine(
+    private void renderAssemblyMachine(
             AssemblyMachineBlockEntity assemblyMachine,
             float partialTick,
             PoseStack poseStack,
@@ -88,7 +91,7 @@ public class AssemblyMachineBlockEntityRenderer implements LongRangeBlockEntityR
         poseStack.popPose();
     }
 
-    private static void renderTaczAmmoAssembler(
+    private void renderTaczAmmoAssembler(
             TaczAmmoAssemblerBlockEntity ammoAssembler,
             float partialTick,
             PoseStack poseStack,
@@ -108,7 +111,7 @@ public class AssemblyMachineBlockEntityRenderer implements LongRangeBlockEntityR
         poseStack.popPose();
     }
 
-    private static void renderAssemblerComponents(
+    private void renderAssemblerComponents(
             AssemblyMachineBlockEntity assemblyMachine,
             float partialTick,
             PoseStack poseStack,
@@ -126,8 +129,10 @@ public class AssemblyMachineBlockEntityRenderer implements LongRangeBlockEntityR
         poseStack.mulPose(Axis.YP.rotationDegrees((float) assemblyMachine.clientRing(partialTick)));
         renderPart(RING, poseStack, bufferSource, state, packedLight, packedOverlay);
         renderPart(RING2, poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderArmOne(assemblyMachine.clientArmPositions(0, partialTick), poseStack, bufferSource, state, packedLight, packedOverlay);
-        renderArmTwo(assemblyMachine.clientArmPositions(1, partialTick), poseStack, bufferSource, state, packedLight, packedOverlay);
+        assemblyMachine.writeClientArmPositions(0, partialTick, this.arm1);
+        assemblyMachine.writeClientArmPositions(1, partialTick, this.arm2);
+        renderArmOne(this.arm1, poseStack, bufferSource, state, packedLight, packedOverlay);
+        renderArmTwo(this.arm2, poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -427,7 +432,7 @@ public class AssemblyMachineBlockEntityRenderer implements LongRangeBlockEntityR
             int packedLight,
             int packedOverlay
     ) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static Direction assemblyMachineFacing(BlockState state) {

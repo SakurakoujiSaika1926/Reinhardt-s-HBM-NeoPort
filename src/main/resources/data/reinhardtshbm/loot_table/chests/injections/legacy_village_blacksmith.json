@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 3.0,
+        "max": 8.0
+      },
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 94
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:armor_polish",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:bathwater",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

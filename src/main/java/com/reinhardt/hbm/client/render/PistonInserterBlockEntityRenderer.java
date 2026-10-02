@@ -31,6 +31,7 @@ import java.util.List;
 
 /** Exact 1.7.10 RenderPistonInserter model parts, direction table and item pose. */
 public final class PistonInserterBlockEntityRenderer implements LongRangeBlockEntityRenderer<PistonInserterBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation FRAME = part("piston_inserter_frame");
     private static final ModelResourceLocation PISTON = part("piston_inserter_piston");
     private static final List<ModelResourceLocation> MODELS = List.of(FRAME, PISTON);
@@ -75,14 +76,14 @@ public final class PistonInserterBlockEntityRenderer implements LongRangeBlockEn
         poseStack.translate(0.5D, 0.5D, 0.5D);
         rotateLegacy(poseStack, facing);
         poseStack.translate(0.0D, -0.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(
-                generation.model(FRAME), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(
+                generation.model(FRAME), poseStack, state, packedLight, packedOverlay);
 
         float extension = snapshot.extension(partialTick) / PistonInserterBlockEntity.MAX_EXTEND;
         poseStack.pushPose();
         poseStack.translate(0.0D, extension * 0.9375D, 0.0D);
-        MachineModelRenderer.renderUnculled(
-                generation.model(PISTON), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(
+                generation.model(PISTON), poseStack, state, packedLight, packedOverlay);
 
         ItemStack stack = snapshot.renderedItem();
         if (!stack.isEmpty() && snapshot.modelToken() instanceof BakedModel itemModel) {

@@ -17,6 +17,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class SolarBoilerBlockEntityRenderer implements LongRangeBlockEntityRenderer<SolarBoilerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     // RenderSolarBoiler in 1.7.10 renders only the OBJ's Base group.  The three
     // concentric auxiliary glow groups belong to the export but are not world geometry.
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_solar_boiler_base");
@@ -57,7 +58,7 @@ public class SolarBoilerBlockEntityRenderer implements LongRangeBlockEntityRende
 
         poseStack.pushPose();
         applySolarBoilerPose(poseStack, snapshot.facing());
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         // RenderSolarBoiler only emitted the additive beams on fancy graphics.

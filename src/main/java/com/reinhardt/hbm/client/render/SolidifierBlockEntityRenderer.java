@@ -13,6 +13,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class SolidifierBlockEntityRenderer implements LongRangeBlockEntityRenderer<SolidifierBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MAIN = MachineModelRenderer.standalone("block/machine_solidifier");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_solidifier_fluid");
     private static final ModelResourceLocation GLASS = MachineModelRenderer.standalone("block/machine_solidifier_glass");
@@ -34,7 +35,7 @@ public class SolidifierBlockEntityRenderer implements LongRangeBlockEntityRender
 
         poseStack.pushPose();
         applySolidifierPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MAIN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MAIN, poseStack, state, packedLight, packedOverlay);
 
         if (solidifier.tank().amount() > 0 && !solidifier.tank().type().isNone()) {
             double height = (double) solidifier.tank().amount() / (double) solidifier.tank().capacity();

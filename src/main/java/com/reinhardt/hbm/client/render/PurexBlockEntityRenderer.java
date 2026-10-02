@@ -18,6 +18,7 @@ public final class PurexBlockEntityRenderer implements LongRangeBlockEntityRende
     static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_purex_frame");
     static final ModelResourceLocation FAN = MachineModelRenderer.standalone("block/machine_purex_fan");
     static final ModelResourceLocation PUMP = MachineModelRenderer.standalone("block/machine_purex_pump");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB NORTH_BOUNDS = createPurexLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_BOUNDS = createPurexLocalBounds(Direction.SOUTH);
     private static final AABB WEST_BOUNDS = createPurexLocalBounds(Direction.WEST);
@@ -81,7 +82,7 @@ public final class PurexBlockEntityRenderer implements LongRangeBlockEntityRende
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource,
                                    BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static void applyPurexPose(PoseStack poseStack, Direction facing) {

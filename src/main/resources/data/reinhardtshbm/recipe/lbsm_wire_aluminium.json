@@ -1,0 +1,22 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:ingots/aluminium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:wire_aluminium",
+    "count": 24
+  }
+}

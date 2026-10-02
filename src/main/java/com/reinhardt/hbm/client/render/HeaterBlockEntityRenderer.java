@@ -6,7 +6,6 @@ import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,6 +15,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class HeaterBlockEntityRenderer implements LongRangeBlockEntityRenderer<HeaterBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation FIREBOX_WORLD = MachineModelRenderer.standalone("block/heater_firebox_world");
     private static final ModelResourceLocation FIREBOX_DOOR = MachineModelRenderer.standalone("block/heater_firebox_door");
     private static final ModelResourceLocation FIREBOX_INNER_EMPTY = MachineModelRenderer.standalone("block/heater_firebox_inner_empty");
@@ -234,7 +234,7 @@ public class HeaterBlockEntityRenderer implements LongRangeBlockEntityRenderer<H
     }
 
     private static void renderStatic(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static void renderLitStatic(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
@@ -247,14 +247,15 @@ public class HeaterBlockEntityRenderer implements LongRangeBlockEntityRenderer<H
         poseStack.translate(1.875F, 0.0F, 0.875F);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-door), 0.0F, 1.0F, 0.0F)));
         poseStack.translate(-1.875F, 0.0F, -0.875F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FIREBOX_DOOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FIREBOX_DOOR, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
-        BakedModel inner = MachineModelRenderer.model(heater.isVisuallyActive() ? FIREBOX_INNER_BURNING : FIREBOX_INNER_EMPTY);
+        ModelResourceLocation inner = heater.isVisuallyActive() ? FIREBOX_INNER_BURNING : FIREBOX_INNER_EMPTY;
         if (heater.isVisuallyActive()) {
-            MachineModelRenderer.renderUnculledFullBright(inner, poseStack, bufferSource, state, packedOverlay);
+            STATIC_MESHES.render(inner, poseStack, state,
+                    net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, packedOverlay);
         } else {
-            MachineModelRenderer.renderUnculled(inner, poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(inner, poseStack, state, packedLight, packedOverlay);
         }
     }
 
@@ -262,14 +263,15 @@ public class HeaterBlockEntityRenderer implements LongRangeBlockEntityRenderer<H
         float door = heater.doorAngle(partialTick);
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.0F, door * 0.75F / 135.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(OVEN_DOOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(OVEN_DOOR, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
-        BakedModel inner = MachineModelRenderer.model(heater.isVisuallyActive() ? OVEN_INNER_BURNING : OVEN_INNER);
+        ModelResourceLocation inner = heater.isVisuallyActive() ? OVEN_INNER_BURNING : OVEN_INNER;
         if (heater.isVisuallyActive()) {
-            MachineModelRenderer.renderUnculledFullBright(inner, poseStack, bufferSource, state, packedOverlay);
+            STATIC_MESHES.render(inner, poseStack, state,
+                    net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, packedOverlay);
         } else {
-            MachineModelRenderer.renderUnculled(inner, poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(inner, poseStack, state, packedLight, packedOverlay);
         }
     }
 }

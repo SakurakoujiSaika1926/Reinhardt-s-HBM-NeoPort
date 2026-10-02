@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.integration.jei;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.blockentity.RotaryFurnaceBlockEntity;
 import com.reinhardt.hbm.item.ScrapsItem;
 import com.reinhardt.hbm.recipe.RotaryFurnaceRecipe;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -15,6 +16,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -29,6 +31,7 @@ import java.util.Locale;
 public class RotaryFurnaceRecipeCategory implements IRecipeCategory<RecipeHolder<RotaryFurnaceRecipe>> {
     private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("textures/gui/processing/gui_rotary_furnace.png");
     private static final int ADDITIVE_TANK_CAPACITY = 16_000;
+    private static List<ItemStack> validFuels;
 
     private final IDrawable background;
     private final IDrawable icon;
@@ -71,19 +74,32 @@ public class RotaryFurnaceRecipeCategory implements IRecipeCategory<RecipeHolder
                     .addItemStacks(stacks);
         }
         if (value.hasFluid()) {
-            addFluid(builder.addInputSlot(8, 54), value.fluid().fluid(), value.fluid().amount());
+            addFluid(builder.addInputSlot(8, 54), value.fluid().fluid(), value.fluid().amount(),
+                    ADDITIVE_TANK_CAPACITY, 16, 16);
         }
-        builder.addSlot(RecipeIngredientRole.CATALYST, 44, 54)
-                .addItemStack(new ItemStack(HbmBlocks.MACHINE_ROTARY_FURNACE.get()));
+        builder.addInputSlot(44, 54)
+                .addItemStacks(validFuels());
         builder.addOutputSlot(98, 36)
                 .addItemStack(ScrapsItem.create(value.output().stack(), true));
+
+        int steamPerOperation = Math.multiplyExact(value.steam(), value.duration());
+        HbmFluids.byName("steam").ifPresent(steam -> addFluid(
+                builder.addInputSlot(134, 18), steam, steamPerOperation,
+                Math.max(RotaryFurnaceBlockEntity.STEAM_CAPACITY, steamPerOperation), 16, 52));
+        int spentSteamPerOperation = steamPerOperation / 100;
+        HbmFluids.byName("spentsteam").ifPresent(spentSteam -> addFluid(
+                builder.addOutputSlot(152, 18), spentSteam, spentSteamPerOperation,
+                Math.max(RotaryFurnaceBlockEntity.SPENT_STEAM_CAPACITY, spentSteamPerOperation), 16, 52));
     }
 
     @Override
     public void draw(RecipeHolder<RotaryFurnaceRecipe> recipe, mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         RotaryFurnaceRecipe value = recipe.value();
-        String duration = String.format(Locale.US, "%,d", value.duration()) + " ticks";
-        String consumption = Component.translatable("fluid.reinhardtshbm.steam").getString() + ": "
+        String duration = Component.translatable(
+                "jei.reinhardtshbm.duration",
+                String.format(Locale.US, "%,d", value.duration())
+        ).getString();
+        String consumption = Component.translatable("hbmfluid.steam").getString() + ": "
                 + String.format(Locale.US, "%,d", value.steam()) + " mB/t";
         int side = 160;
         var font = Minecraft.getInstance().font;
@@ -91,12 +107,29 @@ public class RotaryFurnaceRecipeCategory implements IRecipeCategory<RecipeHolder
         guiGraphics.drawString(font, consumption, side - font.width(consumption), 55, 0x404040, false);
     }
 
-    private static void addFluid(IRecipeSlotBuilder slot, com.reinhardt.hbm.fluid.HbmFluidDefinition definition, int amount) {
+    private static List<ItemStack> validFuels() {
+        if (validFuels == null) {
+            validFuels = BuiltInRegistries.ITEM.stream()
+                    .map(ItemStack::new)
+                    .filter(stack -> RotaryFurnaceBlockEntity.fuelDuration(stack) > 0)
+                    .toList();
+        }
+        return validFuels;
+    }
+
+    private static void addFluid(
+            IRecipeSlotBuilder slot,
+            com.reinhardt.hbm.fluid.HbmFluidDefinition definition,
+            int amount,
+            int capacity,
+            int width,
+            int height
+    ) {
         Fluid fluid = HbmFluids.toNeoFluid(definition);
         if (fluid == Fluids.EMPTY || amount <= 0) {
             return;
         }
-        slot.setFluidRenderer(ADDITIVE_TANK_CAPACITY, false, 16, 16)
+        slot.setFluidRenderer(capacity, false, width, height)
                 .addFluidStack(fluid, amount);
         HbmJeiFluidTooltips.addTo(slot);
     }

@@ -1,0 +1,1 @@
+{ "parent": "minecraft:block/snow_height10", "textures": { "particle": "reinhardtshbm:block/sand_boron", "texture": "reinhardtshbm:block/sand_boron" } }

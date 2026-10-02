@@ -12,6 +12,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Original RenderDecoBlock sat-dock transform, using the untouched 1.7.10 OBJ. */
 public final class SatelliteDockBlockEntityRenderer implements LongRangeBlockEntityRenderer<SatelliteDockBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/sat_dock");
 
     public SatelliteDockBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -28,8 +29,7 @@ public final class SatelliteDockBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.pushPose();
         // RenderDecoBlock's two 180 degree Z rotations cancel before the OBJ is drawn.
         poseStack.translate(0.5F, 0.0F, 0.5F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

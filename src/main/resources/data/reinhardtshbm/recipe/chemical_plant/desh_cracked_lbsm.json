@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_chemistry"
+    }
+  ],
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.deshcracked",
+  "duration": 100,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/desh_mix"
+      },
+      "count": 1
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "lightoil_crack",
+      "amount": 500
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:ingot_desh"
+    }
+  ],
+  "output_fluids": []
+}

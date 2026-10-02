@@ -20,6 +20,7 @@ public class SteamEngineBlockEntityRenderer implements LongRangeBlockEntityRende
     static final ModelResourceLocation SHAFT = MachineModelRenderer.standalone("block/machine_steam_engine_shaft");
     static final ModelResourceLocation TRANSMISSION = MachineModelRenderer.standalone("block/machine_steam_engine_transmission");
     static final ModelResourceLocation PISTON = MachineModelRenderer.standalone("block/machine_steam_engine_piston");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB NORTH_RENDER_BOUNDS = createSteamEngineLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_RENDER_BOUNDS = createSteamEngineLocalBounds(Direction.SOUTH);
     private static final AABB WEST_RENDER_BOUNDS = createSteamEngineLocalBounds(Direction.WEST);
@@ -58,20 +59,20 @@ public class SteamEngineBlockEntityRenderer implements LongRangeBlockEntityRende
     }
 
     static void renderParts(float rot, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(2.0D, 1.375D, 0.0D);
         poseStack.mulPose(Axis.ZN.rotationDegrees(rot));
         poseStack.translate(-2.0D, -1.375D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FLYWHEEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FLYWHEEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.375D, -0.5D);
         poseStack.mulPose(Axis.XP.rotationDegrees(rot * 2.0F));
         poseStack.translate(0.0D, -1.375D, 0.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SHAFT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SHAFT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         double sin = Math.sin(rot * Math.PI / 180.0D) * 0.25D - 0.25D;
@@ -83,13 +84,13 @@ public class SteamEngineBlockEntityRenderer implements LongRangeBlockEntityRende
         poseStack.translate(2.25D, 1.375D, 0.0D);
         poseStack.mulPose(Axis.ZN.rotation((float) (ang - Math.PI / 2.0D)));
         poseStack.translate(-2.25D, -1.375D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TRANSMISSION), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(TRANSMISSION, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         double cath = Math.sqrt(3.515625D - (cos * cos) / 2.0D);
         poseStack.translate(1.875D - cath + sin, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PISTON), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PISTON, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

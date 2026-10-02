@@ -12,6 +12,7 @@ import com.reinhardt.hbm.network.LegacyExplosionEffectPayload;
 import com.reinhardt.hbm.network.LegacySmallExplosionEffectPayload;
 import com.reinhardt.hbm.pollution.HbmPollution;
 import com.reinhardt.hbm.pollution.HbmPollutionType;
+import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
@@ -294,6 +295,41 @@ public final class LegacyProjectileUtil {
                 10, 16, 50, 1.0F, 3.0F, -2.0F, 200.0F);
     }
 
+    /** Exact BlockPlasticExplosive payload: VNT size 20, standard resolution 16 and no block drops. */
+    public static void detonatePlasticExplosive(ServerLevel level, Vec3 pos, @Nullable Entity owner) {
+        Set<BlockPos> affected = allocateLegacyMissileStandardBlocks(level, pos, 20.0F, 16);
+        applyLegacyCrossDamage(level, owner, pos, 20.0F, 1.0F);
+        processLegacyMissileStandardBlocks(level, pos, 20.0F, affected, false);
+        level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE.value(),
+                SoundSource.BLOCKS, 4.0F,
+                (1.0F + (level.random.nextFloat() - level.random.nextFloat()) * 0.2F) * 0.7F);
+        level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y, pos.z,
+                1, 0.0D, 0.0D, 0.0D, 0.0D);
+    }
+
+    /**
+     * Direct 1.7.10 {@code ExplosionVNT.makeAmat()} port.  The standard
+     * allocator uses resolution 16 below size 15 and 32 otherwise, blocks
+     * never drop, entity range is doubled, and every affected living entity
+     * receives the creative (unshielded) antimatter radiation dose.
+     */
+    public static void antimatterExplosion(ServerLevel level, Vec3 pos, float radius, @Nullable Entity source) {
+        int resolution = radius < 15.0F ? 16 : 32;
+        Set<BlockPos> affected = allocateLegacyMissileStandardBlocks(level, pos, radius, resolution);
+        applyAntimatterStandardDamage(level, source, pos, radius);
+        processLegacyMissileStandardBlocks(level, pos, radius, affected, false);
+
+        if (radius < 15.0F) {
+            level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE.value(),
+                    SoundSource.BLOCKS, 4.0F,
+                    (1.4F + (level.random.nextFloat() - level.random.nextFloat()) * 0.2F) * 0.7F);
+        } else {
+            level.playSound(null, pos.x, pos.y, pos.z, HbmSoundEvents.WEAPON_MUKE_EXPLOSION.get(),
+                    SoundSource.BLOCKS, 15.0F, 1.0F);
+        }
+        LegacyAntimatterFlashEntity.spawn(level, pos, radius);
+    }
+
     /** Direct 1.7.10 DetMiner detonation: all block drops, no entity damage. */
     public static void detonateMiningCharge(ServerLevel level, Vec3 pos) {
         allocateLegacyExplosionBlocks(null, level, pos, 4.0F, 48, 1.0F, null);
@@ -530,6 +566,61 @@ public final class LegacyProjectileUtil {
     ) {
         applyLandmineDamage(level, center, radius, fixedDamage, nodeDistance,
                 thresholdNegation, resistancePiercing, rangeMultiplier);
+    }
+
+    /**
+     * Exact 528-mode Applied Energistics punishment from ModEventHandler.
+     *
+     * <p>The old ExplosionVNT intentionally had no block allocator or block
+     * processor: the clicked AE block was removed separately and surrounding
+     * terrain was never exploded.  Its only payload was an
+     * EntityProcessorCrossSmooth(1, 20) with 5 DT penetration and 20% DR
+     * penetration, followed by ExplosionEffectWeapon(10, 2.5, 1).</p>
+     */
+    public static void explosiveEnergisticsBlast(ServerLevel level, Vec3 center) {
+        final float radius = 5.0F;
+        final float fixedDamage = 20.0F;
+        final double size = radius * 2.0D;
+        AABB area = new AABB(center, center).inflate(size + 1.0D);
+        java.util.List<Entity> entities = level.getEntities((Entity) null, area, Entity::isAlive);
+        Explosion eventExplosion = new Explosion(level, null,
+                center.x, center.y, center.z, radius, false, Explosion.BlockInteraction.KEEP);
+        EventHooks.onExplosionDetonate(level, eventExplosion, entities, (float) size);
+
+        Vec3[] nodes = legacyCrossNodes(center, 1.0D);
+        for (Entity entity : entities) {
+            if (!entity.isAlive()) continue;
+            double distanceScaled = legacyBoxDistance(entity, center) / size;
+            if (distanceScaled > 1.0D) continue;
+
+            Vec3 delta = new Vec3(entity.getX() - center.x,
+                    entity.getEyeY() - center.y,
+                    entity.getZ() - center.z);
+            double distance = delta.length();
+            if (distance == 0.0D) continue;
+
+            double density = 0.0D;
+            for (Vec3 node : nodes) {
+                density = Math.max(density, Explosion.getSeenPercent(node, entity));
+            }
+            if (density < 0.125D) continue;
+
+            float damage = (float) (fixedDamage * (1.0D - distanceScaled));
+            if (entity instanceof LivingEntity living) {
+                damage = sednaExplosiveDamage(living, damage, 5.0F, 0.2F);
+            }
+            if (damage > 0.0F) {
+                hurtNoIFrame(entity, level.damageSources().source(HbmDamageTypes.SEDNA_EXPLOSIVE), damage);
+            }
+
+            double knockback = (1.0D - distanceScaled) * density;
+            if (entity instanceof LivingEntity living) {
+                knockback *= 1.0D - living.getAttributeValue(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE);
+            }
+            entity.setDeltaMovement(entity.getDeltaMovement().add(delta.scale(knockback / distance)));
+            entity.hurtMarked = true;
+        }
+        sendSmallExplosionEffect(level, center, 10, 2.5F, 1.0F);
     }
 
     public static void gas(Entity source, Vec3 hitPos, LegacyMistEntity.MistType type) {
@@ -928,6 +1019,38 @@ public final class LegacyProjectileUtil {
 
     private static void applyLegacyCrossDamage(Entity source, Vec3 pos, float radius, float rangeMod) {
         applyLegacyCrossDamage(source.level(), source, pos, radius, rangeMod);
+    }
+
+    private static void applyAntimatterStandardDamage(Level level, @Nullable Entity source, Vec3 pos, float radius) {
+        // EntityProcessorStandard first doubles explosion size and
+        // withRangeMod(2F) doubles it once more.
+        double range = radius * 4.0D;
+        AABB area = new AABB(pos, pos).inflate(range + 1.0D);
+        for (Entity entity : level.getEntities(source, area, entity -> entity.isAlive() && entity != source)) {
+            double distanceScaled = entity.position().distanceTo(pos) / range;
+            if (distanceScaled > 1.0D) {
+                continue;
+            }
+            Vec3 delta = new Vec3(entity.getX() - pos.x, entity.getEyeY() - pos.y, entity.getZ() - pos.z);
+            double distance = delta.length();
+            if (distance == 0.0D) {
+                continue;
+            }
+            Vec3 normal = delta.scale(1.0D / distance);
+            double density = Explosion.getSeenPercent(pos, entity);
+            double knockback = (1.0D - distanceScaled) * density;
+            float damage = (float) ((int) ((knockback * knockback + knockback) / 2.0D * 8.0D * range + 1.0D));
+            if (damage > 0.0F) {
+                entity.hurt(level.damageSources().explosion(null), damage);
+            }
+            entity.setDeltaMovement(entity.getDeltaMovement().add(normal.scale(knockback)));
+            entity.hurtMarked = true;
+
+            if (entity instanceof LivingEntity living) {
+                float radiation = (float) (50.0D * (1.0D - distanceScaled) * radius);
+                HbmLivingRadiation.get(living).addRadiation(radiation);
+            }
+        }
     }
 
     private static void applyLegacyCrossDamage(Level level, @Nullable Entity source, Vec3 pos, float radius, float rangeMod) {

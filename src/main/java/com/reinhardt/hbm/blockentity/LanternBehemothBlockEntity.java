@@ -6,9 +6,12 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.entity.LegacyBobmazonEntity;
+import com.reinhardt.hbm.player.HbmPlayerReputation;
+import com.reinhardt.hbm.ReinhardtsHBM;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -40,6 +43,7 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
 
     private boolean broken;
     private int communicationTimer = -1;
+    private int reputation;
     private volatile RenderSnapshot renderSnapshot;
 
     public LanternBehemothBlockEntity(BlockPos pos, BlockState state) {
@@ -88,10 +92,15 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
         advanced.setCount(4 + level.random.nextInt(2));
 
         ItemStack kit = new ItemStack(HbmItems.KIT_CUSTOM.get());
+        ItemStack token = new ItemStack(BuiltInRegistries.ITEM.get(
+                ResourceLocation.fromNamespaceAndPath(ReinhardtsHBM.MOD_ID, "coin_token")),
+                Math.max(1, reputation));
+        ItemStack valuable = reputation >= 10
+                ? new ItemStack(HbmItems.GEM_ALEXANDRITE.get())
+                : new ItemStack(Items.DIAMOND, 6 + level.random.nextInt(6));
         com.reinhardt.hbm.item.LegacyCustomKitItem.create(
                 kit, level.registryAccess(), 0xFFFFFF, 0x008000,
-                basic, advanced,
-                new ItemStack(Items.DIAMOND, 6 + level.random.nextInt(6)),
+                basic, advanced, token, valuable,
                 new ItemStack(Blocks.POPPY));
 
         LegacyBobmazonEntity courier = new LegacyBobmazonEntity(
@@ -126,11 +135,23 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
 
         consume(player, STEEL_PLATES, 2);
         consumeBasicCircuit(player);
+        lantern.reputation = HbmPlayerReputation.get(player);
         lantern.setBroken(false);
         lantern.communicationTimer = 400;
         lantern.setChanged();
+        HbmPlayerReputation.add(player, 1);
         blowtorch.consumeTorchFuel(held);
         return true;
+    }
+
+    public void penalizeNearbyPlayers() {
+        if (this.level == null || this.level.isClientSide) {
+            return;
+        }
+        AABB area = new AABB(this.worldPosition).inflate(50.0D);
+        for (Player player : this.level.getEntitiesOfClass(Player.class, area)) {
+            HbmPlayerReputation.add(player, -1);
+        }
     }
 
     private static boolean isBasicCircuit(ItemStack stack) {
@@ -178,6 +199,7 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
         super.saveAdditional(tag, registries);
         tag.putBoolean("isBroken", broken);
         tag.putInt("comTimer", communicationTimer);
+        tag.putInt("reputation", reputation);
     }
 
     @Override
@@ -185,6 +207,7 @@ public final class LanternBehemothBlockEntity extends BlockEntity {
         super.loadAdditional(tag, registries);
         broken = tag.getBoolean("isBroken");
         communicationTimer = tag.getInt("comTimer");
+        reputation = tag.getInt("reputation");
         publishRenderSnapshot();
     }
 

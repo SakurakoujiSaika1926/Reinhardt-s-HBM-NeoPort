@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class GasCentrifugeBlockEntityRenderer implements LongRangeBlockEntityRenderer<GasCentrifugeBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_gascent");
     private static final AABB[] LOCAL_BOUNDS = buildGasCentrifugeBounds();
 
@@ -28,7 +29,7 @@ public class GasCentrifugeBlockEntityRenderer implements LongRangeBlockEntityRen
         Direction facing = gasCentrifugeFacing(state);
         poseStack.pushPose();
         applyGasCentrifugeTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

@@ -10,6 +10,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class WatzPumpBlockEntityRenderer implements LongRangeBlockEntityRenderer<WatzPumpBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/watz_pump_world");
 
     public WatzPumpBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -24,7 +25,7 @@ public class WatzPumpBlockEntityRenderer implements LongRangeBlockEntityRenderer
         BlockState state = pump.getBlockState();
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

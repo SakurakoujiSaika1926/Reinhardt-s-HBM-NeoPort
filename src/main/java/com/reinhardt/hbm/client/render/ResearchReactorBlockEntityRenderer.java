@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class ResearchReactorBlockEntityRenderer implements LongRangeBlockEntityRenderer<ResearchReactorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_reactor_small_base");
     private static final ModelResourceLocation RODS = MachineModelRenderer.standalone("block/machine_reactor_small_rods");
     private static final AABB RENDER_BOUNDS = createResearchReactorLocalBounds();
@@ -29,11 +30,11 @@ public class ResearchReactorBlockEntityRenderer implements LongRangeBlockEntityR
         BlockState state = reactor.getBlockState();
         poseStack.pushPose();
         applyResearchReactorPose(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0D, reactor.controlLevel(partialTick), 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RODS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RODS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }

@@ -3224,10 +3224,42 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     private static void renderSodaVendingMachineItem(DedicatedItemRender item) {
         PoseStack pose = item.poseStack();
         pose.pushPose();
+        // Cancel ItemRenderer's BEWLR origin.  Every following operation is the
+        // soda machine's own 1.7.10 ItemRenderBase matrix, not a shared fit.
         pose.translate(0.5F, 0.5F, 0.5F);
-        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 2.0F;
-        pose.scale(scale, scale, scale);
-        pose.translate(0.0F, -1.0F, 0.0F);
+        switch (item.context()) {
+            case GUI -> {
+                // Exact solution from the legacy inventory screen matrix to
+                // GuiGraphics' 16/-16/16 basis; no fitted 11.3 approximation.
+                pose.scale(1.0F / 16.0F, -1.0F / 16.0F, 1.0F / 16.0F);
+                pose.translate(0.0F, 2.0F, 0.0F);
+                pose.mulPose(Axis.XP.rotationDegrees(-30.0F));
+                pose.mulPose(Axis.YP.rotationDegrees(45.0F));
+                pose.scale(-1.0F, -1.0F, -1.0F);
+                pose.translate(0.0F, -4.0F, 0.0F);
+                pose.scale(6.25F, 6.25F, 6.25F);
+            }
+            case GROUND, FIXED -> {
+                // 1.7.10 item entities and item frames both used ENTITY.
+                pose.scale(1.5F, 1.5F, 1.5F);
+                pose.scale(0.25F, 0.25F, 0.25F);
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                pose.translate(0.5F, 0.25F, 0.0F);
+                pose.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                pose.translate(0.5F, 0.25F, 0.0F);
+                pose.scale(0.25F, 0.25F, 0.25F);
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case HEAD, NONE -> {
+                // No corresponding 1.7.10 render type exists for this block.
+                pose.popPose();
+                return;
+            }
+        }
         renderModels(item, item.models().size());
         pose.popPose();
     }
@@ -3235,10 +3267,42 @@ public final class ObjMachineItemRenderer extends BlockEntityWithoutLevelRendere
     private static void renderSnackVendingMachineItem(DedicatedItemRender item) {
         PoseStack pose = item.poseStack();
         pose.pushPose();
+        // Cancel ItemRenderer's BEWLR origin.  Every following operation is the
+        // snack machine's own 1.7.10 ItemRenderBase matrix, not a shared fit.
         pose.translate(0.5F, 0.5F, 0.5F);
-        float scale = (item.context() == ItemDisplayContext.GUI ? 0.90F : 0.85F) / 2.0F;
-        pose.scale(scale, scale, scale);
-        pose.translate(0.0F, -1.0F, 0.0F);
+        switch (item.context()) {
+            case GUI -> {
+                // Exact solution from the legacy inventory screen matrix to
+                // GuiGraphics' 16/-16/16 basis; no fitted 11.3 approximation.
+                pose.scale(1.0F / 16.0F, -1.0F / 16.0F, 1.0F / 16.0F);
+                pose.translate(0.0F, 2.0F, 0.0F);
+                pose.mulPose(Axis.XP.rotationDegrees(-30.0F));
+                pose.mulPose(Axis.YP.rotationDegrees(45.0F));
+                pose.scale(-1.0F, -1.0F, -1.0F);
+                pose.translate(0.0F, -4.0F, 0.0F);
+                pose.scale(6.25F, 6.25F, 6.25F);
+            }
+            case GROUND, FIXED -> {
+                // 1.7.10 item entities and item frames both used ENTITY.
+                pose.scale(1.5F, 1.5F, 1.5F);
+                pose.scale(0.25F, 0.25F, 0.25F);
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                pose.translate(0.5F, 0.25F, 0.0F);
+                pose.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                pose.translate(0.5F, 0.25F, 0.0F);
+                pose.scale(0.25F, 0.25F, 0.25F);
+                pose.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case HEAD, NONE -> {
+                // No corresponding 1.7.10 render type exists for this block.
+                pose.popPose();
+                return;
+            }
+        }
         renderModels(item, item.models().size());
         pose.popPose();
     }

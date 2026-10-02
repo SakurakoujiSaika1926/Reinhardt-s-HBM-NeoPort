@@ -98,11 +98,13 @@ public final class LegacyWrenchItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        tooltip.add(Component.translatable("tooltip.reinhardtshbm.wrench.use").withStyle(ChatFormatting.GRAY));
         if (tag.contains(ANCHOR)) {
             BlockPos pos = BlockPos.of(tag.getLong(ANCHOR));
-            tooltip.add(Component.translatable("tooltip.reinhardtshbm.wrench.anchor", pos.getX(), pos.getY(), pos.getZ())
-                    .withStyle(ChatFormatting.YELLOW));
+            tooltip.add(Component.translatable("tooltip.reinhardtshbm.wrench.anchor_x", pos.getX()).withStyle(ChatFormatting.YELLOW));
+            tooltip.add(Component.translatable("tooltip.reinhardtshbm.wrench.anchor_y", pos.getY()).withStyle(ChatFormatting.YELLOW));
+            tooltip.add(Component.translatable("tooltip.reinhardtshbm.wrench.anchor_z", pos.getZ()).withStyle(ChatFormatting.YELLOW));
+        } else {
+            tooltip.add(Component.translatable("tooltip.reinhardtshbm.wrench.use").withStyle(ChatFormatting.GRAY));
         }
     }
 

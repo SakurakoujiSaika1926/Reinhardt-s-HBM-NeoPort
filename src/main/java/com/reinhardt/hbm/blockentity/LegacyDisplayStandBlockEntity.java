@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.event.MeteorPedestalBroadcasts;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -7,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -76,6 +78,13 @@ public final class LegacyDisplayStandBlockEntity extends BlockEntity {
             stand.clientRenderSnapshotDirty = true;
         }
         stand.refreshClientRenderSnapshot();
+    }
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state,
+                                  LegacyDisplayStandBlockEntity stand) {
+        if (level instanceof ServerLevel serverLevel && level.getGameTime() % 20L == 0L) {
+            MeteorPedestalBroadcasts.publish(serverLevel, pos, stand.displayedItem);
+        }
     }
 
     /** Installed by the client renderer without loading client classes on a dedicated server. */

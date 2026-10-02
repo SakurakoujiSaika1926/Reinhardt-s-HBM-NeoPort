@@ -16,6 +16,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class StirlingGeneratorBlockEntityRenderer implements LongRangeBlockEntityRenderer<StirlingGeneratorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_stirling_world");
     private static final ModelResourceLocation COG = MachineModelRenderer.standalone("block/machine_stirling_cog");
     private static final ModelResourceLocation COG_SMALL = MachineModelRenderer.standalone("block/machine_stirling_cog_small");
@@ -65,7 +66,7 @@ public class StirlingGeneratorBlockEntityRenderer implements LongRangeBlockEntit
                                              int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyNormalStirlingWorldPose(poseStack, state.getValue(StirlingGeneratorBlock.FACING));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         renderMovingParts(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay, COG, COG_SMALL, PISTON);
         poseStack.popPose();
     }
@@ -75,7 +76,7 @@ public class StirlingGeneratorBlockEntityRenderer implements LongRangeBlockEntit
                                             int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applySteelStirlingWorldPose(poseStack, state.getValue(StirlingGeneratorBlock.FACING));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD_STEEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD_STEEL, poseStack, state, packedLight, packedOverlay);
         renderMovingParts(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay,
                 COG_STEEL, COG_SMALL_STEEL, PISTON_STEEL);
         poseStack.popPose();
@@ -86,7 +87,7 @@ public class StirlingGeneratorBlockEntityRenderer implements LongRangeBlockEntit
                                                int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyCreativeStirlingWorldPose(poseStack, state.getValue(StirlingGeneratorBlock.FACING));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD_CREATIVE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD_CREATIVE, poseStack, state, packedLight, packedOverlay);
         renderMovingParts(stirling, state, rot, poseStack, bufferSource, packedLight, packedOverlay,
                 COG_CREATIVE, COG_SMALL_CREATIVE, PISTON_CREATIVE);
         poseStack.popPose();
@@ -102,7 +103,7 @@ public class StirlingGeneratorBlockEntityRenderer implements LongRangeBlockEntit
             poseStack.translate(0.0F, 1.375F, 0.0F);
             poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rot), 0.0F, 0.0F, 1.0F)));
             poseStack.translate(0.0F, -1.375F, 0.0F);
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cog), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(cog, poseStack, state, packedLight, packedOverlay);
             poseStack.popPose();
         }
 
@@ -110,12 +111,12 @@ public class StirlingGeneratorBlockEntityRenderer implements LongRangeBlockEntit
         poseStack.translate(0.0F, 1.375F, 0.25F);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rot * 2.0F + 3.0F), 1.0F, 0.0F, 0.0F)));
         poseStack.translate(0.0F, -1.375F, -0.25F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(cogSmall), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(cogSmall, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(Math.sin(rot * Math.PI / 90.0D) * 0.25D + 0.125D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(piston), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(piston, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

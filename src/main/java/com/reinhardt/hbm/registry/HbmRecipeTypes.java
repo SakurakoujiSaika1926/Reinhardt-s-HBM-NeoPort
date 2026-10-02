@@ -34,6 +34,7 @@ import com.reinhardt.hbm.recipe.GasCentrifugeRecipe;
 import com.reinhardt.hbm.recipe.LiquefactionRecipe;
 import com.reinhardt.hbm.recipe.LubricantCanisterRecipe;
 import com.reinhardt.hbm.recipe.MixerRecipe;
+import com.reinhardt.hbm.recipe.MkuCraftingRecipe;
 import com.reinhardt.hbm.recipe.ParticleAcceleratorRecipe;
 import com.reinhardt.hbm.recipe.PlasmaForgeRecipe;
 import com.reinhardt.hbm.recipe.PressRecipe;
@@ -57,6 +58,7 @@ import com.reinhardt.hbm.recipe.SupercomputerRecipe;
 import com.reinhardt.hbm.recipe.SpaceAssemblerRecipe;
 import com.reinhardt.hbm.recipe.VacuumDistillRecipe;
 import com.reinhardt.hbm.recipe.UniversalGrenadeRecipe;
+import com.reinhardt.hbm.recipe.ingredient.BatteryIngredient;
 import com.reinhardt.hbm.recipe.ingredient.FoundryMaterialIngredient;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -77,6 +79,8 @@ public final class HbmRecipeTypes {
 
     public static final DeferredHolder<IngredientType<?>, IngredientType<FoundryMaterialIngredient>> FOUNDRY_MATERIAL_INGREDIENT =
             INGREDIENT_TYPES.register("foundry_material", () -> new IngredientType<>(FoundryMaterialIngredient.CODEC));
+    public static final DeferredHolder<IngredientType<?>, IngredientType<BatteryIngredient>> BATTERY_INGREDIENT =
+            INGREDIENT_TYPES.register("battery", () -> new IngredientType<>(BatteryIngredient.CODEC));
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<ShredderRecipe>> SHREDDER =
             RECIPE_TYPES.register("shredder", () -> RecipeType.simple(ReinhardtsHBM.id("shredder")));
@@ -377,6 +381,8 @@ public final class HbmRecipeTypes {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<UniversalGrenadeRecipe>> UNIVERSAL_GRENADE_SERIALIZER =
             RECIPE_SERIALIZERS.register("universal_grenade", UniversalGrenadeRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MkuCraftingRecipe>> MKU_SERIALIZER =
+            RECIPE_SERIALIZERS.register("mku", MkuCraftingRecipe.Serializer::new);
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<RbmkFuelDisassemblyRecipe>> RBMK_FUEL_DISASSEMBLY_SERIALIZER =
             RECIPE_SERIALIZERS.register("rbmk_fuel_disassembly", RbmkFuelDisassemblyRecipe.Serializer::new);
 

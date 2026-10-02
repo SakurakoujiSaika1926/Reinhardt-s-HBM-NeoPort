@@ -90,7 +90,6 @@ public final class HbmClientScreens {
         event.register(HbmMenus.DFC_INJECTOR.get(), DfcInjectorScreen::new);
         event.register(HbmMenus.DFC_STABILIZER.get(), DfcStabilizerScreen::new);
         event.register(HbmMenus.RBMK_COMPONENT.get(), RbmkComponentScreen::new);
-        event.register(HbmMenus.STEAM_TURBINE.get(), SteamTurbineScreen::new);
         event.register(HbmMenus.LARGE_TURBINE.get(), LargeTurbineScreen::new);
         event.register(HbmMenus.GAS_TURBINE.get(), GasTurbineScreen::new);
         event.register(HbmMenus.SMALL_BOILER.get(), SmallBoilerScreen::new);

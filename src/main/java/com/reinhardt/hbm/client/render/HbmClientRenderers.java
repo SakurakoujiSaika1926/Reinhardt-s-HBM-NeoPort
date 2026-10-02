@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.client.render;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.blockentity.FluidPipeBlockEntity;
 import com.reinhardt.hbm.client.model.CoatedCableCtmModel;
 import com.reinhardt.hbm.client.model.BlastDoorItemModel;
@@ -77,9 +78,8 @@ import com.reinhardt.hbm.item.HbmFluidDuctItem;
 import com.reinhardt.hbm.item.IcfPelletItem;
 import com.reinhardt.hbm.item.LegacyCrayonItem;
 import com.reinhardt.hbm.item.GlyphidSpawnEggItem;
-import com.reinhardt.hbm.item.LegacyMinecartItem;
-import com.reinhardt.hbm.item.LegacyTrainItem;
 import com.reinhardt.hbm.item.LegacyDroneItem;
+import com.reinhardt.hbm.item.ColtanCompassItem;
 import com.reinhardt.hbm.entity.LegacyRequestDroneEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
@@ -95,6 +95,10 @@ import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.LightLayer;
@@ -124,12 +128,21 @@ public final class HbmClientRenderers {
     @SubscribeEvent
     public static void registerItemProperties(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            ItemProperties.register(HbmItems.CART.get(), ReinhardtsHBM.id("cart_variant"),
-                    (stack, level, entity, seed) -> LegacyMinecartItem.base(stack).ordinal() * 10.0F + LegacyMinecartItem.type(stack).ordinal());
-            ItemProperties.register(HbmItems.TRAIN.get(), ReinhardtsHBM.id("train_variant"),
-                    (stack, level, entity, seed) -> LegacyTrainItem.type(stack).ordinal());
             ItemProperties.register(HbmItems.DRONE.get(), ReinhardtsHBM.id("drone_type"),
                     (stack, level, entity, seed) -> LegacyDroneItem.Type.fromStack(stack).ordinal());
+            ItemProperties.register(HbmItems.COLTAN_TOOL.get(), ResourceLocation.withDefaultNamespace("angle"),
+                    new CompassItemPropertyFunction((level, stack, entity) -> {
+                        if (level.dimension() != net.minecraft.world.level.Level.OVERWORLD) {
+                            return null;
+                        }
+                        net.minecraft.core.BlockPos target = ColtanCompassItem.target(stack);
+                        return target == null ? null : GlobalPos.of(level.dimension(), target);
+                    }));
+            ItemProperties.register(
+                    BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("ingot_schraranium")),
+                    ReinhardtsHBM.id("lbsm_full_schrab"),
+                    (stack, level, entity, seed) -> HbmConfig.lbsmFullSchrab() ? 1.0F : 0.0F
+            );
         });
         event.enqueueWork(() -> ItemProperties.register(HbmItems.GEM_ALEXANDRITE.get(), ReinhardtsHBM.id("alexandrite_light"),
                 (stack, level, entity, seed) -> {
@@ -145,6 +158,7 @@ public final class HbmClientRenderers {
     public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(LegacyRedPylonModel.LAYER, LegacyRedPylonModel::createLayer);
         PoleBlockEntityRenderer.registerLayerDefinitions(event);
+        DecoDisplayBlockEntityRenderer.registerLayerDefinitions(event);
         event.registerLayerDefinition(LegacyChopperModel.LAYER, LegacyChopperModel::createLayer);
         event.registerLayerDefinition(LegacyChopperMineModel.LAYER, LegacyChopperMineModel::createLayer);
         event.registerLayerDefinition(LegacyRadioboxModel.LAYER, LegacyRadioboxModel::createLayer);
@@ -341,6 +355,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.LAUNCHER_STRUCT_CORE.get(), LauncherStructCoreBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.LAUNCHER.get(), LauncherBlockEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_LAUNCHER_MISSILE.get(), LauncherMissileRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_BURNING_FOEQ.get(), LegacyBurningFoeqEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.LAMBDA_LAUNCHPAD.get(), LambdaLaunchpadBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SOYUZ_LAUNCHPAD.get(), SoyuzLaunchpadBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.SOYUZ_CAPSULE.get(), SoyuzCapsuleBlockEntityRenderer::new);
@@ -350,6 +365,7 @@ public final class HbmClientRenderers {
         event.registerBlockEntityRenderer(HbmBlockEntities.FUSION_TORUS_STRUCT.get(), FusionTorusStructBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.ICF_STRUCT.get(), IcfStructBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.ICF_CORE.get(), IcfCoreBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(HbmBlockEntities.ICF_CONTROLLER.get(), IcfControllerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.DFC_CORE.get(), DfcCoreBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.DFC_EMITTER.get(), DfcComponentBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(HbmBlockEntities.DFC_RECEIVER.get(), DfcComponentBlockEntityRenderer::new);
@@ -429,8 +445,6 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.CLUSTER_SUBMUNITION.get(), ClusterSubmunitionEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOXCAR.get(), LegacyBoxcarEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_BOBMAZON.get(), LegacyBobmazonEntityRenderer::new);
-        event.registerEntityRenderer(HbmEntityTypes.LEGACY_MINECART.get(), LegacyMinecartEntityRenderer::new);
-        event.registerEntityRenderer(HbmEntityTypes.LEGACY_TRAIN.get(), LegacyTrainEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.DIGAMMA_SPEAR.get(), DigammaSpearEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.JEREMY_SHELL.get(), JeremyShellEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.CHEKHOV_BULLET.get(), ChekhovBulletEntityRenderer::new);
@@ -439,11 +453,14 @@ public final class HbmClientRenderers {
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_HIMARS_ROCKET.get(), LegacyProjectileEntityRenderer.HimarsRocket::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_LINGERING_FIRE.get(), NoopRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_MIST.get(), NoopRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.DISPERSER_CANISTER.get(), LegacyDisperserCanisterEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.ANTIMATTER_FLASH.get(), LegacyAntimatterFlashEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_SHRAPNEL.get(), LegacyShrapnelEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_VORTEX.get(), LegacyVortexEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_BLACK_HOLE.get(), LegacyBlackHoleEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_EMP.get(), LegacyEmpEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.LEGACY_TOM.get(), LegacyTomEntityRenderer::new);
+        event.registerEntityRenderer(HbmEntityTypes.LEGACY_FALLING_NUKE.get(), LegacyFallingNukeEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.METEOR.get(), MeteorEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.FIREWORKS.get(), FireworksEntityRenderer::new);
         event.registerEntityRenderer(HbmEntityTypes.TIMED_EXPLOSIVE.get(), TimedExplosiveEntityRenderer::new);
@@ -679,7 +696,6 @@ public final class HbmClientRenderers {
         MeteorEntityRenderer.registerAdditionalModels(event);
         SoyuzEntityRenderer.registerAdditionalModels(event);
         SoyuzCapsuleEntityRenderer.registerAdditionalModels(event);
-        MinerRocketEntityRenderer.registerAdditionalModels(event);
         LegacyBomberEntityRenderer.registerAdditionalModels(event);
         LegacyUfoEntityRenderer.registerAdditionalModels(event);
         LegacyWormEntityRenderer.registerAdditionalModels(event);
@@ -687,8 +703,6 @@ public final class HbmClientRenderers {
         LegacyBossProjectileEntityRenderer.registerAdditionalModels(event);
         LegacyDroneEntityRenderer.registerAdditionalModels(event);
         LegacyBobmazonEntityRenderer.registerAdditionalModels(event);
-        LegacyMinecartEntityRenderer.registerAdditionalModels(event);
-        LegacyTrainEntityRenderer.registerAdditionalModels(event);
         LegacyTeslaCrabEntityRenderer.registerAdditionalModels(event);
         LegacyTaintCrabEntityRenderer.registerAdditionalModels(event);
         LegacyMaskManEntityRenderer.registerAdditionalModels(event);
@@ -883,6 +897,7 @@ public final class HbmClientRenderers {
 
     @SubscribeEvent
     public static void invalidateStaticMachineMeshes(ModelEvent.BakingCompleted event) {
+        StaticMachineVboCache.invalidateAll();
         LauncherBlockEntityRenderer.beginGeometryReload();
         ExcavatorBlockEntityRenderer.beginGeometryReload();
         PipeAnchorBlockEntityRenderer.beginGeometryReload();
@@ -903,9 +918,11 @@ public final class HbmClientRenderers {
         TimedExplosiveEntityRenderer.invalidateBounds();
         LegacyGrenadeEntityRenderer.invalidateBounds();
         GlyphidAcidBombEntityRenderer.invalidateBounds();
+        LegacyDisperserCanisterEntityRenderer.invalidateBounds();
         LegacyFbiDroneEntityRenderer.invalidateBounds();
         LauncherMissileRenderer.invalidateEntityBounds();
         UniversalGrenadeEntityRenderer.invalidateBounds();
+        LegacyFallingNukeEntityRenderer.invalidateBounds();
         // ModelEvent is post-bake; defer template extraction to Minecraft's client thread.
         Minecraft.getInstance().execute(() -> {
             CrashedBombBlockEntityRenderer.rebuildGeometryTemplatesAfterBake();

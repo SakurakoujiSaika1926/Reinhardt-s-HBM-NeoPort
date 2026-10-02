@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.AABB;
@@ -55,11 +56,13 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.function.Consumer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -168,6 +171,13 @@ public final class NukeExplosionManager {
         scheduleInternal(level, x, y, z, radius, true, false, false, 0);
     }
 
+    /** TOM starts the persistent impact climate only after its asynchronous crater is complete. */
+    public static void scheduleTom(ServerLevel level, double x, double y, double z, int radius) {
+        scheduleInternal(level, x, y, z, radius, true, false, false, 0,
+                EntityEffectMode.NUCLEAR_BLAST,
+                finishedLevel -> com.reinhardt.hbm.world.TomImpactSavedData.get(finishedLevel).beginImpact());
+    }
+
     /**
      * Exact MK5 core created by {@code EntityDeathBlast}.  The old call is
      * {@code statFacNoRad(world, strength, ...)}: its ray length is half the
@@ -189,7 +199,7 @@ public final class NukeExplosionManager {
                 strength / 2,
                 false,
                 0,
-                EntityEffectMode.NUCLEAR_BLAST);
+                EntityEffectMode.NUCLEAR_BLAST, null);
         task.applyInitialDamage(level);
         TASKS.computeIfAbsent(level, unused -> new ArrayDeque<>()).add(task);
     }
@@ -219,6 +229,14 @@ public final class NukeExplosionManager {
     private static void scheduleInternal(ServerLevel level, double x, double y, double z, int radius,
                                           boolean spawnTorex, boolean fallout, boolean radiation, int falloutAdd,
                                           EntityEffectMode entityEffectMode) {
+        scheduleInternal(level, x, y, z, radius, spawnTorex, fallout, radiation, falloutAdd,
+                entityEffectMode, null);
+    }
+
+    private static void scheduleInternal(ServerLevel level, double x, double y, double z, int radius,
+                                         boolean spawnTorex, boolean fallout, boolean radiation, int falloutAdd,
+                                         EntityEffectMode entityEffectMode,
+                                         Consumer<ServerLevel> completionAction) {
         HbmAdvancements.awardAll(level, "manhattan");
         com.reinhardt.hbm.satellite.SatelliteEventTracker.reportRadiation(
                 level,
@@ -234,7 +252,7 @@ public final class NukeExplosionManager {
             seedFalloutRadiation(level, BlockPos.containing(x, y, z), falloutScale);
         }
         NukeTask task = new NukeTask(new Vec3(x, y, z), radius * 2, radius, radiation, falloutScale,
-                entityEffectMode);
+                entityEffectMode, completionAction);
         // Terrain tasks are deliberately serialized per dimension, but blast
         // damage is not terrain work. Resolve the first legacy damage pass at
         // detonation time so a second nuke cannot sit harmlessly behind an
@@ -349,6 +367,7 @@ public final class NukeExplosionManager {
         }
         NukeTask task = tasks.peek();
         if (task.tick(level)) {
+            task.complete(level);
             tasks.remove();
         }
         if (tasks.isEmpty()) {
@@ -404,11 +423,15 @@ public final class NukeExplosionManager {
         private final boolean radiationEnabled;
         private final int falloutScale;
         private final EntityEffectMode entityEffectMode;
+        private final Consumer<ServerLevel> completionAction;
         private final Long2LongOpenHashMap blockSampleCache = new Long2LongOpenHashMap();
         private final Queue<Long> pendingDestroy = new ArrayDeque<>();
         private final LongOpenHashSet queuedDestroy = new LongOpenHashSet();
         private final Queue<Long> pendingFluidCleanup = new ArrayDeque<>();
         private final LongOpenHashSet visitedFluidCleanup = new LongOpenHashSet();
+        private final Map<Long, BitSet> destroyedBlockMasks = new HashMap<>();
+        private final Queue<Long> pendingFluidProbeSections = new ArrayDeque<>();
+        private final Queue<Long> pendingWaterloggedProbeSections = new ArrayDeque<>();
         private final Map<Long, ShortOpenHashSet> sectionUpdates = new HashMap<>();
         private final BlockingQueue<RayBatch> directionBatches =
                 new ArrayBlockingQueue<>(MK5_RAY_DIRECTION_BATCHES_AHEAD);
@@ -422,17 +445,26 @@ public final class NukeExplosionManager {
         private int damagePulseIndex;
         private boolean raysDone;
         private boolean terrainFinished;
+        private boolean fluidBoundaryScanInitialized;
+        private boolean hasActiveFluidProbeSection;
+        private long activeFluidProbeSection;
+        private int activeFluidProbeIndex;
+        private boolean hasActiveWaterloggedProbeSection;
+        private long activeWaterloggedProbeSection;
+        private int activeWaterloggedProbeIndex;
         private boolean falloutScheduled;
         private volatile boolean cancelled;
+        private boolean completionDelivered;
 
         private NukeTask(Vec3 center, int strength, int length, boolean radiationEnabled, int falloutScale,
-                         EntityEffectMode entityEffectMode) {
+                         EntityEffectMode entityEffectMode, Consumer<ServerLevel> completionAction) {
             this.center = center;
             this.strength = strength;
             this.length = length;
             this.radiationEnabled = radiationEnabled;
             this.falloutScale = falloutScale;
             this.entityEffectMode = entityEffectMode;
+            this.completionAction = completionAction;
             this.blockSampleCache.defaultReturnValue(CACHE_MISS);
             this.directionPlanner = CompletableFuture.runAsync(this::createDirectionBatches, RAY_PLANNER);
         }
@@ -466,15 +498,23 @@ public final class NukeExplosionManager {
                     applyPendingFluidCleanup(level, MK5_BLOCK_UPDATES_PER_TICK);
                 }
                 flushSectionUpdates(level);
-                this.terrainFinished = structuralDestructionFinished && this.pendingFluidCleanup.isEmpty();
+                this.terrainFinished = structuralDestructionFinished && fluidCleanupFinished();
                 if (this.terrainFinished) {
                     this.visitedFluidCleanup.clear();
+                    this.destroyedBlockMasks.clear();
                 }
             }
             if (this.terrainFinished) {
                 scheduleFallout(level);
             }
             return this.terrainFinished && this.activeDamagePulse == null && !this.damageSweepRequested;
+        }
+
+        private void complete(ServerLevel level) {
+            if (!completionDelivered && completionAction != null) {
+                completionDelivered = true;
+                completionAction.accept(level);
+            }
         }
 
         private void cancel() {
@@ -495,6 +535,11 @@ public final class NukeExplosionManager {
             this.queuedDestroy.clear();
             this.pendingFluidCleanup.clear();
             this.visitedFluidCleanup.clear();
+            this.destroyedBlockMasks.clear();
+            this.pendingFluidProbeSections.clear();
+            this.hasActiveFluidProbeSection = false;
+            this.pendingWaterloggedProbeSections.clear();
+            this.hasActiveWaterloggedProbeSection = false;
             this.sectionUpdates.clear();
             this.blockSampleCache.clear();
         }
@@ -729,6 +774,11 @@ public final class NukeExplosionManager {
                 this.queuedDestroy.clear();
                 this.pendingFluidCleanup.clear();
                 this.visitedFluidCleanup.clear();
+                this.destroyedBlockMasks.clear();
+                this.pendingFluidProbeSections.clear();
+                this.hasActiveFluidProbeSection = false;
+                this.pendingWaterloggedProbeSections.clear();
+                this.hasActiveWaterloggedProbeSection = false;
                 this.sortFuture = null;
                 return;
             }
@@ -799,39 +849,245 @@ public final class NukeExplosionManager {
         }
 
         /**
-         * The legacy ray explosion removes liquid blocks along every affected
-         * ray. Direct section writes do not run liquid neighbour updates, so a
-         * source missed between adjacent outer rays can otherwise remain
-         * suspended and refill the completed crater. Fluid blocks actually
-         * struck by this blast seed a bounded connected cleanup pass. It does
-         * not cross solid blocks and cannot leave the explosion sphere, so
-         * shielded tanks and fluids behind an intact containment wall remain
-         * untouched.
+         * Direct section writes deliberately avoid millions of neighbour
+         * updates, but that also means a liquid source between two rays can
+         * remain suspended after the surrounding terrain is gone. Keep an
+         * exact per-section mask of blocks this blast really removed, scan
+         * those sections and their six face neighbours, then seed the
+         * connected cleanup from surviving liquids on that boundary.
+         *
+         * Direct liquid in an intact sealed vessel is not a boundary seed.
+         * Waterlogged blocks are a separate case: the complete block must be
+         * removed anywhere inside the exact blast sphere, including positions
+         * missed between destruction rays. Loaded sphere sections are therefore
+         * palette-filtered for waterlogged states before any block-level scan.
          */
         private void applyPendingFluidCleanup(ServerLevel level, int maxUpdates) {
-            int checked = 0;
+            if (!this.fluidBoundaryScanInitialized) {
+                initializeFluidBoundaryScan(level);
+            }
+
+            int cleaned = 0;
+            int scanned = 0;
             long deadline = System.nanoTime() + MK5_BLOCK_UPDATE_NANOS_PER_TICK;
-            while (checked < maxUpdates && !this.pendingFluidCleanup.isEmpty()) {
-                if ((checked & 7) == 0 && System.nanoTime() >= deadline) {
+            while (cleaned < maxUpdates && scanned < MK5_RAY_STEPS_PER_TICK) {
+                if (((cleaned + scanned) & 7) == 0 && System.nanoTime() >= deadline) {
                     return;
                 }
-                BlockPos origin = BlockPos.of(this.pendingFluidCleanup.remove());
-                for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
-                    BlockPos adjacent = origin.relative(direction);
-                    if (!intersectsExplosionSphere(adjacent)) {
+
+                if (!this.pendingFluidCleanup.isEmpty()) {
+                    BlockPos origin = BlockPos.of(this.pendingFluidCleanup.remove());
+                    for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
+                        BlockPos adjacent = origin.relative(direction);
+                        if (!intersectsExplosionSphere(adjacent)) {
+                            continue;
+                        }
+                        long packed = adjacent.asLong();
+                        if (this.visitedFluidCleanup.contains(packed)) {
+                            continue;
+                        }
+                        if (fastDestroyFluid(level, adjacent)) {
+                            this.visitedFluidCleanup.add(packed);
+                            this.pendingFluidCleanup.add(packed);
+                        }
+                    }
+                    cleaned++;
+                    continue;
+                }
+
+                if (!this.hasActiveFluidProbeSection && !this.pendingFluidProbeSections.isEmpty()) {
+                    Long sectionKey = this.pendingFluidProbeSections.poll();
+                    this.activeFluidProbeSection = sectionKey;
+                    this.activeFluidProbeIndex = 0;
+                    this.hasActiveFluidProbeSection = true;
+                }
+
+                if (this.hasActiveFluidProbeSection) {
+                    SectionPos sectionPos = SectionPos.of(this.activeFluidProbeSection);
+                    LevelChunk chunk = level.getChunkSource().getChunkNow(sectionPos.x(), sectionPos.z());
+                    int sectionIndex = level.getSectionIndex(sectionPos.minBlockY());
+                    if (chunk == null || sectionIndex < 0 || sectionIndex >= level.getSectionsCount()) {
+                        finishActiveFluidProbeSection();
                         continue;
                     }
-                    long packed = adjacent.asLong();
-                    if (this.visitedFluidCleanup.contains(packed)) {
+                    LevelChunkSection section = chunk.getSection(sectionIndex);
+                    if (this.activeFluidProbeIndex == 0
+                            && !section.maybeHas(state -> state.getBlock() instanceof LiquidBlock)) {
+                        finishActiveFluidProbeSection();
                         continue;
                     }
-                    if (fastDestroyFluid(level, adjacent)) {
-                        this.visitedFluidCleanup.add(packed);
-                        this.pendingFluidCleanup.add(packed);
+
+                    int localIndex = this.activeFluidProbeIndex++;
+                    scanned++;
+                    int localX = localIndex & 15;
+                    int localZ = (localIndex >>> 4) & 15;
+                    int localY = (localIndex >>> 8) & 15;
+                    BlockState state = section.getBlockState(localX, localY, localZ);
+                    if (state.getBlock() instanceof LiquidBlock) {
+                        int x = sectionPos.minBlockX() + localX;
+                        int y = sectionPos.minBlockY() + localY;
+                        int z = sectionPos.minBlockZ() + localZ;
+                        BlockPos fluidPos = new BlockPos(x, y, z);
+                        if (intersectsExplosionSphere(fluidPos)
+                                && (wasDestroyedByBlast(x, y, z) || touchesDestroyedBlastBlock(x, y, z))) {
+                            long packed = fluidPos.asLong();
+                            if (this.visitedFluidCleanup.add(packed)) {
+                                if (fastDestroyFluid(level, fluidPos)) {
+                                    this.pendingFluidCleanup.add(packed);
+                                    cleaned++;
+                                } else {
+                                    this.visitedFluidCleanup.remove(packed);
+                                }
+                            }
+                        }
+                    }
+
+                    if (this.activeFluidProbeIndex >= 16 * 16 * 16) {
+                        finishActiveFluidProbeSection();
+                    }
+                    continue;
+                }
+
+                if (!this.hasActiveWaterloggedProbeSection && !this.pendingWaterloggedProbeSections.isEmpty()) {
+                    Long sectionKey = this.pendingWaterloggedProbeSections.poll();
+                    this.activeWaterloggedProbeSection = sectionKey;
+                    this.activeWaterloggedProbeIndex = 0;
+                    this.hasActiveWaterloggedProbeSection = true;
+                }
+                if (!this.hasActiveWaterloggedProbeSection) {
+                    return;
+                }
+
+                SectionPos sectionPos = SectionPos.of(this.activeWaterloggedProbeSection);
+                LevelChunk chunk = level.getChunkSource().getChunkNow(sectionPos.x(), sectionPos.z());
+                int sectionIndex = level.getSectionIndex(sectionPos.minBlockY());
+                if (chunk == null || sectionIndex < 0 || sectionIndex >= level.getSectionsCount()) {
+                    finishActiveWaterloggedProbeSection();
+                    continue;
+                }
+                LevelChunkSection section = chunk.getSection(sectionIndex);
+                if (this.activeWaterloggedProbeIndex == 0
+                        && !section.maybeHas(NukeTask::isWaterlogged)) {
+                    finishActiveWaterloggedProbeSection();
+                    continue;
+                }
+
+                int localIndex = this.activeWaterloggedProbeIndex++;
+                scanned++;
+                int localX = localIndex & 15;
+                int localZ = (localIndex >>> 4) & 15;
+                int localY = (localIndex >>> 8) & 15;
+                BlockState state = section.getBlockState(localX, localY, localZ);
+                if (isWaterlogged(state)) {
+                    BlockPos waterloggedPos = new BlockPos(
+                            sectionPos.minBlockX() + localX,
+                            sectionPos.minBlockY() + localY,
+                            sectionPos.minBlockZ() + localZ);
+                    if (intersectsExplosionSphere(waterloggedPos)) {
+                        long packed = waterloggedPos.asLong();
+                        if (this.visitedFluidCleanup.add(packed)) {
+                            if (fastDestroyFluid(level, waterloggedPos)) {
+                                this.pendingFluidCleanup.add(packed);
+                                cleaned++;
+                            } else {
+                                this.visitedFluidCleanup.remove(packed);
+                            }
+                        }
                     }
                 }
-                checked++;
+
+                if (this.activeWaterloggedProbeIndex >= 16 * 16 * 16) {
+                    finishActiveWaterloggedProbeSection();
+                }
             }
+        }
+
+        private void initializeFluidBoundaryScan(ServerLevel level) {
+            this.fluidBoundaryScanInitialized = true;
+            LongOpenHashSet candidateSections = new LongOpenHashSet();
+            for (long sectionKey : this.destroyedBlockMasks.keySet()) {
+                SectionPos sectionPos = SectionPos.of(sectionKey);
+                int sectionX = sectionPos.x();
+                int sectionY = sectionPos.y();
+                int sectionZ = sectionPos.z();
+                candidateSections.add(sectionKey);
+                candidateSections.add(SectionPos.asLong(sectionX - 1, sectionY, sectionZ));
+                candidateSections.add(SectionPos.asLong(sectionX + 1, sectionY, sectionZ));
+                candidateSections.add(SectionPos.asLong(sectionX, sectionY - 1, sectionZ));
+                candidateSections.add(SectionPos.asLong(sectionX, sectionY + 1, sectionZ));
+                candidateSections.add(SectionPos.asLong(sectionX, sectionY, sectionZ - 1));
+                candidateSections.add(SectionPos.asLong(sectionX, sectionY, sectionZ + 1));
+            }
+            for (long sectionKey : candidateSections) {
+                this.pendingFluidProbeSections.add(sectionKey);
+            }
+
+            int minSectionX = SectionPos.blockToSectionCoord(Mth.floor(this.center.x - this.length) - 1);
+            int maxSectionX = SectionPos.blockToSectionCoord(Mth.floor(this.center.x + this.length));
+            int minSectionZ = SectionPos.blockToSectionCoord(Mth.floor(this.center.z - this.length) - 1);
+            int maxSectionZ = SectionPos.blockToSectionCoord(Mth.floor(this.center.z + this.length));
+            int minSectionY = SectionPos.blockToSectionCoord(Math.max(
+                    level.getMinBuildHeight(), Mth.floor(this.center.y - this.length) - 1));
+            int maxSectionY = SectionPos.blockToSectionCoord(Math.min(
+                    level.getMaxBuildHeight() - 1, Mth.floor(this.center.y + this.length)));
+            for (int sectionX = minSectionX; sectionX <= maxSectionX; sectionX++) {
+                for (int sectionZ = minSectionZ; sectionZ <= maxSectionZ; sectionZ++) {
+                    if (level.getChunkSource().getChunkNow(sectionX, sectionZ) == null) {
+                        continue;
+                    }
+                    for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+                        if (sectionIntersectsExplosionSphere(sectionX, sectionY, sectionZ)) {
+                            this.pendingWaterloggedProbeSections.add(SectionPos.asLong(sectionX, sectionY, sectionZ));
+                        }
+                    }
+                }
+            }
+        }
+
+        private void finishActiveFluidProbeSection() {
+            this.hasActiveFluidProbeSection = false;
+            this.activeFluidProbeIndex = 0;
+        }
+
+        private void finishActiveWaterloggedProbeSection() {
+            this.hasActiveWaterloggedProbeSection = false;
+            this.activeWaterloggedProbeIndex = 0;
+        }
+
+        private boolean fluidCleanupFinished() {
+            return this.fluidBoundaryScanInitialized
+                    && this.pendingFluidCleanup.isEmpty()
+                    && this.pendingFluidProbeSections.isEmpty()
+                    && !this.hasActiveFluidProbeSection
+                    && this.pendingWaterloggedProbeSections.isEmpty()
+                    && !this.hasActiveWaterloggedProbeSection;
+        }
+
+        private boolean touchesDestroyedBlastBlock(int x, int y, int z) {
+            return wasDestroyedByBlast(x - 1, y, z)
+                    || wasDestroyedByBlast(x + 1, y, z)
+                    || wasDestroyedByBlast(x, y - 1, z)
+                    || wasDestroyedByBlast(x, y + 1, z)
+                    || wasDestroyedByBlast(x, y, z - 1)
+                    || wasDestroyedByBlast(x, y, z + 1);
+        }
+
+        private boolean wasDestroyedByBlast(int x, int y, int z) {
+            long sectionKey = SectionPos.asLong(
+                    SectionPos.blockToSectionCoord(x),
+                    SectionPos.blockToSectionCoord(y),
+                    SectionPos.blockToSectionCoord(z));
+            BitSet destroyed = this.destroyedBlockMasks.get(sectionKey);
+            return destroyed != null && destroyed.get(localBlockIndex(x, y, z));
+        }
+
+        private void recordDestroyedBlock(long sectionKey, BlockPos pos) {
+            this.destroyedBlockMasks.computeIfAbsent(sectionKey, unused -> new BitSet(16 * 16 * 16))
+                    .set(localBlockIndex(pos.getX(), pos.getY(), pos.getZ()));
+        }
+
+        private static int localBlockIndex(int x, int y, int z) {
+            return ((y & 15) << 8) | ((z & 15) << 4) | (x & 15);
         }
 
         /** True when the unit block volume intersects the exact blast sphere. */
@@ -840,6 +1096,26 @@ public final class NukeExplosionManager {
             double dy = Math.max(0.0D, Math.abs(this.center.y - (pos.getY() + 0.5D)) - 0.5D);
             double dz = Math.max(0.0D, Math.abs(this.center.z - (pos.getZ() + 0.5D)) - 0.5D);
             return dx * dx + dy * dy + dz * dz <= (double) this.length * this.length;
+        }
+
+        /** True when the complete section volume intersects the exact blast sphere. */
+        private boolean sectionIntersectsExplosionSphere(int sectionX, int sectionY, int sectionZ) {
+            double minX = SectionPos.sectionToBlockCoord(sectionX);
+            double minY = SectionPos.sectionToBlockCoord(sectionY);
+            double minZ = SectionPos.sectionToBlockCoord(sectionZ);
+            double dx = distanceToInterval(this.center.x, minX, minX + 16.0D);
+            double dy = distanceToInterval(this.center.y, minY, minY + 16.0D);
+            double dz = distanceToInterval(this.center.z, minZ, minZ + 16.0D);
+            return dx * dx + dy * dy + dz * dz <= (double) this.length * this.length;
+        }
+
+        private static double distanceToInterval(double value, double min, double max) {
+            return value < min ? min - value : value > max ? value - max : 0.0D;
+        }
+
+        private static boolean isWaterlogged(BlockState state) {
+            return state.hasProperty(BlockStateProperties.WATERLOGGED)
+                    && state.getValue(BlockStateProperties.WATERLOGGED);
         }
 
         private void flushSectionUpdates(ServerLevel level) {
@@ -945,6 +1221,9 @@ public final class NukeExplosionManager {
                 return false;
             }
             boolean liquid = state.getBlock() instanceof LiquidBlock;
+            if (state.hasBlockEntity()) {
+                chunk.removeBlockEntity(pos);
+            }
             section.setBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15, Blocks.AIR.defaultBlockState(), false);
             chunk.setUnsaved(true);
             long sectionKey = SectionPos.asLong(
@@ -954,6 +1233,7 @@ public final class NukeExplosionManager {
             );
             this.sectionUpdates.computeIfAbsent(sectionKey, unused -> new ShortOpenHashSet()).add(SectionPos.sectionRelativePos(pos));
             HbmRadiationWorlds.invalidateResistanceSection(level, sectionKey);
+            recordDestroyedBlock(sectionKey, pos);
             if (liquid && this.visitedFluidCleanup.add(packedPos)) {
                 this.pendingFluidCleanup.add(packedPos);
             }
@@ -973,9 +1253,13 @@ public final class NukeExplosionManager {
             }
             LevelChunkSection section = chunk.getSection(sectionIndex);
             BlockState state = section.getBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15);
-            // Do not erase waterlogged machinery or other surviving solids.
-            if (!(state.getBlock() instanceof LiquidBlock)) {
+            // A waterlogged state is removed as one complete block: the blast
+            // must not leave the solid shell behind after evaporating its water.
+            if (!(state.getBlock() instanceof LiquidBlock) && !isWaterlogged(state)) {
                 return false;
+            }
+            if (state.hasBlockEntity()) {
+                chunk.removeBlockEntity(pos);
             }
             section.setBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15,
                     Blocks.AIR.defaultBlockState(), false);

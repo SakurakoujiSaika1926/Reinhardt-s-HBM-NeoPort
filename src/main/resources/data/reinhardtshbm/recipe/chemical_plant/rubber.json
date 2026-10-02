@@ -15,7 +15,8 @@
     {
       "fluid": "unsaturateds",
       "amount": 500,
-      "pressure": 2
+      "pressure": 2,
+      "pressure_528_only": true
     }
   ],
   "output_items": [

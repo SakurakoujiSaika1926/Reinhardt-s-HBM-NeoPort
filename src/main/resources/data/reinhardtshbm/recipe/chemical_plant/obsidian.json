@@ -1,6 +1,9 @@
 {
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.obsidian",
+  "blueprint_pools": [
+    "discover..stone"
+  ],
   "duration": 60,
   "power": 500,
   "input_items": [],

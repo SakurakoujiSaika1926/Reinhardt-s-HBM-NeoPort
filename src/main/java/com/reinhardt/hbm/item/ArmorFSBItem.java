@@ -15,6 +15,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.sounds.SoundSource;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
+import com.reinhardt.hbm.util.ArmorModHandler;
 
 import java.util.List;
 import java.util.Map;
@@ -174,7 +175,20 @@ public class ArmorFSBItem extends ArmorItem {
 
     public static FeatureProfile features(LivingEntity entity) {
         String group = fullSetGroup(entity);
-        return FEATURES.getOrDefault(group, FeatureProfile.NONE);
+        FeatureProfile base = FEATURES.getOrDefault(group, FeatureProfile.NONE);
+        int modDashes = 0;
+        for (ItemStack armor : entity.getArmorSlots()) {
+            for (ItemStack mod : ArmorModHandler.pryMods(armor, entity.registryAccess())) {
+                if (mod.getItem() instanceof ArmorModItem armorMod) {
+                    modDashes += armorMod.extraDashes();
+                }
+            }
+        }
+        if (modDashes == 0) {
+            return base;
+        }
+        return new FeatureProfile(base.vats(), base.thermal(), base.geigerSound(), base.customGeiger(),
+                base.hardLanding(), base.stepHeight(), base.dashCount() + modDashes);
     }
 
     public static boolean hasFeature(LivingEntity entity, Feature feature) {
@@ -191,7 +205,7 @@ public class ArmorFSBItem extends ArmorItem {
     /** Handles the 1.7.10 bismuth armour dash using the old stamina model. */
     public static void tickDash(Player player) {
         FeatureProfile profile = features(player);
-        if (profile.dashCount() <= 0 || !hasFSBArmor(player)) {
+        if (profile.dashCount() <= 0) {
             player.getPersistentData().remove(DASH_COOLDOWN_TAG);
             player.getPersistentData().remove(DASH_STAMINA_TAG);
             return;
@@ -209,7 +223,7 @@ public class ArmorFSBItem extends ArmorItem {
     /** Server-authoritative dash trigger (bound to the legacy V key). */
     public static void performDash(Player player) {
         FeatureProfile profile = features(player);
-        if (!hasFSBArmor(player) || profile.dashCount() <= 0) {
+        if (profile.dashCount() <= 0) {
             return;
         }
         var tag = player.getPersistentData();

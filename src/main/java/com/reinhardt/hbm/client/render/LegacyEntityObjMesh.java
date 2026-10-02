@@ -59,6 +59,28 @@ final class LegacyEntityObjMesh {
         }
     }
 
+    /** Emits OBJ faces for a POSITION_COLOR triangle render type. */
+    void renderAllPositionColorTriangles(PoseStack poseStack, VertexConsumer consumer, int argb) {
+        int alpha = (argb >>> 24) & 0xFF;
+        int red = (argb >>> 16) & 0xFF;
+        int green = (argb >>> 8) & 0xFF;
+        int blue = argb & 0xFF;
+        PoseStack.Pose pose = poseStack.last();
+        Vector3f transformed = new Vector3f();
+        for (List<ObjFace> faces : groups.values()) {
+            for (ObjFace face : faces) {
+                if (face.vertices().size() < 3) {
+                    continue;
+                }
+                for (int index = 1; index < face.vertices().size() - 1; index++) {
+                    emitPositionColor(face.vertices().get(0), pose, transformed, consumer, red, green, blue, alpha);
+                    emitPositionColor(face.vertices().get(index), pose, transformed, consumer, red, green, blue, alpha);
+                    emitPositionColor(face.vertices().get(index + 1), pose, transformed, consumer, red, green, blue, alpha);
+                }
+            }
+        }
+    }
+
     /**
      * Includes the exact face-referenced positions emitted by {@link #renderAll}.
      * Bounds users intentionally follow faces rather than every OBJ {@code v}
@@ -222,6 +244,14 @@ final class LegacyEntityObjMesh {
                 .setOverlay(packedOverlay)
                 .setLight(packedLight)
                 .setNormal(pose, (float) normal.x, (float) normal.y, (float) normal.z);
+    }
+
+    private void emitPositionColor(ObjVertex vertex, PoseStack.Pose pose, Vector3f transformed,
+                                   VertexConsumer consumer, int red, int green, int blue, int alpha) {
+        Vec3 position = positionAt(vertex.position());
+        pose.pose().transformPosition((float) position.x, (float) position.y, (float) position.z, transformed);
+        consumer.addVertex(transformed.x(), transformed.y(), transformed.z())
+                .setColor(red, green, blue, alpha);
     }
 
     private Vec3 positionAt(int index) {

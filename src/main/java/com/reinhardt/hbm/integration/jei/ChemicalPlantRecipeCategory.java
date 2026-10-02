@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.integration.jei;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.item.BlueprintItem;
 import com.reinhardt.hbm.recipe.ChemicalPlantRecipe;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -90,6 +91,11 @@ public class ChemicalPlantRecipeCategory implements IRecipeCategory<RecipeHolder
         for (int index = 0; index < recipe.outputItems().size(); index++) {
             builder.addOutputSlot(80 + index * 18, 99)
                     .addItemStack(recipe.outputItems().get(index).copy());
+        }
+
+        List<String> blueprintPools = BlueprintItem.activeRecipePools(recipe.blueprintPools());
+        if (!blueprintPools.isEmpty()) {
+            builder.addInputSlot(35, 126).addItemStacks(blueprintPools.stream().map(BlueprintItem::stackFor).toList());
         }
     }
 

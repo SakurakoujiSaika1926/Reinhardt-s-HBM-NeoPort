@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 public class ChimneyBlockEntityRenderer implements LongRangeBlockEntityRenderer<ChimneyBlockEntity> {
     private static final ModelResourceLocation BRICK = MachineModelRenderer.standalone("block/chimney_brick");
     private static final ModelResourceLocation INDUSTRIAL = MachineModelRenderer.standalone("block/chimney_industrial");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB BRICK_LOCAL_BOUNDS = RenderBounds.localFloatVertices(
             BlockPos.ZERO, -1.0F, 0.0F, -1.0F, 2.0F, 13.0F, 2.0F
     );
@@ -51,16 +52,14 @@ public class ChimneyBlockEntityRenderer implements LongRangeBlockEntityRenderer<
     private static void renderBrickChimney(BlockState state, PoseStack poseStack,
                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        MachineModelRenderer.renderUnculledCutoutNoCull(MachineModelRenderer.model(BRICK), poseStack,
-                bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.renderCutoutNoCull(BRICK, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     private static void renderIndustrialChimney(BlockState state, PoseStack poseStack,
                                                 MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
-        MachineModelRenderer.renderUnculledCutoutNoCull(MachineModelRenderer.model(INDUSTRIAL), poseStack,
-                bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.renderCutoutNoCull(INDUSTRIAL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

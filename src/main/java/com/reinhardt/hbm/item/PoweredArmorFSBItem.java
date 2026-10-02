@@ -1,5 +1,7 @@
 package com.reinhardt.hbm.item;
 
+import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -87,16 +89,23 @@ public class PoweredArmorFSBItem extends ArmorFSBItem implements HbmChargeableIt
 
     @Override
     public long hbmCharge(ItemStack stack) {
+        long capacity = hbmCapacity(stack);
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if (!tag.contains(CHARGE_KEY)) {
-            return this.maxPower;
+            return capacity;
         }
-        return Mth.clamp(tag.getLong(CHARGE_KEY), 0L, this.maxPower);
+        return Mth.clamp(tag.getLong(CHARGE_KEY), 0L, capacity);
     }
 
     @Override
     public long hbmCapacity(ItemStack stack) {
-        return this.maxPower;
+        double multiplier = switch (ArmorModHandler.savedModId(stack, ArmorModHandler.BATTERY)) {
+            case ReinhardtsHBM.MOD_ID + ":armor_battery" -> 1.25D;
+            case ReinhardtsHBM.MOD_ID + ":armor_battery_mk2" -> 1.5D;
+            case ReinhardtsHBM.MOD_ID + ":armor_battery_mk3" -> 2.0D;
+            default -> 1.0D;
+        };
+        return Math.max(1L, (long) (this.maxPower * multiplier));
     }
 
     @Override
@@ -112,7 +121,7 @@ public class PoweredArmorFSBItem extends ArmorFSBItem implements HbmChargeableIt
     @Override
     public void hbmSetCharge(ItemStack stack, long charge) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        tag.putLong(CHARGE_KEY, Mth.clamp(charge, 0L, this.maxPower));
+        tag.putLong(CHARGE_KEY, Mth.clamp(charge, 0L, hbmCapacity(stack)));
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 

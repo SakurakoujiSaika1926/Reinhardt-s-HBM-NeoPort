@@ -60,6 +60,9 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
     public static final int MAX_HEAT = 100_000;
     public static final int OVEN_MAX_HEAT = 500_000;
     public static final int OILBURNER_TANK_CAPACITY = 16_000;
+    public static final int OILBURNER_MIN_BURN_RATE = 1;
+    public static final int OILBURNER_DEFAULT_BURN_RATE = 1;
+    public static final int OILBURNER_MAX_BURN_RATE = 10;
     public static final int HEATEX_TANK_CAPACITY = 24_000;
     public static final int DATA_COUNT = 21;
     private static final double OVEN_HEAT_PULL_EFFICIENCY = 0.5D;
@@ -82,7 +85,7 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
     private HbmFluidDefinition oilburnerFluid = defaultOilburnerFluid();
     private HbmFluidDefinition heatExchangerFluid = defaultHeatExchangerFluid();
     private int heatEnergy;
-    private int setting = 1;
+    private int setting = OILBURNER_DEFAULT_BURN_RATE;
     private boolean enabled;
     private long power;
     private long lastInput;
@@ -219,12 +222,13 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
 
     public void cycleSetting(boolean reverse) {
         if (this.kind == Kind.OILBURNER || this.kind == Kind.ELECTRIC) {
+            int min = this.kind == Kind.ELECTRIC ? 0 : OILBURNER_MIN_BURN_RATE;
+            int max = this.kind == Kind.ELECTRIC ? 10 : OILBURNER_MAX_BURN_RATE;
             this.setting += reverse ? -1 : 1;
-            int max = this.kind == Kind.ELECTRIC ? 10 : 100;
             if (this.setting > max) {
-                this.setting = this.kind == Kind.ELECTRIC ? 0 : 1;
+                this.setting = min;
             }
-            if (this.setting < (this.kind == Kind.ELECTRIC ? 0 : 1)) {
+            if (this.setting < min) {
                 this.setting = max;
             }
             if (this.kind == Kind.ELECTRIC) {
@@ -638,7 +642,15 @@ public class HeaterBlockEntity extends BlockEntity implements HeatSourceBlockEnt
         this.smokeLeadedTank.load(tag.getCompound("SmokeLeaded"));
         this.smokePoisonTank.load(tag.getCompound("SmokePoison"));
         this.heatEnergy = tag.getInt("HeatEnergy");
-        this.setting = Math.max(0, tag.getInt("Setting"));
+        int savedSetting = tag.getInt("Setting");
+        this.setting = switch (this.kind) {
+            case OILBURNER -> Math.max(
+                    OILBURNER_MIN_BURN_RATE,
+                    Math.min(OILBURNER_MAX_BURN_RATE, savedSetting)
+            );
+            case ELECTRIC -> Math.max(0, Math.min(10, savedSetting));
+            default -> Math.max(0, savedSetting);
+        };
         this.enabled = tag.getBoolean("Enabled");
         this.power = tag.getLong("Power");
         this.burnTime = tag.getInt("BurnTime");

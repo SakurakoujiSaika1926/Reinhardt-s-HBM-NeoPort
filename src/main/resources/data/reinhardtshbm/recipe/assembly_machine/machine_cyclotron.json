@@ -1,12 +1,21 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_expensive_mode"
+      }
+    }
+  ],
+
   "type": "reinhardtshbm:assembly_machine",
-  "group": "machine_cyclotron",
+  "group": "ass.cyclotron",
   "duration": 600,
   "power": 100,
   "ingredients": [
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:battery",
         "items": "reinhardtshbm:battery_pack",
         "components": {
           "minecraft:custom_data": {

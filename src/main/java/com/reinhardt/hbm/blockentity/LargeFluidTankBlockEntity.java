@@ -102,7 +102,9 @@ public class LargeFluidTankBlockEntity extends FluidTankBlockEntity {
     }
 
     private void checkTilt(Level level) {
-        if (Math.floorMod(level.getGameTime() + this.worldPosition.hashCode(), 20L) != 0L) {
+        int identity = (this.worldPosition.getY() + this.worldPosition.getZ() * 27_644_437)
+                * 27_644_437 + this.worldPosition.getX();
+        if ((level.getGameTime() + identity) % 20L != 0L) {
             return;
         }
 

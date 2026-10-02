@@ -27,6 +27,14 @@ public final class HbmKeyMappings {
             GLFW.GLFW_KEY_V,
             "key.categories.reinhardtshbm"
     );
+    /** Opens the Quick Manual and Wiki page for the item currently under the cursor. */
+    public static final KeyMapping QMAW = new KeyMapping(
+            "key.reinhardtshbm.qmaw",
+            KeyConflictContext.GUI,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_F1,
+            "key.categories.reinhardtshbm"
+    );
     /** Exact 1.7.10 RBMK crane controls (arrow keys plus Enter). */
     public static final KeyMapping CRANE_UP = craneKey("crane_move_up", GLFW.GLFW_KEY_UP);
     public static final KeyMapping CRANE_DOWN = craneKey("crane_move_down", GLFW.GLFW_KEY_DOWN);
@@ -51,6 +59,7 @@ public final class HbmKeyMappings {
     public static void register(RegisterKeyMappingsEvent event) {
         event.register(TOGGLE_MAGNET);
         event.register(ARMOR_DASH);
+        event.register(QMAW);
         event.register(CRANE_UP);
         event.register(CRANE_DOWN);
         event.register(CRANE_LEFT);

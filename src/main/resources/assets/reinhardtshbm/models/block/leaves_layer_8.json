@@ -1,0 +1,1 @@
+{ "parent": "minecraft:block/cube_all", "textures": { "all": "reinhardtshbm:block/waste_leaves" }, "render_type": "minecraft:cutout_mipped" }

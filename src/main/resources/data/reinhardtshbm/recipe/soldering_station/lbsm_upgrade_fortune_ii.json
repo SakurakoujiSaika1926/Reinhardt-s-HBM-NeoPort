@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [{ "type": "neoforge:not", "value": { "type": "reinhardtshbm:enable_528_mode" } }, { "type": "reinhardtshbm:less_bullshit_mode", "feature": "simple_crafting" }],
+  "type": "reinhardtshbm:soldering_station", "group": "soldering.upgrade", "duration": 300, "consumption": 10000,
+  "toppings": [
+    { "ingredient": { "item": "reinhardtshbm:circuit_chip" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_capacitor" }, "count": 2 }
+  ],
+  "pcb": [
+    { "ingredient": { "item": "reinhardtshbm:upgrade_fortune_1" }, "count": 1 },
+    { "ingredient": { "tag": "c:ingots/plastic" }, "count": 4 }
+  ],
+  "solder": [], "result": { "id": "reinhardtshbm:upgrade_fortune_2" }
+}

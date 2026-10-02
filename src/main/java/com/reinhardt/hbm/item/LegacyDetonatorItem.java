@@ -5,6 +5,8 @@ import com.reinhardt.hbm.block.LandmineBlock;
 import com.reinhardt.hbm.block.TimedExplosiveBlock;
 import com.reinhardt.hbm.block.ThermalBombBlock;
 import com.reinhardt.hbm.block.WallChargeBlock;
+import com.reinhardt.hbm.block.PlasticExplosiveBlock;
+import com.reinhardt.hbm.blockentity.BombMultiBlockEntity;
 import com.reinhardt.hbm.blockentity.LegacyNukeBlockEntity;
 import com.reinhardt.hbm.blockentity.NukeBoyBlockEntity;
 import com.reinhardt.hbm.blockentity.WallChargeExplosions;
@@ -33,6 +35,7 @@ import net.minecraft.world.phys.HitResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /** Direct 1.7.10 ItemDetonator, ItemLaserDetonator and ItemMultiDetonator port. */
 public class LegacyDetonatorItem extends Item {
@@ -188,7 +191,7 @@ public class LegacyDetonatorItem extends Item {
         return triggered ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
     }
 
-    private static boolean detonate(Level level, BlockPos pos, Player player) {
+    public static boolean detonate(Level level, BlockPos pos, @Nullable Player player) {
         if (!(level instanceof ServerLevel server)) {
             return false;
         }
@@ -199,6 +202,10 @@ public class LegacyDetonatorItem extends Item {
         }
         if (entity instanceof LegacyNukeBlockEntity nuke && nuke.isReady()) {
             nuke.detonate();
+            return true;
+        }
+        if (entity instanceof BombMultiBlockEntity bombMulti && bombMulti.isLoaded()) {
+            bombMulti.detonate();
             return true;
         }
         if (level.getBlockState(pos).getBlock() instanceof TimedExplosiveBlock explosive) {
@@ -220,6 +227,10 @@ public class LegacyDetonatorItem extends Item {
         }
         if (level.getBlockState(pos).getBlock() instanceof CrashedBombBlock) {
             CrashedBombBlock.detonate(server, pos, level.getBlockState(pos));
+            return true;
+        }
+        if (level.getBlockState(pos).getBlock() instanceof PlasticExplosiveBlock plasticExplosive) {
+            plasticExplosive.detonate(server, pos, player);
             return true;
         }
         return false;

@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.worldgen.structure;
 
+import com.reinhardt.hbm.block.VendingMachineBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.foundry.FoundryMaterial;
 import com.reinhardt.hbm.registry.HbmFluids;
@@ -8,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +34,9 @@ final class LegacyStructureMultiblocks {
         NONE(""),
         FLUID_TANK("reinhardtshbm:machine_fluidtank"),
         ROTARY_FURNACE("reinhardtshbm:machine_rotary_furnace"),
-        HOWARD_DAMAGED("reinhardtshbm:turret_howard_damaged");
+        HOWARD_DAMAGED("reinhardtshbm:turret_howard_damaged"),
+        RADIO_TELEX("reinhardtshbm:radio_telex"),
+        VENDING_MACHINE("reinhardtshbm:vending_machine");
 
         private final String blockId;
 
@@ -53,7 +57,7 @@ final class LegacyStructureMultiblocks {
     record Source(String blockId, int metadata) {
     }
 
-    record Part(Kind kind, BlockPos corePos) {
+    record Part(Kind kind, BlockPos corePos, int variant) {
         boolean isCoreAt(BlockPos pos) {
             return this.corePos.equals(pos);
         }
@@ -66,7 +70,9 @@ final class LegacyStructureMultiblocks {
             if (kind == Kind.NONE) {
                 continue;
             }
-            result.put(entry.getKey(), new Part(kind, resolveCore(entry.getKey(), kind, sources)));
+            BlockPos corePos = resolveCore(entry.getKey(), kind, sources);
+            int variant = kind == Kind.VENDING_MACHINE ? vendingMachineVariant(corePos, sources) : 0;
+            result.put(entry.getKey(), new Part(kind, corePos, variant));
         }
         return Map.copyOf(result);
     }
@@ -87,8 +93,21 @@ final class LegacyStructureMultiblocks {
             case FLUID_TANK -> migrateFluidTank(legacy);
             case ROTARY_FURNACE -> migrateRotaryFurnace(legacy);
             case HOWARD_DAMAGED -> migrateHowardDamaged(legacy);
+            case RADIO_TELEX -> migrateRadioTelex(legacy);
+            case VENDING_MACHINE -> new CompoundTag();
             case NONE -> throw new IllegalArgumentException("Cannot migrate a non-multiblock structure entry");
         };
+    }
+
+    static BlockState migrateCoreState(Part part, BlockState state) {
+        if (part.kind() != Kind.VENDING_MACHINE) {
+            return state;
+        }
+        if (!(state.getBlock() instanceof VendingMachineBlock)
+                || !state.hasProperty(VendingMachineBlock.VARIANT)) {
+            throw new IllegalStateException("Legacy vending-machine core did not resolve to a vending-machine blockstate");
+        }
+        return state.setValue(VendingMachineBlock.VARIANT, part.variant());
     }
 
     private static BlockPos resolveCore(BlockPos start, Kind kind, Map<BlockPos, Source> sources) {
@@ -125,7 +144,7 @@ final class LegacyStructureMultiblocks {
 
     private static CompoundTag migrateFluidTank(CompoundTag legacy) {
         CompoundTag result = new CompoundTag();
-        copyLegacyItems(legacy, result, 6);
+        copyLegacyItemsToSlots(legacy, result, 6);
         result.put("Tank", migrateTank(legacy, "tank"));
         result.putByte("Mode", (byte) requiredInt(legacy, "mode"));
         result.putBoolean("Exploded", requiredBoolean(legacy, "exploded"));
@@ -135,7 +154,7 @@ final class LegacyStructureMultiblocks {
 
     private static CompoundTag migrateRotaryFurnace(CompoundTag legacy) {
         CompoundTag result = new CompoundTag();
-        copyLegacyItems(legacy, result, 5);
+        copyLegacyItemsToSlots(legacy, result, 5);
         result.put("AdditiveTank", migrateTank(legacy, "t0"));
         result.put("SteamTank", migrateTank(legacy, "t1"));
         result.put("SpentSteamTank", migrateTank(legacy, "t2"));
@@ -163,7 +182,7 @@ final class LegacyStructureMultiblocks {
 
     private static CompoundTag migrateHowardDamaged(CompoundTag legacy) {
         CompoundTag result = new CompoundTag();
-        copyLegacyItems(legacy, result, Integer.MAX_VALUE);
+        copyLegacyItemsToVanillaList(legacy, result, Integer.MAX_VALUE);
         result.putLong("power", requiredLong(legacy, "power"));
         result.putBoolean("on", requiredBoolean(legacy, "isOn"));
         result.putBoolean("target_players", requiredBoolean(legacy, "targetPlayers"));
@@ -175,7 +194,37 @@ final class LegacyStructureMultiblocks {
         return result;
     }
 
-    private static CompoundTag migrateTank(CompoundTag legacy, String prefix) {
+    private static CompoundTag migrateRadioTelex(CompoundTag legacy) {
+        CompoundTag result = new CompoundTag();
+        for (int index = 0; index < 5; index++) {
+            result.putString("tx" + index, legacy.getString("tx" + index));
+            result.putString("rx" + index, legacy.getString("rx" + index));
+        }
+        result.putString("txChan", legacy.getString("txChan"));
+        result.putString("rxChan", legacy.getString("rxChan"));
+        return result;
+    }
+
+    private static int vendingMachineVariant(BlockPos corePos, Map<BlockPos, Source> sources) {
+        Source upper = sources.get(corePos.above());
+        if (upper == null || Kind.fromBlockId(upper.blockId()) != Kind.VENDING_MACHINE) {
+            throw new IllegalStateException("Legacy vending-machine core at " + corePos
+                    + " is missing its upper saved block");
+        }
+
+        int metadata = upper.metadata();
+        int directionMetadata = Math.floorMod(metadata, 6);
+        if (directionMetadata != Direction.UP.get3DDataValue() || metadata < 0 || metadata > 11) {
+            throw new IllegalStateException("Legacy vending-machine upper block at " + corePos.above()
+                    + " has invalid metadata " + metadata);
+        }
+        // BlockVendingMachine marked the upper proxy with BlockDummyable.extra
+        // (metadata + 6) for the snacks variant.  The core metadata itself
+        // contains only its horizontal facing and cannot recover this bit.
+        return metadata >= 6 ? 1 : 0;
+    }
+
+    static CompoundTag migrateTank(CompoundTag legacy, String prefix) {
         int typeId = requiredInt(legacy, prefix + "_type");
         HbmFluidDefinition type = HbmFluids.byOldId(typeId)
                 .orElseThrow(() -> new IllegalStateException("Unknown legacy HBM fluid id " + typeId + " in " + prefix));
@@ -187,29 +236,56 @@ final class LegacyStructureMultiblocks {
         return result;
     }
 
-    private static void copyLegacyItems(CompoundTag legacy, CompoundTag result, int slotCount) {
+    private static void copyLegacyItemsToSlots(CompoundTag legacy, CompoundTag result, int slotCount) {
+        ListTag items = requireLegacyItems(legacy);
+        for (int index = 0; index < items.size(); index++) {
+            LegacyItem item = readLegacyItem(items.getCompound(index), slotCount);
+            if (item != null) {
+                result.put("Slot" + item.slot(), item.stack());
+            }
+        }
+    }
+
+    private static void copyLegacyItemsToVanillaList(CompoundTag legacy, CompoundTag result, int slotCount) {
+        ListTag items = requireLegacyItems(legacy);
+        ListTag migrated = new ListTag();
+        for (int index = 0; index < items.size(); index++) {
+            LegacyItem item = readLegacyItem(items.getCompound(index), slotCount);
+            if (item == null) {
+                continue;
+            }
+            CompoundTag stack = item.stack();
+            stack.putByte("Slot", (byte) item.slot());
+            migrated.add(stack);
+        }
+        result.put("Items", migrated);
+    }
+
+    private static ListTag requireLegacyItems(CompoundTag legacy) {
         if (!legacy.contains("items", Tag.TAG_LIST)) {
             throw new IllegalStateException("Legacy structure multiblock NBT has no items list");
         }
-        ListTag items = legacy.getList("items", Tag.TAG_COMPOUND);
-        ListTag migrated = new ListTag();
-        for (int index = 0; index < items.size(); index++) {
-            CompoundTag item = items.getCompound(index).copy();
-            if (item.isEmpty() || item.getString("id").equals("minecraft:air")) {
-                continue;
-            }
-            int slot = requiredInt(item, "slot");
-            if (slot < 0 || slot >= slotCount) {
-                throw new IllegalStateException("Legacy structure item slot " + slot + " is outside its machine inventory");
-            }
-            if (!item.contains("id", Tag.TAG_STRING) || !item.contains("count", Tag.TAG_ANY_NUMERIC)) {
-                throw new IllegalStateException("Legacy structure item at slot " + slot + " was not resolved through itemPalette");
-            }
-            item.remove("slot");
-            item.putByte("Slot", (byte) slot);
-            migrated.add(item);
+        return legacy.getList("items", Tag.TAG_COMPOUND);
+    }
+
+    private static LegacyItem readLegacyItem(CompoundTag source, int slotCount) {
+        CompoundTag item = source.copy();
+        if (item.isEmpty() || item.getString("id").equals("minecraft:air")) {
+            return null;
         }
-        result.put("Items", migrated);
+        int slot = requiredInt(item, "slot");
+        if (slot < 0 || slot >= slotCount) {
+            throw new IllegalStateException("Legacy structure item slot " + slot + " is outside its machine inventory");
+        }
+        if (!item.contains("id", Tag.TAG_STRING) || !item.contains("count", Tag.TAG_ANY_NUMERIC)) {
+            throw new IllegalStateException("Legacy structure item at slot " + slot + " was not resolved through itemPalette");
+        }
+        item.remove("slot");
+        item.remove("Slot");
+        return new LegacyItem(slot, item);
+    }
+
+    private record LegacyItem(int slot, CompoundTag stack) {
     }
 
     private static int requiredInt(CompoundTag tag, String key) {

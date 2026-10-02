@@ -22,18 +22,26 @@ final class WorldgenFeatureBounds {
     private final int minBlockZ;
     private final int maxBlockZExclusive;
 
-    private WorldgenFeatureBounds(ChunkPos center) {
-        this.minBlockX = (center.x - FEATURES_WRITE_RADIUS_CHUNKS) << 4;
-        this.maxBlockXExclusive = (center.x + FEATURES_WRITE_RADIUS_CHUNKS + 1) << 4;
-        this.minBlockZ = (center.z - FEATURES_WRITE_RADIUS_CHUNKS) << 4;
-        this.maxBlockZExclusive = (center.z + FEATURES_WRITE_RADIUS_CHUNKS + 1) << 4;
+    private WorldgenFeatureBounds(ChunkPos center, int radiusChunks) {
+        this.minBlockX = (center.x - radiusChunks) << 4;
+        this.maxBlockXExclusive = (center.x + radiusChunks + 1) << 4;
+        this.minBlockZ = (center.z - radiusChunks) << 4;
+        this.maxBlockZExclusive = (center.z + radiusChunks + 1) << 4;
     }
 
     static WorldgenFeatureBounds forFeature(WorldGenLevel level, BlockPos origin) {
+        return aroundGenerationCenter(level, origin, FEATURES_WRITE_RADIUS_CHUNKS);
+    }
+
+    static WorldgenFeatureBounds forCurrentChunk(WorldGenLevel level, BlockPos origin) {
+        return aroundGenerationCenter(level, origin, 0);
+    }
+
+    private static WorldgenFeatureBounds aroundGenerationCenter(WorldGenLevel level, BlockPos origin, int radiusChunks) {
         ChunkPos center = level instanceof WorldGenRegion region
                 ? region.getCenter()
                 : new ChunkPos(origin);
-        return new WorldgenFeatureBounds(center);
+        return new WorldgenFeatureBounds(center, radiusChunks);
     }
 
     boolean contains(int blockX, int blockZ) {
@@ -41,5 +49,28 @@ final class WorldgenFeatureBounds {
                 && blockX < this.maxBlockXExclusive
                 && blockZ >= this.minBlockZ
                 && blockZ < this.maxBlockZExclusive;
+    }
+
+    boolean intersects(int minX, int maxXExclusive, int minZ, int maxZExclusive) {
+        return minX < this.maxBlockXExclusive
+                && maxXExclusive > this.minBlockX
+                && minZ < this.maxBlockZExclusive
+                && maxZExclusive > this.minBlockZ;
+    }
+
+    int minBlockX() {
+        return this.minBlockX;
+    }
+
+    int maxBlockXExclusive() {
+        return this.maxBlockXExclusive;
+    }
+
+    int minBlockZ() {
+        return this.minBlockZ;
+    }
+
+    int maxBlockZExclusive() {
+        return this.maxBlockZExclusive;
     }
 }

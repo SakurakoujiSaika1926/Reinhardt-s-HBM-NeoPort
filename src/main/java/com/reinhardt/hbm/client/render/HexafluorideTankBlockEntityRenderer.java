@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Exact RenderUF6Tank / RenderPuF6Tank world transforms using the original tank.obj mesh. */
 public final class HexafluorideTankBlockEntityRenderer implements LongRangeBlockEntityRenderer<HexafluorideTankBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation UF6_MODEL = MachineModelRenderer.standalone("block/machine_uf6_tank_world");
     private static final ModelResourceLocation PUF6_MODEL = MachineModelRenderer.standalone("block/machine_puf6_tank_world");
     private static final AABB[] UF6_LOCAL_BOUNDS = buildUf6TankBounds();
@@ -43,10 +44,7 @@ public final class HexafluorideTankBlockEntityRenderer implements LongRangeBlock
         Direction facing = uf6TankFacing(state);
         poseStack.pushPose();
         applyUf6TankTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(UF6_MODEL),
-                poseStack, bufferSource, state, packedLight, packedOverlay
-        );
+        STATIC_MESHES.render(UF6_MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -55,10 +53,7 @@ public final class HexafluorideTankBlockEntityRenderer implements LongRangeBlock
         Direction facing = puf6TankFacing(state);
         poseStack.pushPose();
         applyPuf6TankTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(PUF6_MODEL),
-                poseStack, bufferSource, state, packedLight, packedOverlay
-        );
+        STATIC_MESHES.render(PUF6_MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

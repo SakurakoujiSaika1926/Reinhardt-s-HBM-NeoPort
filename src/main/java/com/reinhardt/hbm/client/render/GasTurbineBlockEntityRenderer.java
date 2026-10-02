@@ -16,6 +16,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class GasTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<GasTurbineBlockEntity> {
     static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_turbinegas_world");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB NORTH_RENDER_BOUNDS = createGasTurbineLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_RENDER_BOUNDS = createGasTurbineLocalBounds(Direction.SOUTH);
     private static final AABB WEST_RENDER_BOUNDS = createGasTurbineLocalBounds(Direction.WEST);
@@ -36,7 +37,7 @@ public class GasTurbineBlockEntityRenderer implements LongRangeBlockEntityRender
         // RenderTurbineGas#renderTileEntityAt translates to the block centre
         // and then applies this machine's own metadata-specific yaw table.
         applyGasTurbinePose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

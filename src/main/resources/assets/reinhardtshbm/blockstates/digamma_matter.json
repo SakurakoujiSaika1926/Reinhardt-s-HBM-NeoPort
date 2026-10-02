@@ -1,7 +1,5 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/digamma_matter"
-                          }
-                 }
+{
+  "multipart": [
+    { "apply": { "model": "reinhardtshbm:block/digamma_matter" } }
+  ]
 }

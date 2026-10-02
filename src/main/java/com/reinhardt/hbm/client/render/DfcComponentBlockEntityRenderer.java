@@ -24,6 +24,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import java.util.List;
 
 public class DfcComponentBlockEntityRenderer<T extends BlockEntity> implements LongRangeBlockEntityRenderer<T> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation EMITTER = MachineModelRenderer.standalone("block/dfc_emitter");
     private static final ModelResourceLocation RECEIVER = MachineModelRenderer.standalone("block/dfc_receiver");
     private static final ModelResourceLocation INJECTOR = MachineModelRenderer.standalone("block/dfc_injector");
@@ -58,26 +59,26 @@ public class DfcComponentBlockEntityRenderer<T extends BlockEntity> implements L
         if (blockEntity instanceof DfcEmitterBlockEntity) {
             poseStack.pushPose();
             applyEmitterPose(poseStack, facing);
-            MachineModelRenderer.renderUnculled(generation.model(EMITTER), poseStack,
-                    bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(generation.model(EMITTER), poseStack,
+                    state, packedLight, packedOverlay);
             poseStack.popPose();
         } else if (blockEntity instanceof DfcReceiverBlockEntity) {
             poseStack.pushPose();
             applyReceiverPose(poseStack, facing);
-            MachineModelRenderer.renderUnculled(generation.model(RECEIVER), poseStack,
-                    bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(generation.model(RECEIVER), poseStack,
+                    state, packedLight, packedOverlay);
             poseStack.popPose();
         } else if (blockEntity instanceof DfcInjectorBlockEntity) {
             poseStack.pushPose();
             applyInjectorPose(poseStack, facing);
-            MachineModelRenderer.renderUnculled(generation.model(INJECTOR), poseStack,
-                    bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(generation.model(INJECTOR), poseStack,
+                    state, packedLight, packedOverlay);
             poseStack.popPose();
         } else if (blockEntity instanceof DfcStabilizerBlockEntity) {
             poseStack.pushPose();
             applyStabilizerPose(poseStack, facing);
-            MachineModelRenderer.renderUnculled(generation.model(STABILIZER), poseStack,
-                    bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(generation.model(STABILIZER), poseStack,
+                    state, packedLight, packedOverlay);
             poseStack.popPose();
         }
 

@@ -16,6 +16,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class LeviathanTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<LeviathanTurbineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_chungus_body");
     private static final ModelResourceLocation LEVER = MachineModelRenderer.standalone("block/machine_chungus_lever");
     private static final ModelResourceLocation BLADES = MachineModelRenderer.standalone("block/machine_chungus_blades");
@@ -40,20 +41,20 @@ public class LeviathanTurbineBlockEntityRenderer implements LongRangeBlockEntity
         poseStack.pushPose();
         applyLeviathanTurbinePose(poseStack, leviathanTurbineFacing(state));
 
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, 4.5D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(turbine.leverAngle()), 1.0F, 0.0F, 0.0F)));
         poseStack.translate(0.0D, 0.0D, -4.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LEVER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LEVER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 2.5D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(turbine.rotor(partialTick)), 0.0F, 0.0F, -1.0F)));
         poseStack.translate(0.0D, -2.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BLADES), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BLADES, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.popPose();

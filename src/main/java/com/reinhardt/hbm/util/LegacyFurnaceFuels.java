@@ -56,7 +56,7 @@ public final class LegacyFurnaceFuels {
             case "powder_fire", "crystal_coal" -> 6_400;
             case "lignite", "powder_lignite" -> 1_200;
             case "block_coke" -> SINGLE * 160;
-            case "book_guide" -> SINGLE;
+            case "book_guide_book" -> SINGLE;
             case "coal_infernal" -> 4_800;
             case "coal_eternal" -> SINGLE * 16;
             case "powder_sawdust" -> SINGLE / 2;

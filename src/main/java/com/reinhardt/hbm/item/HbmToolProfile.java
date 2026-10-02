@@ -12,7 +12,6 @@ public record HbmToolProfile(
         double movementModifier,
         Rarity rarity,
         boolean miner,
-        boolean depthRockBreaker,
         List<AbilityLevel<HbmToolBehavior.AreaAbility>> areaAbilities,
         List<AbilityLevel<HbmToolBehavior.HarvestAbility>> harvestAbilities,
         List<AbilityLevel<HbmToolBehavior.WeaponAbility>> weaponAbilities,
@@ -32,7 +31,6 @@ public record HbmToolProfile(
                 0.0D,
                 Rarity.COMMON,
                 false,
-                false,
                 List.of(),
                 List.of(),
                 List.of(),
@@ -41,41 +39,37 @@ public record HbmToolProfile(
     }
 
     public HbmToolProfile movement(double movementModifier) {
-        return copy(movementModifier, this.rarity, this.miner, this.depthRockBreaker, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
+        return copy(movementModifier, this.rarity, this.miner, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
     }
 
     public HbmToolProfile rarity(Rarity rarity) {
-        return copy(this.movementModifier, rarity, this.miner, this.depthRockBreaker, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
+        return copy(this.movementModifier, rarity, this.miner, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
     }
 
     public HbmToolProfile asMiner() {
-        return copy(this.movementModifier, this.rarity, true, this.depthRockBreaker, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
-    }
-
-    public HbmToolProfile canBreakDepthRock() {
-        return copy(this.movementModifier, this.rarity, this.miner, true, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
+        return copy(this.movementModifier, this.rarity, true, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
     }
 
     public HbmToolProfile area(HbmToolBehavior.AreaAbility ability, int level) {
         List<AbilityLevel<HbmToolBehavior.AreaAbility>> abilities = new ArrayList<>(this.areaAbilities);
         abilities.add(new AbilityLevel<>(ability, level));
-        return copy(this.movementModifier, this.rarity, this.miner, this.depthRockBreaker, abilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
+        return copy(this.movementModifier, this.rarity, this.miner, abilities, this.harvestAbilities, this.weaponAbilities, this.specialBehavior);
     }
 
     public HbmToolProfile harvest(HbmToolBehavior.HarvestAbility ability, int level) {
         List<AbilityLevel<HbmToolBehavior.HarvestAbility>> abilities = new ArrayList<>(this.harvestAbilities);
         abilities.add(new AbilityLevel<>(ability, level));
-        return copy(this.movementModifier, this.rarity, this.miner, this.depthRockBreaker, this.areaAbilities, abilities, this.weaponAbilities, this.specialBehavior);
+        return copy(this.movementModifier, this.rarity, this.miner, this.areaAbilities, abilities, this.weaponAbilities, this.specialBehavior);
     }
 
     public HbmToolProfile weapon(HbmToolBehavior.WeaponAbility ability, int level) {
         List<AbilityLevel<HbmToolBehavior.WeaponAbility>> abilities = new ArrayList<>(this.weaponAbilities);
         abilities.add(new AbilityLevel<>(ability, level));
-        return copy(this.movementModifier, this.rarity, this.miner, this.depthRockBreaker, this.areaAbilities, this.harvestAbilities, abilities, this.specialBehavior);
+        return copy(this.movementModifier, this.rarity, this.miner, this.areaAbilities, this.harvestAbilities, abilities, this.specialBehavior);
     }
 
     public HbmToolProfile special(HbmToolBehavior.SpecialBehavior specialBehavior) {
-        return copy(this.movementModifier, this.rarity, this.miner, this.depthRockBreaker, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, specialBehavior);
+        return copy(this.movementModifier, this.rarity, this.miner, this.areaAbilities, this.harvestAbilities, this.weaponAbilities, specialBehavior);
     }
 
     public boolean hasCyclableAbilities() {
@@ -86,7 +80,6 @@ public record HbmToolProfile(
             double movementModifier,
             Rarity rarity,
             boolean miner,
-            boolean depthRockBreaker,
             List<AbilityLevel<HbmToolBehavior.AreaAbility>> areaAbilities,
             List<AbilityLevel<HbmToolBehavior.HarvestAbility>> harvestAbilities,
             List<AbilityLevel<HbmToolBehavior.WeaponAbility>> weaponAbilities,
@@ -99,7 +92,6 @@ public record HbmToolProfile(
                 movementModifier,
                 rarity,
                 miner,
-                depthRockBreaker,
                 areaAbilities,
                 harvestAbilities,
                 weaponAbilities,

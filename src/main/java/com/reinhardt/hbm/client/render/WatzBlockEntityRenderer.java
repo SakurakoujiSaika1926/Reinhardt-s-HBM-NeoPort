@@ -11,6 +11,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class WatzBlockEntityRenderer implements LongRangeBlockEntityRenderer<WatzBlockEntity> {
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/watz_world");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
 
     public WatzBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -24,7 +25,7 @@ public class WatzBlockEntityRenderer implements LongRangeBlockEntityRenderer<Wat
         BlockState state = watz.getBlockState();
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

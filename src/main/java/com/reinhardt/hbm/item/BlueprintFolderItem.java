@@ -1,12 +1,7 @@
 package com.reinhardt.hbm.item;
 
-import com.reinhardt.hbm.recipe.AssemblyMachineRecipe;
-import com.reinhardt.hbm.recipe.ChemicalPlantRecipe;
-import com.reinhardt.hbm.recipe.PlasmaForgeRecipe;
-import com.reinhardt.hbm.recipe.PrecisionAssemblerRecipe;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -23,7 +18,6 @@ import java.util.List;
 /** 1.7.10 ItemBlueprintFolder: a consumed booklet that rolls one blueprint pool. */
 public final class BlueprintFolderItem extends Item {
     private static final int DISCOVER_MODEL_DATA = 1;
-    private static final int SECRET_MODEL_DATA = 2;
 
     public BlueprintFolderItem(Properties properties) {
         super(properties.stacksTo(1));
@@ -42,13 +36,21 @@ public final class BlueprintFolderItem extends Item {
             return InteractionResultHolder.pass(folder);
         }
 
-        // The legacy item consumes itself even from the creative inventory.
-        folder.shrink(1);
         ItemStack blueprint = BlueprintItem.stackFor(pools.get(player.getRandom().nextInt(pools.size())));
+
+        // The legacy booklet is consumed even in creative mode.  Returning the
+        // generated blueprint is important on modern versions: shrinking the
+        // held stack first and then inserting into the inventory can place the
+        // blueprint in the now-empty hand slot, after which Item#use overwrites
+        // that slot with the returned empty booklet stack.
+        folder.shrink(1);
+        player.swing(hand);
+        if (folder.isEmpty()) {
+            return InteractionResultHolder.sidedSuccess(blueprint, false);
+        }
         if (!player.getInventory().add(blueprint)) {
             player.drop(blueprint, false);
         }
-        player.swing(hand);
         return InteractionResultHolder.sidedSuccess(folder, false);
     }
 
@@ -69,9 +71,6 @@ public final class BlueprintFolderItem extends Item {
         CustomModelData modelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
         if (modelData != null && modelData.value() == DISCOVER_MODEL_DATA) {
             return BlueprintItem.POOL_PREFIX_DISCOVER;
-        }
-        if (modelData != null && modelData.value() == SECRET_MODEL_DATA) {
-            return BlueprintItem.POOL_PREFIX_SECRET;
         }
         return BlueprintItem.POOL_PREFIX_ALT;
     }
@@ -95,8 +94,7 @@ public final class BlueprintFolderItem extends Item {
 
     public enum Variant {
         STANDARD(0),
-        DISCOVER(DISCOVER_MODEL_DATA),
-        SECRET(SECRET_MODEL_DATA);
+        DISCOVER(DISCOVER_MODEL_DATA);
 
         private final int modelData;
 

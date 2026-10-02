@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Exact current-upstream renderer for the Chicago Pile MK2 air vent. */
 public final class PileVentBlockEntityRenderer implements LongRangeBlockEntityRenderer<PileVentBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation PIPE = MachineModelRenderer.standalone("block/pile_vent_pipe");
     private static final ModelResourceLocation FAN = MachineModelRenderer.standalone("block/pile_vent_fan");
 
@@ -72,7 +73,6 @@ public final class PileVentBlockEntityRenderer implements LongRangeBlockEntityRe
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource buffers, BlockState state,
                                    int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(model), poseStack, buffers, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 }

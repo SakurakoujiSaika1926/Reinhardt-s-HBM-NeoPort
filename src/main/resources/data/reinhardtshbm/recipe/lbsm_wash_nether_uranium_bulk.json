@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OOO",
+    "OBO",
+    "OOO"
+  ],
+  "key": {
+    "O": {
+      "item": "reinhardtshbm:ore_nether_uranium_scorched"
+    },
+    "B": {
+      "item": "minecraft:water_bucket"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:ore_nether_uranium",
+    "count": 8
+  }
+}

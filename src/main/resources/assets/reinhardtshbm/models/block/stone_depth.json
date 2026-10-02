@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "all":  "reinhardtshbm:block/stone_depth"
-                 },
-    "parent":  "minecraft:block/cube_all"
-}

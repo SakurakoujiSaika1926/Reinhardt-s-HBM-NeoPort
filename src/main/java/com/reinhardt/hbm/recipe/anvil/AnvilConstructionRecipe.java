@@ -1,7 +1,9 @@
 package com.reinhardt.hbm.recipe.anvil;
 
 import com.reinhardt.hbm.advancement.HbmAdvancements;
+import com.reinhardt.hbm.config.HbmConfig;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -52,11 +54,11 @@ public final class AnvilConstructionRecipe {
     }
 
     public int tierLower() {
-        return this.tierLower;
+        return HbmConfig.lbsmUnlockAnvil() ? 1 : this.tierLower;
     }
 
     public int tierUpper() {
-        return this.tierUpper;
+        return HbmConfig.lbsmUnlockAnvil() && this.tierUpper != -1 ? 1 : this.tierUpper;
     }
 
     public OverlayType overlay() {
@@ -64,6 +66,9 @@ public final class AnvilConstructionRecipe {
     }
 
     public boolean isTierValid(int tier) {
+        if (HbmConfig.lbsmUnlockAnvil()) {
+            return this.tierUpper == -1 ? tier >= 1 : tier == 1;
+        }
         if (this.tierUpper == -1) {
             return tier >= this.tierLower;
         }
@@ -101,19 +106,12 @@ public final class AnvilConstructionRecipe {
     }
 
     public boolean craft(Player player) {
-        List<ItemStack> simulated = copyInventory(player);
-        if (!consumeInputs(simulated)) {
+        if (!consumeInputs(player.getInventory().items)) {
             return false;
         }
 
-        consumeInputs(player.getInventory().items);
         boolean firedAchievement = false;
-        for (AnvilOutput output : this.outputs) {
-            if (output.chance() < 1.0F && player.getRandom().nextFloat() > output.chance()) {
-                continue;
-            }
-
-            ItemStack stack = output.stack().copy();
+        for (ItemStack stack : rollOutputs(player.getRandom())) {
             if (!firedAchievement) {
                 HbmAdvancements.awardForCraftedStack(player, stack);
                 firedAchievement = true;
@@ -125,7 +123,47 @@ public final class AnvilConstructionRecipe {
         return true;
     }
 
-    private boolean consumeInputs(List<ItemStack> stacks) {
+    /**
+     * Tests the exact construction/recycling input contract against an arbitrary
+     * inventory without mutating it. This is the machine-neutral counterpart to
+     * the player-inventory anvil UI.
+     */
+    public boolean canConsumeInputs(List<ItemStack> stacks) {
+        return consumeInputsUnchecked(copyInventory(stacks));
+    }
+
+    /**
+     * Atomically consumes this recipe from an arbitrary inventory. A failed
+     * match leaves every supplied stack untouched, including fluid containers.
+     */
+    public boolean consumeInputs(List<ItemStack> stacks) {
+        List<ItemStack> result = copyInventory(stacks);
+        if (!consumeInputsUnchecked(result)) {
+            return false;
+        }
+        for (int slot = 0; slot < stacks.size(); slot++) {
+            ItemStack original = stacks.get(slot);
+            int consumed = original.getCount() - result.get(slot).getCount();
+            if (consumed > 0) {
+                original.shrink(consumed);
+            }
+        }
+        return true;
+    }
+
+    /** Rolls every probabilistic output independently, matching the manual anvil. */
+    public List<ItemStack> rollOutputs(RandomSource random) {
+        List<ItemStack> rolled = new ArrayList<>();
+        for (AnvilOutput output : this.outputs) {
+            if (output.chance() < 1.0F && random.nextFloat() > output.chance()) {
+                continue;
+            }
+            rolled.add(output.stack().copy());
+        }
+        return rolled;
+    }
+
+    private boolean consumeInputsUnchecked(List<ItemStack> stacks) {
         for (AnvilIngredient input : this.inputs) {
             if (!input.consumeFrom(stacks)) {
                 return false;
@@ -134,9 +172,9 @@ public final class AnvilConstructionRecipe {
         return true;
     }
 
-    private static List<ItemStack> copyInventory(Player player) {
+    private static List<ItemStack> copyInventory(List<ItemStack> stacks) {
         List<ItemStack> copy = new ArrayList<>();
-        for (ItemStack stack : player.getInventory().items) {
+        for (ItemStack stack : stacks) {
             copy.add(stack.copy());
         }
         return copy;

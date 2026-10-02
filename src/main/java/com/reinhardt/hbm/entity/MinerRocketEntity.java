@@ -1,9 +1,10 @@
 package com.reinhardt.hbm.entity;
 
+import com.reinhardt.hbm.blockentity.SatelliteDockBlockEntity;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.Mth;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -12,25 +13,30 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Return vehicle used by the two legacy mining satellites. */
+/** Exact modern port of the latest 1.7.10 EntitySatellitePod. */
 public final class MinerRocketEntity extends Entity {
-    private static final int LANDING = 0;
-    private static final int UNLOADING = 1;
-    private static final int LIFTING = 2;
-    private static final EntityDataAccessor<Integer> MODE =
-            SynchedEntityData.defineId(MinerRocketEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> LEGS_DEPLOYED =
+            SynchedEntityData.defineId(MinerRocketEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> FREQUENCY =
             SynchedEntityData.defineId(MinerRocketEntity.class, EntityDataSerializers.INT);
+    private static final float LEG_SPEED = 1.0F / 20.0F;
 
     private int timer;
+    private int callerYPos;
+    private double speed = 0.75D;
+    public float legs;
+    public float previousLegs;
     private final List<ItemStack> cargo = new ArrayList<>();
 
     public MinerRocketEntity(EntityType<? extends MinerRocketEntity> type, Level level) {
@@ -42,8 +48,9 @@ public final class MinerRocketEntity extends Entity {
         setFrequency(frequency);
     }
 
-    public MinerRocketEntity(Level level, int frequency, List<ItemStack> cargo) {
+    public MinerRocketEntity(Level level, int frequency, int callerYPos, List<ItemStack> cargo) {
         this(level, frequency);
+        this.callerYPos = callerYPos;
         for (ItemStack stack : cargo) {
             if (!stack.isEmpty()) this.cargo.add(stack.copy());
         }
@@ -51,83 +58,97 @@ public final class MinerRocketEntity extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(MODE, LANDING);
+        builder.define(LEGS_DEPLOYED, false);
         builder.define(FREQUENCY, 0);
     }
 
     public int frequency() { return entityData.get(FREQUENCY); }
     public void setFrequency(int frequency) { entityData.set(FREQUENCY, frequency); }
-    public boolean shouldUnloadCargo() { return entityData.get(MODE) == UNLOADING && timer == 100; }
-
-    public List<ItemStack> takeCargo() {
-        if (!shouldUnloadCargo() || cargo.isEmpty()) return List.of();
-        List<ItemStack> result = cargo.stream().map(ItemStack::copy).toList();
-        cargo.clear();
-        return result;
-    }
+    public boolean deploysLegs() { return entityData.get(LEGS_DEPLOYED); }
+    private void setDeployLegs(boolean deploy) { entityData.set(LEGS_DEPLOYED, deploy); }
+    private boolean isLanding() { return !cargo.isEmpty(); }
 
     @Override
     public void tick() {
         super.tick();
-        xo = getX();
-        yo = getY();
-        zo = getZ();
-
-        int mode = entityData.get(MODE);
-        double motionY = mode == LANDING ? -0.75D : mode == LIFTING ? 1.0D : 0.0D;
-        // EntityMinerRocket zeroed its horizontal motion and orientation on
-        // every update; retaining any externally supplied X/Z velocity would
-        // make the return vehicle drift away from its satellite dock.
-        setDeltaMovement(0.0D, motionY, 0.0D);
         setYRot(0.0F);
         setXRot(0.0F);
-        setPos(getX(), getY() + motionY, getZ());
 
-        BlockPos landing = new BlockPos((int) (getX() - 0.5D), (int) (getY() - 0.5D), (int) (getZ() - 0.5D));
-        if (mode == LANDING && level().getBlockState(landing).is(com.reinhardt.hbm.registry.HbmBlocks.SAT_DOCK.get())) {
-            entityData.set(MODE, UNLOADING);
-            setPos(getX(), (int) getY(), getZ());
-        } else if (mode != UNLOADING && !level().isClientSide
-                && !level().getBlockState(new BlockPos((int) (getX() - 0.5D), (int) (getY() + 1.0D), (int) (getZ() - 0.5D))).isAir()) {
-            // EntityMinerRocket used the flaming ExplosionLarge path
-            // (break blocks, place fire, and emit its standard cloud effects).
-            level().explode(null, getX() - 0.5D, getY(), getZ() - 0.5D,
-                    10.0F, true, Level.ExplosionInteraction.BLOCK);
+        if (!level().isClientSide) {
+            if (isLanding()) {
+                if (timer > 0) {
+                    timer++;
+                    setPos(getX(), Math.ceil(getY()), getZ());
+                    setDeltaMovement(Vec3.ZERO);
+                    if (timer >= 100) unloadItems();
+                } else if (onGround()) {
+                    speed = 0.0D;
+                    timer = 1;
+                    setDeployLegs(true);
+                    setDeltaMovement(Vec3.ZERO);
+                } else {
+                    if (getY() < callerYPos + 17.0D && !deploysLegs()) setDeployLegs(true);
+                    if (getY() < callerYPos + 25.0D) speed -= 0.01D;
+                    speed = Mth.clamp(speed, 0.025D, 0.75D);
+                    setDeltaMovement(0.0D, -speed, 0.0D);
+                    move(MoverType.SELF, getDeltaMovement());
+                }
+            } else {
+                setOnGround(false);
+                speed += 0.01D;
+                if (speed >= 0.2D) setDeployLegs(false);
+                speed = Mth.clamp(speed, 0.0D, 2.0D);
+                setDeltaMovement(0.0D, speed, 0.0D);
+                move(MoverType.SELF, getDeltaMovement());
+                if (getY() > 300.0D) discard();
+            }
+        } else {
+            previousLegs = legs;
+            legs = Mth.clamp(legs + (deploysLegs() ? LEG_SPEED : -LEG_SPEED), 0.0F, 1.0F);
+            if ((legs > 0.0F && getDeltaMovement().y < 0.0D) || getDeltaMovement().y > 0.0D) {
+                level().addParticle(HbmParticleTypes.GAS_FLARE_FLAME.get(),
+                        getX(), getY() + 0.5D, getZ(), 0.0D, speed - 1.0D, 0.0D);
+            }
+        }
+    }
+
+    private void unloadItems() {
+        BlockPos below = BlockPos.containing(getX(), getY() - 0.5D, getZ());
+        List<ItemStack> remainder = cargo.stream().map(ItemStack::copy).toList();
+        if (level().getBlockEntity(below) instanceof SatelliteDockBlockEntity dock) {
+            remainder = dock.acceptCargo(remainder);
+        }
+        for (ItemStack stack : remainder) {
+            if (!stack.isEmpty()) spawnAtLocation(stack, 0.25F);
+        }
+        cargo.clear();
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (isInvulnerableTo(source)) return false;
+        if (amount >= 5.0F && !level().isClientSide && isAlive()) {
+            Vec3 motion = getDeltaMovement();
             discard();
-            return;
-        }
-
-        if (entityData.get(MODE) == UNLOADING) {
-            if (!level().isClientSide && tickCount % 4 == 0 && level() instanceof ServerLevel serverLevel) {
-                serverLevel.sendParticles(ParticleTypes.CLOUD, getX(), getY(), getZ(), 1,
-                        0.15D + random.nextInt(3) * 0.05D, 0.0D, 0.15D + random.nextInt(3) * 0.05D, random.nextGaussian());
-            }
-            timer++;
-            if (timer > 100) {
-                entityData.set(MODE, LIFTING);
+            level().explode(null, getX(), getY() + 1.5D, getZ(), 15.0F,
+                    true, Level.ExplosionInteraction.BLOCK);
+            if (motion.lengthSqr() > 0.0D) {
+                LegacyProjectileUtil.spawnShrapnelShower(level(),
+                        new Vec3(getX(), getY() + 1.5D, getZ()), motion, 15, 0.25D);
             }
         }
-
-        if (entityData.get(MODE) != UNLOADING) {
-            if (level().isClientSide && tickCount % 2 == 0) {
-                level().addParticle(HbmParticleTypes.GAS_FLARE_FLAME.get(), getX(), getY() - 0.5D, getZ(), 0.0D, -1.0D, 0.0D);
-            } else if (!level().isClientSide && tickCount % 2 == 0 && level() instanceof ServerLevel serverLevel) {
-                serverLevel.sendParticles(ParticleTypes.SMOKE, getX(), getY() - 0.5D, getZ(), 1, 0.02D, 0.0D, 0.02D, 0.02D);
-            }
-        }
-
-        if (entityData.get(MODE) == LIFTING && getY() > 300.0D) {
-            discard();
-        }
+        return true;
     }
 
     @Override public boolean shouldRenderAtSqrDistance(double distance) { return distance < 500_000.0D; }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
-        tag.putInt("Mode", entityData.get(MODE));
+        tag.putBoolean("LegsDeployed", deploysLegs());
         tag.putInt("Satellite", frequency());
         tag.putInt("Timer", timer);
+        tag.putInt("CallerYPos", callerYPos);
+        tag.putDouble("Speed", speed);
         ListTag cargoTag = new ListTag();
         HolderLookup.Provider registries = level().registryAccess();
         for (ItemStack stack : cargo) {
@@ -138,9 +159,11 @@ public final class MinerRocketEntity extends Entity {
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
-        entityData.set(MODE, tag.getInt("Mode"));
+        setDeployLegs(tag.getBoolean("LegsDeployed"));
         setFrequency(tag.getInt("Satellite"));
         timer = tag.getInt("Timer");
+        callerYPos = tag.getInt("CallerYPos");
+        speed = tag.contains("Speed") ? tag.getDouble("Speed") : 0.75D;
         cargo.clear();
         HolderLookup.Provider registries = level().registryAccess();
         ListTag cargoTag = tag.getList("Cargo", Tag.TAG_COMPOUND);

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class MiningLaserBlockEntityRenderer implements LongRangeBlockEntityRenderer<MiningLaserBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final double LASER_SWEEP_RADIUS = 1.505199322349037D;
     private static final float LASER_SWEEP_EXTENT = floatPoseSweepExtent(LASER_SWEEP_RADIUS);
     private static final double BEAM_SPIRAL_RADIUS = 0.075D;
@@ -171,11 +172,11 @@ public class MiningLaserBlockEntityRenderer implements LongRangeBlockEntityRende
 
     private static void renderParts(BlockState state, CachedBeamGeometry geometry, PoseStack poseStack,
                                     MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.mulPose(geometry.yawRotation());
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PIVOT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PIVOT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
@@ -183,7 +184,7 @@ public class MiningLaserBlockEntityRenderer implements LongRangeBlockEntityRende
         poseStack.translate(0.0D, -1.0D, 0.0D);
         poseStack.mulPose(geometry.pitchRotation());
         poseStack.translate(0.0D, 1.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LASER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LASER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

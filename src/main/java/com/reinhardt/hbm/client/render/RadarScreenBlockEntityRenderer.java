@@ -21,6 +21,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Direct visual port of RenderRadarScreen, with its own fixed legacy rotation table. */
 public final class RadarScreenBlockEntityRenderer implements LongRangeBlockEntityRenderer<RadarScreenBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/radar_screen_world");
     private static final ResourceLocation RADAR_GUI = ReinhardtsHBM.id("textures/gui/gui_radar_nt.png");
     private static final AABB NORTH_BOUNDS = createRadarLocalBounds(Direction.NORTH);
@@ -50,8 +51,7 @@ public final class RadarScreenBlockEntityRenderer implements LongRangeBlockEntit
 
     static void renderAssembly(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
     }
 
     @Override

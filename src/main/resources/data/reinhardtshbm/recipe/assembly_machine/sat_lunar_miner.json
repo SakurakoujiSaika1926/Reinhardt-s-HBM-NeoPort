@@ -62,7 +62,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:battery",
         "items": [
           "reinhardtshbm:battery_pack"
         ],

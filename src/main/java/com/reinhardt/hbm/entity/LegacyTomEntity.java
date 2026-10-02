@@ -16,6 +16,10 @@ public final class LegacyTomEntity extends Entity {
         super(type, level);
     }
     public static void spawn(ServerLevel level, int x, int z) {
+        // SatelliteHorizons explicitly loaded the impact chunk before spawning
+        // TOM.  Without this synchronous load, addFreshEntity rejects a remote
+        // target and the one-use satellite is consumed without an impact.
+        level.getChunk(x >> 4, z >> 4);
         LegacyTomEntity tom = new LegacyTomEntity(com.reinhardt.hbm.registry.HbmEntityTypes.LEGACY_TOM.get(), level);
         tom.setPos(x + 0.5D, 600.0D, z + 0.5D); level.addFreshEntity(tom);
     }
@@ -33,7 +37,7 @@ public final class LegacyTomEntity extends Entity {
         if (!(level() instanceof net.minecraft.server.level.ServerLevel level)) return;
         BlockPos pos = new BlockPos((int) getX(), (int) getY(), (int) getZ());
         if (!level.getBlockState(pos).isAir() || getY() < 10.0D) {
-            NukeExplosionManager.scheduleMk5NoRadiation(level, getX(), getY(), getZ(), 600);
+            NukeExplosionManager.scheduleTom(level, getX(), getY(), getZ(), 600);
             level.sendParticles(com.reinhardt.hbm.registry.HbmParticleTypes.LEGACY_CLOUD.get(), getX(), getY(), getZ(),
                     500, 12.0D, 12.0D, 12.0D, 0.5D);
             discard();

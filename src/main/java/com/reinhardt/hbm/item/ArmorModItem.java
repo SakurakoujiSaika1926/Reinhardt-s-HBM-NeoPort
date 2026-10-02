@@ -83,6 +83,26 @@ public class ArmorModItem extends Item {
         return 1.0D;
     }
 
+    /** Per-equipped-piece form used by armor-specific legacy modules. */
+    public double movementMultiplier(ItemStack armor) {
+        return movementMultiplier();
+    }
+
+    /** Equivalent to the old operation-2 attack-damage modifier. */
+    public double attackDamageMultiplier(ItemStack armor) {
+        return 1.0D;
+    }
+
+    /** Equivalent to the old operation-0 knockback-resistance modifier. */
+    public double knockbackResistance(ItemStack armor) {
+        return 0.0D;
+    }
+
+    /** Number of horizontal dash charges contributed by this module. */
+    public int extraDashes() {
+        return 0;
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable(ArmorModHandler.slotTranslationKey(this.slotType)).withStyle(ChatFormatting.LIGHT_PURPLE));

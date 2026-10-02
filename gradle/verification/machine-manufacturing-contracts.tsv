@@ -97,6 +97,7 @@ reinhardtshbm:seal_hatch	INTERNAL	-	Hidden hatch plane generated and removed by 
 reinhardtshbm:skeleton_holder	WORLD_SOURCE	-	Generated decorative skeleton display; latest 1.7.10 has no manufacturing recipe
 reinhardtshbm:slag	INTERNAL	-	Foundry byproduct/world block created by casting behavior
 reinhardtshbm:snowglobe	WORLD_SOURCE	-	Collectible/decorative loot family; latest 1.7.10 has no manufacturing recipe
+reinhardtshbm:statue_elb_f	INTERNAL	-	Hidden #undef statue used only by legacy structure templates; latest 1.7.10 hides it from NEI and defines no manufacturing recipe
 reinhardtshbm:soyuz_capsule	WORLD_SOURCE	-	Landing capsule placed by the returning Soyuz capsule entity
 reinhardtshbm:spotlight_beam	INTERNAL	-	No-item transient spotlight beam segment
 reinhardtshbm:spotlight_fluoro_off	INTERNAL	-	Inactive state counterpart of the craftable fluorescent floodlight

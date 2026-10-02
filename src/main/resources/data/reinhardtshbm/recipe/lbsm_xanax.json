@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:less_bullshit_mode", "feature": "simple_medicine" }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "c:dusts/coal" },
+    { "tag": "c:dusts/niter" },
+    { "tag": "c:dusts/quartz" }
+  ],
+  "result": { "id": "reinhardtshbm:xanax" }
+}

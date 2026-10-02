@@ -16,6 +16,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class DeuteriumTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<DeuteriumTowerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation TOWER = MachineModelRenderer.standalone("block/machine_deuterium_tower_world");
     private static final AABB[] LOCAL_BOUNDS = buildLocalBounds();
 
@@ -36,7 +37,7 @@ public class DeuteriumTowerBlockEntityRenderer implements LongRangeBlockEntityRe
         Direction facing = deuteriumTowerFacing(state);
         poseStack.pushPose();
         applyDeuteriumTowerWorldPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TOWER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(TOWER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -63,8 +64,7 @@ public class DeuteriumTowerBlockEntityRenderer implements LongRangeBlockEntityRe
         }
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         poseStack.scale(0.5F, 0.5F, 0.5F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TOWER), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(TOWER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

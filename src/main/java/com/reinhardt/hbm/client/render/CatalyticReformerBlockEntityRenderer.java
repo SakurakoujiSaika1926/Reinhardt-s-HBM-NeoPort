@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class CatalyticReformerBlockEntityRenderer implements LongRangeBlockEntityRenderer<CatalyticReformerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_catalytic_reformer");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildCatalyticReformerBounds();
 
     public CatalyticReformerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -30,7 +31,7 @@ public class CatalyticReformerBlockEntityRenderer implements LongRangeBlockEntit
 
         poseStack.pushPose();
         applyCatalyticReformerTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

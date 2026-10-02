@@ -77,13 +77,13 @@ public final class LambdaLaunchpadScreen extends AbstractContainerScreen<LambdaL
             status = seconds + ":" + cents;
             color = 0xFF0000;
         } else if (!this.menu.hasRocket()) {
-            status = Component.translatable("desc.gui.soyuz.idle").getString();
+            status = Component.translatable("gui.reinhardtshbm.launchpad_soyuz.idle").getString();
             color = 0xFF0000;
         } else if (!this.menu.erected()) {
-            status = Component.translatable("desc.gui.soyuz.loading").getString();
+            status = Component.translatable("gui.reinhardtshbm.launchpad_soyuz.loading").getString();
             color = 0xFF8000;
         } else {
-            status = Component.translatable("desc.gui.soyuz.ready").getString();
+            status = Component.translatable("gui.reinhardtshbm.launchpad_soyuz.ready").getString();
             color = 0x00FF00;
         }
         int width = this.font.width(status);

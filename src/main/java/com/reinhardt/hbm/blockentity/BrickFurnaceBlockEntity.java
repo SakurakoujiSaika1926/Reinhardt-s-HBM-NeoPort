@@ -141,7 +141,7 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
             case "powder_fire" -> 6_400;
             case "lignite", "powder_lignite" -> 1_200;
             case "block_coke" -> 32_000;
-            case "book_guide" -> 200;
+            case "book_guide_book" -> 200;
             case "coal_infernal" -> 4_800;
             case "crystal_coal" -> 6_400;
             case "powder_sawdust" -> 100;
@@ -414,6 +414,9 @@ public final class BrickFurnaceBlockEntity extends BlockEntity implements Machin
     }
 
     private AshType ashType(ItemStack stack) {
+        if (stack.is(Items.CHARCOAL)) {
+            return AshType.WOOD;
+        }
         String path = registryPath(stack).toLowerCase(java.util.Locale.ROOT);
         if (path.contains("coke") || path.contains("coal") || path.contains("lignite")) {
             return AshType.COAL;

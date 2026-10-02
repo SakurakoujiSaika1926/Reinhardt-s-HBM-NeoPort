@@ -17,6 +17,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** Literal RenderSatLink transform with independently rendered Base, Rotor and Dish groups. */
 public final class SatelliteGroundStationBlockEntityRenderer
         implements LongRangeBlockEntityRenderer<SatelliteGroundStationBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_satlink_base");
     private static final ModelResourceLocation ROTOR = MachineModelRenderer.standalone("block/machine_satlink_rotor");
     private static final ModelResourceLocation DISH = MachineModelRenderer.standalone("block/machine_satlink_dish");
@@ -124,7 +125,6 @@ public final class SatelliteGroundStationBlockEntityRenderer
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource buffers, BlockState state,
                                    int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(model), poseStack, buffers, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 }

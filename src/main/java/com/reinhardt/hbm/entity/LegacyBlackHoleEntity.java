@@ -29,7 +29,10 @@ import java.util.List;
 public final class LegacyBlackHoleEntity extends Entity {
     private static final EntityDataAccessor<Float> SIZE =
             SynchedEntityData.defineId(LegacyBlackHoleEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> RAGING =
+            SynchedEntityData.defineId(LegacyBlackHoleEntity.class, EntityDataSerializers.BOOLEAN);
     private boolean breaksBlocks = true;
+    private int vortexTimer;
 
     public LegacyBlackHoleEntity(EntityType<? extends LegacyBlackHoleEntity> type, Level level) {
         super(type, level);
@@ -47,6 +50,18 @@ public final class LegacyBlackHoleEntity extends Entity {
         level.addFreshEntity(hole);
     }
 
+    /** EntityRagingVortex, produced when a singularity spark touches ground. */
+    public static void spawnRaging(Level level, Vec3 position, float size) {
+        if (level.isClientSide) {
+            return;
+        }
+        LegacyBlackHoleEntity hole = new LegacyBlackHoleEntity(HbmEntityTypes.LEGACY_BLACK_HOLE.get(), level);
+        hole.setPos(position.x, position.y, position.z);
+        hole.entityData.set(SIZE, size);
+        hole.entityData.set(RAGING, true);
+        level.addFreshEntity(hole);
+    }
+
     public float size() {
         return entityData.get(SIZE);
     }
@@ -59,11 +74,29 @@ public final class LegacyBlackHoleEntity extends Entity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(SIZE, 0.5F);
+        builder.define(RAGING, false);
     }
 
     @Override
     public void tick() {
         super.tick();
+        if (!level().isClientSide && isRaging()) {
+            vortexTimer++;
+            if (vortexTimer <= 20) {
+                vortexTimer -= 20;
+            }
+            float pulse = (float) (Math.sin(vortexTimer) * Math.PI / 20.0D) * 0.35F;
+            float decay = 0.0F;
+            if (random.nextInt(100) == 0) {
+                decay = 0.1F;
+                level().explode(null, getX(), getY(), getZ(), 10.0F, false, Level.ExplosionInteraction.TNT);
+            }
+            entityData.set(SIZE, size() - pulse - decay);
+            if (size() <= 0.0F) {
+                discard();
+                return;
+            }
+        }
         if (!level().isClientSide && breaksBlocks) {
             consumeBlocks();
         }
@@ -165,12 +198,20 @@ public final class LegacyBlackHoleEntity extends Entity {
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putFloat("size", size());
         tag.putBoolean("breaksBlocks", breaksBlocks);
+        tag.putBoolean("raging", isRaging());
+        tag.putInt("vortexTimer", vortexTimer);
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         entityData.set(SIZE, tag.getFloat("size"));
         breaksBlocks = !tag.contains("breaksBlocks") || tag.getBoolean("breaksBlocks");
+        entityData.set(RAGING, tag.getBoolean("raging"));
+        vortexTimer = tag.getInt("vortexTimer");
+    }
+
+    public boolean isRaging() {
+        return entityData.get(RAGING);
     }
 
     @Override

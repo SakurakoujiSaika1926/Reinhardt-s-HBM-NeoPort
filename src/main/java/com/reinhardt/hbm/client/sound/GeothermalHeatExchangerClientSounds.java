@@ -83,6 +83,7 @@ public final class GeothermalHeatExchangerClientSounds {
             }
             double distance = Math.sqrt(minecraft.player.distanceToSqr(x, y, z));
             volume = distance >= AUDIBLE_DISTANCE ? 0.0F : (float) (0.75D * (1.0D - distance / AUDIBLE_DISTANCE));
+            volume = com.reinhardt.hbm.util.MachineMuffler.attenuate(blockEntity, volume);
             pitch = 1.0F;
         }
 

@@ -10,8 +10,11 @@ import com.reinhardt.hbm.item.AmsCatalystItem;
 import com.reinhardt.hbm.item.AmsCoreItem;
 import com.reinhardt.hbm.item.AmsLensItem;
 import com.reinhardt.hbm.item.ArmorModItem;
+import com.reinhardt.hbm.item.ArmorBatteryModItem;
 import com.reinhardt.hbm.item.ArmorMagnetItem;
 import com.reinhardt.hbm.item.ArmorPadsItem;
+import com.reinhardt.hbm.item.IronCladdingArmorModItem;
+import com.reinhardt.hbm.item.ServoArmorModItem;
 import com.reinhardt.hbm.item.GasMaskAttachmentItem;
 import com.reinhardt.hbm.item.LegacyBathwaterArmorModItem;
 import com.reinhardt.hbm.item.LegacyCardArmorModItem;
@@ -158,8 +161,6 @@ import com.reinhardt.hbm.item.LegacyDroneLinkerItem;
 import com.reinhardt.hbm.item.LegacyBombCallerItem;
 import com.reinhardt.hbm.item.LegacyBobmazonItem;
 import com.reinhardt.hbm.item.LegacyClayTabletItem;
-import com.reinhardt.hbm.item.LegacyMinecartItem;
-import com.reinhardt.hbm.item.LegacyTrainItem;
 import com.reinhardt.hbm.item.LegacySpecialFoodItem;
 import com.reinhardt.hbm.item.LegacyStarterKitItem;
 import com.reinhardt.hbm.item.LegacyStarmetalItem;
@@ -177,11 +178,15 @@ import com.reinhardt.hbm.item.LittleBoyKitItem;
 import com.reinhardt.hbm.item.KeyPinItem;
 import com.reinhardt.hbm.item.LockItem;
 import com.reinhardt.hbm.item.MachineUpgradeItem;
+import com.reinhardt.hbm.item.MufflerUpgradeItem;
+import com.reinhardt.hbm.item.IndustrialFertilizerItem;
+import com.reinhardt.hbm.item.LegacyDigammaParticleItem;
 import com.reinhardt.hbm.item.MeteorCharmItem;
 import com.reinhardt.hbm.item.MeteorRemoteItem;
 import com.reinhardt.hbm.item.MirrorToolItem;
 import com.reinhardt.hbm.item.MissilePartItem;
 import com.reinhardt.hbm.item.NuclearWasteItem;
+import com.reinhardt.hbm.item.LegacyNuclearWasteItem;
 import com.reinhardt.hbm.item.OilDetectorItem;
 import com.reinhardt.hbm.item.OilTarItem;
 import com.reinhardt.hbm.item.PACoilItem;
@@ -329,7 +334,7 @@ public final class HbmItems {
             "asbestos_cloth", "billet_silicon", "bottle_empty", "bottle2_empty", "can_empty", "can_key",
             "cap_fritz", "cap_korl", "cap_nuka", "cap_quantum", "cap_rad", "cap_sparkle",
             "chlorine1", "chlorine2", "chlorine3", "chlorine4", "chlorine5", "chlorine6",
-            "chlorine7", "chlorine8", "cinnebar", "cloud1", "cloud2", "cloud3",
+            "chlorine7", "chlorine8", "cloud1", "cloud2", "cloud3",
             "cloud4", "cloud5", "cloud6", "cloud7", "cloud8", "coal_infernal",
             "coin_token", "combine_scrap", "debris_concrete", "debris_element", "debris_exchanger", "debris_fuel",
             "debris_graphite", "debris_metal", "debris_shrapnel", "demon_core_closed", "dysfunctional_reactor", "egg_glyphid",
@@ -354,11 +359,6 @@ public final class HbmItems {
             "rod_zirnox_u233_fuel_depleted", "rod_zirnox_u235_fuel_depleted", "rod_zirnox_uranium_fuel_depleted",
             "rod_zirnox_zfb_mox_depleted"
     );
-    private static final Set<String> HIDDEN_PORTED_PLAIN_ITEM_IDS = Set.of(
-            "holotape_damaged", "book_secret", "burnt_bark", "key_red", "key_red_cracked", "mech_key", "watch",
-            "bismuth_tool", "item_secret", "scrap_plastic"
-    );
-
     /**
      * Components and launch-control items which belong to the 1.7.10
      * MissileTab rather than the generic legacy-item tab.
@@ -380,6 +380,7 @@ public final class HbmItems {
 
     private static final Set<String> RETIRED_LEGACY_CATALOG_ITEM_IDS = Set.of(
             "ammo_bag", "ammo_bag_infinite", "ammo_container", "ammo_debug", "ammo_fireext", "ammo_secret",
+            "ballistic_gauntlet", "casing_bag", "cart", "train",
             "battery_advanced", "bedrock_ore_fragment", "cell", "circuit", "coin_siege",
             "fluid_barrel_v2", "fluid_tank_lead_v2", "fluid_tank_v2", "gun_egon", "gun_vortex",
             "jetpack_glider", "mechanism_launcher_1", "mechanism_launcher_2", "mechanism_revolver_1",
@@ -396,6 +397,9 @@ public final class HbmItems {
             "pellet_claws", "pellet_flechette", "pellet_meteorite", "pipe",
             "plate_cast", "plate_welded",
             "shell",
+            // The 1.7.10 ids were misspelled. The NeoForge port exposes only
+            // the canonical cinnabar and crystal_cinnabar registrations.
+            "cinnebar", "crystal_cinnebar",
             "sliding_blast_door_skin0", "sliding_blast_door_skin1", "sliding_blast_door_skin2",
             "weapon_mod_caliber", "weapon_mod_generic", "weapon_mod_special", "weapon_mod_test",
             "weaponized_starblaster_cell", "weapon_bat", "weapon_bat_nail", "weapon_golf_club",
@@ -663,8 +667,10 @@ public final class HbmItems {
     public static final DeferredItem<Item> NEUTRON_REFLECTOR = material(MACHINE_COMPONENTS, "neutron_reflector");
     public static final DeferredItem<Item> FINS_SMALL_STEEL = material(ROCKET_MISSILE_ITEMS, "fins_small_steel");
     public static final DeferredItem<Item> BOY_SHIELDING = material(NUCLEAR_WEAPON_ITEMS, "boy_shielding", () -> new Item(new Item.Properties().stacksTo(1)));
-    public static final DeferredItem<Item> BOY_TARGET = material(NUCLEAR_WEAPON_ITEMS, "boy_target", () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
-    public static final DeferredItem<Item> BOY_BULLET = material(NUCLEAR_WEAPON_ITEMS, "boy_bullet", () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> BOY_TARGET = material(NUCLEAR_WEAPON_ITEMS, "boy_target",
+            () -> LegacyLoreItem.fromLegacyId("boy_target", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> BOY_BULLET = material(NUCLEAR_WEAPON_ITEMS, "boy_bullet",
+            () -> LegacyLoreItem.fromLegacyId("boy_bullet", new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> BOY_PROPELLANT = material(NUCLEAR_WEAPON_ITEMS, "boy_propellant", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> BOY_IGNITER = material(NUCLEAR_WEAPON_ITEMS, "boy_igniter", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<Item> BOY_KIT = material(NUCLEAR_WEAPON_ITEMS, "boy_kit", () -> new LittleBoyKitItem(new Item.Properties().stacksTo(1)));
@@ -674,7 +680,9 @@ public final class HbmItems {
     public static final DeferredItem<Item> SOLINIUM_CORE = material(NUCLEAR_WEAPON_ITEMS, "solinium_core", () -> new BombPartItem(BombPartItem.Target.SOLINIUM, Rarity.COMMON));
     public static final DeferredItem<Item> SOLINIUM_IGNITER = material(NUCLEAR_WEAPON_ITEMS, "solinium_igniter", () -> new BombPartItem(BombPartItem.Target.SOLINIUM, Rarity.COMMON));
     public static final DeferredItem<Item> SOLINIUM_PROPELLANT = material(NUCLEAR_WEAPON_ITEMS, "solinium_propellant", () -> new BombPartItem(BombPartItem.Target.SOLINIUM, Rarity.COMMON));
-    public static final DeferredItem<Item> CHOCOLATE = material(MISC_MATERIALS, "chocolate");
+    public static final DeferredItem<Item> CHOCOLATE = material(
+            MISC_MATERIALS, "chocolate",
+            () -> new LegacyPillItem(new Item.Properties(), LegacyPillItem.Kind.CHOCOLATE));
     public static final DeferredItem<Item> PELLET_CHARGED = material(MISC_MATERIALS, "pellet_charged");
     public static final DeferredItem<Item> PART_LITHIUM = material(MACHINE_COMPONENTS, "part_lithium");
     public static final DeferredItem<Item> PART_BERYLLIUM = material(MACHINE_COMPONENTS, "part_beryllium");
@@ -700,7 +708,8 @@ public final class HbmItems {
     public static final DeferredItem<Item> PARTICLE_TACHYON = particle("particle_tachyon", true);
     public static final DeferredItem<Item> PARTICLE_STRANGE = particle("particle_strange", true);
     public static final DeferredItem<Item> PARTICLE_SPARKTICLE = particle("particle_sparkticle", true);
-    public static final DeferredItem<Item> PARTICLE_DIGAMMA = particle("particle_digamma", true);
+    public static final DeferredItem<Item> PARTICLE_DIGAMMA = material(MISC_MATERIALS, "particle_digamma",
+            () -> new LegacyDigammaParticleItem(new Item.Properties()));
     public static final DeferredItem<Item> PARTICLE_LUTECE = particle("particle_lutece", true);
     public static final DeferredItem<Item> GEM_TANTALIUM = material(MISC_MATERIALS, "gem_tantalium");
     public static final DeferredItem<Item> EGG_BALEFIRE_SHARD = material(MISC_MATERIALS, "egg_balefire_shard");
@@ -861,7 +870,7 @@ public final class HbmItems {
     public static final DeferredItem<Item> DEFUSER = toolItem("defuser", () -> new DefuserItem(new Item.Properties().durability(100)));
     public static final DeferredItem<Item> AMMO_DGK = turretItem(
             "ammo_dgk",
-            () -> new Item(new Item.Properties())
+            () -> LegacyLoreItem.fromLegacyId("ammo_dgk", new Item.Properties().stacksTo(4))
     );
     public static final DeferredItem<Item> AMMO_ARTY = turretItem(
             "ammo_arty",
@@ -884,7 +893,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> PELLET_GAS = machineComponent(
             "pellet_gas",
-            () -> new Item(new Item.Properties())
+            () -> LegacyLoreItem.fromLegacyId("pellet_gas", new Item.Properties())
     );
     public static final DeferredItem<Item> CHLORINE_PINWHEEL = machineComponent(
             "chlorine_pinwheel",
@@ -1054,14 +1063,20 @@ public final class HbmItems {
     public static final DeferredItem<Item> CRYSTAL_IRON = mineralCrystal("crystal_iron");
     public static final DeferredItem<Item> CRYSTAL_TITANIUM = mineralCrystal("crystal_titanium");
     public static final DeferredItem<Item> CRYSTAL_TUNGSTEN = mineralCrystal("crystal_tungsten");
+    public static final DeferredItem<Item> CRYSTAL_CINNABAR = mineralCrystal("crystal_cinnabar");
     public static final DeferredItem<Item> FRAGMENT_COBALT = oreDrop("fragment_cobalt");
     public static final DeferredItem<Item> FRAGMENT_COLTAN = oreDrop("fragment_coltan");
     public static final DeferredItem<Item> LITHIUM = ingot("lithium");
-    public static final DeferredItem<Item> TRINITITE = oreDrop("trinitite");
-    public static final DeferredItem<Item> NUCLEAR_WASTE = material(MISC_MATERIALS, "nuclear_waste");
-    public static final DeferredItem<Item> NUCLEAR_WASTE_TINY = material(MISC_MATERIALS, "nuclear_waste_tiny");
-    public static final DeferredItem<Item> NUCLEAR_WASTE_VITRIFIED = material(MISC_MATERIALS, "nuclear_waste_vitrified");
-    public static final DeferredItem<Item> NUCLEAR_WASTE_VITRIFIED_TINY = material(MISC_MATERIALS, "nuclear_waste_vitrified_tiny");
+    public static final DeferredItem<Item> TRINITITE = oreDrop(
+            "trinitite", () -> new LegacyNuclearWasteItem(new Item.Properties()));
+    public static final DeferredItem<Item> NUCLEAR_WASTE = material(
+            MISC_MATERIALS, "nuclear_waste", () -> new LegacyNuclearWasteItem(new Item.Properties()));
+    public static final DeferredItem<Item> NUCLEAR_WASTE_TINY = material(
+            MISC_MATERIALS, "nuclear_waste_tiny", () -> new LegacyNuclearWasteItem(new Item.Properties()));
+    public static final DeferredItem<Item> NUCLEAR_WASTE_VITRIFIED = material(
+            MISC_MATERIALS, "nuclear_waste_vitrified", () -> new LegacyNuclearWasteItem(new Item.Properties()));
+    public static final DeferredItem<Item> NUCLEAR_WASTE_VITRIFIED_TINY = material(
+            MISC_MATERIALS, "nuclear_waste_vitrified_tiny", () -> new LegacyNuclearWasteItem(new Item.Properties()));
     public static final DeferredItem<Item> NUCLEAR_WASTE_LONG = nuclearWaste("nuclear_waste_long", NuclearWasteItem.Family.LONG, false, false);
     public static final DeferredItem<Item> NUCLEAR_WASTE_LONG_TINY = nuclearWaste("nuclear_waste_long_tiny", NuclearWasteItem.Family.LONG, false, true);
     public static final DeferredItem<Item> NUCLEAR_WASTE_LONG_DEPLETED = nuclearWaste("nuclear_waste_long_depleted", NuclearWasteItem.Family.LONG, true, false);
@@ -1275,7 +1290,7 @@ public final class HbmItems {
     public static final DeferredItem<Item> SINGULARITY_SPARK = material(
             MISC_MATERIALS,
             "singularity_spark",
-            () -> new Item(new Item.Properties().stacksTo(1))
+            () -> new LegacyDropItem(LegacyDropItem.Kind.SINGULARITY_SPARK)
     );
     public static final DeferredItem<Item> ICF_PELLET_EMPTY = fuelRodItem(
             "icf_pellet_empty",
@@ -1468,7 +1483,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> BLUEPRINTS = toolItem(
             "blueprints",
-            () -> new BlueprintItem(new Item.Properties().stacksTo(1))
+            () -> new BlueprintItem(new Item.Properties())
     );
     public static final DeferredItem<Item> BLUEPRINT_FOLDER = toolItem(
             "blueprint_folder",
@@ -1552,7 +1567,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> PIN = toolItem(
             "pin",
-            () -> new Item(new Item.Properties())
+            () -> LegacyLoreItem.fromLegacyId("pin", new Item.Properties().stacksTo(8))
     );
     public static final DeferredItem<Item> PADLOCK_RUSTY = toolItem(
             "padlock_rusty",
@@ -1660,11 +1675,11 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> SERVO_SET = armorItem(
             "servo_set",
-            () -> ArmorModItem.servos(new Item.Properties())
+            () -> new ServoArmorModItem(new Item.Properties(), false)
     );
     public static final DeferredItem<Item> SERVO_SET_DESH = armorItem(
             "servo_set_desh",
-            () -> ArmorModItem.servos(new Item.Properties())
+            () -> new ServoArmorModItem(new Item.Properties(), true)
     );
     public static final DeferredItem<Item> PADS_RUBBER = armorItem(
             "pads_rubber",
@@ -1672,11 +1687,11 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> PADS_SLIME = armorItem(
             "pads_slime",
-            () -> new ArmorPadsItem(new Item.Properties(), 0.0F, false)
+            () -> new ArmorPadsItem(new Item.Properties(), 0.25F, false)
     );
     public static final DeferredItem<Item> PADS_STATIC = armorItem(
             "pads_static",
-            () -> new ArmorPadsItem(new Item.Properties(), 0.5F, true)
+            () -> new ArmorPadsItem(new Item.Properties(), 0.75F, true)
     );
     public static final DeferredItem<Item> LODESTONE = armorItem(
             "lodestone",
@@ -1712,7 +1727,7 @@ public final class HbmItems {
     );
     public static final DeferredItem<Item> CLADDING_IRON = armorItem(
             "cladding_iron",
-            () -> ArmorModItem.cladding(new Item.Properties())
+            () -> new IronCladdingArmorModItem(new Item.Properties())
     );
     public static final DeferredItem<Item> CLADDING_OBSIDIAN = armorItem(
             "cladding_obsidian",
@@ -1734,15 +1749,15 @@ public final class HbmItems {
     public static final DeferredItem<Item> INSERT_DOXIUM = armorItem("insert_doxium", () -> armorInsert(9999, 5.0F, 1.0F, 1.0F, 1.0F, false, false));
     public static final DeferredItem<Item> ARMOR_BATTERY = armorItem(
             "armor_battery",
-            () -> ArmorModItem.battery(new Item.Properties())
+            () -> new ArmorBatteryModItem(new Item.Properties(), 1.25D)
     );
     public static final DeferredItem<Item> ARMOR_BATTERY_MK2 = armorItem(
             "armor_battery_mk2",
-            () -> ArmorModItem.battery(new Item.Properties())
+            () -> new ArmorBatteryModItem(new Item.Properties(), 1.5D)
     );
     public static final DeferredItem<Item> ARMOR_BATTERY_MK3 = armorItem(
             "armor_battery_mk3",
-            () -> ArmorModItem.battery(new Item.Properties())
+            () -> new ArmorBatteryModItem(new Item.Properties(), 2.0D)
     );
     public static final DeferredItem<Item> BACK_TESLA = armorItem(
             "back_tesla",
@@ -2153,13 +2168,13 @@ public final class HbmItems {
     public static final DeferredItem<Item> CMB_HOE = hoe("cmb_hoe", HbmToolTier.CMB);
 
     public static final DeferredItem<Item> BISMUTH_AXE = axe("bismuth_axe", profile(HbmToolTier.BISMUTH, 25.0F, -2.8F).area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.SHREDDER, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 1).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).weapon(HbmToolBehavior.WeaponAbility.STUN, 3).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 1).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
-    public static final DeferredItem<Item> BISMUTH_PICKAXE = pickaxe("bismuth_pickaxe", profile(HbmToolTier.BISMUTH, 15.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.SHREDDER, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 1).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).weapon(HbmToolBehavior.WeaponAbility.STUN, 2).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 0).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0).canBreakDepthRock());
+    public static final DeferredItem<Item> BISMUTH_PICKAXE = pickaxe("bismuth_pickaxe", profile(HbmToolTier.BISMUTH, 15.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.SHREDDER, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 1).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).weapon(HbmToolBehavior.WeaponAbility.STUN, 2).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 0).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
 
     public static final DeferredItem<Item> VOLCANIC_AXE = axe("volcanic_axe", profile(HbmToolTier.VOLCANIC, 25.0F, -2.8F).area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.SMELTER, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 2).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).weapon(HbmToolBehavior.WeaponAbility.FIRE, 1).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 1).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
-    public static final DeferredItem<Item> VOLCANIC_PICKAXE = pickaxe("volcanic_pickaxe", profile(HbmToolTier.VOLCANIC, 15.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.SMELTER, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 2).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).weapon(HbmToolBehavior.WeaponAbility.FIRE, 0).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 0).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0).canBreakDepthRock());
+    public static final DeferredItem<Item> VOLCANIC_PICKAXE = pickaxe("volcanic_pickaxe", profile(HbmToolTier.VOLCANIC, 15.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.SMELTER, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 2).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).weapon(HbmToolBehavior.WeaponAbility.FIRE, 0).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 0).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
 
     public static final DeferredItem<Item> CHLOROPHYTE_AXE = axe("chlorophyte_axe", profile(HbmToolTier.CHLOROPHYTE, 50.0F, -2.8F).area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.LUCK, 3).weapon(HbmToolBehavior.WeaponAbility.STUN, 4).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 3).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
-    public static final DeferredItem<Item> CHLOROPHYTE_PICKAXE = pickaxe("chlorophyte_pickaxe", profile(HbmToolTier.CHLOROPHYTE, 20.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.LUCK, 3).harvest(HbmToolBehavior.HarvestAbility.CENTRIFUGE, 0).harvest(HbmToolBehavior.HarvestAbility.MERCURY, 0).weapon(HbmToolBehavior.WeaponAbility.STUN, 3).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 2).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0).canBreakDepthRock());
+    public static final DeferredItem<Item> CHLOROPHYTE_PICKAXE = pickaxe("chlorophyte_pickaxe", profile(HbmToolTier.CHLOROPHYTE, 20.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 1).harvest(HbmToolBehavior.HarvestAbility.LUCK, 3).harvest(HbmToolBehavior.HarvestAbility.CENTRIFUGE, 0).harvest(HbmToolBehavior.HarvestAbility.MERCURY, 0).weapon(HbmToolBehavior.WeaponAbility.STUN, 3).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 2).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
 
     public static final DeferredItem<Item> SCHRABIDIUM_SWORD = sword("schrabidium_sword", profile(HbmToolTier.SCHRABIDIUM, 75.0F, -2.4F).weapon(HbmToolBehavior.WeaponAbility.RADIATION, 1).weapon(HbmToolBehavior.WeaponAbility.VAMPIRE, 0).rarity(Rarity.RARE));
     public static final DeferredItem<Item> SCHRABIDIUM_PICKAXE = pickaxe("schrabidium_pickaxe", profile(HbmToolTier.SCHRABIDIUM, 20.0F, -2.8F).area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 6).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 4).harvest(HbmToolBehavior.HarvestAbility.SMELTER, 0).harvest(HbmToolBehavior.HarvestAbility.SHREDDER, 0).weapon(HbmToolBehavior.WeaponAbility.RADIATION, 0).rarity(Rarity.RARE));
@@ -2167,7 +2182,7 @@ public final class HbmItems {
     public static final DeferredItem<Item> SCHRABIDIUM_SHOVEL = shovel("schrabidium_shovel", profile(HbmToolTier.SCHRABIDIUM, 15.0F, -2.8F).area(HbmToolBehavior.AreaAbility.HAMMER, 1).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 1).area(HbmToolBehavior.AreaAbility.RECURSION, 6).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 4).harvest(HbmToolBehavior.HarvestAbility.SMELTER, 0).harvest(HbmToolBehavior.HarvestAbility.SHREDDER, 0).weapon(HbmToolBehavior.WeaponAbility.RADIATION, 0).rarity(Rarity.RARE));
     public static final DeferredItem<Item> SCHRABIDIUM_HOE = hoe("schrabidium_hoe", HbmToolTier.SCHRABIDIUM, Rarity.RARE);
 
-    public static final DeferredItem<Item> MESE_PICKAXE = pickaxe("mese_pickaxe", profile(HbmToolTier.MESE, 35.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 2).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 2).area(HbmToolBehavior.AreaAbility.RECURSION, 2).area(HbmToolBehavior.AreaAbility.EXPLOSION, 3).harvest(HbmToolBehavior.HarvestAbility.CRYSTALLIZER, 0).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 5).weapon(HbmToolBehavior.WeaponAbility.STUN, 3).weapon(HbmToolBehavior.WeaponAbility.PHOSPHORUS, 0).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0).canBreakDepthRock());
+    public static final DeferredItem<Item> MESE_PICKAXE = pickaxe("mese_pickaxe", profile(HbmToolTier.MESE, 35.0F, -2.8F).asMiner().area(HbmToolBehavior.AreaAbility.HAMMER, 2).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 2).area(HbmToolBehavior.AreaAbility.RECURSION, 2).area(HbmToolBehavior.AreaAbility.EXPLOSION, 3).harvest(HbmToolBehavior.HarvestAbility.CRYSTALLIZER, 0).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 5).weapon(HbmToolBehavior.WeaponAbility.STUN, 3).weapon(HbmToolBehavior.WeaponAbility.PHOSPHORUS, 0).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
     public static final DeferredItem<Item> MESE_AXE = axe("mese_axe", profile(HbmToolTier.MESE, 75.0F, -2.8F).area(HbmToolBehavior.AreaAbility.HAMMER, 2).area(HbmToolBehavior.AreaAbility.HAMMER_FLAT, 2).area(HbmToolBehavior.AreaAbility.RECURSION, 2).area(HbmToolBehavior.AreaAbility.EXPLOSION, 3).harvest(HbmToolBehavior.HarvestAbility.SILK, 0).harvest(HbmToolBehavior.HarvestAbility.LUCK, 5).weapon(HbmToolBehavior.WeaponAbility.STUN, 4).weapon(HbmToolBehavior.WeaponAbility.PHOSPHORUS, 1).weapon(HbmToolBehavior.WeaponAbility.BEHEADER, 0));
     public static final DeferredItem<Item> MESE_GAVEL = sword("mese_gavel", profile(HbmToolTier.MESE, 250.0F, -2.4F)
             .movement(1.5D)
@@ -2420,14 +2435,6 @@ public final class HbmItems {
             "plastic_bag",
             () -> new LegacyHeldInventoryItem(new Item.Properties(), LegacyHeldInventoryItem.Kind.PLASTIC_BAG)
     );
-    public static final DeferredItem<Item> CART = toolItem(
-            "cart",
-            () -> new LegacyMinecartItem(new Item.Properties())
-    );
-    public static final DeferredItem<Item> TRAIN = toolItem(
-            "train",
-            () -> new LegacyTrainItem(new Item.Properties())
-    );
     public static final DeferredItem<Item> BOMB_CALLER = toolItem(
             "bomb_caller",
             () -> new LegacyBombCallerItem(new Item.Properties())
@@ -2678,6 +2685,9 @@ public final class HbmItems {
     private static Item legacyMachineComponent(String id) {
         if (id.equals("blade_meteorite")) {
             return new LegacyHotItem(new Item.Properties(), 200, false);
+        }
+        if (id.equals("upgrade_muffler")) {
+            return new MufflerUpgradeItem(new Item.Properties().stacksTo(64));
         }
         return new MachineUpgradeItem(new Item.Properties().stacksTo(machineComponentStackSize(id)));
     }
@@ -3017,10 +3027,7 @@ public final class HbmItems {
     }
 
     public static boolean isHiddenPortedPlainItem(DeferredItem<Item> item) {
-        String path = item.getId().getPath();
-        return HIDDEN_PORTED_PLAIN_ITEM_IDS.contains(path)
-                || path.startsWith("item_secret_")
-                || path.startsWith("scrap_plastic_");
+        return LegacyContentVisibility.isCreativeHiddenPath(item.getId().getPath());
     }
 
     public static boolean isHiddenMissilePart(DeferredItem<Item> item) {
@@ -3125,9 +3132,6 @@ public final class HbmItems {
         registerLegacyArmorMod("wd40", () -> new LegacyWd40ArmorModItem(new Item.Properties()));
         registerLegacyArmorMod("defuser_gold", () -> new LegacyDefuserArmorModItem(new Item.Properties()));
         registerLegacyArmorMod("injector_knife", () -> new LegacyInjectorKnifeArmorModItem(new Item.Properties()));
-        // ItemModTwoKick declares no update/damage hooks in 1.7.10; its only
-        // behavior is the original servo-slot applicability.
-        registerLegacyArmorMod("ballistic_gauntlet", () -> ArmorModItem.servos(new Item.Properties()));
     }
 
     private static void registerLegacyArmorMod(String id, Supplier<Item> supplier) {
@@ -3361,7 +3365,11 @@ public final class HbmItems {
             } else if (id.startsWith("nugget_")) {
                 material(NUGGET_MATERIALS, id);
             } else if (id.startsWith("powder_") || id.equals("dust") || id.equals("dust_tiny")) {
-                material(POWDER_MATERIALS, id);
+                if (id.equals("powder_fertilizer")) {
+                    material(POWDER_MATERIALS, id, () -> new IndustrialFertilizerItem(new Item.Properties()));
+                } else {
+                    material(POWDER_MATERIALS, id);
+                }
             } else if (id.startsWith("plate_")) {
                 material(PLATE_MATERIALS, id);
             } else if (isNuclearBillet(id)) {

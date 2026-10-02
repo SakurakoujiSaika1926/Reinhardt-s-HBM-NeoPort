@@ -31,7 +31,12 @@ public class BatteryReddBlock extends LargeMachineBlock implements EntityBlock {
         return state.setValue(FACING, mirror.getRotation(state.getValue(FACING)).rotate(state.getValue(FACING)));
     }
 
-    public static final Footprint FOOTPRINT = Footprint.centered(2, 10, 4);
+    // Latest 1.7.10 MachineBatteryREDD dimensions are
+    // {up=9, down=0, north=2, south=2, west=4, east=4}.  The renderer's
+    // unrotated model faces west, so NORTH/SOUTH must occupy 9 blocks on X
+    // and 5 blocks on Z; swapping these axes turns the collision footprint
+    // 90 degrees away from the rendered FEnSU.
+    public static final Footprint FOOTPRINT = Footprint.centered(4, 10, 2);
 
     public BatteryReddBlock(Properties properties, VoxelShape shape) {
         super(properties, FOOTPRINT, shape, BatteryReddBlock::mapBatteryReddOffset);

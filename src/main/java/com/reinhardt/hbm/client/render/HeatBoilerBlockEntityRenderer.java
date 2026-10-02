@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class HeatBoilerBlockEntityRenderer implements LongRangeBlockEntityRenderer<HeatBoilerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/heat_boiler_world");
     private static final ModelResourceLocation BURST = MachineModelRenderer.standalone("block/heat_boiler_burst_world");
     private static final float MAX_WOBBLE = 1.0F + (float) 0.015D;
@@ -41,14 +42,8 @@ public class HeatBoilerBlockEntityRenderer implements LongRangeBlockEntityRender
             }
         }
         applyHeatBoilerOrientation(poseStack, heatBoilerFacing(state));
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(boiler.exploded() ? BURST : WORLD),
-                poseStack,
-                bufferSource,
-                state,
-                packedLight,
-                packedOverlay
-        );
+        STATIC_MESHES.render(boiler.exploded() ? BURST : WORLD,
+                poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

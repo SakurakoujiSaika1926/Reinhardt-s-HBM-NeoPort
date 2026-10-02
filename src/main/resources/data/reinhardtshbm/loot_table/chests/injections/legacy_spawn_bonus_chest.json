@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 10.0,
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 64
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:no9",
+          "weight": 7
+        }
+      ]
+    }
+  ]
+}

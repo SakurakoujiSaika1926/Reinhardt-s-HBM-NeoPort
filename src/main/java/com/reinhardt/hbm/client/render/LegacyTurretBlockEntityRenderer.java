@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LegacyTurretBlockEntityRenderer implements LongRangeBlockEntityRenderer<LegacyTurretBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
     private static final long JAVA_RANDOM_ADDEND = 0xBL;
     private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
@@ -847,7 +848,7 @@ public class LegacyTurretBlockEntityRenderer implements LongRangeBlockEntityRend
     }
 
     private static void renderPart(ModelResourceLocation location, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(location), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(location, poseStack, state, packedLight, packedOverlay);
     }
 
     private static ModelResourceLocation model(String name) {

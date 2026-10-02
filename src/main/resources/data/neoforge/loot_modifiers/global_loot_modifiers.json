@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "entries": [
+    "reinhardtshbm:legacy_loot_mineshaft",
+    "reinhardtshbm:legacy_loot_dungeon",
+    "reinhardtshbm:legacy_loot_desert_pyramid",
+    "reinhardtshbm:legacy_loot_jungle_temple",
+    "reinhardtshbm:legacy_loot_spawn_bonus_chest",
+    "reinhardtshbm:legacy_loot_village_armorer",
+    "reinhardtshbm:legacy_loot_village_toolsmith",
+    "reinhardtshbm:legacy_loot_village_weaponsmith"
+  ]
+}

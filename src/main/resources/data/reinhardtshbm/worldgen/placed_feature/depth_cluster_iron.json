@@ -1,8 +1,0 @@
-{
-  "feature": "reinhardtshbm:depth_cluster_iron",
-  "placement": [
-    {
-      "type": "minecraft:biome"
-    }
-  ]
-}

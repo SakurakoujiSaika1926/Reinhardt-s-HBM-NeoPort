@@ -18,6 +18,7 @@ import java.util.Map;
 
 /** Renders the ten legacy bomb assemblies with their individual 1.7.10 poses. */
 public final class LegacyNukeBlockEntityRenderer implements LongRangeBlockEntityRenderer<LegacyNukeBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation GADGET = model("block/nuke_gadget_world");
     private static final ModelResourceLocation GADGET_BODY = model("block/nuke_gadget_body");
     private static final ModelResourceLocation GADGET_WIRES = model("block/nuke_gadget_wires");
@@ -69,12 +70,10 @@ public final class LegacyNukeBlockEntityRenderer implements LongRangeBlockEntity
             case CUSTOM -> applyCustomTransform(poseStack, customFacing(state));
             case BALEFIRE -> applyBalefireTransform(poseStack, balefireFacing(state));
         }
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(modelFor(definition)), poseStack,
-                bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(modelFor(definition), poseStack, state, packedLight, packedOverlay);
         if (definition == LegacyNukeDefinition.GADGET
                 && Minecraft.getInstance().options.graphicsMode().get().getId() != 0) {
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GADGET_WIRES), poseStack,
-                    bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(GADGET_WIRES, poseStack, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
     }

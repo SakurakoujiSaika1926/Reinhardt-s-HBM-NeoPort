@@ -2,7 +2,6 @@
   "replace": false,
   "values": [
     "minecraft:red_dye",
-    "reinhardtshbm:cinnabar",
-    "reinhardtshbm:cinnebar"
+    "reinhardtshbm:cinnabar"
   ]
 }

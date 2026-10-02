@@ -1,0 +1,39 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_chemistry"
+    }
+  ],
+  "type": "reinhardtshbm:chemical_plant",
+  "group": "chem.cordite",
+  "duration": 40,
+  "power": 100,
+  "input_items": [
+    {
+      "ingredient": {
+        "tag": "c:dusts/niter"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:dusts/sawdust"
+      },
+      "count": 2
+    }
+  ],
+  "input_fluids": [
+    {
+      "fluid": "heatingoil",
+      "amount": 200
+    }
+  ],
+  "output_items": [
+    {
+      "id": "reinhardtshbm:cordite",
+      "count": 4
+    }
+  ],
+  "output_fluids": []
+}

@@ -90,10 +90,6 @@ public class HbmPickaxeItem extends PickaxeItem {
         return true;
     }
 
-    public boolean canBreakDepthRock() {
-        return this.profile.depthRockBreaker();
-    }
-
     protected void consumeOperation(ItemStack stack) {
     }
 

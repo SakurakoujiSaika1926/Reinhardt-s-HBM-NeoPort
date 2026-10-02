@@ -8,6 +8,7 @@ import com.reinhardt.hbm.integration.createbigcannons.HbmCreateBigCannonsCompat;
 import com.reinhardt.hbm.integration.immersiveengineering.HbmImmersiveEngineeringCompat;
 import com.reinhardt.hbm.integration.curios.PortableCrateCuriosIntegration;
 import com.reinhardt.hbm.item.LegacyItemComponents;
+import com.reinhardt.hbm.handler.LegacyDispenserBehaviors;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmArmorMaterials;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
@@ -29,6 +30,7 @@ import com.reinhardt.hbm.registry.HbmWorldgenStructures;
 import com.reinhardt.hbm.registry.HbmBiomeModifierSerializers;
 import com.reinhardt.hbm.registry.LegacyHbmContent;
 import com.reinhardt.hbm.registry.PortStatus;
+import com.reinhardt.hbm.worldgen.structure.HbmLegacyScatterStructure;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
@@ -47,6 +49,11 @@ public class ReinhardtsHBM {
     public ReinhardtsHBM(IEventBus modEventBus) {
         modEventBus.addListener(HbmNetwork::register);
         modEventBus.addListener(HbmChunkTickets::register);
+        modEventBus.addListener((FMLCommonSetupEvent event) ->
+                event.enqueueWork(() -> {
+                    HbmLegacyScatterStructure.validateTemplates();
+                    LegacyDispenserBehaviors.register();
+                }));
         if (ModList.get().isLoaded("create")) {
             modEventBus.addListener((FMLCommonSetupEvent event) ->
                     event.enqueueWork(HbmCreateMultiblockCompat::install));

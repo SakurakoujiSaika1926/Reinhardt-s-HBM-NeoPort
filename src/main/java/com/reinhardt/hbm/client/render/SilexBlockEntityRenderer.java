@@ -13,6 +13,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class SilexBlockEntityRenderer implements LongRangeBlockEntityRenderer<SilexBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_silex");
 
     public SilexBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -28,7 +29,7 @@ public class SilexBlockEntityRenderer implements LongRangeBlockEntityRenderer<Si
         Direction facing = silexFacing(state);
         poseStack.pushPose();
         applySilexPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

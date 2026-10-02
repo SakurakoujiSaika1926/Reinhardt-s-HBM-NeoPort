@@ -15,6 +15,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class BatteryPackItem extends LegacyVariantItem implements HbmChargeableItem {
@@ -233,6 +234,10 @@ public class BatteryPackItem extends LegacyVariantItem implements HbmChargeableI
             return "";
         }
         return item.variant(stack).id();
+    }
+
+    public static Set<String> knownVariants() {
+        return SPECS.keySet();
     }
 
     private BatterySpec spec(ItemStack stack) {

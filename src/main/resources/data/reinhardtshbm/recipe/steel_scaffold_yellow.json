@@ -1,0 +1,6 @@
+{
+  "type":"minecraft:crafting_shaped","category":"building",
+  "pattern":["SSS","SDS","SSS"],
+  "key":{"S":{"item":"reinhardtshbm:steel_scaffold"},"D":{"tag":"c:dyes/yellow"}},
+  "result":{"id":"reinhardtshbm:steel_scaffold_yellow","count":8}
+}

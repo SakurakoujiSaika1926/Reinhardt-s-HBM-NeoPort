@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 3.0,
+        "max": 6.0
+      },
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 80
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:bathwater",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:serum",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:no9",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:key_red_cracked",
+          "weight": 5
+        }
+      ]
+    }
+  ]
+}

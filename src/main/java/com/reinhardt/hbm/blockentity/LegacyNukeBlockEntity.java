@@ -5,6 +5,7 @@ import com.reinhardt.hbm.block.LegacyNukeBlock;
 import com.reinhardt.hbm.block.LegacyNukeDefinition;
 import com.reinhardt.hbm.explosion.BalefireExplosionManager;
 import com.reinhardt.hbm.explosion.NukeExplosionManager;
+import com.reinhardt.hbm.entity.LegacyFallingNukeEntity;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
@@ -114,14 +115,34 @@ public final class LegacyNukeBlockEntity extends BlockEntity implements MachineI
         LegacyNukeDefinition def = definition();
         boolean filled = isFilled();
         refreshCustomPayload();
+        boolean falling = def.isCustom() && hasCustomFallUpgrade();
+        Direction facing = getBlockState().hasProperty(LegacyNukeBlock.FACING)
+                ? getBlockState().getValue(LegacyNukeBlock.FACING)
+                : Direction.NORTH;
+        float payloadTnt = tnt;
+        float payloadNuke = nuke;
+        float payloadHydro = hydro;
+        float payloadAmat = amat;
+        float payloadDirty = dirty;
+        float payloadSchrab = schrab;
+        float payloadEuph = euph;
         clearContent();
         serverLevel.removeBlock(worldPosition, false);
         if (def == LegacyNukeDefinition.BALEFIRE) {
             BalefireExplosionManager.schedule(serverLevel, worldPosition, 250);
         } else if (def.isCustom()) {
-            NukeExplosionManager.scheduleCustomNuke(serverLevel, worldPosition.getX() + 0.5D,
-                    worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D,
-                    tnt, nuke, hydro, amat, dirty, schrab, euph);
+            if (falling) {
+                serverLevel.addFreshEntity(LegacyFallingNukeEntity.create(serverLevel,
+                        new net.minecraft.world.phys.Vec3(worldPosition.getX() + 0.5D,
+                                worldPosition.getY(), worldPosition.getZ() + 0.5D), facing,
+                        payloadTnt, payloadNuke, payloadHydro, payloadAmat,
+                        payloadDirty, payloadSchrab, payloadEuph));
+            } else {
+                NukeExplosionManager.scheduleCustomNuke(serverLevel, worldPosition.getX() + 0.5D,
+                        worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D,
+                        payloadTnt, payloadNuke, payloadHydro, payloadAmat,
+                        payloadDirty, payloadSchrab, payloadEuph);
+            }
         } else if (def == LegacyNukeDefinition.FLEIJA || def == LegacyNukeDefinition.PROTOTYPE) {
             NukeExplosionManager.scheduleFleijaNuke(serverLevel, worldPosition.getX() + 0.5D,
                     worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D, def.radius());
@@ -150,6 +171,15 @@ public final class LegacyNukeBlockEntity extends BlockEntity implements MachineI
     private boolean hasCustomPayload() {
         refreshCustomPayload();
         return tnt > 0.0F || nuke > 0.0F || hydro > 0.0F || amat > 0.0F || schrab > 0.0F || euph > 0.0F;
+    }
+
+    private boolean hasCustomFallUpgrade() {
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().equals("custom_fall")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void refreshCustomPayload() {

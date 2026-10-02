@@ -33,17 +33,7 @@ interface LongRangeBlockEntityRenderer<T extends BlockEntity> extends BlockEntit
         if (bounds == null) {
             return false;
         }
-
-        BlockPos owner = blockEntity.getBlockPos();
-        int ownerSectionX = SectionPos.blockToSectionCoord(owner.getX());
-        int ownerSectionY = SectionPos.blockToSectionCoord(owner.getY());
-        int ownerSectionZ = SectionPos.blockToSectionCoord(owner.getZ());
-        return SectionPos.blockToSectionCoord(Mth.floor(bounds.minX)) != ownerSectionX
-                || SectionPos.blockToSectionCoord(Mth.floor(inclusiveMaximum(bounds.minX, bounds.maxX))) != ownerSectionX
-                || SectionPos.blockToSectionCoord(Mth.floor(bounds.minY)) != ownerSectionY
-                || SectionPos.blockToSectionCoord(Mth.floor(inclusiveMaximum(bounds.minY, bounds.maxY))) != ownerSectionY
-                || SectionPos.blockToSectionCoord(Mth.floor(bounds.minZ)) != ownerSectionZ
-                || SectionPos.blockToSectionCoord(Mth.floor(inclusiveMaximum(bounds.minZ, bounds.maxZ))) != ownerSectionZ;
+        return crossesOwnerSection(blockEntity.getBlockPos(), bounds);
     }
 
     @Override
@@ -58,7 +48,29 @@ interface LongRangeBlockEntityRenderer<T extends BlockEntity> extends BlockEntit
         double dy = axisDistance(cameraPosition.y, bounds.minY, bounds.maxY);
         double dz = axisDistance(cameraPosition.z, bounds.minZ, bounds.maxZ);
         double distance = getViewDistance();
-        return dx * dx + dy * dy + dz * dz < distance * distance;
+        if (dx * dx + dy * dy + dz * dz >= distance * distance) {
+            return false;
+        }
+
+        // Section-local block entities are already traversed only when their
+        // owning section is visible. Cross-section renderers are global to
+        // prevent the owner leaving the frustum from hiding visible geometry;
+        // restore vanilla occlusion for those instances against the complete
+        // authored AABB rather than against the owner block alone.
+        return !crossesOwnerSection(blockEntity.getBlockPos(), bounds)
+                || LargeMachineOcclusionCulling.isPotentiallyVisible(blockEntity, bounds, cameraPosition);
+    }
+
+    private static boolean crossesOwnerSection(BlockPos owner, AABB bounds) {
+        int ownerSectionX = SectionPos.blockToSectionCoord(owner.getX());
+        int ownerSectionY = SectionPos.blockToSectionCoord(owner.getY());
+        int ownerSectionZ = SectionPos.blockToSectionCoord(owner.getZ());
+        return SectionPos.blockToSectionCoord(Mth.floor(bounds.minX)) != ownerSectionX
+                || SectionPos.blockToSectionCoord(Mth.floor(inclusiveMaximum(bounds.minX, bounds.maxX))) != ownerSectionX
+                || SectionPos.blockToSectionCoord(Mth.floor(bounds.minY)) != ownerSectionY
+                || SectionPos.blockToSectionCoord(Mth.floor(inclusiveMaximum(bounds.minY, bounds.maxY))) != ownerSectionY
+                || SectionPos.blockToSectionCoord(Mth.floor(bounds.minZ)) != ownerSectionZ
+                || SectionPos.blockToSectionCoord(Mth.floor(inclusiveMaximum(bounds.minZ, bounds.maxZ))) != ownerSectionZ;
     }
 
     private static double axisDistance(double value, double min, double max) {

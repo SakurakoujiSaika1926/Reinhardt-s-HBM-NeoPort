@@ -38,7 +38,7 @@ public final class LegacyLoreItem extends Item {
             "key_red", "key_red_cracked", "magnetron", "man_core", "mech_key", "missile_soyuz_lander",
             "nugget_australium", "nugget_australium_greater", "nugget_australium_lesser", "nugget_desh",
             "nugget_dineutronium", "nugget_euphemium", "nugget_gh336", "nugget_osmiridium",
-            "nugget_schrabidium", "nugget_tantalium", "nugget_zirconium", "pellet_cluster", "pin",
+            "nugget_schrabidium", "nugget_tantalium", "nugget_zirconium", "pellet_cluster", "pellet_gas", "pin",
             "plate_bismuth", "plate_euphemium", "plate_paa", "plate_saturnite", "plate_schrabidium",
             "powder_actinium", "powder_asbestos", "powder_astatine", "powder_australium",
             "powder_bakelite", "powder_boron", "powder_bromine", "powder_caesium", "powder_cerium",
@@ -123,7 +123,7 @@ public final class LegacyLoreItem extends Item {
         String key = getDescriptionId() + ".desc";
         String description = Component.translatable(key).getString();
         if (!description.equals(key)) {
-            for (String line : description.split("\\\\$")) {
+            for (String line : description.split("\\$")) {
                 tooltip.add(Component.literal(line).withStyle(ChatFormatting.GRAY));
             }
         }

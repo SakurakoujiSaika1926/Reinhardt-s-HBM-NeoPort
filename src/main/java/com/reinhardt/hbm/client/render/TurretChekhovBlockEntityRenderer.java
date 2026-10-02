@@ -19,6 +19,7 @@ public class TurretChekhovBlockEntityRenderer implements LongRangeBlockEntityRen
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/turret_chekhov_body");
     private static final ModelResourceLocation BARRELS = MachineModelRenderer.standalone("block/turret_chekhov_barrels");
     private static final ModelResourceLocation CONNECTORS = MachineModelRenderer.standalone("block/turret_chekhov_connectors");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     /* Exact OBJ envelope across full yaw/spin and the machine's legal -30..45 degree pitch. */
     private static final double HORIZONTAL_RADIUS = 3.2655876504571117D;
     private static final double MIN_Y = -0.4009928026480037D;
@@ -58,22 +59,22 @@ public class TurretChekhovBlockEntityRenderer implements LongRangeBlockEntityRen
         poseStack.pushPose();
         poseStack.translate(posX, 0.0F, posZ);
         renderConnectors(turret, poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         double yaw = -Math.toDegrees(turret.renderYaw(partialTick)) - 90.0D;
         double pitch = Math.toDegrees(turret.renderPitch(partialTick));
         poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CARRIAGE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(CARRIAGE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0F, 1.5F, 0.0F);
         poseStack.mulPose(Axis.ZP.rotationDegrees((float) pitch));
         poseStack.translate(0.0F, -1.5F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0F, 1.5F, 0.0F);
         poseStack.mulPose(Axis.XN.rotationDegrees(turret.renderSpin(partialTick)));
         poseStack.translate(0.0F, -1.5F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BARRELS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BARRELS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -98,10 +99,10 @@ public class TurretChekhovBlockEntityRenderer implements LongRangeBlockEntityRen
         poseStack.translate(0.0F, -3.0F, 0.0F);
         poseStack.scale(4.0F, 4.0F, 4.0F);
         poseStack.translate(-0.75F, 0.0F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CARRIAGE), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BARRELS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(CARRIAGE, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BARRELS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -136,7 +137,7 @@ public class TurretChekhovBlockEntityRenderer implements LongRangeBlockEntityRen
         poseStack.pushPose();
         applyChekhovConnectorOrientation(poseStack, side);
         poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CONNECTORS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(CONNECTORS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

@@ -1,7 +1,20 @@
-﻿{
+{
   "variants": {
-    "": {
-      "model": "reinhardtshbm:block/concrete_super"
-    }
+    "damage=0": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=1": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=2": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=3": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=4": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=5": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=6": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=7": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=8": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=9": {"model":"reinhardtshbm:block/concrete_super"},
+    "damage=10": {"model":"reinhardtshbm:block/concrete_super_m0"},
+    "damage=11": {"model":"reinhardtshbm:block/concrete_super_m0"},
+    "damage=12": {"model":"reinhardtshbm:block/concrete_super_m1"},
+    "damage=13": {"model":"reinhardtshbm:block/concrete_super_m1"},
+    "damage=14": {"model":"reinhardtshbm:block/concrete_super_m2"},
+    "damage=15": {"model":"reinhardtshbm:block/concrete_super_m3"}
   }
 }

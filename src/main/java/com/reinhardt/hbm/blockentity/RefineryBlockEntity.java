@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.advancement.HbmAdvancements;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.entity.LegacyBombletEntity;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
@@ -82,6 +83,7 @@ public class RefineryBlockEntity extends BlockEntity implements PowerEndpoint, M
     private long lastInput;
     private int byproductProgress;
     private boolean working;
+    private final MachineFoundationState foundation = new MachineFoundationState();
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -175,6 +177,10 @@ public class RefineryBlockEntity extends BlockEntity implements PowerEndpoint, M
 
     public boolean isWorking() {
         return this.working;
+    }
+
+    public boolean tilted() {
+        return this.foundation.tilted();
     }
 
     @Nullable
@@ -390,6 +396,7 @@ public class RefineryBlockEntity extends BlockEntity implements PowerEndpoint, M
         tag.putLong("LastInput", this.lastInput);
         tag.putInt("ByproductProgress", this.byproductProgress);
         tag.putBoolean("Working", this.working);
+        this.foundation.save(tag);
     }
 
     @Override
@@ -406,6 +413,7 @@ public class RefineryBlockEntity extends BlockEntity implements PowerEndpoint, M
         this.lastInput = tag.getLong("LastInput");
         this.byproductProgress = tag.getInt("ByproductProgress");
         this.working = tag.getBoolean("Working");
+        this.foundation.load(tag);
         if (this.inputTank.amount() == 0 && this.inputTank.type().isNone()) {
             this.inputTank.setType(hotoil());
         }
@@ -425,6 +433,9 @@ public class RefineryBlockEntity extends BlockEntity implements PowerEndpoint, M
     }
 
     private void tickServer(Level level) {
+        boolean foundationChanged = this.foundation.tick(level, this.worldPosition, 4,
+                index -> this.worldPosition.offset(-1 + index / 2 * 2, -1, -1 + index % 2 * 2),
+                false, HbmConfig.machineGravity());
         PowerNetworkManager.tickFromEndpoint(level, this);
         this.power = BatteryPackItem.dischargeIntoMachine(this.items.get(BATTERY_SLOT), this.power, MAX_POWER);
         applyIdentifierSlot();
@@ -433,7 +444,7 @@ public class RefineryBlockEntity extends BlockEntity implements PowerEndpoint, M
         process();
         pushOutputs(level);
         setChanged();
-        if (level.getGameTime() % 10L == 0L) {
+        if (foundationChanged || level.getGameTime() % 10L == 0L) {
             sync();
         }
     }

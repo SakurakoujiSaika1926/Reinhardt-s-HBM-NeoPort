@@ -17,6 +17,7 @@ public class ChemicalFactoryBlockEntityRenderer implements LongRangeBlockEntityR
     private static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_chemical_factory_frame");
     private static final ModelResourceLocation FAN_1 = MachineModelRenderer.standalone("block/machine_chemical_factory_fan1");
     private static final ModelResourceLocation FAN_2 = MachineModelRenderer.standalone("block/machine_chemical_factory_fan2");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildChemicalFactoryBounds();
 
     public ChemicalFactoryBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -39,9 +40,9 @@ public class ChemicalFactoryBlockEntityRenderer implements LongRangeBlockEntityR
         poseStack.pushPose();
         applyChemicalFactoryTransform(poseStack, facing);
 
-        renderPart(BASE, poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
         if (factory.clientFrame()) {
-            renderPart(FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(FRAME, poseStack, state, packedLight, packedOverlay);
         }
 
         poseStack.pushPose();
@@ -73,7 +74,7 @@ public class ChemicalFactoryBlockEntityRenderer implements LongRangeBlockEntityR
     }
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static AABB[] buildChemicalFactoryBounds() {

@@ -21,6 +21,8 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -28,6 +30,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -100,6 +103,17 @@ public class FluidDuctBlock extends Block implements EntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new FluidPipeBlockEntity(pos, state);
+    }
+
+    @Override
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide || this.kind != Kind.COUNTER_VALVE) {
+            return null;
+        }
+        BlockEntityTicker<FluidPipeBlockEntity> ticker = FluidPipeBlockEntity::serverTick;
+        return (BlockEntityTicker<T>) ticker;
     }
 
     @Override
@@ -430,7 +444,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (this.kind != Kind.VALVE) {
+        if (this.kind != Kind.VALVE && this.kind != Kind.COUNTER_VALVE) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide) {
@@ -674,7 +688,7 @@ public class FluidDuctBlock extends Block implements EntityBlock {
         }
     }
 
-    private void setOpen(Level level, BlockPos pos, boolean open, boolean playSound) {
+    public void setOpen(Level level, BlockPos pos, boolean open, boolean playSound) {
         BlockState state = level.getBlockState(pos);
         if (!state.hasProperty(OPEN) || state.getValue(OPEN) == open) {
             return;

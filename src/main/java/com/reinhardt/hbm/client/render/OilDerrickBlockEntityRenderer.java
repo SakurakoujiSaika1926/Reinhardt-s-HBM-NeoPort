@@ -26,6 +26,7 @@ public class OilDerrickBlockEntityRenderer implements LongRangeBlockEntityRender
     static final ModelResourceLocation PUMPJACK_ROTOR = MachineModelRenderer.standalone("block/machine_pumpjack_rotor");
     static final ModelResourceLocation PUMPJACK_HEAD = MachineModelRenderer.standalone("block/machine_pumpjack_head");
     static final ModelResourceLocation PUMPJACK_CARRIAGE = MachineModelRenderer.standalone("block/machine_pumpjack_carriage");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ResourceLocation ROD_TEXTURE = ReinhardtsHBM.id("textures/models/network/wire_greyscale.png");
     private static final AABB[] DERRICK_BOUNDS = buildDerrickBounds();
     private static final AABB[] PUMPJACK_BOUNDS = buildPumpjackBounds();
@@ -55,7 +56,7 @@ public class OilDerrickBlockEntityRenderer implements LongRangeBlockEntityRender
     private void renderDerrick(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, BlockState state, Direction facing) {
         poseStack.pushPose();
         applyDerrickTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(DERRICK_MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(DERRICK_MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -123,7 +124,7 @@ public class OilDerrickBlockEntityRenderer implements LongRangeBlockEntityRender
             int packedLight,
             int packedOverlay
     ) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static void renderRods(float rotation, PoseStack poseStack, MultiBufferSource bufferSource, int packedOverlay) {

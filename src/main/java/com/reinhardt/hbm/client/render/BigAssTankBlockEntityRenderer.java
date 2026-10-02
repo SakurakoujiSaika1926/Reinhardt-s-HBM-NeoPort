@@ -20,6 +20,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class BigAssTankBlockEntityRenderer implements LongRangeBlockEntityRenderer<BigAssTankBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_bat9000");
     /* Face-used bat9000.obj: [-2.625,0,-2.625]..[2.625,5,2.625]. */
     private static final AABB[] LOCAL_BOUNDS = buildBigAssTankBounds();
@@ -39,7 +40,7 @@ public class BigAssTankBlockEntityRenderer implements LongRangeBlockEntityRender
         Direction facing = bigAssTankFacing(state);
         poseStack.pushPose();
         applyBigAssTankTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         renderFluidWindows(tank, partialTick, poseStack, bufferSource, packedOverlay);
         renderHazardDiamonds(tank.tank().type(), poseStack, bufferSource, packedOverlay);
         poseStack.popPose();

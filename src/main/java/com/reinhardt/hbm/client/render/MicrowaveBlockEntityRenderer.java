@@ -17,6 +17,7 @@ public final class MicrowaveBlockEntityRenderer implements LongRangeBlockEntityR
     static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_microwave_body");
     static final ModelResourceLocation WINDOW = MachineModelRenderer.standalone("block/machine_microwave_window");
     static final ModelResourceLocation PLATE = MachineModelRenderer.standalone("block/machine_microwave_plate");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildMicrowaveBounds();
 
     public MicrowaveBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -68,8 +69,7 @@ public final class MicrowaveBlockEntityRenderer implements LongRangeBlockEntityR
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource bufferSource, BlockState state,
                                    int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static AABB[] buildMicrowaveBounds() {

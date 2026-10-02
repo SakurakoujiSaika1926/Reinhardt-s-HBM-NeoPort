@@ -4,6 +4,7 @@ import com.reinhardt.hbm.advancement.HbmAdvancements;
 import com.reinhardt.hbm.block.FluidBarrelBlock;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidRelease;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.HbmFluidTrait;
@@ -533,7 +534,7 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
                         worldPosition.getX() + 0.5D, worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D,
                         1, 0.0D, 0.1D, 0.0D, 0.0D);
             }
-            HbmPollution.polluteFluid(level, worldPosition, fluid, HbmPollution.ReleaseType.BURN, leaking * 5.0D);
+            HbmFluidRelease.onRelease(level, worldPosition, fluid, HbmPollution.ReleaseType.BURN, leaking * 5.0D);
         } else if (isGaseous(fluid)) {
             if (level.getGameTime() % 5L == 0L && level instanceof ServerLevel serverLevel) {
                 int color = fluid.color();
@@ -542,7 +543,7 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
                         0, ((color >>> 16) & 0xFF) / 255.0D, ((color >>> 8) & 0xFF) / 255.0D,
                         (color & 0xFF) / 255.0D, 1.0D);
             }
-            HbmPollution.polluteFluid(level, worldPosition, fluid, HbmPollution.ReleaseType.SPILL, leaking * 5.0D);
+            HbmFluidRelease.onRelease(level, worldPosition, fluid, HbmPollution.ReleaseType.SPILL, leaking * 5.0D);
         }
         sync();
     }
@@ -695,7 +696,7 @@ public class FluidTankBlockEntity extends BlockEntity implements MenuProvider, F
     public void dropContents(Level level, BlockPos pos) {
         dropInventoryContents(level, pos);
         if (this.tank.amount() > 0 && !this.tank.type().isNone()) {
-            HbmPollution.polluteFluid(level, pos, this.tank.type(), HbmPollution.ReleaseType.SPILL, this.tank.amount());
+            HbmFluidRelease.onRelease(level, pos, this.tank.type(), HbmPollution.ReleaseType.SPILL, this.tank.amount());
         }
     }
 

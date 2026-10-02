@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "reinhardtshbm:bedrock_ore_fragment_bauxite"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:stone_resource_bauxite"
+  }
+}

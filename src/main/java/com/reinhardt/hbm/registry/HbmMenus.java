@@ -90,7 +90,6 @@ import com.reinhardt.hbm.menu.SoyuzCapsuleMenu;
 import com.reinhardt.hbm.menu.LambdaLaunchpadMenu;
 import com.reinhardt.hbm.menu.SoyuzLaunchpadMenu;
 import com.reinhardt.hbm.menu.LauncherMenu;
-import com.reinhardt.hbm.menu.SteamTurbineMenu;
 import com.reinhardt.hbm.menu.SteelFurnaceMenu;
 import com.reinhardt.hbm.menu.StorageCrateMenu;
 import com.reinhardt.hbm.menu.SupercomputerMenu;
@@ -376,9 +375,6 @@ public final class HbmMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<FilingCabinetMenu>> FILING_CABINET =
             MENUS.register("filing_cabinet", () -> IMenuTypeExtension.create(FilingCabinetMenu::new));
-
-    public static final DeferredHolder<MenuType<?>, MenuType<SteamTurbineMenu>> STEAM_TURBINE =
-            MENUS.register("machine_turbine", () -> IMenuTypeExtension.create(SteamTurbineMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<LargeTurbineMenu>> LARGE_TURBINE =
             MENUS.register("machine_large_turbine", () -> IMenuTypeExtension.create(LargeTurbineMenu::new));

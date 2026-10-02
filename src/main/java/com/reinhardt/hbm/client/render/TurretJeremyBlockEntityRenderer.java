@@ -18,6 +18,7 @@ public class TurretJeremyBlockEntityRenderer implements LongRangeBlockEntityRend
     private static final ModelResourceLocation CARRIAGE = MachineModelRenderer.standalone("block/turret_jeremy_carriage");
     private static final ModelResourceLocation GUN = MachineModelRenderer.standalone("block/turret_jeremy_gun");
     private static final ModelResourceLocation CONNECTORS = MachineModelRenderer.standalone("block/turret_jeremy_connectors");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     /* Exact OBJ envelope across full yaw and the machine's legal -45..30 degree pitch. */
     private static final double HORIZONTAL_RADIUS = 4.628799115321381D;
     private static final double MIN_Y = -1.9029513844602601D;
@@ -56,17 +57,17 @@ public class TurretJeremyBlockEntityRenderer implements LongRangeBlockEntityRend
         poseStack.pushPose();
         poseStack.translate(posX, 0.0F, posZ);
         renderConnectors(turret, poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         double yaw = -Math.toDegrees(turret.renderYaw(partialTick)) - 90.0D;
         double pitch = Math.toDegrees(turret.renderPitch(partialTick));
         poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CARRIAGE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(CARRIAGE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0F, 1.5F, 0.0F);
         poseStack.mulPose(Axis.ZP.rotationDegrees((float) pitch));
         poseStack.translate(0.0F, -1.5F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GUN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(GUN, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -91,9 +92,9 @@ public class TurretJeremyBlockEntityRenderer implements LongRangeBlockEntityRend
         poseStack.translate(0.0F, -2.0F, 0.0F);
         poseStack.scale(2.5F, 2.5F, 2.5F);
         poseStack.translate(-0.5F, 0.0F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CARRIAGE), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GUN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(CARRIAGE, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(GUN, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -128,7 +129,7 @@ public class TurretJeremyBlockEntityRenderer implements LongRangeBlockEntityRend
         poseStack.pushPose();
         applyJeremyConnectorOrientation(poseStack, side);
         poseStack.translate(spec.renderOffsetX(), 0.0F, spec.renderOffsetZ());
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CONNECTORS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(CONNECTORS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

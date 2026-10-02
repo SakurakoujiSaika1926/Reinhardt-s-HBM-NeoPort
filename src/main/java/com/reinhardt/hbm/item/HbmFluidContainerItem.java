@@ -3,6 +3,10 @@ package com.reinhardt.hbm.item;
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidTrait;
+import com.reinhardt.hbm.entity.LegacyProjectileUtil;
+import com.reinhardt.hbm.entity.LegacyDisperserCanisterEntity;
+import com.reinhardt.hbm.explosion.NukeExplosionManager;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.util.HbmFluidTooltip;
@@ -16,6 +20,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.level.Level;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
@@ -53,6 +65,54 @@ public class HbmFluidContainerItem extends Item {
 
     public boolean isFilledContainer() {
         return filled;
+    }
+
+    @Override
+    public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
+        if (!filled || kind != Kind.CELL || entity.level().isClientSide || !entity.onGround()) {
+            return false;
+        }
+        HbmFluidDefinition fluid = fluid(stack);
+        if (fluid.name().equals("amat")) {
+            if (HbmConfig.DROPPED_ANTIMATTER_CELL_EFFECT.get()) {
+                LegacyProjectileUtil.antimatterExplosion((ServerLevel) entity.level(), entity.position(), 3.0F, entity);
+            }
+            entity.discard();
+            return true;
+        }
+        if (fluid.name().equals("aschrab")) {
+            if (HbmConfig.DROPPED_ANTIMATTER_CELL_EFFECT.get()) {
+                NukeExplosionManager.scheduleFleijaNuke((ServerLevel) entity.level(),
+                        entity.getX(), entity.getY(), entity.getZ(),
+                        HbmConfig.DROPPED_ANTI_SCHRABIDIUM_RADIUS.get());
+            }
+            entity.discard();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (!filled || (kind != Kind.DISPERSER && kind != Kind.GLYPHID_GLAND)) {
+            return super.use(level, player, hand);
+        }
+        HbmFluidDefinition fluid = fluid(stack);
+        if (fluid.isNone() || !kind.allows(fluid)) {
+            return InteractionResultHolder.fail(stack);
+        }
+
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ARROW_SHOOT,
+                SoundSource.PLAYERS, 0.5F, 0.4F / (level.random.nextFloat() * 0.4F + 0.8F));
+        if (!level.isClientSide) {
+            level.addFreshEntity(new LegacyDisperserCanisterEntity(
+                    level, player, fluid, kind == Kind.GLYPHID_GLAND));
+        }
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
     @Override

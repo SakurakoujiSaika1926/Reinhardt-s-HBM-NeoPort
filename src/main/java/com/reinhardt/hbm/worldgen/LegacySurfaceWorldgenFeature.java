@@ -14,6 +14,7 @@ import com.reinhardt.hbm.blockentity.SoyuzCapsuleBlockEntity;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmItems;
+import com.reinhardt.hbm.world.TomImpactSavedData;
 import com.reinhardt.hbm.worldgen.structure.HbmLegacyNbtTemplate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -74,10 +75,14 @@ public final class LegacySurfaceWorldgenFeature extends Feature<NoneFeatureConfi
         Holder<Biome> biome = level.getBiome(new BlockPos(chunkX, 64, chunkZ));
         boolean placed = false;
 
-        // 1.7.10 skipped plants during Tom impact.  The current port has no
-        // TomSaveData equivalent yet, so only the already-existing branches are
-        // mirrored here and no fake impact flag is introduced.
-        placed |= placePlants(level, random, chunkX, chunkZ, biome);
+        // HbmWorldGen checks the persistent impact flag itself, not the
+        // temporary fire/dust values: these six HBM plants never generate in
+        // chunks created after TOM has struck.  Use the worker-safe live view
+        // rather than touching DimensionDataStorage on a worldgen thread.
+        TomImpactSavedData impact = TomImpactSavedData.cached(level.getLevel());
+        if (impact == null || !impact.impact()) {
+            placed |= placePlants(level, random, chunkX, chunkZ, biome);
+        }
         placed |= placeGasBubble(level, random, chunkX, chunkZ, HbmConfig.GAS_BUBBLE_SPAWN_RATE.get(),
                 HbmBlocks.GAS_FLAMMABLE.get().defaultBlockState());
         placed |= placeGasBubble(level, random, chunkX, chunkZ, HbmConfig.EXPLOSIVE_GAS_BUBBLE_SPAWN_RATE.get(),
@@ -469,7 +474,7 @@ public final class LegacySurfaceWorldgenFeature extends Feature<NoneFeatureConfi
     }
 
     private static boolean placeBosniaMine(WorldGenLevel level, RandomSource random, int chunkX, int chunkZ) {
-        if (!HbmConfig.ENABLE_528_BOSNIA_MINES.get() || random.nextInt(16) != 0) {
+        if (!HbmConfig.bosniaMines() || random.nextInt(16) != 0) {
             return false;
         }
         int x = chunkX + random.nextInt(16);

@@ -15,6 +15,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class ElectrolyzerBlockEntityRenderer implements LongRangeBlockEntityRenderer<ElectrolyzerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_electrolyser_world");
     private static final AABB NORTH_RENDER_BOUNDS = createElectrolyzerLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_RENDER_BOUNDS = createElectrolyzerLocalBounds(Direction.SOUTH);
@@ -34,7 +35,7 @@ public class ElectrolyzerBlockEntityRenderer implements LongRangeBlockEntityRend
         Direction facing = electrolyzerFacing(state);
         poseStack.pushPose();
         applyElectrolyzerPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

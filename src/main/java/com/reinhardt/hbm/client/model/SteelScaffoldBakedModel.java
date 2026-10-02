@@ -37,9 +37,13 @@ import java.util.Set;
 import java.util.function.Function;
 
 public final class SteelScaffoldBakedModel implements IDynamicBakedModel {
-    private static final ResourceLocation BLOCK_ID = ReinhardtsHBM.id("steel_scaffold");
     private static final ResourceLocation OBJ_LOCATION = ReinhardtsHBM.id("models/obj/blocks/scaffold.obj");
-    private static final ResourceLocation TEXTURE = ReinhardtsHBM.id("block/deco_steel_orig");
+    private static final Map<ResourceLocation, ResourceLocation> BLOCK_TEXTURES = Map.of(
+            ReinhardtsHBM.id("steel_scaffold"), ReinhardtsHBM.id("block/scaffold_steel"),
+            ReinhardtsHBM.id("steel_scaffold_red"), ReinhardtsHBM.id("block/scaffold_red"),
+            ReinhardtsHBM.id("steel_scaffold_white"), ReinhardtsHBM.id("block/scaffold_white"),
+            ReinhardtsHBM.id("steel_scaffold_yellow"), ReinhardtsHBM.id("block/scaffold_yellow")
+    );
     private static final ChunkRenderTypeSet CUTOUT_RENDER_TYPES = ChunkRenderTypeSet.of(RenderType.cutout());
     private static final Set<String> PARTS = Set.of("Scaffold");
     private static final Uv[] DEFAULT_UVS = {
@@ -77,37 +81,43 @@ public final class SteelScaffoldBakedModel implements IDynamicBakedModel {
     }
 
     public static void replaceModels(Map<ModelResourceLocation, BakedModel> models, Function<Material, TextureAtlasSprite> textureGetter) {
-        List<ModelResourceLocation> blockLocations = models.keySet().stream()
-                .filter(SteelScaffoldBakedModel::isBlockModel)
-                .toList();
-        ModelResourceLocation itemLocation = new ModelResourceLocation(BLOCK_ID, ModelResourceLocation.INVENTORY_VARIANT);
-        BakedModel blockFallback = blockLocations.stream()
-                .map(models::get)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(models.get(itemLocation));
-        if (blockFallback == null) {
-            ReinhardtsHBM.LOGGER.warn("Unable to install steel scaffold OBJ model: no baked model was found");
-            return;
-        }
-
         ObjMesh mesh = ObjMesh.load(OBJ_LOCATION);
         if (mesh.isEmpty()) {
             ReinhardtsHBM.LOGGER.warn("Unable to install steel scaffold OBJ model: {} did not load", OBJ_LOCATION);
             return;
         }
+        int replaced = 0;
+        for (Map.Entry<ResourceLocation, ResourceLocation> entry : BLOCK_TEXTURES.entrySet()) {
+            ResourceLocation blockId = entry.getKey();
+            List<ModelResourceLocation> blockLocations = models.keySet().stream()
+                    .filter(location -> isBlockModel(location, blockId))
+                    .toList();
+            ModelResourceLocation itemLocation = new ModelResourceLocation(blockId, ModelResourceLocation.INVENTORY_VARIANT);
+            BakedModel blockFallback = blockLocations.stream()
+                    .map(models::get)
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(models.get(itemLocation));
+            if (blockFallback == null) {
+                ReinhardtsHBM.LOGGER.warn("Unable to install scaffold OBJ model for {}: no baked model was found", blockId);
+                continue;
+            }
 
-        TextureAtlasSprite sprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, TEXTURE));
-        SteelScaffoldBakedModel blockModel = new SteelScaffoldBakedModel(blockFallback, mesh, sprite, true);
-        for (ModelResourceLocation location : blockLocations) {
-            models.put(location, blockModel);
-        }
+            TextureAtlasSprite sprite = textureGetter.apply(
+                    new Material(TextureAtlas.LOCATION_BLOCKS, entry.getValue())
+            );
+            SteelScaffoldBakedModel blockModel = new SteelScaffoldBakedModel(blockFallback, mesh, sprite, true);
+            for (ModelResourceLocation location : blockLocations) {
+                models.put(location, blockModel);
+            }
+            replaced += blockLocations.size();
 
-        BakedModel itemFallback = models.getOrDefault(itemLocation, blockFallback);
-        if (models.containsKey(itemLocation)) {
-            models.put(itemLocation, new SteelScaffoldBakedModel(itemFallback, mesh, sprite, false));
+            BakedModel itemFallback = models.getOrDefault(itemLocation, blockFallback);
+            if (models.containsKey(itemLocation)) {
+                models.put(itemLocation, new SteelScaffoldBakedModel(itemFallback, mesh, sprite, false));
+            }
         }
-        ReinhardtsHBM.LOGGER.info("Installed steel scaffold OBJ model for {} baked block variants", blockLocations.size());
+        ReinhardtsHBM.LOGGER.info("Installed scaffold OBJ models for {} baked block variants", replaced);
     }
 
     @Override
@@ -234,8 +244,8 @@ public final class SteelScaffoldBakedModel implements IDynamicBakedModel {
         };
     }
 
-    private static boolean isBlockModel(ModelResourceLocation location) {
-        return BLOCK_ID.equals(location.id()) && !ModelResourceLocation.INVENTORY_VARIANT.equals(location.variant());
+    private static boolean isBlockModel(ModelResourceLocation location, ResourceLocation blockId) {
+        return blockId.equals(location.id()) && !ModelResourceLocation.INVENTORY_VARIANT.equals(location.variant());
     }
 
     private static final class ObjMesh {

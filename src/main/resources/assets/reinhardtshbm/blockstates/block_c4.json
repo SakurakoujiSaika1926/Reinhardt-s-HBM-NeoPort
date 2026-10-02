@@ -1,7 +1,10 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/block_c4"
-                          }
-                 }
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/block_c4" },
+    "facing=east": { "model": "reinhardtshbm:block/block_c4", "y": 90, "uvlock": true },
+    "facing=south": { "model": "reinhardtshbm:block/block_c4", "y": 180, "uvlock": true },
+    "facing=west": { "model": "reinhardtshbm:block/block_c4", "y": 270, "uvlock": true },
+    "facing=up": { "model": "reinhardtshbm:block/block_c4", "x": 270, "uvlock": true },
+    "facing=down": { "model": "reinhardtshbm:block/block_c4", "x": 90, "uvlock": true }
+  }
 }

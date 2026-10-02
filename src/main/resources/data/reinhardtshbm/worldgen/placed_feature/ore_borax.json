@@ -1,0 +1,16 @@
+{
+  "feature": "reinhardtshbm:ore_borax",
+  "placement": [
+    { "type": "minecraft:count", "count": 1 },
+    { "type": "minecraft:in_square" },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": { "above_bottom": 8 },
+        "max_inclusive": { "absolute": 23 }
+      }
+    },
+    { "type": "minecraft:biome" }
+  ]
+}

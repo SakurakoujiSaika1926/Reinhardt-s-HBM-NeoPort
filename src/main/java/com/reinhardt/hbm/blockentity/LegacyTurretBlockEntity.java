@@ -161,6 +161,7 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
     private TurretCasingEffects.CasingKind pendingCasing;
     @Nullable
     private Entity target;
+    private boolean radarDesignatedTarget;
     private final List<Vec3> targetQueue = new ArrayList<>();
 
     private final ContainerData menuData = new ContainerData() {
@@ -361,10 +362,12 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         }
         if (this.target != null && !this.target.isAlive()) {
             this.target = null;
+            this.radarDesignatedTarget = false;
             this.stattrak++;
         }
         if (this.target != null && !isManualArtilleryMode(type) && !entityInLOS(this.target)) {
             this.target = null;
+            this.radarDesignatedTarget = false;
         }
         if (isOn() && hasPower()) {
             Vec3 aimTarget = activeTargetPos(type);
@@ -386,6 +389,7 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
             }
         } else {
             this.target = null;
+            this.radarDesignatedTarget = false;
             this.searchTimer = 0;
         }
         if (!isOn()) {
@@ -419,7 +423,7 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
     private void updateSpecialReloads(LegacyTurretType type) {
         if ((type == LegacyTurretType.HOWARD || type == LegacyTurretType.HOWARD_DAMAGED)
                 && this.loaded <= 0 && consumeFirstMatching(stack -> stack.is(HbmItems.AMMO_DGK.get()))) {
-            this.loaded = 200;
+            this.loaded = 100;
             play(HbmSoundEvents.TURRET_HOWARD_RELOAD.get(), 4.0F, 1.0F);
         }
     }
@@ -490,7 +494,7 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
             return;
         }
         switch (type) {
-            case FRIENDLY -> fireStandard(level, StandardAmmoItem.AmmoFamily.R556, 10.0F, HbmSoundEvents.TURRET_CHEKHOV_FIRE.get(), 2.0F);
+            case FRIENDLY -> fireStandard(level, StandardAmmoItem.AmmoFamily.R556, 5.0F, HbmSoundEvents.TURRET_CHEKHOV_FIRE.get(), 2.0F);
             case FRITZ -> fireFritz(level);
             case HOWARD -> fireHoward(level, false);
             case HOWARD_DAMAGED -> fireHoward(level, true);
@@ -972,7 +976,8 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
         double distance = delta.length();
         int green = type() == LegacyTurretType.MAXWELL ? this.maxwellGreenLevel : 0;
         double range = type().detectorRange(green, this.mode);
-        if (distance < type().detectorGrace(this.mode) || distance > range * 1.1D) {
+        if (distance < type().detectorGrace(this.mode)
+                || (!this.radarDesignatedTarget && distance > range * 1.1D)) {
             return false;
         }
         if (this.type() == LegacyTurretType.ARTY && this.mode != 1) {
@@ -1446,13 +1451,42 @@ public class LegacyTurretBlockEntity extends BlockEntity implements PowerEndpoin
 
     @Override
     public boolean sendCommandPosition(int x, int y, int z) {
+        if (isRadarCommandTurret()) {
+            if (!isOn()) {
+                return false;
+            }
+            turnTowards(new Vec3(x, y, z));
+            return true;
+        }
         // TileEntityTurretBaseArtillery queued block-center coordinates.
         return enqueueTarget(x + 0.5D, y, z + 0.5D);
     }
 
     @Override
     public boolean sendCommandEntity(Entity target) {
+        if (isRadarCommandTurret()) {
+            if (this.target != null || !isOn() || target == null || !target.isAlive()) {
+                return false;
+            }
+            this.radarDesignatedTarget = true;
+            if (!acceptableTarget(target) || !entityInLOS(target)) {
+                return false;
+            }
+            Vec3 targetPos = entityPos(target);
+            if (targetPos.distanceTo(turretPos()) > type().detectorRange(0, this.mode) * 4.0D) {
+                turnTowards(targetPos);
+                return true;
+            }
+            this.target = target;
+            setChanged();
+            return true;
+        }
         return enqueueTarget(target.getX(), target.getY(), target.getZ());
+    }
+
+    private boolean isRadarCommandTurret() {
+        LegacyTurretType type = type();
+        return type == LegacyTurretType.HOWARD || type == LegacyTurretType.HOWARD_DAMAGED;
     }
 
     @Override

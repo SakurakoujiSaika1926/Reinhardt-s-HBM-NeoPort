@@ -1,0 +1,22 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:ingots/red_copper"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:wire_red_copper",
+    "count": 24
+  }
+}

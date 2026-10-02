@@ -18,6 +18,7 @@ import org.joml.Quaternionf;
 
 /** Direct model-part port of 1.7.10 RenderCharger. */
 public final class ChargerBlockEntityRenderer implements LongRangeBlockEntityRenderer<ChargerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = part("charger_base");
     private static final ModelResourceLocation LEFT = part("charger_left");
     private static final ModelResourceLocation RIGHT = part("charger_right");
@@ -44,10 +45,8 @@ public final class ChargerBlockEntityRenderer implements LongRangeBlockEntityRen
     /** ItemRenderLibrary#charger renders exactly these two legacy OBJ groups. */
     static void renderItemAssembly(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                    int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SLIDE), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SLIDE, poseStack, state, packedLight, packedOverlay);
     }
 
     static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
@@ -63,8 +62,7 @@ public final class ChargerBlockEntityRenderer implements LongRangeBlockEntityRen
         BlockState state = charger.getBlockState();
         poseStack.pushPose();
         applyChargerTransform(poseStack, chargerFacing(state));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         double time = (charger.lastUsingTicks() +
                 (charger.usingTicks() - charger.lastUsingTicks()) * partialTick) / (double) charger.delay();
@@ -81,16 +79,14 @@ public final class ChargerBlockEntityRenderer implements LongRangeBlockEntityRen
         poseStack.translate(0.0D, 0.28D, 0.0D);
         poseStack.mulPose(xRotation((float) (30.0D * swivel)));
         poseStack.translate(0.0D, -0.28D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LEFT), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LEFT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.28D, 0.0D);
         poseStack.mulPose(xRotation((float) (-30.0D * swivel)));
         poseStack.translate(0.0D, -0.28D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RIGHT), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RIGHT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
 
@@ -104,8 +100,7 @@ public final class ChargerBlockEntityRenderer implements LongRangeBlockEntityRen
         poseStack.mulPose(zRotation(10.0F));
         poseStack.translate(0.34375D, -0.25D, 0.0D);
         poseStack.translate(0.0D, -0.25D * extend, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SLIDE), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SLIDE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }

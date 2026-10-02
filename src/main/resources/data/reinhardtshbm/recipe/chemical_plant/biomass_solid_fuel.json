@@ -1,6 +1,9 @@
 {
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.biosolidfuel",
+  "blueprint_pools": [
+    "alt..biosolidfuel"
+  ],
   "duration": 40,
   "power": 100,
   "input_items": [

@@ -73,8 +73,9 @@ public final class PrecisionAssemblerRecipeCategory implements IRecipeCategory<R
             builder.addInputSlot(8 + index % 3 * 18, 27 + index / 3 * 18).addItemStacks(stacks);
         }
 
-        if (!recipe.blueprintPools().isEmpty()) {
-            builder.addInputSlot(35, 126).addItemStacks(recipe.blueprintPools().stream().map(BlueprintItem::stackFor).toList());
+        List<String> blueprintPools = BlueprintItem.activeRecipePools(recipe.blueprintPools());
+        if (!blueprintPools.isEmpty()) {
+            builder.addInputSlot(35, 126).addItemStacks(blueprintPools.stream().map(BlueprintItem::stackFor).toList());
         }
         if (!recipe.inputFluids().isEmpty()) addFluid(builder.addInputSlot(8, 99), recipe.inputFluids().getFirst());
         if (!recipe.outputFluids().isEmpty()) addFluid(builder.addOutputSlot(80, 99), recipe.outputFluids().getFirst());

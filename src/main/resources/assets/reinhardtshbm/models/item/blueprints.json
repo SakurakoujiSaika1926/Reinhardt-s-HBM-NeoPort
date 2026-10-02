@@ -12,12 +12,6 @@
     },
     {
       "predicate": {
-        "custom_model_data": 2
-      },
-      "model": "reinhardtshbm:item/blueprints_secret"
-    },
-    {
-      "predicate": {
         "custom_model_data": 3
       },
       "model": "reinhardtshbm:item/blueprints_528"

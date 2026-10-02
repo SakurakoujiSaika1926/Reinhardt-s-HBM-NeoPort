@@ -4,6 +4,8 @@ import com.reinhardt.hbm.player.HbmPlayerArmorState;
 import com.reinhardt.hbm.util.ArmorModHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -24,7 +26,8 @@ public final class ArmorMagnetItem extends ArmorModItem {
 
     @Override
     public void tickArmor(Player player, ItemStack armor) {
-        if (!HbmPlayerArmorState.isMagnetActive(player)) {
+        if (!(player.level() instanceof ServerLevel serverLevel)
+                || !HbmPlayerArmorState.isMagnetActive(player)) {
             return;
         }
 
@@ -35,11 +38,13 @@ public final class ArmorMagnetItem extends ArmorModItem {
             }
 
             direction = direction.normalize();
-            Vec3 motion = item.getDeltaMovement().add(direction.scale(0.05D));
+            Vec3 motion = item.getDeltaMovement().add(direction.scale(0.75D));
             if (direction.y > 0.0D && motion.y < 0.04D) {
                 motion = motion.add(0.0D, 0.2D, 0.0D);
             }
             item.setDeltaMovement(motion);
+            item.hasImpulse = true;
+            serverLevel.getChunkSource().broadcast(item, new ClientboundSetEntityMotionPacket(item));
         }
     }
 

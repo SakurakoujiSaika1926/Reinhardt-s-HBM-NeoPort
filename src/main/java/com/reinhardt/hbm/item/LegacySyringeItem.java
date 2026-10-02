@@ -4,6 +4,7 @@ import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.radiation.HbmLivingHazards;
 import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmMobEffects;
+import com.reinhardt.hbm.event.MkuContagionEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 /**
  * Direct-use medical consumables from ItemSyringe and ItemSimpleConsumable.
@@ -36,6 +38,9 @@ public class LegacySyringeItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if ((id.equals("iv_empty") || id.equals("iv_xp_empty")) && player instanceof FakePlayer) {
+            return InteractionResultHolder.fail(stack);
+        }
         if (requiresPotionSicknessCheck() && player.hasEffect(HbmMobEffects.POTION_SICKNESS)) {
             return InteractionResultHolder.fail(stack);
         }
@@ -85,9 +90,7 @@ public class LegacySyringeItem extends Item {
                 consume(source, stack, "syringe_metal_empty", "bottle2_empty");
             }
             case "syringe_mkunicorn" -> {
-                // The legacy contagion capability has no modern equivalent yet;
-                // preserve its only gameplay-visible action, the one-shot dose.
-                target.addEffect(new MobEffectInstance(HbmMobEffects.TAINT, 3 * 60 * 60 * 20, 2));
+                MkuContagionEvents.infect(target);
                 consume(source, stack);
             }
             case "med_bag" -> {

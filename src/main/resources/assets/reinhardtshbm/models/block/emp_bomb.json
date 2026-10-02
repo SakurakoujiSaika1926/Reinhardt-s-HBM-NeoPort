@@ -5,7 +5,8 @@
                      "north": "reinhardtshbm:block/bomb_emp_side",
                      "south": "reinhardtshbm:block/bomb_emp_side",
                      "east": "reinhardtshbm:block/bomb_emp_side",
-                     "west": "reinhardtshbm:block/bomb_emp_side"
+                     "west": "reinhardtshbm:block/bomb_emp_side",
+                     "particle": "#north"
                  },
     "parent":  "minecraft:block/cube"
 }

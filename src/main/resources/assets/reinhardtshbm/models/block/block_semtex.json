@@ -1,6 +1,21 @@
 {
-    "textures":  {
-                     "all":  "reinhardtshbm:block/block_semtex"
-                 },
-    "parent":  "minecraft:block/cube_all"
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "reinhardtshbm:block/block_semtex",
+    "side": "reinhardtshbm:block/block_semtex",
+    "front": "reinhardtshbm:block/block_semtex_front"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0], "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#side", "cullface": "down" },
+        "up": { "texture": "#side", "cullface": "up" },
+        "north": { "texture": "#front", "cullface": "north" },
+        "south": { "texture": "#side", "cullface": "south" },
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#side", "cullface": "east" }
+      }
+    }
+  ]
 }

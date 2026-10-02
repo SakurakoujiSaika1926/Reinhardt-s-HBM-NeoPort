@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "reinhardtshbm:block/deco_steel_orig"
+    "all": "reinhardtshbm:block/scaffold_steel"
   }
 }

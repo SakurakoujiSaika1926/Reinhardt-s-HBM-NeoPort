@@ -1,0 +1,29 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BGB",
+    "GAG",
+    "BGB"
+  ],
+  "key": {
+    "B": {
+      "item": "reinhardtshbm:egg_balefire_shard"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "A": {
+      "item": "minecraft:book"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:book_of_"
+  }
+}

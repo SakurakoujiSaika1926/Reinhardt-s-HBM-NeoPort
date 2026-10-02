@@ -1,7 +1,10 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/block_semtex"
-                          }
-                 }
+{
+  "variants": {
+    "facing=north": { "model": "reinhardtshbm:block/block_semtex" },
+    "facing=east": { "model": "reinhardtshbm:block/block_semtex", "y": 90, "uvlock": true },
+    "facing=south": { "model": "reinhardtshbm:block/block_semtex", "y": 180, "uvlock": true },
+    "facing=west": { "model": "reinhardtshbm:block/block_semtex", "y": 270, "uvlock": true },
+    "facing=up": { "model": "reinhardtshbm:block/block_semtex", "x": 270, "uvlock": true },
+    "facing=down": { "model": "reinhardtshbm:block/block_semtex", "x": 90, "uvlock": true }
+  }
 }

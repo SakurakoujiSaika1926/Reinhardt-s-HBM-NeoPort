@@ -1,0 +1,16 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_expensive_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.combustiongen",
+  "duration": 300,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_heavy_frame" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:wire_dense_gold" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:canister_empty" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_circuit" }, "count": 1 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_combustion_engine" }
+}

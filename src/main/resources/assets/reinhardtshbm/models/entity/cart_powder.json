@@ -1,8 +1,0 @@
-{
-  "loader": "neoforge:obj",
-  "model": "reinhardtshbm:models/obj/entity/cart_powder.obj",
-  "mtl_override": "reinhardtshbm:models/obj/entity/cart_powder.mtl",
-  "automatic_culling": false,
-  "flip_v": true,
-  "textures": { "particle": "reinhardtshbm:block/block_gunpowder", "texture": "reinhardtshbm:block/block_gunpowder" }
-}

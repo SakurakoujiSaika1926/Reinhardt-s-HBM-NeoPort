@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.integration.sable;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -12,7 +13,6 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -101,7 +101,7 @@ public final class HbmSablePowerCompat {
     }
 
     private static final class ChunkCache {
-        private final Map<Long, CacheEntry> values = new HashMap<>();
+        private final Long2ObjectOpenHashMap<CacheEntry> values = new Long2ObjectOpenHashMap<>();
 
         @Nullable
         synchronized String powerSpaceId(Level level, BlockPos pos) {

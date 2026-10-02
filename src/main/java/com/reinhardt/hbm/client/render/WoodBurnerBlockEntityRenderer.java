@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class WoodBurnerBlockEntityRenderer implements LongRangeBlockEntityRenderer<WoodBurnerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_wood_burner_world");
     private static final AABB NORTH_RENDER_BOUNDS = createWoodBurnerLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_RENDER_BOUNDS = createWoodBurnerLocalBounds(Direction.SOUTH);
@@ -34,7 +35,7 @@ public class WoodBurnerBlockEntityRenderer implements LongRangeBlockEntityRender
 
         poseStack.pushPose();
         applyWoodBurnerPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

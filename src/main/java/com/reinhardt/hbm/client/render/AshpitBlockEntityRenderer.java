@@ -6,7 +6,6 @@ import com.reinhardt.hbm.blockentity.AshpitBlockEntity;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Direct part-by-part port of 1.7.10 RenderAshpit. */
 public final class AshpitBlockEntityRenderer implements LongRangeBlockEntityRenderer<AshpitBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MAIN = MachineModelRenderer.standalone("block/machine_ashpit_world");
     private static final ModelResourceLocation DOOR = MachineModelRenderer.standalone("block/machine_ashpit_door");
     private static final ModelResourceLocation INNER = MachineModelRenderer.standalone("block/machine_ashpit_inner");
@@ -41,18 +41,19 @@ public final class AshpitBlockEntityRenderer implements LongRangeBlockEntityRend
 
         poseStack.pushPose();
         applyAshpitTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MAIN), poseStack, bufferSource, state, worldLight, packedOverlay);
+        STATIC_MESHES.render(MAIN, poseStack, state, worldLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.0F, ashpit.doorAngle(partialTick) * 0.75F / 135.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(DOOR), poseStack, bufferSource, state, worldLight, packedOverlay);
+        STATIC_MESHES.render(DOOR, poseStack, state, worldLight, packedOverlay);
         poseStack.popPose();
 
-        BakedModel inner = MachineModelRenderer.model(ashpit.isFull() ? INNER_BURNING : INNER);
+        ModelResourceLocation inner = ashpit.isFull() ? INNER_BURNING : INNER;
         if (ashpit.isFull()) {
-            MachineModelRenderer.renderUnculledFullBright(inner, poseStack, bufferSource, state, packedOverlay);
+            STATIC_MESHES.render(inner, poseStack, state,
+                    net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, packedOverlay);
         } else {
-            MachineModelRenderer.renderUnculled(inner, poseStack, bufferSource, state, worldLight, packedOverlay);
+            STATIC_MESHES.render(inner, poseStack, state, worldLight, packedOverlay);
         }
         poseStack.popPose();
     }

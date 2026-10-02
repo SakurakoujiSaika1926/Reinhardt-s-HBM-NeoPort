@@ -29,10 +29,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -242,7 +244,6 @@ public final class HbmCreativeTabs {
                         output.accept(HbmBlocks.MACHINE_DIESEL);
                         output.accept(HbmBlocks.MACHINE_COMBUSTION_ENGINE);
                         output.accept(HbmBlocks.MACHINE_STEAM_ENGINE);
-                        output.accept(HbmBlocks.MACHINE_TURBINE);
                         output.accept(HbmBlocks.MACHINE_INDUSTRIAL_TURBINE);
                         output.accept(HbmBlocks.MACHINE_CHUNGUS);
                         output.accept(HbmBlocks.MACHINE_TURBINEGAS);
@@ -297,6 +298,9 @@ public final class HbmCreativeTabs {
                             if (block == HbmBlocks.FUSION_COMPONENT
                                     && block.get().asItem() instanceof FusionComponentBlockItem fusionComponent) {
                                 fusionComponent.addCreativeVariants(output);
+                            } else if ((block == HbmBlocks.ICF_COMPONENT || block == HbmBlocks.ICF_LASER_COMPONENT)
+                                    && block.get().asItem() instanceof LegacyVariantBlockItem variants) {
+                                variants.addCreativeVariants(output);
                             } else {
                                 acceptBlock(output, block);
                             }
@@ -716,12 +720,8 @@ public final class HbmCreativeTabs {
                                 holotapes.addCreativeVariants(output);
                             } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyBombCallerItem bombCaller) {
                                 bombCaller.addCreativeVariants(output);
-                            } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyMinecartItem carts) {
-                                carts.addCreativeVariants(output);
                             } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyDroneItem drones) {
                                 drones.addCreativeVariants(output);
-                            } else if (tool.get() instanceof com.reinhardt.hbm.item.LegacyTrainItem trains) {
-                                trains.addCreativeVariants(output);
                             } else {
                                 output.accept(tool);
                             }
@@ -945,7 +945,31 @@ public final class HbmCreativeTabs {
         }
     }
 
+    /**
+     * Remove legacy internal states after every tab has finished contributing
+     * its entries.  Filtering at this event boundary covers direct accepts,
+     * generated variants, the search tab, and entries contributed by another
+     * compatibility handler without duplicating the rule in every tab builder.
+     */
+    private static void filterLegacyHiddenContent(BuildCreativeModeTabContentsEvent event) {
+        var hidden = new ArrayList<ItemStack>();
+        for (ItemStack stack : event.getParentEntries()) {
+            if (LegacyContentVisibility.isCreativeHidden(stack)) {
+                hidden.add(stack);
+            }
+        }
+        for (ItemStack stack : event.getSearchEntries()) {
+            if (LegacyContentVisibility.isCreativeHidden(stack)) {
+                hidden.add(stack);
+            }
+        }
+        for (ItemStack stack : hidden) {
+            event.remove(stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+        }
+    }
+
     public static void register(IEventBus eventBus) {
         TABS.register(eventBus);
+        eventBus.addListener(HbmCreativeTabs::filterLegacyHiddenContent);
     }
 }

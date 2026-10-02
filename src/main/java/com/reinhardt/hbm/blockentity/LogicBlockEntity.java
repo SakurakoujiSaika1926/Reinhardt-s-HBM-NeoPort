@@ -134,6 +134,7 @@ public class LogicBlockEntity extends BlockEntity {
             case "BOMB_TRAP" -> actionBombTrap(level, pos);
             case "BOMB_CRANE" -> actionBombCrane(level, pos);
             case "DEAD_GUY_CRANE" -> actionDeadGuyCrane(level, pos);
+            case "DEAD_GUY_BASE_TOWER" -> actionDeadGuyBaseTower(level, pos);
             case "SKELETON_GUN_TIER_1" -> actionSkeletons(level, pos, 1);
             case "SKELETON_GUN_TIER_2" -> actionSkeletons(level, pos, 2);
             case "SKELETON_GUN_TIER_3" -> actionSkeletons(level, pos, 3);
@@ -233,6 +234,35 @@ public class LogicBlockEntity extends BlockEntity {
         if (this.phase == 1) {
             setLegacyBlock(level, pos, "skeleton_holder", 0);
         }
+    }
+
+    /** Current 1.7.10 LogicBlockActions.DEAD_GUY_BASE_TOWER. */
+    private void actionDeadGuyBaseTower(Level level, BlockPos pos) {
+        if (this.phase != 1) {
+            return;
+        }
+        setLegacyBlock(level, pos, "skeleton_holder", 0);
+        if (!(level.getBlockEntity(pos) instanceof LegacyDisplayStandBlockEntity stand)) {
+            return;
+        }
+
+        int roll = level.random.nextInt(100);
+        ItemStack displayed = ItemStack.EMPTY;
+        // The original 0..70 outcomes are CT_MORTAR/CT_MORTAR_CHARGE,
+        // both deliberately removed together with HBM's firearm system.
+        // Preserve the original roll rather than silently replacing them with
+        // unrelated ammunition and changing the remaining reward chances.
+        if (roll >= 71 && roll < 92) {
+            displayed = com.reinhardt.hbm.item.StandardAmmoItem.stackFor(
+                    HbmItems.AMMO_STANDARD.get(),
+                    com.reinhardt.hbm.item.StandardAmmoItem.StandardAmmoType.NUKE_STANDARD
+            );
+        } else if (roll < 96 && roll >= 92) {
+            displayed = HbmItems.variantStack(HbmItems.ITEM_SECRET_ITEMS, "aberrator");
+        } else if (roll >= 96) {
+            displayed = HbmItems.variantStack(HbmItems.ITEM_SECRET_ITEMS, "folly");
+        }
+        stand.setDisplayedItem(displayed);
     }
 
     private void actionSkeletons(Level level, BlockPos pos, int tier) {

@@ -21,6 +21,11 @@ public final class LegacyCloudArmorModItem extends ArmorModItem {
     }
 
     @Override
+    public int extraDashes() {
+        return 3;
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.reinhardtshbm.armor_mod.cloud").withStyle(ChatFormatting.WHITE));
         super.appendHoverText(stack, context, tooltip, flag);

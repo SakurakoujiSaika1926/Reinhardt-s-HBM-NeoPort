@@ -74,6 +74,7 @@ import com.reinhardt.hbm.foundry.FoundryMaterialStack;
 import com.reinhardt.hbm.item.FluidIdentifierItem;
 import com.reinhardt.hbm.item.HbmFluidContainerItem;
 import com.reinhardt.hbm.item.HbmFluidDuctItem;
+import com.reinhardt.hbm.item.LegacyVariantBlockItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.NuclearWasteItem;
 import com.reinhardt.hbm.item.RbmkPelletItem;
@@ -84,6 +85,7 @@ import com.reinhardt.hbm.integration.tacz.TaczAmmoAssemblyRecipes;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import com.reinhardt.hbm.registry.HbmItems;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
+import com.reinhardt.hbm.registry.LegacyContentVisibility;
 import com.reinhardt.hbm.util.Wavelength;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -257,6 +259,10 @@ public class HbmJeiPlugin implements IModPlugin {
             RecipeType.create(ReinhardtsHBM.MOD_ID, "watz", WatzJeiRecipe.class);
     public static final RecipeType<WatzConstructionJeiRecipe> WATZ_CONSTRUCTION =
             RecipeType.create(ReinhardtsHBM.MOD_ID, "watz_construction", WatzConstructionJeiRecipe.class);
+    public static final RecipeType<IcfConstructionJeiRecipe> ICF_CONSTRUCTION =
+            RecipeType.create(ReinhardtsHBM.MOD_ID, "icf_construction", IcfConstructionJeiRecipe.class);
+    public static final RecipeType<IcfToolingJeiRecipe> ICF_TOOLING =
+            RecipeType.create(ReinhardtsHBM.MOD_ID, "icf_tooling", IcfToolingJeiRecipe.class);
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -265,17 +271,14 @@ public class HbmJeiPlugin implements IModPlugin {
 
     @Override
     public void onRuntimeAvailable(IJeiRuntime runtime) {
+        List<ItemStack> hidden = runtime.getIngredientManager()
+                .getAllIngredients(VanillaTypes.ITEM_STACK)
+                .stream()
+                .filter(LegacyContentVisibility::isJeiHidden)
+                .toList();
         runtime.getIngredientManager().removeIngredientsAtRuntime(
                 VanillaTypes.ITEM_STACK,
-                List.of(
-                        new ItemStack(HbmItems.COAL_ETERNAL.get()),
-                        new ItemStack(HbmBlocks.BRICK_FORGOTTEN.get()),
-                        new ItemStack(HbmBlocks.BRICK_FORGOTTEN_LOCK.get()),
-                        new ItemStack(HbmBlocks.MACHINE_LARGE_TURBINE.get()),
-                        new ItemStack(HbmBlocks.SPOTLIGHT_INCANDESCENT_OFF.get()),
-                        new ItemStack(HbmBlocks.SPOTLIGHT_FLUORO_OFF.get()),
-                        new ItemStack(HbmBlocks.SPOTLIGHT_HALOGEN_OFF.get())
-                )
+                hidden
         );
     }
 
@@ -292,6 +295,7 @@ public class HbmJeiPlugin implements IModPlugin {
     private static boolean needsComponentSubtype(Item item) {
         return item instanceof ScrapsItem
                 || item instanceof LegacyVariantItem
+                || item instanceof LegacyVariantBlockItem
                 || item instanceof NuclearWasteItem
                 || item instanceof RbmkPelletItem
                 || item instanceof WasteFuelItem
@@ -312,6 +316,9 @@ public class HbmJeiPlugin implements IModPlugin {
         }
         if (stack.getItem() instanceof LegacyVariantItem legacyVariant) {
             return "variant:" + legacyVariant.variant(stack).id();
+        }
+        if (stack.getItem() instanceof LegacyVariantBlockItem legacyVariantBlock) {
+            return "block_variant:" + legacyVariantBlock.variant(stack);
         }
         if (stack.getItem() instanceof RbmkPelletItem pellet) {
             return "rbmk_pellet_state:" + pellet.state(stack);
@@ -429,7 +436,9 @@ public class HbmJeiPlugin implements IModPlugin {
                 new AnvilSmithingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new ArmorTableRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new WatzRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
-                new WatzConstructionRecipeCategory(registration.getJeiHelpers().getGuiHelper())
+                new WatzConstructionRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new IcfConstructionRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new IcfToolingRecipeCategory(registration.getJeiHelpers().getGuiHelper())
         );
     }
 
@@ -443,6 +452,8 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipes(ORE_SLOPPER, java.util.List.of(OreSlopperJeiRecipe.create()));
         registration.addRecipes(WATZ, WatzJeiRecipe.createAll());
         registration.addRecipes(WATZ_CONSTRUCTION, java.util.List.of(WatzConstructionJeiRecipe.create()));
+        registration.addRecipes(ICF_CONSTRUCTION, java.util.List.of(IcfConstructionJeiRecipe.create()));
+        registration.addRecipes(ICF_TOOLING, IcfToolingJeiRecipe.createAll());
         registration.addRecipes(PWR, PwrJeiRecipe.createAll());
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -683,6 +694,11 @@ public class HbmJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(HbmBlocks.WATZ.get(), WATZ_CONSTRUCTION);
         registration.addRecipeCatalyst(HbmBlocks.STRUCT_WATZ_CORE.get(), WATZ_CONSTRUCTION);
         registration.addRecipeCatalyst(HbmItems.BOLTGUN.get(), WATZ_CONSTRUCTION);
+        registration.addRecipeCatalyst(HbmBlocks.ICF.get(), ICF_CONSTRUCTION);
+        registration.addRecipeCatalyst(HbmBlocks.STRUCT_ICF_CORE.get(), ICF_CONSTRUCTION);
+        registration.addRecipeCatalyst(HbmBlocks.ICF_COMPONENT.get(), ICF_CONSTRUCTION, ICF_TOOLING);
+        registration.addRecipeCatalyst(HbmItems.BLOWTORCH.get(), ICF_CONSTRUCTION, ICF_TOOLING);
+        registration.addRecipeCatalyst(HbmItems.BOLTGUN.get(), ICF_CONSTRUCTION, ICF_TOOLING);
         for (var anvil : HbmBlocks.ANVIL_BLOCKS) {
             registration.addRecipeCatalyst(anvil.get(), ANVIL_CONSTRUCTION);
             registration.addRecipeCatalyst(anvil.get(), ANVIL_SMITHING);

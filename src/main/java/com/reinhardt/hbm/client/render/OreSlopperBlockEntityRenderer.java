@@ -20,6 +20,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class OreSlopperBlockEntityRenderer implements LongRangeBlockEntityRenderer<OreSlopperBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static volatile ItemStack renderedLiftedOre = ItemStack.EMPTY;
     private static volatile AABB[] liftedOreBounds = emptyLiftedOreBounds();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_ore_slopper_base");
@@ -202,7 +203,7 @@ public class OreSlopperBlockEntityRenderer implements LongRangeBlockEntityRender
     }
 
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static Direction oreSlopperFacing(BlockState state) {

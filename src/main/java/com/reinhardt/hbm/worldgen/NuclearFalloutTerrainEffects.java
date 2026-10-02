@@ -207,10 +207,10 @@ public final class NuclearFalloutTerrainEffects {
                 return setIfPresent(level, pos, "ore_sellafield_emerald");
             }
             if (state.is(block("ore_uranium"))) {
-                return weightedSet(level, pos, random, "ore_sellafield_schrabidium", 1, "ore_sellafield_uranium_scorched", 9);
+                return transmuteUranium(level, pos, random, "ore_schrabidium", "ore_uranium_scorched");
             }
             if (state.is(block("ore_deepslate_uranium"))) {
-                return weightedSet(level, pos, random, "ore_deepslate_schrabidium", 1, "ore_deepslate_uranium_scorched", 9);
+                return transmuteUranium(level, pos, random, "ore_deepslate_schrabidium", "ore_deepslate_uranium_scorched");
             }
             if (state.is(Blocks.BEDROCK) || state.is(block("ore_bedrock_block")) || state.is(block("ore_bedrock_oil"))) {
                 return setIfPresent(level, pos, "sellafield_bedrock");
@@ -222,12 +222,18 @@ public final class NuclearFalloutTerrainEffects {
         }
 
         if (state.is(block("ore_nether_uranium"))) {
-            return weightedSet(level, pos, random, "ore_nether_schrabidium", 1, "ore_nether_uranium_scorched", 99);
+            return transmuteUranium(level, pos, random, "ore_nether_schrabidium", "ore_nether_uranium_scorched");
         }
         if (state.is(block("ore_gneiss_uranium"))) {
-            return setIfPresent(level, pos, "ore_gneiss_uranium_scorched");
+            return transmuteUranium(level, pos, random, "ore_gneiss_schrabidium", "ore_gneiss_uranium_scorched");
         }
         return false;
+    }
+
+    private static boolean transmuteUranium(ServerLevel level, BlockPos pos, RandomSource random,
+                                            String schrabidiumOre, String scorchedUraniumOre) {
+        int chance = Math.max(1, HbmConfig.schrabOreChance());
+        return weightedSet(level, pos, random, schrabidiumOre, 1, scorchedUraniumOre, chance - 1);
     }
 
     private static boolean weightedSet(ServerLevel level, BlockPos pos, RandomSource random, String first, int firstWeight, String second, int secondWeight) {

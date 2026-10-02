@@ -3,12 +3,15 @@
     {
       "type": "neoforge:not",
       "value": {
-        "type": "reinhardtshbm:enable_528_mode"
+        "type": "reinhardtshbm:enable_expensive_mode"
       }
     }
   ],
   "type": "reinhardtshbm:assembly_machine",
   "group": "ass.rbmk",
+  "blueprint_pools": [
+    "528.ferrouranium"
+  ],
   "duration": 100,
   "power": 100,
   "ingredients": [

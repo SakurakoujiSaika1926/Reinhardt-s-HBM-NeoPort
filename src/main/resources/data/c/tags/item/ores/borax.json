@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "reinhardtshbm:ore_depth_borax"
+    "reinhardtshbm:ore_borax",
+    "reinhardtshbm:ore_deepslate_borax"
   ]
 }

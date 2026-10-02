@@ -53,7 +53,7 @@ public final class LegacyFbiEntity extends Monster {
             ResourceLocation.fromNamespaceAndPath("minecraft", "trapped_chest"),
             ReinhardtsHBM.id("machine_press"), ReinhardtsHBM.id("machine_epress"),
             ReinhardtsHBM.id("machine_chemical_plant"), ReinhardtsHBM.id("machine_chemical_factory"),
-            ReinhardtsHBM.id("machine_crystallizer"), ReinhardtsHBM.id("machine_turbine"),
+            ReinhardtsHBM.id("machine_crystallizer"),
             ReinhardtsHBM.id("machine_industrial_turbine"), ReinhardtsHBM.id("machine_chungus"),
             ReinhardtsHBM.id("machine_purex"), ReinhardtsHBM.id("crate_iron"), ReinhardtsHBM.id("crate_steel"),
             ReinhardtsHBM.id("machine_diesel"), ReinhardtsHBM.id("machine_rtg_grey"),

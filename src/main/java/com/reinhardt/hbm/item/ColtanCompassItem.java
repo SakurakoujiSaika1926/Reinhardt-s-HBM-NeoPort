@@ -1,6 +1,7 @@
 package com.reinhardt.hbm.item;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -46,5 +47,13 @@ public class ColtanCompassItem extends Item {
         if (tag.contains(X) && tag.contains(Z)) {
             tooltip.add(Component.translatable("item.reinhardtshbm.coltan_tool.target", tag.getInt(X), tag.getInt(Z)).withStyle(ChatFormatting.YELLOW));
         }
+    }
+
+    /** Seed-derived destination consumed by the client compass property. */
+    public static BlockPos target(ItemStack stack) {
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return tag.contains(X) && tag.contains(Z)
+                ? new BlockPos(tag.getInt(X), 0, tag.getInt(Z))
+                : null;
     }
 }

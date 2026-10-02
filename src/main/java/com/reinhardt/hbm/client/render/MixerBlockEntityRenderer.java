@@ -13,6 +13,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class MixerBlockEntityRenderer implements LongRangeBlockEntityRenderer<MixerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_mixer_world");
     private static final ModelResourceLocation BLADE = MachineModelRenderer.standalone("block/machine_mixer_blade");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_mixer_fluid");
@@ -32,11 +33,11 @@ public class MixerBlockEntityRenderer implements LongRangeBlockEntityRenderer<Mi
 
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(mixer.rotation(partialTick)), 0.0F, -1.0F, 0.0F)));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BLADE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BLADE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         int totalFill = mixer.inputTank1().amount() + mixer.inputTank2().amount() + mixer.outputTank().amount();

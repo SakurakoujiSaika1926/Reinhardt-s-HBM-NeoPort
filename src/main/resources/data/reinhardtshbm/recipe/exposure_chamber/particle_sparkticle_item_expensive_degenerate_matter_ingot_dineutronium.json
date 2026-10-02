@@ -1,0 +1,18 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:enable_expensive_mode"
+    }
+  ],
+  "type": "reinhardtshbm:exposure_chamber",
+  "group": "exposure_chamber",
+  "particle": {
+    "item": "reinhardtshbm:particle_sparkticle"
+  },
+  "ingredient": {
+    "item": "reinhardtshbm:item_expensive_degenerate_matter"
+  },
+  "output": {
+    "id": "reinhardtshbm:ingot_dineutronium"
+  }
+}

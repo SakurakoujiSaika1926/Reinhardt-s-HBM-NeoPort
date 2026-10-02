@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** Direct port of RenderICF: the authored OBJ uses the 1.7.10 metadata orientation. */
 public final class IcfCoreBlockEntityRenderer implements LongRangeBlockEntityRenderer<IcfCoreBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/icf");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildIcfCoreBounds();
 
     public IcfCoreBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -30,8 +31,7 @@ public final class IcfCoreBlockEntityRenderer implements LongRangeBlockEntityRen
         Direction facing = icfCoreFacing(state);
         poseStack.pushPose();
         applyIcfCoreTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

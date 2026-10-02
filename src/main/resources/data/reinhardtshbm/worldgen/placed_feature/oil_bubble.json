@@ -2,21 +2,6 @@
   "feature": "reinhardtshbm:oil_bubble",
   "placement": [
     {
-      "type": "minecraft:in_square"
-    },
-    {
-      "type": "minecraft:height_range",
-      "height": {
-        "type": "minecraft:uniform",
-        "min_inclusive": {
-          "absolute": 15
-        },
-        "max_inclusive": {
-          "absolute": 39
-        }
-      }
-    },
-    {
       "type": "minecraft:biome"
     }
   ]

@@ -19,6 +19,10 @@ public final class FluidTankItemRenderer extends BlockEntityWithoutLevelRenderer
     private static final float MODEL_CENTER_Y = 1.640625F;
     private static final float MODEL_CENTER_Z = 0.0F;
     private static final float MODEL_FIT_SCALE = 0.95F / 5.5F;
+    private static final float DAMAGED_MODEL_CENTER_X = 0.080749F;
+    private static final float DAMAGED_MODEL_CENTER_Y = 1.6346425F;
+    private static final float DAMAGED_MODEL_CENTER_Z = -0.0256585F;
+    private static final float DAMAGED_MODEL_FIT_SCALE = 0.95F / 5.661498F;
 
     public FluidTankItemRenderer() {
         super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
@@ -26,29 +30,39 @@ public final class FluidTankItemRenderer extends BlockEntityWithoutLevelRenderer
 
     @Override
     public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        ItemTankState state = stateFromStack(stack);
         poseStack.pushPose();
-        fitModelToItemCube(poseStack);
-        FluidTankBlockEntityRenderer.renderModel(fluidFromStack(stack), poseStack, bufferSource, packedLight, packedOverlay);
+        fitModelToItemCube(poseStack, state.damaged());
+        FluidTankBlockEntityRenderer.renderModel(
+                state.fluid(), state.damaged(), poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static void fitModelToItemCube(PoseStack poseStack) {
+    private static void fitModelToItemCube(PoseStack poseStack, boolean damaged) {
         poseStack.translate(0.5F, 0.5F, 0.5F);
-        poseStack.scale(MODEL_FIT_SCALE, MODEL_FIT_SCALE, MODEL_FIT_SCALE);
-        poseStack.translate(-MODEL_CENTER_X, -MODEL_CENTER_Y, -MODEL_CENTER_Z);
+        float scale = damaged ? DAMAGED_MODEL_FIT_SCALE : MODEL_FIT_SCALE;
+        poseStack.scale(scale, scale, scale);
+        poseStack.translate(
+                -(damaged ? DAMAGED_MODEL_CENTER_X : MODEL_CENTER_X),
+                -(damaged ? DAMAGED_MODEL_CENTER_Y : MODEL_CENTER_Y),
+                -(damaged ? DAMAGED_MODEL_CENTER_Z : MODEL_CENTER_Z));
     }
 
-    private static HbmFluidDefinition fluidFromStack(ItemStack stack) {
+    private static ItemTankState stateFromStack(ItemStack stack) {
         CompoundTag root = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if (!root.contains(FluidTankBlockEntity.ITEM_DATA_KEY)) {
-            return HbmFluids.none();
+            return new ItemTankState(HbmFluids.none(), false);
         }
         CompoundTag data = root.getCompound(FluidTankBlockEntity.ITEM_DATA_KEY);
+        boolean damaged = data.getBoolean("Exploded");
         if (!data.contains("Tank")) {
-            return HbmFluids.none();
+            return new ItemTankState(HbmFluids.none(), damaged);
         }
         HbmFluidTank tank = new HbmFluidTank(FluidTankBlockEntity.CAPACITY);
         tank.load(data.getCompound("Tank"));
-        return tank.type();
+        return new ItemTankState(tank.type(), damaged);
+    }
+
+    private record ItemTankState(HbmFluidDefinition fluid, boolean damaged) {
     }
 }

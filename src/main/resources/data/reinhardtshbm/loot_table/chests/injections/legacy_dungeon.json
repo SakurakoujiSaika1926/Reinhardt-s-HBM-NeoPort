@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 8.0,
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 120
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:heart_piece",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:key_red_cracked",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "reinhardtshbm:scrumpy",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

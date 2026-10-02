@@ -10,6 +10,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class FurnaceCombinationBlockEntityRenderer implements LongRangeBlockEntityRenderer<FurnaceCombinationBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/furnace_combination");
     private static final AABB LOCAL_BOUNDS = buildFurnaceCombinationBounds();
 
@@ -25,7 +26,7 @@ public class FurnaceCombinationBlockEntityRenderer implements LongRangeBlockEnti
         BlockState state = furnace.getBlockState();
         poseStack.pushPose();
         applyFurnaceCombinationTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

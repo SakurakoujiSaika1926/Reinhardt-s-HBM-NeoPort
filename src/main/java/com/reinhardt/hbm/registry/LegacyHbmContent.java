@@ -234,7 +234,6 @@ public final class LegacyHbmContent {
             "machine_tower_large",
             "machine_tower_small",
             "machine_teleporter",
-            "machine_turbine",
             "machine_turbinegas",
             "machine_turbofan",
             "machine_uf6_tank",
@@ -272,7 +271,7 @@ public final class LegacyHbmContent {
             "concrete_brick_double_slab"
     );
 
-    /* Intentionally unregistered deprecated entries and aliases removed by flattening. */
+    /* Intentionally unregistered deprecated entries and aliases removed by flattening/canonicalization. */
     private static final Set<String> RETIRED_LEGACY_BLOCK_IDS = Set.of(
             "capacitor_gold",
             "capacitor_niobium",
@@ -289,7 +288,26 @@ public final class LegacyHbmContent {
             "machine_powerrtg",
             "machine_rtg_furnace_off",
             "machine_rtg_furnace_on",
-            "machine_schrabidium_battery"
+            "machine_schrabidium_battery",
+            "machine_turbine",
+            "stone_depth",
+            "stone_depth_nether",
+            "depth_brick",
+            "depth_dnt",
+            "depth_tiles",
+            "depth_nether_brick",
+            "depth_nether_tiles",
+            "cluster_depth_iron",
+            "cluster_depth_titanium",
+            "cluster_depth_tungsten",
+            "ore_depth_borax",
+            "ore_depth_cinnabar",
+            "ore_depth_zirconium",
+            "ore_depth_nether_neodymium",
+            "ore_depth_nether_nitan",
+            "ore_cinnebar",
+            "ore_depth_cinnebar",
+            "ore_deepslate_cinnebar"
     );
 
     /*
@@ -300,10 +318,12 @@ public final class LegacyHbmContent {
      */
     private static final Set<String> RETIRED_LEGACY_ITEM_IDS = Set.of(
             "ammo_container",
+            "ballistic_gauntlet",
             "battery_advanced",
             "book_guide_book",
             "boltgun",
             "cell",
+            "casing_bag",
             "coin_siege",
             "fluid_barrel_v2",
             "fluid_tank_lead_v2",
@@ -311,6 +331,8 @@ public final class LegacyHbmContent {
             "gun_egon",
             "gun_vortex",
             "jetpack_glider",
+            "cinnebar",
+            "crystal_cinnebar",
             "mechanism_launcher_1",
             "mechanism_launcher_2",
             "mechanism_revolver_1",

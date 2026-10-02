@@ -1,7 +1,9 @@
-﻿{
-    "variants":  {
-                     "":  {
-                              "model":  "reinhardtshbm:block/wood_barrier"
-                          }
-                 }
+{
+  "multipart": [
+    {"when":{"north":"true"},"apply":{"model":"reinhardtshbm:block/wood_barrier_north"}},
+    {"when":{"east":"true"},"apply":{"model":"reinhardtshbm:block/wood_barrier_north","y":90}},
+    {"when":{"south":"true"},"apply":{"model":"reinhardtshbm:block/wood_barrier_north","y":180}},
+    {"when":{"west":"true"},"apply":{"model":"reinhardtshbm:block/wood_barrier_north","y":270}},
+    {"when":{"up":"true"},"apply":{"model":"reinhardtshbm:block/wood_barrier_up"}}
+  ]
 }

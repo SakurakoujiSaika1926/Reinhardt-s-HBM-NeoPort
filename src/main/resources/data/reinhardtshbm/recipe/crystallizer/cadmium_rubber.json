@@ -1,0 +1,17 @@
+{
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer",
+  "ingredient": {
+    "tag": "c:dusts/cadmium"
+  },
+  "input_count": 1,
+  "acid": {
+    "fluid": "fishoil",
+    "amount": 4000
+  },
+  "duration": 100,
+  "result": {
+    "id": "reinhardtshbm:ingot_rubber",
+    "count": 16
+  }
+}

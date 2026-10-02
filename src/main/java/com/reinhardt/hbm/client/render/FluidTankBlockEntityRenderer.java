@@ -30,17 +30,26 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FluidTankBlockEntityRenderer implements LongRangeBlockEntityRenderer<FluidTankBlockEntity> {
     private static final ResourceLocation OBJ_LOCATION = ReinhardtsHBM.id("models/obj/machines/fluidtank.obj");
+    private static final ResourceLocation DAMAGED_OBJ_LOCATION = ReinhardtsHBM.id("models/obj/machines/fluidtank_exploded.obj");
     private static final ResourceLocation FRAME_TEXTURE = ReinhardtsHBM.id("textures/models/machines/tank.png");
+    private static final ResourceLocation INNER_TEXTURE = ReinhardtsHBM.id("textures/models/tank/tank_inner.png");
     private static final ResourceLocation NONE_TEXTURE = tankTexture("none");
     private static final ResourceLocation DANGER_TEXTURE = tankTexture("danger");
     private static final TextureChoice NONE_TEXTURE_CHOICE = new TextureChoice(NONE_TEXTURE, 0xFFFFFFFF);
     private static final TextureChoice DANGER_TEXTURE_CHOICE = new TextureChoice(DANGER_TEXTURE, 0xFFFFFFFF);
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ObjMesh MESH = ObjMesh.load(OBJ_LOCATION);
+    private static final ObjMesh DAMAGED_MESH = ObjMesh.load(DAMAGED_OBJ_LOCATION);
     private static final List<ObjFace> FRAME_FACES = MESH.faces("Frame");
     private static final List<ObjFace> TANK_FACES = MESH.faces("Tank");
+    private static final List<ObjFace> DAMAGED_FRAME_FACES = DAMAGED_MESH.faces("Frame");
+    private static final List<ObjFace> DAMAGED_INNER_FACES = DAMAGED_MESH.faces("TankInner");
+    private static final List<ObjFace> DAMAGED_TANK_FACES = DAMAGED_MESH.faces("Tank");
     private static final Map<ResourceLocation, Boolean> TEXTURE_EXISTS = new ConcurrentHashMap<>();
     private static final Map<HbmFluidDefinition, TextureChoice> FLUID_TEXTURES = new ConcurrentHashMap<>();
-    private static final AABB[] LOCAL_BOUNDS = buildFluidTankBounds();
+    private static final Map<TextureChoice, TankGeometry[]> TANK_GEOMETRIES = new ConcurrentHashMap<>();
+    private static final AABB[] LOCAL_BOUNDS = buildFluidTankBounds(false);
+    private static final AABB[] DAMAGED_LOCAL_BOUNDS = buildFluidTankBounds(true);
 
     public FluidTankBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -52,7 +61,7 @@ public class FluidTankBlockEntityRenderer implements LongRangeBlockEntityRendere
 
         poseStack.pushPose();
         applyFluidTankTransform(poseStack, facing);
-        renderModel(tank.tank().type(), poseStack, bufferSource, packedLight, packedOverlay);
+        renderModel(tank.tank().type(), tank.isDamaged(), poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -60,16 +69,41 @@ public class FluidTankBlockEntityRenderer implements LongRangeBlockEntityRendere
     public AABB getRenderBoundingBox(FluidTankBlockEntity blockEntity) {
         Direction facing = fluidTankFacing(blockEntity.getBlockState());
         // Face-used Frame+Tank union from the same custom-loaded OBJ used by renderModel.
-        return LOCAL_BOUNDS[facing.ordinal()].move(blockEntity.getBlockPos());
+        AABB[] bounds = blockEntity.isDamaged() ? DAMAGED_LOCAL_BOUNDS : LOCAL_BOUNDS;
+        return bounds[facing.ordinal()].move(blockEntity.getBlockPos());
     }
 
     static void renderModel(HbmFluidDefinition fluid, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        TextureChoice tankTexture = tankTexture(fluid);
-        renderFaces(FRAME_FACES, poseStack, bufferSource.getBuffer(RenderType.entityCutoutNoCull(FRAME_TEXTURE)), packedLight, packedOverlay, 0xFFFFFFFF);
-        renderFaces(TANK_FACES, poseStack, bufferSource.getBuffer(RenderType.entityCutoutNoCull(tankTexture.texture())), packedLight, packedOverlay, tankTexture.color());
+        renderModel(fluid, false, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
-    private static void renderFaces(List<ObjFace> faces, PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay, int argb) {
+    static void renderModel(HbmFluidDefinition fluid, boolean damaged, PoseStack poseStack, MultiBufferSource bufferSource,
+                            int packedLight, int packedOverlay) {
+        TextureChoice tankTexture = tankTexture(fluid);
+        TankGeometry[] variants = TANK_GEOMETRIES.computeIfAbsent(
+                tankTexture, FluidTankBlockEntityRenderer::buildTankGeometries);
+        STATIC_MESHES.renderDirect(variants[damaged ? 1 : 0], poseStack, packedLight, packedOverlay);
+    }
+
+    private static TankGeometry[] buildTankGeometries(TextureChoice tankTexture) {
+        TankGeometry normal = new TankGeometry(List.of(
+                new TankLayer(RenderType.entityCutoutNoCull(FRAME_TEXTURE), MESH, FRAME_FACES, 0xFFFFFFFF),
+                new TankLayer(RenderType.entityCutoutNoCull(tankTexture.texture()), MESH, TANK_FACES,
+                        tankTexture.color())
+        ));
+        TankGeometry damaged = new TankGeometry(List.of(
+                new TankLayer(RenderType.entityCutoutNoCull(FRAME_TEXTURE), DAMAGED_MESH,
+                        DAMAGED_FRAME_FACES, 0xFFFFFFFF),
+                new TankLayer(RenderType.entityCutoutNoCull(INNER_TEXTURE), DAMAGED_MESH,
+                        DAMAGED_INNER_FACES, 0xFFFFFFFF),
+                new TankLayer(RenderType.entityCutoutNoCull(tankTexture.texture()), DAMAGED_MESH,
+                        DAMAGED_TANK_FACES, tankTexture.color())
+        ));
+        return new TankGeometry[] {normal, damaged};
+    }
+
+    private static void renderFaces(ObjMesh mesh, List<ObjFace> faces, PoseStack poseStack, VertexConsumer consumer,
+                                    int packedLight, int packedOverlay, int argb) {
         int alpha = (argb >>> 24) & 0xFF;
         int red = (argb >>> 16) & 0xFF;
         int green = (argb >>> 8) & 0xFF;
@@ -77,28 +111,31 @@ public class FluidTankBlockEntityRenderer implements LongRangeBlockEntityRendere
         PoseStack.Pose pose = poseStack.last();
         for (ObjFace face : faces) {
             if (face.vertices().size() == 3) {
-                emitQuad(face, 0, 1, 2, 2, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+                emitQuad(mesh, face, 0, 1, 2, 2, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
             } else if (face.vertices().size() == 4) {
-                emitQuad(face, 0, 1, 2, 3, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+                emitQuad(mesh, face, 0, 1, 2, 3, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
             } else {
                 for (int i = 1; i < face.vertices().size() - 1; i++) {
-                    emitQuad(face, 0, i, i + 1, i + 1, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+                    emitQuad(mesh, face, 0, i, i + 1, i + 1, pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
                 }
             }
         }
     }
 
-    private static void emitQuad(ObjFace face, int a, int b, int c, int d, PoseStack.Pose pose, VertexConsumer consumer, int packedLight, int packedOverlay, int red, int green, int blue, int alpha) {
-        emitVertex(face.vertices().get(a), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
-        emitVertex(face.vertices().get(b), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
-        emitVertex(face.vertices().get(c), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
-        emitVertex(face.vertices().get(d), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+    private static void emitQuad(ObjMesh mesh, ObjFace face, int a, int b, int c, int d, PoseStack.Pose pose,
+                                 VertexConsumer consumer, int packedLight, int packedOverlay,
+                                 int red, int green, int blue, int alpha) {
+        emitVertex(mesh, face.vertices().get(a), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+        emitVertex(mesh, face.vertices().get(b), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+        emitVertex(mesh, face.vertices().get(c), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
+        emitVertex(mesh, face.vertices().get(d), pose, consumer, packedLight, packedOverlay, red, green, blue, alpha);
     }
 
-    private static void emitVertex(ObjVertex vertex, PoseStack.Pose pose, VertexConsumer consumer, int packedLight, int packedOverlay, int red, int green, int blue, int alpha) {
-        Vec3 position = MESH.position(vertex.position());
-        Uv uv = MESH.uv(vertex.uv());
-        Vec3 normal = MESH.normal(vertex.normal());
+    private static void emitVertex(ObjMesh mesh, ObjVertex vertex, PoseStack.Pose pose, VertexConsumer consumer,
+                                   int packedLight, int packedOverlay, int red, int green, int blue, int alpha) {
+        Vec3 position = mesh.position(vertex.position());
+        Uv uv = mesh.uv(vertex.uv());
+        Vec3 normal = mesh.normal(vertex.normal());
         consumer.addVertex(pose, (float) position.x, (float) position.y, (float) position.z)
                 .setColor(red, green, blue, alpha)
                 .setUv(uv.u(), uv.v())
@@ -152,14 +189,20 @@ public class FluidTankBlockEntityRenderer implements LongRangeBlockEntityRendere
         return false;
     }
 
-    private static AABB[] buildFluidTankBounds() {
+    private static AABB[] buildFluidTankBounds(boolean damaged) {
         AABB[] bounds = new AABB[Direction.values().length];
+        float minX = -2.75F;
+        float minY = damaged ? -0.011965F : 0.0F;
+        float minZ = damaged ? -1.67975F : -1.5F;
+        float maxX = damaged ? 2.911498F : 2.75F;
+        float maxY = 3.28125F;
+        float maxZ = damaged ? 1.628433F : 1.5F;
         for (Direction facing : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
             PoseStack poseStack = new PoseStack();
             applyFluidTankTransform(poseStack, facing);
             bounds[facing.ordinal()] = RenderBounds.transformedBox(
                     net.minecraft.core.BlockPos.ZERO, poseStack,
-                    -2.75F, 0.0F, -1.5F, 2.75F, 3.28125F, 1.5F);
+                    minX, minY, minZ, maxX, maxY, maxZ);
         }
         return bounds;
     }
@@ -184,6 +227,20 @@ public class FluidTankBlockEntityRenderer implements LongRangeBlockEntityRendere
     }
 
     record TextureChoice(ResourceLocation texture, int color) {
+    }
+
+    private record TankGeometry(List<TankLayer> layers)
+            implements StaticMachineVboCache.DirectGeometry {
+    }
+
+    private record TankLayer(RenderType renderType, ObjMesh mesh, List<ObjFace> faces, int argb)
+            implements StaticMachineVboCache.DirectLayer {
+        @Override
+        public void emit(PoseStack poseStack, VertexConsumer consumer,
+                         int packedLight, int packedOverlay) {
+            renderFaces(this.mesh, this.faces, poseStack, consumer,
+                    packedLight, packedOverlay, this.argb);
+        }
     }
 
     private static final class ObjMesh {

@@ -23,6 +23,7 @@ public class CompressorBlockEntityRenderer implements LongRangeBlockEntityRender
     private static final ModelResourceLocation COMPACT_BODY = MachineModelRenderer.standalone("block/machine_compressor_compact_world");
     private static final ModelResourceLocation COMPACT_FAN1 = MachineModelRenderer.standalone("block/machine_compressor_compact_fan1");
     private static final ModelResourceLocation COMPACT_FAN2 = MachineModelRenderer.standalone("block/machine_compressor_compact_fan2");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB NORMAL_NORTH_RENDER_BOUNDS = createNormalLocalBounds(Direction.NORTH);
     private static final AABB NORMAL_SOUTH_RENDER_BOUNDS = createNormalLocalBounds(Direction.SOUTH);
     private static final AABB NORMAL_WEST_RENDER_BOUNDS = createNormalLocalBounds(Direction.WEST);
@@ -144,12 +145,12 @@ public class CompressorBlockEntityRenderer implements LongRangeBlockEntityRender
     }
 
     private static void renderNormal(CompressorBlockEntity compressor, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(NORMAL_BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(NORMAL_BODY, poseStack, state, packedLight, packedOverlay);
 
         float lift = compressor.piston(partialTick);
         poseStack.pushPose();
         poseStack.translate(0.0D, lift * 3.0D - 3.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(NORMAL_PUMP), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(NORMAL_PUMP, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         float fan = compressor.fanSpin(partialTick);
@@ -157,26 +158,26 @@ public class CompressorBlockEntityRenderer implements LongRangeBlockEntityRender
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(fan), 1.0F, 0.0F, 0.0F)));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(NORMAL_FAN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(NORMAL_FAN, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     private static void renderCompact(CompressorBlockEntity compressor, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(COMPACT_BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(COMPACT_BODY, poseStack, state, packedLight, packedOverlay);
 
         float fan = compressor.fanSpin(partialTick);
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(fan), 1.0F, 0.0F, 0.0F)));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(COMPACT_FAN1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(COMPACT_FAN1, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(fan), -1.0F, 0.0F, 0.0F)));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(COMPACT_FAN2), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(COMPACT_FAN2, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 }

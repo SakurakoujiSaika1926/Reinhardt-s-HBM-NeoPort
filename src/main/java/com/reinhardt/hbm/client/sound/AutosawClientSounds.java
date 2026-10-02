@@ -88,6 +88,7 @@ public final class AutosawClientSounds {
             }
             double distance = Math.sqrt(minecraft.player.distanceToSqr(this.x, this.y, this.z));
             this.volume = distance >= AUDIBLE_DISTANCE ? 0.0F : (float) (1.0D - distance / AUDIBLE_DISTANCE);
+            this.volume = com.reinhardt.hbm.util.MachineMuffler.attenuate(blockEntity, this.volume);
         }
 
         @Override

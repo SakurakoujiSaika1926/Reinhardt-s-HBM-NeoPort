@@ -1,1 +1,32 @@
-{"type":"minecraft:crafting_shaped","category":"misc","pattern":["ISI"," B "," I "],"key":{"I":{"tag":"c:ingots/starmetal"},"S":{"item":"reinhardtshbm:ring_starmetal"},"B":{"item":"reinhardtshbm:cobalt_decorated_pickaxe"}},"result":{"id":"reinhardtshbm:starmetal_pickaxe"}}
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:less_bullshit_mode",
+        "feature": "simple_tools"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ISI",
+    " B ",
+    " I "
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/starmetal"
+    },
+    "S": {
+      "item": "reinhardtshbm:ring_starmetal"
+    },
+    "B": {
+      "item": "reinhardtshbm:cobalt_decorated_pickaxe"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:starmetal_pickaxe"
+  }
+}

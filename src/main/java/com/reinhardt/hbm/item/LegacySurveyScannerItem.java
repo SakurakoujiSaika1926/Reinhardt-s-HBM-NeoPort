@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
-/** Spatial 1.7.10 survey scan for legacy oil, depth-rock and bedrock resources. */
+/** Spatial survey scan for oil, schist and bedrock resources. */
 public final class LegacySurveyScannerItem extends Item {
     public LegacySurveyScannerItem(Properties properties) {
         super(properties.stacksTo(1));
@@ -34,7 +34,6 @@ public final class LegacySurveyScannerItem extends Item {
         boolean oil = false;
         boolean coltan = false;
         boolean bedrockOil = false;
-        boolean depth = false;
         boolean schist = false;
         BedrockOreBlockEntity bedrockOre = null;
 
@@ -49,7 +48,6 @@ public final class LegacySurveyScannerItem extends Item {
                     oil |= block == HbmBlocks.ORE_OIL.get();
                     coltan |= block == HbmBlocks.ORE_COLTAN.get();
                     bedrockOil |= block == HbmBlocks.ORE_BEDROCK_OIL.get();
-                    depth |= block == HbmBlocks.STONE_DEPTH.get() || block == HbmBlocks.STONE_DEPTH_NETHER.get();
                     schist |= block == HbmBlocks.STONE_GNEISS.get();
                 }
 
@@ -63,7 +61,6 @@ public final class LegacySurveyScannerItem extends Item {
         if (oil) inform(player, "message.reinhardtshbm.survey_scanner.oil", ChatFormatting.BLACK);
         if (bedrockOil) inform(player, "message.reinhardtshbm.survey_scanner.bedrock_oil", ChatFormatting.BLACK);
         if (coltan) inform(player, "message.reinhardtshbm.survey_scanner.coltan", ChatFormatting.GOLD);
-        if (depth) inform(player, "message.reinhardtshbm.survey_scanner.depth", ChatFormatting.GRAY);
         if (schist) inform(player, "message.reinhardtshbm.survey_scanner.schist", ChatFormatting.DARK_AQUA);
         if (bedrockOre != null) {
             player.displayClientMessage(Component.translatable("message.reinhardtshbm.survey_scanner.bedrock_ore", bedrockOre.resource().getHoverName())

@@ -232,24 +232,55 @@ public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRend
     private static void renderRadiationGeneratorItem(ItemDisplayContext context, PoseStack poseStack,
                                                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
+        if (context == ItemDisplayContext.HEAD || context == ItemDisplayContext.NONE) {
+            // ItemRenderBase did not accept either of these modern-only contexts.
+            poseStack.popPose();
+            return;
+        }
         applyRadiationGeneratorItemPose(context, poseStack);
         LegacyMachineBlockEntityRenderer.renderItemRadiationGenerator(legacyItemState(), poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     private static void applyRadiationGeneratorItemPose(ItemDisplayContext context, PoseStack poseStack) {
-        if (context == ItemDisplayContext.GUI) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
-            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
-            poseStack.translate(0.0F, 11.3F, -11.3F);
-            poseStack.translate(0.0F, -1.0F, 0.0F);
-            poseStack.scale(4.5F, 4.5F, 4.5F);
-        } else {
-            poseStack.translate(0.5F, 0.25F, 0.0F);
-            poseStack.scale(0.25F, 0.25F, 0.25F);
-            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        // ItemRenderer applies (-0.5, -0.5, -0.5) before invoking a BEWLR.
+        // Cancel that framework transform first.  Every operation below is the
+        // radiation generator's own ItemRenderBase matrix, with no shared fit.
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                // Exact solution of ItemRenderBase's inventory matrix against
+                // GuiGraphics' 16/-16/16 basis:
+                // T(8,10,0) Rx(-30) Ry(45) S(-1) T(0,-1,0) S(4.5).
+                poseStack.scale(1.0F / 16.0F, -1.0F / 16.0F, 1.0F / 16.0F);
+                poseStack.translate(0.0F, 2.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(-30.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(-1.0F, -1.0F, -1.0F);
+                poseStack.translate(0.0F, -1.0F, 0.0F);
+                poseStack.scale(4.5F, 4.5F, 4.5F);
+            }
+            case GROUND, FIXED -> {
+                // ItemRenderBase mapped dropped items (and the old item-frame
+                // path) to ENTITY.
+                poseStack.scale(1.5F, 1.5F, 1.5F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.5F, 0.25F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.5F, 0.25F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+            }
+            case HEAD, NONE -> {
+                // Rejected by renderRadiationGeneratorItem before this method.
+            }
         }
+        // Exact machine_radgen renderCommon matrix.
         poseStack.scale(0.5F, 0.5F, 0.5F);
         poseStack.translate(0.5F, 0.0F, 0.0F);
     }
@@ -483,16 +514,49 @@ public final class LegacyMachineItemRenderer extends BlockEntityWithoutLevelRend
     }
 
     private static void applyGreyRtgItemPose(ItemDisplayContext context, PoseStack poseStack) {
-        if (context == ItemDisplayContext.GUI) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
-            poseStack.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
-            poseStack.translate(0.0F, 11.3F, -11.3F);
-        } else {
-            poseStack.translate(0.5F, 0.25F, 0.0F);
-            poseStack.scale(0.25F, 0.25F, 0.25F);
-            if (context != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        // machine_rtg_grey's Gen group is exactly one block wide, one block
+        // high and one block deep: X/Z [-0.5, 0.5], Y [0, 1].  Unlike the
+        // ItemRenderBase machines above it was an ISBRH block item in 1.7.10,
+        // so it needs the normal block-item camera scale, not the old shared
+        // 1/16 machine-item scale that made the icon one tenth of full size.
+        poseStack.translate(0.5F, 0.5F, 0.5F);
+        switch (context) {
+            case GUI -> {
+                poseStack.scale(0.625F, -0.625F, -0.625F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(210.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
+            }
+            case THIRD_PERSON_RIGHT_HAND -> {
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case THIRD_PERSON_LEFT_HAND -> {
+                poseStack.translate(0.0F, 2.5F / 16.0F, 0.0F);
+                poseStack.mulPose(Axis.XP.rotationDegrees(75.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+                poseStack.scale(0.375F, 0.375F, 0.375F);
+            }
+            case FIRST_PERSON_RIGHT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case FIRST_PERSON_LEFT_HAND -> {
+                poseStack.mulPose(Axis.YP.rotationDegrees(-225.0F));
+                poseStack.scale(0.4F, 0.4F, 0.4F);
+            }
+            case GROUND -> {
+                poseStack.translate(0.0F, 3.0F / 16.0F, 0.0F);
+                poseStack.scale(0.25F, 0.25F, 0.25F);
+            }
+            case FIXED -> poseStack.scale(0.5F, 0.5F, 0.5F);
+            case HEAD, NONE -> {
+                // minecraft:block/block defines no additional transform here.
+            }
         }
+        // Exact center of the RTG Gen geometry.
         poseStack.translate(0.0F, -0.5F, 0.0F);
     }
 }

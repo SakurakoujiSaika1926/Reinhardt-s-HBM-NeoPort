@@ -13,6 +13,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import java.util.List;
 
 public class BlastDoorBlockEntityRenderer implements LongRangeBlockEntityRenderer<BlastDoorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = model("blast_door_base_part");
     private static final ModelResourceLocation BLOCK = model("blast_door_block_part");
     private static final ModelResourceLocation SLIDER = model("blast_door_slider_part");
@@ -99,7 +100,7 @@ public class BlastDoorBlockEntityRenderer implements LongRangeBlockEntityRendere
     }
 
     private static void render(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static ModelResourceLocation model(String name) {

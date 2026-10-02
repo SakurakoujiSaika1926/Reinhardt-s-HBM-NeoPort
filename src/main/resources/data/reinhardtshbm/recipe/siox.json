@@ -1,1 +1,19 @@
-{"type":"minecraft:crafting_shapeless","category":"misc","ingredients":[{"tag":"c:dusts/coal"},{"tag":"c:dusts/asbestos"},{"tag":"c:nuggets/gold"}],"result":{"id":"reinhardtshbm:siox","count":8}}
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:less_bullshit_mode",
+        "feature": "simple_medicine"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "tag": "c:dusts/coal" },
+    { "tag": "c:dusts/asbestos" },
+    { "tag": "c:nuggets/bismuth" }
+  ],
+  "result": { "id": "reinhardtshbm:siox", "count": 8 }
+}

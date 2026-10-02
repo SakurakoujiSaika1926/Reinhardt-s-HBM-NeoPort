@@ -25,19 +25,21 @@ import com.reinhardt.hbm.entity.LegacyBombletEntity;
 import com.reinhardt.hbm.entity.ClusterSubmunitionEntity;
 import com.reinhardt.hbm.entity.LegacyBoxcarEntity;
 import com.reinhardt.hbm.entity.LegacyBobmazonEntity;
-import com.reinhardt.hbm.entity.LegacyMinecartEntity;
-import com.reinhardt.hbm.entity.LegacyTrainEntity;
 import com.reinhardt.hbm.entity.JeremyShellEntity;
 import com.reinhardt.hbm.entity.LegacyArtilleryShellEntity;
 import com.reinhardt.hbm.entity.LegacyBulletEntity;
 import com.reinhardt.hbm.entity.LegacyHimarsRocketEntity;
 import com.reinhardt.hbm.entity.LegacyLingeringFireEntity;
 import com.reinhardt.hbm.entity.LegacyMistEntity;
+import com.reinhardt.hbm.entity.LegacyDisperserCanisterEntity;
+import com.reinhardt.hbm.entity.LegacyAntimatterFlashEntity;
 import com.reinhardt.hbm.entity.LegacyShrapnelEntity;
 import com.reinhardt.hbm.entity.LegacyVortexEntity;
 import com.reinhardt.hbm.entity.LegacyBlackHoleEntity;
 import com.reinhardt.hbm.entity.LegacyEmpEntity;
 import com.reinhardt.hbm.entity.LegacyTomEntity;
+import com.reinhardt.hbm.entity.LegacyFallingNukeEntity;
+import com.reinhardt.hbm.entity.LegacyBurningFoeqEntity;
 import com.reinhardt.hbm.entity.MeteorEntity;
 import com.reinhardt.hbm.entity.MineRubbleEntity;
 import com.reinhardt.hbm.entity.NukeTorexEntity;
@@ -517,24 +519,6 @@ public final class HbmEntityTypes {
                     .updateInterval(1)
                     .build("entity_bobmazon"));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<LegacyMinecartEntity>> LEGACY_MINECART =
-            ENTITY_TYPES.register("entity_legacy_minecart", () -> EntityType.Builder
-                    .<LegacyMinecartEntity>of(LegacyMinecartEntity::new, MobCategory.MISC)
-                    .sized(0.98F, 0.7F)
-                    .clientTrackingRange(16)
-                    .updateInterval(1)
-                    .setShouldReceiveVelocityUpdates(false)
-                    .build("entity_legacy_minecart"));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<LegacyTrainEntity>> LEGACY_TRAIN =
-            ENTITY_TYPES.register("entity_legacy_train", () -> EntityType.Builder
-                    .<LegacyTrainEntity>of(LegacyTrainEntity::new, MobCategory.MISC)
-                    .sized(5.0F, 2.0F)
-                    .clientTrackingRange(16)
-                    .updateInterval(1)
-                    .setShouldReceiveVelocityUpdates(false)
-                    .build("entity_legacy_train"));
-
     public static final DeferredHolder<EntityType<?>, EntityType<DigammaSpearEntity>> DIGAMMA_SPEAR =
             ENTITY_TYPES.register("entity_digamma_spear", () -> EntityType.Builder
                     .<DigammaSpearEntity>of(DigammaSpearEntity::new, MobCategory.MISC)
@@ -612,6 +596,24 @@ public final class HbmEntityTypes {
                     .setShouldReceiveVelocityUpdates(false)
                     .build("entity_mist"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyDisperserCanisterEntity>> DISPERSER_CANISTER =
+            ENTITY_TYPES.register("entity_disperser_canister", () -> EntityType.Builder
+                    .<LegacyDisperserCanisterEntity>of(LegacyDisperserCanisterEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(32)
+                    .updateInterval(1)
+                    .build("entity_disperser_canister"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyAntimatterFlashEntity>> ANTIMATTER_FLASH =
+            ENTITY_TYPES.register("entity_antimatter_flash", () -> EntityType.Builder
+                    .<LegacyAntimatterFlashEntity>of(LegacyAntimatterFlashEntity::new, MobCategory.MISC)
+                    .sized(0.1F, 0.1F)
+                    .fireImmune()
+                    .clientTrackingRange(128)
+                    .updateInterval(1)
+                    .setShouldReceiveVelocityUpdates(false)
+                    .build("entity_antimatter_flash"));
+
     public static final DeferredHolder<EntityType<?>, EntityType<LegacyShrapnelEntity>> LEGACY_SHRAPNEL =
             ENTITY_TYPES.register("entity_shrapnel", () -> EntityType.Builder
                     .<LegacyShrapnelEntity>of(LegacyShrapnelEntity::new, MobCategory.MISC)
@@ -650,6 +652,23 @@ public final class HbmEntityTypes {
                     .<LegacyTomEntity>of(LegacyTomEntity::new, MobCategory.MISC)
                     .sized(0.25F, 0.25F).clientTrackingRange(63).updateInterval(1)
                     .build("entity_tom"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyFallingNukeEntity>> LEGACY_FALLING_NUKE =
+            ENTITY_TYPES.register("entity_falling_bomb", () -> EntityType.Builder
+                    .<LegacyFallingNukeEntity>of(LegacyFallingNukeEntity::new, MobCategory.MISC)
+                    .sized(0.98F, 0.98F)
+                    .clientTrackingRange(63)
+                    .updateInterval(1)
+                    .build("entity_falling_bomb"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LegacyBurningFoeqEntity>> LEGACY_BURNING_FOEQ =
+            ENTITY_TYPES.register("entity_burning_foeq", () -> EntityType.Builder
+                    .<LegacyBurningFoeqEntity>of(LegacyBurningFoeqEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .fireImmune()
+                    .clientTrackingRange(63)
+                    .updateInterval(1)
+                    .build("entity_burning_foeq"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<MeteorEntity>> METEOR =
             ENTITY_TYPES.register("entity_meteor", () -> EntityType.Builder
@@ -714,7 +733,8 @@ public final class HbmEntityTypes {
     public static final DeferredHolder<EntityType<?>, EntityType<MinerRocketEntity>> MINER_ROCKET =
             ENTITY_TYPES.register("entity_miner_lander", () -> EntityType.Builder
                     .<MinerRocketEntity>of(MinerRocketEntity::new, MobCategory.MISC)
-                    .sized(1.0F, 3.0F)
+                    .sized(0.95F, 5.25F)
+                    .fireImmune()
                     .clientTrackingRange(63)
                     .updateInterval(1)
                     .build("entity_miner_lander"));

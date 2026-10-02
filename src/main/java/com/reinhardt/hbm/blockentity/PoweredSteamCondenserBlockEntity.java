@@ -239,12 +239,15 @@ public class PoweredSteamCondenserBlockEntity extends BlockEntity implements Pow
         HbmThermalConversions.condenserStep(this.inputTank.type()).ifPresentOrElse(step -> {
             int convert = Math.min(this.inputTank.amount(), this.outputTank.capacity() - this.outputTank.amount());
             this.throughput = convert;
-            if (convert <= 0 || this.power < (long) convert * POWER_PER_MB) {
+            long requiredPower = (long) convert * POWER_PER_MB;
+            // Latest 1.7.10 accepts a five-percent power shortfall, then
+            // subtracts the full nominal cost and clamps the capacitor at zero.
+            if (convert <= 0 || this.power * 100L < requiredPower * 95L) {
                 return;
             }
             this.inputTank.drain(step.input(), convert, false);
             this.outputTank.fill(step.output(), convert, false);
-            this.power = Math.max(0L, this.power - (long) convert * POWER_PER_MB);
+            this.power = Math.max(0L, this.power - requiredPower);
             this.waterTimer = 20;
         }, () -> this.throughput = 0);
     }

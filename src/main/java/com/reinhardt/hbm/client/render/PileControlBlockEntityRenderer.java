@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Exact current-upstream renderer for the Chicago Pile MK2 control actuator. */
 public final class PileControlBlockEntityRenderer implements LongRangeBlockEntityRenderer<PileControlBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/pile_control_base");
     private static final ModelResourceLocation ROD = MachineModelRenderer.standalone("block/pile_control_rod");
 
@@ -72,7 +73,6 @@ public final class PileControlBlockEntityRenderer implements LongRangeBlockEntit
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource buffers, BlockState state,
                                    int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(model), poseStack, buffers, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 }

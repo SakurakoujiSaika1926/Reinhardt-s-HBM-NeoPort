@@ -378,7 +378,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         }
         if (kind.isColumn()) {
             rbmk.diffuseHeat(level, pos);
-            if (HbmConfig.RBMK_REASIM_BOILERS.get()) {
+            if (HbmConfig.reasimBoilers()) {
                 // TileEntityRBMKBase boils ReaSim water after heat movement.
                 rbmk.boilReasimWater();
             }
@@ -671,7 +671,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
             ), true);
             return;
         }
-        if (kind.isColumn() && HbmConfig.RBMK_REASIM_BOILERS.get()) {
+        if (kind.isColumn() && HbmConfig.reasimBoilers()) {
             player.displayClientMessage(Component.translatable(
                     "rbmk.reasim.internal",
                     reasimWater,
@@ -2706,7 +2706,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
         double total = this.heat;
         int totalWater = this.reasimWater;
         int totalSteam = this.reasimSteam;
-        boolean distributeReasim = HbmConfig.RBMK_REASIM_BOILERS.get();
+        boolean distributeReasim = HbmConfig.reasimBoilers();
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             RbmkComponentBlockEntity other = rbmkColumnAt(level, pos.relative(direction));
             if (other != null) {
@@ -2758,7 +2758,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private void tickReasimInlet(Level level, BlockPos pos) {
-        if (!HbmConfig.RBMK_REASIM_BOILERS.get() || reasimInletWater.amount() <= 0) {
+        if (!HbmConfig.reasimBoilers() || reasimInletWater.amount() <= 0) {
             return;
         }
         for (Direction direction : Direction.Plane.HORIZONTAL) {
@@ -2779,7 +2779,7 @@ public class RbmkComponentBlockEntity extends BlockEntity implements MachineInve
     }
 
     private void tickReasimOutlet(Level level, BlockPos pos) {
-        if (!HbmConfig.RBMK_REASIM_BOILERS.get() || reasimOutletSteam.amount() >= reasimOutletSteam.capacity()) {
+        if (!HbmConfig.reasimBoilers() || reasimOutletSteam.amount() >= reasimOutletSteam.capacity()) {
             return;
         }
         HbmFluidDefinition superhotSteam = HbmFluids.byName("superhotsteam").orElse(HbmFluids.none());

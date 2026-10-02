@@ -61,6 +61,12 @@ public final class HbmFluidNetworks {
         return thread;
     });
     private static final Map<NetworkKey, LevelNetwork> NETWORKS = new ConcurrentHashMap<>();
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private static final Comparator<Endpoint> ENDPOINT_ORDER = Comparator
+            .comparingInt((Endpoint endpoint) -> endpoint.pos().getX())
+            .thenComparingInt(endpoint -> endpoint.pos().getY())
+            .thenComparingInt(endpoint -> endpoint.pos().getZ())
+            .thenComparingInt(endpoint -> endpoint.side().ordinal());
 
     private HbmFluidNetworks() {
     }
@@ -154,6 +160,11 @@ public final class HbmFluidNetworks {
     }
 
     public static boolean canPipeConnect(LevelAccessor level, BlockPos pipePos, Direction direction, HbmFluidDefinition type) {
+        return canPipeConnectTo(level, pipePos, pipePos.relative(direction), direction, type);
+    }
+
+    private static boolean canPipeConnectTo(LevelAccessor level, BlockPos pipePos, BlockPos target,
+                                            Direction direction, HbmFluidDefinition type) {
         if (!mobileFluidNodeAllowed(level, pipePos)) {
             return false;
         }
@@ -161,7 +172,6 @@ public final class HbmFluidNetworks {
         if (!(current instanceof FluidPipeBlockEntity pipe) || !pipe.canConnectFrom(direction, type)) {
             return false;
         }
-        BlockPos target = pipePos.relative(direction);
         if (!sameFluidSpace(level, pipePos, target)) {
             return false;
         }
@@ -238,6 +248,18 @@ public final class HbmFluidNetworks {
                 "Providers: " + providers,
                 "Transfer: " + network(level, pos).lastTransfer(cursorKey(type, pipes))
         );
+    }
+
+    /** Returns the amount moved by this connected component during the last completed server tick. */
+    public static int lastTransfer(Level level, BlockPos pos, HbmFluidDefinition type) {
+        if (level.isClientSide || type == null || type.isNone() || !mobileFluidNodeAllowed(level, pos)) {
+            return 0;
+        }
+        Set<BlockPos> pipes = cachedPipes(level, pos, type);
+        if (pipes.isEmpty()) {
+            return 0;
+        }
+        return network(level, pos).lastTransfer(cursorKey(type, pipes));
     }
 
     public static FluidStack drainFrom(Level level, BlockPos target, Direction side, HbmFluidDefinition type, int amount, @Nullable BlockPos excluded, boolean execute) {
@@ -418,37 +440,42 @@ public final class HbmFluidNetworks {
 
     private static EndpointSelection endpoints(Level level, HbmFluidDefinition type, Set<BlockPos> pipes, @Nullable BlockPos excluded) {
         ArrayList<Endpoint> endpoints = new ArrayList<>();
+        BlockPos.MutableBlockPos target = new BlockPos.MutableBlockPos();
         for (BlockPos pipePos : pipes) {
-            for (Direction direction : Direction.values()) {
-                BlockPos target = pipePos.relative(direction);
+            for (Direction direction : DIRECTIONS) {
+                target.setWithOffset(pipePos, direction);
                 if (target.equals(excluded) || pipes.contains(target)
-                        || !canPipeConnect(level, pipePos, direction, type)) {
+                        || !canPipeConnectTo(level, pipePos, target, direction, type)) {
                     continue;
                 }
                 Direction endpointSide = direction.getOpposite();
                 IFluidHandler handler = fluidHandler(level, target, endpointSide, "pipe endpoint discovery");
                 if (handler != null) {
-                    endpoints.add(new Endpoint(target, endpointSide, handler));
+                    endpoints.add(new Endpoint(target.immutable(), endpointSide, handler));
                 }
             }
         }
-        endpoints.sort(Comparator
-                .comparingInt((Endpoint endpoint) -> endpoint.pos().getX())
-                .thenComparingInt(endpoint -> endpoint.pos().getY())
-                .thenComparingInt(endpoint -> endpoint.pos().getZ())
-                .thenComparingInt(endpoint -> endpoint.side().ordinal()));
+        endpoints.sort(ENDPOINT_ORDER);
         return new EndpointSelection(cursorKey(type, pipes), List.copyOf(endpoints));
     }
 
     private static EndpointCursorKey cursorKey(HbmFluidDefinition type, Set<BlockPos> pipes) {
-        BlockPos anchor = pipes.stream()
-                .min(Comparator
-                        .comparingInt((BlockPos pos) -> pos.getX())
-                        .thenComparingInt(pos -> pos.getY())
-                        .thenComparingInt(pos -> pos.getZ()))
-                .orElse(BlockPos.ZERO)
-                .immutable();
+        BlockPos anchor = null;
+        for (BlockPos candidate : pipes) {
+            if (anchor == null || comparePositions(candidate, anchor) < 0) {
+                anchor = candidate;
+            }
+        }
+        anchor = anchor == null ? BlockPos.ZERO : anchor.immutable();
         return new EndpointCursorKey(type == null ? "none" : type.name(), anchor);
+    }
+
+    private static int comparePositions(BlockPos left, BlockPos right) {
+        int result = Integer.compare(left.getX(), right.getX());
+        if (result == 0) {
+            result = Integer.compare(left.getY(), right.getY());
+        }
+        return result == 0 ? Integer.compare(left.getZ(), right.getZ()) : result;
     }
 
     private static BalanceSnapshot createBalanceSnapshot(Level level, long gameTime, Set<PipeComponent> components) {

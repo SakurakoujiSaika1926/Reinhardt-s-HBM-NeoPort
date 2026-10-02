@@ -1,0 +1,15 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_expensive_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.epress",
+  "duration": 100,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_heavy_frame" }, "count": 1 },
+    { "ingredient": { "item": "reinhardtshbm:part_piston_hydraulic" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_basic" }, "count": 4 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_epress" }
+}

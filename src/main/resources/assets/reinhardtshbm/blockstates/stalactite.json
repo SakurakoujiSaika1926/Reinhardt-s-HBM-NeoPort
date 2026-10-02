@@ -1,6 +1,11 @@
 {
   "variants": {
     "material=0": { "model": "reinhardtshbm:block/stalactite_sulfur" },
-    "material=1": { "model": "reinhardtshbm:block/stalactite_asbestos" }
+    "material=1": { "model": "reinhardtshbm:block/stalactite_asbestos" },
+    "material=2": { "model": "reinhardtshbm:block/stalactite_ice" },
+    "material=3": { "model": "reinhardtshbm:block/stalactite_snow" },
+    "material=4": { "model": "reinhardtshbm:block/stalactite_glyphid1" },
+    "material=5": { "model": "reinhardtshbm:block/stalactite_glyphid2" },
+    "material=6": { "model": "reinhardtshbm:block/stalactite_glyphid3" }
   }
 }

@@ -43,15 +43,17 @@ public final class RadarScreenBlockEntity extends BlockEntity {
             return;
         }
 
-        // The 1.7.10 screen resets every server tick. The write stamp keeps the
-        // same result independent of the block-entity tick ordering.
-        if (screen.lastRadarWriteTick != level.getGameTime()) {
+        long gameTime = level.getGameTime();
+        // TileEntityMachineRadarScreen clears its transient feed every tick and
+        // TileEntityMachineRadarNT writes it again.  Defer the clear until one
+        // complete tick passed without a write so the result does not depend on
+        // which block entity happens to tick first in the modern level list.
+        if (screen.lastRadarWriteTick < gameTime - 1L
+                && (screen.linked || !screen.entries.isEmpty())) {
             screen.entries.clear();
             screen.linked = false;
-            screen.publishRenderSnapshot();
-        }
-        if (level.getGameTime() - screen.lastClientSyncTick >= CLIENT_SYNC_INTERVAL) {
-            screen.lastClientSyncTick = level.getGameTime();
+            screen.setChanged();
+            screen.lastClientSyncTick = gameTime;
             screen.syncToClient();
         }
     }
@@ -61,6 +63,7 @@ public final class RadarScreenBlockEntity extends BlockEntity {
         if (this.level == null || this.level.isClientSide) {
             return;
         }
+        boolean becameLinked = !this.linked;
         this.entries.clear();
         this.entries.addAll(targets);
         this.refX = radarPos.getX();
@@ -71,8 +74,13 @@ public final class RadarScreenBlockEntity extends BlockEntity {
         this.lastRadarWriteTick = this.level.getGameTime();
         publishRenderSnapshot();
         setChanged();
-        if (this.level.getGameTime() - this.lastClientSyncTick >= CLIENT_SYNC_INTERVAL) {
-            this.lastClientSyncTick = this.level.getGameTime();
+        long gameTime = this.level.getGameTime();
+        // Explicitly handle the sentinel.  Subtracting Long.MIN_VALUE wraps to
+        // a negative number and previously prevented the first client update
+        // forever, leaving every placed display on its unlinked noise frame.
+        if (becameLinked || this.lastClientSyncTick == Long.MIN_VALUE
+                || gameTime - this.lastClientSyncTick >= CLIENT_SYNC_INTERVAL) {
+            this.lastClientSyncTick = gameTime;
             syncToClient();
         }
     }

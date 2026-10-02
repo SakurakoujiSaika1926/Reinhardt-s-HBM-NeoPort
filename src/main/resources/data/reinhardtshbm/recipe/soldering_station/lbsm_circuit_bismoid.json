@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:less_bullshit_mode", "feature": "simple_crafting" }
+  ],
+  "type": "reinhardtshbm:soldering_station",
+  "group": "soldering.circuit",
+  "duration": 400,
+  "consumption": 10000,
+  "fluid": { "fluid": "solvent", "amount": 1000 },
+  "toppings": [
+    { "ingredient": { "item": "reinhardtshbm:circuit_chip_bismoid" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_chip" }, "count": 4 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_capacitor" }, "count": 8 }
+  ],
+  "pcb": [
+    { "ingredient": { "item": "reinhardtshbm:circuit_pcb" }, "count": 12 },
+    { "ingredient": { "tag": "c:ingots/hard_plastic" }, "count": 2 }
+  ],
+  "solder": [
+    { "ingredient": { "item": "reinhardtshbm:wire_lead" }, "count": 12 }
+  ],
+  "result": { "id": "reinhardtshbm:circuit_bismoid" }
+}

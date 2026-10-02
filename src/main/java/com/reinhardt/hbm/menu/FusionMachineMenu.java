@@ -80,8 +80,11 @@ public class FusionMachineMenu extends AbstractContainerMenu {
                 addSlot(new ValidatedSlot(this.container, FusionMachineBlockEntity.BLUEPRINT_SLOT, 35, 81));
                 addSlot(new ValidatedSlot(this.container, FusionMachineBlockEntity.PLASMA_BOOSTER_SLOT, 98, 116));
                 int slot = FusionMachineBlockEntity.PLASMA_INPUT_START;
-                for (int row = 0; row < 4; row++) {
-                    for (int column = 0; column < 3; column++) {
+                // Latest 1.7.10 ContainerMachinePlasmaForge uses addSlots(..., 3, 4):
+                // three rows and four columns.  Reversing these dimensions puts
+                // the fourth row on top of the recipe selector and progress bar.
+                for (int row = 0; row < 3; row++) {
+                    for (int column = 0; column < 4; column++) {
                         addSlot(new ValidatedSlot(this.container, slot++, 8 + column * 18, 18 + row * 18));
                     }
                 }

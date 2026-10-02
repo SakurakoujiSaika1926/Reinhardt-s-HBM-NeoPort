@@ -67,6 +67,15 @@ public final class LegacyGrenadeEntity extends Entity {
         updateRotation(motion);
     }
 
+    public LegacyGrenadeEntity(Level level, Kind kind, Vec3 position, Vec3 motion) {
+        this(HbmEntityTypes.LEGACY_GRENADE.get(), level);
+        setKind(kind);
+        setFuse(kind.fuseTicks());
+        setPos(position.x, position.y, position.z);
+        setDeltaMovement(motion);
+        updateRotation(motion);
+    }
+
     public Kind kind() {
         return Kind.byOrdinal(entityData.get(KIND));
     }

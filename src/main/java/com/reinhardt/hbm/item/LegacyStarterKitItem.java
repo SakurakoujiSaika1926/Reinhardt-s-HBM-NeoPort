@@ -184,14 +184,14 @@ public final class LegacyStarterKitItem extends Item {
                     e("ingot_uranium", 32), e("powder_yellowcake", 32), e("machine_press", 1),
                     e("machine_blast_furnace", 1), e("machine_gascent", 1), e("machine_reactor_breeding", 1),
                     e("machine_assembly_machine", 1), e("machine_chemical_plant", 1), e("machine_reactor_small", 1),
-                    e("machine_turbine", 2), e("radaway", 8), e("radx", 2), e("stamp_titanium_flat", 3),
+                    e("radaway", 8), e("radx", 2), e("stamp_titanium_flat", 3),
                     e("ingot_steel", 64), e("ingot_lead", 64), e("minecraft:copper_ingot", 64), e("gas_mask_m65", 1), e("geiger_counter", 1)
             ), 1, true, true);
             case "nuke_advanced_kit" -> new Kit(List.of(
                     e("powder_yellowcake", 64), e("powder_plutonium", 64), e("ingot_steel", 64), e("minecraft:copper_ingot", 64),
                     e("ingot_tungsten", 64), e("ingot_lead", 64), e("ingot_polymer", 64), e("machine_blast_furnace", 3),
                     e("machine_gascent", 3), e("machine_centrifuge", 2), e("machine_uf6_tank", 2), e("machine_puf6_tank", 2),
-                    e("machine_reactor_breeding", 2), e("machine_reactor_small", 4), e("machine_turbine", 4), e("machine_radgen", 1),
+                    e("machine_reactor_breeding", 2), e("machine_reactor_small", 4), e("machine_radgen", 1),
                     e("machine_rtg_grey", 1), e("machine_assembly_machine", 3), e("machine_chemical_plant", 2), e("machine_fluidtank", 1),
                     e("pellet_rtg", 3), e("pellet_rtg_weak", 3), e("cell_empty", 32), e("rod_empty", 32),
                     e("fluid_barrel_full@coolant", 4), e("radaway_strong", 4), e("radx", 4), e("pill_iodine", 1),

@@ -1,7 +1,9 @@
 package com.reinhardt.hbm.blockentity;
 
 import com.reinhardt.hbm.block.MachineBlastFurnaceBlock;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidRelease;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -13,6 +15,7 @@ import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmRecipeTypes;
 import com.reinhardt.hbm.util.HbmFluidContainerTransfer;
+import com.reinhardt.hbm.util.LegacyFurnaceFuels;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -64,8 +67,8 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
     public static final int DATA_COUNT = 10;
     public static final int FUEL_COAL = 200 * 8;
     public static final int FUEL_RATE = 200 * 4;
-    public static final int MAX_FUEL = FUEL_COAL * 16;
-    public static final int FLUE_GAS_PER_OPERATION = 100;
+    public static final int MAX_FUEL = FUEL_COAL * 24;
+    public static final int FLUE_GAS_PER_TICK = 8;
     private static final int OUTPUT_PER_PORT = 1_000;
 
     private static final int[] ACCESSIBLE_SLOTS = {
@@ -111,6 +114,7 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
     private float progress;
     private float speed;
     private boolean progressing;
+    private final MachineFoundationState foundation = new MachineFoundationState();
 
     private final ContainerData menuData = new ContainerData() {
         @Override
@@ -187,7 +191,13 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
                 return recipe.power();
             }
         }
-        return 0;
+        int legacyOverride = LegacyFurnaceFuels.burnTime(stack);
+        if (legacyOverride > 0) {
+            return legacyOverride;
+        }
+        // The 1.7.10 blast furnace delegated to TileEntityFurnace#getItemBurnTime,
+        // which accepted vanilla and other mods' registered furnace fuels as well.
+        return Math.max(0, stack.getBurnTime(null));
     }
 
     public HbmFluidTank airblastTank() {
@@ -208,6 +218,10 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
 
     public boolean isProgressing() {
         return this.progressing;
+    }
+
+    public boolean tilted() {
+        return this.foundation.tilted();
     }
 
     public ContainerData menuData() {
@@ -596,6 +610,7 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
         tag.putBoolean("Progressing", this.progressing);
         tag.put("AirblastTank", this.airblastTank.save());
         tag.put("FlueTank", this.flueTank.save());
+        this.foundation.save(tag);
     }
 
     @Override
@@ -616,6 +631,7 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
         this.progressing = tag.getBoolean("Progressing");
         this.airblastTank.load(tag.getCompound("AirblastTank"));
         this.flueTank.load(tag.getCompound("FlueTank"));
+        this.foundation.load(tag);
         if (this.airblastTank.type().isNone()) {
             this.airblastTank.setType(airblast());
         }
@@ -638,7 +654,10 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
     }
 
     private void tickServer(Level level) {
-        boolean changed = tickContainers();
+        boolean changed = this.foundation.tick(level, this.worldPosition, 4,
+                index -> this.worldPosition.offset(-1 + index / 2 * 2, -1, -1 + index % 2 * 2),
+                false, HbmConfig.machineGravity());
+        changed |= tickContainers();
         if (tryConsumeFuel(level)) {
             changed = true;
         }
@@ -646,8 +665,8 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
         Optional<BlastFurnaceRecipe.Match> match = findMatch(level);
         this.speed = 0.0F;
 
-        if (match.isPresent() && this.fuel >= FUEL_RATE) {
-            this.speed = Math.max(0.5F, Math.min(5.0F, 0.5F + this.airblastTank.amount() * 8.0F / Math.max(1.0F, this.airblastTank.capacity())));
+        if (match.isPresent() && this.fuel >= FUEL_RATE && !this.foundation.tilted()) {
+            this.speed = Math.max(1.0F, Math.min(5.0F, 1.0F + this.airblastTank.amount() * 8.0F / Math.max(1.0F, this.airblastTank.capacity())));
             this.progressing = true;
             this.progress += this.speed / progressDivisor(match.get());
 
@@ -655,10 +674,11 @@ public class MachineBlastFurnaceBlockEntity extends BlockEntity implements Machi
                 finishProcessing(match.get());
                 this.progress = 0.0F;
                 this.fuel = Math.max(0, this.fuel - FUEL_RATE);
-                int accepted = this.flueTank.fill(flue(), FLUE_GAS_PER_OPERATION, false);
-                int overflow = FLUE_GAS_PER_OPERATION - accepted;
+                int generatedFlue = (int) (FLUE_GAS_PER_TICK * (match.get().duration() / this.speed));
+                int accepted = this.flueTank.fill(flue(), generatedFlue, false);
+                int overflow = generatedFlue - accepted;
                 if (overflow > 0) {
-                    HbmPollution.polluteFluid(level, this.worldPosition, flue(), HbmPollution.ReleaseType.SPILL, overflow);
+                    HbmFluidRelease.onRelease(level, this.worldPosition, flue(), HbmPollution.ReleaseType.SPILL, overflow);
                 }
                 changed = true;
             }

@@ -17,6 +17,7 @@ public class PoweredSteamCondenserBlockEntityRenderer implements LongRangeBlockE
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_condenser_powered_body");
     private static final ModelResourceLocation FAN1 = MachineModelRenderer.standalone("block/machine_condenser_powered_fan1");
     private static final ModelResourceLocation FAN2 = MachineModelRenderer.standalone("block/machine_condenser_powered_fan2");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB NORTH_RENDER_BOUNDS = createCondenserLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_RENDER_BOUNDS = createCondenserLocalBounds(Direction.SOUTH);
     private static final AABB WEST_RENDER_BOUNDS = createCondenserLocalBounds(Direction.WEST);
@@ -39,21 +40,21 @@ public class PoweredSteamCondenserBlockEntityRenderer implements LongRangeBlockE
         poseStack.pushPose();
         applyCondenserPose(poseStack, facing);
 
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
 
         float spin = condenser.spin(partialTick);
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(Axis.XP.rotationDegrees(spin));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FAN1), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FAN1, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(Axis.XN.rotationDegrees(spin));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FAN2), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FAN2, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }

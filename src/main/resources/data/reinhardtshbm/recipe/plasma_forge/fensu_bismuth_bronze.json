@@ -3,7 +3,7 @@
     {
       "type": "neoforge:not",
       "value": {
-        "type": "reinhardtshbm:enable_528_mode"
+        "type": "reinhardtshbm:enable_expensive_mode"
       }
     }
   ],
@@ -21,7 +21,7 @@
     },
     {
       "ingredient": {
-        "type": "neoforge:components",
+        "type": "reinhardtshbm:battery",
         "items": "reinhardtshbm:battery_pack",
         "components": {
           "minecraft:custom_data": {

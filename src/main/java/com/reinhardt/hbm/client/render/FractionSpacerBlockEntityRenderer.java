@@ -10,6 +10,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class FractionSpacerBlockEntityRenderer implements LongRangeBlockEntityRenderer<FractionSpacerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/fraction_spacer");
     private static final AABB LOCAL_BOUNDS = buildFractionSpacerBounds();
 
@@ -25,7 +26,7 @@ public class FractionSpacerBlockEntityRenderer implements LongRangeBlockEntityRe
         BlockState state = spacer.getBlockState();
         poseStack.pushPose();
         applyFractionSpacerTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

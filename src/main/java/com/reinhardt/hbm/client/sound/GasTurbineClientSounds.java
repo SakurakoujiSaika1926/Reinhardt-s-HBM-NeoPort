@@ -92,6 +92,7 @@ public final class GasTurbineClientSounds {
 
             double distance = Math.sqrt(minecraft.player.distanceToSqr(this.x, this.y, this.z));
             this.volume = distance >= AUDIBLE_DISTANCE ? 0.0F : (float) (2.0F * (1.0D - distance / AUDIBLE_DISTANCE));
+            this.volume = com.reinhardt.hbm.util.MachineMuffler.attenuate(blockEntity, this.volume);
             this.pitch = (float) (0.55D + 0.1D * turbine.rpm() / 10.0D);
         }
 

@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class GroundwaterPumpBlockEntityRenderer implements LongRangeBlockEntityRenderer<GroundwaterPumpBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     static final ModelResourceLocation STEAM_BASE = MachineModelRenderer.standalone("block/pump_steam_base");
     static final ModelResourceLocation STEAM_ROTOR = MachineModelRenderer.standalone("block/pump_steam_rotor");
     static final ModelResourceLocation STEAM_ARMS = MachineModelRenderer.standalone("block/pump_steam_arms");
@@ -137,7 +138,7 @@ public class GroundwaterPumpBlockEntityRenderer implements LongRangeBlockEntityR
             int packedLight,
             int packedOverlay
     ) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static void applySteamPumpTransform(PoseStack poseStack, Direction facing) {

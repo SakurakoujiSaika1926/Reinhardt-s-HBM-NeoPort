@@ -13,6 +13,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class CombustionEngineBlockEntityRenderer implements LongRangeBlockEntityRenderer<CombustionEngineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation ENGINE = MachineModelRenderer.standalone("block/machine_combustion_engine_engine");
     private static final ModelResourceLocation CANISTER = MachineModelRenderer.standalone("block/machine_combustion_engine_canister");
     private static final ModelResourceLocation HATCH = MachineModelRenderer.standalone("block/machine_combustion_engine_hatch");
@@ -33,7 +34,7 @@ public class CombustionEngineBlockEntityRenderer implements LongRangeBlockEntity
         Direction facing = combustionEngineFacing(state);
         poseStack.pushPose();
         applyCombustionEngineTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(ENGINE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(ENGINE, poseStack, state, packedLight, packedOverlay);
         int canisterColor = engine.fuelTank().type().canisterColorRgbOr(0xFFFFFF);
         MachineModelRenderer.renderUnculledTinted(
                 MachineModelRenderer.model(CANISTER), poseStack, bufferSource, state, packedLight, packedOverlay,
@@ -48,7 +49,7 @@ public class CombustionEngineBlockEntityRenderer implements LongRangeBlockEntity
         poseStack.translate(1.0F, 0.0F, -2.6875F);
         poseStack.mulPose(Axis.YN.rotationDegrees(engine.doorAngle(partialTick)));
         poseStack.translate(-1.0F, 0.0F, 2.6875F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(HATCH), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(HATCH, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }

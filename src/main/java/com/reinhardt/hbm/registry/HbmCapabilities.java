@@ -109,7 +109,6 @@ import com.reinhardt.hbm.blockentity.SmallBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.SolarBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamEngineBlockEntity;
-import com.reinhardt.hbm.blockentity.SteamTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.SteelFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.StorageCrateBlockEntity;
 import com.reinhardt.hbm.blockentity.StrandCasterBlockEntity;
@@ -371,11 +370,6 @@ public final class HbmCapabilities {
                 Capabilities.ItemHandler.BLOCK,
                 HbmBlockEntities.AMMO_PRESS.get(),
                 HbmCapabilities::ammoPressItemHandler
-        );
-        event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                HbmBlockEntities.STEAM_TURBINE.get(),
-                HbmCapabilities::steamTurbineItemHandler
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
@@ -881,11 +875,6 @@ public final class HbmCapabilities {
                 Capabilities.FluidHandler.BLOCK,
                 HbmBlockEntities.SOLAR_BOILER.get(),
                 (boiler, side) -> boiler.fluidHandler(boiler.getBlockPos(), side)
-        );
-        event.registerBlockEntity(
-                Capabilities.FluidHandler.BLOCK,
-                HbmBlockEntities.STEAM_TURBINE.get(),
-                SteamTurbineBlockEntity::fluidHandler
         );
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
@@ -1598,10 +1587,6 @@ public final class HbmCapabilities {
 
     private static IItemHandler gasFlareItemHandler(GasFlareBlockEntity flare, @Nullable Direction side) {
         return new SidedInvWrapper(flare, side);
-    }
-
-    private static IItemHandler steamTurbineItemHandler(SteamTurbineBlockEntity turbine, @Nullable Direction side) {
-        return new SidedInvWrapper(turbine, side);
     }
 
     private static IItemHandler turretJeremyItemHandler(TurretJeremyBlockEntity turret, @Nullable Direction side) {

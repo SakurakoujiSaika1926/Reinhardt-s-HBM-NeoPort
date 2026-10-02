@@ -24,19 +24,36 @@ import java.util.Optional;
 public class BlueprintItem extends Item {
     public static final String POOL_PREFIX_ALT = "alt.";
     public static final String POOL_PREFIX_DISCOVER = "discover.";
-    public static final String POOL_PREFIX_SECRET = "secret.";
     public static final String POOL_PREFIX_528 = "528.";
 
     private static final String POOL_TAG = "pool";
     private static final List<String> CREATIVE_POOLS = List.of(
-            POOL_PREFIX_ALT + ".xenonoxy",
-            POOL_PREFIX_DISCOVER,
-            POOL_PREFIX_ALT + ".birkeland",
-            POOL_PREFIX_528 + "plastic",
-            POOL_PREFIX_528 + "hardplastic",
-            POOL_PREFIX_528 + "tcalloy",
-            POOL_PREFIX_528 + "chlorophyte",
-            POOL_PREFIX_528 + "chip_quantum"
+            "alt..birkeland",
+            "alt..biosolidfuel",
+            "alt..circuit",
+            "alt..electrodes",
+            "alt..lube",
+            "alt..xenonoxy",
+            "alt.plates",
+            "discover..rpa",
+            "discover..stone",
+            "discover.radgen",
+            "528.arty",
+            "528.bmg",
+            "528.chip",
+            "528.chip_bismoid",
+            "528.chip_quantum",
+            "528.chlorophyte",
+            "528.controller",
+            "528.ferrouranium",
+            "528.gascent",
+            "528.hardplastic",
+            "528.plastic",
+            "528.rubber",
+            "528.soyuz",
+            "528.steel",
+            "528.strontium",
+            "528.tcalloy"
     );
 
     public BlueprintItem(Properties properties) {
@@ -47,26 +64,31 @@ public class BlueprintItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack stack = player.getItemInHand(usedHand);
         Optional<String> pool = pool(stack);
-        if (level.isClientSide || pool.isEmpty() || pool.get().startsWith(POOL_PREFIX_SECRET)) {
+        if (pool.isEmpty()) {
             return InteractionResultHolder.pass(stack);
         }
 
-        boolean creative = player.getAbilities().instabuild;
-        if (!creative && !player.getInventory().contains(new ItemStack(Items.PAPER))) {
+        if (!player.getInventory().contains(new ItemStack(Items.PAPER))) {
             return InteractionResultHolder.pass(stack);
         }
-
-        if (!creative && !consumePaper(player)) {
+        if (level.isClientSide) {
+            return InteractionResultHolder.sidedSuccess(stack, true);
+        }
+        if (!consumePaper(player)) {
             return InteractionResultHolder.pass(stack);
         }
 
         ItemStack copy = stack.copy();
         copy.setCount(1);
-        if (!player.getInventory().add(copy)) {
+        if (player.getAbilities().instabuild) {
+            player.drop(copy, false);
+        } else if (stack.getCount() < stack.getMaxStackSize()) {
+            stack.grow(1);
+        } else if (!player.getInventory().add(copy)) {
             player.drop(copy, false);
         }
         player.swing(usedHand);
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+        return InteractionResultHolder.sidedSuccess(stack, false);
     }
 
     @Override
@@ -75,11 +97,7 @@ public class BlueprintItem extends Item {
         if (pool.isEmpty()) {
             return;
         }
-        if (pool.get().startsWith(POOL_PREFIX_SECRET)) {
-            tooltip.add(Component.translatable("item.reinhardtshbm.blueprints.cannot_copy").withStyle(ChatFormatting.RED));
-        } else {
-            tooltip.add(Component.translatable("item.reinhardtshbm.blueprints.copy").withStyle(ChatFormatting.YELLOW));
-        }
+        tooltip.add(Component.translatable("item.reinhardtshbm.blueprints.copy").withStyle(ChatFormatting.YELLOW));
         tooltip.add(Component.translatable("item.reinhardtshbm.blueprints.pool", pool.get()).withStyle(ChatFormatting.GRAY));
     }
 
@@ -106,20 +124,20 @@ public class BlueprintItem extends Item {
     }
 
     /**
-     * Legacy {@code GenericRecipe#setPools528} only attached its blueprint pool while 528 mode was
-     * enabled. Datapack recipes keep that pool metadata so the same recipe can be inspected on both
-     * sides of a config reload, therefore the visibility check must preserve the legacy conditional
-     * behavior here instead of treating every {@code 528.*} pool as an unconditional requirement.
+     * Normal mode deliberately exposes every recipe without a blueprint. Enabling 528 mode turns
+     * on the complete blueprint-permission layer, including alternate, discovery and 528 pools.
      */
     public static boolean isRecipeVisibleForPool(List<String> recipePools, Optional<String> installedPool) {
-        if (recipePools.isEmpty()) {
+        List<String> activePools = activeRecipePools(recipePools);
+        if (activePools.isEmpty()) {
             return true;
         }
-        if (!HbmConfig.ENABLE_528_MODE.get()
-                && recipePools.stream().allMatch(pool -> pool.startsWith(POOL_PREFIX_528))) {
-            return true;
-        }
-        return installedPool.filter(recipePools::contains).isPresent();
+        return installedPool.filter(activePools::contains).isPresent();
+    }
+
+    /** Returns the blueprint requirements that are active under the current gameplay mode. */
+    public static List<String> activeRecipePools(List<String> recipePools) {
+        return HbmConfig.ENABLE_528_MODE.get() ? recipePools : List.of();
     }
 
     public static ItemStack stackFor(String pool) {
@@ -134,9 +152,6 @@ public class BlueprintItem extends Item {
     private static int modelData(String pool) {
         if (pool.startsWith(POOL_PREFIX_DISCOVER)) {
             return 1;
-        }
-        if (pool.startsWith(POOL_PREFIX_SECRET)) {
-            return 2;
         }
         if (pool.startsWith(POOL_PREFIX_528)) {
             return 3;

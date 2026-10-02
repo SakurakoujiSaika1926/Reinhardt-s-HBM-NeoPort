@@ -3,6 +3,7 @@ package com.reinhardt.hbm.blockentity;
 import com.reinhardt.hbm.block.FusionMachineBlock;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.client.sound.FusionMachineClientSounds;
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -113,6 +114,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     private static final Random PLASMA_FORGE_RANDOM = new Random();
 
     private final FusionMachineBlock.Kind kind;
+    private final MachineFoundationState foundation = new MachineFoundationState();
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final HbmFluidTank[] tanks;
     private final ContainerData menuData = new ContainerData() {
@@ -229,6 +231,10 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     public FusionMachineBlock.Kind kind() {
         return this.kind;
+    }
+
+    public boolean tilted() {
+        return this.kind == FusionMachineBlock.Kind.TORUS && this.foundation.tilted();
     }
 
     public RenderSnapshot renderSnapshot() {
@@ -587,6 +593,9 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
     }
 
     private void tickServer(Level level) {
+        boolean foundationChanged = this.foundation.tick(level, this.worldPosition, 36,
+                index -> this.worldPosition.offset(-5 + index / 6 * 2, -1, -5 + index % 6 * 2),
+                true, this.kind == FusionMachineBlock.Kind.TORUS && HbmConfig.machineGravity());
         this.connected = false;
         switch (this.kind) {
             case KLYSTRON -> tickKlystron(level, false);
@@ -599,7 +608,8 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
             case COUPLER -> tickCoupler(level);
             case PLASMA_FORGE -> tickPlasmaForge(level);
         }
-        if (renderGeometryChanged()) {
+        boolean geometryChanged = renderGeometryChanged();
+        if (foundationChanged || geometryChanged) {
             // A connection can add geometry outside the owning render section.
             // Publish it immediately so SectionCompiler recalculates global membership.
             setChangedAndSync(true);
@@ -675,7 +685,8 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         float g = 0.0F;
         float b = 0.0F;
 
-        if (recipe != null && this.temperature <= TORUS_TARGET_TEMP && this.klystronEnergy >= recipe.ignitionTemp()) {
+        if (!this.foundation.tilted() && recipe != null
+                && this.temperature <= TORUS_TARGET_TEMP && this.klystronEnergy >= recipe.ignitionTemp()) {
             double factor = torusProcessFactor(recipe);
             if (factor > 0.0D && canProcessTorus(recipe, factor)) {
                 consumeTorusTick(recipe, factor);
@@ -906,16 +917,17 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
 
     private void configurePlasmaForgeTank(@Nullable PlasmaForgeRecipe recipe) {
         HbmFluidTank tank = tank(0);
-        if (recipe == null || recipe.inputFluids().isEmpty()) {
-            tank.setCapacity(Math.max(PLASMA_FORGE_TANK_CAPACITY, tank.amount()));
-            if (tank.amount() == 0) {
-                tank.clear();
-            }
+        if (recipe == null) {
+            return;
+        }
+        if (recipe.inputFluids().isEmpty()) {
+            tank.clear();
+            tank.setCapacity(PLASMA_FORGE_TANK_CAPACITY);
             return;
         }
         PlasmaForgeRecipe.PlasmaFluidStack fluid = recipe.inputFluids().getFirst();
-        tank.setCapacity(Math.max(Math.max(tank.amount(), fluid.amount() * 2), PLASMA_FORGE_TANK_CAPACITY));
         tank.conform(fluid.type(), fluid.pressure());
+        tank.setCapacity(Math.max(Math.max(tank.amount(), fluid.amount() * 2), PLASMA_FORGE_TANK_CAPACITY));
     }
 
     private void coolTorus() {
@@ -942,10 +954,14 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         for (int index = 0; index < 3; index++) {
             if (index < recipe.inputFluids().size()) {
                 tank(index).setType(recipe.inputFluids().get(index).fluid());
+            } else {
+                tank(index).clear();
             }
         }
         if (!recipe.outputFluids().isEmpty()) {
             tank(3).setType(recipe.outputFluids().get(0).fluid());
+        } else {
+            tank(3).clear();
         }
     }
 
@@ -1665,6 +1681,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         tag.putFloat("Rotor", this.rotor);
         tag.putFloat("PrevRotor", this.prevRotor);
         tag.putFloat("RotorSpeed", this.rotorSpeed);
+        this.foundation.save(tag);
     }
 
     @Override
@@ -1672,6 +1689,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         super.loadAdditional(tag, registries);
         boolean previousConnected = this.connected;
         int previousConnectionMask = this.torusConnectionMask;
+        boolean previousTilted = this.foundation.tilted();
         ResourceLocation previousPlasmaForgeRecipe = this.selectedPlasmaForgeRecipe;
         ItemStack previousBlueprint = this.items.get(BLUEPRINT_SLOT).copy();
         ContainerHelper.loadAllItems(tag, this.items, registries);
@@ -1705,12 +1723,14 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
         this.rotor = tag.getFloat("Rotor");
         this.prevRotor = tag.getFloat("PrevRotor");
         this.rotorSpeed = tag.getFloat("RotorSpeed");
+        this.foundation.load(tag);
         boolean plasmaForgeRenderChanged = this.kind == FusionMachineBlock.Kind.PLASMA_FORGE
                 && (previousConnected != this.connected
                 || !Objects.equals(previousPlasmaForgeRecipe, this.selectedPlasmaForgeRecipe)
                 || !ItemStack.isSameItemSameComponents(previousBlueprint, this.items.get(BLUEPRINT_SLOT)));
         boolean torusRenderChanged = this.kind == FusionMachineBlock.Kind.TORUS
-                && previousConnectionMask != this.torusConnectionMask;
+                && (previousConnectionMask != this.torusConnectionMask
+                || previousTilted != this.foundation.tilted());
         if (plasmaForgeRenderChanged || torusRenderChanged) {
             this.clientRenderSnapshotDirty = true;
         }
@@ -2502,7 +2522,7 @@ public class FusionMachineBlockEntity extends BlockEntity implements PowerEndpoi
                 if (!tank.type().isNone() && tank.type() != fluid.get()) {
                     continue;
                 }
-                int accepted = tank.fill(fluid.get(), remaining, action.simulate());
+                int accepted = tank.fill(fluid.get(), remaining, tank.pressure(), action.simulate());
                 filled += accepted;
                 remaining -= accepted;
                 if (remaining <= 0) {

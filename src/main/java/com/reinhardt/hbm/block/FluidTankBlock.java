@@ -7,6 +7,7 @@ import com.reinhardt.hbm.item.ScrewdriverItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -136,15 +137,27 @@ public class FluidTankBlock extends LargeMachineBlock implements EntityBlock {
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof FluidTankBlockEntity tank && tank.isDamaged()) {
+            return damagedInteraction(level, player);
+        }
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MenuProvider menuProvider && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(menuProvider, buffer -> buffer.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
+    }
+
+    static InteractionResult damagedInteraction(Level level, Player player) {
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        player.displayClientMessage(
+                Component.translatable("message.reinhardtshbm.fluid_tank.damaged"), true);
+        return InteractionResult.CONSUME;
     }
 }
 

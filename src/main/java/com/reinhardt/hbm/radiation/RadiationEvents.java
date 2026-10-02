@@ -10,6 +10,8 @@ import com.reinhardt.hbm.item.ArmorFSBItem;
 import com.reinhardt.hbm.item.ArmorModItem;
 import com.reinhardt.hbm.item.ArmorInsertItem;
 import com.reinhardt.hbm.item.LegacyReviveArmorModItem;
+import com.reinhardt.hbm.item.LegacyShacklesArmorModItem;
+import com.reinhardt.hbm.item.LegacyDropItem;
 import com.reinhardt.hbm.item.LegacyInjectorKnifeArmorModItem;
 import com.reinhardt.hbm.item.LegacyJetpackItem;
 import com.reinhardt.hbm.item.BlockBlastResistanceTooltip;
@@ -98,6 +100,8 @@ public final class RadiationEvents {
     private static final net.minecraft.resources.ResourceLocation ARMOR_HEALTH_MODIFIER = ReinhardtsHBM.id("armor_mod_health");
     private static final net.minecraft.resources.ResourceLocation ARMOR_INSERT_SPEED_MODIFIER = ReinhardtsHBM.id("armor_insert_speed");
     private static final net.minecraft.resources.ResourceLocation ARMOR_MOD_SPEED_MODIFIER = ReinhardtsHBM.id("armor_mod_speed");
+    private static final net.minecraft.resources.ResourceLocation ARMOR_MOD_ATTACK_MODIFIER = ReinhardtsHBM.id("armor_mod_attack");
+    private static final net.minecraft.resources.ResourceLocation ARMOR_MOD_KNOCKBACK_MODIFIER = ReinhardtsHBM.id("armor_mod_knockback");
     private static final net.minecraft.resources.ResourceLocation ARMOR_STEP_HEIGHT_MODIFIER = ReinhardtsHBM.id("armor_step_height");
     private static final net.minecraft.resources.ResourceLocation LEGACY_REACHER_ID = ReinhardtsHBM.id("reacher");
     private static final Set<StratumXpDrop> STRATUM_XP_DROPS = ConcurrentHashMap.newKeySet();
@@ -180,6 +184,15 @@ public final class RadiationEvents {
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
         markPlayerRadiationInputsDirty(event.getPlayer());
+        ItemStack tossed = event.getEntity().getItem();
+        boolean invulnerable = tossed.is(HbmItems.BISMUTH_TOOL.get());
+        if (tossed.getItem() instanceof ArmorItem) {
+            ItemStack cladding = ArmorModHandler.pryMods(tossed, event.getPlayer().registryAccess())[ArmorModHandler.CLADDING];
+            invulnerable |= cladding.is(HbmItems.CLADDING_OBSIDIAN.get());
+        }
+        if (invulnerable) {
+            event.getEntity().setInvulnerable(true);
+        }
     }
 
     @SubscribeEvent
@@ -323,14 +336,22 @@ public final class RadiationEvents {
         Player player = event.getEntity();
         markPlayerRadiationInputsDirty(player);
         HbmAdvancements.awardForCraftedStack(player, event.getSmelting());
-        if (player.level().isClientSide || !event.getSmelting().is(net.minecraft.world.item.Items.IRON_INGOT)
-                || player.getRandom().nextInt(64) != 0) {
+        if (player.level().isClientSide) {
             return;
         }
+        if (event.getSmelting().is(net.minecraft.world.item.Items.IRON_INGOT)
+                && player.getRandom().nextInt(64) == 0) {
+            giveOrDrop(player, new ItemStack(HbmItems.LODESTONE.get()));
+        }
+        if (BuiltInRegistries.ITEM.getKey(event.getSmelting().getItem()).equals(ReinhardtsHBM.id("ingot_uranium"))
+                && player.getRandom().nextInt(64) == 0) {
+            giveOrDrop(player, new ItemStack(BuiltInRegistries.ITEM.get(ReinhardtsHBM.id("quartz_plutonium"))));
+        }
+    }
 
-        ItemStack lodestone = new ItemStack(com.reinhardt.hbm.registry.HbmItems.LODESTONE.get());
-        if (!player.getInventory().add(lodestone)) {
-            player.drop(lodestone, false);
+    private static void giveOrDrop(Player player, ItemStack stack) {
+        if (!player.getInventory().add(stack)) {
+            player.drop(stack, false);
         }
     }
 
@@ -355,10 +376,69 @@ public final class RadiationEvents {
     }
 
     public static void applyHbmDamageProtection(Player player, LivingIncomingDamageEvent event) {
+        applyRpaDamageResistance(player, event);
         HbmPlayerShield.absorb(player, event);
         applyArmorModDamage(player, event);
         applyArmorInsertDamage(player, event);
         applyLegacyArmorCombatHooks(player, event);
+    }
+
+    /**
+     * Latest 1.7.10 DamageResistanceHandler values for the two Remnant power-armour sets.
+     * The threshold is removed first, then the percentage resistance is applied.
+     */
+    private static void applyRpaDamageResistance(Player player, LivingIncomingDamageEvent event) {
+        if (event.getSource().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            return;
+        }
+
+        String group = ArmorFSBItem.fullSetGroup(player);
+        boolean remnant = "rpa".equals(group);
+        boolean ncr = "ncrpa".equals(group);
+        if (!remnant && !ncr) {
+            return;
+        }
+
+        DamageSource source = event.getSource();
+        Resistance resistance;
+        if (source.is(DamageTypeTags.IS_FALL)) {
+            resistance = new Resistance(0.0F, 1.0F);
+        } else if (source.is(DamageTypeTags.IS_EXPLOSION)) {
+            resistance = new Resistance(15.0F, 0.25F);
+        } else if (source.is(DamageTypeTags.IS_FIRE)) {
+            resistance = remnant
+                    ? new Resistance(25.0F, 0.90F)
+                    : new Resistance(10.0F, 0.90F);
+        } else if (isHbmEnergyDamage(source)) {
+            resistance = remnant
+                    ? new Resistance(30.0F, 0.80F)
+                    : new Resistance(10.0F, 0.50F);
+        } else if (source.is(DamageTypeTags.IS_PROJECTILE) || source.getEntity() != null) {
+            resistance = remnant
+                    ? new Resistance(50.0F, 0.75F)
+                    : new Resistance(25.0F, 0.65F);
+        } else {
+            resistance = remnant
+                    ? new Resistance(15.0F, 0.45F)
+                    : new Resistance(15.0F, 0.25F);
+        }
+
+        float amount = event.getAmount();
+        if (resistance.threshold() >= amount) {
+            event.setAmount(0.0F);
+            return;
+        }
+        event.setAmount((amount - resistance.threshold()) * (1.0F - resistance.fraction()));
+    }
+
+    private static boolean isHbmEnergyDamage(DamageSource source) {
+        return source.is(HbmDamageTypes.LASER)
+                || source.is(HbmDamageTypes.ELECTRICITY)
+                || source.is(HbmDamageTypes.MICROWAVE)
+                || source.is(HbmDamageTypes.TAU);
+    }
+
+    private record Resistance(float threshold, float fraction) {
     }
 
     /**
@@ -422,15 +502,40 @@ public final class RadiationEvents {
         }
     }
 
-    /** Restores ArmorFSB's hard-landing shockwave without touching vanilla fall
-     * damage when the suit is unpowered or incomplete. */
+    /** Restores ArmorFSB's landing sound and hard-landing shockwave without
+     * touching vanilla fall damage when the suit is unpowered or incomplete. */
     @SubscribeEvent
     public static void onLivingFall(LivingFallEvent event) {
         if (!(event.getEntity() instanceof Player player)
                 || player.level().isClientSide
-                || !ArmorFSBItem.hasFSBArmor(player)
-                || !ArmorFSBItem.hasFeature(player, ArmorFSBItem.Feature.HARD_LANDING)
-                || event.getDistance() <= 10.0F) {
+                || !ArmorFSBItem.hasFSBArmor(player)) {
+            return;
+        }
+
+        float fallDistance = event.getDistance();
+        if (fallDistance > 0.5F) {
+            var landingSound = switch (ArmorFSBItem.fullSetGroup(player)) {
+                case "rpa", "ncrpa" -> HbmSoundEvents.STEP_POWERED;
+                case "t51", "ajr", "ajro", "blackjack", "fau", "dns", "liquidator" ->
+                        HbmSoundEvents.STEP_IRON_LAND;
+                default -> null;
+            };
+            if (landingSound != null) {
+                player.level().playSound(
+                        null,
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
+                        landingSound.get(),
+                        SoundSource.PLAYERS,
+                        0.5F,
+                        1.0F
+                );
+            }
+        }
+
+        if (!ArmorFSBItem.hasFeature(player, ArmorFSBItem.Feature.HARD_LANDING)
+                || fallDistance <= 10.0F) {
             return;
         }
 
@@ -453,10 +558,18 @@ public final class RadiationEvents {
     /** Preserves ItemModRevive's pre-death armor-slot rescue behavior. */
     @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
     public static void onLivingDeathFirst(LivingDeathEvent event) {
-        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Player player
-                && LegacyReviveArmorModItem.tryRevive(player)) {
-            clearReviveHazards(player);
-            event.setCanceled(true);
+        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof Player player) {
+            if (LegacyReviveArmorModItem.tryRevive(player)) {
+                clearReviveHazards(player);
+                event.setCanceled(true);
+            } else if (LegacyShacklesArmorModItem.tryRevive(player)) {
+                // Shackles deliberately retain and increase accumulated body
+                // radiation; only the unrelated respiratory hazards reset.
+                HbmLivingHazards.clear(player);
+                clearCompatRadiationInputs(player);
+                markPlayerRadiationInputsDirty(player);
+                event.setCanceled(true);
+            }
         }
     }
 
@@ -475,9 +588,21 @@ public final class RadiationEvents {
                     && event.getEntity().level() instanceof ServerLevel level) {
                 HbmAdvancements.awardNearby(level, event.getEntity().getBoundingBox().inflate(50.0D), "hidden");
             }
-            // Radiation was reset unconditionally by the 1.7.10 death hook;
-            // keep that guarantee even when another mod cancels the death.
-            HbmLivingRadiation.clear(event.getEntity());
+            if (!event.isCanceled() && event.getEntity() instanceof Player player) {
+                for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+                    ItemStack stack = player.getInventory().getItem(slot);
+                    if (stack.is(HbmItems.DETONATOR_DEADMAN.get())
+                            && LegacyDropItem.detonateDeadmanTarget(player.level(), stack)) {
+                        player.getInventory().setItem(slot, ItemStack.EMPTY);
+                    }
+                }
+            }
+            // The old LOWEST handler did not receive a death event already
+            // cancelled by a revive.  Preserve that distinction so shackles'
+            // escalating radiation cost cannot be erased by cleanup.
+            if (!event.isCanceled()) {
+                HbmLivingRadiation.clear(event.getEntity());
+            }
             // Clear respiratory hazards even when another handler cancels
             // the death (totem/custom revival).  The lethal setter resets the
             // value before hurt(), but a cancelled death can otherwise leave
@@ -552,6 +677,11 @@ public final class RadiationEvents {
         if (!living.isAlive()) {
             HbmLivingRadiation.clear(living);
             clearCompatRadiationInputs(living);
+            return;
+        }
+
+        tickLegacyOil(living);
+        if (!living.isAlive()) {
             return;
         }
 
@@ -642,6 +772,28 @@ public final class RadiationEvents {
         HbmLivingRadiation.set(living, data);
     }
 
+    /** HbmLivingProps oil timer used by sprayed flammable liquids. */
+    private static void tickLegacyOil(LivingEntity living) {
+        net.minecraft.nbt.CompoundTag data = living.getPersistentData();
+        int oil = data.getInt(com.reinhardt.hbm.entity.LegacyMistEntity.OIL_TICKS_TAG);
+        if (oil <= 0) {
+            return;
+        }
+        if (living.isOnFire()) {
+            data.remove(com.reinhardt.hbm.entity.LegacyMistEntity.OIL_TICKS_TAG);
+            living.level().explode(null, living.getX(), living.getY() + living.getBbHeight() * 0.5D,
+                    living.getZ(), 3.0F, false, Level.ExplosionInteraction.TNT);
+            return;
+        }
+        data.putInt(com.reinhardt.hbm.entity.LegacyMistEntity.OIL_TICKS_TAG, oil - 1);
+        if (living.tickCount % 5 == 0 && living.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.LARGE_SMOKE,
+                    living.getX(), living.getY() + living.getBbHeight() * 0.5D, living.getZ(),
+                    1, living.getBbWidth() * 0.25D, living.getBbHeight() * 0.25D,
+                    living.getBbWidth() * 0.25D, 0.0D);
+        }
+    }
+
     private static void applyArmorHealthModifier(Player player) {
         AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
         if (maxHealth == null) {
@@ -701,6 +853,14 @@ public final class RadiationEvents {
         if (movement != null) {
             movement.removeModifier(ARMOR_MOD_SPEED_MODIFIER);
         }
+        AttributeInstance attackDamage = player.getAttribute(Attributes.ATTACK_DAMAGE);
+        if (attackDamage != null) {
+            attackDamage.removeModifier(ARMOR_MOD_ATTACK_MODIFIER);
+        }
+        AttributeInstance knockbackResistance = player.getAttribute(Attributes.KNOCKBACK_RESISTANCE);
+        if (knockbackResistance != null) {
+            knockbackResistance.removeModifier(ARMOR_MOD_KNOCKBACK_MODIFIER);
+        }
         AttributeInstance stepHeight = player.getAttribute(Attributes.STEP_HEIGHT);
         if (stepHeight != null) {
             stepHeight.removeModifier(ARMOR_STEP_HEIGHT_MODIFIER);
@@ -708,6 +868,8 @@ public final class RadiationEvents {
         AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
 
         double movementMultiplier = 1.0D;
+        double attackMultiplier = 1.0D;
+        double knockbackBonus = 0.0D;
         boolean injectorKnifeInstalled = false;
         for (ItemStack armor : player.getArmorSlots()) {
             for (ItemStack mod : ArmorModHandler.pryMods(armor, player.registryAccess())) {
@@ -717,7 +879,9 @@ public final class RadiationEvents {
                 if (mod.getItem() instanceof ArmorModItem armorMod) {
                     injectorKnifeInstalled |= armorMod instanceof LegacyInjectorKnifeArmorModItem;
                     armorMod.tickArmor(player, armor);
-                    movementMultiplier *= armorMod.movementMultiplier();
+                    movementMultiplier *= armorMod.movementMultiplier(armor);
+                    attackMultiplier *= armorMod.attackDamageMultiplier(armor);
+                    knockbackBonus += armorMod.knockbackResistance(armor);
                 }
             }
         }
@@ -729,6 +893,20 @@ public final class RadiationEvents {
                     ARMOR_MOD_SPEED_MODIFIER,
                     movementMultiplier - 1.0D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            ));
+        }
+        if (attackDamage != null && attackMultiplier != 1.0D) {
+            attackDamage.addOrUpdateTransientModifier(new AttributeModifier(
+                    ARMOR_MOD_ATTACK_MODIFIER,
+                    attackMultiplier - 1.0D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            ));
+        }
+        if (knockbackResistance != null && knockbackBonus != 0.0D) {
+            knockbackResistance.addOrUpdateTransientModifier(new AttributeModifier(
+                    ARMOR_MOD_KNOCKBACK_MODIFIER,
+                    knockbackBonus,
+                    AttributeModifier.Operation.ADD_VALUE
             ));
         }
         ArmorFSBItem.FeatureProfile profile = ArmorFSBItem.features(player);

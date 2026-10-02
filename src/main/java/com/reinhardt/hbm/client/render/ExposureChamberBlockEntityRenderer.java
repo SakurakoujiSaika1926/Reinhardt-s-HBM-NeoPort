@@ -25,6 +25,7 @@ public class ExposureChamberBlockEntityRenderer implements LongRangeBlockEntityR
     private static final ModelResourceLocation CHAMBER = MachineModelRenderer.standalone("block/machine_exposure_chamber_chamber");
     private static final ModelResourceLocation MAGNETS = MachineModelRenderer.standalone("block/machine_exposure_chamber_magnets");
     private static final ModelResourceLocation CORE = MachineModelRenderer.standalone("block/machine_exposure_chamber_core");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB NORTH_RENDER_BOUNDS = createExposureChamberLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_RENDER_BOUNDS = createExposureChamberLocalBounds(Direction.SOUTH);
     private static final AABB WEST_RENDER_BOUNDS = createExposureChamberLocalBounds(Direction.WEST);
@@ -50,11 +51,11 @@ public class ExposureChamberBlockEntityRenderer implements LongRangeBlockEntityR
 
         poseStack.pushPose();
         applyExposureChamberPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(CHAMBER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(CHAMBER, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.mulPose(new Quaternionf().rotationY((float) Math.toRadians(rotation)));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MAGNETS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MAGNETS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         if (chamber.isOn()) {
@@ -62,7 +63,7 @@ public class ExposureChamberBlockEntityRenderer implements LongRangeBlockEntityR
             poseStack.mulPose(new Quaternionf().rotationY((float) Math.toRadians(rotation / 2.0F)));
             double bob = Math.sin(((chamber.getLevel() == null ? 0 : chamber.getLevel().getGameTime()) + partialTick) * 0.125D) * 0.0625D;
             poseStack.translate(0.0D, bob, 0.0D);
-            MachineModelRenderer.renderUnculledFullBright(MachineModelRenderer.model(CORE), poseStack, bufferSource, state, packedOverlay);
+            STATIC_MESHES.render(CORE, poseStack, state, LightTexture.FULL_BRIGHT, packedOverlay);
             poseStack.popPose();
             renderBeams(chamber, poseStack, bufferSource);
         }

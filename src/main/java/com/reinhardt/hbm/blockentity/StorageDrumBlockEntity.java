@@ -56,8 +56,6 @@ import java.util.List;
 public final class StorageDrumBlockEntity extends BlockEntity implements MachineInventory, WorldlyContainer, MenuProvider {
     public static final int SLOT_COUNT = 24;
     public static final int TANK_CAPACITY = 16_000;
-    private static final int LONG_DECAY_TICKS = 3 * 60 * 60 * 20;
-    private static final int SHORT_DECAY_TICKS = 15 * 60 * 20;
     private static final int OUTPUT_PER_SIDE = 16_000;
     private static final int[] SLOTS = {
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
@@ -285,8 +283,8 @@ public final class StorageDrumBlockEntity extends BlockEntity implements Machine
 
     private DecayResult decay(ItemStack stack, Level level) {
         String id = idOf(stack);
-        int longChance = HbmConfig.ENABLE_528_MODE.get() ? 15 * 60 * 60 * 20 : LONG_DECAY_TICKS;
-        int shortChance = HbmConfig.ENABLE_528_MODE.get() ? 3 * 60 * 60 * 20 : SHORT_DECAY_TICKS;
+        int longChance = HbmConfig.longDecayChance();
+        int shortChance = HbmConfig.shortDecayChance();
 
         if (id.equals("nuclear_waste_long") && level.random.nextInt(longChance) == 0) {
             NuclearWasteItem.WasteClass waste = NuclearWasteItem.classOf(stack);
@@ -304,10 +302,10 @@ public final class StorageDrumBlockEntity extends BlockEntity implements Machine
             NuclearWasteItem.WasteClass waste = NuclearWasteItem.classOf(stack);
             return wasteDecay(stack, "nuclear_waste_short_depleted_tiny", waste.liquid() / 10, waste.gas() / 10);
         }
-        if (id.equals("ingot_au198") && level.random.nextInt(shortChance / 100) == 0) {
+        if (id.equals("ingot_au198") && level.random.nextInt(shortChance / 20) == 0) {
             return new DecayResult(new ItemStack(stackFor("bottle_mercury", stack)), 500, 500);
         }
-        if (id.equals("nugget_au198") && level.random.nextInt(shortChance / 1_000) == 0) {
+        if (id.equals("nugget_au198") && level.random.nextInt(shortChance / 100) == 0) {
             return new DecayResult(new ItemStack(stackFor("nugget_mercury", stack)), 50, 50);
         }
         if (id.equals("ingot_pb209") && level.random.nextInt(shortChance / 10) == 0) {

@@ -70,12 +70,20 @@ public final class LegacyDisplayStandBlock extends Block implements EntityBlock 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                   BlockEntityType<T> type) {
-        if (!level.isClientSide || type != HbmBlockEntities.LEGACY_DISPLAY_STAND.get()) {
+        if (type != HbmBlockEntities.LEGACY_DISPLAY_STAND.get()) {
             return null;
         }
-        return (tickerLevel, tickerPos, tickerState, blockEntity) ->
-                LegacyDisplayStandBlockEntity.clientTick(tickerLevel, tickerPos, tickerState,
-                        (LegacyDisplayStandBlockEntity) blockEntity);
+        if (level.isClientSide) {
+            return (tickerLevel, tickerPos, tickerState, blockEntity) ->
+                    LegacyDisplayStandBlockEntity.clientTick(tickerLevel, tickerPos, tickerState,
+                            (LegacyDisplayStandBlockEntity) blockEntity);
+        }
+        if (this.kind == Kind.PEDESTAL) {
+            return (tickerLevel, tickerPos, tickerState, blockEntity) ->
+                    LegacyDisplayStandBlockEntity.serverTick(tickerLevel, tickerPos, tickerState,
+                            (LegacyDisplayStandBlockEntity) blockEntity);
+        }
+        return null;
     }
 
     @Override

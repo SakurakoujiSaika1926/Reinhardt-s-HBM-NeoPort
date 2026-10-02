@@ -256,8 +256,9 @@ public final class IcfControllerBlockEntity extends BlockEntity implements Power
     private void tickServer(Level level) {
         PowerNetworkManager.tickFromEndpoint(level, this);
         if (!assembled || power <= 0L) {
+            boolean beamStopped = laserLength != 0;
             laserLength = 0;
-            if (level.getGameTime() % 10L == 0L) {
+            if (beamStopped || level.getGameTime() % 10L == 0L) {
                 markDirtyAndSync();
             }
             return;
@@ -315,9 +316,7 @@ public final class IcfControllerBlockEntity extends BlockEntity implements Power
     }
 
     private Direction facing() {
-        return getBlockState().hasProperty(IcfControllerBlock.FACING)
-                ? getBlockState().getValue(IcfControllerBlock.FACING)
-                : Direction.SOUTH;
+        return getBlockState().getValue(IcfControllerBlock.FACING);
     }
 
     @Override

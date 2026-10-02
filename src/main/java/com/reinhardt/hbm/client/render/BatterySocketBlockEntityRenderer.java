@@ -16,6 +16,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import java.util.Map;
 
 public class BatterySocketBlockEntityRenderer implements LongRangeBlockEntityRenderer<BatterySocketBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation SOCKET = MachineModelRenderer.standalone("block/machine_battery_socket_socket");
     private static final ModelResourceLocation SUPPORTS = MachineModelRenderer.standalone("block/machine_battery_socket_supports");
     private static final ModelResourceLocation BATTERY_REDSTONE = MachineModelRenderer.standalone("block/machine_battery_socket_battery_redstone");
@@ -66,14 +67,14 @@ public class BatterySocketBlockEntityRenderer implements LongRangeBlockEntityRen
         Direction facing = batterySocketFacing(state);
         poseStack.pushPose();
         applyBatterySocketTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SOCKET), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SOCKET, poseStack, state, packedLight, packedOverlay);
         if (socket.renderNeighborSnapshot().supportsVisible()) {
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SUPPORTS), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(SUPPORTS, poseStack, state, packedLight, packedOverlay);
         }
         ItemStack stack = socket.batteryStack();
         ModelResourceLocation insert = INSERT_MODELS.get(BatteryPackItem.variantId(stack));
         if (insert != null) {
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(insert), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(insert, poseStack, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
     }

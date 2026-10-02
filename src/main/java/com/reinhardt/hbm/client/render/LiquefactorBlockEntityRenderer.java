@@ -11,6 +11,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class LiquefactorBlockEntityRenderer implements LongRangeBlockEntityRenderer<LiquefactorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MAIN = MachineModelRenderer.standalone("block/machine_liquefactor");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_liquefactor_fluid");
     private static final ModelResourceLocation GLASS = MachineModelRenderer.standalone("block/machine_liquefactor_glass");
@@ -32,7 +33,7 @@ public class LiquefactorBlockEntityRenderer implements LongRangeBlockEntityRende
 
         poseStack.pushPose();
         applyLiquefactorPose(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MAIN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MAIN, poseStack, state, packedLight, packedOverlay);
 
         if (liquefactor.tank().amount() > 0 && !liquefactor.tank().type().isNone()) {
             double height = (double) liquefactor.tank().amount() / (double) liquefactor.tank().capacity();

@@ -14,6 +14,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class SolderingStationBlockEntityRenderer implements LongRangeBlockEntityRenderer<SolderingStationBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_soldering_station_world");
     private static final AABB NORTH_RENDER_BOUNDS = createSolderingStationLocalBounds(Direction.NORTH);
     private static final AABB SOUTH_RENDER_BOUNDS = createSolderingStationLocalBounds(Direction.SOUTH);
@@ -34,7 +35,7 @@ public class SolderingStationBlockEntityRenderer implements LongRangeBlockEntity
 
         poseStack.pushPose();
         applySolderingStationPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

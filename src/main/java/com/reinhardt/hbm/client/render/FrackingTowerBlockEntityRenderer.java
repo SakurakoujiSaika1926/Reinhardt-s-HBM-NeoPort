@@ -13,6 +13,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 public class FrackingTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<FrackingTowerBlockEntity> {
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fracking_tower");
     private static final ModelResourceLocation PORTS_MODEL = MachineModelRenderer.standalone("block/machine_fracking_tower_ports");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB LOCAL_BOUNDS = buildFrackingTowerBounds();
 
     public FrackingTowerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -28,10 +29,10 @@ public class FrackingTowerBlockEntityRenderer implements LongRangeBlockEntityRen
         BlockState state = tower.getBlockState();
         poseStack.pushPose();
         applyFrackingTowerTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.5F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PORTS_MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PORTS_MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }

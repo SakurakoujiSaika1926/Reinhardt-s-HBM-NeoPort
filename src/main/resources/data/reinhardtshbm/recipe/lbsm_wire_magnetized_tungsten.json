@@ -1,0 +1,22 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:ingots/magnetized_tungsten"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:wire_magnetized_tungsten",
+    "count": 24
+  }
+}

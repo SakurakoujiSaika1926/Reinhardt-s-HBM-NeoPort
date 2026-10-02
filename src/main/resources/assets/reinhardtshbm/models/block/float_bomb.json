@@ -5,7 +5,8 @@
                      "north": "reinhardtshbm:block/bomb_float",
                      "south": "reinhardtshbm:block/bomb_float",
                      "east": "reinhardtshbm:block/bomb_float",
-                     "west": "reinhardtshbm:block/bomb_float"
+                     "west": "reinhardtshbm:block/bomb_float",
+                     "particle": "#north"
                  },
     "parent":  "minecraft:block/cube"
 }

@@ -98,7 +98,7 @@ public class BedrockOreDepositFeature extends Feature<NoneFeatureConfiguration> 
     }
 
     private static void generateHostRock(WorldGenLevel level, int centerX, int centerZ, boolean nether) {
-        Block hostRock = nether ? HbmBlocks.STONE_DEPTH_NETHER.get() : Blocks.DEEPSLATE;
+        Block hostRock = nether ? Blocks.NETHERRACK : Blocks.DEEPSLATE;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         int minY = level.getMinBuildHeight();
         for (int x = centerX - 3; x <= centerX + 3; x++) {

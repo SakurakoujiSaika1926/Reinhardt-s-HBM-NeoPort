@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_expensive_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.tank",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_steel_plating" }, "count": 4 },
+    { "ingredient": { "tag": "c:tars" }, "count": 16 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_fluidtank" }
+}

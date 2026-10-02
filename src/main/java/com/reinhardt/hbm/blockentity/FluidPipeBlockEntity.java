@@ -6,6 +6,9 @@ import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.item.SettingsToolItem;
 import com.reinhardt.hbm.registry.HbmBlockEntities;
 import com.reinhardt.hbm.registry.HbmFluids;
+import com.reinhardt.hbm.rtty.RttyInfo;
+import com.reinhardt.hbm.rtty.RttyInteractive;
+import com.reinhardt.hbm.rtty.RttyValueProvider;
 import com.reinhardt.hbm.util.FluidCopiable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,11 +29,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
+public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable, RttyValueProvider, RttyInteractive {
     private static final String[] LEGACY_EXHAUST_FLUIDS = {"smoke", "smoke_leaded", "smoke_poison"};
 
     private HbmFluidDefinition type = HbmFluids.none();
     private boolean open = true;
+    private long counter;
+    private int lastTransfer;
+    private long lastCounterUpdate = Long.MIN_VALUE;
 
     public FluidPipeBlockEntity(BlockPos pos, BlockState blockState) {
         this(HbmBlockEntities.FLUID_PIPE.get(), pos, blockState);
@@ -47,6 +53,59 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
 
     public boolean open() {
         return open;
+    }
+
+    public long counter() {
+        return currentCounter();
+    }
+
+    public int lastTransfer() {
+        return this.lastTransfer;
+    }
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state, FluidPipeBlockEntity pipe) {
+        if (state.getBlock() instanceof FluidDuctBlock duct
+                && duct.kind() == FluidDuctBlock.Kind.COUNTER_VALVE) {
+            pipe.updateCounter();
+        }
+    }
+
+    private void updateCounter() {
+        Level level = this.level;
+        if (level == null || level.isClientSide || level.getGameTime() == this.lastCounterUpdate) {
+            return;
+        }
+        int moved = this.open && !this.type.isNone()
+                ? HbmFluidNetworks.lastTransfer(level, this.worldPosition, this.type)
+                : 0;
+        this.lastCounterUpdate = level.getGameTime();
+        boolean changed = moved != this.lastTransfer || moved > 0;
+        this.lastTransfer = moved;
+        if (moved > 0) {
+            this.counter = saturatingAdd(this.counter, moved);
+        }
+        if (changed) {
+            setChanged();
+        }
+    }
+
+    private long currentCounter() {
+        Level level = this.level;
+        if (level == null || level.isClientSide || level.getGameTime() == this.lastCounterUpdate
+                || !this.open || this.type.isNone()) {
+            return this.counter;
+        }
+        return saturatingAdd(this.counter, HbmFluidNetworks.lastTransfer(level, this.worldPosition, this.type));
+    }
+
+    private static long saturatingAdd(long value, long increment) {
+        return increment > 0L && value > Long.MAX_VALUE - increment ? Long.MAX_VALUE : value + increment;
+    }
+
+    private void resetCounter() {
+        updateCounter();
+        this.counter = 0L;
+        setChanged();
     }
 
     public boolean canConnect(HbmFluidDefinition fluid) {
@@ -187,6 +246,8 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
         super.saveAdditional(tag, registries);
         tag.putString("Fluid", this.type.name());
         tag.putBoolean("Open", this.open);
+        tag.putLong("counter", this.counter);
+        tag.putInt("last_transfer", this.lastTransfer);
     }
 
     @Override
@@ -194,6 +255,9 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
         super.loadAdditional(tag, registries);
         this.type = HbmFluids.byName(tag.getString("Fluid")).orElse(HbmFluids.none());
         this.open = !tag.contains("Open") || tag.getBoolean("Open");
+        this.counter = Math.max(0L, tag.getLong("counter"));
+        this.lastTransfer = Math.max(0, tag.getInt("last_transfer"));
+        this.lastCounterUpdate = Long.MIN_VALUE;
     }
 
     @Override
@@ -215,6 +279,44 @@ public class FluidPipeBlockEntity extends BlockEntity implements FluidCopiable {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public String[] rttyFunctionInfo() {
+        if (!(getBlockState().getBlock() instanceof FluidDuctBlock duct)
+                || duct.kind() != FluidDuctBlock.Kind.COUNTER_VALVE) {
+            return new String[0];
+        }
+        return new String[] {
+                RttyInfo.PREFIX_VALUE + "value",
+                RttyInfo.PREFIX_VALUE + "state",
+                RttyInfo.PREFIX_FUNCTION + "reset",
+                RttyInfo.PREFIX_FUNCTION + "setstate" + RttyInteractive.NAME_SEPARATOR + "state"
+        };
+    }
+
+    @Override
+    public String provideRttyValue(String name) {
+        if (name.equals(RttyInfo.PREFIX_VALUE + "value")) {
+            return Long.toString(currentCounter());
+        }
+        if (name.equals(RttyInfo.PREFIX_VALUE + "state")) {
+            return this.open ? "1" : "0";
+        }
+        return null;
+    }
+
+    @Override
+    public String runRttyFunction(String name, String[] params) {
+        if (name.equals(RttyInfo.PREFIX_FUNCTION + "reset")) {
+            resetCounter();
+        } else if (name.equals(RttyInfo.PREFIX_FUNCTION + "setstate") && params.length > 0) {
+            int state = RttyInteractive.parseInt(params[0], 0, 1);
+            if (this.level != null && getBlockState().getBlock() instanceof FluidDuctBlock duct) {
+                duct.setOpen(this.level, this.worldPosition, state == 1, true);
+            }
+        }
+        return null;
     }
 
     private final class PipeFluidHandler implements IFluidHandler {

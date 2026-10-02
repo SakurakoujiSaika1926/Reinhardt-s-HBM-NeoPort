@@ -44,13 +44,18 @@ public final class HbmThermalConversions {
         };
     }
 
-    /** TileEntityICF uses the same 1:1, 400 TU sodium heating step as the old heat exchanger. */
+    /** Exact latest-1.7.10 {@code HeatingType.ICF} table and first heating steps. */
     public static Optional<HeatingStep> firstIcfStep(HbmFluidDefinition input) {
         if (input == null || input.isNone()) {
             return Optional.empty();
         }
         return switch (input.name()) {
-            case "sodium" -> heating(input, "sodium_hot", 400, 1, 1, 1.0D);
+            case "coolant" -> heating(input, "coolant_hot", 300, 1, 1, 1.0D);
+            case "perfluoromethyl" -> heating(input, "perfluoromethyl_hot", 300, 1, 1, 1.0D);
+            case "mug" -> heating(input, "mug_hot", 400, 1, 1, 1.25D);
+            case "blood" -> heating(input, "blood_hot", 500, 1, 1, 1.25D);
+            case "sodium" -> heating(input, "sodium_hot", 400, 1, 1, 3.0D);
+            case "lead" -> heating(input, "lead_hot", 800, 1, 1, 4.0D);
             default -> Optional.empty();
         };
     }

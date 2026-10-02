@@ -14,6 +14,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class LargeTurbineBlockEntityRenderer implements LongRangeBlockEntityRenderer<LargeTurbineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_large_turbine_body");
     static final ModelResourceLocation BLADES = MachineModelRenderer.standalone("block/machine_large_turbine_blades");
     private static final AABB[] LOCAL_BOUNDS = buildLargeTurbineBounds();
@@ -33,13 +34,13 @@ public class LargeTurbineBlockEntityRenderer implements LongRangeBlockEntityRend
 
         poseStack.pushPose();
         applyLargeTurbineTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.0D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(turbine.rotor(partialTick)), 0.0F, 0.0F, 1.0F)));
         poseStack.translate(0.0D, -1.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BLADES), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BLADES, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.popPose();

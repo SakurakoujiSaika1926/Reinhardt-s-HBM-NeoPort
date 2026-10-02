@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class CentrifugeBlockEntityRenderer implements LongRangeBlockEntityRenderer<CentrifugeBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_centrifuge");
     private static final AABB[] LOCAL_BOUNDS = buildCentrifugeBounds();
 
@@ -28,7 +29,7 @@ public class CentrifugeBlockEntityRenderer implements LongRangeBlockEntityRender
         Direction facing = centrifugeFacing(state);
         poseStack.pushPose();
         applyCentrifugeTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

@@ -1,0 +1,37 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "items": [
+        "reinhardtshbm:canister_full"
+      ],
+      "components": {
+        "minecraft:custom_data": {
+          "fluid": "oil"
+        }
+      }
+    },
+    {
+      "tag": "c:dusts/redstone"
+    },
+    {
+      "item": "reinhardtshbm:canister_empty"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:canister_full",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "diesel"
+      }
+    }
+  }
+}

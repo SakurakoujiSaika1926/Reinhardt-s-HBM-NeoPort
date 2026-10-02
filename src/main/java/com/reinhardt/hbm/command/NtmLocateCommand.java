@@ -21,7 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class NtmLocateCommand {
-    private static final int MAX_DISTANCE_CHUNKS = 256;
+    private static final int MAX_WEIGHTED_DISTANCE_CHUNKS = 1024;
+    private static final int MAX_SCATTER_DISTANCE_CHUNKS = 256;
 
     private NtmLocateCommand() {
     }
@@ -57,14 +58,17 @@ public final class NtmLocateCommand {
         ChunkPos start = new ChunkPos(sourcePos);
         ChunkPos found = nearest(context.getSource(), name, start);
         if (found == null) {
-            context.getSource().sendFailure(Component.translatable("commands.locate.none_found"));
+            int radius = isWeightedStructure(name) ? MAX_WEIGHTED_DISTANCE_CHUNKS : MAX_SCATTER_DISTANCE_CHUNKS;
+            context.getSource().sendFailure(Component.translatable("commands.reinhardtshbm.locate.not_found", name, radius));
             return 0;
         }
 
         int x = found.getMinBlockX();
         int z = found.getMinBlockZ();
+        int distance = (int) Math.floor(Math.sqrt((double) ((long) (found.x - start.x) * (found.x - start.x)
+                + (long) (found.z - start.z) * (found.z - start.z))) * 16.0D);
         context.getSource().sendSuccess(
-                () -> Component.translatable("commands.locate.success.coordinates", name, x, z)
+                () -> Component.translatable("commands.reinhardtshbm.locate.success", name, x, z, distance)
                         .withStyle(ChatFormatting.GREEN),
                 false
         );
@@ -72,10 +76,19 @@ public final class NtmLocateCommand {
     }
 
     private static ChunkPos nearest(CommandSourceStack source, String name, ChunkPos start) {
+        if (isWeightedStructure(name)) {
+            return HbmLegacyNbtStructure.findNearestSelectedChunk(
+                    source.getLevel(),
+                    start,
+                    name,
+                    MAX_WEIGHTED_DISTANCE_CHUNKS
+            );
+        }
+
         if (name.equals(selectedNameAt(source, name, start))) {
             return start;
         }
-        for (int radius = 1; radius < MAX_DISTANCE_CHUNKS; radius++) {
+        for (int radius = 1; radius <= MAX_SCATTER_DISTANCE_CHUNKS; radius++) {
             for (int x = start.x - radius; x <= start.x + radius; x++) {
                 ChunkPos north = new ChunkPos(x, start.z - radius);
                 if (name.equals(selectedNameAt(source, name, north))) {
@@ -98,6 +111,10 @@ public final class NtmLocateCommand {
             }
         }
         return null;
+    }
+
+    private static boolean isWeightedStructure(String name) {
+        return HbmLegacyNbtStructure.listStructureNames().contains(name);
     }
 
     private static CompletableFuture<Suggestions> suggestStructures(

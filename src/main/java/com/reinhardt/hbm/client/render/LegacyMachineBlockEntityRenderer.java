@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Legacy 1.7.10 rendering tables for Pyro Oven, Conveyor Press and Autosaw. */
 public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEntityRenderer<LegacyMachineBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
     private static final long JAVA_RANDOM_ADDEND = 0xBL;
     private static final long JAVA_RANDOM_MASK = (1L << 48) - 1L;
@@ -471,7 +472,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
     }
 
     static void renderItemRtg(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RTG_GEN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RTG_GEN, poseStack, state, packedLight, packedOverlay);
     }
 
     private static void renderThresher(LegacyMachineBlockEntity machine, float partialTick, PoseStack poseStack,
@@ -489,35 +490,35 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderThresherParts(double angle, double spin, double engine, BlockState state,
                                             PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(THRESHER_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(THRESHER_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0D, engine * 0.01D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(THRESHER_ENGINE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(THRESHER_ENGINE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.translate(0.0D, 0.5D, -1.0D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) angle));
         poseStack.translate(0.0D, -0.5D, 1.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(THRESHER_UPPER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(THRESHER_UPPER, poseStack, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0D, 0.5D, -5.0D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) (-angle * 2.0D)));
         poseStack.translate(0.0D, -0.5D, 5.0D);
         poseStack.translate(-0.01D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(THRESHER_LOWER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(THRESHER_LOWER, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(0.01D, 0.0D, 0.0D);
 
         poseStack.translate(0.0D, 0.5D, -9.0D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) angle));
         poseStack.translate(0.0D, -0.5D, 9.0D);
         poseStack.translate(0.01D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(THRESHER_FRONT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(THRESHER_FRONT, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(-0.01D, 0.0D, 0.0D);
 
         poseStack.translate(0.0D, 0.5D, -11.0D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) -spin));
         poseStack.translate(0.0D, -0.5D, 11.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(THRESHER_WHEEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(THRESHER_WHEEL, poseStack, state, packedLight, packedOverlay);
     }
 
     private static void renderLPW2(LegacyMachineBlockEntity machine, float partialTick, PoseStack poseStack,
@@ -543,56 +544,56 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         double rotor = (lpw2Sps(rotorTimer) + rotorTimer / 2.0D - 1.0D) / 25.1327412287D;
         double turbine = (time % 100.0D) / 100.0D;
 
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_FRAME), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_FRAME, poseStack, state, packedLight, packedOverlay);
         renderLPW2MainAssembly(sway, h, v, piston, rotor, turbine, state, poseStack, bufferSource, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(-2.9375D, 0.0D, 2.375D);
         poseStack.mulPose(Axis.YP.rotationDegrees((float) (sway * 10.0D)));
         poseStack.translate(2.9375D, 0.0D, -2.375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_WIRE_LEFT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_WIRE_LEFT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(2.9375D, 0.0D, 2.375D);
         poseStack.mulPose(Axis.YP.rotationDegrees((float) (sway * -10.0D)));
         poseStack.translate(-2.9375D, 0.0D, -2.375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_WIRE_RIGHT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_WIRE_RIGHT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         double coverTimer = (time / 5.0D) % (Math.PI * 4.0D);
         double cover = (Math.sin(coverTimer) + Math.sin(coverTimer * 2.0D) + Math.sin(coverTimer * 4.0D)) * 0.5D;
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, -cover * 0.125D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_COVER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_COVER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, 3.5D);
         poseStack.scale(1.0F, 1.0F, (float) ((3.0D + cover * 0.125D) / 3.0D));
         poseStack.translate(0.0D, 0.0D, -3.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_SUSPENSION_COVER_FRONT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_SUSPENSION_COVER_FRONT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, -5.5D);
         poseStack.scale(1.0F, 1.0F, (float) ((1.5D - cover * 0.125D) / 1.5D));
         poseStack.translate(0.0D, 0.0D, 5.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_SUSPENSION_COVER_BACK), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_SUSPENSION_COVER_BACK, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, -9.0D);
         poseStack.scale(1.0F, 1.0F, (float) ((1.25D - sway * 0.125D) / 1.25D));
         poseStack.translate(0.0D, 0.0D, 9.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_SUSPENSION_BACK_OUTER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_SUSPENSION_BACK_OUTER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, -9.5D);
         poseStack.scale(1.0F, 1.0F, (float) ((1.75D - sway * 0.125D) / 1.75D));
         poseStack.translate(0.0D, 0.0D, 9.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_SUSPENSION_BACK_CENTER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_SUSPENSION_BACK_CENTER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         double serverTimer = (time / 2.0D) % (Math.PI * 4.0D);
@@ -606,7 +607,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
         poseStack.pushPose();
         poseStack.translate(sy * serverSway, 0.0D, sx * serverSway);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_MONITOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_MONITOR, poseStack, state, packedLight, packedOverlay);
         double errorTimer = time / 3.0D;
         MachineModelRenderer.renderUnculledUv(MachineModelRenderer.model(LPW2_SCREEN), poseStack, bufferSource, state,
                 packedLight, packedOverlay, LPW2_ERROR_TEXTURE,
@@ -619,30 +620,30 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
                                                int packedLight, int packedOverlay) {
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, -sway * 0.125D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_CENTER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_CENTER, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 3.5D, 0.0D);
         poseStack.pushPose();
         poseStack.mulPose(MachineModelRenderer.zQuaternion((float) (-rotor * 360.0D)));
         poseStack.translate(0.0D, -3.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_ROTOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_ROTOR, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
         poseStack.mulPose(MachineModelRenderer.zQuaternion((float) (turbine * 360.0D)));
         poseStack.translate(0.0D, -3.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_TURBINE_FRONT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_TURBINE_FRONT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
         poseStack.mulPose(MachineModelRenderer.zQuaternion((float) (-turbine * 360.0D)));
         poseStack.translate(0.0D, -3.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_TURBINE_BACK), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_TURBINE_BACK, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, piston * 0.375D + 0.375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_PISTON), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_PISTON, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         renderLPW2Bell(h, v, state, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
@@ -656,7 +657,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.mulPose(Axis.YP.rotationDegrees((float) (v * 2.0D)));
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) (h * 2.0D)));
         poseStack.translate(0.0D, -3.5D, -2.75D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_ENGINE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_ENGINE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -667,7 +668,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         double offset = 10.0D;
         poseStack.pushPose();
         poseStack.translate(0.0D, -h * magnitude, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_SHROUD_H), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_SHROUD_H, poseStack, state, packedLight, packedOverlay);
         renderLPW2Flap(112.5D, rotation * v + offset, state, poseStack, bufferSource, packedLight, packedOverlay);
         renderLPW2Flap(67.5D, rotation * v + offset, state, poseStack, bufferSource, packedLight, packedOverlay);
         renderLPW2Flap(292.5D, rotation * -v + offset, state, poseStack, bufferSource, packedLight, packedOverlay);
@@ -676,7 +677,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
         poseStack.pushPose();
         poseStack.translate(v * magnitude, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_SHROUD_V), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_SHROUD_V, poseStack, state, packedLight, packedOverlay);
         renderLPW2Flap(22.5D, rotation * h + offset, state, poseStack, bufferSource, packedLight, packedOverlay);
         renderLPW2Flap(-22.5D, rotation * h + offset, state, poseStack, bufferSource, packedLight, packedOverlay);
         renderLPW2Flap(202.5D, rotation * -h + offset, state, poseStack, bufferSource, packedLight, packedOverlay);
@@ -703,7 +704,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.translate(0.0D, 6.96875D, 8.5D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) rotation));
         poseStack.translate(0.0D, -6.96875D, -8.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(LPW2_FLAP), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(LPW2_FLAP, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -711,7 +712,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
                                               PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
         poseStack.translate(x, y, z);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -721,7 +722,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.translate(x, y, z);
         poseStack.scale(scaleX, scaleY, scaleZ);
         poseStack.translate(-x, -y, -z);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -735,8 +736,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         LegacyMachineBlockEntity.ForcefieldRenderSnapshot snapshot = machine.forcefieldRenderSnapshot();
         poseStack.pushPose();
         applyForcefieldTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FORCEFIELD_BASE), poseStack,
-                bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FORCEFIELD_BASE, poseStack, state, packedLight, packedOverlay);
         if (snapshot.renderable()) {
             poseStack.pushPose();
             poseStack.translate(0.0D, 0.5D, 0.0D);
@@ -750,19 +750,18 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
             poseStack.mulPose(Axis.YP.rotationDegrees(-rotation));
         }
         poseStack.translate(0.0D, 1.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FORCEFIELD_TOP), poseStack,
-                bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FORCEFIELD_TOP, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }
 
     private static void renderForcefieldHardware(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                                  int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FORCEFIELD_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FORCEFIELD_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         // RenderMachineForceField places the cap one block above radar_body.
         poseStack.translate(0.0D, 1.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FORCEFIELD_TOP), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FORCEFIELD_TOP, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -787,7 +786,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
                     LightTexture.FULL_BRIGHT, packedOverlay, 0xFF000000 | tank.type().color());
             poseStack.popPose();
         }
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(ORBUS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(ORBUS, poseStack, state, packedLight, packedOverlay);
         if (fill > 0.0F) {
             poseStack.pushPose();
             poseStack.translate(0.0D, 1.0D, 0.0D);
@@ -991,14 +990,12 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     static void renderItemMissileAssembly(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                            int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MISSILE_ASSEMBLY),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MISSILE_ASSEMBLY, poseStack, state, packedLight, packedOverlay);
     }
 
     static void renderItemOrbus(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                  int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(ORBUS),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(ORBUS, poseStack, state, packedLight, packedOverlay);
     }
 
     static void renderItemTurbofan(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
@@ -1008,8 +1005,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     static void renderItemGasTurbine(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                       int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(GasTurbineBlockEntityRenderer.MODEL),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(GasTurbineBlockEntityRenderer.MODEL, poseStack, state, packedLight, packedOverlay);
     }
 
     static void renderItemThresher(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
@@ -1031,14 +1027,12 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     static void renderItemRadiolysis(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                       int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADIOLYSIS),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADIOLYSIS, poseStack, state, packedLight, packedOverlay);
     }
 
     static void renderItemBreedingReactor(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                            int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BREEDER),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BREEDER, poseStack, state, packedLight, packedOverlay);
     }
 
     /** Direct port of RenderRadGen, including the opaque glass redraw after the translucent pass. */
@@ -1056,7 +1050,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderRadGenParts(boolean on, float rotorDegrees, BlockState state, PoseStack poseStack,
                                           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADGEN_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADGEN_BASE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         if (rotorDegrees != 0.0F) {
@@ -1064,14 +1058,14 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
             poseStack.mulPose(MachineModelRenderer.xQuaternion(rotorDegrees));
             poseStack.translate(0.0D, -1.5D, 0.0D);
         }
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADGEN_ROTOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADGEN_ROTOR, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         MachineModelRenderer.renderUnculledTintedUvEyes(MachineModelRenderer.model(RADGEN_LIGHT), poseStack, bufferSource,
                 state, packedOverlay, on ? 0xFF00FF00 : 0xFF001A00, 0.0F, 0.0F);
         MachineModelRenderer.renderUnculledTintedTranslucent(MachineModelRenderer.model(RADGEN_GLASS), poseStack, bufferSource,
                 state, packedLight, packedOverlay, 0x4D80BFFF);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADGEN_GLASS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADGEN_GLASS, poseStack, state, packedLight, packedOverlay);
     }
 
     /** Exact RenderPrecAss part hierarchy; the four arms are the same exported arm rotated around the ring. */
@@ -1088,14 +1082,14 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderPrecisionAssemblerParts(LegacyMachineBlockEntity machine, float partialTick, BlockState state,
                                                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_BASE, poseStack, state, packedLight, packedOverlay);
         if (machine.renderNeighborSnapshot().precisionFrameVisible()) {
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_FRAME), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(PRECASS_FRAME, poseStack, state, packedLight, packedOverlay);
         }
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees((float) machine.precisionAssemblerRing(partialTick)));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_RING), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_RING2), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_RING, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_RING2, poseStack, state, packedLight, packedOverlay);
         for (int arm = 0; arm < 4; arm++) {
             renderPrecisionAssemblerArm(machine, arm, partialTick, state, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
@@ -1109,17 +1103,17 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.translate(0.0D, 1.625D, 0.9375D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) machine.precisionAssemblerArmAngle(0, partialTick)));
         poseStack.translate(0.0D, -1.625D, -0.9375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_ARM_LOWER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_ARM_LOWER, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(0.0D, 2.375D, 0.9375D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) machine.precisionAssemblerArmAngle(1, partialTick)));
         poseStack.translate(0.0D, -2.375D, -0.9375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_ARM_UPPER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_ARM_UPPER, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(0.0D, 2.375D, 0.4375D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) machine.precisionAssemblerArmAngle(2, partialTick)));
         poseStack.translate(0.0D, -2.375D, -0.4375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_HEAD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_HEAD, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(0.0D, machine.precisionAssemblerStriker(arm, partialTick), 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_SPIKE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_SPIKE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -1186,10 +1180,10 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     static void renderItemPrecisionAssembler(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                               int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_FRAME), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_RING), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_RING2), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_BASE, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_FRAME, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_RING, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_RING2, poseStack, state, packedLight, packedOverlay);
         for (int arm = 0; arm < 4; arm++) {
             renderItemPrecisionAssemblerArm(state, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
@@ -1202,16 +1196,16 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.translate(0.0D, 1.625D, 0.9375D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion(45.0F));
         poseStack.translate(0.0D, -1.625D, -0.9375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_ARM_LOWER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_ARM_LOWER, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(0.0D, 2.375D, 0.9375D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion(-30.0F));
         poseStack.translate(0.0D, -2.375D, -0.9375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_ARM_UPPER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_ARM_UPPER, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(0.0D, 2.375D, 0.4375D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion(45.0F));
         poseStack.translate(0.0D, -2.375D, -0.4375D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_HEAD), poseStack, bufferSource, state, packedLight, packedOverlay);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRECASS_SPIKE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_HEAD, poseStack, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRECASS_SPIKE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -1221,7 +1215,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         BlockState state = machine.getBlockState();
         poseStack.pushPose();
         applyRadiolysisTransform(poseStack, radiolysisFacing(state));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADIOLYSIS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADIOLYSIS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -1231,10 +1225,10 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         BlockState state = machine.getBlockState();
         poseStack.pushPose();
         applyRadarTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.mulPose(Axis.YP.rotationDegrees(-machine.radarRotation(partialTick)));
         poseStack.translate(-0.125D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_DISH), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_DISH, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -1244,29 +1238,25 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         BlockState state = machine.getBlockState();
         poseStack.pushPose();
         applyRadarLargeTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_LARGE_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_LARGE_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.mulPose(Axis.YP.rotationDegrees(-machine.radarRotation(partialTick)));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_LARGE_DISH), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_LARGE_DISH, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     static void renderItemRadar(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                 int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_BASE),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.mulPose(Axis.YP.rotationDegrees(-(System.currentTimeMillis() % 3600L) * 0.1F));
         poseStack.translate(-0.125D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_DISH),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_DISH, poseStack, state, packedLight, packedOverlay);
     }
 
     static void renderItemLargeRadar(BlockState state, PoseStack poseStack, MultiBufferSource bufferSource,
                                      int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_LARGE_BASE),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_LARGE_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.mulPose(Axis.YP.rotationDegrees(-(System.currentTimeMillis() % 3600L) * 0.1F));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RADAR_LARGE_DISH),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RADAR_LARGE_DISH, poseStack, state, packedLight, packedOverlay);
     }
 
     /** Direct port of RenderMissileAssembly, including the gantry-relative missile transform. */
@@ -1280,7 +1270,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         float height = MissileMultipartRenderer.height(warhead, fuselage, thruster);
         poseStack.pushPose();
         applyMissileAssemblyTransform(poseStack, missileAssemblyFacing(state));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MISSILE_ASSEMBLY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MISSILE_ASSEMBLY, poseStack, state, packedLight, packedOverlay);
         if (height > 0.0F) {
             renderMissileStruts(height, state, poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.translate(0.0F, 1.5F, 0.0F);
@@ -1304,8 +1294,7 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
             }
             poseStack.pushPose();
             poseStack.translate(offset, 0.0F, 0.0F);
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MISSILE_STRUT), poseStack,
-                    bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(MISSILE_STRUT, poseStack, state, packedLight, packedOverlay);
             poseStack.popPose();
         }
     }
@@ -1323,16 +1312,14 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderTurbofanParts(float spin, boolean afterburning, BlockState state, PoseStack poseStack,
                                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TURBOFAN_BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(TURBOFAN_BODY, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.5D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(spin), 0.0F, 0.0F, -1.0F)));
         poseStack.translate(0.0D, -1.5D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(TURBOFAN_BLADES), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(TURBOFAN_BLADES, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(
-                afterburning ? TURBOFAN_AFTERBURNER_ON : TURBOFAN_AFTERBURNER_OFF),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(afterburning ? TURBOFAN_AFTERBURNER_ON : TURBOFAN_AFTERBURNER_OFF, poseStack, state, packedLight, packedOverlay);
     }
 
     /** Exact hierarchy of 1.7.10 RenderAnnihilator: fixed frame, rolling wheel and scrolling belt. */
@@ -1349,12 +1336,12 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderAnnihilatorParts(float rollerDegrees, float beltOffset, BlockState state, PoseStack poseStack,
                                                MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(ANNIHILATOR_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(ANNIHILATOR_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0D, 1.75D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rollerDegrees), 0.0F, 0.0F, 1.0F)));
         poseStack.translate(0.0D, -1.75D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(ANNIHILATOR_ROLLER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(ANNIHILATOR_ROLLER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         // The 1.7.10 belt was an ordinary opaque model with only its texture
         // matrix scrolling.  Rendering it through a translucent/tinted type
@@ -1374,16 +1361,16 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderPyroParts(float animation, BlockState state, PoseStack poseStack,
                                         MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PYRO_OVEN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PYRO_OVEN, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(Math.sin(Math.PI / 2.0D * Math.cos(animation * 0.125D)) / 2.0D - 0.5D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PYRO_SLIDER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PYRO_SLIDER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
         poseStack.translate(1.5D, 0.0D, 1.5D);
         poseStack.mulPose(Axis.YP.rotationDegrees(animation * 45.0F % 360.0F));
         poseStack.translate(-1.5D, 0.0D, -1.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PYRO_FAN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PYRO_FAN, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -1413,26 +1400,26 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderSawmillParts(float rotation, boolean hasBlade, BlockState state, PoseStack poseStack,
                                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SAWMILL_MAIN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SAWMILL_MAIN, poseStack, state, packedLight, packedOverlay);
         if (hasBlade) {
             poseStack.pushPose();
             poseStack.translate(0.0D, 1.375D, 0.0D);
             poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rotation * 2.0F), 0.0F, 0.0F, 1.0F)));
             poseStack.translate(0.0D, -1.375D, 0.0D);
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SAWMILL_BLADE), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(SAWMILL_BLADE, poseStack, state, packedLight, packedOverlay);
             poseStack.popPose();
         }
         poseStack.pushPose();
         poseStack.translate(0.5625D, 1.375D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rotation), 0.0F, 0.0F, 1.0F)));
         poseStack.translate(-0.5625D, -1.375D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SAWMILL_GEAR_LEFT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SAWMILL_GEAR_LEFT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
         poseStack.translate(-0.5625D, 1.375D, 0.0D);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(-rotation), 0.0F, 0.0F, 1.0F)));
         poseStack.translate(0.5625D, -1.375D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SAWMILL_GEAR_RIGHT), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SAWMILL_GEAR_RIGHT, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -1442,13 +1429,13 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
         BlockState state = machine.getBlockState();
         poseStack.pushPose();
         applyRtgTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RTG_GEN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(RTG_GEN, poseStack, state, packedLight, packedOverlay);
         LegacyMachineBlockEntity.RenderNeighborSnapshot neighbors = machine.renderNeighborSnapshot();
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             if (neighbors.rtgConnector(direction)) {
                 poseStack.pushPose();
                 applyRtgConnectorTransform(poseStack, direction);
-                MachineModelRenderer.renderUnculled(MachineModelRenderer.model(RTG_CONNECTOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+                STATIC_MESHES.render(RTG_CONNECTOR, poseStack, state, packedLight, packedOverlay);
                 poseStack.popPose();
             }
         }
@@ -1457,35 +1444,35 @@ public final class LegacyMachineBlockEntityRenderer implements LongRangeBlockEnt
 
     private static void renderAutosawParts(double turn, double angle, double spin, double engine, BlockState state,
                                            PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(AUTOSAW_BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(AUTOSAW_BASE, poseStack, state, packedLight, packedOverlay);
         poseStack.mulPose(Axis.YP.rotationDegrees((float) -turn));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(AUTOSAW_MAIN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(AUTOSAW_MAIN, poseStack, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0D, engine * 0.01D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(AUTOSAW_ENGINE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(AUTOSAW_ENGINE, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.translate(0.0D, 1.75D, 0.0D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) angle));
         poseStack.translate(0.0D, -1.75D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(AUTOSAW_UPPER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(AUTOSAW_UPPER, poseStack, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0D, 1.75D, -4.0D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) (-angle * 2.0D)));
         poseStack.translate(0.0D, -1.75D, 4.0D);
         poseStack.translate(-0.01D, 0.0D, 0.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(AUTOSAW_LOWER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(AUTOSAW_LOWER, poseStack, state, packedLight, packedOverlay);
         poseStack.translate(0.01D, 0.0D, 0.0D);
 
         poseStack.translate(0.0D, 1.75D, -8.0D);
         poseStack.mulPose(MachineModelRenderer.xQuaternion((float) angle));
         poseStack.translate(0.0D, -1.75D, 8.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(AUTOSAW_TIP), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(AUTOSAW_TIP, poseStack, state, packedLight, packedOverlay);
 
         poseStack.translate(0.0D, 1.75D, -10.0D);
         poseStack.mulPose(Axis.YP.rotationDegrees((float) -spin));
         poseStack.translate(0.0D, -1.75D, 10.0D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(AUTOSAW_BLADE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(AUTOSAW_BLADE, poseStack, state, packedLight, packedOverlay);
     }
 
     private static Direction missileAssemblyFacing(BlockState state) {

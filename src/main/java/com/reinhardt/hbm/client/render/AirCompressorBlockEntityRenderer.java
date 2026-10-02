@@ -16,6 +16,7 @@ import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 
 public class AirCompressorBlockEntityRenderer implements LongRangeBlockEntityRenderer<AirCompressorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_intake_base");
     private static final ModelResourceLocation FAN = MachineModelRenderer.standalone("block/machine_intake_fan");
     private static final AABB[] LOCAL_BOUNDS = buildLocalBounds();
@@ -36,12 +37,12 @@ public class AirCompressorBlockEntityRenderer implements LongRangeBlockEntityRen
 
         poseStack.pushPose();
         applyAirCompressorTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BASE), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BASE, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         float rot = -compressor.fan(partialTick);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(rot), 0.0F, 1.0F, 0.0F)));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FAN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FAN, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }

@@ -327,6 +327,44 @@ Assert-AssemblyRoute 'machine_turbinegas.json' 'ass.gasturbine' 400 100 'reinhar
     'item:reinhardtshbm:pipe_steelx4', 'item:reinhardtshbm:turbine_tungstenx1', 'tag:c:ingots/rubberx12',
     'item:reinhardtshbm:circuit_basicx3'
 )
+Assert-AssemblyRoute 'machine_shredder_expensive.json' 'ass.shredder' 100 100 'reinhardtshbm:machine_shredderx1' @(
+    'item:reinhardtshbm:item_expensive_steel_platingx1', 'tag:c:plates/copperx4', 'item:reinhardtshbm:motorx2'
+)
+Assert-AssemblyRoute 'machine_chemical_plant_expensive.json' 'ass.chemplant' 200 100 'reinhardtshbm:machine_chemical_plantx1' @(
+    'item:reinhardtshbm:item_expensive_steel_platingx3', 'tag:c:pipes/copperx2', 'item:reinhardtshbm:plate_polymerx16',
+    'item:reinhardtshbm:motorx2', 'item:reinhardtshbm:coil_tungstenx2', 'item:reinhardtshbm:circuit_analogx3'
+)
+Assert-AssemblyRoute 'machine_combustion_engine_expensive.json' 'ass.combustiongen' 300 100 'reinhardtshbm:machine_combustion_enginex1' @(
+    'item:reinhardtshbm:item_expensive_heavy_framex2', 'item:reinhardtshbm:wire_dense_goldx16',
+    'item:reinhardtshbm:canister_emptyx4', 'item:reinhardtshbm:item_expensive_circuitx1'
+)
+Assert-AssemblyRoute 'machine_cyclotron_expensive.json' 'ass.cyclotron' 600 100 'reinhardtshbm:machine_cyclotronx1' @(
+    'item:reinhardtshbm:item_expensive_ferro_platingx8', 'item:reinhardtshbm:wire_dense_neodymiumx32',
+    'item:reinhardtshbm:plate_welded_aluminiumx16', 'tag:c:ingots/rubberx32',
+    'item:reinhardtshbm:item_expensive_circuitx8'
+)
+Assert-AssemblyRoute 'machine_epress_expensive.json' 'ass.epress' 100 100 'reinhardtshbm:machine_epressx1' @(
+    'item:reinhardtshbm:item_expensive_heavy_framex1', 'item:reinhardtshbm:part_piston_hydraulicx4',
+    'item:reinhardtshbm:circuit_basicx4'
+)
+Assert-AssemblyRoute 'machine_exposure_chamber_expensive.json' 'ass.exposurechamber' 200 100 'reinhardtshbm:machine_exposure_chamberx1' @(
+    'item:reinhardtshbm:item_expensive_lead_platingx8', 'tag:c:ingots/hard_plasticx24',
+    'item:reinhardtshbm:wire_dense_goldx32', 'item:reinhardtshbm:circuit_bismoidx4',
+    'item:reinhardtshbm:item_expensive_computerx2'
+)
+Assert-AssemblyRoute 'machine_turbinegas_expensive.json' 'ass.gasturbine' 400 100 'reinhardtshbm:machine_turbinegasx1' @(
+    'item:reinhardtshbm:item_expensive_heavy_framex4', 'item:reinhardtshbm:wire_dense_goldx16',
+    'item:reinhardtshbm:pipe_dura_steelx16', 'item:reinhardtshbm:turbine_tungstenx2',
+    'item:reinhardtshbm:item_expensive_circuitx3'
+)
+Assert-AssemblyRoute 'machine_industrial_turbine_expensive.json' 'ass.iturbine' 200 100 'reinhardtshbm:machine_industrial_turbinex1' @(
+    'item:reinhardtshbm:item_expensive_heavy_framex4', 'item:reinhardtshbm:turbine_titaniumx3',
+    'item:reinhardtshbm:wire_dense_goldx16', 'item:reinhardtshbm:pipe_dura_steelx16',
+    'item:reinhardtshbm:item_expensive_circuitx3'
+)
+Assert-AssemblyRoute 'machine_fluidtank_expensive.json' 'ass.tank' 200 100 'reinhardtshbm:machine_fluidtankx1' @(
+    'item:reinhardtshbm:item_expensive_steel_platingx4', 'tag:c:tarsx16'
+)
 Assert-AssemblyRoute 'machine_precass_expensive.json' 'ass.precass' 1200 100 'reinhardtshbm:machine_precassx1' @(
     'item:reinhardtshbm:item_expensive_steel_platingx4', 'tag:c:ingots/zirconiumx8', 'item:reinhardtshbm:motorx4',
     'item:reinhardtshbm:circuit_capacitor_boardx8'
@@ -670,31 +708,42 @@ foreach ($contract in $dynamicRecipeContracts) {
 }
 
 # Freeze the complete assembly recipe condition partition as well as the
-# runtime counts. This catches a recipe file silently moving between normal,
-# 528 and unconditional progression even when another file masks the total.
+# runtime counts. Legacy inputItemsEx is controlled by enableExpensiveMode,
+# independently from enable528; treating those branches as 528 recipes was a
+# migration bug that this partition must reject permanently.
 $assemblyDirectory = Join-Path $RecipeRoot 'assembly_machine'
 if (-not (Test-Path -LiteralPath $assemblyDirectory -PathType Container)) {
     Add-Problem 'Missing assembly_machine recipe directory for condition-partition audit'
 } else {
-    $normalOnly = 0
-    $mode528Only = 0
+    $normalExpensiveBranch = 0
+    $expensiveOnly = 0
+    $normal528Branch = 0
     $unconditional = 0
     foreach ($file in Get-ChildItem -LiteralPath $assemblyDirectory -Filter '*.json' -File) {
         $raw = Get-Content -LiteralPath $file.FullName -Raw
-        if ($raw -match '"type"\s*:\s*"neoforge:not"[\s\S]*?"type"\s*:\s*"reinhardtshbm:enable_528_mode"') {
-            $normalOnly++
-        } elseif ($raw -match '"type"\s*:\s*"reinhardtshbm:enable_528_mode"') {
-            $mode528Only++
+        $hasExpensive = $raw -match '"type"\s*:\s*"reinhardtshbm:enable_expensive_mode"'
+        $has528 = $raw -match '"type"\s*:\s*"reinhardtshbm:enable_528_mode"'
+        if ($hasExpensive -and $has528) {
+            Add-Problem "Assembly recipe mixes 528 and expensive-mode conditions: $($file.Name)"
+        } elseif ($hasExpensive -and $raw -match '"type"\s*:\s*"neoforge:not"[\s\S]*?"type"\s*:\s*"reinhardtshbm:enable_expensive_mode"') {
+            $normalExpensiveBranch++
+        } elseif ($hasExpensive) {
+            $expensiveOnly++
+        } elseif ($has528 -and $raw -match '"type"\s*:\s*"neoforge:not"[\s\S]*?"type"\s*:\s*"reinhardtshbm:enable_528_mode"') {
+            $normal528Branch++
+        } elseif ($has528) {
+            Add-Problem "Unexpected 528-only assembly recipe after inputItemsEx separation: $($file.Name)"
         } else {
             $unconditional++
         }
     }
-    Assert-Equal 'assembly normal-only recipe files' $normalOnly 104
-    Assert-Equal 'assembly 528-only recipe files' $mode528Only 83
+    Assert-Equal 'assembly not-expensive recipe files' $normalExpensiveBranch 105
+    Assert-Equal 'assembly expensive-only recipe files' $expensiveOnly 92
+    Assert-Equal 'assembly not-528 recipe files' $normal528Branch 10
     # The latest upstream's projection-built struct_soyuz_core route belongs to
     # the explicitly deprecated Soyuz implementation; the direct-place
     # launchpad_soyuz replacement remains covered above.
-    Assert-Equal 'assembly unconditional recipe files' $unconditional 565
+    Assert-Equal 'assembly unconditional recipe files' $unconditional 554
 }
 
 $lines = [System.Collections.Generic.List[string]]::new()

@@ -15,7 +15,8 @@
     },
     {
       "fluid": "chlorine",
-      "amount": 100
+      "amount": 100,
+      "fluid_528": "phosgene"
     }
   ],
   "output_items": [

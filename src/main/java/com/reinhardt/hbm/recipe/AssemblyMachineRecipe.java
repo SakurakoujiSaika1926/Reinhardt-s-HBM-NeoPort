@@ -193,7 +193,7 @@ public record AssemblyMachineRecipe(
 
     /**
      * Resource conditions are evaluated during recipe loading, but older packs may still contain
-     * both sides of a 528 pair after a reload. Keep the machine UI and its server-side selection
+     * both sides of an expensive-mode pair after a reload. Keep the machine UI and its server-side selection
      * on the same configured variant without collapsing normal material alternatives.
      *
      * If the datapack condition pass has already removed one side of a pair, the remaining recipe
@@ -215,7 +215,7 @@ public record AssemblyMachineRecipe(
             }
         }
 
-        boolean enable528Mode = is528ModeEnabledSafely();
+        boolean enableExpensiveMode = isExpensiveModeEnabledSafely();
         return recipes.stream()
                 .filter(holder -> {
                     boolean expensive = isExpensiveVariant(holder);
@@ -228,7 +228,7 @@ public record AssemblyMachineRecipe(
                     if (!hasNormal || !hasExpensive) {
                         return true;
                     }
-                    return enable528Mode == expensive;
+                    return enableExpensiveMode == expensive;
                 })
                 .sorted((left, right) -> left.id().toString().compareTo(right.id().toString()))
                 .toList();
@@ -294,9 +294,9 @@ public record AssemblyMachineRecipe(
         return holder.id().getPath().endsWith("_expensive");
     }
 
-    private static boolean is528ModeEnabledSafely() {
+    private static boolean isExpensiveModeEnabledSafely() {
         try {
-            return HbmConfig.ENABLE_528_MODE.get();
+            return HbmConfig.ENABLE_EXPENSIVE_MODE.get();
         } catch (IllegalStateException ignored) {
             return false;
         }

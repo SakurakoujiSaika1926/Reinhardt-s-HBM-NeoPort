@@ -62,6 +62,9 @@ public final class ConveyorMovingPackage extends Entity {
             discard();
             return;
         }
+        if (ConveyorCrowding.check(this)) {
+            return;
+        }
 
         BlockPos before = blockPosition();
         BlockState state = level().getBlockState(before);

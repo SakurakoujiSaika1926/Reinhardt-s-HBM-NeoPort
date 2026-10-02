@@ -7,6 +7,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.common.Tags;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +15,14 @@ import java.util.function.IntSupplier;
 import java.util.function.Predicate;
 
 final class HbmLegacyStructureSelection {
+    private static final List<Candidate> CANDIDATES = createCandidates();
+
     private HbmLegacyStructureSelection() {
     }
 
     static SelectedStructure select(Holder<Biome> biome, RandomSource random) {
-        List<Candidate> candidates = candidates();
-
         int totalWeight = 0;
-        for (Candidate candidate : candidates) {
+        for (Candidate candidate : CANDIDATES) {
             if (candidate.canSpawn.test(biome)) {
                 totalWeight += Math.max(0, candidate.weight.getAsInt());
             }
@@ -31,7 +32,7 @@ final class HbmLegacyStructureSelection {
         }
 
         int selected = random.nextInt(totalWeight);
-        for (Candidate candidate : candidates) {
+        for (Candidate candidate : CANDIDATES) {
             if (!candidate.canSpawn.test(biome)) {
                 continue;
             }
@@ -44,7 +45,7 @@ final class HbmLegacyStructureSelection {
     }
 
     static List<String> listStructures() {
-        return candidates().stream()
+        return CANDIDATES.stream()
                 .map(Candidate::spawnName)
                 .filter(name -> name != null && !name.isBlank())
                 .toList();
@@ -54,7 +55,7 @@ final class HbmLegacyStructureSelection {
         return name != null && listStructures().contains(name);
     }
 
-    private static List<Candidate> candidates() {
+    private static List<Candidate> createCandidates() {
         List<Candidate> candidates = new ArrayList<>();
         add(candidates, "spire", "spire", -1, 1, 128, false, HbmConfig.HBM_STRUCTURE_SPIRE_WEIGHT, HbmLegacyStructureSelection::isVeryFlatNonInvalid);
         add(candidates, "vertibird", "vertibird", -3, 1, 128, false, HbmConfig.HBM_STRUCTURE_VERTIBIRD_WEIGHT, HbmLegacyStructureSelection::isSandy);
@@ -64,16 +65,18 @@ final class HbmLegacyStructureSelection {
         add(candidates, "lighthouse", "lighthouse", -40, 28, 29, false, oceanWeight(HbmConfig.HBM_STRUCTURE_LIGHTHOUSE_WEIGHT), HbmLegacyStructureSelection::isOceanOrBeach);
         add(candidates, "beached_patrol", "beached_patrol", -5, 58, 67, false, HbmConfig.HBM_STRUCTURE_BEACHED_PATROL_WEIGHT, HbmLegacyStructureSelection::isBeach);
         add(candidates, "dish", "dish", -10, 53, 65, false, HbmConfig.HBM_STRUCTURE_DISH_WEIGHT, HbmLegacyStructureSelection::isPlainsLike);
+        add(candidates, "water_pump", "water_pump", -10, 1, 128, false, HbmConfig.HBM_STRUCTURE_WATER_PUMP_WEIGHT, HbmLegacyStructureSelection::isWaterPumpBiome);
         add(candidates, "forestchem", "forest_chem", -9, 1, 128, false, HbmConfig.HBM_STRUCTURE_FOREST_CHEM_WEIGHT, HbmLegacyStructureSelection::isGentleNonInvalid);
         add(candidates, "plane1", "crashed_plane_1", -5, 1, 128, false, HbmConfig.HBM_STRUCTURE_PLANE1_WEIGHT, HbmLegacyStructureSelection::isGentleNonInvalid);
         add(candidates, "plane2", "crashed_plane_2", -8, 1, 128, false, HbmConfig.HBM_STRUCTURE_PLANE2_WEIGHT, HbmLegacyStructureSelection::isGentleNonInvalid);
         add(candidates, "desert_shack_1", "desert_shack_1", -7, 1, 128, false, HbmConfig.HBM_STRUCTURE_DESERT_SHACK1_WEIGHT, HbmLegacyStructureSelection::isSandy);
         add(candidates, "desert_shack_2", "desert_shack_2", -7, 1, 128, false, HbmConfig.HBM_STRUCTURE_DESERT_SHACK2_WEIGHT, HbmLegacyStructureSelection::isSandy);
         add(candidates, "desert_shack_3", "desert_shack_3", -5, 1, 128, false, HbmConfig.HBM_STRUCTURE_DESERT_SHACK3_WEIGHT, HbmLegacyStructureSelection::isSandy);
+        add(candidates, "dead_dish_small", "dead_dish_small", -5, 1, 128, false, HbmConfig.HBM_STRUCTURE_DEAD_DISH_SMALL_WEIGHT, HbmLegacyStructureSelection::isSandyTagged);
         add(candidates, "labolatory", "laboratory", -10, 53, 65, false, HbmConfig.HBM_STRUCTURE_LABORATORY_WEIGHT, HbmLegacyStructureSelection::isFlatBiome);
         add(candidates, "forest_post", "forest_post", -10, 1, 128, false, HbmConfig.HBM_STRUCTURE_FOREST_POST_WEIGHT, HbmLegacyStructureSelection::isGentleNonInvalid);
         add(candidates, "factory", "factory", -10, 1, 128, false, HbmConfig.HBM_STRUCTURE_FACTORY_WEIGHT, HbmLegacyStructureSelection::isFlatBiome);
-        add(candidates, "crane", "crane", -9, 1, 128, false, HbmConfig.HBM_STRUCTURE_CRANE_WEIGHT, HbmLegacyStructureSelection::isFlatBiome);
+        add(candidates, "crane", "crane", -13, 1, 128, false, HbmConfig.HBM_STRUCTURE_CRANE_WEIGHT, HbmLegacyStructureSelection::isFlatBiome);
         add(candidates, "broadcaster_tower", "broadcasting_tower", -9, 1, 128, false, HbmConfig.HBM_STRUCTURE_BROADCASTING_TOWER_WEIGHT, HbmLegacyStructureSelection::isFlatBiome);
         add(candidates, "radio", "radio_house", -6, 1, 128, false, HbmConfig.HBM_STRUCTURE_RADIO_WEIGHT, HbmLegacyStructureSelection::isFlatBiome);
         addProcedural(candidates, "features", HbmLegacyProceduralPiece.Kind.FEATURES, HbmConfig.HBM_STRUCTURE_FEATURES_WEIGHT, HbmLegacyStructureSelection::isProceduralBiome);
@@ -89,6 +92,10 @@ final class HbmLegacyStructureSelection {
         add(candidates, "ruin8", "ntmruins_h", -1, 1, 128, true, ruinWeight(HbmConfig.HBM_STRUCTURE_RUIN_H_WEIGHT), HbmLegacyStructureSelection::canSpawnRainRuin);
         add(candidates, "ruin9", "ntmruins_i", -1, 1, 128, true, ruinWeight(HbmConfig.HBM_STRUCTURE_RUIN_I_WEIGHT), HbmLegacyStructureSelection::canSpawnRainRuin);
         add(candidates, "ruin10", "ntmruins_j", -1, 1, 128, true, ruinWeight(HbmConfig.HBM_STRUCTURE_RUIN_J_WEIGHT), HbmLegacyStructureSelection::canSpawnRainRuin);
+        add(candidates, "tower_base", "tower_base", -6, 1, 128, false, HbmConfig.HBM_STRUCTURE_TOWER_BASE_WEIGHT, HbmLegacyStructureSelection::isTowerBaseBiome);
+        add(candidates, "falloutshelter_house", "falloutshelter_house", -8, 1, 128, false, HbmConfig.HBM_STRUCTURE_FALLOUT_SHELTER_HOUSE_WEIGHT, HbmLegacyStructureSelection::isPlainsTagged);
+        add(candidates, "abandoned_arcticstation", "abandoned_arcticstation", 0, 1, 128, false, HbmConfig.HBM_STRUCTURE_ABANDONED_ARCTIC_STATION_WEIGHT, HbmLegacyStructureSelection::isSnowyTagged);
+        add(candidates, "military_base", "military_base", -5, 1, 128, false, HbmConfig.HBM_STRUCTURE_MILITARY_BASE_WEIGHT, HbmLegacyStructureSelection::isSnowyTagged);
         addNull(candidates, HbmConfig.HBM_STRUCTURE_PLAINS_NULL_WEIGHT, HbmLegacyStructureSelection::isPlains);
         addNull(candidates, HbmConfig.HBM_STRUCTURE_OCEAN_NULL_WEIGHT, HbmLegacyStructureSelection::isOcean);
 
@@ -169,6 +176,33 @@ final class HbmLegacyStructureSelection {
 
     private static boolean isSandy(Holder<Biome> biome) {
         return !isInvalidBiome(biome) && (biome.is(Biomes.DESERT) || biome.is(BiomeTags.IS_BADLANDS) || biome.is(BiomeTags.IS_BEACH));
+    }
+
+    private static boolean isSandyTagged(Holder<Biome> biome) {
+        return !isInvalidBiome(biome) && biome.is(Tags.Biomes.IS_SANDY);
+    }
+
+    private static boolean isWaterPumpBiome(Holder<Biome> biome) {
+        return !isInvalidBiome(biome)
+                && (biome.is(Tags.Biomes.IS_PLAINS) || biome.is(Tags.Biomes.IS_SWAMP));
+    }
+
+    private static boolean isTowerBaseBiome(Holder<Biome> biome) {
+        // Latest 1.7.10 uses heightVariation <= 0.3 plus !WATER/!SANDY.
+        // Modern biomes no longer expose that scalar; the established modern
+        // equivalent is the non-mountain tag boundary, while preserving the
+        // upstream water and sandy exclusions exactly through biome tags.
+        return !isInvalidBiome(biome)
+                && !biome.is(BiomeTags.IS_MOUNTAIN)
+                && !biome.is(Tags.Biomes.IS_SANDY);
+    }
+
+    private static boolean isPlainsTagged(Holder<Biome> biome) {
+        return !isInvalidBiome(biome) && biome.is(Tags.Biomes.IS_PLAINS);
+    }
+
+    private static boolean isSnowyTagged(Holder<Biome> biome) {
+        return !isInvalidBiome(biome) && biome.is(Tags.Biomes.IS_SNOWY);
     }
 
     private static boolean isOcean(Holder<Biome> biome) {

@@ -11,6 +11,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class FractionTowerBlockEntityRenderer implements LongRangeBlockEntityRenderer<FractionTowerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/machine_fraction_tower");
     private static final AABB LOCAL_BOUNDS = buildFractionTowerBounds();
 
@@ -26,7 +27,7 @@ public class FractionTowerBlockEntityRenderer implements LongRangeBlockEntityRen
         BlockState state = tower.getBlockState();
         poseStack.pushPose();
         applyFractionTowerTransform(poseStack);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

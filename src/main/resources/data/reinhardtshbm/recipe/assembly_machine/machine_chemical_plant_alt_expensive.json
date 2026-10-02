@@ -1,7 +1,7 @@
 {
   "neoforge:conditions": [
     {
-      "type": "reinhardtshbm:enable_528_mode"
+      "type": "reinhardtshbm:enable_expensive_mode"
     }
   ],
   "type": "reinhardtshbm:assembly_machine",

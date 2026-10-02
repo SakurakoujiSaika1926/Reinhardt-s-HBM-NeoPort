@@ -194,7 +194,6 @@ import com.reinhardt.hbm.blockentity.LambdaLaunchpadBlockEntity;
 import com.reinhardt.hbm.blockentity.SoyuzLaunchpadBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamCondenserBlockEntity;
 import com.reinhardt.hbm.blockentity.SteamEngineBlockEntity;
-import com.reinhardt.hbm.blockentity.SteamTurbineBlockEntity;
 import com.reinhardt.hbm.blockentity.SteelFurnaceBlockEntity;
 import com.reinhardt.hbm.blockentity.StorageCrateBlockEntity;
 import com.reinhardt.hbm.blockentity.TapeRecorderBlockEntity;
@@ -1085,7 +1084,8 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             DecoDisplayBlockEntity::new,
                             HbmBlocks.DECO_COMPUTER.get(),
-                            HbmBlocks.DECO_CRT.get()
+                            HbmBlocks.DECO_CRT.get(),
+                            HbmBlocks.STATUE_ELB_F.get()
                     ).build(null)
             );
 
@@ -1572,15 +1572,6 @@ public final class HbmBlockEntities {
                     () -> BlockEntityType.Builder.of(
                             SmallElectricBoilerBlockEntity::new,
                             HbmBlocks.MACHINE_BOILER_ELECTRIC_OFF.get()
-                    ).build(null)
-            );
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SteamTurbineBlockEntity>> STEAM_TURBINE =
-            BLOCK_ENTITIES.register(
-                    "machine_turbine",
-                    () -> BlockEntityType.Builder.of(
-                            SteamTurbineBlockEntity::new,
-                            HbmBlocks.MACHINE_TURBINE.get()
                     ).build(null)
             );
 

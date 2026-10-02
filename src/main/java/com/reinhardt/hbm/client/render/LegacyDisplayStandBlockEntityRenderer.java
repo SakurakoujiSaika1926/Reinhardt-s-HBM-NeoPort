@@ -32,6 +32,7 @@ import java.util.List;
 /** Exact world transforms from RenderPedestalTile and RenderSkeletonHolder. */
 public final class LegacyDisplayStandBlockEntityRenderer
         implements LongRangeBlockEntityRenderer<LegacyDisplayStandBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation SKELETON_HOLDER =
             MachineModelRenderer.standalone("block/skeleton_holder_world");
     private static final List<ModelResourceLocation> MODELS = List.of(SKELETON_HOLDER);
@@ -77,8 +78,8 @@ public final class LegacyDisplayStandBlockEntityRenderer
         if (block.kind() == LegacyDisplayStandBlock.Kind.SKELETON_HOLDER) {
             poseStack.pushPose();
             applySkeletonHolderPose(poseStack, skeletonHolderFacing(state));
-            MachineModelRenderer.renderUnculled(generation.model(SKELETON_HOLDER), poseStack,
-                    bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(generation.model(SKELETON_HOLDER), poseStack,
+                    state, packedLight, packedOverlay);
             renderSkeletonItem(snapshot.displayedItem(), itemModel, snapshot.threeDimensional(), stand,
                     poseStack, bufferSource, packedLight, packedOverlay);
             poseStack.popPose();

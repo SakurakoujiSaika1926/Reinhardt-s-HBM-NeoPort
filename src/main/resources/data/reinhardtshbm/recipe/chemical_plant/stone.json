@@ -2,7 +2,7 @@
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.stone",
   "blueprint_pools": [
-    "discover."
+    "discover..stone"
   ],
   "duration": 60,
   "power": 500,

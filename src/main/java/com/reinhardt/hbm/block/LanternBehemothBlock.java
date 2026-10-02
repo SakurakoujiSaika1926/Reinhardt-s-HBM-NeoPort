@@ -66,4 +66,13 @@ public final class LanternBehemothBlock extends LanternBlock {
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!movedByPiston && !state.is(newState.getBlock()) && !level.isClientSide
+                && level.getBlockEntity(pos) instanceof LanternBehemothBlockEntity lantern) {
+            lantern.penalizeNearbyPlayers();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
 }

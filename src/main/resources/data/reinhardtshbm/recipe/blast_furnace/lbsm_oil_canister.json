@@ -1,0 +1,24 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_chemistry"
+    }
+  ],
+  "type": "reinhardtshbm:blast_furnace",
+  "input_a": {
+    "item": "reinhardtshbm:canister_empty"
+  },
+  "input_b": {
+    "item": "minecraft:coal"
+  },
+  "duration": 400,
+  "result": {
+    "id": "reinhardtshbm:canister_full",
+    "components": {
+      "minecraft:custom_data": {
+        "fluid": "oil"
+      }
+    }
+  }
+}

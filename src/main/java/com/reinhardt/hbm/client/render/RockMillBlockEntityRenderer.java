@@ -13,6 +13,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public final class RockMillBlockEntityRenderer implements LongRangeBlockEntityRenderer<RockMillBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation BASE = MachineModelRenderer.standalone("block/machine_rockmill_base");
     private static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_rockmill_frame");
     private static final ModelResourceLocation WHEEL = MachineModelRenderer.standalone("block/machine_rockmill_wheel");
@@ -63,8 +64,7 @@ public final class RockMillBlockEntityRenderer implements LongRangeBlockEntityRe
     private static void renderPart(ModelResourceLocation model, PoseStack poseStack,
                                    MultiBufferSource buffers, BlockState state,
                                    int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(model), poseStack, buffers, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static Direction rockMillFacing(BlockState state) {

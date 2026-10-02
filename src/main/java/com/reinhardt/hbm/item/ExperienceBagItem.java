@@ -14,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
@@ -40,6 +41,9 @@ public final class ExperienceBagItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (!this.filled && player instanceof FakePlayer) {
+            return InteractionResultHolder.fail(stack);
+        }
         if (level.isClientSide) {
             return InteractionResultHolder.sidedSuccess(stack, true);
         }

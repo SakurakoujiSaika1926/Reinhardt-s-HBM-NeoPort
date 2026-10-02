@@ -1,9 +1,16 @@
 package com.reinhardt.hbm.entity;
 
+import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidTrait;
 import com.reinhardt.hbm.pollution.HbmArmorProtection;
+import com.reinhardt.hbm.radiation.ChunkRadiationData;
+import com.reinhardt.hbm.radiation.HbmHazardSystem;
+import com.reinhardt.hbm.radiation.HbmLivingRadiation;
 import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmEntityTypes;
+import com.reinhardt.hbm.registry.HbmFluids;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -18,6 +25,8 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
+import javax.annotation.Nullable;
+
 public final class LegacyMistEntity extends Entity {
     private static final EntityDataAccessor<Integer> MIST_TYPE =
             SynchedEntityData.defineId(LegacyMistEntity.class, EntityDataSerializers.INT);
@@ -27,6 +36,9 @@ public final class LegacyMistEntity extends Entity {
             SynchedEntityData.defineId(LegacyMistEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> MAX_AGE =
             SynchedEntityData.defineId(LegacyMistEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FLUID_ID =
+            SynchedEntityData.defineId(LegacyMistEntity.class, EntityDataSerializers.INT);
+    public static final String OIL_TICKS_TAG = "reinhardtshbm_oil_ticks";
 
     public LegacyMistEntity(EntityType<? extends LegacyMistEntity> type, Level level) {
         super(type, level);
@@ -48,12 +60,25 @@ public final class LegacyMistEntity extends Entity {
         refreshDimensions();
     }
 
+    /** EntityMist#setType(FluidType), used by ItemDisperser. */
+    public LegacyMistEntity(Level level, double x, double y, double z, HbmFluidDefinition fluid,
+                            float width, float height, int duration) {
+        this(HbmEntityTypes.LEGACY_MIST.get(), level);
+        setPos(x, y, z);
+        this.entityData.set(FLUID_ID, fluid.oldId());
+        this.entityData.set(AREA_WIDTH, width);
+        this.entityData.set(AREA_HEIGHT, height);
+        this.entityData.set(MAX_AGE, duration);
+        refreshDimensions();
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(MIST_TYPE, MistType.CHLORINE.ordinal());
         builder.define(AREA_WIDTH, 0.0F);
         builder.define(AREA_HEIGHT, 0.0F);
         builder.define(MAX_AGE, 150);
+        builder.define(FLUID_ID, -1);
     }
 
     @Override
@@ -67,6 +92,20 @@ public final class LegacyMistEntity extends Entity {
         }
         int maxAge = Math.max(1, this.entityData.get(MAX_AGE));
         double intensity = 1.0D - (double) this.tickCount / (double) maxAge;
+        HbmFluidDefinition fluid = fluidDefinition();
+        if (fluid != null) {
+            if (!tickFluidEnvironment(fluid, intensity)) {
+                return;
+            }
+            for (Entity entity : level().getEntities(this, effectBounds(), Entity::isAlive)) {
+                affectFluid(fluid, entity, intensity);
+            }
+            if (this.tickCount >= maxAge) {
+                discard();
+            }
+            return;
+        }
+
         MistType type = mistType();
         for (Entity entity : level().getEntities(this, effectBounds(), Entity::isAlive)) {
             if (entity instanceof LivingEntity living) {
@@ -76,6 +115,127 @@ public final class LegacyMistEntity extends Entity {
         if (this.tickCount >= maxAge) {
             discard();
         }
+    }
+
+    private boolean tickFluidEnvironment(HbmFluidDefinition fluid, double intensity) {
+        double radiation = HbmHazardSystem.fluidRadiation(fluid);
+        if (radiation > 0.0D && level() instanceof ServerLevel serverLevel) {
+            ChunkRadiationData.get(serverLevel).incrementRadiation(blockPosition(), radiation * 2.0D);
+        }
+        if (fluid.hasTrait(HbmFluidTrait.FLAMMABLE) && isOnFire()) {
+            double height = this.entityData.get(AREA_HEIGHT);
+            level().explode(this, getX(), getY() + height * 0.5D, getZ(),
+                    (float) intensity * 15.0F, true, Level.ExplosionInteraction.TNT);
+            discard();
+            return false;
+        }
+        return true;
+    }
+
+    private void affectFluid(HbmFluidDefinition fluid, Entity entity, double intensity) {
+        LivingEntity living = entity instanceof LivingEntity target ? target : null;
+        int temperature = fluid.temperatureCelsius();
+        if (temperature >= 100) {
+            LegacyProjectileUtil.hurtNoIFrame(entity,
+                    damageSources().source(HbmDamageTypes.BOIL, this, null),
+                    0.2F + (temperature - 100) * 0.02F);
+            if (temperature >= 500) {
+                entity.setRemainingFireTicks(Math.max(entity.getRemainingFireTicks(), 200));
+            }
+        }
+        if (temperature < -20 && living != null) {
+            LegacyProjectileUtil.hurtNoIFrame(living, damageSources().freeze(),
+                    0.2F + (temperature + 20) * -0.05F);
+            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, 2));
+            living.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 100, 4));
+        }
+
+        if (living != null && fluid.hasTrait(HbmFluidTrait.DELICIOUS) && living.isAlive()) {
+            living.heal(2.0F * (float) intensity);
+        }
+        if (living != null && fluid.hasTrait(HbmFluidTrait.FLAMMABLE)
+                && fluid.hasTrait(HbmFluidTrait.LIQUID)) {
+            living.getPersistentData().putInt(OIL_TICKS_TAG, 200);
+        }
+        if (temperature < 50 && !fluid.hasTrait(HbmFluidTrait.FLAMMABLE)) {
+            entity.clearFire();
+        }
+
+        int corrosion = traitInteger(fluid, "CORROSIVE", 0);
+        if (living != null && corrosion > 0) {
+            LegacyProjectileUtil.hurtNoIFrame(living,
+                    damageSources().source(HbmDamageTypes.ACID, this, null), corrosion / 60.0F);
+            int armorDamage = corrosion / 50;
+            if (armorDamage > 0) {
+                for (net.minecraft.world.entity.EquipmentSlot slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                        net.minecraft.world.entity.EquipmentSlot.HEAD,
+                        net.minecraft.world.entity.EquipmentSlot.CHEST,
+                        net.minecraft.world.entity.EquipmentSlot.LEGS,
+                        net.minecraft.world.entity.EquipmentSlot.FEET}) {
+                    living.getItemBySlot(slot).hurtAndBreak(armorDamage, living, slot);
+                }
+            }
+        }
+
+        double radiation = HbmHazardSystem.fluidRadiation(fluid);
+        if (living != null && radiation > 0.0D) {
+            HbmLivingRadiation.get(living).addRadiation((float) (radiation * 5.0D));
+        }
+
+        if (living != null && fluid.hasTrait(HbmFluidTrait.POISON)) {
+            boolean withering = traitBoolean(fluid, "POISON", false);
+            living.addEffect(new MobEffectInstance(withering ? MobEffects.WITHER : MobEffects.POISON,
+                    Math.max(1, (int) (5.0D * 20.0D * intensity))));
+        }
+
+        if (living != null && fluid.name().equals("enderjuice")) {
+            double x = getX() + (random.nextDouble() - 0.5D) * 64.0D;
+            double y = getY() + random.nextInt(64) - 32;
+            double z = getZ() + (random.nextDouble() - 0.5D) * 64.0D;
+            living.randomTeleport(x, y, z, true);
+        }
+        if (living != null && (fluid.name().equals("pheromone") || fluid.name().equals("pheromone_m"))) {
+            applyPheromone(living, fluid.name().equals("pheromone") ? 1 : 2);
+        }
+    }
+
+    private static void applyPheromone(LivingEntity living, int multiplier) {
+        boolean matchingTarget = multiplier == 1
+                ? living instanceof GlyphidEntity
+                : living instanceof net.minecraft.world.entity.player.Player;
+        if (!matchingTarget) {
+            return;
+        }
+        living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, multiplier * 60 * 20, 1));
+        living.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, multiplier * 60 * 20, 1));
+        living.addEffect(new MobEffectInstance(MobEffects.REGENERATION, multiplier * 2 * 20, 0));
+        living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, multiplier * 60 * 20, 0));
+        living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, multiplier * 60 * 20, 1));
+        living.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, multiplier * 60 * 20, 0));
+    }
+
+    private static int traitInteger(HbmFluidDefinition fluid, String trait, int fallback) {
+        for (String token : fluid.rawTraits().split("\\|")) {
+            String[] parts = token.trim().split(":");
+            if (parts.length >= 2 && parts[0].equalsIgnoreCase(trait)) {
+                try {
+                    return Integer.parseInt(parts[1]);
+                } catch (NumberFormatException ignored) {
+                    return fallback;
+                }
+            }
+        }
+        return fallback;
+    }
+
+    private static boolean traitBoolean(HbmFluidDefinition fluid, String trait, boolean fallback) {
+        for (String token : fluid.rawTraits().split("\\|")) {
+            String[] parts = token.trim().split(":");
+            if (parts.length >= 2 && parts[0].equalsIgnoreCase(trait)) {
+                return Boolean.parseBoolean(parts[1]);
+            }
+        }
+        return fallback;
     }
 
     private void affectLiving(MistType type, LivingEntity living, double intensity) {
@@ -141,6 +301,8 @@ public final class LegacyMistEntity extends Entity {
 
     private void spawnLegacyParticles() {
         MistType type = mistType();
+        HbmFluidDefinition fluid = fluidDefinition();
+        int color = fluid == null ? type.color : fluid.color();
         AABB bounds = effectBounds();
         for (int i = 0; i < 2; i++) {
             double x = bounds.minX + random.nextDouble() * (bounds.maxX - bounds.minX);
@@ -149,9 +311,9 @@ public final class LegacyMistEntity extends Entity {
             level().addParticle(
                     HbmParticleTypes.LEGACY_MIST.get(),
                     x, y, z,
-                    ((type.color >>> 16) & 0xFF) / 255.0D,
-                    ((type.color >>> 8) & 0xFF) / 255.0D,
-                    (type.color & 0xFF) / 255.0D
+                    ((color >>> 16) & 0xFF) / 255.0D,
+                    ((color >>> 8) & 0xFF) / 255.0D,
+                    (color & 0xFF) / 255.0D
             );
         }
     }
@@ -178,12 +340,19 @@ public final class LegacyMistEntity extends Entity {
         return id >= 0 && id < MistType.values().length ? MistType.values()[id] : MistType.CHLORINE;
     }
 
+    @Nullable
+    private HbmFluidDefinition fluidDefinition() {
+        int id = this.entityData.get(FLUID_ID);
+        return id < 0 ? null : HbmFluids.byOldId(id).orElse(null);
+    }
+
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putInt("type", this.entityData.get(MIST_TYPE));
         tag.putFloat("width", this.entityData.get(AREA_WIDTH));
         tag.putFloat("height", this.entityData.get(AREA_HEIGHT));
         tag.putInt("max_age", this.entityData.get(MAX_AGE));
+        tag.putInt("fluid_id", this.entityData.get(FLUID_ID));
     }
 
     @Override
@@ -192,6 +361,7 @@ public final class LegacyMistEntity extends Entity {
         this.entityData.set(AREA_WIDTH, tag.getFloat("width"));
         this.entityData.set(AREA_HEIGHT, tag.getFloat("height"));
         this.entityData.set(MAX_AGE, Math.max(1, tag.getInt("max_age")));
+        this.entityData.set(FLUID_ID, tag.contains("fluid_id") ? tag.getInt("fluid_id") : -1);
         refreshDimensions();
     }
 

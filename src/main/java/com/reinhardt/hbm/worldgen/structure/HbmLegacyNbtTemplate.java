@@ -2,16 +2,36 @@ package com.reinhardt.hbm.worldgen.structure;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
 import com.reinhardt.hbm.block.MetalFenceBlock;
+import com.reinhardt.hbm.block.BobbleheadBlock;
+import com.reinhardt.hbm.block.BobbleheadType;
+import com.reinhardt.hbm.block.ChargerBlock;
+import com.reinhardt.hbm.block.DungeonChainBlock;
+import com.reinhardt.hbm.block.EnergyCableBlock;
+import com.reinhardt.hbm.block.FluidDuctBlock;
+import com.reinhardt.hbm.block.MicrowaveBlock;
+import com.reinhardt.hbm.block.SmallBoilerBlock;
+import com.reinhardt.hbm.block.SteelGrateBlock;
+import com.reinhardt.hbm.block.SteelScaffoldBlock;
+import com.reinhardt.hbm.block.SuperConcreteBlock;
 import com.reinhardt.hbm.block.SteelWallBlock;
 import com.reinhardt.hbm.block.SteelPolesBlock;
 import com.reinhardt.hbm.block.SteelBeamBlock;
+import com.reinhardt.hbm.block.WoodStructureBlock;
+import com.reinhardt.hbm.block.WoodBarrierBlock;
+import com.reinhardt.hbm.block.CaveSpikeBlock;
 import com.reinhardt.hbm.block.DecoModelBlock;
 import com.reinhardt.hbm.block.DecoCrtBlock;
+import com.reinhardt.hbm.block.DeadPlantBlock;
+import com.reinhardt.hbm.block.HbmAnvilBlock;
 import com.reinhardt.hbm.block.HbmLegacyDoorBlock;
+import com.reinhardt.hbm.block.HbmHeavyDoorBlock;
+import com.reinhardt.hbm.block.HbmHeavyDoorPartBlock;
 import com.reinhardt.hbm.block.LegacyTurretBlock;
 import com.reinhardt.hbm.block.FloodlightBlock;
 import com.reinhardt.hbm.block.SpotlightBlock;
+import com.reinhardt.hbm.block.StorageCrateBlock;
 import com.reinhardt.hbm.blockentity.FloodlightBlockEntity;
+import com.reinhardt.hbm.blockentity.HbmHeavyDoorPartBlockEntity;
 import com.reinhardt.hbm.blockentity.MachineDummyBlockEntity;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
@@ -27,26 +47,42 @@ import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComparatorBlock;
 import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.LadderBlock;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.RailBlock;
 import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.SkullBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.block.state.properties.ComparatorMode;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.block.state.properties.SlabType;
@@ -71,7 +107,17 @@ public final class HbmLegacyNbtTemplate {
     private static final Map<String, String> LEGACY_ID_ALIASES = Map.of(
             "reinhardtshbm:brick_concrete_slab", "reinhardtshbm:concrete_brick_slab",
             "reinhardtshbm:ore_coal_oil", "minecraft:coal_ore",
-            "reinhardtshbm:ore_coal_oil_burning", "minecraft:coal_ore"
+            "reinhardtshbm:ore_coal_oil_burning", "minecraft:coal_ore",
+            // Latest 1.7.10 still serializes the statue under the old undefined registry name.
+            "reinhardtshbm:#undef", "reinhardtshbm:statue_elb_f",
+            "reinhardtshbm:hev_battery", "reinhardtshbm:hev_battery_block",
+            "reinhardtshbm:machine_battery", "reinhardtshbm:capacitor_copper",
+            "reinhardtshbm:block_copper", "minecraft:copper_block",
+            "reinhardtshbm:machine_weapon_table", "minecraft:air",
+            // These two blocks were deliberately removed upstream while their old structures
+            // were left untouched. Legacy NBTStructure resolves the now-missing ids to air.
+            "reinhardtshbm:barrel_iron", "minecraft:air",
+            "reinhardtshbm:ladder_tungsten", "minecraft:air"
     );
 
     private final String name;
@@ -80,6 +126,7 @@ public final class HbmLegacyNbtTemplate {
     private final int sizeZ;
     private final List<PlacedBlock> blocks;
     private final Map<BlockPos, LegacyStructureMultiblocks.Part> multiblockParts;
+    private final Map<BlockPos, LegacyStructureHeavyDoors.Part> heavyDoorParts;
     private final List<List<JigsawConnection>> fromConnections;
     private final Map<String, List<JigsawConnection>> toTopConnections;
     private final Map<String, List<JigsawConnection>> toBottomConnections;
@@ -102,6 +149,7 @@ public final class HbmLegacyNbtTemplate {
         this.sizeZ = sizeZ;
         this.blocks = List.copyOf(blocks);
         this.multiblockParts = indexLegacyMultiblocks(this.blocks);
+        this.heavyDoorParts = indexLegacyHeavyDoors(this.blocks);
         this.fromConnections = copyConnectionGroups(fromConnections);
         this.toTopConnections = copyConnectionMap(toTopConnections);
         this.toBottomConnections = copyConnectionMap(toBottomConnections);
@@ -160,6 +208,7 @@ public final class HbmLegacyNbtTemplate {
             @Nullable BlockReplacement replacement,
             @Nullable String tandemStructureName
     ) {
+        RandomSource placementRandom = random != null ? random : level.getRandom();
         for (PlacedBlock block : blocks) {
             BlockPos localPos = new BlockPos(block.x, block.y, block.z);
             BlockPos pos = worldPosFor(level, pieceBox, rotation, conformToTerrain, heightOffset, block);
@@ -172,14 +221,22 @@ public final class HbmLegacyNbtTemplate {
 
             try {
                 LegacyStructureMultiblocks.Part multiblockPart = this.multiblockParts.get(localPos);
+                LegacyStructureHeavyDoors.Part heavyDoorPart = this.heavyDoorParts.get(localPos);
                 boolean isLegacyDummy = multiblockPart != null && !multiblockPart.isCoreAt(localPos);
+                boolean isLegacyHeavyDoorPart = heavyDoorPart != null && !heavyDoorPart.isCoreAt(localPos);
                 BlockState state;
-                if (isLegacyDummy) {
+                if (isLegacyHeavyDoorPart) {
+                    state = HbmBlocks.HEAVY_DOOR_PART.get().defaultBlockState()
+                            .setValue(HbmHeavyDoorPartBlock.EXTRA, false);
+                } else if (isLegacyDummy) {
                     // 1.7.10 saved this exact occupied block as a BlockDummyable
                     // proxy.  It is not another core instance of the machine.
                     state = HbmBlocks.MACHINE_DUMMY.get().defaultBlockState();
                 } else {
                     state = block.state;
+                    if (multiblockPart != null) {
+                        state = LegacyStructureMultiblocks.migrateCoreState(multiblockPart, state);
+                    }
                     if (replacement != null && random != null) {
                         state = replacement.replace(block.name, block.meta, state, random);
                     }
@@ -199,7 +256,26 @@ public final class HbmLegacyNbtTemplate {
                 }
 
                 setStructureBlock(level, pos, state);
-                if (isLegacyDummy) {
+                if (isLegacyHeavyDoorPart) {
+                    BlockPos corePos = worldPosFor(
+                            level,
+                            pieceBox,
+                            rotation,
+                            conformToTerrain,
+                            heightOffset,
+                            blockAt(heavyDoorPart.corePos())
+                    );
+                    Direction worldFacing = toMcRotation(rotation).rotate(heavyDoorPart.coreFacing());
+                    BlockPos localOffset = HbmHeavyDoorBlock.worldOffsets(
+                            heavyDoorPart.decl(), worldFacing, corePos
+                    ).get(pos);
+                    if (localOffset == null) {
+                        throw new IllegalStateException("Rotated legacy " + heavyDoorPart.decl()
+                                + " part at " + pos + " is outside the footprint around " + corePos
+                                + " facing " + worldFacing);
+                    }
+                    linkStructureHeavyDoorPart(level, pos, state, corePos, localOffset);
+                } else if (isLegacyDummy) {
                     BlockPos corePos = worldPosFor(
                             level,
                             pieceBox,
@@ -210,15 +286,29 @@ public final class HbmLegacyNbtTemplate {
                     );
                     linkStructureDummy(level, pos, state, corePos);
                 } else {
-                    CompoundTag blockEntityNbt = transformStructureWandNbt(block.name, block.nbt, rotation, tandemStructureName);
+                    CompoundTag blockEntityNbt = transformLegacyBlockEntityNbt(
+                            block.name,
+                            block.nbt,
+                            rotation,
+                            tandemStructureName,
+                            placementRandom
+                    );
                     if (multiblockPart != null) {
                         if (blockEntityNbt == null) {
                             throw new IllegalStateException("Legacy " + multiblockPart.kind() + " core at " + localPos + " has no block entity NBT");
                         }
                         blockEntityNbt = LegacyStructureMultiblocks.migrateCoreNbt(multiblockPart.kind(), blockEntityNbt);
                     }
+                    if (heavyDoorPart != null) {
+                        if (blockEntityNbt == null) {
+                            throw new IllegalStateException("Legacy " + heavyDoorPart.decl()
+                                    + " core at " + localPos + " has no block entity NBT");
+                        }
+                        blockEntityNbt = LegacyStructureHeavyDoors.migrateCoreNbt(blockEntityNbt);
+                    }
                     if (blockEntityNbt != null) {
-                        loadBlockEntity(level, pos, state, blockEntityNbt, multiblockPart != null);
+                        loadBlockEntity(level, pos, state, blockEntityNbt,
+                                multiblockPart != null || heavyDoorPart != null);
                     }
                 }
                 refreshPaneConnections(level, pos);
@@ -285,33 +375,78 @@ public final class HbmLegacyNbtTemplate {
         return state.setValue(BlockStateProperties.RAIL_SHAPE, finalShape);
     }
 
-    static void refreshPaneConnections(WorldGenLevel level, BlockPos changedPos) {
-        // Both vanilla iron bars and HBM's custom metal fence store their
-        // neighbour connections in block-state booleans.  Legacy NBTStructure
-        // wrote with flag 2, so refresh both families explicitly after each
-        // placement (including all four horizontal neighbours).
-        refreshPane(level, changedPos);
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            refreshPane(level, changedPos.relative(direction));
+    static void refreshPaneConnections(LevelAccessor level, BlockPos changedPos) {
+        // Legacy NBTStructure wrote with flag 2. Modern panes, fences, walls
+        // and stair corners persist their neighbour-derived shape in the
+        // block state, so refresh only those exact block families after the
+        // bulk write instead of issuing broad neighbour updates that could
+        // detach or drop other structure blocks.
+        refreshConnectedShape(level, changedPos);
+        for (Direction direction : Direction.values()) {
+            refreshConnectedShape(level, changedPos.relative(direction));
         }
     }
 
-    private static void refreshPane(WorldGenLevel level, BlockPos pos) {
+    private static void refreshConnectedShape(LevelAccessor level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof DungeonChainBlock) {
+            refreshDungeonChainEnd(level, pos, state);
+            return;
+        }
+        if (state.getBlock() instanceof WoodStructureBlock) {
+            BlockState connected = state;
+            for (Direction direction : Direction.values()) {
+                BlockPos neighborPos = pos.relative(direction);
+                connected = connected.updateShape(direction, level.getBlockState(neighborPos), level, pos, neighborPos);
+            }
+            if (connected != state) {
+                level.setBlock(pos, connected, 2);
+            }
+            return;
+        }
+        if (state.getBlock() instanceof WoodBarrierBlock) {
+            BlockState connected = WoodBarrierBlock.updateConnections(state, level, pos);
+            if (connected != state) {
+                level.setBlock(pos, connected, 2);
+            }
+            return;
+        }
+        if (state.getBlock() instanceof FluidDuctBlock duct) {
+            duct.refreshConnections(level, pos);
+            return;
+        }
+        if (state.getBlock() instanceof EnergyCableBlock) {
+            EnergyCableBlock.refreshConnections(level, pos);
+            return;
+        }
         if (state.getBlock() instanceof MetalFenceBlock) {
             MetalFenceBlock.refreshConnections(level, pos);
             return;
         }
-        if (!(state.getBlock() instanceof IronBarsBlock)) {
+        if (!(state.getBlock() instanceof IronBarsBlock)
+                && !(state.getBlock() instanceof FenceBlock)
+                && !(state.getBlock() instanceof WallBlock)
+                && !(state.getBlock() instanceof StairBlock)) {
             return;
         }
         BlockState connected = state;
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
+        for (Direction direction : Direction.values()) {
             BlockPos neighborPos = pos.relative(direction);
             connected = connected.updateShape(direction, level.getBlockState(neighborPos), level, pos, neighborPos);
         }
         if (connected != state) {
             level.setBlock(pos, connected, 2);
+        }
+    }
+
+    private static void refreshDungeonChainEnd(LevelAccessor level, BlockPos pos, BlockState state) {
+        BlockPos belowPos = pos.below();
+        BlockState below = level.getBlockState(belowPos);
+        boolean continues = below.is(state.getBlock())
+                && below.getValue(DungeonChainBlock.WALL) == state.getValue(DungeonChainBlock.WALL);
+        boolean end = !continues && !below.isFaceSturdy(level, belowPos, Direction.UP);
+        if (state.getValue(DungeonChainBlock.END) != end) {
+            level.setBlock(pos, state.setValue(DungeonChainBlock.END, end), 2);
         }
     }
 
@@ -361,7 +496,9 @@ public final class HbmLegacyNbtTemplate {
 
                 int[] pos = readIntList(block.getList("pos", Tag.TAG_INT), 3);
                 PaletteEntry entry = palette[stateIndex];
-                CompoundTag nbt = block.contains("nbt", Tag.TAG_COMPOUND) ? cleanBlockEntityNbt(block.getCompound("nbt"), itemPalette) : null;
+                CompoundTag nbt = block.contains("nbt", Tag.TAG_COMPOUND)
+                        ? cleanBlockEntityNbt(entry.name, block.getCompound("nbt"), itemPalette)
+                        : null;
                 if (isWandJigsaw(entry, nbt)) {
                     registerJigsawConnection(nbt, pos, connections, topConnections, bottomConnections, horizontalConnections);
                     entry = jigsawReplacement(nbt);
@@ -371,7 +508,7 @@ public final class HbmLegacyNbtTemplate {
                     nbt = null;
                 }
 
-                BlockState state = stateFromLegacy(entry.name, entry.meta);
+                BlockState state = stateFromLegacy(entry.name, entry.meta, nbt);
                 placedBlocks.add(new PlacedBlock(pos[0], pos[1], pos[2], entry.name, entry.meta, state, nbt));
             }
             linkLegacyDoorStates(placedBlocks);
@@ -431,10 +568,179 @@ public final class HbmLegacyNbtTemplate {
         return palette;
     }
 
-    private static CompoundTag cleanBlockEntityNbt(CompoundTag tag, Map<Short, String> itemPalette) {
+    private static CompoundTag cleanBlockEntityNbt(
+            String blockName,
+            CompoundTag tag,
+            Map<Short, String> itemPalette
+    ) {
         CompoundTag copy = tag.copy();
         cleanLegacyNbt(copy, itemPalette);
-        return copy;
+        return migrateOrdinaryBlockEntityNbt(blockName, copy);
+    }
+
+    static CompoundTag migrateOrdinaryBlockEntityNbt(String blockName, CompoundTag legacy) {
+        CompoundTag result = legacy.copy();
+
+        if (blockName.equals("reinhardtshbm:capacitor_copper")
+                && result.contains("power", Tag.TAG_ANY_NUMERIC)
+                && !result.contains("Power", Tag.TAG_ANY_NUMERIC)) {
+            result.putLong("Power", Mth.clamp(result.getLong("power"), 0L, 1_000_000L));
+        }
+
+        boolean legacyDiesel = result.contains("items", Tag.TAG_LIST)
+                || result.contains("powerTime", Tag.TAG_ANY_NUMERIC)
+                || result.contains("fuel_type", Tag.TAG_STRING)
+                || result.contains("smoke0_type", Tag.TAG_STRING);
+        boolean legacyBarrel = result.contains("items", Tag.TAG_LIST)
+                || result.contains("tank_type", Tag.TAG_STRING)
+                || result.contains("mode", Tag.TAG_ANY_NUMERIC);
+        boolean legacyRedConnector = result.contains("color", Tag.TAG_ANY_NUMERIC)
+                || result.contains("conCount", Tag.TAG_ANY_NUMERIC);
+        boolean legacyDamagedSentry = result.contains("items", Tag.TAG_LIST)
+                || result.contains("isOn", Tag.TAG_BYTE)
+                || result.contains("targetPlayers", Tag.TAG_BYTE)
+                || result.contains("targetAnimals", Tag.TAG_BYTE)
+                || result.contains("targetMobs", Tag.TAG_BYTE)
+                || result.contains("targetMachines", Tag.TAG_BYTE);
+
+        if (blockName.equals("reinhardtshbm:machine_diesel") && legacyDiesel) {
+            migrateLegacyItemsToSlots(result, 5);
+            result.putLong("Power", result.getLong("powerTime"));
+            result.putLong("PowerCap", result.getLong("powerCap"));
+            result.putBoolean("Running", result.getBoolean("isOn"));
+            result.put("FuelTank", LegacyStructureMultiblocks.migrateTank(result, "fuel"));
+            result.put("Smoke", LegacyStructureMultiblocks.migrateTank(result, "smoke0"));
+            result.put("SmokeLeaded", LegacyStructureMultiblocks.migrateTank(result, "smoke1"));
+            result.put("SmokePoison", LegacyStructureMultiblocks.migrateTank(result, "smoke2"));
+        } else if ((blockName.equals("reinhardtshbm:barrel_corroded")
+                || blockName.equals("reinhardtshbm:barrel_plastic")) && legacyBarrel) {
+            migrateLegacyItemsToSlots(result, 6);
+            result.put("Tank", LegacyStructureMultiblocks.migrateTank(result, "tank"));
+            result.putByte("Mode", result.getByte("mode"));
+            result.putBoolean("Exploded", false);
+            result.putBoolean("OnFire", false);
+        } else if (blockName.equals("reinhardtshbm:red_connector") && legacyRedConnector) {
+            result.putInt("Color", result.getInt("color"));
+            int connectionCount = result.getInt("conCount");
+            if (connectionCount != 0) {
+                throw new IllegalStateException("Legacy structure red connector has "
+                        + connectionCount + " absolute connections; generated structures must save none");
+            }
+            result.put("Connections", new ListTag());
+        } else if (blockName.equals("reinhardtshbm:turret_sentry_damaged") && legacyDamagedSentry) {
+            migrateLegacyItemsToVanillaList(result, 11);
+            result.putBoolean("on", result.getBoolean("isOn"));
+            result.putBoolean("target_players", result.getBoolean("targetPlayers"));
+            result.putBoolean("target_animals", result.getBoolean("targetAnimals"));
+            result.putBoolean("target_mobs", result.getBoolean("targetMobs"));
+            result.putBoolean("target_machines", result.getBoolean("targetMachines"));
+        } else {
+            int crateSlots = switch (blockName) {
+                case "reinhardtshbm:crate_iron" -> 36;
+                case "reinhardtshbm:crate_steel" -> 54;
+                case "reinhardtshbm:crate_desh" -> 104;
+                case "reinhardtshbm:crate_tungsten", "reinhardtshbm:crate_template" -> 27;
+                default -> -1;
+            };
+            if (crateSlots >= 0) {
+                migrateLegacyItemsToCrate(result, crateSlots);
+            }
+        }
+        return result;
+    }
+
+    private static void migrateLegacyItemsToSlots(CompoundTag tag, int slotCount) {
+        if (!tag.contains("items", Tag.TAG_LIST)) {
+            return;
+        }
+        ListTag items = tag.getList("items", Tag.TAG_COMPOUND);
+        for (int index = 0; index < items.size(); index++) {
+            CompoundTag stack = items.getCompound(index);
+            if (stack.isEmpty() || stack.getString("id").equals("minecraft:air")) {
+                continue;
+            }
+            int slot = legacyItemSlot(stack);
+            if (slot < 0 || slot >= slotCount) {
+                throw new IllegalStateException("Legacy item slot " + slot + " is outside inventory size " + slotCount);
+            }
+            CompoundTag migrated = stack.copy();
+            migrated.remove("slot");
+            migrated.remove("Slot");
+            tag.put("Slot" + slot, migrated);
+        }
+        tag.remove("items");
+    }
+
+    private static void migrateLegacyItemsToCrate(CompoundTag tag, int slotCount) {
+        if (!tag.contains("items", Tag.TAG_LIST)) {
+            return;
+        }
+        CompoundTag migratedItems = tag.contains("Items", Tag.TAG_COMPOUND)
+                ? tag.getCompound("Items").copy()
+                : new CompoundTag();
+        ListTag items = tag.getList("items", Tag.TAG_COMPOUND);
+        for (int index = 0; index < items.size(); index++) {
+            CompoundTag stack = items.getCompound(index);
+            if (stack.isEmpty() || stack.getString("id").equals("minecraft:air")) {
+                continue;
+            }
+            int slot = legacyItemSlot(stack);
+            if (slot < 0 || slot >= slotCount) {
+                throw new IllegalStateException("Legacy crate item slot " + slot + " is outside inventory size " + slotCount);
+            }
+            CompoundTag migrated = stack.copy();
+            migrated.remove("slot");
+            migrated.remove("Slot");
+            migratedItems.put("slot" + slot, migrated);
+        }
+        copyIfPresent(tag, migratedItems, "lock");
+        copyIfPresent(tag, migratedItems, "isLocked");
+        copyIfPresent(tag, migratedItems, "lockMod");
+        copyIfPresent(tag, migratedItems, "cheesable");
+        copyIfPresent(tag, migratedItems, "spiders");
+        tag.put("Items", migratedItems);
+        tag.remove("items");
+    }
+
+    private static void migrateLegacyItemsToVanillaList(CompoundTag tag, int slotCount) {
+        if (!tag.contains("items", Tag.TAG_LIST)) {
+            return;
+        }
+        ListTag migratedItems = new ListTag();
+        ListTag items = tag.getList("items", Tag.TAG_COMPOUND);
+        for (int index = 0; index < items.size(); index++) {
+            CompoundTag stack = items.getCompound(index);
+            if (stack.isEmpty() || stack.getString("id").equals("minecraft:air")) {
+                continue;
+            }
+            int slot = legacyItemSlot(stack);
+            if (slot < 0 || slot >= slotCount) {
+                throw new IllegalStateException("Legacy item slot " + slot + " is outside inventory size " + slotCount);
+            }
+            CompoundTag migrated = stack.copy();
+            migrated.remove("slot");
+            migrated.putByte("Slot", (byte) slot);
+            migratedItems.add(migrated);
+        }
+        tag.put("Items", migratedItems);
+        tag.remove("items");
+    }
+
+    private static int legacyItemSlot(CompoundTag stack) {
+        if (stack.contains("slot", Tag.TAG_ANY_NUMERIC)) {
+            return stack.getInt("slot");
+        }
+        if (stack.contains("Slot", Tag.TAG_ANY_NUMERIC)) {
+            return stack.getByte("Slot") & 255;
+        }
+        throw new IllegalStateException("Legacy structure item has no slot field");
+    }
+
+    private static void copyIfPresent(CompoundTag source, CompoundTag target, String key) {
+        Tag value = source.get(key);
+        if (value != null) {
+            target.put(key, value.copy());
+        }
     }
 
     private static void cleanLegacyNbt(Tag tag, Map<Short, String> itemPalette) {
@@ -443,7 +749,7 @@ public final class HbmLegacyNbtTemplate {
                 compound.putString("block", normalizeId(compound.getString("block")));
             }
 
-            if (looksLikeItemStack(compound) && !fixItemStack(compound, itemPalette)) {
+            if (looksLikeItemStack(compound) && !migrateLegacyItemStack(compound, itemPalette)) {
                 clearCompound(compound);
                 return;
             }
@@ -455,7 +761,7 @@ public final class HbmLegacyNbtTemplate {
             for (int i = list.size() - 1; i >= 0; i--) {
                 Tag child = list.get(i);
                 if (child instanceof CompoundTag compound && looksLikeItemStack(compound)
-                        && !fixItemStack(compound, itemPalette)) {
+                        && !migrateLegacyItemStack(compound, itemPalette)) {
                     list.remove(i);
                     continue;
                 }
@@ -469,7 +775,7 @@ public final class HbmLegacyNbtTemplate {
                 && (tag.contains("Count") || tag.contains("count") || tag.contains("Slot") || tag.contains("slot") || tag.contains("Damage"));
     }
 
-    private static boolean fixItemStack(CompoundTag tag, Map<Short, String> itemPalette) {
+    static boolean migrateLegacyItemStack(CompoundTag tag, Map<Short, String> itemPalette) {
         if (tag.contains("id", Tag.TAG_STRING)) {
             tag.putString("id", normalizeItemId(tag.getString("id")));
         } else if (tag.contains("id", Tag.TAG_SHORT)) {
@@ -483,6 +789,10 @@ public final class HbmLegacyNbtTemplate {
                 String mapped = itemPalette.get((short) id);
                 if (mapped != null) {
                     tag.putString("id", normalizeItemId(mapped));
+                } else if (id == 386) {
+                    // The latest lighthouse template contains one vanilla
+                    // 1.7.10 written book without an item-palette entry.
+                    tag.putString("id", "minecraft:written_book");
                 }
             }
         }
@@ -490,7 +800,31 @@ public final class HbmLegacyNbtTemplate {
         if (tag.contains("Count", Tag.TAG_BYTE) && !tag.contains("count")) {
             tag.putInt("count", Math.max(1, tag.getByte("Count") & 255));
         }
+        if (tag.getString("id").equals("minecraft:written_book")
+                && tag.contains("tag", Tag.TAG_COMPOUND)
+                && !tag.contains("components", Tag.TAG_COMPOUND)) {
+            migrateLegacyWrittenBook(tag);
+        }
         return !tag.contains("id", Tag.TAG_STRING) || !tag.getString("id").equals("minecraft:air");
+    }
+
+    private static void migrateLegacyWrittenBook(CompoundTag stack) {
+        CompoundTag legacyData = stack.getCompound("tag");
+        ListTag pages = legacyData.getList("pages", Tag.TAG_STRING).copy();
+
+        CompoundTag content = new CompoundTag();
+        content.putString("title", legacyData.getString("title"));
+        content.putString("author", legacyData.getString("author"));
+        content.putInt("generation", Mth.clamp(legacyData.getInt("generation"), 0, 3));
+        content.put("pages", pages);
+        content.putBoolean("resolved", legacyData.getBoolean("resolved"));
+
+        CompoundTag components = new CompoundTag();
+        components.put("minecraft:written_book_content", content);
+        stack.put("components", components);
+        stack.remove("tag");
+        stack.remove("Count");
+        stack.remove("Damage");
     }
 
     private static void clearCompound(CompoundTag tag) {
@@ -500,11 +834,12 @@ public final class HbmLegacyNbtTemplate {
     }
 
     @Nullable
-    private static CompoundTag transformStructureWandNbt(
+    private static CompoundTag transformLegacyBlockEntityNbt(
             String blockName,
             @Nullable CompoundTag nbt,
             int rotation,
-            @Nullable String tandemStructureName
+            @Nullable String tandemStructureName,
+            RandomSource random
     ) {
         if (nbt == null) {
             return null;
@@ -516,6 +851,15 @@ public final class HbmLegacyNbtTemplate {
         // generated from the legacy NBT template.
         if (blockName.equals("reinhardtshbm:floodlight")) {
             return migrateLegacyFloodlightNbt(nbt);
+        }
+
+        // NBTStructure always calls TileEntityBobble#transformTE while
+        // building a template.  The saved subtype is deliberately ignored;
+        // every generated structure receives one random non-empty bobblehead.
+        if (blockName.equals("reinhardtshbm:bobblehead")) {
+            CompoundTag copy = nbt.copy();
+            copy.putByte("type", (byte) (random.nextInt(BobbleheadType.values().length - 1) + 1));
+            return copy;
         }
 
         // 1.7.10 BlockWandLoot#transformTE: trigger on first tick and rotate only its stored placement yaw.
@@ -575,6 +919,21 @@ public final class HbmLegacyNbtTemplate {
             throw new IllegalStateException("Legacy structure dummy at " + pos + " did not create MachineDummyBlockEntity");
         }
         dummy.setCorePos(corePos);
+    }
+
+    private static void linkStructureHeavyDoorPart(
+            WorldGenLevel level,
+            BlockPos pos,
+            BlockState state,
+            BlockPos corePos,
+            BlockPos localOffset
+    ) {
+        BlockEntity blockEntity = getOrCreateBlockEntity(level, pos, state);
+        if (!(blockEntity instanceof HbmHeavyDoorPartBlockEntity part)) {
+            throw new IllegalStateException("Legacy heavy-door part at " + pos
+                    + " did not create HbmHeavyDoorPartBlockEntity");
+        }
+        part.configure(corePos, localOffset);
     }
 
     private static void loadBlockEntity(WorldGenLevel level, BlockPos pos, BlockState state, CompoundTag nbt, boolean strictLegacyMultiblock) {
@@ -737,14 +1096,66 @@ public final class HbmLegacyNbtTemplate {
         return LegacyStructureMultiblocks.index(sources);
     }
 
+    private static Map<BlockPos, LegacyStructureHeavyDoors.Part> indexLegacyHeavyDoors(List<PlacedBlock> blocks) {
+        Map<BlockPos, LegacyStructureHeavyDoors.Source> sources = new HashMap<>();
+        for (PlacedBlock block : blocks) {
+            BlockPos pos = new BlockPos(block.x, block.y, block.z);
+            LegacyStructureHeavyDoors.Source previous = sources.put(
+                    pos,
+                    new LegacyStructureHeavyDoors.Source(block.name, block.meta)
+            );
+            if (previous != null) {
+                throw new IllegalStateException("Legacy template has more than one block at " + pos);
+            }
+        }
+        return LegacyStructureHeavyDoors.index(sources);
+    }
+
     public static BlockState stateFromLegacyId(String name, int meta) {
         return stateFromLegacy(normalizeId(name), meta);
+    }
+
+    static BlockState stateFromLegacyId(String name, int meta, @Nullable CompoundTag nbt) {
+        return stateFromLegacy(normalizeId(name), meta, nbt);
+    }
+
+    private static BlockState stateFromLegacy(String name, int meta, @Nullable CompoundTag nbt) {
+        BlockState state = stateFromLegacy(name, meta);
+        if (name.equals("minecraft:skull") && (meta & 7) == 1
+                && nbt != null && nbt.contains("Rot", Tag.TAG_ANY_NUMERIC)
+                && state.hasProperty(SkullBlock.ROTATION)) {
+            int rotation = nbt.getInt("Rot");
+            if (rotation < 0 || rotation > 15) {
+                throw new IllegalStateException("Invalid legacy floor-skull rotation " + rotation);
+            }
+            return state.setValue(SkullBlock.ROTATION, rotation);
+        }
+        if (!name.equals("minecraft:flower_pot") || nbt == null) {
+            return state;
+        }
+
+        // The only populated legacy flower pot shipped in the structures is
+        // numeric item id 39, the 1.7.10 brown mushroom. Empty pots store 0.
+        int item = nbt.getInt("Item");
+        int data = nbt.getInt("Data");
+        if (item == 0) {
+            return state;
+        }
+        if (item == 39 && data == 0) {
+            return Blocks.POTTED_BROWN_MUSHROOM.defaultBlockState();
+        }
+        throw new IllegalStateException("Unsupported legacy flower-pot item " + item + ":" + data);
     }
 
     static BlockState stateFromLegacy(String name, int meta) {
         BlockState legacyVanillaState = legacyVanillaState(name, meta);
         if (legacyVanillaState != null) {
             return legacyVanillaState;
+        }
+
+        BlockState flattenedState = legacyFlattenedHbmState(name, meta);
+        if (flattenedState != null) {
+            return flattenedState;
         }
 
         Block block = blockByName(name);
@@ -768,6 +1179,173 @@ public final class HbmLegacyNbtTemplate {
                 throw new IllegalStateException("Modern " + multiblockKind + " structure core has no horizontal facing state");
             }
             return state.setValue(HorizontalDirectionalBlock.FACING, facing);
+        }
+
+        if (block instanceof HbmHeavyDoorBlock && meta >= 12) {
+            Direction facing = LegacyStructureHeavyDoors.coreFacing(meta);
+            return state.setValue(HbmHeavyDoorBlock.FACING, facing);
+        }
+
+        if ((block instanceof com.reinhardt.hbm.block.DieselGeneratorBlock
+                || name.equals("reinhardtshbm:machine_electric_furnace_off")
+                || name.equals("reinhardtshbm:machine_electric_furnace_on"))
+                && state.hasProperty(HorizontalDirectionalBlock.FACING)) {
+            Direction facing = Direction.from3DDataValue(meta & 7);
+            if (!facing.getAxis().isHorizontal()) {
+                throw new IllegalStateException("Legacy machine " + name
+                        + " has non-horizontal facing metadata " + meta);
+            }
+            return state.setValue(HorizontalDirectionalBlock.FACING, facing);
+        }
+
+        if ((block instanceof ChargerBlock
+                || block instanceof MicrowaveBlock
+                || block instanceof SmallBoilerBlock)
+                && state.hasProperty(HorizontalDirectionalBlock.FACING)) {
+            return state.setValue(HorizontalDirectionalBlock.FACING, requireLegacyHorizontal(meta));
+        }
+
+        if (block instanceof TrapDoorBlock) {
+            return legacyTrapDoorState(state, meta);
+        }
+
+        if (block instanceof DeadPlantBlock) {
+            DeadPlantBlock.Kind kind = switch (meta) {
+                case 0 -> DeadPlantBlock.Kind.GENERIC;
+                case 1 -> DeadPlantBlock.Kind.GRASS;
+                case 2 -> DeadPlantBlock.Kind.FLOWER;
+                case 3 -> DeadPlantBlock.Kind.BIG_FLOWER;
+                case 4 -> DeadPlantBlock.Kind.FERN;
+                default -> throw new IllegalStateException("Invalid legacy dead-plant metadata " + meta);
+            };
+            return state.setValue(DeadPlantBlock.KIND, kind);
+        }
+
+        if (block instanceof HbmAnvilBlock) {
+            Direction facing = switch (meta) {
+                case 2 -> Direction.NORTH;
+                case 3 -> Direction.SOUTH;
+                case 4 -> Direction.EAST;
+                case 5 -> Direction.WEST;
+                default -> throw new IllegalStateException("Invalid legacy HBM-anvil metadata " + meta);
+            };
+            return state.setValue(HbmAnvilBlock.FACING, facing);
+        }
+
+        if (block instanceof StorageCrateBlock) {
+            // BlockStorageCrate accepted metadata 0 as its untouched worldgen
+            // state. The old steel-crate texture had no horizontal front, and
+            // both DesertAtom002 and Barrel deliberately placed crate_steel:0.
+            // Player placement was the only path that rewrote it to 2-5.
+            Direction facing = meta == 0 ? Direction.NORTH : requireLegacyHorizontal(meta);
+            return state.setValue(StorageCrateBlock.FACING, facing);
+        }
+
+        if (block instanceof DungeonChainBlock) {
+            boolean wall = meta >= 2 && meta <= 5;
+            Direction facing = wall ? requireLegacyHorizontal(meta) : Direction.NORTH;
+            return state
+                    .setValue(DungeonChainBlock.WALL, wall)
+                    .setValue(DungeonChainBlock.END, false)
+                    .setValue(DungeonChainBlock.FACING, facing);
+        }
+
+        if (block instanceof WoodStructureBlock) {
+            WoodStructureBlock.Type type = switch (meta) {
+                case 0 -> WoodStructureBlock.Type.ROOF;
+                case 1 -> WoodStructureBlock.Type.SCAFFOLD;
+                case 2 -> WoodStructureBlock.Type.CEILING;
+                default -> throw new IllegalStateException("Invalid legacy wood-structure metadata " + meta);
+            };
+            return state.setValue(WoodStructureBlock.TYPE, type);
+        }
+
+        if (block instanceof SteelGrateBlock) {
+            if (meta < 0 || meta > 9) {
+                throw new IllegalStateException("Invalid legacy steel-grate height metadata " + meta);
+            }
+            return state.setValue(SteelGrateBlock.HEIGHT, meta);
+        }
+
+        if (block instanceof CaveSpikeBlock) {
+            if (meta < 0 || meta > 6) {
+                throw new IllegalStateException("Invalid legacy cave-spike material metadata " + meta);
+            }
+            return state.setValue(CaveSpikeBlock.MATERIAL, meta);
+        }
+
+        if (block instanceof SuperConcreteBlock) {
+            if (meta < 0 || meta > 15) {
+                throw new IllegalStateException("Invalid legacy super-concrete damage metadata " + meta);
+            }
+            return state.setValue(SuperConcreteBlock.DAMAGE, meta);
+        }
+
+        if (block instanceof WoodBarrierBlock) {
+            Direction facing = requireLegacyHorizontal(meta);
+            return state
+                    .setValue(WoodBarrierBlock.FACING, facing)
+                    .setValue(WoodBarrierBlock.NORTH, facing == Direction.SOUTH)
+                    .setValue(WoodBarrierBlock.EAST, facing == Direction.WEST)
+                    .setValue(WoodBarrierBlock.SOUTH, facing == Direction.NORTH)
+                    .setValue(WoodBarrierBlock.WEST, facing == Direction.EAST)
+                    .setValue(WoodBarrierBlock.UP, false);
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.PoleSatelliteReceiverBlock
+                && state.hasProperty(com.reinhardt.hbm.block.PoleSatelliteReceiverBlock.FACING)) {
+            return state.setValue(com.reinhardt.hbm.block.PoleSatelliteReceiverBlock.FACING,
+                    requireLegacyHorizontal(meta).getOpposite());
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.RadioRecBlock
+                && state.hasProperty(com.reinhardt.hbm.block.RadioRecBlock.FACING)) {
+            return state.setValue(com.reinhardt.hbm.block.RadioRecBlock.FACING,
+                    requireLegacyHorizontal(meta).getOpposite());
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.GeigerBlock
+                && state.hasProperty(com.reinhardt.hbm.block.GeigerBlock.FACING)) {
+            return state.setValue(com.reinhardt.hbm.block.GeigerBlock.FACING,
+                    requireLegacyHorizontal(meta));
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.StatueElbFBlock
+                && state.hasProperty(com.reinhardt.hbm.block.StatueElbFBlock.FACING)) {
+            return state.setValue(com.reinhardt.hbm.block.StatueElbFBlock.FACING,
+                    requireLegacyHorizontal(meta));
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.LegacyDisplayStandBlock stand
+                && stand.kind() == com.reinhardt.hbm.block.LegacyDisplayStandBlock.Kind.SKELETON_HOLDER) {
+            Direction facing = switch (meta & 7) {
+                case 2 -> Direction.WEST;
+                case 3 -> Direction.EAST;
+                case 4 -> Direction.SOUTH;
+                case 5 -> Direction.NORTH;
+                default -> throw new IllegalStateException("Invalid legacy skeleton-holder metadata " + meta);
+            };
+            return state.setValue(com.reinhardt.hbm.block.LegacyDisplayStandBlock.FACING, facing);
+        }
+
+        if (block instanceof com.reinhardt.hbm.block.ToasterBlock) {
+            int normalized = Math.floorMod(meta, 12);
+            Direction facing = switch (normalized & 3) {
+                case 0 -> Direction.SOUTH;
+                case 1 -> Direction.WEST;
+                case 2 -> Direction.NORTH;
+                default -> Direction.EAST;
+            };
+            return state
+                    .setValue(com.reinhardt.hbm.block.ToasterBlock.FACING, facing)
+                    .setValue(com.reinhardt.hbm.block.ToasterBlock.VARIANT, normalized / 4);
+        }
+
+        if (block instanceof BobbleheadBlock && state.hasProperty(BobbleheadBlock.ROTATION)) {
+            // BlockBobble stores its complete 16-step floor rotation directly
+            // in metadata.  The block's rotate() method then applies the
+            // structure's quarter turn, exactly matching transformMeta().
+            return state.setValue(BobbleheadBlock.ROTATION, meta & 15);
         }
 
         if (block instanceof RailBlock && state.hasProperty(BlockStateProperties.RAIL_SHAPE)) {
@@ -938,6 +1516,61 @@ public final class HbmLegacyNbtTemplate {
         return applyMatchingNumericProperties(state, meta);
     }
 
+    @Nullable
+    private static BlockState legacyFlattenedHbmState(String name, int meta) {
+        if (name.equals("reinhardtshbm:platemetal")) {
+            Block block = switch (meta) {
+                case 0 -> HbmBlocks.PLATEMETAL.get();
+                case 1 -> HbmBlocks.PLATEMETAL_BLACK.get();
+                case 2 -> HbmBlocks.PLATEMETAL_WHITE.get();
+                case 3 -> HbmBlocks.PLATEMETAL_RED.get();
+                case 4 -> HbmBlocks.PLATEMETAL_GREEN.get();
+                case 5 -> HbmBlocks.PLATEMETAL_LIGHT_GRAY.get();
+                case 6 -> HbmBlocks.PLATEMETAL_BLUE.get();
+                case 7 -> HbmBlocks.PLATEMETAL_PURPLE.get();
+                case 8 -> HbmBlocks.PLATEMETAL_CYAN.get();
+                case 9 -> HbmBlocks.PLATEMETAL_PINK.get();
+                case 10 -> HbmBlocks.PLATEMETAL_LIME.get();
+                case 11 -> HbmBlocks.PLATEMETAL_YELLOW.get();
+                case 12 -> HbmBlocks.PLATEMETAL_LIGHT_BLUE.get();
+                case 13 -> HbmBlocks.PLATEMETAL_MAGENTA.get();
+                case 14 -> HbmBlocks.PLATEMETAL_ORANGE.get();
+                default -> throw new IllegalStateException("Invalid legacy platemetal metadata " + meta);
+            };
+            return block.defaultBlockState();
+        }
+
+        if (name.equals("reinhardtshbm:lightstone")) {
+            Block block = switch (meta) {
+                case 0 -> HbmBlocks.LIGHTSTONE.get();
+                case 1 -> HbmBlocks.LIGHTSTONE_TILE.get();
+                case 2 -> HbmBlocks.LIGHTSTONE_BRICKS.get();
+                case 3 -> HbmBlocks.LIGHTSTONE_BRICKS_CHISELED.get();
+                case 4 -> HbmBlocks.LIGHTSTONE_CHISELED.get();
+                default -> throw new IllegalStateException("Invalid legacy lightstone metadata " + meta);
+            };
+            return block.defaultBlockState();
+        }
+
+        if (name.equals("reinhardtshbm:steel_scaffold")) {
+            Block block = switch (meta & 3) {
+                case 0 -> HbmBlocks.STEEL_SCAFFOLD.get();
+                case 1 -> HbmBlocks.STEEL_SCAFFOLD_RED.get();
+                case 2 -> HbmBlocks.STEEL_SCAFFOLD_WHITE.get();
+                default -> HbmBlocks.STEEL_SCAFFOLD_YELLOW.get();
+            };
+            SteelScaffoldBlock.Orientation orientation = switch (meta & 12) {
+                case 0 -> SteelScaffoldBlock.Orientation.HORIZONTAL_NS;
+                case 4 -> SteelScaffoldBlock.Orientation.VERTICAL_NS;
+                case 8 -> SteelScaffoldBlock.Orientation.HORIZONTAL_EW;
+                case 12 -> SteelScaffoldBlock.Orientation.VERTICAL_EW;
+                default -> throw new IllegalStateException("Invalid legacy steel-scaffold metadata " + meta);
+            };
+            return block.defaultBlockState().setValue(SteelScaffoldBlock.ORIENT, orientation);
+        }
+        return null;
+    }
+
     private static RailShape legacyRailShape(int meta) {
         return switch (meta & 15) {
             case 1 -> RailShape.EAST_WEST;
@@ -998,17 +1631,277 @@ public final class HbmLegacyNbtTemplate {
     @Nullable
     private static BlockState legacyVanillaState(String name, int meta) {
         return switch (name) {
+            case "minecraft:bed" -> legacyBedState(meta);
             case "minecraft:brick_block" -> Blocks.BRICKS.defaultBlockState();
+            case "minecraft:carpet" -> legacyCarpet(meta).defaultBlockState();
+            case "minecraft:double_plant" -> legacyDoublePlantState(meta);
+            case "minecraft:fence" -> Blocks.OAK_FENCE.defaultBlockState();
+            case "minecraft:grass" -> Blocks.GRASS_BLOCK.defaultBlockState();
+            case "minecraft:leaves" -> legacyLeavesState(meta);
+            case "minecraft:log" -> legacyLogState(meta);
+            case "minecraft:planks" -> legacyWoodPlanks(meta).defaultBlockState();
+            case "minecraft:redstone_torch" -> legacyTorchState(meta, true);
+            case "minecraft:unlit_redstone_torch" -> legacyTorchState(meta, false);
+            case "minecraft:torch" -> legacyTorchState(meta, null);
+            case "minecraft:sand" -> (meta & 1) == 1
+                    ? Blocks.RED_SAND.defaultBlockState()
+                    : Blocks.SAND.defaultBlockState();
+            case "minecraft:snow_layer" -> Blocks.SNOW.defaultBlockState()
+                    .setValue(SnowLayerBlock.LAYERS, Mth.clamp((meta & 7) + 1, 1, 8));
+            case "minecraft:stained_glass" -> legacyStainedGlass(meta).defaultBlockState();
+            case "minecraft:stained_hardened_clay" -> legacyTerracotta(meta).defaultBlockState();
             case "minecraft:stonebrick" -> legacyStoneBrick(meta).defaultBlockState();
+            case "minecraft:stone_stairs" -> legacyStairState(Blocks.COBBLESTONE_STAIRS, meta);
             case "minecraft:stone_slab" -> slabState(legacyStoneSlab(meta), (meta & 8) != 0);
             case "minecraft:double_stone_slab" -> legacyDoubleStoneSlab(meta).defaultBlockState();
             case "minecraft:wooden_slab" -> slabState(legacyWoodSlab(meta), (meta & 8) != 0);
             case "minecraft:double_wooden_slab" -> legacyWoodPlanks(meta).defaultBlockState();
             case "minecraft:stained_glass_pane" -> legacyStainedGlassPane(meta).defaultBlockState();
+            case "minecraft:stone_button" -> legacyButtonState(meta);
+            case "minecraft:tallgrass" -> legacyTallGrass(meta).defaultBlockState();
+            case "minecraft:trapdoor" -> legacyTrapDoorState(Blocks.OAK_TRAPDOOR.defaultBlockState(), meta);
+            case "minecraft:trapped_chest" -> legacyTrappedChestState(meta);
+            case "minecraft:unpowered_comparator" -> legacyComparatorState(meta);
+            case "minecraft:unpowered_repeater" -> legacyRepeaterState(meta);
+            case "minecraft:vine" -> legacyVineState(meta);
+            case "minecraft:wall_sign" -> legacyWallSignState(meta);
+            case "minecraft:waterlily" -> Blocks.LILY_PAD.defaultBlockState();
+            case "minecraft:wooden_door" -> Blocks.OAK_DOOR.defaultBlockState();
+            case "minecraft:wooden_pressure_plate" -> Blocks.OAK_PRESSURE_PLATE.defaultBlockState()
+                    .setValue(BlockStateProperties.POWERED, (meta & 1) != 0);
             case "minecraft:web" -> Blocks.COBWEB.defaultBlockState();
+            case "minecraft:wool" -> legacyWool(meta).defaultBlockState();
             case "minecraft:skull" -> legacySkull(meta);
             default -> null;
         };
+    }
+
+    private static Direction requireLegacyHorizontal(int meta) {
+        Direction direction = Direction.from3DDataValue(meta & 7);
+        if (!direction.getAxis().isHorizontal()) {
+            throw new IllegalStateException("Legacy metadata does not encode a horizontal direction: " + meta);
+        }
+        return direction;
+    }
+
+    private static BlockState legacyStairState(Block stairs, int meta) {
+        BlockState state = stairs.defaultBlockState()
+                .setValue(StairBlock.FACING, switch (meta & 3) {
+                    case 0 -> Direction.EAST;
+                    case 1 -> Direction.WEST;
+                    case 2 -> Direction.SOUTH;
+                    default -> Direction.NORTH;
+                })
+                .setValue(StairBlock.HALF, (meta & 4) != 0 ? Half.TOP : Half.BOTTOM);
+        if (state.hasProperty(BlockStateProperties.WATERLOGGED)) {
+            state = state.setValue(BlockStateProperties.WATERLOGGED, false);
+        }
+        return state;
+    }
+
+    private static BlockState legacyTrappedChestState(int meta) {
+        Direction facing = requireLegacyHorizontal(meta);
+        return Blocks.TRAPPED_CHEST.defaultBlockState()
+                .setValue(ChestBlock.FACING, facing)
+                .setValue(ChestBlock.TYPE, ChestType.SINGLE)
+                .setValue(ChestBlock.WATERLOGGED, false);
+    }
+
+    private static BlockState legacyDoublePlantState(int meta) {
+        // Every double plant in the shipped templates is the old variant 2
+        // (double tall grass). Upper metadata carries only the upper bit and
+        // render-orientation bits; its species comes from the lower block.
+        return Blocks.TALL_GRASS.defaultBlockState()
+                .setValue(DoublePlantBlock.HALF,
+                        (meta & 8) != 0 ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER);
+    }
+
+    private static BlockState legacyLeavesState(int meta) {
+        Block leaves = switch (meta & 3) {
+            case 1 -> Blocks.SPRUCE_LEAVES;
+            case 2 -> Blocks.BIRCH_LEAVES;
+            case 3 -> Blocks.JUNGLE_LEAVES;
+            default -> Blocks.OAK_LEAVES;
+        };
+        return leaves.defaultBlockState()
+                .setValue(LeavesBlock.PERSISTENT, (meta & 4) != 0)
+                .setValue(LeavesBlock.DISTANCE, 7);
+    }
+
+    /**
+     * 1.7.10 torch metadata uses 1/2/3/4 for EAST/WEST/SOUTH/NORTH wall
+     * attachment and 5 for a standing torch. A null lit value denotes the
+     * ordinary non-redstone torch.
+     */
+    private static BlockState legacyTorchState(int meta, @Nullable Boolean lit) {
+        int facing = meta & 7;
+        boolean wall = facing >= 1 && facing <= 4;
+        Block block;
+        if (lit == null) {
+            block = wall ? Blocks.WALL_TORCH : Blocks.TORCH;
+        } else {
+            block = wall ? Blocks.REDSTONE_WALL_TORCH : Blocks.REDSTONE_TORCH;
+        }
+        BlockState state = block.defaultBlockState();
+        if (wall) {
+            state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, switch (facing) {
+                case 1 -> Direction.EAST;
+                case 2 -> Direction.WEST;
+                case 3 -> Direction.SOUTH;
+                default -> Direction.NORTH;
+            });
+        }
+        if (lit != null && state.hasProperty(BlockStateProperties.LIT)) {
+            state = state.setValue(BlockStateProperties.LIT, lit);
+        }
+        return state;
+    }
+
+    private static BlockState legacyButtonState(int meta) {
+        int orientation = meta & 7;
+        BlockState state = Blocks.STONE_BUTTON.defaultBlockState()
+                .setValue(BlockStateProperties.POWERED, (meta & 8) != 0);
+        return switch (orientation) {
+            case 0 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.CEILING)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH);
+            case 1 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.EAST);
+            case 2 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.WEST);
+            case 3 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
+            case 4 -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH);
+            default -> state.setValue(BlockStateProperties.ATTACH_FACE,
+                            net.minecraft.world.level.block.state.properties.AttachFace.FLOOR)
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH);
+        };
+    }
+
+    private static BlockState legacyComparatorState(int meta) {
+        return Blocks.COMPARATOR.defaultBlockState()
+                .setValue(ComparatorBlock.FACING, horizontalFromLegacy(meta))
+                .setValue(ComparatorBlock.MODE, (meta & 4) != 0 ? ComparatorMode.SUBTRACT : ComparatorMode.COMPARE)
+                .setValue(ComparatorBlock.POWERED, false);
+    }
+
+    private static BlockState legacyRepeaterState(int meta) {
+        return Blocks.REPEATER.defaultBlockState()
+                .setValue(RepeaterBlock.FACING, horizontalFromLegacy(meta))
+                .setValue(RepeaterBlock.DELAY, ((meta >> 2) & 3) + 1)
+                .setValue(RepeaterBlock.POWERED, false);
+    }
+
+    private static BlockState legacyVineState(int meta) {
+        return Blocks.VINE.defaultBlockState()
+                .setValue(VineBlock.SOUTH, (meta & 1) != 0)
+                .setValue(VineBlock.WEST, (meta & 2) != 0)
+                .setValue(VineBlock.NORTH, (meta & 4) != 0)
+                .setValue(VineBlock.EAST, (meta & 8) != 0)
+                .setValue(VineBlock.UP, false);
+    }
+
+    private static BlockState legacyWallSignState(int meta) {
+        Direction facing = switch (meta & 7) {
+            case 2 -> Direction.NORTH;
+            case 3 -> Direction.SOUTH;
+            case 4 -> Direction.WEST;
+            case 5 -> Direction.EAST;
+            default -> throw new IllegalStateException("Invalid legacy wall-sign metadata " + meta);
+        };
+        return Blocks.OAK_WALL_SIGN.defaultBlockState()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, facing)
+                .setValue(BlockStateProperties.WATERLOGGED, false);
+    }
+
+    private static BlockState legacyBedState(int meta) {
+        return Blocks.RED_BED.defaultBlockState()
+                .setValue(BedBlock.FACING, horizontalFromLegacy(meta))
+                .setValue(BedBlock.PART, (meta & 8) != 0 ? BedPart.HEAD : BedPart.FOOT)
+                .setValue(BedBlock.OCCUPIED, (meta & 4) != 0);
+    }
+
+    private static BlockState legacyTrapDoorState(BlockState state, int meta) {
+        Direction facing = switch (meta & 3) {
+            case 0 -> Direction.SOUTH;
+            case 1 -> Direction.NORTH;
+            case 2 -> Direction.EAST;
+            default -> Direction.WEST;
+        };
+        return state
+                .setValue(TrapDoorBlock.FACING, facing)
+                .setValue(TrapDoorBlock.HALF, (meta & 8) != 0 ? Half.TOP : Half.BOTTOM)
+                .setValue(TrapDoorBlock.OPEN, (meta & 4) != 0)
+                .setValue(TrapDoorBlock.POWERED, false)
+                .setValue(TrapDoorBlock.WATERLOGGED, false);
+    }
+
+    private static BlockState legacyLogState(int meta) {
+        Block block = switch (meta & 3) {
+            case 1 -> (meta & 12) == 12 ? Blocks.SPRUCE_WOOD : Blocks.SPRUCE_LOG;
+            case 2 -> (meta & 12) == 12 ? Blocks.BIRCH_WOOD : Blocks.BIRCH_LOG;
+            case 3 -> (meta & 12) == 12 ? Blocks.JUNGLE_WOOD : Blocks.JUNGLE_LOG;
+            default -> (meta & 12) == 12 ? Blocks.OAK_WOOD : Blocks.OAK_LOG;
+        };
+        BlockState state = block.defaultBlockState();
+        if ((meta & 12) == 12 || !state.hasProperty(RotatedPillarBlock.AXIS)) {
+            return state;
+        }
+        Direction.Axis axis = switch (meta & 12) {
+            case 4 -> Direction.Axis.X;
+            case 8 -> Direction.Axis.Z;
+            default -> Direction.Axis.Y;
+        };
+        return state.setValue(RotatedPillarBlock.AXIS, axis);
+    }
+
+    private static Block legacyTallGrass(int meta) {
+        return switch (meta & 3) {
+            case 0 -> Blocks.DEAD_BUSH;
+            case 2 -> Blocks.FERN;
+            default -> Blocks.SHORT_GRASS;
+        };
+    }
+
+    private static Block legacyCarpet(int meta) {
+        return legacyColoredBlock(meta,
+                Blocks.WHITE_CARPET, Blocks.ORANGE_CARPET, Blocks.MAGENTA_CARPET, Blocks.LIGHT_BLUE_CARPET,
+                Blocks.YELLOW_CARPET, Blocks.LIME_CARPET, Blocks.PINK_CARPET, Blocks.GRAY_CARPET,
+                Blocks.LIGHT_GRAY_CARPET, Blocks.CYAN_CARPET, Blocks.PURPLE_CARPET, Blocks.BLUE_CARPET,
+                Blocks.BROWN_CARPET, Blocks.GREEN_CARPET, Blocks.RED_CARPET, Blocks.BLACK_CARPET);
+    }
+
+    private static Block legacyStainedGlass(int meta) {
+        return legacyColoredBlock(meta,
+                Blocks.WHITE_STAINED_GLASS, Blocks.ORANGE_STAINED_GLASS, Blocks.MAGENTA_STAINED_GLASS, Blocks.LIGHT_BLUE_STAINED_GLASS,
+                Blocks.YELLOW_STAINED_GLASS, Blocks.LIME_STAINED_GLASS, Blocks.PINK_STAINED_GLASS, Blocks.GRAY_STAINED_GLASS,
+                Blocks.LIGHT_GRAY_STAINED_GLASS, Blocks.CYAN_STAINED_GLASS, Blocks.PURPLE_STAINED_GLASS, Blocks.BLUE_STAINED_GLASS,
+                Blocks.BROWN_STAINED_GLASS, Blocks.GREEN_STAINED_GLASS, Blocks.RED_STAINED_GLASS, Blocks.BLACK_STAINED_GLASS);
+    }
+
+    private static Block legacyTerracotta(int meta) {
+        return legacyColoredBlock(meta,
+                Blocks.WHITE_TERRACOTTA, Blocks.ORANGE_TERRACOTTA, Blocks.MAGENTA_TERRACOTTA, Blocks.LIGHT_BLUE_TERRACOTTA,
+                Blocks.YELLOW_TERRACOTTA, Blocks.LIME_TERRACOTTA, Blocks.PINK_TERRACOTTA, Blocks.GRAY_TERRACOTTA,
+                Blocks.LIGHT_GRAY_TERRACOTTA, Blocks.CYAN_TERRACOTTA, Blocks.PURPLE_TERRACOTTA, Blocks.BLUE_TERRACOTTA,
+                Blocks.BROWN_TERRACOTTA, Blocks.GREEN_TERRACOTTA, Blocks.RED_TERRACOTTA, Blocks.BLACK_TERRACOTTA);
+    }
+
+    private static Block legacyWool(int meta) {
+        return legacyColoredBlock(meta,
+                Blocks.WHITE_WOOL, Blocks.ORANGE_WOOL, Blocks.MAGENTA_WOOL, Blocks.LIGHT_BLUE_WOOL,
+                Blocks.YELLOW_WOOL, Blocks.LIME_WOOL, Blocks.PINK_WOOL, Blocks.GRAY_WOOL,
+                Blocks.LIGHT_GRAY_WOOL, Blocks.CYAN_WOOL, Blocks.PURPLE_WOOL, Blocks.BLUE_WOOL,
+                Blocks.BROWN_WOOL, Blocks.GREEN_WOOL, Blocks.RED_WOOL, Blocks.BLACK_WOOL);
+    }
+
+    private static Block legacyColoredBlock(int meta, Block... colors) {
+        return colors[meta & 15];
     }
 
     private static Block legacyStoneBrick(int meta) {
@@ -1237,6 +2130,8 @@ public final class HbmLegacyNbtTemplate {
         String normalized;
         if (lower.startsWith("hbm:tile.")) {
             normalized = "reinhardtshbm:" + lower.substring("hbm:tile.".length());
+        } else if (lower.startsWith("hbm:item.")) {
+            normalized = "reinhardtshbm:" + lower.substring("hbm:item.".length());
         } else if (lower.startsWith("hbm:")) {
             normalized = "reinhardtshbm:" + lower.substring("hbm:".length());
         } else {

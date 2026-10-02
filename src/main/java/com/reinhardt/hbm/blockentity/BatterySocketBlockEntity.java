@@ -50,6 +50,12 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
     private long lastOutput;
     private long lastInput;
     private volatile RenderNeighborSnapshot renderNeighborSnapshot = RenderNeighborSnapshot.EMPTY;
+    private Direction connectorCacheFacing;
+    private List<BlockPos> connectorCache = List.of();
+    private long redstoneSampleGameTime = Long.MIN_VALUE;
+    private boolean redstoneSample;
+    private final BlockPos.MutableBlockPos signalProbe = new BlockPos.MutableBlockPos();
+    private final BlockPos.MutableBlockPos directSignalProbe = new BlockPos.MutableBlockPos();
 
     public BatterySocketBlockEntity(BlockPos pos, BlockState blockState) {
         super(HbmBlockEntities.BATTERY_SOCKET.get(), pos, blockState);
@@ -80,8 +86,11 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
     @Override
     public List<BlockPos> getPowerConnectorPositions(LevelAccessor level) {
         Direction dir = facing();
+        if (dir == this.connectorCacheFacing) {
+            return this.connectorCache;
+        }
         Direction rot = batterySocketRightSide(dir);
-        return List.of(
+        this.connectorCache = List.of(
                 this.worldPosition.relative(dir),
                 this.worldPosition.relative(dir).relative(rot),
                 this.worldPosition.relative(dir.getOpposite(), 2),
@@ -91,6 +100,8 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
                 this.worldPosition.relative(rot.getOpposite()),
                 this.worldPosition.relative(rot.getOpposite()).relative(dir.getOpposite())
         );
+        this.connectorCacheFacing = dir;
+        return this.connectorCache;
     }
 
     @Override
@@ -227,12 +238,61 @@ public class BatterySocketBlockEntity extends BlockEntity implements PowerEndpoi
         if (this.level == null) {
             return false;
         }
+        long gameTime = this.level.getGameTime();
+        if (this.redstoneSampleGameTime == gameTime) {
+            return this.redstoneSample;
+        }
         for (BlockPos pos : getPowerConnectorPositions(this.level)) {
-            if (this.level.hasNeighborSignal(pos)) {
-                return true;
+            if (hasNeighborSignalAllocationFree(pos)) {
+                this.redstoneSample = true;
+                this.redstoneSampleGameTime = gameTime;
+                return this.redstoneSample;
             }
         }
-        return false;
+        this.redstoneSample = false;
+        this.redstoneSampleGameTime = gameTime;
+        return this.redstoneSample;
+    }
+
+    /** Exact SignalGetter#hasNeighborSignal order without allocating six BlockPos objects per probe. */
+    private boolean hasNeighborSignalAllocationFree(BlockPos pos) {
+        return signalFrom(pos, Direction.DOWN) > 0
+                || signalFrom(pos, Direction.UP) > 0
+                || signalFrom(pos, Direction.NORTH) > 0
+                || signalFrom(pos, Direction.SOUTH) > 0
+                || signalFrom(pos, Direction.WEST) > 0
+                || signalFrom(pos, Direction.EAST) > 0;
+    }
+
+    /** Exact SignalGetter#getSignal logic using reusable mutable cursors. */
+    private int signalFrom(BlockPos source, Direction direction) {
+        this.signalProbe.setWithOffset(source, direction);
+        BlockState state = this.level.getBlockState(this.signalProbe);
+        int signal = state.getSignal(this.level, this.signalProbe, direction);
+        return state.shouldCheckWeakPower(this.level, this.signalProbe, direction)
+                ? Math.max(signal, directSignalTo(this.signalProbe))
+                : signal;
+    }
+
+    /** Exact SignalGetter#getDirectSignalTo sequence using one reusable mutable cursor. */
+    private int directSignalTo(BlockPos pos) {
+        int signal = directSignal(pos, Direction.DOWN);
+        if (signal >= 15) return signal;
+        signal = Math.max(signal, directSignal(pos, Direction.UP));
+        if (signal >= 15) return signal;
+        signal = Math.max(signal, directSignal(pos, Direction.NORTH));
+        if (signal >= 15) return signal;
+        signal = Math.max(signal, directSignal(pos, Direction.SOUTH));
+        if (signal >= 15) return signal;
+        signal = Math.max(signal, directSignal(pos, Direction.WEST));
+        if (signal >= 15) return signal;
+        return Math.max(signal, directSignal(pos, Direction.EAST));
+    }
+
+    private int directSignal(BlockPos source, Direction direction) {
+        this.directSignalProbe.setWithOffset(source, direction);
+        return this.level.getBlockState(this.directSignalProbe)
+                .getDirectSignal(this.level, this.directSignalProbe, direction);
     }
 
     private Direction facing() {

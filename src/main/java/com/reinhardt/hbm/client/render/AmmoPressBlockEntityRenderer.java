@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 public class AmmoPressBlockEntityRenderer implements LongRangeBlockEntityRenderer<AmmoPressBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation FRAME = MachineModelRenderer.standalone("block/machine_ammo_press_frame_world");
     private static final ModelResourceLocation PRESS = MachineModelRenderer.standalone("block/machine_ammo_press_press_world");
     private static final ModelResourceLocation SHELLS = MachineModelRenderer.standalone("block/machine_ammo_press_shells_world");
@@ -37,18 +38,18 @@ public class AmmoPressBlockEntityRenderer implements LongRangeBlockEntityRendere
         poseStack.pushPose();
         applyAmmoPressTransform(poseStack, facing);
 
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(FRAME), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(FRAME, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0F, -press * 0.25F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(PRESS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(PRESS, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0F, lift * 0.5F - 0.5F, 0.0F);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SHELLS), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SHELLS, poseStack, state, packedLight, packedOverlay);
         if (ammoPress.showBullets()) {
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BULLETS), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(BULLETS, poseStack, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
         poseStack.popPose();

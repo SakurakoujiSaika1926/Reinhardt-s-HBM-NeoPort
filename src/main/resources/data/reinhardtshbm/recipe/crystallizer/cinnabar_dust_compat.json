@@ -1,0 +1,17 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/cinnabar"
+      }
+    }
+  ],
+  "type": "reinhardtshbm:crystallizer",
+  "group": "crystallizer.cinnabar_dust_compat",
+  "ingredient": { "tag": "c:dusts/cinnabar" },
+  "acid": { "fluid": "peroxide", "amount": 50 },
+  "duration": 100,
+  "result": { "id": "reinhardtshbm:cinnabar" }
+}

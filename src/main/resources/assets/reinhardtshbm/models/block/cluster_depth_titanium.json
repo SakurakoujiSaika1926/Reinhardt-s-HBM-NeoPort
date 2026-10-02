@@ -1,6 +1,0 @@
-{
-    "textures":  {
-                     "all":  "reinhardtshbm:block/cluster_depth_titanium"
-                 },
-    "parent":  "minecraft:block/cube_all"
-}

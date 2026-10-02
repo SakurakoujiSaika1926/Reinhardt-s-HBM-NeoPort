@@ -8,12 +8,12 @@ import com.reinhardt.hbm.worldgen.AustraliumRegionFeature;
 import com.reinhardt.hbm.worldgen.ChlorineGeyserFeature;
 import com.reinhardt.hbm.worldgen.ColtanDepositFeature;
 import com.reinhardt.hbm.worldgen.ConfigGatedOreFeature;
-import com.reinhardt.hbm.worldgen.DepthClusterDepositFeature;
+import com.reinhardt.hbm.worldgen.BedrockDeepslateClusterFeature;
 import com.reinhardt.hbm.worldgen.LegacySurfaceWorldgenFeature;
 import com.reinhardt.hbm.worldgen.MeteoriteFeature;
 import com.reinhardt.hbm.worldgen.LanternBehemothFeature;
 import com.reinhardt.hbm.worldgen.GlyphidHiveFeature;
-import com.reinhardt.hbm.worldgen.NetherDepthNeodymiumFeature;
+import com.reinhardt.hbm.worldgen.NetherNeodymiumFeature;
 import com.reinhardt.hbm.worldgen.NetherOreLegacyFeature;
 import com.reinhardt.hbm.worldgen.OreCaveFeature;
 import com.reinhardt.hbm.worldgen.OilBubbleFeature;
@@ -40,19 +40,12 @@ public final class HbmWorldgenFeatures {
             FEATURES.register("bedrock_ore_deposit", () -> new BedrockOreDepositFeature());
     public static final DeferredHolder<Feature<?>, BedrockOilDepositFeature> BEDROCK_OIL_DEPOSIT =
             FEATURES.register("bedrock_oil_deposit", () -> new BedrockOilDepositFeature());
-    public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_CLUSTER_IRON =
-            FEATURES.register("depth_cluster_iron", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEEPSLATE_IRON, 24));
-    public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_CLUSTER_TITANIUM =
-            FEATURES.register("depth_cluster_titanium", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEEPSLATE_TITANIUM, 32));
-    public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_CLUSTER_TUNGSTEN =
-            FEATURES.register("depth_cluster_tungsten", () -> new DepthClusterDepositFeature(HbmBlocks.CLUSTER_DEEPSLATE_TUNGSTEN, 32));
-    // Legacy DepthDeposit entries (1.7.10: size 5, fill 0.8, one deposit per 16 chunks).
-    public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_ORE_CINNEBAR =
-            FEATURES.register("depth_ore_cinnebar", () -> new DepthClusterDepositFeature(HbmBlocks.ORE_DEPTH_CINNEBAR, 16, 0.8D));
-    public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_ORE_BORAX =
-            FEATURES.register("depth_ore_borax", () -> new DepthClusterDepositFeature(HbmBlocks.ORE_DEPTH_BORAX, 16, 0.8D));
-    public static final DeferredHolder<Feature<?>, DepthClusterDepositFeature> DEPTH_ORE_ZIRCONIUM =
-            FEATURES.register("depth_ore_zirconium", () -> new DepthClusterDepositFeature(HbmBlocks.ORE_DEPTH_ZIRCONIUM, 16, 0.8D));
+    public static final DeferredHolder<Feature<?>, BedrockDeepslateClusterFeature> BEDROCK_DEEPSLATE_CLUSTER_IRON =
+            FEATURES.register("bedrock_deepslate_cluster_iron", () -> new BedrockDeepslateClusterFeature(HbmBlocks.CLUSTER_DEEPSLATE_IRON, 24));
+    public static final DeferredHolder<Feature<?>, BedrockDeepslateClusterFeature> BEDROCK_DEEPSLATE_CLUSTER_TITANIUM =
+            FEATURES.register("bedrock_deepslate_cluster_titanium", () -> new BedrockDeepslateClusterFeature(HbmBlocks.CLUSTER_DEEPSLATE_TITANIUM, 32));
+    public static final DeferredHolder<Feature<?>, BedrockDeepslateClusterFeature> BEDROCK_DEEPSLATE_CLUSTER_TUNGSTEN =
+            FEATURES.register("bedrock_deepslate_cluster_tungsten", () -> new BedrockDeepslateClusterFeature(HbmBlocks.CLUSTER_DEEPSLATE_TUNGSTEN, 32));
     public static final DeferredHolder<Feature<?>, AustraliumRegionFeature> AUSTRALIUM_REGION =
             FEATURES.register("australium_region", () -> new AustraliumRegionFeature());
     public static final DeferredHolder<Feature<?>, MeteoriteFeature> METEORITE =
@@ -75,8 +68,8 @@ public final class HbmWorldgenFeatures {
             FEATURES.register("coltan_deposit", () -> new ColtanDepositFeature());
     public static final DeferredHolder<Feature<?>, NetherOreLegacyFeature> NETHER_ORE_LEGACY =
             FEATURES.register("nether_ore_legacy", () -> new NetherOreLegacyFeature());
-    public static final DeferredHolder<Feature<?>, NetherDepthNeodymiumFeature> NETHER_DEPTH_NEODYMIUM =
-            FEATURES.register("nether_depth_neodymium", () -> new NetherDepthNeodymiumFeature());
+    public static final DeferredHolder<Feature<?>, NetherNeodymiumFeature> NETHER_NEODYMIUM =
+            FEATURES.register("nether_neodymium", () -> new NetherNeodymiumFeature());
     public static final DeferredHolder<Feature<?>, ChlorineGeyserFeature> CHLORINE_GEYSER =
             FEATURES.register("chlorine_geyser", () -> new ChlorineGeyserFeature());
     public static final DeferredHolder<Feature<?>, LegacySurfaceWorldgenFeature> LEGACY_SURFACE_WORLDGEN =

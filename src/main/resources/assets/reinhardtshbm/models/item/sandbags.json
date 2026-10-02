@@ -1,3 +1,1 @@
-{
-    "parent":  "reinhardtshbm:block/sandbags"
-}
+{ "parent": "reinhardtshbm:block/sandbags_inventory" }

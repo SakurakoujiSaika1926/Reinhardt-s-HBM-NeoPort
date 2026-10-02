@@ -18,6 +18,7 @@ public class CrystallizerBlockEntityRenderer implements LongRangeBlockEntityRend
     private static final ModelResourceLocation BODY = MachineModelRenderer.standalone("block/machine_crystallizer_body");
     private static final ModelResourceLocation SPINNER = MachineModelRenderer.standalone("block/machine_crystallizer_spinner");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_crystallizer_fluid");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB[] LOCAL_BOUNDS = buildCrystallizerBounds();
 
     public CrystallizerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -36,11 +37,11 @@ public class CrystallizerBlockEntityRenderer implements LongRangeBlockEntityRend
 
         poseStack.pushPose();
         applyCrystallizerTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(BODY), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(BODY, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians(crystallizer.clientAngle(partialTick)), 0.0F, 1.0F, 0.0F)));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SPINNER), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(SPINNER, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         if (crystallizer.isWorking() && crystallizer.acidTank().amount() > 0 && !crystallizer.acidTank().type().isNone()) {

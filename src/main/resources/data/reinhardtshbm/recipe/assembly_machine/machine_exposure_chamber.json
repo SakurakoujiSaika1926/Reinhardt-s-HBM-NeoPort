@@ -1,6 +1,15 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:enable_expensive_mode"
+      }
+    }
+  ],
+
   "type": "reinhardtshbm:assembly_machine",
-  "group": "machine_exposure_chamber",
+  "group": "ass.exposurechamber",
   "duration": 200,
   "power": 100,
   "ingredients": [

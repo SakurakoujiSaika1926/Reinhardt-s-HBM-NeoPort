@@ -16,6 +16,7 @@ import java.util.List;
 
 /** Renders the 1.7.10 arc furnace as one OBJ with the original object visibility and animations. */
 public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<ArcFurnaceBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     /*
      * Face-used OBJ union before orientLegacyWavefrontOriginYaw:
      * Furnace x=-3.5..2.75/y=0..5/z=-2.5..2.5; the lid reaches y=6.5
@@ -84,9 +85,8 @@ public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntity
         if (furnace.liquidAmount() > 0) {
             poseStack.pushPose();
             poseStack.translate(0.0F, -1.75F + furnace.liquidAmount() * 1.75F / ArcFurnaceBlockEntity.MAX_LIQUID, 0.0F);
-            MachineModelRenderer.renderUnculledFullBright(
-                    MachineModelRenderer.model(CONTENTS_HOT), poseStack, bufferSource, state, packedOverlay
-            );
+            STATIC_MESHES.render(CONTENTS_HOT, poseStack, state,
+                    net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, packedOverlay);
             poseStack.popPose();
         } else if (furnace.hasMaterial()) {
             render(CONTENTS_COLD, furnace, poseStack, bufferSource, state, packedLight, packedOverlay);
@@ -155,13 +155,11 @@ public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntity
         if (electrodeState == 1) {
             render(fresh, furnace, poseStack, bufferSource, state, packedLight, packedOverlay);
         } else if (electrodeState == 2) {
-            MachineModelRenderer.renderUnculledFullBright(
-                    MachineModelRenderer.model(hot), poseStack, bufferSource, state, packedOverlay
-            );
+            STATIC_MESHES.render(hot, poseStack, state,
+                    net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, packedOverlay);
         } else {
-            MachineModelRenderer.renderUnculledFullBright(
-                    MachineModelRenderer.model(shorted), poseStack, bufferSource, state, packedOverlay
-            );
+            STATIC_MESHES.render(shorted, poseStack, state,
+                    net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, packedOverlay);
         }
     }
 
@@ -200,7 +198,7 @@ public final class ArcFurnaceBlockEntityRenderer implements LongRangeBlockEntity
             int packedLight,
             int packedOverlay
     ) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static ModelResourceLocation part(String path) {

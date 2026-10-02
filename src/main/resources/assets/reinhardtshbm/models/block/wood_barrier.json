@@ -1,6 +1,1 @@
-{
-    "textures":  {
-                     "all":  "reinhardtshbm:block/wood_barrier"
-                 },
-    "parent":  "minecraft:block/cube_all"
-}
+{"parent":"reinhardtshbm:block/wood_barrier_north"}

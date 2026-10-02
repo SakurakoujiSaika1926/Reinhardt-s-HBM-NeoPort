@@ -22,6 +22,7 @@ import com.reinhardt.hbm.entity.SawbladeEntity;
 import com.reinhardt.hbm.machine.AnnihilatorRecipes;
 import com.reinhardt.hbm.machine.AnnihilatorSavedData;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidRelease;
 import com.reinhardt.hbm.fluid.HbmFluidNetworks;
 import com.reinhardt.hbm.fluid.HbmFluidStack;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
@@ -111,7 +112,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.StemBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -859,7 +863,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
 
         HbmFluidTank tank = this.tanks.length == 0 ? null : this.tanks[0];
         if (tank != null && tank.amount() > 0 && !tank.type().isNone()) {
-            HbmPollution.polluteFluid(level, this.worldPosition, tank.type(), HbmPollution.ReleaseType.BURN, tank.amount() * 2.0D);
+            HbmFluidRelease.onRelease(level, this.worldPosition, tank.type(), HbmPollution.ReleaseType.BURN, tank.amount() * 2.0D);
             AnnihilatorRecipes.incrementFluid(tank.type().name(), data, annihilatorPool, tank.amount());
             tank.clear();
             didSomething = true;
@@ -980,7 +984,15 @@ public final class LegacyMachineBlockEntity extends BlockEntity
         if (machineId().equals("machine_radar") || machineId().equals("machine_radar_large")) {
             this.radarPreviousRotation = this.radarRotation;
             if (this.energy > 0L) {
-                this.radarRotation = (this.radarRotation + 5.0F) % 360.0F;
+                this.radarRotation += 5.0F;
+            }
+            // TileEntityMachineRadarNT keeps both interpolation endpoints on
+            // the same side of the 360-degree seam.  Modulo on only the new
+            // angle made 355 -> 0 interpolate backwards through 355 degrees,
+            // which was the visible once-per-revolution twitch.
+            if (this.radarRotation >= 360.0F) {
+                this.radarRotation -= 360.0F;
+                this.radarPreviousRotation -= 360.0F;
             }
             return;
         }
@@ -1726,7 +1738,7 @@ public final class LegacyMachineBlockEntity extends BlockEntity
                 BlockPos target = BlockPos.containing(end.x + side.getStepX() * index, this.worldPosition.getY(),
                         end.z + side.getStepZ() * index);
                 BlockState targetState = level.getBlockState(target);
-                if (targetState.isSolidRender(level, target)) {
+                if (targetState.isSolidRender(level, target) && !thresherCanCut(targetState)) {
                     this.thresherState = 2;
                     break;
                 }
@@ -1788,10 +1800,34 @@ public final class LegacyMachineBlockEntity extends BlockEntity
             thresherCutCane(level, pos, state.getBlock());
             return;
         }
+        // The old BlockStem represented both free and attached stems.  Both
+        // modern stem classes must remain untouched so a mature plant can keep
+        // producing fruit.
+        if (state.getBlock() instanceof StemBlock || state.getBlock() instanceof AttachedStemBlock) {
+            return;
+        }
+        if (state.is(Blocks.NETHER_WART)) {
+            if (state.getValue(NetherWartBlock.AGE) >= NetherWartBlock.MAX_AGE) {
+                thresherCutCrop(level, pos, state);
+            }
+            return;
+        }
+        if (state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON)) {
+            thresherCutCrop(level, pos, state);
+            return;
+        }
         if (state.getBlock() instanceof BonemealableBlock growable
                 && !growable.isValidBonemealTarget(level, pos, state)) {
             thresherCutCrop(level, pos, state);
         }
+    }
+
+    private static boolean thresherCanCut(BlockState state) {
+        Block block = state.getBlock();
+        return block instanceof BonemealableBlock
+                || state.is(Blocks.NETHER_WART)
+                || state.is(Blocks.PUMPKIN)
+                || state.is(Blocks.MELON);
     }
 
     private void thresherCutTall(Level level, BlockPos pos, BlockState state) {

@@ -19,6 +19,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import java.util.List;
 
 public class PressBlockEntityRenderer implements LongRangeBlockEntityRenderer<PressBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation PRESS_BODY = MachineModelRenderer.standalone("block/machine_press_body_world");
     private static final ModelResourceLocation PRESS_HEAD = MachineModelRenderer.standalone("block/machine_press_head_world");
     private static final ModelResourceLocation EPRESS_BODY = MachineModelRenderer.standalone("block/machine_epress_body_world");
@@ -113,14 +114,14 @@ public class PressBlockEntityRenderer implements LongRangeBlockEntityRenderer<Pr
                                         MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyFirePressBodyPose(poseStack);
-        MachineModelRenderer.renderUnculled(generation.model(PRESS_BODY),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(generation.model(PRESS_BODY),
+                poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         applyFirePressHeadPose(poseStack, headTravel);
-        MachineModelRenderer.renderUnculled(generation.model(PRESS_HEAD),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(generation.model(PRESS_HEAD),
+                poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         renderFirePressInput(input, itemModelToken, poseStack, bufferSource, packedLight, packedOverlay);
@@ -132,14 +133,14 @@ public class PressBlockEntityRenderer implements LongRangeBlockEntityRenderer<Pr
                                             int packedLight, int packedOverlay) {
         poseStack.pushPose();
         applyElectricPressBodyPose(poseStack, facing);
-        MachineModelRenderer.renderUnculled(generation.model(EPRESS_BODY),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(generation.model(EPRESS_BODY),
+                poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         applyElectricPressHeadPose(poseStack, facing, headTravel);
-        MachineModelRenderer.renderUnculled(generation.model(EPRESS_HEAD),
-                poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(generation.model(EPRESS_HEAD),
+                poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         renderElectricPressInput(input, itemModelToken, facing, poseStack, bufferSource,

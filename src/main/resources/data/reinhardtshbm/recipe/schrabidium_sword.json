@@ -1,11 +1,32 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:less_bullshit_mode",
+        "feature": "simple_tools"
+      }
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
-  "pattern": ["I", "W", "S"],
+  "pattern": [
+    "I",
+    "W",
+    "S"
+  ],
   "key": {
-    "I": { "tag": "c:storage_blocks/schrabidium" },
-    "W": { "item": "reinhardtshbm:desh_sword" },
-    "S": { "tag": "c:ingots/plastic" }
+    "I": {
+      "tag": "c:storage_blocks/schrabidium"
+    },
+    "W": {
+      "item": "reinhardtshbm:desh_sword"
+    },
+    "S": {
+      "tag": "c:ingots/plastic"
+    }
   },
-  "result": { "id": "reinhardtshbm:schrabidium_sword" }
+  "result": {
+    "id": "reinhardtshbm:schrabidium_sword"
+  }
 }

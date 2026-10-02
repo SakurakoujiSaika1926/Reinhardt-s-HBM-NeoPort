@@ -508,6 +508,15 @@
       }
     ]
   },
+  "block.vending_machine_dispense": {
+    "category": "block",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:block/pile_bolt_open",
+        "stream": false
+      }
+    ]
+  },
   "player.cough": {
     "subtitle": "subtitles.entity.cough",
     "category": "player",
@@ -525,6 +534,23 @@
       "reinhardtshbm:footsteps/iron2",
       "reinhardtshbm:footsteps/iron3",
       "reinhardtshbm:footsteps/iron4"
+    ]
+  },
+  "step.iron_land": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "reinhardtshbm:footsteps/iron_land",
+        "stream": false
+      }
+    ]
+  },
+  "step.powered": {
+    "category": "player",
+    "sounds": [
+      "reinhardtshbm:footsteps/powered1",
+      "reinhardtshbm:footsteps/powered2",
+      "reinhardtshbm:footsteps/powered3"
     ]
   },
   "step.platemetal": {
@@ -581,7 +607,6 @@
     ]
   },
   "entity.megaquacc": {
-    "subtitle": "subtitles.entity.megaquacc",
     "sounds": ["reinhardtshbm:entity/megaquacc"]
   },
   "block.fensuhum": {

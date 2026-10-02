@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class DieselGeneratorBlockEntityRenderer implements LongRangeBlockEntityRenderer<DieselGeneratorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_diesel_world");
     private static final AABB[] LOCAL_BOUNDS = buildDieselGeneratorBounds();
 
@@ -35,7 +36,7 @@ public class DieselGeneratorBlockEntityRenderer implements LongRangeBlockEntityR
                     Math.sin((diesel.getLevel() == null ? 0L : diesel.getLevel().getGameTime()) / 5.0D) * 0.005D
             );
         }
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

@@ -7,6 +7,7 @@ import com.reinhardt.hbm.item.LegacyVariantItem;
 import com.reinhardt.hbm.item.RtgDepletedPelletItem;
 import com.reinhardt.hbm.item.StampBookItem;
 import com.reinhardt.hbm.item.UniversalGrenadeItem;
+import com.reinhardt.hbm.recipe.MkuCraftingRecipe;
 import com.reinhardt.hbm.registry.HbmFluids;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -134,8 +135,13 @@ public final class HbmStructureLoot {
             case "LOOT_BONES" -> lootBones(loot, random);
             case "LOOT_GLYPHID_HIVE" -> pile(loot, "POOL_PILE_HIVE", random, random.nextInt(3) + 3);
             case "LOOT_METEOR" -> {
-                addItemWithDeviation(loot, random, stack("reinhardtshbm:egg_glyphid", 1), 0.0D, 0.0D, 0.25D);
-                addItemWithDeviation(loot, random, stack("minecraft:book", 1), 0.0D, 0.0D, -0.25D);
+                if (loot.getLevel() != null) {
+                    ItemStack ingredient = MkuCraftingRecipe.randomClueIngredient(loot.getLevel());
+                    addItemWithDeviation(loot, random, ingredient, 0.0D, 0.0D, 0.25D);
+                    addItemWithDeviation(loot, random,
+                            MkuCraftingRecipe.clueBook(loot.getLevel(), ingredient.getItem()),
+                            0.0D, 0.0D, -0.25D);
+                }
             }
             case "LOOT_FLAREGUN" -> {
                 int count = random.nextInt(3) + 2;
@@ -147,6 +153,7 @@ public final class HbmStructureLoot {
             case "LOOT_SHIT" -> pile(loot, "POOL_PILE_OF_GARBAGE", random, random.nextInt(3) + 3);
             case "LOOT_MECHANICAL" -> pile(loot, "POOL_PILE_MECHANICAL", random, random.nextInt(6) + 1);
             case "LOOT_GEAR" -> pile(loot, "POOL_PILE_GEAR", random, random.nextInt(6) + 1);
+            case "LOOT_SUPPLIES" -> pile(loot, "POOL_PILE_SUPPLIES", random, random.nextInt(3) + 4);
             default -> lootBones(loot, random);
         }
     }
@@ -241,7 +248,8 @@ public final class HbmStructureLoot {
                 "LOOT_FLAREGUN",
                 "LOOT_MECHANICAL",
                 "LOOT_GEAR",
-                "LOOT_SHIT"
+                "LOOT_SHIT",
+                "LOOT_SUPPLIES"
         );
     }
 
@@ -251,7 +259,6 @@ public final class HbmStructureLoot {
 
     private static void registerPilePools() {
         pool("POOL_RED_PEDESTAL",
-                e("reinhardtshbm:ballistic_gauntlet", 1, 1, 10),
                 e("reinhardtshbm:armor_polish", 1, 1, 10),
                 e("reinhardtshbm:bandaid", 1, 1, 10),
                 e("reinhardtshbm:serum", 1, 1, 10),
@@ -281,8 +288,7 @@ public final class HbmStructureLoot {
         pool("POOL_BLACK_PART",
                 e("reinhardtshbm:item_secret_selenium_steel", 4, 4, 10),
                 e("reinhardtshbm:item_secret_controller", 1, 1, 10),
-                e("reinhardtshbm:item_secret_canister", 1, 1, 10),
-                e("reinhardtshbm:blueprint_folder", 1, 1, 1, "secret")
+                e("reinhardtshbm:item_secret_canister", 1, 1, 10)
         );
         pool("POOL_PILE_HIVE",
                 e("minecraft:iron_ingot", 1, 3, 10),
@@ -380,6 +386,16 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:taurun_plate", 1, 1, 20),
                 e("reinhardtshbm:taurun_legs", 1, 1, 20),
                 e("reinhardtshbm:taurun_boots", 1, 1, 20)
+        );
+        // ItemPoolsPile.POOL_PILE_SUPPLIES from the current 1.7.10 source.
+        // Its three identical grenade entries are represented as one entry
+        // with their combined weight, preserving the original distribution.
+        pool("POOL_PILE_SUPPLIES",
+                e("reinhardtshbm:grenade_universal", 3, 5, 30, "frag:he:s3:frag_sleeve"),
+                e("reinhardtshbm:syringe_metal_stimpak", 3, 5, 30),
+                e("reinhardtshbm:syringe_metal_psycho", 3, 5, 30),
+                e("reinhardtshbm:syringe_antidote", 1, 2, 30),
+                e("reinhardtshbm:ammo_container", 2, 3, 40)
         );
     }
 
@@ -527,8 +543,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:bomb_caller", 1, 1, 1, "napalm"),
                 e("reinhardtshbm:bomb_caller", 1, 1, 1, "chlorine"),
                 e("reinhardtshbm:gas_mask_filter", 1, 1, 4),
-                e("reinhardtshbm:launch_code_piece", 1, 1, 1),
-                e("reinhardtshbm:blueprint_folder", 1, 1, 1, "secret")
+                e("reinhardtshbm:launch_code_piece", 1, 1, 1)
         );
         pool("POOL_NUKE_FUEL",
                 e("reinhardtshbm:billet_uranium", 1, 4, 4),
@@ -587,8 +602,7 @@ public final class HbmStructureLoot {
                 e("reinhardtshbm:powder_bromine", 1, 1, 1),
                 e("reinhardtshbm:powder_cobalt", 1, 1, 1),
                 e("reinhardtshbm:powder_neodymium", 1, 1, 1),
-                e("reinhardtshbm:powder_boron", 1, 1, 1),
-                e("reinhardtshbm:blueprint_folder", 1, 1, 1, "secret")
+                e("reinhardtshbm:powder_boron", 1, 1, 1)
         );
         pool("POOL_VAULT_LOCKERS",
                 e("reinhardtshbm:robes_helmet", 1, 1, 1),
@@ -872,7 +886,6 @@ public final class HbmStructureLoot {
             if ("reinhardtshbm:blueprint_folder".equals(id) && variant != null) {
                 BlueprintFolderItem.Variant folderVariant = switch (variant) {
                     case "discover" -> BlueprintFolderItem.Variant.DISCOVER;
-                    case "secret" -> BlueprintFolderItem.Variant.SECRET;
                     default -> BlueprintFolderItem.Variant.STANDARD;
                 };
                 stack = BlueprintFolderItem.stackFor(folderVariant);

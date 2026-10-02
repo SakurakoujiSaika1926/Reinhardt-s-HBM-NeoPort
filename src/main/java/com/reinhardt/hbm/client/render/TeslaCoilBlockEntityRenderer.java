@@ -22,6 +22,7 @@ import java.util.WeakHashMap;
 
 /** Direct modern rendering route for 1.7.10 RenderTesla. */
 public final class TeslaCoilBlockEntityRenderer implements LongRangeBlockEntityRenderer<TeslaCoilBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MODEL = MachineModelRenderer.standalone("block/tesla");
     private static final long JAVA_RANDOM_MULTIPLIER = 0x5DEECE66DL;
     private static final long JAVA_RANDOM_ADDEND = 0xBL;
@@ -44,8 +45,7 @@ public final class TeslaCoilBlockEntityRenderer implements LongRangeBlockEntityR
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MODEL), poseStack, bufferSource,
-                state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MODEL, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         List<Vec3> targets = snapshot.targets();

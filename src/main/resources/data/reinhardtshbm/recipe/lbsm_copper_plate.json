@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:ingots/copper"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:plate_copper",
+    "count": 4
+  }
+}

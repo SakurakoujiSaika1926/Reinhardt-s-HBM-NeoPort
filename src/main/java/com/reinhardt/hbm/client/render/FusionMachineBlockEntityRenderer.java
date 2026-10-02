@@ -88,6 +88,7 @@ public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRen
             PLASMA_FORGE_SLIDER_JET, PLASMA_FORGE_ARM_LOWER_JET,
             PLASMA_FORGE_ARM_UPPER_JET, PLASMA_FORGE_JET
     );
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static volatile GeometryGeneration geometryGeneration;
     private static final double FLOAT_UNIT_ROUNDOFF = 0x1.0p-24;
     /*
@@ -203,6 +204,13 @@ public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRen
             int packedOverlay
     ) {
         poseStack.translate(0.5D, 0.0D, 0.5D);
+        if (machine.tilted()) {
+            // Exact RenderFusionTorus order; this is intentionally not a
+            // generic large-machine rotation convention.
+            poseStack.translate(0.0D, -1.0D, 0.0D);
+            poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(10.0F));
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(5.0F));
+        }
         renderCaptured(geometry.part(TORUS_TORUS, state), poseStack, bufferSource, packedLight, packedOverlay);
 
         poseStack.pushPose();
@@ -413,10 +421,7 @@ public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRen
 
     private static void renderCaptured(GeometryPart part, PoseStack poseStack, MultiBufferSource bufferSource,
                                        int packedLight, int packedOverlay) {
-        for (CapturedLayer layer : part.layers()) {
-            MachineModelRenderer.renderCapturedQuads(layer.quads(), poseStack,
-                    bufferSource.getBuffer(layer.normalRenderType()), packedLight, packedOverlay);
-        }
+        STATIC_MESHES.renderCaptured(part, poseStack, packedLight, packedOverlay);
     }
 
     private static void renderCapturedTinted(GeometryPart part, PoseStack poseStack,
@@ -651,7 +656,7 @@ public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRen
                 state, plasmaForgeConnected, torusConnectionMask, holder != null,
                 holder == null ? null : holder.id(), source, rendered, modelToken,
                 geometry, iconBounds, zeroVolume(machine.getBlockPos()), recipeGeneration, revision);
-        AABB renderBounds = renderBounds(machine.kind(), machine.getBlockPos(), draft).minmax(iconBounds);
+        AABB renderBounds = renderBounds(machine, draft).minmax(iconBounds);
         machine.publishClientRenderSnapshot(new FusionMachineBlockEntity.RenderSnapshot(
                 state, plasmaForgeConnected, torusConnectionMask, holder != null,
                 holder == null ? null : holder.id(), source, rendered, modelToken,
@@ -667,15 +672,17 @@ public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRen
         return poseStack;
     }
 
-    private static AABB renderBounds(FusionMachineBlock.Kind kind, BlockPos pos,
+    private static AABB renderBounds(FusionMachineBlockEntity machine,
                                      FusionMachineBlockEntity.RenderSnapshot snapshot) {
+        FusionMachineBlock.Kind kind = machine.kind();
+        BlockPos pos = machine.getBlockPos();
         if (!(snapshot.geometryToken() instanceof GeometryGeneration geometry)) {
             return zeroVolume(pos);
         }
         BlockState state = snapshot.blockState();
         Bounds bounds = new Bounds(pos);
         switch (kind) {
-            case TORUS -> includeTorusBounds(bounds, geometry, state, snapshot);
+            case TORUS -> includeTorusBounds(bounds, geometry, state, snapshot, machine.tilted());
             case KLYSTRON -> includeKlystronBounds(bounds, geometry, state, klystronFacing(state));
             case KLYSTRON_CREATIVE -> includeCreativeKlystronBounds(bounds, geometry, state, creativeKlystronFacing(state));
             case BOILER -> includeBoilerBounds(bounds, geometry, state, boilerFacing(state));
@@ -693,9 +700,14 @@ public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRen
     }
 
     private static void includeTorusBounds(Bounds bounds, GeometryGeneration geometry, BlockState state,
-                                            FusionMachineBlockEntity.RenderSnapshot snapshot) {
+                                            FusionMachineBlockEntity.RenderSnapshot snapshot, boolean tilted) {
         PoseStack root = new PoseStack();
         root.translate(0.5D, 0.0D, 0.5D);
+        if (tilted) {
+            root.translate(0.0D, -1.0D, 0.0D);
+            root.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(10.0F));
+            root.mulPose(com.mojang.math.Axis.YP.rotationDegrees(5.0F));
+        }
         geometry.part(TORUS_TORUS, state).template().includeTransformed(bounds, root.last().pose());
         geometry.part(TORUS_PLASMA, state).template().includeTransformed(bounds, root.last().pose());
         geometry.part(TORUS_PLASMA_GLOW, state).template().includeTransformed(bounds, root.last().pose());
@@ -1330,10 +1342,11 @@ public class FusionMachineBlockEntityRenderer implements LongRangeBlockEntityRen
     }
 
     private record CapturedLayer(RenderType normalRenderType, RenderType tintedRenderType,
-                                 List<BakedQuad> quads) {
+                                 List<BakedQuad> quads) implements StaticMachineVboCache.CapturedLayer {
     }
 
-    private record GeometryPart(List<CapturedLayer> layers, GeometryTemplate template) {
+    private record GeometryPart(List<CapturedLayer> layers, GeometryTemplate template)
+            implements StaticMachineVboCache.CapturedGeometry {
     }
 
     /** Face-used float vertices from the exact captured quad set replayed by this generation. */

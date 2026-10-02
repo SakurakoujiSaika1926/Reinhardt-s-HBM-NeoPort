@@ -11,6 +11,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class IndustrialBoilerBlockEntityRenderer implements LongRangeBlockEntityRenderer<IndustrialBoilerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_industrial_boiler_world");
 
     public IndustrialBoilerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -25,7 +26,7 @@ public class IndustrialBoilerBlockEntityRenderer implements LongRangeBlockEntity
         BlockState state = boiler.getBlockState();
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

@@ -6,6 +6,7 @@
     "north": "reinhardtshbm:block/stone_biome.woodland",
     "south": "reinhardtshbm:block/stone_biome.woodland",
     "east": "reinhardtshbm:block/stone_biome.woodland",
-    "west": "reinhardtshbm:block/stone_biome.woodland"
+    "west": "reinhardtshbm:block/stone_biome.woodland",
+    "particle": "#north"
   }
 }

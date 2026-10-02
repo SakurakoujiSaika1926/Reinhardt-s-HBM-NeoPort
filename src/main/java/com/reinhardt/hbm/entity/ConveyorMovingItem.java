@@ -55,6 +55,9 @@ public final class ConveyorMovingItem extends Entity {
             discard();
             return;
         }
+        if (ConveyorCrowding.check(this)) {
+            return;
+        }
         BlockPos before = blockPosition();
         BlockState state = level().getBlockState(before);
         Vec3 target;

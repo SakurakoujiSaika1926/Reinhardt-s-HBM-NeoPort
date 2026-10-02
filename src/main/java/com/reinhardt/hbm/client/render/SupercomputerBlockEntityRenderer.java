@@ -20,6 +20,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 
 /** Literal RenderSuperComputer body and scrolling full-bright scan pass. */
 public final class SupercomputerBlockEntityRenderer implements LongRangeBlockEntityRenderer<SupercomputerBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation COMPUTER =
             MachineModelRenderer.standalone("block/machine_supercomputer_computer");
     private static final ModelResourceLocation LIGHTS =
@@ -47,8 +48,7 @@ public final class SupercomputerBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.0F, 0.5F);
         poseStack.mulPose(Axis.YP.rotationDegrees(SupercomputerBlock.legacyRotation(facing)));
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(COMPUTER), poseStack, buffers, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(COMPUTER, poseStack, state, packedLight, packedOverlay);
         if (computer.processing()) {
             float scroll = ((computer.getLevel() == null ? 0L : computer.getLevel().getGameTime()) % 20L
                     + partialTick) / 20.0F;
@@ -81,8 +81,7 @@ public final class SupercomputerBlockEntityRenderer implements LongRangeBlockEnt
         poseStack.scale(0.5F, 0.5F, 0.5F);
         poseStack.translate(-2.0F, 0.0F, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(COMPUTER), poseStack, buffers, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(COMPUTER, poseStack, state, packedLight, packedOverlay);
         MachineModelRenderer.renderUnculledUv(
                 MachineModelRenderer.model(LIGHTS), poseStack, buffers, state,
                 LightTexture.FULL_BRIGHT, packedOverlay, SCAN_TEXTURE, 0.0F, 0.0F);

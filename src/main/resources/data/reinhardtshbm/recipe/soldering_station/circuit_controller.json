@@ -5,6 +5,13 @@
       "value": {
         "type": "reinhardtshbm:enable_528_mode"
       }
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "reinhardtshbm:less_bullshit_mode",
+        "feature": "simple_crafting"
+      }
     }
   ],
   "type": "reinhardtshbm:soldering_station",

@@ -1,0 +1,18 @@
+{
+  "neoforge:conditions": [
+    { "type": "reinhardtshbm:enable_expensive_mode" }
+  ],
+  "type": "reinhardtshbm:assembly_machine",
+  "group": "ass.chemplant",
+  "duration": 200,
+  "power": 100,
+  "ingredients": [
+    { "ingredient": { "item": "reinhardtshbm:item_expensive_steel_plating" }, "count": 3 },
+    { "ingredient": { "tag": "c:pipes/copper" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:plate_polymer" }, "count": 16 },
+    { "ingredient": { "item": "reinhardtshbm:motor" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:coil_tungsten" }, "count": 2 },
+    { "ingredient": { "item": "reinhardtshbm:circuit_analog" }, "count": 3 }
+  ],
+  "result": { "id": "reinhardtshbm:machine_chemical_plant" }
+}

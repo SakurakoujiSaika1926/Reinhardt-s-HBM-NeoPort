@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_armor"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "XXX",
+    "X X",
+    "X X"
+  ],
+  "key": {
+    "X": {
+      "tag": "c:ingots/schrabidium"
+    }
+  },
+  "result": {
+    "id": "reinhardtshbm:schrabidium_legs"
+  }
+}

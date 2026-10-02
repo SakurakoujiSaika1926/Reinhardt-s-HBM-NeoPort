@@ -1,0 +1,22 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "reinhardtshbm:less_bullshit_mode",
+      "feature": "simple_crafting"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/redstone"
+    },
+    {
+      "tag": "c:dusts/copper"
+    }
+  ],
+  "result": {
+    "id": "reinhardtshbm:powder_red_copper",
+    "count": 2
+  }
+}

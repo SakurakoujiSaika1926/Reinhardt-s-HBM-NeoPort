@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class DrainBlockEntityRenderer implements LongRangeBlockEntityRenderer<DrainBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation WORLD = MachineModelRenderer.standalone("block/machine_drain_world");
     private static final AABB[] LOCAL_BOUNDS = buildDrainBounds();
 
@@ -29,7 +30,7 @@ public class DrainBlockEntityRenderer implements LongRangeBlockEntityRenderer<Dr
 
         poseStack.pushPose();
         applyDrainTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(WORLD), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(WORLD, poseStack, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 

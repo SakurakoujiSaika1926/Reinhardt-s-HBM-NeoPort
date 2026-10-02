@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRenderer<HbmHeavyDoorBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation FIRE_FRAME = model("fire_door_frame");
     private static final ModelResourceLocation FIRE_DOOR = model("fire_door_door");
     // Transition Seal keeps one complete OBJ asset; TE rendering selects its roots through visibility variants.
@@ -115,9 +116,13 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
             event.register(model);
         }
         registerSkinned(event, List.of("fire_door_frame", "fire_door_door"), 5);
+        registerSkinned(event, List.of("sliding_blast_door_frame", "sliding_blast_door_left_door", "sliding_blast_door_right_door", "sliding_blast_door_left_lock", "sliding_blast_door_right_lock"), 2);
+        registerSkinned(event, List.of("qe_sliding_door_frame", "qe_sliding_door_left_door", "qe_sliding_door_right_door"), 5);
         registerSkinned(event, List.of("qe_containment_door_frame", "qe_containment_door_door"), 3);
+        registerSkinned(event, List.of("sliding_seal_door_frame", "sliding_seal_door_door"), 3);
         registerSkinned(event, List.of("secure_access_door_frame", "secure_access_door_door"), 4);
         registerSkinned(event, List.of("round_airlock_door_frame", "round_airlock_door_left", "round_airlock_door_right"), 3);
+        registerSkinned(event, List.of("large_vehicle_door_frame", "large_vehicle_door_left", "large_vehicle_door_right"), 4);
         registerSkinned(event, List.of("vault_door_frame", "vault_door_door", "vault_door_label"), 7);
         registerSkinned(event, List.of("water_door_frame", "water_door_door", "water_door_bolt", "water_door_spinny_upper", "water_door_spinny_lower"), 2);
     }
@@ -145,11 +150,11 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
             }
             case SLIDING_BLAST_DOOR -> {
                 applySlidingBlastDoorWorldPose(poseStack, facing);
-                renderSlidingBlastDoor(progress, door.state(), poseStack, bufferSource, state, packedLight, packedOverlay);
+                renderSlidingBlastDoor(progress, door.state(), door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             }
             case SLIDING_BLAST_DOOR_2 -> {
                 applySlidingBlastDoor2WorldPose(poseStack, facing);
-                renderSlidingBlastDoor(progress, door.state(), poseStack, bufferSource, state, packedLight, packedOverlay);
+                renderSlidingBlastDoor(progress, door.state(), door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             }
             case SLIDING_GATE_DOOR -> {
                 applySlidingGateDoorWorldPose(poseStack, facing);
@@ -157,7 +162,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
             }
             case QE_SLIDING_DOOR -> {
                 applyQeSlidingDoorWorldPose(poseStack, facing);
-                renderQeSlidingDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+                renderQeSlidingDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             }
             case QE_CONTAINMENT -> {
                 applyQeContainmentWorldPose(poseStack, facing);
@@ -165,7 +170,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
             }
             case SLIDING_SEAL_DOOR -> {
                 applySlidingSealDoorWorldPose(poseStack, facing);
-                renderSealDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+                renderSealDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             }
             case SECURE_ACCESS_DOOR -> {
                 applySecureAccessDoorWorldPose(poseStack, facing);
@@ -177,7 +182,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
             }
             case LARGE_VEHICLE_DOOR -> {
                 applyLargeVehicleDoorWorldPose(poseStack, facing);
-                renderVehicleDoor(progress, poseStack, bufferSource, state, packedLight, packedOverlay);
+                renderVehicleDoor(progress, door.skinIndex(), poseStack, bufferSource, state, packedLight, packedOverlay);
             }
             case VAULT_DOOR -> {
                 applyVaultDoorWorldPose(poseStack, facing);
@@ -673,7 +678,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
         }
     }
 
-    private static void renderSlidingBlastDoor(float progress, byte stateValue, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderSlidingBlastDoor(float progress, byte stateValue, byte skinIndex, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         // RenderSlidingBlastDoor uses staggered BusAnimation keyframes, not a
         // single linear 24-tick interpolation.  The doors remain shut for
         // 350 ms, move 0.05 blocks over 200 ms, then finish over 650 ms with
@@ -704,35 +709,35 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
         }
         float open = Mth.clamp(openProgress * 2.125F, 0.0F, 2.125F);
         float lock = Mth.clamp(lockProgress, 0.0F, 1.0F) * 90.0F;
-        render(SLIDE_FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("sliding_blast_door_frame", skinIndex, 2), poseStack, bufferSource, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.0F, open);
-        render(SLIDE_LEFT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("sliding_blast_door_left_door", skinIndex, 2), poseStack, bufferSource, state, packedLight, packedOverlay);
         rotateXAt(poseStack, 0.0F, 1.8125F, 0.0F, 90.0F + lock);
-        render(SLIDE_RIGHT_LOCK, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("sliding_blast_door_right_lock", skinIndex, 2), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.0F, -open);
-        render(SLIDE_RIGHT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("sliding_blast_door_right_door", skinIndex, 2), poseStack, bufferSource, state, packedLight, packedOverlay);
         rotateXAt(poseStack, 0.0F, 1.8125F, 0.0F, 90.0F + lock);
-        render(SLIDE_LEFT_LOCK, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("sliding_blast_door_left_lock", skinIndex, 2), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
-    private static void renderQeSlidingDoor(float progress, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderQeSlidingDoor(float progress, byte skinIndex, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         float open = Mth.clamp(progress * 0.95F, 0.0F, 0.95F);
         poseStack.pushPose();
         poseStack.translate(0.53125F, 0.001F, 0.5F);
-        render(QE_SLIDING_FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("qe_sliding_door_frame", skinIndex, 5), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.0F, open);
-        render(QE_SLIDING_LEFT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("qe_sliding_door_left_door", skinIndex, 5), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.0F, -open);
-        render(QE_SLIDING_RIGHT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("qe_sliding_door_right_door", skinIndex, 5), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.popPose();
     }
@@ -753,11 +758,11 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
         render(skinned("qe_containment_door_door", skinIndex, 3), poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
-    private static void renderSealDoor(float progress, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderSealDoor(float progress, byte skinIndex, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         poseStack.translate(0.5F, 0.0F, 0.0F);
-        render(SEAL_FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("sliding_seal_door_frame", skinIndex, 3), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.translate(0.0F, 0.0F, smooth(progress) * 0.9F);
-        render(SEAL_DOOR, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("sliding_seal_door_door", skinIndex, 3), poseStack, bufferSource, state, packedLight, packedOverlay);
     }
 
     private static void renderSecureDoor(float progress, byte skinIndex, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
@@ -781,18 +786,18 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
         poseStack.popPose();
     }
 
-    private static void renderVehicleDoor(float progress, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
+    private static void renderVehicleDoor(float progress, byte skinIndex, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
         float open = Mth.clamp(progress * 3.0F, 0.0F, 3.0F);
         // RenderVehicleDoor used a direct glRotate(90) at the legacy origin.
         poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90.0F));
-        render(VEHICLE_FRAME, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("large_vehicle_door_frame", skinIndex, 4), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.pushPose();
         poseStack.translate(-open, 0.0F, 0.0F);
-        render(VEHICLE_LEFT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("large_vehicle_door_left", skinIndex, 4), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
         poseStack.pushPose();
         poseStack.translate(open, 0.0F, 0.0F);
-        render(VEHICLE_RIGHT, poseStack, bufferSource, state, packedLight, packedOverlay);
+        render(skinned("large_vehicle_door_right", skinIndex, 4), poseStack, bufferSource, state, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -952,7 +957,7 @@ public class HbmHeavyDoorBlockEntityRenderer implements LongRangeBlockEntityRend
     }
 
     private static void render(ModelResourceLocation model, PoseStack poseStack, MultiBufferSource bufferSource, BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static void registerSkinned(ModelEvent.RegisterAdditional event, List<String> baseModels, int skinCount) {

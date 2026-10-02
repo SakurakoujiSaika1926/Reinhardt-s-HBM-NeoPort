@@ -1,7 +1,5 @@
 {
   "type": "reinhardtshbm:blast_furnace_fuel",
-  "ingredient": {
-    "tag": "reinhardtshbm:briquettes"
-  },
-  "power": 200
+  "ingredient": { "item": "reinhardtshbm:briquette_coal" },
+  "power": 2000
 }

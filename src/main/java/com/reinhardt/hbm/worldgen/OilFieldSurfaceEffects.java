@@ -16,19 +16,29 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 public final class OilFieldSurfaceEffects {
     private static final int SET_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+    static final int OIL_DEPOSIT_SURFACE_MAX_OFFSET = 48;
 
     private OilFieldSurfaceEffects() {
     }
 
-    public static void addOilDepositSurfaceSpot(WorldGenLevel level, RandomSource random, int centerX, int centerZ,
-                                                WorldgenFeatureBounds writeBounds) {
+    public static boolean addOilDepositSurfaceSpotSlice(WorldGenLevel level, long depositSeed,
+                                                        int centerX, int centerZ,
+                                                        WorldgenFeatureBounds writeBounds) {
         int spotCount = 150;
         int spotWidth = 7;
+        boolean changed = false;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         for (int i = 0; i < spotCount; i++) {
+            RandomSource random = RandomSource.create(ChunkSlicedOilWorldgen.indexedSeed(
+                    depositSeed, ChunkSlicedOilWorldgen.OIL_SURFACE_SALT, i
+            ));
             int offX = (int) (random.nextGaussian() * spotWidth);
             int offZ = (int) (random.nextGaussian() * spotWidth);
+            if (Math.abs(offX) > OIL_DEPOSIT_SURFACE_MAX_OFFSET
+                    || Math.abs(offZ) > OIL_DEPOSIT_SURFACE_MAX_OFFSET) {
+                continue;
+            }
             int absX = centerX + offX;
             int absZ = centerZ + offZ;
             if (!writeBounds.contains(absX, absZ)) {
@@ -48,17 +58,17 @@ public final class OilFieldSurfaceEffects {
                         boolean inner = distSq < (spotWidth / 2) * (spotWidth / 2);
 
                         if (isGrassOrDirt(subState)) {
-                            level.setBlock(subPos, inner ? HbmBlocks.DIRT_OILY.get().defaultBlockState() : HbmBlocks.DIRT_DEAD.get().defaultBlockState(), SET_FLAGS);
+                            changed |= level.setBlock(subPos, inner ? HbmBlocks.DIRT_OILY.get().defaultBlockState() : HbmBlocks.DIRT_DEAD.get().defaultBlockState(), SET_FLAGS);
 
                             if (!inner && oy == 0 && random.nextInt(20) == 0) {
                                 placeDeadPlant(level, random, subPos.above());
                             }
                             break;
                         } else if (isSandOrOilSand(subState)) {
-                            level.setBlock(subPos, dirtySandFor(subState), SET_FLAGS);
+                            changed |= level.setBlock(subPos, dirtySandFor(subState), SET_FLAGS);
                             break;
                         } else if (isStone(subState)) {
-                            level.setBlock(subPos, HbmBlocks.STONE_CRACKED.get().defaultBlockState(), SET_FLAGS);
+                            changed |= level.setBlock(subPos, HbmBlocks.STONE_CRACKED.get().defaultBlockState(), SET_FLAGS);
                             break;
                         }
                     }
@@ -67,7 +77,7 @@ public final class OilFieldSurfaceEffects {
             }
         }
 
-        addOilSeep(level, centerX, centerZ, writeBounds);
+        return addOilSeep(level, centerX, centerZ, writeBounds) || changed;
     }
 
     public static void generateBedrockOilSpot(WorldGenLevel level, RandomSource random, int centerX, int centerZ,
@@ -171,8 +181,9 @@ public final class OilFieldSurfaceEffects {
         }
     }
 
-    private static void addOilSeep(WorldGenLevel level, int centerX, int centerZ,
-                                   WorldgenFeatureBounds writeBounds) {
+    private static boolean addOilSeep(WorldGenLevel level, int centerX, int centerZ,
+                                      WorldgenFeatureBounds writeBounds) {
+        boolean changed = false;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 1; i < 6; i++) {
             Direction facing = Direction.from3DDataValue(i);
@@ -199,20 +210,20 @@ public final class OilFieldSurfaceEffects {
 
                     if (i > 1) {
                         if (isStoneLikeForCracking(state)) {
-                            level.setBlock(pos, HbmBlocks.STONE_CRACKED.get().defaultBlockState(), SET_FLAGS);
+                            changed |= level.setBlock(pos, HbmBlocks.STONE_CRACKED.get().defaultBlockState(), SET_FLAGS);
                         }
                         if (solids >= 4) {
                             break;
                         }
                     } else {
                         if (solids < 3) {
-                            level.setBlock(pos, Blocks.AIR.defaultBlockState(), SET_FLAGS);
+                            changed |= level.setBlock(pos, Blocks.AIR.defaultBlockState(), SET_FLAGS);
                         }
                         if (solids == 3) {
-                            level.setBlock(pos, HbmBlocks.OIL_SPILL.get().defaultBlockState(), SET_FLAGS);
+                            changed |= level.setBlock(pos, HbmBlocks.OIL_SPILL.get().defaultBlockState(), SET_FLAGS);
                         }
                         if (solids > 3 && solids < 7 && isStoneLikeForCracking(state)) {
-                            level.setBlock(pos, HbmBlocks.STONE_CRACKED.get().defaultBlockState(), SET_FLAGS);
+                            changed |= level.setBlock(pos, HbmBlocks.STONE_CRACKED.get().defaultBlockState(), SET_FLAGS);
                         }
                         if (solids == 7) {
                             break;
@@ -221,6 +232,7 @@ public final class OilFieldSurfaceEffects {
                 }
             }
         }
+        return changed;
     }
 
     private static void contaminatePlant(WorldGenLevel level, RandomSource random, BlockPos.MutableBlockPos pos, BlockState state) {

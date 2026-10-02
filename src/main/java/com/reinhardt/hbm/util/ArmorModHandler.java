@@ -115,6 +115,20 @@ public final class ArmorModHandler {
         return slots;
     }
 
+    /**
+     * Reads a saved modifier id without needing registry access.  This is
+     * used by item capability methods whose API only supplies the armor
+     * stack (not a level or registry provider).
+     */
+    public static String savedModId(ItemStack armor, int slot) {
+        if (armor.isEmpty() || slot < 0 || slot >= MOD_SLOTS) {
+            return "";
+        }
+        CompoundTag root = armor.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        CompoundTag mods = root.getCompound(MOD_COMPOUND_KEY);
+        return mods.getCompound(MOD_SLOT_KEY + slot).getString("id");
+    }
+
     /** Returns the old ItemModHealth bonuses installed in the extra slots. */
     public static double healthBonus(Iterable<ItemStack> armor, HolderLookup.Provider registries) {
         double result = 0.0D;

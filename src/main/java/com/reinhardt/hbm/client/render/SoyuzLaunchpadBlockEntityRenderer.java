@@ -21,6 +21,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 /** Dedicated latest-Soyuz grouped renderer; every orientation is machine-specific. */
 public final class SoyuzLaunchpadBlockEntityRenderer
         implements LongRangeBlockEntityRenderer<SoyuzLaunchpadBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ResourceLocation PAD_OBJ =
             ReinhardtsHBM.id("models/obj/machine/launchpad_soyuz.obj");
     private static final ResourceLocation PAD_TEXTURE =
@@ -114,8 +115,7 @@ public final class SoyuzLaunchpadBlockEntityRenderer
         pose.pushPose();
         pose.translate(0.0D, 4.0D, 0.0D);
         pose.mulPose(Axis.YP.rotationDegrees(-rotation));
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(SOYUZ), pose, buffers,
-                Blocks.IRON_BLOCK.defaultBlockState(), light, overlay);
+        STATIC_MESHES.render(SOYUZ, pose, Blocks.IRON_BLOCK.defaultBlockState(), light, overlay);
         pose.popPose();
     }
 

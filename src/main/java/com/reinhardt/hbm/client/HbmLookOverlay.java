@@ -1,6 +1,9 @@
 package com.reinhardt.hbm.client;
 
 import com.reinhardt.hbm.ReinhardtsHBM;
+import com.reinhardt.hbm.api.client.HbmLookOverlayApi;
+import com.reinhardt.hbm.api.client.HbmLookOverlayApi.OverlayData;
+import com.reinhardt.hbm.api.client.HbmLookOverlayApi.OverlayLine;
 import com.reinhardt.hbm.block.WandStructureBlock;
 import com.reinhardt.hbm.block.LargeMachineBlock;
 import com.reinhardt.hbm.block.GasTurbineBlock;
@@ -13,6 +16,7 @@ import com.reinhardt.hbm.blockentity.ConveyorPressBlockEntity;
 import com.reinhardt.hbm.blockentity.DeuteriumExtractorBlockEntity;
 import com.reinhardt.hbm.blockentity.DrainBlockEntity;
 import com.reinhardt.hbm.blockentity.FractionTowerBlockEntity;
+import com.reinhardt.hbm.blockentity.FluidTankBlockEntity;
 import com.reinhardt.hbm.blockentity.HeatBoilerBlockEntity;
 import com.reinhardt.hbm.blockentity.HeaterBlockEntity;
 import com.reinhardt.hbm.blockentity.GroundwaterPumpBlockEntity;
@@ -37,8 +41,8 @@ import com.reinhardt.hbm.blockentity.WandLogicBlockEntity;
 import com.reinhardt.hbm.blockentity.WandLootBlockEntity;
 import com.reinhardt.hbm.blockentity.WandStructureBlockEntity;
 import com.reinhardt.hbm.blockentity.WandTandemBlockEntity;
-import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.item.FoundryMoldItem;
+import com.reinhardt.hbm.item.BlowtorchItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -61,12 +65,29 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.reinhardt.hbm.api.client.HbmLookOverlayApi.energyRateLine;
+import static com.reinhardt.hbm.api.client.HbmLookOverlayApi.energyPercentLine;
+import static com.reinhardt.hbm.api.client.HbmLookOverlayApi.energyStorageLine;
+import static com.reinhardt.hbm.api.client.HbmLookOverlayApi.fluidLine;
+import static com.reinhardt.hbm.api.client.HbmLookOverlayApi.fluidNameLine;
+import static com.reinhardt.hbm.api.client.HbmLookOverlayApi.fluidText;
+import static com.reinhardt.hbm.api.client.HbmLookOverlayApi.heatLine;
+
 @EventBusSubscriber(modid = ReinhardtsHBM.MOD_ID, value = Dist.CLIENT)
 public final class HbmLookOverlay {
+    private static final int BUILTIN_PROVIDER_PRIORITY = 1_000;
     private static final int X_OFFSET = 28;
     private static final int Y_OFFSET = 14;
     private static final int TITLE_TO_LINES = 14;
     private static final int LINE_SPACING = 13;
+
+    static {
+        HbmLookOverlayApi.registerProvider(
+                ReinhardtsHBM.id("builtin_look_overlay"),
+                BUILTIN_PROVIDER_PRIORITY,
+                HbmLookOverlay::builtInOverlay
+        );
+    }
 
     private HbmLookOverlay() {
     }
@@ -81,40 +102,37 @@ public final class HbmLookOverlay {
             return;
         }
 
-        BlockHitResult hit = (BlockHitResult) minecraft.hitResult;
-        Level level = minecraft.level;
+        OverlayData data = HbmLookOverlayApi.findOverlay(
+                minecraft.level,
+                (BlockHitResult) minecraft.hitResult
+        );
+        if (data != null) {
+            renderGeneric(event.getGuiGraphics(), minecraft.font, data);
+        }
+    }
+
+    @Nullable
+    private static OverlayData builtInOverlay(Level level, BlockHitResult hit) {
         BlockPos corePos = corePos(level, hit.getBlockPos());
         if (corePos == null) {
-            return;
+            return null;
         }
 
         BlockState coreState = level.getBlockState(corePos);
         BlockEntity coreEntity = level.getBlockEntity(corePos);
         if (coreState.isAir() || coreEntity == null) {
-            return;
+            return null;
         }
 
         if (coreEntity instanceof RotaryFurnaceBlockEntity furnace) {
-            OverlayData data = rotaryFurnaceOverlay(coreState, furnace, corePos, hit.getBlockPos());
-            if (data != null) {
-                renderGeneric(event.getGuiGraphics(), minecraft.font, data);
-            }
-            return;
+            return rotaryFurnaceOverlay(coreState, furnace, corePos, hit.getBlockPos());
         }
 
         if (coreEntity instanceof GasTurbineBlockEntity turbine) {
-            OverlayData data = gasTurbineOverlay(coreState, turbine, corePos, hit.getBlockPos());
-            if (data != null) {
-                renderGeneric(event.getGuiGraphics(), minecraft.font, data);
-            }
-            return;
+            return gasTurbineOverlay(coreState, turbine, corePos, hit.getBlockPos());
         }
 
-        OverlayData data = overlayData(coreState, coreEntity);
-        if (data == null) {
-            return;
-        }
-        renderGeneric(event.getGuiGraphics(), minecraft.font, data);
+        return overlayData(coreState, coreEntity);
     }
 
     @Nullable
@@ -136,6 +154,7 @@ public final class HbmLookOverlay {
                 || entity instanceof PoweredSteamCondenserBlockEntity
                 || entity instanceof CoolingTowerBlockEntity
                 || entity instanceof FractionTowerBlockEntity
+                || entity instanceof FluidTankBlockEntity
                 || entity instanceof CatalyticCrackerBlockEntity
                 || entity instanceof ChimneyBlockEntity
                 || entity instanceof DrainBlockEntity
@@ -195,6 +214,9 @@ public final class HbmLookOverlay {
         }
         if (entity instanceof FractionTowerBlockEntity tower) {
             return fractionTowerOverlay(state, tower);
+        }
+        if (entity instanceof FluidTankBlockEntity tank) {
+            return fluidTankOverlay(state, tank);
         }
         if (entity instanceof CatalyticCrackerBlockEntity cracker) {
             return catalyticCrackerOverlay(state, cracker);
@@ -300,7 +322,7 @@ public final class HbmLookOverlay {
 
     private static OverlayData boilerOverlay(BlockState state, HeatBoilerBlockEntity boiler) {
         List<OverlayLine> lines = new ArrayList<>();
-        lines.add(OverlayLine.white(String.format("%,d TU", boiler.heat())));
+        lines.add(heatLine("", boiler.heat()));
         lines.add(fluidLine("-> ", boiler.inputTank()));
         lines.add(fluidLine("<- ", boiler.outputTank()));
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
@@ -382,6 +404,22 @@ public final class HbmLookOverlay {
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
 
+    @Nullable
+    private static OverlayData fluidTankOverlay(BlockState state, FluidTankBlockEntity tank) {
+        if (!tank.isDamaged()
+                || Minecraft.getInstance().player == null
+                || !(Minecraft.getInstance().player.getMainHandItem().getItem() instanceof BlowtorchItem)) {
+            return null;
+        }
+        List<OverlayLine> lines = new ArrayList<>();
+        lines.add(new OverlayLine(
+                Component.translatable("overlay.reinhardtshbm.fluid_tank.repair_with").getString(),
+                0xFFAA00));
+        lines.add(OverlayLine.white(Component.translatable(
+                "overlay.reinhardtshbm.fluid_tank.steel_plates", 6).getString()));
+        return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
+    }
+
     private static OverlayData catalyticCrackerOverlay(BlockState state, CatalyticCrackerBlockEntity cracker) {
         List<OverlayLine> lines = new ArrayList<>();
         for (int index = 0; index < CatalyticCrackerBlockEntity.TANK_COUNT; index++) {
@@ -406,9 +444,11 @@ public final class HbmLookOverlay {
             lines.add(fluidLine("<- ", pump.spentSteamTank()));
             lines.add(fluidLine("<- ", pump.waterTank()));
         } else {
-            lines.add(new OverlayLine(
-                    "-> " + String.format("%,d / %,d HE", pump.power(), GroundwaterPumpBlockEntity.ELECTRIC_MAX_POWER),
-                    0x00FF00
+            lines.add(energyStorageLine(
+                    "-> ",
+                    pump.power(),
+                    GroundwaterPumpBlockEntity.ELECTRIC_MAX_POWER,
+                    HbmLookOverlayApi.COLOR_GREEN
             ));
             lines.add(fluidLine("<- ", pump.waterTank()));
         }
@@ -431,14 +471,11 @@ public final class HbmLookOverlay {
     private static OverlayData capacitorOverlay(BlockState state, CapacitorBlockEntity capacitor) {
         long power = capacitor.power();
         long capacity = capacitor.capacity();
-        double percent = capacity <= 0L ? 0.0D : (double) power * 100.0D / (double) capacity;
-        int color = ((int) (0xFF - 0xFF * percent / 100.0D)) << 16
-                | ((int) (0xFF * percent / 100.0D) << 8);
         List<OverlayLine> lines = new ArrayList<>();
-        lines.add(OverlayLine.white(String.format("%,d / %,d HE", power, capacity)));
-        lines.add(new OverlayLine(String.format("%.2f%%", percent), color));
-        lines.add(new OverlayLine("-> +" + String.format("%,d HE/t", capacitor.lastReceived()), 0x00FF00));
-        lines.add(new OverlayLine("<- -" + String.format("%,d HE/t", capacitor.lastSent()), 0xFF5555));
+        lines.add(energyStorageLine("", power, capacity, HbmLookOverlayApi.COLOR_WHITE));
+        lines.add(energyPercentLine(power, capacity));
+        lines.add(energyRateLine("-> +", capacitor.lastReceived(), HbmLookOverlayApi.COLOR_GREEN));
+        lines.add(energyRateLine("<- -", capacitor.lastSent(), HbmLookOverlayApi.COLOR_RED));
         return new OverlayData(state.getBlock().getName(), 0xFFFF00, lines);
     }
 
@@ -677,19 +714,6 @@ public final class HbmLookOverlay {
         return value == null || value.isBlank() ? Component.translatable("overlay.reinhardtshbm.wand.none").getString() : value;
     }
 
-    private static OverlayLine fluidLine(String prefix, HbmFluidTank tank) {
-        return OverlayLine.white(fluidText(prefix, tank));
-    }
-
-    private static OverlayLine fluidNameLine(String prefix, HbmFluidTank tank) {
-        return OverlayLine.white(prefix + Component.translatable(tank.type().translationKey()).getString());
-    }
-
-    private static String fluidText(String prefix, HbmFluidTank tank) {
-        Component name = Component.translatable(tank.type().translationKey());
-        return prefix + name.getString() + ": " + tank.amount() + "/" + tank.capacity() + "mB";
-    }
-
     private static OverlayData drainOverlay(BlockState state, DrainBlockEntity drain) {
         List<OverlayLine> lines = new ArrayList<>();
         lines.add(fluidLine("-> ", drain.tank()));
@@ -756,13 +780,5 @@ public final class HbmLookOverlay {
         }
     }
 
-    private record OverlayData(Component title, int titleColor, List<OverlayLine> lines) {
-    }
-
-    private record OverlayLine(String text, int color) {
-        private static OverlayLine white(String text) {
-            return new OverlayLine(text, 0xFFFFFF);
-        }
-    }
 }
 

@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.registry.HbmBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.QuartPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
@@ -16,6 +17,8 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 
 public class OilBubbleFeature extends Feature<NoneFeatureConfiguration> {
     private static final int SET_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+    private static final int MIN_Y = 15;
+    private static final int Y_RANGE = 25;
 
     public OilBubbleFeature() {
         super(NoneFeatureConfiguration.CODEC);
@@ -32,48 +35,108 @@ public class OilBubbleFeature extends Feature<NoneFeatureConfiguration> {
         }
 
         WorldGenLevel level = context.level();
-        RandomSource random = context.random();
-        BlockPos origin = context.origin();
-        int spawnRate = adjustedSpawnRate(level, origin);
-        if (spawnRate <= 0 || random.nextInt(spawnRate) != 0) {
-            return false;
-        }
+        WorldgenFeatureBounds targetBounds = WorldgenFeatureBounds.forCurrentChunk(level, context.origin());
+        int targetChunkX = targetBounds.minBlockX() >> 4;
+        int targetChunkZ = targetBounds.minBlockZ() >> 4;
+        int configuredMaxRadius = ChunkSlicedOilWorldgen.maxConfiguredRadius(
+                HbmConfig.OIL_DEPOSIT_MIN_RADIUS.get(),
+                HbmConfig.OIL_DEPOSIT_MAX_RADIUS.get()
+        );
+        int maximumReach = Math.max(configuredMaxRadius, OilFieldSurfaceEffects.OIL_DEPOSIT_SURFACE_MAX_OFFSET);
+        int searchRadius = ChunkSlicedOilWorldgen.sourceChunkSearchRadius(maximumReach);
+        boolean placed = false;
 
-        int radius = HbmConfig.radius(HbmConfig.OIL_DEPOSIT_MIN_RADIUS, HbmConfig.OIL_DEPOSIT_MAX_RADIUS, random);
-        WorldgenFeatureBounds writeBounds = WorldgenFeatureBounds.forFeature(level, origin);
-        boolean placed = spawnOil(level, origin, radius, writeBounds);
-        OilFieldSurfaceEffects.addOilDepositSurfaceSpot(level, random, origin.getX(), origin.getZ(), writeBounds);
+        for (int sourceChunkX = targetChunkX - searchRadius; sourceChunkX <= targetChunkX + searchRadius; sourceChunkX++) {
+            for (int sourceChunkZ = targetChunkZ - searchRadius; sourceChunkZ <= targetChunkZ + searchRadius; sourceChunkZ++) {
+                ChunkSlicedOilWorldgen.Deposit deposit = depositForSourceChunk(level, sourceChunkX, sourceChunkZ);
+                if (deposit == null) {
+                    continue;
+                }
+
+                if (ChunkSlicedOilWorldgen.horizontallyIntersects(
+                        targetBounds, deposit.center().getX(), deposit.center().getZ(), deposit.radius())) {
+                    placed |= spawnOilSlice(level, deposit, targetBounds);
+                }
+                if (ChunkSlicedOilWorldgen.horizontallyIntersects(
+                        targetBounds,
+                        deposit.center().getX(),
+                        deposit.center().getZ(),
+                        OilFieldSurfaceEffects.OIL_DEPOSIT_SURFACE_MAX_OFFSET)) {
+                    placed |= OilFieldSurfaceEffects.addOilDepositSurfaceSpotSlice(
+                            level,
+                            deposit.detailSeed(),
+                            deposit.center().getX(),
+                            deposit.center().getZ(),
+                            targetBounds
+                    );
+                }
+            }
+        }
         return placed;
     }
 
-    private static int adjustedSpawnRate(WorldGenLevel level, BlockPos origin) {
-        int spawnRate = HbmConfig.OIL_DEPOSIT_SPAWN_RATE.get();
-        Biome biome = level.getBiome(origin).value();
-        if (biome.getBaseTemperature() >= 2.0F && biome.getModifiedClimateSettings().downfall() < 0.1F) {
-            spawnRate /= HbmConfig.OIL_DEPOSIT_DRY_BIOME_DIVISOR.get();
+    private static ChunkSlicedOilWorldgen.Deposit depositForSourceChunk(WorldGenLevel level, int chunkX, int chunkZ) {
+        RandomSource random = ChunkSlicedOilWorldgen.sourceRandom(
+                level.getSeed(), chunkX, chunkZ, ChunkSlicedOilWorldgen.OIL_DEPOSIT_SALT
+        );
+        int centerX = (chunkX << 4) + random.nextInt(16);
+        int centerZ = (chunkZ << 4) + random.nextInt(16);
+        int centerY = MIN_Y + random.nextInt(Y_RANGE);
+        int normalSpawnRate = Math.max(1, HbmConfig.OIL_DEPOSIT_SPAWN_RATE.get());
+        int drySpawnRate = Math.max(1,
+                normalSpawnRate / HbmConfig.OIL_DEPOSIT_DRY_BIOME_DIVISOR.get());
+        boolean normalSelected = random.nextInt(normalSpawnRate) == 0;
+        boolean drySelected = random.nextInt(drySpawnRate) == 0;
+        if (!normalSelected && !drySelected) {
+            return null;
         }
-        return Math.max(1, spawnRate);
+
+        Biome biome = level.getUncachedNoiseBiome(
+                QuartPos.fromBlock(centerX), QuartPos.fromBlock(centerY), QuartPos.fromBlock(centerZ)
+        ).value();
+        boolean hotAndDry = biome.getBaseTemperature() >= 2.0F
+                && biome.getModifiedClimateSettings().downfall() < 0.1F;
+        if (hotAndDry ? !drySelected : !normalSelected) {
+            return null;
+        }
+
+        int minRadius = ChunkSlicedOilWorldgen.minConfiguredRadius(
+                HbmConfig.OIL_DEPOSIT_MIN_RADIUS.get(), HbmConfig.OIL_DEPOSIT_MAX_RADIUS.get()
+        );
+        int maxRadius = ChunkSlicedOilWorldgen.maxConfiguredRadius(
+                HbmConfig.OIL_DEPOSIT_MIN_RADIUS.get(), HbmConfig.OIL_DEPOSIT_MAX_RADIUS.get()
+        );
+        int radius = minRadius + random.nextInt(maxRadius - minRadius + 1);
+        return new ChunkSlicedOilWorldgen.Deposit(
+                new BlockPos(centerX, centerY, centerZ), radius, random.nextLong()
+        );
     }
 
-    private static boolean spawnOil(WorldGenLevel level, BlockPos origin, int radius, WorldgenFeatureBounds writeBounds) {
+    private static boolean spawnOilSlice(WorldGenLevel level, ChunkSlicedOilWorldgen.Deposit deposit,
+                                         WorldgenFeatureBounds targetBounds) {
+        BlockPos origin = deposit.center();
+        int radius = deposit.radius();
         int r2 = radius * radius;
         int r22 = r2 / 2;
         boolean placed = false;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        int minX = Math.max(origin.getX() - radius, targetBounds.minBlockX());
+        int maxX = Math.min(origin.getX() + radius, targetBounds.maxBlockXExclusive());
+        int minZ = Math.max(origin.getZ() - radius, targetBounds.minBlockZ());
+        int maxZ = Math.min(origin.getZ() + radius, targetBounds.maxBlockZExclusive());
+        int minY = Math.max(origin.getY() - radius, level.getMinBuildHeight());
+        int maxY = Math.min(origin.getY() + radius, level.getMaxBuildHeight());
 
-        for (int xx = -radius; xx < radius; xx++) {
-            int x = xx + origin.getX();
+        for (int x = minX; x < maxX; x++) {
+            int xx = x - origin.getX();
             int xxSq = xx * xx;
-            for (int yy = -radius; yy < radius; yy++) {
-                int y = yy + origin.getY();
+            for (int y = minY; y < maxY; y++) {
+                int yy = y - origin.getY();
                 int yySq = xxSq + yy * yy * 3;
-                if (y < level.getMinBuildHeight() || y >= level.getMaxBuildHeight()) {
-                    continue;
-                }
-                for (int zz = -radius; zz < radius; zz++) {
-                    int z = zz + origin.getZ();
+                for (int z = minZ; z < maxZ; z++) {
+                    int zz = z - origin.getZ();
                     int dist = yySq + zz * zz;
-                    if (dist < r22 && writeBounds.contains(x, z)) {
+                    if (dist < r22) {
                         pos.set(x, y, z);
                         BlockState state = level.getBlockState(pos);
                         if (state.is(Blocks.STONE)) {

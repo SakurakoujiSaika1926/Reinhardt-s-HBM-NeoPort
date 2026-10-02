@@ -1,6 +1,8 @@
 package com.reinhardt.hbm.blockentity;
 
+import com.reinhardt.hbm.config.HbmConfig;
 import com.reinhardt.hbm.fluid.HbmFluidDefinition;
+import com.reinhardt.hbm.fluid.HbmFluidRelease;
 import com.reinhardt.hbm.fluid.HbmFluidTank;
 import com.reinhardt.hbm.fluid.HbmFluidTrait;
 import com.reinhardt.hbm.item.BatteryPackItem;
@@ -84,6 +86,7 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
     private boolean active;
     private int fluidUsed;
     private int output;
+    private final MachineFoundationState foundation = new MachineFoundationState();
     private final ContainerData menuData = new ContainerData() {
         @Override
         public int get(int index) {
@@ -152,6 +155,10 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
 
     public boolean active() {
         return this.active;
+    }
+
+    public boolean tilted() {
+        return this.foundation.tilted();
     }
 
     @Override
@@ -434,6 +441,7 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
         tag.putInt("Output", this.output);
         tag.putString("ConfiguredFluid", this.configuredFluid.name());
         tag.put("Tank", this.tank.save());
+        this.foundation.save(tag);
     }
 
     @Override
@@ -453,6 +461,7 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
             this.configuredFluid = defaultFluid();
         }
         this.tank.load(tag.getCompound("Tank"));
+        this.foundation.load(tag);
         if (this.tank.amount() > 0 && this.tank.type() != this.configuredFluid) {
             this.tank.clear();
         }
@@ -473,7 +482,10 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
     }
 
     private void tickServer(Level level) {
-        boolean changed = applyFluidIdentifier();
+        boolean changed = this.foundation.tick(level, this.worldPosition, 4,
+                index -> this.worldPosition.offset(-1 + index / 2 * 2, -1, -1 + index % 2 * 2),
+                false, HbmConfig.machineGravity());
+        changed |= applyFluidIdentifier();
         ensureConfiguredTankType();
         changed |= transferFluidInput();
 
@@ -486,7 +498,7 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
         this.output = 0;
 
         HbmFluidDefinition fluid = this.tank.type();
-        if (this.valveOpen && this.tank.amount() > 0 && !fluid.isNone()) {
+        if (this.valveOpen && this.tank.amount() > 0 && !fluid.isNone() && !this.foundation.tilted()) {
             int speedLevel = Math.min(upgradeLevel(MachineUpgradeItem.UpgradeType.SPEED), 3);
             int effectLevel = Math.min(upgradeLevel(MachineUpgradeItem.UpgradeType.EFFECT), 3);
             int ventRate = BASE_VENT_RATE + BASE_VENT_RATE * speedLevel;
@@ -520,7 +532,7 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
                         );
                     }
                     if (level.getGameTime() % 5L == 0L) {
-                        HbmPollution.polluteFluid(level, this.worldPosition, fluid, HbmPollution.ReleaseType.BURN, consumed * 5.0D);
+                        HbmFluidRelease.onRelease(level, this.worldPosition, fluid, HbmPollution.ReleaseType.BURN, consumed * 5.0D);
                     }
                 }
                 changed = true;
@@ -543,7 +555,7 @@ public class GasFlareBlockEntity extends BlockEntity implements PowerEndpoint, M
                         );
                     }
                     if (level.getGameTime() % 5L == 0L) {
-                        HbmPollution.polluteFluid(level, this.worldPosition, fluid, HbmPollution.ReleaseType.SPILL, consumed * 5.0D);
+                        HbmFluidRelease.onRelease(level, this.worldPosition, fluid, HbmPollution.ReleaseType.SPILL, consumed * 5.0D);
                     }
                 }
                 changed = true;

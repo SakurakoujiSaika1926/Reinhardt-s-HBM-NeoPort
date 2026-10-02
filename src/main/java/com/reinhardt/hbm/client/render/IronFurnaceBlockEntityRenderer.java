@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
 public class IronFurnaceBlockEntityRenderer implements LongRangeBlockEntityRenderer<IronFurnaceBlockEntity> {
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final ModelResourceLocation MAIN = MachineModelRenderer.standalone("block/furnace_iron_main");
     private static final ModelResourceLocation ON = MachineModelRenderer.standalone("block/furnace_iron_on");
     private static final ModelResourceLocation OFF = MachineModelRenderer.standalone("block/furnace_iron_off");
@@ -34,11 +35,12 @@ public class IronFurnaceBlockEntityRenderer implements LongRangeBlockEntityRende
 
         poseStack.pushPose();
         applyIronFurnaceTransform(poseStack, facing);
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(MAIN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MAIN, poseStack, state, packedLight, packedOverlay);
         if (lit) {
-            MachineModelRenderer.renderUnculledFullBright(MachineModelRenderer.model(ON), poseStack, bufferSource, state, packedOverlay);
+            STATIC_MESHES.render(ON, poseStack, state,
+                    net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, packedOverlay);
         } else {
-            MachineModelRenderer.renderUnculled(MachineModelRenderer.model(OFF), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(OFF, poseStack, state, packedLight, packedOverlay);
         }
         poseStack.popPose();
     }

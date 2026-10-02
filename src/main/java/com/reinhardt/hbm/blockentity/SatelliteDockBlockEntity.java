@@ -11,7 +11,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
@@ -21,10 +20,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -53,30 +50,16 @@ public final class SatelliteDockBlockEntity extends BlockEntity implements Machi
         if (satellite != null && level.getGameTime() % 20L == 0L
                 && !satellite.requestableItems().isEmpty()) {
             int frequency = SatelliteChipItem.frequency(chip);
-            List<ItemStack> cargo = satellite.takeRequestableItems(serverLevel);
-            MinerRocketEntity rocket = new MinerRocketEntity(level, frequency, cargo);
+            List<ItemStack> cargo = satellite.requestableItems();
+            MinerRocketEntity rocket = new MinerRocketEntity(level, frequency, pos.getY(), cargo);
             rocket.setPos(pos.getX() + 0.5D, 300.0D, pos.getZ() + 0.5D);
-            level.addFreshEntity(rocket);
-        }
-
-        AABB dockingVolume = new AABB(pos.getX() + 0.25D, pos.getY() + 0.75D, pos.getZ() + 0.25D,
-                pos.getX() + 0.75D, pos.getY() + 2.0D, pos.getZ() + 0.75D);
-        for (MinerRocketEntity rocket : level.getEntitiesOfClass(MinerRocketEntity.class, dockingVolume)) {
-            if (satellite == null || rocket.frequency() != SatelliteChipItem.frequency(chip)) {
-                rocket.discard();
-                level.explode(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
-                        10.0F, Level.ExplosionInteraction.BLOCK);
-                break;
-            }
-            if (rocket.shouldUnloadCargo()) {
-                dock.unloadCargo(rocket.takeCargo());
+            if (level.addFreshEntity(rocket)) {
+                // Latest 1.7.10 only clears the satellite cargo after the pod
+                // was accepted by the world.  This also prevents two docks on
+                // one frequency from duplicating the same delivery.
+                satellite.takeRequestableItems(serverLevel);
             }
         }
-
-        dock.ejectInto(pos.offset(2, 0, 0));
-        dock.ejectInto(pos.offset(-2, 0, 0));
-        dock.ejectInto(pos.offset(0, 0, 2));
-        dock.ejectInto(pos.offset(0, 0, -2));
     }
 
     @Nullable
@@ -90,14 +73,15 @@ public final class SatelliteDockBlockEntity extends BlockEntity implements Machi
                 .orElse(null);
     }
 
-    private void unloadCargo(List<ItemStack> cargo) {
+    /** Called by the landed delivery pod. Returns all cargo that did not fit. */
+    public List<ItemStack> acceptCargo(List<ItemStack> cargo) {
+        List<ItemStack> remainder = new java.util.ArrayList<>();
         for (ItemStack supplied : cargo) {
-            ItemStack remainder = addToOutput(supplied.copy());
-            if (!remainder.isEmpty()) {
-                Block.popResource(this.level, this.worldPosition.above(), remainder);
-            }
+            ItemStack left = addToOutput(supplied.copy());
+            if (!left.isEmpty()) remainder.add(left);
         }
         setChanged();
+        return remainder;
     }
 
     private ItemStack addToOutput(ItemStack stack) {
@@ -119,51 +103,6 @@ public final class SatelliteDockBlockEntity extends BlockEntity implements Machi
             }
         }
         return stack;
-    }
-
-    private void ejectInto(BlockPos targetPos) {
-        if (!(this.level.getBlockEntity(targetPos) instanceof Container target)) {
-            return;
-        }
-        for (int slot = 0; slot < OUTPUT_SLOT_COUNT; slot++) {
-            ItemStack output = items.get(slot);
-            if (output.isEmpty()) {
-                continue;
-            }
-            for (int targetSlot = 0; targetSlot < target.getContainerSize(); targetSlot++) {
-                ItemStack existing = target.getItem(targetSlot);
-                if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, output)
-                        && existing.getCount() < Math.min(existing.getMaxStackSize(), target.getMaxStackSize())
-                        && target.canPlaceItem(targetSlot, output.copyWithCount(1))) {
-                    existing.grow(1);
-                    output.shrink(1);
-                    target.setChanged();
-                    if (output.isEmpty()) {
-                        items.set(slot, ItemStack.EMPTY);
-                    }
-                    setChanged();
-                    return;
-                }
-            }
-        }
-        for (int slot = 0; slot < OUTPUT_SLOT_COUNT; slot++) {
-            ItemStack output = items.get(slot);
-            if (output.isEmpty()) {
-                continue;
-            }
-            for (int targetSlot = 0; targetSlot < target.getContainerSize(); targetSlot++) {
-                if (target.getItem(targetSlot).isEmpty() && target.canPlaceItem(targetSlot, output.copyWithCount(1))) {
-                    target.setItem(targetSlot, output.copyWithCount(1));
-                    output.shrink(1);
-                    target.setChanged();
-                    if (output.isEmpty()) {
-                        items.set(slot, ItemStack.EMPTY);
-                    }
-                    setChanged();
-                    return;
-                }
-            }
-        }
     }
 
     @Override public int getContainerSize() { return SLOT_COUNT; }

@@ -28,6 +28,7 @@ public final class GeothermalHeatExchangerBlockEntityRenderer
             MachineModelRenderer.standalone("block/machine_hephaestus_core_cobblestone");
     private static final ModelResourceLocation CORE_LAVA =
             MachineModelRenderer.standalone("block/machine_hephaestus_core_lava");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
     private static final AABB LOCAL_RENDER_BOUNDS = buildLocalRenderBounds();
 
     public GeothermalHeatExchangerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -52,14 +53,12 @@ public final class GeothermalHeatExchangerBlockEntityRenderer
 
     static void renderParts(float movement, boolean active, PoseStack poseStack, MultiBufferSource bufferSource,
                             BlockState state, int packedLight, int packedOverlay) {
-        MachineModelRenderer.renderUnculled(
-                MachineModelRenderer.model(MAIN), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(MAIN, poseStack, state, packedLight, packedOverlay);
 
         poseStack.pushPose();
         poseStack.mulPose(yaw(movement));
         for (int index = 0; index < 3; index++) {
-            MachineModelRenderer.renderUnculled(
-                    MachineModelRenderer.model(ROTOR), poseStack, bufferSource, state, packedLight, packedOverlay);
+            STATIC_MESHES.render(ROTOR, poseStack, state, packedLight, packedOverlay);
             poseStack.mulPose(yaw(120.0F));
         }
         poseStack.popPose();

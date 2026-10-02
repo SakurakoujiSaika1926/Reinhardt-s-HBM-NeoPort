@@ -184,9 +184,6 @@ public final class HbmToolBehavior {
         for (HbmToolProfile.AbilityLevel<WeaponAbility> ability : profile.weaponAbilities()) {
             tooltip.add(Component.translatable("desc.reinhardtshbm.tool.weapon", ability.ability().label(ability.level())).withStyle(ChatFormatting.GRAY));
         }
-        if (profile.depthRockBreaker()) {
-            tooltip.add(Component.translatable("desc.reinhardtshbm.tool.depth_rock").withStyle(ChatFormatting.RED));
-        }
         if (profile.hasCyclableAbilities()) {
             tooltip.add(Component.translatable("desc.reinhardtshbm.tool.cycle").withStyle(ChatFormatting.DARK_GRAY));
         }

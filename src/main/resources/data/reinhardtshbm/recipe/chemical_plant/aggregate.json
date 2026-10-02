@@ -1,6 +1,9 @@
 {
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.aggregate",
+  "blueprint_pools": [
+    "discover..stone"
+  ],
   "duration": 320,
   "power": 500,
   "input_items": [

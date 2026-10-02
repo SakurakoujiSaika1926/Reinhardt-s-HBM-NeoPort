@@ -6,6 +6,7 @@
     "north": "reinhardtshbm:block/stone_biome.desert",
     "south": "reinhardtshbm:block/stone_biome.desert",
     "east": "reinhardtshbm:block/stone_biome.desert",
-    "west": "reinhardtshbm:block/stone_biome.desert"
+    "west": "reinhardtshbm:block/stone_biome.desert",
+    "particle": "#north"
   }
 }

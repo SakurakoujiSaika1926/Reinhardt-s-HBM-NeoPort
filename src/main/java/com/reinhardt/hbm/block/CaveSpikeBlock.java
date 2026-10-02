@@ -27,12 +27,13 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Direct port of BlockStalagmite: two material variants, no collision and support-dependent survival. */
+/** Direct port of BlockStalagmite: all seven material variants, no collision and support-dependent survival. */
 public final class CaveSpikeBlock extends Block {
-    public static final IntegerProperty MATERIAL = IntegerProperty.create("material", 0, 1);
+    public static final IntegerProperty MATERIAL = IntegerProperty.create("material", 0, 6);
     public static final String MATERIAL_TAG = "material";
     private static final VoxelShape EMPTY = Shapes.empty();
     private static final ResourceLocation ASBESTOS_POWDER = ResourceLocation.fromNamespaceAndPath("reinhardtshbm", "powder_asbestos");
+    private static final ResourceLocation ICE_POWDER = ResourceLocation.fromNamespaceAndPath("reinhardtshbm", "powder_ice");
 
     private final boolean hanging;
     private final Supplier<? extends Item> sulfur;
@@ -75,15 +76,19 @@ public final class CaveSpikeBlock extends Block {
 
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        Item item = state.getValue(MATERIAL) == 0
-                ? sulfur.get()
-                : net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ASBESTOS_POWDER);
+        Item item = switch (state.getValue(MATERIAL)) {
+            case 0 -> sulfur.get();
+            case 1 -> net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ASBESTOS_POWDER);
+            case 2 -> net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ICE_POWDER);
+            case 3 -> net.minecraft.world.item.Items.SNOWBALL;
+            default -> net.minecraft.world.item.Items.AIR;
+        };
         return item == net.minecraft.world.item.Items.AIR ? List.of() : List.of(new ItemStack(item));
     }
 
     public static int material(ItemStack stack) {
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        return Mth.clamp(tag.getInt(MATERIAL_TAG), 0, 1);
+        return Mth.clamp(tag.getInt(MATERIAL_TAG), 0, 6);
     }
 
     private ItemStack stackForState(BlockState state) {

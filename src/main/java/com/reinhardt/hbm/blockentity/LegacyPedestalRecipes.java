@@ -1,6 +1,5 @@
 package com.reinhardt.hbm.blockentity;
 
-import com.reinhardt.hbm.item.BlueprintFolderItem;
 import com.reinhardt.hbm.item.LegacyConserveItem;
 import com.reinhardt.hbm.item.LegacyVariantItem;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -196,9 +195,6 @@ public final class LegacyPedestalRecipes {
             } else if (item instanceof LegacyConserveItem && variant != null) {
                 stack = LegacyConserveItem.stackFor(item, LegacyConserveItem.Variant.valueOf(variant.toUpperCase(java.util.Locale.ROOT)));
                 stack.setCount(count);
-            } else if (item instanceof BlueprintFolderItem && variant != null && variant.equals("secret")) {
-                stack = BlueprintFolderItem.stackFor(BlueprintFolderItem.Variant.SECRET);
-                stack.setCount(count);
             } else {
                 stack = new ItemStack(item, count);
             }
@@ -212,9 +208,6 @@ public final class LegacyPedestalRecipes {
             if (stack.getItem() instanceof LegacyConserveItem) {
                 return stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                                 net.minecraft.world.item.component.CustomData.EMPTY).copyTag().getString("conserve");
-            }
-            if (stack.getItem() instanceof BlueprintFolderItem) {
-                return "secret";
             }
             return stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                     net.minecraft.world.item.component.CustomData.EMPTY).copyTag().getString("variant");

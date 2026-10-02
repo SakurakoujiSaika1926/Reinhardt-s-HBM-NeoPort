@@ -25,7 +25,7 @@ import java.util.List;
 /** Direct port of ItemRTTYPager's channel, notification and failsafe behavior. */
 public final class LegacyRttyPagerItem extends Item {
     public static final String KEY_CHANNEL = "chan";
-    public static final int MAX_CHANNEL_LENGTH = 10;
+    public static final int MAX_CHANNEL_LENGTH = 15;
     private static final int INFORM_LINE_BASE = 4_000;
 
     public LegacyRttyPagerItem(Properties properties) {

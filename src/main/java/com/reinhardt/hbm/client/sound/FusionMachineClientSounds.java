@@ -130,6 +130,7 @@ public final class FusionMachineClientSounds {
 
             float speed = Math.max(0.0F, Math.min(1.0F, machine.rotorSpeed() / speedScale(this.kind)));
             this.volume = speed;
+            this.volume = com.reinhardt.hbm.util.MachineMuffler.attenuate(blockEntity, this.volume);
             this.pitch = Math.max(0.01F, speed);
         }
 

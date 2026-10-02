@@ -665,9 +665,6 @@ public class ExcavatorBlockEntity extends BlockEntity implements PowerEndpoint, 
                     ignoreAll = false;
                     break;
                 }
-                if (state.is(HbmBlocks.STONE_DEPTH.get()) || state.is(HbmBlocks.STONE_DEPTH_NETHER.get())) {
-                    this.enableDrill = false;
-                }
                 if (shouldIgnoreBlock(state, pos)) {
                     continue;
                 }

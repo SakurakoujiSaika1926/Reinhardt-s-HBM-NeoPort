@@ -48,8 +48,11 @@ public final class LegacyBookLoreItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         String key = key(stack);
         if (!key.isEmpty()) {
-            tooltip.add(Component.translatable("book_lore.author", Component.translatable("book_lore." + key + ".author"))
-                    .withStyle(ChatFormatting.GRAY));
+            String authorKey = "book_lore." + key + ".author";
+            Component author = Component.translatable(authorKey);
+            if (!author.getString().equals(authorKey)) {
+                tooltip.add(Component.translatable("book_lore.author", author).withStyle(ChatFormatting.GRAY));
+            }
         }
     }
 
@@ -59,6 +62,18 @@ public final class LegacyBookLoreItem extends Item {
         data.putInt(PAGES, pages);
         data.putInt(COVER_COLOR, coverColor);
         data.putInt(TITLE_COLOR, titleColor);
+        book.set(DataComponents.CUSTOM_DATA, CustomData.of(data));
+        return book;
+    }
+
+    /** Adds the old ItemBookLore page-local printf arguments. */
+    public static ItemStack addArguments(ItemStack book, int page, String... arguments) {
+        CompoundTag data = data(book);
+        CompoundTag pageArguments = data.getCompound("p" + page).copy();
+        for (int index = 0; index < arguments.length; index++) {
+            pageArguments.putString("a" + (index + 1), arguments[index]);
+        }
+        data.put("p" + page, pageArguments);
         book.set(DataComponents.CUSTOM_DATA, CustomData.of(data));
         return book;
     }

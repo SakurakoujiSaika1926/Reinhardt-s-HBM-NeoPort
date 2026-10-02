@@ -12,9 +12,11 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.block.Block;
 
-/** Keeps sulfur and asbestos spike variants as separately placeable 1.7.10 stacks. */
+/** Keeps all seven legacy spike variants as separately placeable stacks. */
 public final class CaveSpikeBlockItem extends BlockItem {
-    private static final String[] VARIANTS = {"sulfur", "asbestos"};
+    private static final String[] VARIANTS = {
+            "sulfur", "asbestos", "ice", "snow", "glyphid1", "glyphid2", "glyphid3"
+    };
 
     public CaveSpikeBlockItem(Block block, Properties properties) {
         super(block, properties);
@@ -26,7 +28,7 @@ public final class CaveSpikeBlockItem extends BlockItem {
     }
 
     public static ItemStack stackFor(CaveSpikeBlockItem item, int material) {
-        int clamped = Mth.clamp(material, 0, 1);
+        int clamped = Mth.clamp(material, 0, 6);
         ItemStack stack = new ItemStack(item);
         CompoundTag tag = new CompoundTag();
         tag.putInt(CaveSpikeBlock.MATERIAL_TAG, clamped);
@@ -38,5 +40,10 @@ public final class CaveSpikeBlockItem extends BlockItem {
     public void addCreativeVariants(CreativeModeTab.Output output) {
         output.accept(stackFor(this, 0));
         output.accept(stackFor(this, 1));
+        output.accept(stackFor(this, 2));
+        output.accept(stackFor(this, 3));
+        output.accept(stackFor(this, 4));
+        output.accept(stackFor(this, 5));
+        output.accept(stackFor(this, 6));
     }
 }

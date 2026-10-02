@@ -1,6 +1,9 @@
 {
   "type": "reinhardtshbm:chemical_plant",
   "group": "chem.lubeelectrodes",
+  "blueprint_pools": [
+    "alt..electrodes"
+  ],
   "duration": 600,
   "power": 100,
   "input_items": [],

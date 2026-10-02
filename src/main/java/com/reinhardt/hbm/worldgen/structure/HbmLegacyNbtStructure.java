@@ -164,6 +164,82 @@ public final class HbmLegacyNbtStructure extends Structure {
         return HbmLegacyStructureSelection.listStructures();
     }
 
+    /**
+     * Finds a legacy weighted structure without asking vanilla's structure
+     * placement search to walk every chunk.  The legacy generator creates one
+     * candidate inside each {@code maxChunks x maxChunks} region, so only those
+     * deterministic candidate chunks need a biome/weight evaluation.
+     */
+    public static ChunkPos findNearestSelectedChunk(ServerLevel level, ChunkPos start, String name, int maxDistanceChunks) {
+        if (!HbmConfig.GENERATE_HBM_STRUCTURES.get()
+                || maxDistanceChunks < 0
+                || !HbmLegacyStructureSelection.isKnownStructureName(name)) {
+            return null;
+        }
+
+        int regionSize = currentRegionSize();
+        int startRegionX = Math.floorDiv(start.x, regionSize);
+        int startRegionZ = Math.floorDiv(start.z, regionSize);
+        int maxRegionRadius = Math.floorDiv(maxDistanceChunks, regionSize) + 2;
+
+        ChunkPos nearest = null;
+        long nearestDistanceSquared = Long.MAX_VALUE;
+        for (int regionX = startRegionX - maxRegionRadius;
+             regionX <= startRegionX + maxRegionRadius;
+             regionX++) {
+            for (int regionZ = startRegionZ - maxRegionRadius;
+                 regionZ <= startRegionZ + maxRegionRadius;
+                 regionZ++) {
+                ChunkPos candidate = candidateChunk(level.getSeed(), regionX, regionZ, regionSize);
+                long distanceSquared = chunkDistanceSquared(start, candidate);
+                if (distanceSquared >= nearestDistanceSquared
+                        || !isRequestedCandidate(level, start, candidate, name, maxDistanceChunks)) {
+                    continue;
+                }
+                nearest = candidate;
+                nearestDistanceSquared = distanceSquared;
+            }
+        }
+        return nearest;
+    }
+
+    private static boolean isRequestedCandidate(
+            ServerLevel level,
+            ChunkPos start,
+            ChunkPos candidate,
+            String name,
+            int maxDistanceChunks
+    ) {
+        if (Math.abs((long) candidate.x - start.x) > maxDistanceChunks
+                || Math.abs((long) candidate.z - start.z) > maxDistanceChunks) {
+            return false;
+        }
+        return name.equals(selectedNameAt(level, candidate));
+    }
+
+    private static long chunkDistanceSquared(ChunkPos first, ChunkPos second) {
+        long dx = (long) second.x - first.x;
+        long dz = (long) second.z - first.z;
+        return dx * dx + dz * dz;
+    }
+
+    private static int currentRegionSize() {
+        int minChunks = Math.max(0, HbmConfig.HBM_STRUCTURE_MIN_CHUNKS.get());
+        int maxChunks = Math.max(1, HbmConfig.HBM_STRUCTURE_MAX_CHUNKS.get());
+        return maxChunks <= minChunks ? minChunks + 1 : maxChunks;
+    }
+
+    private static ChunkPos candidateChunk(long worldSeed, int regionX, int regionZ, int regionSize) {
+        int minChunks = Math.max(0, HbmConfig.HBM_STRUCTURE_MIN_CHUNKS.get());
+        int spread = Math.max(1, regionSize - minChunks);
+        WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(0L));
+        random.setSeed((long) regionX * 341873128712L + (long) regionZ * 132897987541L + worldSeed + 996996996L);
+        return new ChunkPos(
+                regionX * regionSize + random.nextInt(spread),
+                regionZ * regionSize + random.nextInt(spread)
+        );
+    }
+
     private String legacyStructureName() {
         return this.legacyStructureName;
     }

@@ -8,12 +8,14 @@
     {
       "fluid": "xylene",
       "amount": 500,
-      "pressure": 2
+      "pressure": 2,
+      "pressure_528_only": true
     },
     {
       "fluid": "phosgene",
       "amount": 500,
-      "pressure": 2
+      "pressure": 2,
+      "pressure_528_only": true
     }
   ],
   "output_items": [

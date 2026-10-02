@@ -30,7 +30,9 @@ public final class BobmazonScreen extends Screen {
     private BobmazonScreen(boolean hidden) {
         super(Component.translatable(hidden ? "item.reinhardtshbm.bobmazon_hidden" : "item.reinhardtshbm.bobmazon"));
         this.hidden = hidden;
-        this.offers = LegacyBobmazonOffers.offers(hidden);
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) throw new IllegalStateException("Bobmazon catalog opened without a client level");
+        this.offers = LegacyBobmazonOffers.offers(hidden, minecraft.level.registryAccess());
     }
 
     public static void open(boolean hidden) { Minecraft.getInstance().setScreen(new BobmazonScreen(hidden)); }
@@ -53,16 +55,33 @@ public final class BobmazonScreen extends Screen {
             graphics.renderItem(offer.stack(), x + 1, y + 1);
             graphics.drawString(font, offer.stack().getHoverName(), leftPos + 54, y + 2, 0x404040, false);
             graphics.drawString(font, offer.caps() + (offer.caps() == 1 ? " Cap" : " Caps"), leftPos + 96, y + 18, 0x404040, false);
-            graphics.drawString(font, Component.translatable("bobmazon.requirement." + offer.requirement().name().toLowerCase()), leftPos + 54, y + 32, 0x606060, false);
+            graphics.drawString(font, requirementName(offer.requirement()), leftPos + 54, y + 32, 0x606060, false);
+            graphics.blit(TEXTURE, leftPos + 73, y + 14, 217, 62, 39, 8);
+            if (offer.rating() > 0) {
+                graphics.blit(TEXTURE, leftPos + 73, y + 14, 217, 54, Math.min(39, offer.rating() * 4 - 1), 8);
+            }
             if (hovered) graphics.renderTooltip(font, offer.stack(), mouseX, mouseY);
         }
         int pages = Math.max(1, (offers.size() + 2) / 3);
+        if (page > 0) graphics.blit(TEXTURE, leftPos + 7, topPos + 107, 217, 18, 18, 18);
+        if (page + 1 < pages) graphics.blit(TEXTURE, leftPos + 192, topPos + 107, 235, 18, 18, 18);
         graphics.drawCenteredString(font, (page + 1) + "/" + pages, leftPos + WIDTH / 2, topPos + 205, 0x404040);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
+            int pages = Math.max(1, (offers.size() + 2) / 3);
+            if (page > 0 && mouseX >= leftPos + 7 && mouseX < leftPos + 25 && mouseY >= topPos + 107 && mouseY < topPos + 125) {
+                page--;
+                clickSound();
+                return true;
+            }
+            if (page + 1 < pages && mouseX >= leftPos + 192 && mouseX < leftPos + 210 && mouseY >= topPos + 107 && mouseY < topPos + 125) {
+                page++;
+                clickSound();
+                return true;
+            }
             int start = page * 3;
             for (int row = 0; row < 3; row++) {
                 int index = start + row;
@@ -70,12 +89,16 @@ public final class BobmazonScreen extends Screen {
                 int y = topPos + 35 + row * 54;
                 if (index < offers.size() && mouseX >= x && mouseX < x + 18 && mouseY >= y && mouseY < y + 18) {
                     PacketDistributor.sendToServer(new BobmazonOrderPayload(index));
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                    clickSound();
                     return true;
                 }
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private static void clickSound() {
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     @Override
@@ -86,6 +109,18 @@ public final class BobmazonScreen extends Screen {
 
     private boolean isCatalog(ItemStack stack) {
         return stack.getItem() instanceof LegacyBobmazonItem item && item.hidden() == hidden;
+    }
+
+    private static Component requirementName(LegacyBobmazonOffers.Requirement requirement) {
+        return switch (requirement) {
+            case NONE -> Component.empty();
+            case STEEL -> Component.translatable("advancements.reinhardtshbm.blast_furnace.title");
+            case ASSEMBLY -> Component.translatable("advancements.reinhardtshbm.assembly.title");
+            case CHEMICS -> Component.translatable("advancements.reinhardtshbm.chemplant.title");
+            case OIL -> Component.translatable("advancements.reinhardtshbm.desh.title");
+            case NUCLEAR -> Component.translatable("advancements.reinhardtshbm.technetium.title");
+            case HIDDEN -> Component.translatable("advancements.reinhardtshbm.hidden.title");
+        };
     }
 
     @Override public boolean isPauseScreen() { return false; }

@@ -1,5 +1,6 @@
 package com.reinhardt.hbm.recipe.anvil;
 
+import com.reinhardt.hbm.config.HbmConfig;
 import net.minecraft.world.item.ItemStack;
 
 public class AnvilSmithingRecipe {
@@ -22,7 +23,7 @@ public class AnvilSmithingRecipe {
     }
 
     public int tier() {
-        return this.tier;
+        return HbmConfig.lbsmUnlockAnvil() ? 1 : this.tier;
     }
 
     public ItemStack displayOutput() {

@@ -21,7 +21,8 @@
     {
       "fluid": "petroleum",
       "amount": 1000,
-      "pressure": 1
+      "pressure": 1,
+      "pressure_528_only": true
     }
   ],
   "output_items": [

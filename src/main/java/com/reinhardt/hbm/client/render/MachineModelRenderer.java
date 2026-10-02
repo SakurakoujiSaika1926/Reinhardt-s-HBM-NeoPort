@@ -15,6 +15,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.RenderTypeHelper;
@@ -22,6 +23,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -32,6 +34,7 @@ final class MachineModelRenderer {
     private static final RandomSource RANDOM = RandomSource.create();
     private static final Direction[] DIRECTIONS = Direction.values();
     private static final Map<ModelResourceLocation, BakedModel> MODEL_CACHE = new ConcurrentHashMap<>();
+    private static final ThreadLocal<RenderScratch> RENDER_SCRATCH = ThreadLocal.withInitial(RenderScratch::new);
 
     private MachineModelRenderer() {
     }
@@ -53,7 +56,9 @@ final class MachineModelRenderer {
 
     /** Combines the level view transform with a block entity's local pose for direct VBO draws. */
     static Matrix4f composeModelView(PoseStack poseStack) {
-        return new Matrix4f(RenderSystem.getModelViewMatrix()).mul(poseStack.last().pose());
+        return RENDER_SCRATCH.get().modelView
+                .set(RenderSystem.getModelViewMatrix())
+                .mul(poseStack.last().pose());
     }
 
     static Quaternionf xQuaternion(float degrees) {
@@ -94,6 +99,22 @@ final class MachineModelRenderer {
             VertexConsumer consumer = bufferSource.getBuffer(entityRenderType);
             renderQuads(model, poseStack, consumer, state, packedLight, packedOverlay, renderType);
         }
+    }
+
+    /** Emits one source layer into a caller-owned static buffer. */
+    static void emitUnculledLayer(BakedModel model, PoseStack poseStack, VertexConsumer consumer,
+                                  BlockState state, int packedLight, int packedOverlay,
+                                  RenderType sourceRenderType) {
+        renderQuads(model, poseStack, consumer, state, packedLight, packedOverlay, sourceRenderType);
+    }
+
+    /** Emits one source layer through the legacy standalone-texture UV path into a static buffer. */
+    static void emitUnculledStandaloneTextureLayer(BakedModel model, PoseStack poseStack,
+                                                    VertexConsumer consumer, BlockState state,
+                                                    int packedLight, int packedOverlay,
+                                                    RenderType sourceRenderType) {
+        renderQuadsStandaloneTexture(model, poseStack, consumer, state, packedLight, packedOverlay,
+                sourceRenderType, 0.0F, 0.0F);
     }
 
     /** Renders an opaque model with the old GL texture-matrix UV offset. */
@@ -324,16 +345,87 @@ final class MachineModelRenderer {
     private static void renderQuadList(List<BakedQuad> quads, PoseStack.Pose pose, VertexConsumer consumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, float uOffset, float vOffset, float uScale, float vScale) {
         for (BakedQuad quad : quads) {
             if (uOffset == 0.0F && vOffset == 0.0F && uScale == 1.0F && vScale == 1.0F) {
-                consumer.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay, true);
+                putBulkDataAllocationFree(consumer, pose, quad, red, green, blue, alpha, packedLight, packedOverlay);
             } else {
                 putBulkDataUvTransform(consumer, pose, quad, red, green, blue, alpha, packedLight, packedOverlay, uOffset, vOffset, uScale, vScale);
             }
         }
     }
 
+    /**
+     * Allocation-free equivalent of NeoForge's no-per-vertex-shading
+     * {@code putBulkData(..., true)} overload.  The platform overload creates
+     * two four-element arrays per quad and vanilla additionally creates JOML
+     * vectors for the face and every vertex.  Machine block entities submit
+     * the same immutable baked quads every frame, so those short-lived objects
+     * are pure GC pressure.
+     */
+    private static void putBulkDataAllocationFree(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad,
+                                                   float red, float green, float blue, float alpha,
+                                                   int packedLight, int packedOverlay) {
+        int[] vertices = quad.getVertices();
+        int stride = vertices.length / 4;
+        RenderScratch scratch = RENDER_SCRATCH.get();
+        Vector3f position = scratch.position;
+        Vector3f normal = scratch.normal;
+        pose.transformNormal(
+                quad.getDirection().getStepX(),
+                quad.getDirection().getStepY(),
+                quad.getDirection().getStepZ(),
+                normal
+        );
+
+        for (int vertex = 0; vertex < 4; vertex++) {
+            int base = vertex * stride;
+            pose.pose().transformPosition(
+                    Float.intBitsToFloat(vertices[base]),
+                    Float.intBitsToFloat(vertices[base + 1]),
+                    Float.intBitsToFloat(vertices[base + 2]),
+                    position
+            );
+
+            int packedColor = vertices[base + 3];
+            int color = FastColor.ARGB32.color(
+                    (int) ((alpha * ((packedColor >>> 24) & 0xFF) / 255.0F) * 255.0F),
+                    (int) ((packedColor & 0xFF) * red),
+                    (int) (((packedColor >>> 8) & 0xFF) * green),
+                    (int) (((packedColor >>> 16) & 0xFF) * blue)
+            );
+            int light = mergePackedLight(packedLight, stride > 6 ? vertices[base + 6] : 0);
+
+            int packedNormal = packedNormal(vertices, base, stride);
+            if ((packedNormal & 0x00FFFFFF) != 0) {
+                normal.set(
+                        unpackNormalX(packedNormal),
+                        unpackNormalY(packedNormal),
+                        unpackNormalZ(packedNormal)
+                ).mul(pose.normal());
+            }
+
+            consumer.addVertex(
+                    position.x(), position.y(), position.z(),
+                    color,
+                    Float.intBitsToFloat(vertices[base + 4]),
+                    Float.intBitsToFloat(vertices[base + 5]),
+                    packedOverlay,
+                    light,
+                    normal.x(), normal.y(), normal.z()
+            );
+        }
+    }
+
     private static void putBulkDataUvTransform(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay, float uOffset, float vOffset, float uScale, float vScale) {
         int[] vertices = quad.getVertices();
         int stride = vertices.length / 4;
+        RenderScratch scratch = RENDER_SCRATCH.get();
+        Vector3f position = scratch.position;
+        Vector3f normal = scratch.normal;
+        int color = FastColor.ARGB32.color(
+                Math.round(alpha * 255.0F),
+                Math.round(red * 255.0F),
+                Math.round(green * 255.0F),
+                Math.round(blue * 255.0F)
+        );
         for (int vertex = 0; vertex < 4; vertex++) {
             int base = vertex * stride;
             float x = Float.intBitsToFloat(vertices[base]);
@@ -341,13 +433,19 @@ final class MachineModelRenderer {
             float z = Float.intBitsToFloat(vertices[base + 2]);
             float u = transformSpriteU(quad.getSprite(), Float.intBitsToFloat(vertices[base + 4]), uOffset, uScale);
             float v = transformSpriteV(quad.getSprite(), Float.intBitsToFloat(vertices[base + 5]), vOffset, vScale);
-            float[] normal = unpackNormal(vertices, base, stride, quad.getDirection());
-            consumer.addVertex(pose, x, y, z)
-                    .setColor(Math.round(red * 255.0F), Math.round(green * 255.0F), Math.round(blue * 255.0F), Math.round(alpha * 255.0F))
-                    .setUv(u, v)
-                    .setOverlay(packedOverlay)
-                    .setLight(packedLight)
-                    .setNormal(pose, normal[0], normal[1], normal[2]);
+            int packedNormal = packedNormal(vertices, base, stride);
+            float normalX = unpackNormalX(packedNormal);
+            float normalY = unpackNormalY(packedNormal);
+            float normalZ = unpackNormalZ(packedNormal);
+            if (normalX == 0.0F && normalY == 0.0F && normalZ == 0.0F) {
+                normalX = quad.getDirection().getStepX();
+                normalY = quad.getDirection().getStepY();
+                normalZ = quad.getDirection().getStepZ();
+            }
+            pose.pose().transformPosition(x, y, z, position);
+            pose.transformNormal(normalX, normalY, normalZ, normal);
+            consumer.addVertex(position.x(), position.y(), position.z(), color, u, v,
+                    packedOverlay, packedLight, normal.x(), normal.y(), normal.z());
         }
     }
 
@@ -361,6 +459,15 @@ final class MachineModelRenderer {
     private static void renderStandaloneTextureQuadList(List<BakedQuad> quads, PoseStack.Pose pose,
                                                         VertexConsumer consumer, int packedLight, int packedOverlay,
                                                         float uOffset, float vOffset, float red, float green, float blue, float alpha) {
+        RenderScratch scratch = RENDER_SCRATCH.get();
+        Vector3f position = scratch.position;
+        Vector3f normal = scratch.normal;
+        int color = FastColor.ARGB32.color(
+                Math.round(alpha * 255.0F),
+                Math.round(red * 255.0F),
+                Math.round(green * 255.0F),
+                Math.round(blue * 255.0F)
+        );
         for (BakedQuad quad : quads) {
             int[] vertices = quad.getVertices();
             int stride = vertices.length / 4;
@@ -372,15 +479,27 @@ final class MachineModelRenderer {
                 float z = Float.intBitsToFloat(vertices[base + 2]);
                 float u = normalizeSpriteCoordinate(Float.intBitsToFloat(vertices[base + 4]), sprite.getU0(), sprite.getU1()) + uOffset;
                 float v = normalizeSpriteCoordinate(Float.intBitsToFloat(vertices[base + 5]), sprite.getV0(), sprite.getV1()) + vOffset;
-                float[] normal = unpackNormal(vertices, base, stride, quad.getDirection());
-                consumer.addVertex(pose, x, y, z)
-                        .setColor(Math.round(red * 255.0F), Math.round(green * 255.0F), Math.round(blue * 255.0F), Math.round(alpha * 255.0F))
-                        .setUv(u, v)
-                        .setOverlay(packedOverlay)
-                        .setLight(packedLight)
-                        .setNormal(pose, normal[0], normal[1], normal[2]);
+                int packedNormal = packedNormal(vertices, base, stride);
+                float normalX = unpackNormalX(packedNormal);
+                float normalY = unpackNormalY(packedNormal);
+                float normalZ = unpackNormalZ(packedNormal);
+                if (normalX == 0.0F && normalY == 0.0F && normalZ == 0.0F) {
+                    normalX = quad.getDirection().getStepX();
+                    normalY = quad.getDirection().getStepY();
+                    normalZ = quad.getDirection().getStepZ();
+                }
+                pose.pose().transformPosition(x, y, z, position);
+                pose.transformNormal(normalX, normalY, normalZ, normal);
+                consumer.addVertex(position.x(), position.y(), position.z(), color, u, v,
+                        packedOverlay, packedLight, normal.x(), normal.y(), normal.z());
             }
         }
+    }
+
+    private static int mergePackedLight(int requested, int baked) {
+        int block = Math.max(requested & 0xFFFF, baked & 0xFFFF);
+        int sky = Math.max((requested >>> 16) & 0xFFFF, (baked >>> 16) & 0xFFFF);
+        return block | (sky << 16);
     }
 
     private static float normalizeSpriteCoordinate(float value, float min, float max) {
@@ -388,17 +507,20 @@ final class MachineModelRenderer {
         return width <= 0.0F ? value : (value - min) / width;
     }
 
-    private static float[] unpackNormal(int[] vertices, int base, int stride, Direction fallback) {
-        if (stride > 7) {
-            int packed = vertices[base + 7];
-            float x = (byte) (packed & 0xFF) / 127.0F;
-            float y = (byte) ((packed >>> 8) & 0xFF) / 127.0F;
-            float z = (byte) ((packed >>> 16) & 0xFF) / 127.0F;
-            if (x != 0.0F || y != 0.0F || z != 0.0F) {
-                return new float[]{x, y, z};
-            }
-        }
-        return new float[]{fallback.getStepX(), fallback.getStepY(), fallback.getStepZ()};
+    private static int packedNormal(int[] vertices, int base, int stride) {
+        return stride > 7 ? vertices[base + 7] : 0;
+    }
+
+    private static float unpackNormalX(int packed) {
+        return (byte) (packed & 0xFF) / 127.0F;
+    }
+
+    private static float unpackNormalY(int packed) {
+        return (byte) ((packed >>> 8) & 0xFF) / 127.0F;
+    }
+
+    private static float unpackNormalZ(int packed) {
+        return (byte) ((packed >>> 16) & 0xFF) / 127.0F;
     }
 
     private static float transformSpriteU(TextureAtlasSprite sprite, float u, float offset, float scale) {
@@ -411,6 +533,12 @@ final class MachineModelRenderer {
         float min = sprite.getV0();
         float max = sprite.getV1();
         return transformSpriteCoordinate(v, offset, scale, min, max);
+    }
+
+    private static final class RenderScratch {
+        private final Matrix4f modelView = new Matrix4f();
+        private final Vector3f position = new Vector3f();
+        private final Vector3f normal = new Vector3f();
     }
 
     private static float transformSpriteCoordinate(float value, float offset, float scale, float min, float max) {

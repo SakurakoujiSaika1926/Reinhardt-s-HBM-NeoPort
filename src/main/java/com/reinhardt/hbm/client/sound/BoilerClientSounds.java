@@ -91,6 +91,7 @@ public final class BoilerClientSounds {
             this.volume = distance >= AUDIBLE_DISTANCE
                     ? 0.0F
                     : (float) (0.125D * (1.0D - distance / AUDIBLE_DISTANCE));
+            this.volume = com.reinhardt.hbm.util.MachineMuffler.attenuate(blockEntity, this.volume);
         }
 
         @Override

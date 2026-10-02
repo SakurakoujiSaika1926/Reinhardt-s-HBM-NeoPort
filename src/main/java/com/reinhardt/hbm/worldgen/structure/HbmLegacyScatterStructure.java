@@ -115,6 +115,19 @@ public final class HbmLegacyScatterStructure extends Structure {
                 .toList();
     }
 
+    /**
+     * Parses every data-backed scatter template during common setup. This
+     * prevents malformed legacy metadata from first surfacing later on an
+     * asynchronous chunk-generation worker.
+     */
+    public static void validateTemplates() {
+        for (Kind kind : Kind.values()) {
+            if (kind != Kind.JUNGLE_DUNGEON) {
+                HbmLegacyScatterTemplate.get(kind.templateName());
+            }
+        }
+    }
+
     public static String selectedNameAt(net.minecraft.server.level.ServerLevel level, ChunkPos chunk, String name) {
         Kind kind = Kind.byName(name);
         if (kind == null || !HbmConfig.legacyDungeonGenerationEnabled(HbmConfig.GENERATE_HBM_STRUCTURES.get())) {

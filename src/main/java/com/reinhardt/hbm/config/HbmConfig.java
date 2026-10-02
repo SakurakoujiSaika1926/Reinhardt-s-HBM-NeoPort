@@ -10,16 +10,48 @@ public final class HbmConfig {
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.BooleanValue ENABLE_528_MODE;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_FORCE_REASIM_BOILERS;
     public static final ModConfigSpec.BooleanValue ENABLE_528_COLTAN_DEPOSIT;
     public static final ModConfigSpec.BooleanValue ENABLE_528_COLTAN_SPAWN;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_NETHER_BURN;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_PRESSURIZED_RECIPES;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_EXPLOSIVE_ENERGISTICS;
+    public static final ModConfigSpec.BooleanValue ENABLE_528_MACHINE_GRAVITY;
     public static final ModConfigSpec.BooleanValue ENABLE_EXPENSIVE_MODE;
     public static final ModConfigSpec.BooleanValue ENABLE_INFINITE_WATER_TANK_RECIPES;
     public static final ModConfigSpec.BooleanValue ENABLE_BOMBER_SHORT_MODE;
+    /** 1.7.10 GeneralConfig.enableCataclysm; drops a burning FOEQ for every real mob death. */
+    public static final ModConfigSpec.BooleanValue ENABLE_CATACLYSM;
+    /** 1.7.10 GeneralConfig.enableLBSM; mutually exclusive with 528 mode. */
+    public static final ModConfigSpec.BooleanValue ENABLE_LESS_BULLSHIT_MODE;
+    public static final ModConfigSpec.BooleanValue LBSM_FULL_SCHRAB;
+    public static final ModConfigSpec.BooleanValue LBSM_SHORTER_DECAY;
+    public static final ModConfigSpec.BooleanValue LBSM_SIMPLE_ARMOR_RECIPES;
+    public static final ModConfigSpec.BooleanValue LBSM_SIMPLE_TOOL_RECIPES;
+    public static final ModConfigSpec.BooleanValue LBSM_SIMPLE_ALLOY;
+    public static final ModConfigSpec.BooleanValue LBSM_SIMPLE_CHEMISTRY;
+    public static final ModConfigSpec.BooleanValue LBSM_SIMPLE_CENTRIFUGE;
+    public static final ModConfigSpec.BooleanValue LBSM_UNLOCK_ANVIL;
+    public static final ModConfigSpec.BooleanValue LBSM_SIMPLE_CRAFTING;
+    public static final ModConfigSpec.BooleanValue LBSM_SIMPLE_MEDICINE_RECIPES;
+    public static final ModConfigSpec.BooleanValue LBSM_SAFE_CRATES;
+    public static final ModConfigSpec.BooleanValue LBSM_SAFE_ME_DRIVES;
+    public static final ModConfigSpec.IntValue LBSM_SCHRAB_RATE;
     public static final ModConfigSpec.BooleanValue ENABLE_VIRUS;
+    /** Allows glowing mushrooms to convert waste earth into waste mycelium. */
+    public static final ModConfigSpec.BooleanValue ENABLE_MYCELIUM_SPREAD;
     public static final ModConfigSpec.BooleanValue DROPPED_XEN_CRYSTAL_EFFECT;
+    public static final ModConfigSpec.BooleanValue DROPPED_ANTIMATTER_CELL_EFFECT;
+    /** 1.7.10 BombConfig.aSchrabRadius; radius of a dropped anti-schrabidium cell. */
+    public static final ModConfigSpec.IntValue DROPPED_ANTI_SCHRABIDIUM_RADIUS;
+    public static final ModConfigSpec.BooleanValue DROPPED_SINGULARITY_EFFECT;
     public static final ModConfigSpec.BooleanValue SCALE_RTG_POWER;
     public static final ModConfigSpec.BooleanValue ENABLE_RTG_DECAY;
+    public static final ModConfigSpec.BooleanValue ENABLE_MACHINE_GRAVITY;
     public static final ModConfigSpec.IntValue AUTOCAL_MAX_CLOCK;
+    public static final ModConfigSpec.IntValue CONVEYOR_CRAM_MAX;
+    public static final ModConfigSpec.BooleanValue CONVEYOR_CRAM_EXPLODE;
+    public static final ModConfigSpec.BooleanValue ULTRA_LARP_MODE;
     public static final ModConfigSpec.IntValue INDUSTRIAL_TURBINE_INPUT_CAPACITY;
     public static final ModConfigSpec.IntValue INDUSTRIAL_TURBINE_OUTPUT_CAPACITY;
     public static final ModConfigSpec.DoubleValue INDUSTRIAL_TURBINE_EFFICIENCY;
@@ -230,12 +262,14 @@ public final class HbmConfig {
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_LIGHTHOUSE_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_BEACHED_PATROL_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_DISH_WEIGHT;
+    public static final ModConfigSpec.IntValue HBM_STRUCTURE_WATER_PUMP_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_FOREST_CHEM_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_PLANE1_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_PLANE2_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_DESERT_SHACK1_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_DESERT_SHACK2_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_DESERT_SHACK3_WEIGHT;
+    public static final ModConfigSpec.IntValue HBM_STRUCTURE_DEAD_DISH_SMALL_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_LABORATORY_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_FOREST_POST_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_FACTORY_WEIGHT;
@@ -255,6 +289,10 @@ public final class HbmConfig {
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_RUIN_H_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_RUIN_I_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_RUIN_J_WEIGHT;
+    public static final ModConfigSpec.IntValue HBM_STRUCTURE_TOWER_BASE_WEIGHT;
+    public static final ModConfigSpec.IntValue HBM_STRUCTURE_FALLOUT_SHELTER_HOUSE_WEIGHT;
+    public static final ModConfigSpec.IntValue HBM_STRUCTURE_ABANDONED_ARCTIC_STATION_WEIGHT;
+    public static final ModConfigSpec.IntValue HBM_STRUCTURE_MILITARY_BASE_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_PLAINS_NULL_WEIGHT;
     public static final ModConfigSpec.IntValue HBM_STRUCTURE_OCEAN_NULL_WEIGHT;
     public static final ModConfigSpec.IntValue ANCIENT_TOMB_SPAWN_CHANCE;
@@ -281,17 +319,83 @@ public final class HbmConfig {
 
         builder.push("528");
         ENABLE_528_MODE = builder
-                .comment("是否启用 HBM 528 模式。默认与 HBM 1.12.2 一致：false。启用后部分机器和配方会使用 528 模式。")
+                .comment("是否启用 HBM 528 模式。默认与 HBM 1.12.2 一致：false。普通模式配方全部开放；启用后部分机器和配方会使用 528 模式，并启用完整蓝图权限。")
                 .define("enable528Mode", false);
+        ENABLE_528_FORCE_REASIM_BOILERS = builder
+                .comment("528 模式下强制启用 RBMK ReaSim 锅炉。仅在 enable528Mode=true 时生效；旧版默认：true。")
+                .define("forceReasimBoilers", true);
         ENABLE_528_COLTAN_DEPOSIT = builder
                 .comment("是否生成由世界种子决定的钶钽大型矿区。对应 HBM 1.7.10 GeneralConfig.enable528ColtanDeposit，默认：true。")
                 .define("enable528ColtanDeposit", true);
         ENABLE_528_COLTAN_SPAWN = builder
                 .comment("是否让钶钽矿作为普通随机矿脉生成。对应 HBM 1.7.10 GeneralConfig.enable528ColtanSpawn，默认：false。")
                 .define("enable528ColtanSpawning", false);
+        ENABLE_528_NETHER_BURN = builder
+                .comment("528 模式下使无火焰免疫的玩家在下界持续燃烧。仅在 enable528Mode=true 时生效；旧版默认：true。")
+                .define("enableNetherBurn", true);
+        ENABLE_528_PRESSURIZED_RECIPES = builder
+                .comment("528 模式下启用化工配方的加压流体要求。仅在 enable528Mode=true 时生效；旧版默认：true。")
+                .define("enablePressurizedRecipes", true);
+        ENABLE_528_EXPLOSIVE_ENERGISTICS = builder
+                .comment("528 模式下右键 AE2 方块会将其破坏并引爆。仅在 enable528Mode=true 时生效；旧版默认：true。")
+                .define("enableExplosiveEnergistics", true);
+        ENABLE_528_MACHINE_GRAVITY = builder
+                .comment("528 模式下要求旧版指定的大型机器具有合格地基。仅在 enable528Mode=true 时生效；旧版默认：true。")
+                .define("enableMachineGravity", true);
         ENABLE_EXPENSIVE_MODE = builder
-                .comment("是否启用 HBM 1.7.10 昂贵模式。影响精密装配机故障产物的材料回收率。")
+                .comment("是否启用 HBM 1.7.10 昂贵模式。独立于 528 模式；切换 inputItemsEx 机器配方，并影响精密装配机故障产物的材料回收率。")
                 .define("enableExpensiveMode", false);
+        builder.pop();
+
+        builder.push("general");
+        ENABLE_CATACLYSM = builder
+                .comment("每个生物真正死亡时从 Y=500 坠落一枚燃烧中的 FOEQ 卫星。严格对应 HBM 1.7.10 enableCataclysm，默认：false。")
+                .define("enableCataclysm", false);
+        builder.pop();
+
+        builder.push("less_bullshit_mode");
+        ENABLE_LESS_BULLSHIT_MODE = builder
+                .comment("HBM 1.7.10 Less Bullshit Mode 总开关。528 模式启用时强制失效。默认：false。")
+                .define("enableLessBullshitMode", false);
+        LBSM_FULL_SCHRAB = builder
+                .comment("将嬗变器的锶铀合金产物替换为完整施拉比锭。旧版默认：true。")
+                .define("fullSchrab", true);
+        LBSM_SHORTER_DECAY = builder
+                .comment("大幅缩短核废料桶衰变时间。旧版默认：true。")
+                .define("shorterDecay", true);
+        LBSM_SIMPLE_ARMOR_RECIPES = builder
+                .comment("启用简化的星辉金属与施拉比护甲配方。旧版默认：true。")
+                .define("simpleArmorRecipes", true);
+        LBSM_SIMPLE_TOOL_RECIPES = builder
+                .comment("启用简化的钴装饰、星辉金属与施拉比工具配方。旧版默认：true。")
+                .define("simpleToolRecipes", true);
+        LBSM_SIMPLE_ALLOY = builder
+                .comment("启用旧版 LBSM 简化合金选项。旧版最新版保留该开关但没有消费点；默认：true。")
+                .define("simpleAlloy", true);
+        LBSM_SIMPLE_CHEMISTRY = builder
+                .comment("启用简化的化工厂与高炉化学配方。旧版默认：true。")
+                .define("simpleChemistry", true);
+        LBSM_SIMPLE_CENTRIFUGE = builder
+                .comment("提高离心机若干矿石配方的产出。旧版默认：true。")
+                .define("simpleCentrifuge", true);
+        LBSM_UNLOCK_ANVIL = builder
+                .comment("将全部砧配方开放到等级 1。旧版默认：true。")
+                .define("unlockAnvil", true);
+        LBSM_SIMPLE_CRAFTING = builder
+                .comment("启用旧版 LBSM 的简化合成与焊接配方。旧版默认：true。")
+                .define("simpleCrafting", true);
+        LBSM_SIMPLE_MEDICINE_RECIPES = builder
+                .comment("启用更便宜的 Siox 与 Xanax 配方。旧版默认：true。")
+                .define("simpleMedicineRecipes", true);
+        LBSM_SAFE_CRATES = builder
+                .comment("阻止容器内容向外传递辐射。当前新版辐射扫描不递归容器，因此保持旧版开关以维持配置对齐。旧版默认：true。")
+                .define("safeCrates", true);
+        LBSM_SAFE_ME_DRIVES = builder
+                .comment("阻止 AE 存储内容向外传递辐射。当前新版辐射扫描不递归 AE 存储，因此保持旧版开关以维持配置对齐。旧版默认：true。")
+                .define("safeMEDrives", true);
+        LBSM_SCHRAB_RATE = builder
+                .comment("核爆将铀矿转化为施拉比矿石的平均分母。旧版 LBSM 默认：20。")
+                .defineInRange("schrabRate", 20, 1, Integer.MAX_VALUE);
         builder.pop();
 
         builder.push("recipes");
@@ -313,12 +417,27 @@ public final class HbmConfig {
         DROPPED_XEN_CRYSTAL_EFFECT = builder
                 .comment("Whether dropped Xen crystals move terrain. HBM 1.7.10 default: true.")
                 .define("droppedXenCrystalEffect", true);
+        DROPPED_ANTIMATTER_CELL_EFFECT = builder
+                .comment("Whether dropped antimatter cells and pellets detonate. HBM 1.7.10 WeaponConfig.dropCell default: true. The dropped item is consumed either way.")
+                .define("droppedAntimatterCellEffect", true);
+        DROPPED_ANTI_SCHRABIDIUM_RADIUS = builder
+                .comment("Radius of the Fleija blast created by a dropped anti-schrabidium cell. HBM 1.7.10 BombConfig.aSchrabRadius default: 20.")
+                .defineInRange("droppedAntiSchrabidiumRadius", 20, 1, 1000);
+        DROPPED_SINGULARITY_EFFECT = builder
+                .comment("Whether dropped singularities, black holes and digamma particles spawn their singularity effect. HBM 1.7.10 WeaponConfig.dropSing default: true. The dropped item is consumed either way.")
+                .define("droppedSingularityEffect", true);
         ENABLE_VIRUS = builder
                 .comment("Allow crystal virus blocks to spread. HBM 1.7.10 default: false.")
                 .define("enableVirus", false);
+        ENABLE_MYCELIUM_SPREAD = builder
+                .comment("Allow glowing mushrooms to spread waste mycelium beneath them. HBM 1.7.10 default: false.")
+                .define("enableMyceliumSpread", false);
         builder.pop();
 
         builder.push("machines");
+        ENABLE_MACHINE_GRAVITY = builder
+                .comment("Require the configurable large machines to stand on a proper foundation. Independent from 528 mode, matching HBM 1.7.10 GeneralConfig.enableMachineGravity. Default: false.")
+                .define("enableMachineGravity", false);
         SCALE_RTG_POWER = builder
                 .comment("RTG 燃料输出是否随剩余寿命降低。HBM 1.7.10 默认值：false。")
                 .define("scaleRtgPower", false);
@@ -328,6 +447,15 @@ public final class HbmConfig {
         AUTOCAL_MAX_CLOCK = builder
                 .comment("AUTOCAL MS-ES1 maximum instructions per tick. HBM 1.7.10 default: 20.")
                 .defineInRange("autocalMaxClock", 20, 1, 100);
+        CONVEYOR_CRAM_MAX = builder
+                .comment("传送带同一点允许堆积的移动物体数量。HBM 1.7.10 最新版默认：25。")
+                .defineInRange("conveyorCramMax", 25, 1, Integer.MAX_VALUE);
+        CONVEYOR_CRAM_EXPLODE = builder
+                .comment("传送带物体拥堵超过上限且最老物体存在超过 400 tick 时，是否破坏所在传送带。HBM 1.7.10 最新版默认：true。")
+                .define("conveyorCramExplode", true);
+        ULTRA_LARP_MODE = builder
+                .comment("启用后，大型工业门只能由红石控制；水密门仍可手动开关。HBM 1.7.10 最新版默认：false。")
+                .define("ultraLarpMode", false);
         builder.pop();
 
         builder.push("industrialTurbine");
@@ -973,12 +1101,14 @@ public final class HbmConfig {
         HBM_STRUCTURE_LIGHTHOUSE_WEIGHT = weight(builder, "lighthouseSpawnWeight", "灯塔结构生成权重。", 1);
         HBM_STRUCTURE_BEACHED_PATROL_WEIGHT = weight(builder, "beachedPatrolSpawnWeight", "搁浅巡逻艇结构生成权重。", 15);
         HBM_STRUCTURE_DISH_WEIGHT = weight(builder, "dishSpawnWeight", "碟形天线结构生成权重。", 10);
+        HBM_STRUCTURE_WATER_PUMP_WEIGHT = weight(builder, "waterPumpSpawnWeight", "水泵站结构生成权重。HBM 1.7.10 最新版默认：15。", 15);
         HBM_STRUCTURE_FOREST_CHEM_WEIGHT = weight(builder, "forestChemSpawnWeight", "森林化工结构生成权重。", 30);
         HBM_STRUCTURE_PLANE1_WEIGHT = weight(builder, "plane1SpawnWeight", "坠毁飞机 1 结构生成权重。", 25);
         HBM_STRUCTURE_PLANE2_WEIGHT = weight(builder, "plane2SpawnWeight", "坠毁飞机 2 结构生成权重。", 25);
         HBM_STRUCTURE_DESERT_SHACK1_WEIGHT = weight(builder, "desertShack1SpawnWeight", "沙漠棚屋 1 结构生成权重。", 18);
         HBM_STRUCTURE_DESERT_SHACK2_WEIGHT = weight(builder, "desertShack2SpawnWeight", "沙漠棚屋 2 结构生成权重。", 20);
         HBM_STRUCTURE_DESERT_SHACK3_WEIGHT = weight(builder, "desertShack3SpawnWeight", "沙漠棚屋 3 结构生成权重。", 22);
+        HBM_STRUCTURE_DEAD_DISH_SMALL_WEIGHT = weight(builder, "deadDishSmallSpawnWeight", "小型废弃雷达天线结构生成权重。HBM 1.7.10 最新版默认：15。", 15);
         HBM_STRUCTURE_LABORATORY_WEIGHT = weight(builder, "laboratorySpawnWeight", "实验室结构生成权重。", 20);
         HBM_STRUCTURE_FOREST_POST_WEIGHT = weight(builder, "forestPostSpawnWeight", "森林哨站结构生成权重。", 30);
         HBM_STRUCTURE_FACTORY_WEIGHT = weight(builder, "factorySpawnWeight", "工厂结构生成权重。", 40);
@@ -998,6 +1128,10 @@ public final class HbmConfig {
         HBM_STRUCTURE_RUIN_H_WEIGHT = weight(builder, "ruinHSpawnWeight", "废墟 H 生成权重。", 12);
         HBM_STRUCTURE_RUIN_I_WEIGHT = weight(builder, "ruinISpawnWeight", "废墟 I 生成权重。", 12);
         HBM_STRUCTURE_RUIN_J_WEIGHT = weight(builder, "ruinJSpawnWeight", "废墟 J 生成权重。", 12);
+        HBM_STRUCTURE_TOWER_BASE_WEIGHT = weight(builder, "towerBaseSpawnWeight", "塔基结构生成权重。HBM 1.7.10 最新版默认：30。", 30);
+        HBM_STRUCTURE_FALLOUT_SHELTER_HOUSE_WEIGHT = weight(builder, "falloutShelterHouseSpawnWeight", "辐射避难所住宅结构生成权重。HBM 1.7.10 最新版默认：15。", 15);
+        HBM_STRUCTURE_ABANDONED_ARCTIC_STATION_WEIGHT = weight(builder, "abandonedArcticStationSpawnWeight", "废弃北极站结构生成权重。HBM 1.7.10 最新版默认：5。", 5);
+        HBM_STRUCTURE_MILITARY_BASE_WEIGHT = weight(builder, "militaryBaseSpawnWeight", "军事基地结构生成权重。HBM 1.7.10 最新版默认：1。", 1);
         HBM_STRUCTURE_PLAINS_NULL_WEIGHT = weight(builder, "plainsNullWeight", "平原结构空结果权重。", 20);
         HBM_STRUCTURE_OCEAN_NULL_WEIGHT = weight(builder, "oceanNullWeight", "海洋结构空结果权重。", 35);
         ANCIENT_TOMB_SPAWN_CHANCE = builder
@@ -1031,8 +1165,8 @@ public final class HbmConfig {
                 .comment("旧版地表反步兵地雷生成间隔。HBM 1.7.10 WorldConfig.minefreq 默认：64；设置为 0 可禁用。")
                 .defineInRange("landmineSpawnRate", 64, 0, 1_000_000);
         ENABLE_528_BOSNIA_MINES = builder
-                .comment("是否启用 528 波黑模拟器高爆地雷散点生成。HBM 1.7.10 默认随 528 模式关闭：false。")
-                .define("enable528BosniaMines", false);
+                .comment("是否允许 528 波黑模拟器高爆地雷散点生成。仅在 enable528Mode=true 时生效；旧版子开关默认：true。")
+                .define("enable528BosniaMines", true);
         ENABLE_WORLDGEN_VAULTS = builder
                 .comment("是否生成旧版地表保险箱。对应 HBM 1.7.10 GeneralConfig.enableVaults，默认：true。")
                 .define("enableWorldgenVaults", true);
@@ -1090,9 +1224,96 @@ public final class HbmConfig {
         return ENABLE_528_MODE.get() || ENABLE_RTG_DECAY.get();
     }
 
+    /** Mirrors GeneralConfig: 528 mode forcibly disables LBSM. */
+    public static boolean lessBullshitMode() {
+        return !ENABLE_528_MODE.get() && ENABLE_LESS_BULLSHIT_MODE.get();
+    }
+
+    public static boolean lbsmFullSchrab() {
+        return lessBullshitMode() && LBSM_FULL_SCHRAB.get();
+    }
+
+    public static boolean lbsmShorterDecay() {
+        return lessBullshitMode() && LBSM_SHORTER_DECAY.get();
+    }
+
+    public static boolean lbsmSimpleArmorRecipes() {
+        return lessBullshitMode() && LBSM_SIMPLE_ARMOR_RECIPES.get();
+    }
+
+    public static boolean lbsmSimpleToolRecipes() {
+        return lessBullshitMode() && LBSM_SIMPLE_TOOL_RECIPES.get();
+    }
+
+    public static boolean lbsmSimpleAlloy() {
+        return lessBullshitMode() && LBSM_SIMPLE_ALLOY.get();
+    }
+
+    public static boolean lbsmSimpleChemistry() {
+        return lessBullshitMode() && LBSM_SIMPLE_CHEMISTRY.get();
+    }
+
+    public static boolean lbsmSimpleCentrifuge() {
+        return lessBullshitMode() && LBSM_SIMPLE_CENTRIFUGE.get();
+    }
+
+    public static boolean lbsmUnlockAnvil() {
+        return lessBullshitMode() && LBSM_UNLOCK_ANVIL.get();
+    }
+
+    public static boolean lbsmSimpleCrafting() {
+        return lessBullshitMode() && LBSM_SIMPLE_CRAFTING.get();
+    }
+
+    public static boolean lbsmSimpleMedicineRecipes() {
+        return lessBullshitMode() && LBSM_SIMPLE_MEDICINE_RECIPES.get();
+    }
+
+    public static int schrabOreChance() {
+        return lessBullshitMode() ? LBSM_SCHRAB_RATE.get() : 250;
+    }
+
+    public static int longDecayChance() {
+        int minute = 60 * 20;
+        int hour = 60 * minute;
+        return ENABLE_528_MODE.get() ? 15 * hour : lbsmShorterDecay() ? 15 * minute : 3 * hour;
+    }
+
+    public static int shortDecayChance() {
+        int minute = 60 * 20;
+        int hour = 60 * minute;
+        return ENABLE_528_MODE.get() ? 3 * hour : lbsmShorterDecay() ? 3 * minute : 15 * minute;
+    }
+
     /** Mirrors VersatileConfig's 1.7.10 RTG rule: 528 mode forces output scaling. */
     public static boolean scaleRtgPower() {
         return ENABLE_528_MODE.get() || SCALE_RTG_POWER.get();
+    }
+
+    public static boolean reasimBoilers() {
+        return RBMK_REASIM_BOILERS.get()
+                || ENABLE_528_MODE.get() && ENABLE_528_FORCE_REASIM_BOILERS.get();
+    }
+
+    public static boolean bosniaMines() {
+        return ENABLE_528_MODE.get() && ENABLE_528_BOSNIA_MINES.get();
+    }
+
+    public static boolean netherBurn() {
+        return ENABLE_528_MODE.get() && ENABLE_528_NETHER_BURN.get();
+    }
+
+    public static boolean pressurizedRecipes() {
+        return ENABLE_528_MODE.get() && ENABLE_528_PRESSURIZED_RECIPES.get();
+    }
+
+    public static boolean explosiveEnergistics() {
+        return ENABLE_528_MODE.get() && ENABLE_528_EXPLOSIVE_ENERGISTICS.get();
+    }
+
+    public static boolean machineGravity() {
+        return ENABLE_MACHINE_GRAVITY.get()
+                || ENABLE_528_MODE.get() && ENABLE_528_MACHINE_GRAVITY.get();
     }
 
     public static boolean glyphidNaturalScoutSpawn() {

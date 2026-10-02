@@ -18,6 +18,7 @@ public class ChemicalPlantBlockEntityRenderer implements LongRangeBlockEntityRen
     private static final ModelResourceLocation SLIDER = MachineModelRenderer.standalone("block/machine_chemical_plant_slider");
     private static final ModelResourceLocation SPINNER = MachineModelRenderer.standalone("block/machine_chemical_plant_spinner");
     private static final ModelResourceLocation FLUID = MachineModelRenderer.standalone("block/machine_chemical_plant_fluid");
+    private static final StaticMachineVboCache STATIC_MESHES = new StaticMachineVboCache();
 
     public ChemicalPlantBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -86,7 +87,7 @@ public class ChemicalPlantBlockEntityRenderer implements LongRangeBlockEntityRen
             int packedLight,
             int packedOverlay
     ) {
-        MachineModelRenderer.renderUnculled(MachineModelRenderer.model(model), poseStack, bufferSource, state, packedLight, packedOverlay);
+        STATIC_MESHES.render(model, poseStack, state, packedLight, packedOverlay);
     }
 
     private static double sps(double value) {

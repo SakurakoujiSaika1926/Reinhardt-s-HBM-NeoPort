@@ -1,8 +1,10 @@
 package com.reinhardt.hbm.entity;
 
 import com.reinhardt.hbm.config.HbmConfig;
+import com.reinhardt.hbm.api.entity.LegacyRadarDetectable;
 import com.reinhardt.hbm.client.sound.MeteorClientSounds;
 import com.reinhardt.hbm.registry.HbmBlocks;
+import com.reinhardt.hbm.registry.HbmDamageTypes;
 import com.reinhardt.hbm.registry.HbmParticleTypes;
 import com.reinhardt.hbm.registry.HbmSoundEvents;
 import com.reinhardt.hbm.worldgen.MeteoriteGenerator;
@@ -18,13 +20,14 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-public class MeteorEntity extends Entity {
+public class MeteorEntity extends Entity implements LegacyRadarDetectable {
     private static final EntityDataAccessor<Boolean> SAFE =
             SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.BOOLEAN);
 
@@ -170,6 +173,22 @@ public class MeteorEntity extends Entity {
     }
 
     @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (!level().isClientSide && amount >= 250.0F && isEnergyDamage(source)) {
+            discard();
+        }
+        // The legacy meteor consumes the hit without reporting successful damage.
+        return false;
+    }
+
+    private static boolean isEnergyDamage(DamageSource source) {
+        return source.is(HbmDamageTypes.LASER)
+                || source.is(HbmDamageTypes.TAU)
+                || source.is(HbmDamageTypes.MICROWAVE)
+                || source.is(HbmDamageTypes.ELECTRICITY);
+    }
+
+    @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
         return true;
     }
@@ -182,5 +201,30 @@ public class MeteorEntity extends Entity {
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         setSafe(tag.getBoolean("safe"));
+    }
+
+    @Override
+    public String translationKey() {
+        return "gui.reinhardtshbm.radar.target.meteor";
+    }
+
+    @Override
+    public int blipLevel() {
+        return SPECIAL;
+    }
+
+    @Override
+    public boolean canBeSeenBy(Object radar) {
+        return true;
+    }
+
+    @Override
+    public boolean paramsApplicable(RadarScanParams params) {
+        return params.scanMissiles();
+    }
+
+    @Override
+    public boolean suppliesRedstone(RadarScanParams params) {
+        return params.scanMissiles();
     }
 }
